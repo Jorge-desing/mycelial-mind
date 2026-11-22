@@ -3,11 +3,13 @@ package com.alex.mycelialmind.client.screen;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.data.CodexBookData;
 import com.alex.mycelialmind.data.CodexReloadListener;
+import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.network.ClientDiscoveryCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.util.MycelialText;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -127,7 +129,7 @@ public class MycelialCodexBookScreen extends Screen {
     }
 
     /**
-     * Custom necrotic chitin & crimson-vein button matching the eldritch Codex aesthetic.
+     * Custom chitin & mycelial violet button matching the Fungal Hive Mind Codex.
      */
     private static final class CodexButton extends Button {
         private final boolean accent;
@@ -144,22 +146,22 @@ public class MycelialCodexBookScreen extends Screen {
             int border;
             int textColor;
             if (!this.active) {
-                bg = 0x8811080D;
-                border = 0xFF3A1A24;
-                textColor = 0xFF6B4E58;
+                bg = 0x88120C1C;
+                border = 0xFF34244A;
+                textColor = 0xFF5D4F73;
             } else if (hovered) {
-                bg = accent ? 0xEE5E1724 : 0xEE3D1422;
-                border = accent ? 0xFFB5E48C : 0xFFD90429;
-                textColor = 0xFFF8F9FA;
+                bg = accent ? 0xEE4A2B78 : 0xEE352056;
+                border = accent ? 0xFFB5E48C : 0xFF72EFDD;
+                textColor = 0xFFFFFFFF;
             } else {
-                bg = accent ? 0xDD380F19 : 0xCC1C0C14;
-                border = accent ? 0xFF9E2A3B : 0xFF6E2534;
-                textColor = accent ? 0xFFB5E48C : 0xFFE8DCE0;
+                bg = accent ? 0xDD2B1848 : 0xCC1C122E;
+                border = accent ? 0xFF7B48B8 : 0xFF593D82;
+                textColor = accent ? 0xFFB5E48C : 0xFFEDE7F6;
             }
             graphics.fill(getX(), getY(), getX() + width, getY() + height, bg);
             graphics.renderOutline(getX(), getY(), width, height, border);
             if (this.active) {
-                graphics.fill(getX() + 1, getY() + 1, getX() + width - 1, getY() + 2, hovered ? 0x44B5E48C : 0x28D90429);
+                graphics.fill(getX() + 1, getY() + 1, getX() + width - 1, getY() + 2, hovered ? 0x4472EFDD : 0x22B5E48C);
             }
             var font = Minecraft.getInstance().font;
             Component msg = getMessage();
@@ -247,7 +249,7 @@ public class MycelialCodexBookScreen extends Screen {
                 b -> {
                     showSpoilers = !showSpoilers;
                     persistReadingPosition();
-                    playUiSound(ModSounds.HIVE_TRAIT_ADAPT.get(), 0.90F);
+                    playUiSound(ModSounds.BIO_SCANNER_PING.get(), 1.15F);
                     rebuildNav();
                 }, showSpoilers));
 
@@ -401,7 +403,7 @@ public class MycelialCodexBookScreen extends Screen {
         this.textScrollOffset = 0;
         this.searchQuery = "";
         persistReadingPosition();
-        playUiSound(ModSounds.HOMEOSTASIS_HEARTBEAT.get(), 0.85F);
+        playUiSound(ModSounds.SYNAPTIC_PULSE.get(), 1.05F);
         rebuildNav();
     }
 
@@ -419,7 +421,7 @@ public class MycelialCodexBookScreen extends Screen {
         this.textScrollOffset = 0;
         persistReadingPosition();
         updatePageButtonStates();
-        playUiSound(SoundEvents.BOOK_PAGE_TURN, 0.82F);
+        playUiSound(SoundEvents.BOOK_PAGE_TURN, 1.04F);
     }
 
     private void turnPage(int delta) {
@@ -438,7 +440,7 @@ public class MycelialCodexBookScreen extends Screen {
             this.textScrollOffset = 0;
             persistReadingPosition();
             updatePageButtonStates();
-            playUiSound(SoundEvents.BOOK_PAGE_TURN, 0.82F);
+            playUiSound(SoundEvents.BOOK_PAGE_TURN, delta > 0 ? 1.02F : 0.96F);
         }
     }
 
@@ -578,12 +580,12 @@ public class MycelialCodexBookScreen extends Screen {
 
         CodexBookData.Chapter ch = book.chapters().get(chapterIdx);
         renderLeftIndexSpread(graphics, left, top, ch, mouseX, mouseY, pulse);
-        renderRightReadingSpread(graphics, left, top, ch, mouseX, mouseY, pulse);
+        renderRightReadingSpread(graphics, left, top, ch, mouseX, mouseY, threatLevel, pulse);
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
         if (this.searchBox != null && this.searchQuery.isEmpty() && !this.searchBox.isFocused()) {
-            graphics.drawString(this.font, "...", this.searchBox.getX() + 2, this.searchBox.getY() + 1, 0xFF8C5A66, false);
+            graphics.drawString(this.font, "...", this.searchBox.getX() + 2, this.searchBox.getY() + 1, 0xFF7B6796, false);
         }
 
         if (this.hoveredRecipeOrSpotlightStack != null && !this.hoveredRecipeOrSpotlightStack.isEmpty()) {
@@ -594,8 +596,8 @@ public class MycelialCodexBookScreen extends Screen {
     }
 
     /**
-     * Computes an organic Hive-Mind heartbeat intensity in [0.0, 1.0] whose cadence
-     * and baseline amplitude accelerate with {@code threatLevel} (0..100).
+     * Computes an organic Hive-Mind synaptic pulse intensity in [0.0, 1.0] whose cadence
+     * and baseline amplitude scale with {@code threatLevel} (0..100).
      */
     public static float computeHeartbeatIntensity(float threatLevel, long timeMs) {
         float threatNorm = Mth.clamp(threatLevel / 100.0F, 0.0F, 1.0F);
@@ -608,15 +610,14 @@ public class MycelialCodexBookScreen extends Screen {
         double t = nowMs * 0.001;
         int w = Math.max(1, this.width);
         int h = Math.max(1, this.height);
-        for (int i = 0; i < 22; i++) {
+        for (int i = 0; i < 24; i++) {
             float seedX = ((i * 73 + 19) % 100) / 100.0F;
             float seedY = ((i * 41 + 37) % 100) / 100.0F;
-            double driftY = (seedY - t * (0.025 + (i % 4) * 0.008)) % 1.0;
+            double driftY = (seedY - t * (0.024 + (i % 4) * 0.007)) % 1.0;
             if (driftY < 0.0) driftY += 1.0;
-            double swayX = seedX + Math.sin(t * 0.9 + i * 1.7) * 0.028;
+            double swayX = seedX + Math.sin(t * 0.85 + i * 1.6) * 0.028;
             int sx = Mth.clamp((int) (swayX * w), 2, w - 4);
             int sy = Mth.clamp((int) (driftY * h), 2, h - 4);
-            // Keep drifting spores outside the readable parchment interiors so text stays crystal-clear
             boolean insideReadZone = sx > left + INDEX_X_OFFSET + 4
                     && sx < left + PANEL_W - 8
                     && sy > top + 28
@@ -625,10 +626,10 @@ public class MycelialCodexBookScreen extends Screen {
                 continue;
             }
             int size = (i % 5 == 0) ? 3 : 2;
-            int alpha = Math.round(55 + 75 * pulse) << 24;
+            int alpha = Math.round(60 + 75 * pulse) << 24;
             int rgb = switch (i % 3) {
-                case 0 -> 0xB5E48C; // Toxic spore chartreuse
-                case 1 -> 0xD90429; // Hive crimson vein
+                case 0 -> 0xB5E48C; // Bioluminescent spore chartreuse
+                case 1 -> 0x72EFDD; // Synaptic cyan glow
                 default -> 0x9B4DFF; // Mycelial amethyst mist
             };
             graphics.fill(sx, sy, sx + size, sy + size, alpha | rgb);
@@ -642,9 +643,9 @@ public class MycelialCodexBookScreen extends Screen {
             int ty = active ? tab.y() - 2 : (hovered ? tab.y() - 1 : tab.y());
             int u = active ? 90 : 68;
             graphics.blit(CODEX_GUI_TEXTURE, tab.x(), ty, u, 204, 20, 18, 256, 256);
-            graphics.fill(tab.x() + 20, ty, tab.x() + tab.w(), ty + 18, active ? 0xFF6E1A2A : 0xFF28151D);
+            graphics.fill(tab.x() + 20, ty, tab.x() + tab.w(), ty + 18, active ? 0xFF5A3286 : 0xFF281D3A);
             if (active || hovered) {
-                int outline = active ? lerpBioColor(0xFFB5E48C, 0xFFE9FF70, pulse) : 0xFFD90429;
+                int outline = active ? lerpBioColor(0xFFB5E48C, 0xFF72EFDD, pulse) : 0xFF9B4DFF;
                 graphics.renderOutline(tab.x(), ty, tab.w(), 18, outline);
             }
             graphics.pose().pushPose();
@@ -660,46 +661,46 @@ public class MycelialCodexBookScreen extends Screen {
     }
 
     private void renderBookTomeFrame(GuiGraphics graphics, int left, int top, float threatLevel, float pulse) {
-        // Outer necrotic chitin shell & pulsing Hive crimson-spore border
-        graphics.fill(left - 3, top - 3, left + PANEL_W + 3, top + PANEL_H + 3, 0xCC070408);
-        graphics.fill(left, top, left + PANEL_W, top + PANEL_H, 0xFF160B12);
+        // Outer chitin carapace & pulsing mycelial/Hive-Mind synaptic border
+        graphics.fill(left - 3, top - 3, left + PANEL_W + 3, top + PANEL_H + 3, 0xCC09060E);
+        graphics.fill(left, top, left + PANEL_W, top + PANEL_H, 0xFF171124);
         int outerBorder = threatLevel >= 50.0F
-                ? lerpBioColor(0xFF7A1C2A, 0xFFD90429, pulse)
-                : lerpBioColor(0xFF5E2B38, 0xFF9E2A3B, pulse);
-        int innerBorder = lerpBioColor(0xFF8C7E70, 0xFFB5E48C, pulse * (threatLevel >= 50.0F ? 0.55F : 0.25F));
+                ? lerpBioColor(0xFF7B2CBF, 0xFF72EFDD, pulse)
+                : lerpBioColor(0xFF5A3E85, 0xFF9B4DFF, pulse);
+        int innerBorder = lerpBioColor(0xFF9D75CB, 0xFFB5E48C, pulse * (threatLevel >= 50.0F ? 0.55F : 0.30F));
         graphics.renderOutline(left, top, PANEL_W, PANEL_H, outerBorder);
         graphics.renderOutline(left + 2, top + 2, PANEL_W - 4, PANEL_H - 4, innerBorder);
 
-        // Pulsing arterial hyphal veins around tome perimeter
-        int veinGlow = lerpBioColor(0xFF6B1422, 0xFFD90429, pulse);
-        graphics.fill(left + 12, top + 4, left + PANEL_W - 12, top + 5, veinGlow);
-        graphics.fill(left + 12, top + PANEL_H - 5, left + PANEL_W - 12, top + PANEL_H - 4, veinGlow);
+        // Glowing synaptic axons along perimeter
+        int axonGlow = lerpBioColor(0xFF6B3FA0, 0xFF72EFDD, pulse);
+        graphics.fill(left + 12, top + 4, left + PANEL_W - 12, top + 5, axonGlow);
+        graphics.fill(left + 12, top + PANEL_H - 5, left + PANEL_W - 12, top + PANEL_H - 4, axonGlow);
 
-        // Left index membrane panel sampled from bio-horror codex_book.png
+        // Left index membrane panel sampled from mycelial codex_book.png
         int indexX = left + INDEX_X_OFFSET;
         int indexY = top + 28;
         int indexH = PANEL_H - 56;
         graphics.blit(CODEX_GUI_TEXTURE, indexX, indexY, INDEX_W, indexH, 9, 9, 76, 182, 256, 256);
-        graphics.renderOutline(indexX, indexY, INDEX_W, indexH, 0xFF6E2534);
+        graphics.renderOutline(indexX, indexY, INDEX_W, indexH, 0xFF5A3E85);
 
-        // Central vertebral sinew & Watcher-Eyes spine sampled from codex_book.png
+        // Central Hive Mind neural spine sampled from codex_book.png
         int spineX = left + SPINE_X_OFFSET;
         graphics.blit(CODEX_GUI_TEXTURE, spineX, top + 6, SPINE_W, PANEL_H - 12, 85, 7, 7, 186, 256, 256);
 
-        // Subtle rhythmic eye-glow pulse over the spine when Hive Threat is high
+        // Subtle cyan/chartreuse neural surge along the spine when threat is elevated
         if (threatLevel >= 50.0F) {
-            int eyeAlpha = Math.round(40 + 70 * pulse) << 24;
-            graphics.fill(spineX + 1, top + 14, spineX + SPINE_W - 1, top + PANEL_H - 14, eyeAlpha | 0xD90429);
+            int surgeAlpha = Math.round(36 + 64 * pulse) << 24;
+            graphics.fill(spineX + 1, top + 14, spineX + SPINE_W - 1, top + PANEL_H - 14, surgeAlpha | 0x72EFDD);
         }
 
-        // Right necrotic parchment spread sampled from codex_book.png
+        // Right mycelial parchment spread sampled from codex_book.png
         int pageX = left + PAGE_X_OFFSET;
         int pageY = top + 28;
         int pageH = PANEL_H - 56;
         graphics.blit(CODEX_GUI_TEXTURE, pageX, pageY, PAGE_W, pageH, 92, 9, 155, 182, 256, 256);
-        graphics.renderOutline(pageX, pageY, PAGE_W, pageH, 0xFF8C2A3B);
+        graphics.renderOutline(pageX, pageY, PAGE_W, pageH, 0xFF7A56B0);
 
-        // Four chitin bone & spore-pustule corner claws from codex_book.png
+        // Four fungal shelf corner clusters from codex_book.png
         graphics.blit(CODEX_GUI_TEXTURE, left + 1, top + 1, 2, 2, 10, 10, 256, 256);
         graphics.blit(CODEX_GUI_TEXTURE, left + PANEL_W - 11, top + 1, 243, 2, 10, 10, 256, 256);
         graphics.blit(CODEX_GUI_TEXTURE, left + 1, top + PANEL_H - 11, 2, 187, 10, 10, 256, 256);
@@ -710,7 +711,7 @@ public class MycelialCodexBookScreen extends Screen {
         int indexX = left + INDEX_X_OFFSET;
         int indexY = top + 28;
 
-        // Hive Eye medallion + unlocked entry counter
+        // Mushroom medallion + unlocked entry counter
         int unlockedCount = 0;
         for (CodexBookData.Entry e : ch.entries()) {
             if (isGateUnlocked(e.unlockGate())) {
@@ -719,23 +720,23 @@ public class MycelialCodexBookScreen extends Screen {
         }
         graphics.blit(CODEX_GUI_TEXTURE, indexX + 4, indexY + 3, 12, 12, 112, 204, 16, 16, 256, 256);
         String chBadge = "#" + ch.number() + "  [" + unlockedCount + "/" + ch.entries().size() + "]";
-        drawScaledText(graphics, Component.literal(chBadge), indexX + 19, indexY + 5, INDEX_W - 24, 0xFFD8D0C2, true);
+        drawScaledText(graphics, Component.literal(chBadge), indexX + 19, indexY + 5, INDEX_W - 24, 0xFFD8B4F8, true);
 
         // Pulsing search input well
         int sx = indexX + 3;
         int sy = top + 45;
         int sw = INDEX_W - 6;
-        graphics.fill(sx, sy, sx + sw, sy + 15, 0xCC12080E);
+        graphics.fill(sx, sy, sx + sw, sy + 15, 0xCC110B1D);
         boolean searchFocused = this.searchBox != null && this.searchBox.isFocused();
-        int searchBorder = searchFocused ? lerpBioColor(0xFFB5E48C, 0xFFE9FF70, pulse) : 0xFF6E2534;
+        int searchBorder = searchFocused ? lerpBioColor(0xFFB5E48C, 0xFF72EFDD, pulse) : 0xFF5A3E85;
         graphics.renderOutline(sx, sy, sw, 15, searchBorder);
 
         for (EntryCardHitbox card : this.entryCards) {
             boolean selected = card.chapterIndex() == this.chapterIdx && card.entryIndex() == this.entryIdx;
             boolean hovered = card.contains(mouseX, mouseY);
 
-            int bg = selected ? 0xCC4A1624 : (hovered ? 0xB032121D : 0x88160B11);
-            int border = selected ? 0xFFB5E48C : (hovered ? 0xFFD90429 : 0xFF54202D);
+            int bg = selected ? 0xCC3B235E : (hovered ? 0xB0291944 : 0x88180F29);
+            int border = selected ? 0xFFB5E48C : (hovered ? 0xFF72EFDD : 0xFF473168);
             graphics.fill(card.x(), card.y(), card.x() + card.w(), card.y() + card.h(), bg);
             graphics.renderOutline(card.x(), card.y(), card.w(), card.h(), border);
 
@@ -753,7 +754,7 @@ public class MycelialCodexBookScreen extends Screen {
                     ? ("#" + (card.chapterIndex() + 1) + " ")
                     : (card.unlocked() ? "" : "[?] ");
             Component titleComp = Component.literal(prefix).append(Component.translatable(card.entry().titleKey()));
-            int textColor = !card.unlocked() ? 0xFFFFB703 : (selected ? 0xFFBAD868 : 0xFFEBE4E0);
+            int textColor = !card.unlocked() ? 0xFFFFB703 : (selected ? 0xFFB5E48C : 0xFFEDE7F6);
             drawClippedOrScaledText(graphics, titleComp, card.x() + 18, card.y() + 5, card.w() - 21, textColor, selected);
 
             if (hovered) {
@@ -762,11 +763,12 @@ public class MycelialCodexBookScreen extends Screen {
         }
     }
 
-    private void renderRightReadingSpread(GuiGraphics graphics, int left, int top, CodexBookData.Chapter ch, int mouseX, int mouseY, float pulse) {
-        // Chapter Header Banner on top bar
+    private void renderRightReadingSpread(GuiGraphics graphics, int left, int top, CodexBookData.Chapter ch, int mouseX, int mouseY, float threatLevel, float pulse) {
+        // Chapter Header Banner + Live Hive Mind Threat Telemetry Pill on top bar
         Component chHeader = Component.translatable("gui.mycelialmind.codex.chapter_header",
                 ch.number(), Component.translatable(ch.titleKey()));
-        drawScaledText(graphics, chHeader, left + PAGE_X_OFFSET, top + 12, 114, 0xFFE8D8D0, true);
+        drawScaledText(graphics, chHeader, left + PAGE_X_OFFSET, top + 8, 114, 0xFFE0C3FC, true);
+        renderSynapticHeaderTelemetry(graphics, left + PAGE_X_OFFSET, top + 18, 114, threatLevel, pulse);
 
         if (ch.entries().isEmpty()) {
             return;
@@ -781,11 +783,11 @@ public class MycelialCodexBookScreen extends Screen {
         if (!isGateUnlocked(entry.unlockGate())) {
             graphics.blit(CODEX_GUI_TEXTURE, contentX, pageTop, 16, 16, 112, 204, 16, 16, 256, 256);
             drawScaledText(graphics, Component.translatable(entry.titleKey()), contentX + 20, pageTop + 4, contentW - 22, 0xFFFFB703, true);
-            graphics.fill(contentX, pageTop + 20, contentX + contentW, pageTop + 21, 0xFF8C2A3B);
+            graphics.fill(contentX, pageTop + 20, contentX + contentW, pageTop + 21, 0xFF7B2CBF);
 
             int boxY = pageTop + 30;
-            graphics.fill(contentX, boxY, contentX + contentW, boxY + 46, 0xAA261015);
-            graphics.renderOutline(contentX, boxY, contentW, 46, 0xFFD90429);
+            graphics.fill(contentX, boxY, contentX + contentW, boxY + 46, 0xAA211334);
+            graphics.renderOutline(contentX, boxY, contentW, 46, 0xFFFFB703);
             Component lockedMsg = Component.translatable("gui.mycelialmind.codex.locked", entry.unlockGate());
             List<FormattedCharSequence> lines = this.font.split(lockedMsg, contentW - 12);
             for (int i = 0; i < lines.size(); i++) {
@@ -808,8 +810,8 @@ public class MycelialCodexBookScreen extends Screen {
         graphics.renderItem(headerIcon, 0, 0);
         graphics.pose().popPose();
 
-        drawScaledText(graphics, Component.translatable(page.titleKey()), contentX + 17, pageTop + 3, contentW - 18, 0xFFBAD868, true);
-        int ruleColor = lerpBioColor(0xFF7A1C2A, 0xFFD90429, pulse);
+        drawScaledText(graphics, Component.translatable(page.titleKey()), contentX + 17, pageTop + 3, contentW - 18, 0xFF72EFDD, true);
+        int ruleColor = lerpBioColor(0xFF5A3E85, 0xFF9B4DFF, pulse);
         graphics.fill(contentX, pageTop + 15, contentX + contentW, pageTop + 16, ruleColor);
         graphics.fill(contentX + contentW / 2 - 8, pageTop + 15, contentX + contentW / 2 + 8, pageTop + 16, 0xFFB5E48C);
 
@@ -1007,15 +1009,36 @@ public class MycelialCodexBookScreen extends Screen {
         return items[cycle];
     }
 
+    private void renderSynapticHeaderTelemetry(GuiGraphics graphics, int x, int y, int width, float threatLevel, float pulse) {
+        HiveProgressionTier tier = HiveProgressionTier.fromThreat(threatLevel);
+        float fillFrac = Mth.clamp(threatLevel / 100.0F, 0.0F, 1.0F);
+        int barH = 4;
+        graphics.fill(x, y, x + width, y + barH, 0xCC110B1D);
+        graphics.renderOutline(x, y, width, barH, 0xFF4A3270);
+        int fillW = Math.max(fillFrac > 0.01F ? 2 : 0, Math.round((width - 2) * fillFrac));
+        int fillColor = switch (tier) {
+            case DORMANT -> lerpBioColor(0xFF4CC9F0, 0xFF72EFDD, pulse);
+            case AWAKENED -> lerpBioColor(0xFF80ED99, 0xFFB5E48C, pulse);
+            case ADAPTIVE -> lerpBioColor(0xFF9B4DFF, 0xFFC77DFF, pulse);
+            case OVERMIND -> lerpBioColor(0xFFC77DFF, 0xFF72EFDD, pulse);
+        };
+        if (fillW > 0) {
+            graphics.fill(x + 1, y + 1, x + 1 + fillW, y + barH - 1, fillColor);
+        }
+        Component tierLabel = MycelialText.progressionTier(tier);
+        String statText = tierLabel.getString() + " (" + Math.round(threatLevel) + "%)";
+        drawScaledText(graphics, Component.literal(statText), x, y + 5, width, 0xFF9D84B7, false);
+    }
+
     private int renderEntityWidget(GuiGraphics graphics, CodexBookData.Page page, int contentX, int y, int contentW, int mouseX, int mouseY, float pulse) {
         int boxW = 54;
         int boxH = 50;
-        graphics.fill(contentX, y, contentX + boxW, y + boxH, 0xCC12070C);
-        graphics.renderOutline(contentX, y, boxW, boxH, lerpBioColor(0xFF9E2A3B, 0xFFB5E48C, pulse));
-        // Biological specimen floor & organic scan lines inside containment box
-        graphics.fill(contentX + 2, y + boxH - 10, contentX + boxW - 2, y + boxH - 3, 0x6640151F);
+        graphics.fill(contentX, y, contentX + boxW, y + boxH, 0xCC100B1C);
+        graphics.renderOutline(contentX, y, boxW, boxH, lerpBioColor(0xFF72EFDD, 0xFFB5E48C, pulse));
+        // Mycelial bio-resonance floor & cyan scan lines inside containment box
+        graphics.fill(contentX + 2, y + boxH - 10, contentX + boxW - 2, y + boxH - 3, 0x662B193E);
         int scanY = y + 3 + (int) (((System.currentTimeMillis() / 35L) % Math.max(1, boxH - 8)));
-        graphics.fill(contentX + 2, scanY, contentX + boxW - 2, scanY + 1, 0x44B5E48C);
+        graphics.fill(contentX + 2, scanY, contentX + boxW - 2, scanY + 1, 0x5572EFDD);
 
         LivingEntity living = getOrCreatePreviewEntity(page.entityId());
         if (living != null) {
@@ -1053,11 +1076,11 @@ public class MycelialCodexBookScreen extends Screen {
 
         int infoX = contentX + boxW + 6;
         int infoW = contentW - boxW - 6;
-        graphics.fill(infoX, y, infoX + infoW, y + boxH, 0x77160A10);
-        graphics.renderOutline(infoX, y, infoW, boxH, 0xFF6E2534);
+        graphics.fill(infoX, y, infoX + infoW, y + boxH, 0x77160F26);
+        graphics.renderOutline(infoX, y, infoW, boxH, 0xFF483270);
 
         Component badge = Component.translatable("gui.mycelialmind.codex.entity_badge", page.entityId());
-        drawScaledText(graphics, badge, infoX + 4, y + 5, infoW - 8, 0xFFBAD868, true);
+        drawScaledText(graphics, badge, infoX + 4, y + 5, infoW - 8, 0xFF72EFDD, true);
 
         Component entityDisplayName = (page.entityNameKey() != null && !page.entityNameKey().isBlank())
                 ? Component.translatable(page.entityNameKey())
@@ -1067,9 +1090,9 @@ public class MycelialCodexBookScreen extends Screen {
         if (living != null) {
             String hpText = "HP: " + Math.round(living.getMaxHealth()) + "  |  "
                     + String.format(Locale.ROOT, "%.1fm x %.1fm", living.getBbWidth(), living.getBbHeight());
-            drawScaledText(graphics, Component.literal(hpText), infoX + 4, y + 29, infoW - 8, 0xFFFFD166, false);
+            drawScaledText(graphics, Component.literal(hpText), infoX + 4, y + 29, infoW - 8, 0xFFB5E48C, false);
         }
-        drawScaledText(graphics, Component.literal(page.entityId()), infoX + 4, y + 40, infoW - 8, 0xFFB08A96, false);
+        drawScaledText(graphics, Component.literal(page.entityId()), infoX + 4, y + 40, infoW - 8, 0xFF9D84B7, false);
 
         return y + boxH + 4;
     }

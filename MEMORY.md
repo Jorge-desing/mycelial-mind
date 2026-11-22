@@ -3392,3 +3392,28 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - `audit_mod_assets`: **`ok: true`**.
   - `run_gradle_task(["test"])`: **`56/56`** JUnit en `5` suites (`0` fallos).
   - `run_gradle_task(["runGameTestServer"])`: **`gradle_ok: true`** (**`153/153`** `@GameTest`s aprobados en `6.147 s`).
+
+
+## [2026-11-22 09:31] — Rediseño temático de Micelio, Hongos y Mente Colmena en el Códice (`/goal`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `DOCUMENTACIÓN`
+- **Resumen:**
+  1. **Icono `mycelial_codex` de Micelio y Hongo Bioluminiscente (`scripts/texture_studio/generators/items.py`):** Rediseñado `_mycelial_codex` con cubierta de sombrero fúngico violeta (`mycelial_violet` + `abyssal_indigo`), lomo de quitina segmentado con anillos de espora chartreuse, cantos de pergamino de marfil con vetas chartreuse, broche cian bioluminiscente y emblema central de hongo emisivo conectado por 4 axones cian a ganglios sinápticos (con LabPBR `_n`/`_s`).
+  2. **Atlas GUI `codex_book.png` de Micelio, Hongos y Mente Colmena (`scripts/texture_studio/generators/gui.py`):** Rediseñado `256×256` RGBA con marco de quitina y bisel micelial violeta, axones perimetrales cian/chartreuse, **4 racimos de hongos bioluminiscentes en las esquinas** (`_paint_fungal_corner_cluster`), pergaminos de índice (`abyssal_indigo`) y lectura (`abyssal_obsidian`) tejidos con una red de hifas ramificadas y laminillas (`_paint_mycelial_network`), lomo vertebral de amatista con 7 ganglios luminosos, filete divisor coronado por un nodo de hongo y fila de widgets temática (slot micelial `18×18`, pedestal de hueso y amatista `22×22`, flecha hifal `22×16`, pestañas de sombrero fúngico `20×18` y medallón Hongo de la Mente Colmena `16×16`).
+  3. **Interfaz Sináptica y Telemetría Viva en `MycelialCodexBookScreen.java`:**
+     - **Paleta oficial del Mod:** Reemplazados todos los tonos carmesí por violeta sináptico (`0xFF9B4DFF`/`0xFF7B2CBF`), cian bioluminiscente (`0xFF72EFDD`), verde espora (`0xFFB5E48C`) y hueso de quitina (`0xFFEDE7F6`), incluyendo esporas chartreuse/cian/amatista (`renderFloatingSpores`) y cámara de bio-resonancia cian en el visor 3D (`renderEntityWidget`).
+     - **Telemetría Viva de la Mente Colmena (`renderSynapticHeaderTelemetry`):** Muestra bajo el encabezado del capítulo la barra neural de Amenaza (`ClientHiveCache.getThreatLevel()`) y la fase evolutiva activa (`HiveProgressionTier.fromThreat(...)`: Dormant / Awakened / Adaptive / Overmind).
+     - **Audio Sináptico:** `ModSounds.SYNAPTIC_PULSE` (`1.05F`) al cambiar de capítulo, `ModSounds.BIO_SCANNER_PING` (`1.15F`) en spoilers y `SoundEvents.BOOK_PAGE_TURN` al navegar páginas/entradas.
+  4. **Skills revisadas y actualizadas:** Actualizada `.agents/skills/mycelial-texture-studio/SKILL.md` reflejando la estética de Micelio, Hongos y Mente Colmena de `_mycelial_codex` y `codex_book.png`.
+- **Archivos / Símbolos:**
+  - `scripts/texture_studio/generators/items.py` (`_mycelial_codex`)
+  - `scripts/texture_studio/generators/gui.py` (`_paint_fungal_corner_cluster`, `_paint_mycelial_network`, `generate_gui_textures`)
+  - `src/main/resources/assets/mycelialmind/textures/item/mycelial_codex{,_n,_s}.png`
+  - `src/main/resources/assets/mycelialmind/textures/gui/codex_book.png`
+  - `src/main/java/com/alex/mycelialmind/client/screen/MycelialCodexBookScreen.java` (`renderSynapticHeaderTelemetry`, `renderFloatingSpores`, `CodexButton`)
+  - `.agents/skills/mycelial-texture-studio/SKILL.md`
+- **Estado / Verificación (FastMCP `CodeMode` `mycelial-mind-dev`):**
+  - `validate_skills`: **`ok: true`** (`8/8`).
+  - `run_texture_studio(check_only=False, pbr=True, export_extras=True, run_tests=True)` y `check_only=True`: **`ok: true`**.
+  - `audit_mod_assets`: **`ok: true`**.
+  - `run_gradle_task(["test"])`: **`56/56`** JUnit en `5` suites (`0` fallos).
+  - `run_gradle_task(["runGameTestServer"])`: **`gradle_ok: true`** (**`153/153`** `@GameTest`s aprobados en `5.194 s`).
