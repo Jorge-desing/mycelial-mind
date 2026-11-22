@@ -3220,3 +3220,23 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Tipo:** INVESTIGACIÓN
 - **Resumen:** Contrastadas fuentes oficiales de uv, Task, GitHub Actions/Gradle, Renovate y Mod Publish Plugin. Prioridad local propuesta: fijar dependencias de los estudios Python con uv y reutilizar Verify-Mod.ps1 y CodeMode. Task queda como interfaz opcional. Confirmado que la raíz no pertenece a un repositorio Git. CI y Renovate quedan condicionados a versionar el proyecto. Mod Publish Plugin queda como candidato si se automatiza la distribución.
 - **Verificación:** Revisión documental y de entradas locales. Sin instalaciones ni pruebas de integración. Revisadas las skills de CodeMode y diagnóstico, sin cambios de flujo que requieran editarlas.
+
+## [2026-11-22 06:27] — Inicialización de Git, `.gitignore`, `LICENSE` y publicación en GitHub (`mycelial-mind`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Se inicializó el repositorio Git en la raíz del proyecto (`main`), se completó `.gitignore` para excluir cachés/runtimes/artefactos pesados (`.gradle-user-home/`, `run/`, `runs/`, `run-data/`, `logs/`, `*.log`, `*.log.gz`, `dist/`, `artifacts/`, `.tools/`, `.mct/`, `repo/`, `scripts/mcp/.venv/`, `.venv/`, `venv/`, `**/__pycache__/`, `*.pyc`, `*.pyo`, `.pytest_cache/`, `torchinductor_*/`, e IDEs/OS), se creó `LICENSE` (MIT, `Copyright (c) 2026 Alex`) y se realizó el commit inicial `d71c458` (`1,975` archivos, todos < 50 MB). Se instaló GitHub CLI (`gh` v2.105.0) vía `winget`, se autenticó la cuenta `Jorge-desing`, se creó el repositorio privado `https://github.com/Jorge-desing/mycelial-mind` y se configuró `http.sslbackend=schannel` en `.git/config` local para completar `git push -u origin main`.
+- **Archivos / Símbolos:** `.gitignore`, `LICENSE`, repositorio remoto `origin` → `https://github.com/Jorge-desing/mycelial-mind.git`.
+- **Skills revisadas:** Se revisó la pertinencia de las skills del proyecto; no requieren cambios por la inicialización de GitHub.
+- **Estado / Siguiente paso:** Rama `main` sincronizada con `origin/main` (commit `d71c458`). La entrada de cierre en `MEMORY.md` queda registrada en local para futuros commits.
+
+## [2026-11-22 06:27] — Limpieza de caché Gradle no utilizada en `.gradle-user-home`
+- **Tipo:** `VERIFICACIÓN` | `NOTA`
+- **Resumen:** Eliminadas de `.gradle-user-home` las cachés y distribuciones de versiones antiguas/no usadas de Gradle (`caches\{8.8,8.11,9.3.0,9.4.1,9.6.1}`, `wrapper\dists\gradle-{8.8,8.11,9.3.0,9.4.1,9.6.1,9.7.0}-bin` y `android`), reduciendo `.gradle-user-home` de **`6,120.8 MB` a `1,852.7 MB`** (**~4.27 GB liberados**), conservando `8.14.2`, `modules-2`, `neoformruntime`, `build-cache-1`, `jars-9` y `journal-1`.
+- **Skills revisadas:** Ninguna skill requirió cambios.
+- **Estado / Verificación:** `mycelial-mind-dev` `run_gradle_task(["test", "pitest", "runGameTestServer", "--offline"], max_workers=2)` en verde (`gradle_ok = true`, `152 GAME TESTS COMPLETE IN 5.260 s`, `All 152 required tests passed :)`, JUnit `49/49`, Pitest `77.64%`).
+
+## [2026-11-22 06:40] — Regla global de commit y push automático tras cambios relevantes
+- **Tipo:** `DECISIÓN` | `IMPLEMENTACIÓN`
+- **Resumen:** Se creó la regla global en `C:\Users\Alex\.gemini\GEMINI.md` para que cualquier agente realice `git add`, `git commit` y `git push` al remoto configurado tras completar cambios que lo ameriten en una pasada o sesión.
+- **Archivos / Símbolos:** `C:\Users\Alex\.gemini\GEMINI.md`, `MEMORY.md`.
+- **Skills revisadas:** Sin cambios requeridos.
+- **Estado / Siguiente paso:** Regla global creada y `MEMORY.md` sincronizado con `origin/main`.
