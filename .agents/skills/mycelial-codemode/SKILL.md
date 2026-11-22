@@ -89,6 +89,8 @@ Los cuatro apuntan al mismo par `scripts/mcp/.venv/Scripts/python.exe` + `script
 
 ## 4. Recetas esenciales
 
+La comprobación reproducible de recursos de GitHub Actions comparte `scripts/Verify-Assets.ps1` con `task verify:assets`. Usa el entorno de uv para modelos, texturas y partículas. Para auditorías desde el bridge y para la verificación completa se mantienen los tools de CodeMode. Consulta [Verificación de desarrollo](../../../docs/development-automation.md).
+
 **Salud + auditoría paralela (una pasada típica de cierre):**
 
 ```python

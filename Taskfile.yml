@@ -1,0 +1,26 @@
+version: '3'
+
+tasks:
+  verify:assets:
+    desc: Comprueba modelos, texturas y partículas con el entorno de uv
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-Assets.ps1
+
+  verify:
+    desc: Ejecuta la verificación completa local
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-Mod.ps1
+
+  verify:server:
+    desc: Añade las pruebas de servidor dedicado y RCON
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-Mod.ps1 -IncludeServerSmoke
+
+  verify:visual:
+    desc: Añade regresión visual de entidades y estructuras
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-Mod.ps1 -IncludeVisualSmoke -IncludeStructureVisualSmoke
