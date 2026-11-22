@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.hive;
 
+import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.MycelialMob;
@@ -11,6 +12,7 @@ import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.network.SymbiosisSyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModEntities;
+import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.symbiosis.SymbiosisAttributeSync;
 import com.alex.mycelialmind.util.MycelialText;
@@ -20,12 +22,14 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -56,7 +60,9 @@ public final class HiveWaveDirector {
                 ModDimensions.syncCrossDimensionProgression(serverLevel.getServer().overworld(), serverLevel);
             }
             SymbiosisAttributeSync.sync(serverPlayer);
-            PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
+            if (serverPlayer.connection != null) {
+                PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
+            }
             SymbiosisSyncPayload.syncToPlayer(serverPlayer);
             DiplomacySyncPayload.syncToPlayer(serverPlayer);
             syncPlayerDiscovery(serverLevel, serverPlayer);
@@ -81,7 +87,9 @@ public final class HiveWaveDirector {
             if (serverLevel.dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL)) {
                 ModDimensions.syncCrossDimensionProgression(serverLevel.getServer().overworld(), serverLevel);
             }
-            PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
+            if (serverPlayer.connection != null) {
+                PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
+            }
             SymbiosisSyncPayload.syncToPlayer(serverPlayer);
             DiplomacySyncPayload.syncToPlayer(serverPlayer);
             syncPlayerDiscovery(serverLevel, serverPlayer);
@@ -209,8 +217,27 @@ public final class HiveWaveDirector {
 
     private static void syncPlayerDiscovery(ServerLevel serverLevel, ServerPlayer player) {
         PlayerDiscoveryData discovery = player.getData(ModAttachments.DISCOVERY);
+        if (hasLatentSpore(player)) {
+            ResourceLocation scannerRecipe = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bio_scanner");
+            if (!discovery.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SPORE_FOUND)
+                    || !player.getRecipeBook().contains(scannerRecipe)) {
+                PlayerDiscoveryData.onLatentSporeAcquired(player);
+            }
+        }
         discovery.setBastionScore(PlayerDiscoveryData.computeBastionScoreForPlayer(serverLevel, player));
         DiscoverySyncPayload.syncToPlayer(player);
+    }
+
+    private static boolean hasLatentSpore(ServerPlayer player) {
+        if (player.getOffhandItem().is(ModItems.LATENT_SPORE.get())) {
+            return true;
+        }
+        for (ItemStack stack : player.getInventory().items) {
+            if (stack.is(ModItems.LATENT_SPORE.get())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean usesGlobalHiveAdaptations(MycelialMob mob) {

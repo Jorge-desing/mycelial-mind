@@ -30,6 +30,15 @@ public final class ProgressionGoalEngine {
     public static final int SECRET_PRIMORDIAL_SPECIMEN = 6;
     public static final int SECRET_SEALED_BIO_VAULT = 7;
 
+    public static final int RESEARCH_BIT_SPORE_FOUND = 1 << 0;
+    public static final int RESEARCH_BIT_DEFLECTION_WITNESSED = 1 << 1;
+    public static final int RESEARCH_BIT_ADAPTATION_IDENTIFIED = 1 << 2;
+    public static final int RESEARCH_BIT_SAMPLE_EXTRACTED = 1 << 3;
+    public static final int RESEARCH_BIT_BIOTECH_SYNTHESIZED = 1 << 4;
+    public static final int RESEARCH_BIT_NODE_THREAT_RECORDED = 1 << 5;
+    public static final int RESEARCH_BIT_NODE_DESTROYED = 1 << 6;
+    public static final double MIN_OBSERVABLE_STIMULUS_SCORE = 10.0D;
+
     public static final List<String> BESTIARY_SPECIES_IDS = List.of(
             "sporeling",
             "chitin_brute",
@@ -104,6 +113,117 @@ public final class ProgressionGoalEngine {
 
         public String translationKey() {
             return "codex.mycelialmind.goal.mid." + id;
+        }
+    }
+
+    public enum CreatureObservation {
+        NONE(0, "codex.mycelialmind.research.obs.none"),
+        INSUFFICIENT_EVIDENCE(1, "message.mycelialmind.scanner_obs.insufficient_evidence"),
+        LEARNING_PROJECTILE(2, "message.mycelialmind.scanner_obs.learning_projectile"),
+        CONFIRMED_PROJECTILE_ADAPTATION(3, "message.mycelialmind.scanner_obs.confirmed_projectile"),
+        OTHER_DOMINANT_RESPONSE(4, "message.mycelialmind.scanner_obs.other_dominant");
+
+        private final int id;
+        private final String translationKey;
+
+        CreatureObservation(int id, String translationKey) {
+            this.id = id;
+            this.translationKey = translationKey;
+        }
+
+        public int id() {
+            return id;
+        }
+
+        public String translationKey() {
+            return translationKey;
+        }
+
+        public static CreatureObservation byId(int id) {
+            for (CreatureObservation obs : values()) {
+                if (obs.id == id) {
+                    return obs;
+                }
+            }
+            return NONE;
+        }
+    }
+
+    public enum ExpeditionGoal {
+        NONE(0, "none", "codex.mycelialmind.research.goal.none"),
+        USE_TO_ADVANTAGE(1, "use_to_advantage", "codex.mycelialmind.research.goal.use_to_advantage"),
+        RECLAIM_CAVE(2, "reclaim_cave", "codex.mycelialmind.research.goal.reclaim_cave");
+
+        private final int id;
+        private final String key;
+        private final String translationKey;
+
+        ExpeditionGoal(int id, String key, String translationKey) {
+            this.id = id;
+            this.key = key;
+            this.translationKey = translationKey;
+        }
+
+        public int id() {
+            return id;
+        }
+
+        public String key() {
+            return key;
+        }
+
+        public String translationKey() {
+            return translationKey;
+        }
+
+        public static ExpeditionGoal byId(int id) {
+            for (ExpeditionGoal goal : values()) {
+                if (goal.id == id) {
+                    return goal;
+                }
+            }
+            return NONE;
+        }
+    }
+
+    public enum ResearchNextStep {
+        AWAITING_FIRST_ADAPTATION("awaiting_first_adaptation", false),
+        CHOOSE_EXPEDITION_GOAL("choose_expedition_goal", false),
+        MISSING_BIO_EXTRACTOR("missing_bio_extractor", true),
+        WEAKEN_AND_EXTRACT_SAMPLE("weaken_and_extract_sample", false),
+        SAMPLE_READY_MISSING_BIOMASS("sample_ready_missing_biomass", true),
+        SAMPLE_READY_MISSING_CATALYST("sample_ready_missing_catalyst", true),
+        SAMPLE_READY_MISSING_BENCH("sample_ready_missing_bench", true),
+        SAMPLE_READY_TO_SYNTHESIZE("sample_ready_to_synthesize", false),
+        COMPLETED_BIOTECH_SYNTHESIS("completed_biotech_synthesis", false),
+        MISSING_BIO_SCANNER("missing_bio_scanner", true),
+        THREAT_ALREADY_ZERO("threat_already_zero", true),
+        LOCATE_NODE_AND_RECORD_THREAT("locate_node_and_record_threat", false),
+        DESTROY_LOCATED_NODE("destroy_located_node", false),
+        COMPLETED_NODE_DESTRUCTION("completed_node_destruction", false);
+
+        private final String id;
+        private final boolean warning;
+
+        ResearchNextStep(String id, boolean warning) {
+            this.id = id;
+            this.warning = warning;
+        }
+
+        public String id() {
+            return id;
+        }
+
+        public boolean isWarning() {
+            return warning;
+        }
+
+        public String translationKey() {
+            return "codex.mycelialmind.research.step." + id;
+        }
+
+        public String hudTranslationKey() {
+            return "hud.mycelialmind.research.step." + id;
         }
     }
 
@@ -312,5 +432,82 @@ public final class ProgressionGoalEngine {
             case "admin" -> hasAdminPermission;
             default -> true;
         };
+    }
+
+    public static CreatureObservation resolveCreatureObservation(
+            boolean mobHasProjectileDeflect,
+            boolean hiveHasProjectileDeflect,
+            boolean witnessedDeflection,
+            double projectileScore,
+            StimulusType dominantStimulus,
+            double dominantScore,
+            double traitActivationThreshold
+    ) {
+        if (mobHasProjectileDeflect || (hiveHasProjectileDeflect && witnessedDeflection)) {
+            return CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION;
+        }
+        double safeProj = Double.isFinite(projectileScore) ? projectileScore : 0.0D;
+        double safeDom = Double.isFinite(dominantScore) ? dominantScore : 0.0D;
+        if ((dominantStimulus == StimulusType.PROJECTILE && safeProj >= MIN_OBSERVABLE_STIMULUS_SCORE)
+                || (witnessedDeflection && safeProj >= MIN_OBSERVABLE_STIMULUS_SCORE)) {
+            return CreatureObservation.LEARNING_PROJECTILE;
+        }
+        if (dominantStimulus == null || safeDom < MIN_OBSERVABLE_STIMULUS_SCORE) {
+            return CreatureObservation.INSUFFICIENT_EVIDENCE;
+        }
+        return CreatureObservation.OTHER_DOMINANT_RESPONSE;
+    }
+
+    public static ResearchNextStep resolveResearchNextStep(
+            ExpeditionGoal pinnedGoal,
+            int researchStageMask,
+            boolean hasExtractor,
+            boolean hasScanner,
+            boolean hasProjectileSampleInInv,
+            boolean hasBiomassInInv,
+            boolean hasLatentSporeInInv,
+            boolean hasCatalystInInv,
+            boolean hasBenchMilestone,
+            double currentThreat
+    ) {
+        if ((researchStageMask & RESEARCH_BIT_ADAPTATION_IDENTIFIED) == 0) {
+            return ResearchNextStep.AWAITING_FIRST_ADAPTATION;
+        }
+        if (pinnedGoal == null || pinnedGoal == ExpeditionGoal.NONE) {
+            return ResearchNextStep.CHOOSE_EXPEDITION_GOAL;
+        }
+        if (pinnedGoal == ExpeditionGoal.USE_TO_ADVANTAGE) {
+            if ((researchStageMask & RESEARCH_BIT_BIOTECH_SYNTHESIZED) != 0) {
+                return ResearchNextStep.COMPLETED_BIOTECH_SYNTHESIS;
+            }
+            if (hasProjectileSampleInInv || (researchStageMask & RESEARCH_BIT_SAMPLE_EXTRACTED) != 0) {
+                if (!hasBiomassInInv) {
+                    return ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS;
+                }
+                if (!hasCatalystInInv) {
+                    return ResearchNextStep.SAMPLE_READY_MISSING_CATALYST;
+                }
+                if (!hasBenchMilestone) {
+                    return ResearchNextStep.SAMPLE_READY_MISSING_BENCH;
+                }
+                return ResearchNextStep.SAMPLE_READY_TO_SYNTHESIZE;
+            }
+            return hasExtractor
+                    ? ResearchNextStep.WEAKEN_AND_EXTRACT_SAMPLE
+                    : ResearchNextStep.MISSING_BIO_EXTRACTOR;
+        }
+        if ((researchStageMask & RESEARCH_BIT_NODE_DESTROYED) != 0) {
+            return ResearchNextStep.COMPLETED_NODE_DESTRUCTION;
+        }
+        if (!hasScanner) {
+            return ResearchNextStep.MISSING_BIO_SCANNER;
+        }
+        if (!Double.isFinite(currentThreat) || currentThreat <= 0.0D) {
+            return ResearchNextStep.THREAT_ALREADY_ZERO;
+        }
+        if ((researchStageMask & RESEARCH_BIT_NODE_THREAT_RECORDED) == 0) {
+            return ResearchNextStep.LOCATE_NODE_AND_RECORD_THREAT;
+        }
+        return ResearchNextStep.DESTROY_LOCATED_NODE;
     }
 }

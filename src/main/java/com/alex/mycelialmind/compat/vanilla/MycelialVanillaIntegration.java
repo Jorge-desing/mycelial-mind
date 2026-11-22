@@ -4,10 +4,14 @@ import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.network.DiscoverySyncPayload;
+import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModItems;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -159,14 +163,23 @@ public final class MycelialVanillaIntegration {
         if (stack.isEmpty()) {
             return;
         }
-        if (stack.is(ModItems.BIO_SCANNER.get())) {
+        if (stack.is(ModItems.LATENT_SPORE.get())) {
+            PlayerDiscoveryData.onLatentSporeAcquired(player);
+        } else if (stack.is(ModItems.BIO_SCANNER.get())) {
             PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_BIO_SCANNER);
         } else if (stack.is(ModBlocks.SYNAPTIC_RESEARCH_BENCH.asItem())) {
             PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_SYNAPTIC_BENCH);
         } else if (stack.is(ModItems.BIO_EXTRACTOR.get())) {
             PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_BIO_EXTRACTOR);
         } else if (stack.is(ModItems.SYMBIOTIC_MUTAGEN.get()) || stack.is(ModItems.COUNTER_SERUM.get())) {
-            PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_SYNTHESIZED_BIOTECH);
+            PlayerDiscoveryData discovery = player.getData(ModAttachments.DISCOVERY);
+            boolean changed = discovery.recordMilestone(ProgressionGoalEngine.MILESTONE_SYNTHESIZED_BIOTECH);
+            if (AdaptationTrait.PROJECTILE_DEFLECT.id().equals(stack.get(ModDataComponents.TRAIT_ID.get()))) {
+                changed |= discovery.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_BIOTECH_SYNTHESIZED);
+            }
+            if (changed) {
+                DiscoverySyncPayload.syncToPlayer(player);
+            }
         }
     }
 

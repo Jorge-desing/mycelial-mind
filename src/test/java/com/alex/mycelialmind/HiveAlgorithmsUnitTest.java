@@ -1806,4 +1806,124 @@ class HiveAlgorithmsUnitTest {
         assertEquals(0.0F, SynapticCommandSystem.computeBossPartDamage(
                 true, false, false, false, Float.NaN), 1.0E-4F);
     }
+
+    @Test
+    void ongoingResearchObservationAndNextStepEvaluationHoldAllBranches() {
+        // CreatureObservation & ExpeditionGoal id mapping
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.NONE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.byId(-99));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.byId(3));
+        assertEquals("message.mycelialmind.scanner_obs.confirmed_projectile",
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION.translationKey());
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.NONE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.byId(99));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.byId(1));
+        assertEquals("use_to_advantage",
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE.key());
+        assertEquals("codex.mycelialmind.research.goal.reclaim_cave",
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE.translationKey());
+
+        // Observations across pre-combat, learning, confirmed, and other dominant stimulus
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.INSUFFICIENT_EVIDENCE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, false, false, 0.0D, null, 0.0D, 70.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.INSUFFICIENT_EVIDENCE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, false, false, 5.0D, com.alex.mycelialmind.hive.StimulusType.PROJECTILE, 9.9D, 70.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.LEARNING_PROJECTILE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, false, false, 10.0D, com.alex.mycelialmind.hive.StimulusType.PROJECTILE, 10.0D, 70.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.LEARNING_PROJECTILE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, true, false, 75.0D, com.alex.mycelialmind.hive.StimulusType.PROJECTILE, 75.0D, 70.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.LEARNING_PROJECTILE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, false, true, 12.0D, com.alex.mycelialmind.hive.StimulusType.MELEE, 25.0D, 70.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.OTHER_DOMINANT_RESPONSE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, false, false, 0.0D, com.alex.mycelialmind.hive.StimulusType.MELEE, 25.0D, 70.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.OTHER_DOMINANT_RESPONSE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, false, false, Double.NaN, com.alex.mycelialmind.hive.StimulusType.FIRE, 75.0D, Double.NaN));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        true, false, false, 70.0D, com.alex.mycelialmind.hive.StimulusType.PROJECTILE, 70.0D, 70.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveCreatureObservation(
+                        false, true, true, 75.0D, com.alex.mycelialmind.hive.StimulusType.PROJECTILE, 75.0D, 70.0D));
+
+        // Next steps: pre-adaptation and unpinned
+        int identified = com.alex.mycelialmind.hive.ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED;
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.AWAITING_FIRST_ADAPTATION,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE,
+                        0, true, true, true, true, true, true, true, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.CHOOSE_EXPEDITION_GOAL,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        null, identified, true, true, false, false, false, false, false, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.CHOOSE_EXPEDITION_GOAL,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.NONE,
+                        identified, true, true, false, false, false, false, false, 20.0D));
+
+        // USE_TO_ADVANTAGE branch
+        var goalAdv = com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE;
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.MISSING_BIO_EXTRACTOR,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalAdv, identified, false, true, false, false, false, false, false, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.WEAKEN_AND_EXTRACT_SAMPLE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalAdv, identified, true, true, false, false, false, false, false, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalAdv, identified, true, true, true, false, true, true, true, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_CATALYST,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalAdv, identified | com.alex.mycelialmind.hive.ProgressionGoalEngine.RESEARCH_BIT_SAMPLE_EXTRACTED,
+                        true, true, false, true, false, false, true, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BENCH,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalAdv, identified, true, true, true, true, false, true, false, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_TO_SYNTHESIZE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalAdv, identified, true, true, true, true, false, true, true, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.COMPLETED_BIOTECH_SYNTHESIS,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalAdv, identified | com.alex.mycelialmind.hive.ProgressionGoalEngine.RESEARCH_BIT_BIOTECH_SYNTHESIZED,
+                        false, false, false, false, false, false, false, 20.0D));
+
+        // RECLAIM_CAVE branch
+        var goalCave = com.alex.mycelialmind.hive.ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE;
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.MISSING_BIO_SCANNER,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalCave, identified, true, false, false, false, false, false, false, 20.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.THREAT_ALREADY_ZERO,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalCave, identified, true, true, false, false, false, false, false, 0.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.THREAT_ALREADY_ZERO,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalCave, identified, true, true, false, false, false, false, false, Double.NaN));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.LOCATE_NODE_AND_RECORD_THREAT,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalCave, identified, true, true, false, false, false, false, false, 15.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.DESTROY_LOCATED_NODE,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalCave, identified | com.alex.mycelialmind.hive.ProgressionGoalEngine.RESEARCH_BIT_NODE_THREAT_RECORDED,
+                        true, true, false, false, false, false, false, 15.0D));
+        assertEquals(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.COMPLETED_NODE_DESTRUCTION,
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.resolveResearchNextStep(
+                        goalCave, identified | com.alex.mycelialmind.hive.ProgressionGoalEngine.RESEARCH_BIT_NODE_DESTROYED,
+                        true, false, false, false, false, false, false, 0.0D));
+
+        assertTrue(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS.isWarning());
+        assertFalse(com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.WEAKEN_AND_EXTRACT_SAMPLE.isWarning());
+        assertEquals("sample_ready_missing_biomass",
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS.id());
+        assertEquals("codex.mycelialmind.research.step.sample_ready_missing_biomass",
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS.translationKey());
+        assertEquals("hud.mycelialmind.research.step.sample_ready_missing_biomass",
+                com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS.hudTranslationKey());
+    }
 }

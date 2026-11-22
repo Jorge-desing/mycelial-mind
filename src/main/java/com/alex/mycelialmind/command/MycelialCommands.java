@@ -350,6 +350,19 @@ public final class MycelialCommands {
         ChitinBruteEntity brute = null;
         try {
             hive.resetAll();
+            var preObs = ProgressionGoalEngine.resolveCreatureObservation(
+                    false,
+                    hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT),
+                    false,
+                    hive.getStimulusScore(StimulusType.PROJECTILE),
+                    null,
+                    0.0D,
+                    MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get()
+            );
+            if (preObs != ProgressionGoalEngine.CreatureObservation.INSUFFICIENT_EVIDENCE) {
+                source.sendFailure(Component.literal("[Verify:Projectile] FAIL: Expected INSUFFICIENT_EVIDENCE before combat."));
+                return 0;
+            }
             for (int i = 0; i < 20 && !hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT); i++) {
                 SporelingEntity sporeling = ModEntities.SPORELING.get().create(level);
                 if (sporeling == null) {
@@ -380,8 +393,18 @@ public final class MycelialCommands {
             }
             brute.moveTo(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5);
             brute.finalizeSpawn(level, level.getCurrentDifficultyAt(origin), MobSpawnType.COMMAND, null);
-            if (!brute.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT)) {
-                source.sendFailure(Component.literal("[Verify:Projectile] FAIL: ChitinBrute did not inherit trait."));
+            var postObs = ProgressionGoalEngine.resolveCreatureObservation(
+                    brute.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT),
+                    hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT),
+                    true,
+                    hive.getStimulusScore(StimulusType.PROJECTILE),
+                    StimulusType.PROJECTILE,
+                    hive.getStimulusScore(StimulusType.PROJECTILE),
+                    MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get()
+            );
+            if (!brute.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT)
+                    || postObs != ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION) {
+                source.sendFailure(Component.literal("[Verify:Projectile] FAIL: ChitinBrute did not inherit trait or observation mismatch."));
                 return 0;
             }
 

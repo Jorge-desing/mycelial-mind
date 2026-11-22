@@ -115,6 +115,9 @@ public class BioluminescentMycelialCapBlock extends Block {
             if (!player.getInventory().add(spore)) {
                 Block.popResource(serverLevel, pos, spore);
             }
+            if (player instanceof ServerPlayer serverPlayer) {
+                PlayerDiscoveryData.onLatentSporeAcquired(serverPlayer);
+            }
             ExperienceOrb.award(serverLevel, Vec3.atCenterOf(pos), yieldCount);
             player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 200, 0, false, false));
             serverLevel.sendParticles(ModParticles.BIO_LUME.get(),

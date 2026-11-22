@@ -5,6 +5,7 @@ import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
+import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.registry.ModEffects;
@@ -14,6 +15,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -97,6 +99,9 @@ public class SporeBulbBlock extends Block {
                 ItemStack reward = new ItemStack(ModItems.LATENT_SPORE.get(), 2);
                 if (!player.getInventory().add(reward)) {
                     Block.popResource(serverLevel, pos, reward);
+                }
+                if (player instanceof ServerPlayer serverPlayer) {
+                    PlayerDiscoveryData.onLatentSporeAcquired(serverPlayer);
                 }
                 stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                 serverLevel.sendParticles(ModParticles.BIO_LUME.get(),

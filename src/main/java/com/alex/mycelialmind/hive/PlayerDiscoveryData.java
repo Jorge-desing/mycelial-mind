@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.hive;
 
+import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
@@ -22,10 +23,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 
+import java.util.List;
+
 /**
  * Persistent per-player attachment tracking genetic bestiary completion (17 species),
  * discovered traits/strains, experimental secrets (8), early crafting/upgrade milestones,
- * rare primordial encounters, and Perfect Bastion defense score.
+ * rare primordial encounters, Perfect Bastion defense score, and Ongoing Research state.
  */
 public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
     private static final String TAG_SPECIES = "SpeciesMask";
@@ -35,6 +38,12 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
     private static final String TAG_MILESTONES = "MilestonesMask";
     private static final String TAG_RARE_VARIANTS = "RareVariantsFound";
     private static final String TAG_BASTION_SCORE = "BastionScore";
+    private static final String TAG_LAST_OBSERVATION = "LastObservationCode";
+    private static final String TAG_LAST_OBS_DIM = "LastObservationDimension";
+    private static final String TAG_PINNED_GOAL = "PinnedExpeditionGoal";
+    private static final String TAG_RESEARCH_STAGE = "ResearchStageMask";
+    private static final String TAG_RECORDED_THREAT = "RecordedThreatPermille";
+    private static final String TAG_LAST_THREAT_DROP = "LastThreatDropPermille";
 
     private int scannedSpeciesMask = 0;
     private int discoveredTraitsMask = 0;
@@ -43,6 +52,12 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
     private int craftedMilestonesMask = 0;
     private int rareVariantsFound = 0;
     private int bastionScore = 0;
+    private int lastObservationCode = 0;
+    private String lastObservationDimension = "";
+    private int pinnedExpeditionGoal = 0;
+    private int researchStageMask = 0;
+    private int recordedThreatPermille = 0;
+    private int lastThreatDropPermille = 0;
 
     public int getScannedSpeciesMask() {
         return scannedSpeciesMask;
@@ -70,6 +85,117 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
 
     public int getBastionScore() {
         return bastionScore;
+    }
+
+    public int getLastObservationCode() {
+        return lastObservationCode;
+    }
+
+    public ProgressionGoalEngine.CreatureObservation getLastObservation() {
+        return ProgressionGoalEngine.CreatureObservation.byId(lastObservationCode);
+    }
+
+    public String getLastObservationDimension() {
+        return lastObservationDimension;
+    }
+
+    public int getPinnedExpeditionGoalId() {
+        return pinnedExpeditionGoal;
+    }
+
+    public ProgressionGoalEngine.ExpeditionGoal getPinnedExpeditionGoal() {
+        return ProgressionGoalEngine.ExpeditionGoal.byId(pinnedExpeditionGoal);
+    }
+
+    public int getResearchStageMask() {
+        return researchStageMask;
+    }
+
+    public boolean hasResearchBit(int bit) {
+        return (researchStageMask & bit) != 0;
+    }
+
+    public int getRecordedThreatPermille() {
+        return recordedThreatPermille;
+    }
+
+    public double getRecordedThreat() {
+        return recordedThreatPermille / 1000.0D;
+    }
+
+    public int getLastThreatDropPermille() {
+        return lastThreatDropPermille;
+    }
+
+    public double getLastThreatDrop() {
+        return lastThreatDropPermille / 1000.0D;
+    }
+
+    public static int toPermille(double threat) {
+        if (!Double.isFinite(threat)) {
+            return 0;
+        }
+        return (int) Math.round(Math.max(0.0D, Math.min(100.0D, threat)) * 1000.0D);
+    }
+
+    public boolean markResearchBit(int bit) {
+        if (bit == 0 || (researchStageMask & bit) != 0) {
+            return false;
+        }
+        researchStageMask |= bit;
+        return true;
+    }
+
+    public boolean setPinnedExpeditionGoal(int goalId) {
+        int clamped = ProgressionGoalEngine.ExpeditionGoal.byId(goalId).id();
+        if (clamped == this.pinnedExpeditionGoal) {
+            return false;
+        }
+        this.pinnedExpeditionGoal = clamped;
+        return true;
+    }
+
+    public boolean recordCreatureObservation(ProgressionGoalEngine.CreatureObservation obs, String dimensionId) {
+        if (obs == null) {
+            return false;
+        }
+        String safeDim = dimensionId != null ? dimensionId : "";
+        boolean changed = (this.lastObservationCode != obs.id()) || !safeDim.equals(this.lastObservationDimension);
+        this.lastObservationCode = obs.id();
+        this.lastObservationDimension = safeDim;
+        if (obs == ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION) {
+            changed |= markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED);
+            changed |= recordTrait(AdaptationTrait.PROJECTILE_DEFLECT);
+        }
+        return changed;
+    }
+
+    public boolean recordDeflectionWitnessed() {
+        return markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_DEFLECTION_WITNESSED);
+    }
+
+    public boolean recordNodeThreatBaseline(double threat, String dimensionId) {
+        int permille = toPermille(threat);
+        boolean changed = markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_NODE_THREAT_RECORDED);
+        if (this.recordedThreatPermille != permille) {
+            this.recordedThreatPermille = permille;
+            changed = true;
+        }
+        if (this.lastObservationDimension.isEmpty() && dimensionId != null && !dimensionId.isEmpty()) {
+            this.lastObservationDimension = dimensionId;
+            changed = true;
+        }
+        return changed;
+    }
+
+    public boolean recordNodeDestroyedThreatDrop(double threatDrop) {
+        int permille = toPermille(threatDrop);
+        boolean changed = markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_NODE_DESTROYED);
+        if (this.lastThreatDropPermille != permille) {
+            this.lastThreatDropPermille = permille;
+            changed = true;
+        }
+        return changed;
     }
 
     public int countScannedSpecies() {
@@ -191,6 +317,25 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
         }
     }
 
+    public static void onLatentSporeAcquired(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        ResourceLocation scannerRecipe = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bio_scanner");
+        if (player.connection != null) {
+            player.awardRecipesByKey(List.of(scannerRecipe));
+        } else {
+            player.serverLevel().getRecipeManager().byKey(scannerRecipe)
+                    .ifPresent(holder -> player.getRecipeBook().add(holder));
+        }
+        PlayerDiscoveryData data = player.getData(ModAttachments.DISCOVERY);
+        if (data.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SPORE_FOUND)) {
+            player.sendSystemMessage(Component.translatable("message.mycelialmind.latent_spore_compass_hint")
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+            DiscoverySyncPayload.syncToPlayer(player);
+        }
+    }
+
     public static int computeBastionScoreForPlayer(ServerLevel level, ServerPlayer player) {
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
         BlockPos anchor = player.blockPosition();
@@ -251,6 +396,14 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
         tag.putInt(TAG_MILESTONES, craftedMilestonesMask);
         tag.putInt(TAG_RARE_VARIANTS, rareVariantsFound);
         tag.putInt(TAG_BASTION_SCORE, bastionScore);
+        tag.putInt(TAG_LAST_OBSERVATION, lastObservationCode);
+        if (lastObservationDimension != null && !lastObservationDimension.isEmpty()) {
+            tag.putString(TAG_LAST_OBS_DIM, lastObservationDimension);
+        }
+        tag.putInt(TAG_PINNED_GOAL, pinnedExpeditionGoal);
+        tag.putInt(TAG_RESEARCH_STAGE, researchStageMask);
+        tag.putInt(TAG_RECORDED_THREAT, recordedThreatPermille);
+        tag.putInt(TAG_LAST_THREAT_DROP, lastThreatDropPermille);
         return tag;
     }
 
@@ -263,5 +416,11 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
         craftedMilestonesMask = nbt.getInt(TAG_MILESTONES);
         rareVariantsFound = Math.max(0, nbt.getInt(TAG_RARE_VARIANTS));
         bastionScore = Math.max(0, Math.min(100, nbt.getInt(TAG_BASTION_SCORE)));
+        lastObservationCode = ProgressionGoalEngine.CreatureObservation.byId(nbt.getInt(TAG_LAST_OBSERVATION)).id();
+        lastObservationDimension = nbt.contains(TAG_LAST_OBS_DIM) ? nbt.getString(TAG_LAST_OBS_DIM) : "";
+        pinnedExpeditionGoal = ProgressionGoalEngine.ExpeditionGoal.byId(nbt.getInt(TAG_PINNED_GOAL)).id();
+        researchStageMask = Math.max(0, nbt.getInt(TAG_RESEARCH_STAGE));
+        recordedThreatPermille = Math.max(0, Math.min(100_000, nbt.getInt(TAG_RECORDED_THREAT)));
+        lastThreatDropPermille = Math.max(0, Math.min(100_000, nbt.getInt(TAG_LAST_THREAT_DROP)));
     }
 }

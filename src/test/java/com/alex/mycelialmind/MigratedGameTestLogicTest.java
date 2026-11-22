@@ -1,8 +1,11 @@
 package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
+import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
+import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.network.PinExpeditionGoalPayload;
 import com.alex.mycelialmind.network.SymbiosisSyncPayload;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import com.alex.mycelialmind.world.WorldgenAuditEngine;
@@ -127,6 +130,42 @@ class MigratedGameTestLogicTest {
             assertEquals(8, decoded.squadStatusSecondsRemaining());
         } finally {
             buf.release();
+        }
+    }
+
+    @Test
+    void discoverySyncAndPinExpeditionGoalPayloadsRoundTrip() {
+        DiscoverySyncPayload original = new DiscoverySyncPayload(
+                0x15, 0x02, 0x01, 0x04, 0x07, 2, 65, 2,
+                ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION.id(),
+                "minecraft:overworld",
+                ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE.id(),
+                ProgressionGoalEngine.RESEARCH_BIT_SPORE_FOUND
+                        | ProgressionGoalEngine.RESEARCH_BIT_DEFLECTION_WITNESSED
+                        | ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED,
+                14500,
+                2500
+        );
+        ByteBuf buf = Unpooled.buffer();
+        try {
+            DiscoverySyncPayload.STREAM_CODEC.encode(buf, original);
+            DiscoverySyncPayload decoded = DiscoverySyncPayload.STREAM_CODEC.decode(buf);
+            assertEquals(original, decoded);
+            assertEquals("minecraft:overworld", decoded.lastObservationDimension());
+            assertEquals(2500, decoded.lastThreatDropPermille());
+        } finally {
+            buf.release();
+        }
+
+        PinExpeditionGoalPayload pinOrig = new PinExpeditionGoalPayload(
+                ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE.id());
+        ByteBuf pinBuf = Unpooled.buffer();
+        try {
+            PinExpeditionGoalPayload.STREAM_CODEC.encode(pinBuf, pinOrig);
+            PinExpeditionGoalPayload pinDecoded = PinExpeditionGoalPayload.STREAM_CODEC.decode(pinBuf);
+            assertEquals(pinOrig, pinDecoded);
+        } finally {
+            pinBuf.release();
         }
     }
 }

@@ -92,6 +92,7 @@ public class BioExtractorItem extends Item {
                     discovery.recordStrain(mob.getHiveStrain());
                     discovery.incrementRareVariantsFound();
                     PlayerDiscoveryData.unlockSecret(serverPlayer, ProgressionGoalEngine.SECRET_PRIMORDIAL_SPECIMEN);
+                    PlayerDiscoveryData.onLatentSporeAcquired(serverPlayer);
                     DiscoverySyncPayload.syncToPlayer(serverPlayer);
                 }
             }
@@ -201,6 +202,10 @@ public class BioExtractorItem extends Item {
             PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
             discovery.recordTrait(trait);
             discovery.recordMilestone(ProgressionGoalEngine.MILESTONE_BIO_EXTRACTOR);
+            if (trait == AdaptationTrait.PROJECTILE_DEFLECT) {
+                discovery.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SAMPLE_EXTRACTED);
+                discovery.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED);
+            }
             DiscoverySyncPayload.syncToPlayer(serverPlayer);
         }
     }

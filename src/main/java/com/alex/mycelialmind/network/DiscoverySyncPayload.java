@@ -24,10 +24,31 @@ public record DiscoverySyncPayload(
         int craftedMilestonesMask,
         int rareVariantsFound,
         int bastionScore,
-        int highestActTier
+        int highestActTier,
+        int lastObservationCode,
+        String lastObservationDimension,
+        int pinnedExpeditionGoal,
+        int researchStageMask,
+        int recordedThreatPermille,
+        int lastThreatDropPermille
 ) implements CustomPacketPayload {
     public static final Type<DiscoverySyncPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "discovery_sync"));
+
+    public DiscoverySyncPayload(
+            int scannedSpeciesMask,
+            int discoveredTraitsMask,
+            int discoveredStrainsMask,
+            int discoveredSecretsMask,
+            int craftedMilestonesMask,
+            int rareVariantsFound,
+            int bastionScore,
+            int highestActTier
+    ) {
+        this(scannedSpeciesMask, discoveredTraitsMask, discoveredStrainsMask, discoveredSecretsMask,
+                craftedMilestonesMask, rareVariantsFound, bastionScore, highestActTier,
+                0, "", 0, 0, 0, 0);
+    }
 
     public static final StreamCodec<ByteBuf, DiscoverySyncPayload> STREAM_CODEC = new StreamCodec<>() {
         @Override
@@ -37,6 +58,12 @@ public record DiscoverySyncPayload(
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.STRING_UTF8.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
@@ -54,6 +81,12 @@ public record DiscoverySyncPayload(
             ByteBufCodecs.VAR_INT.encode(buf, payload.rareVariantsFound());
             ByteBufCodecs.VAR_INT.encode(buf, payload.bastionScore());
             ByteBufCodecs.VAR_INT.encode(buf, payload.highestActTier());
+            ByteBufCodecs.VAR_INT.encode(buf, payload.lastObservationCode());
+            ByteBufCodecs.STRING_UTF8.encode(buf, payload.lastObservationDimension() != null ? payload.lastObservationDimension() : "");
+            ByteBufCodecs.VAR_INT.encode(buf, payload.pinnedExpeditionGoal());
+            ByteBufCodecs.VAR_INT.encode(buf, payload.researchStageMask());
+            ByteBufCodecs.VAR_INT.encode(buf, payload.recordedThreatPermille());
+            ByteBufCodecs.VAR_INT.encode(buf, payload.lastThreatDropPermille());
         }
     };
 
@@ -68,7 +101,13 @@ public record DiscoverySyncPayload(
                 data.getCraftedMilestonesMask(),
                 data.getRareVariantsFound(),
                 data.getBastionScore(),
-                highestActTier
+                highestActTier,
+                data.getLastObservationCode(),
+                data.getLastObservationDimension(),
+                data.getPinnedExpeditionGoalId(),
+                data.getResearchStageMask(),
+                data.getRecordedThreatPermille(),
+                data.getLastThreatDropPermille()
         );
     }
 

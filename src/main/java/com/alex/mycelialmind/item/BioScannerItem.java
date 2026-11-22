@@ -17,6 +17,7 @@ import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine;
 import com.alex.mycelialmind.hive.HyphalSiegeDirector;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
@@ -59,6 +60,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -118,6 +120,17 @@ public class BioScannerItem extends Item {
                         String.format("%.1f", nodeBe.getVolatileTotal()),
                         nodeBe.getSymbioticStability()
                 ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                if (player instanceof ServerPlayer serverPlayer
+                        && !(level.getBlockState(pos).getBlock() instanceof com.alex.mycelialmind.block.SymbioticNodeBlock)) {
+                    HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
+                    PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
+                    discovery.recordNodeThreatBaseline(hive.getThreatLevel(), serverLevel.dimension().location().toString());
+                    serverPlayer.sendSystemMessage(Component.translatable(
+                            "message.mycelialmind.scanner_node_threat_recorded",
+                            String.format("%.1f", hive.getThreatLevel())
+                    ).withStyle(ChatFormatting.AQUA));
+                    DiscoverySyncPayload.syncToPlayer(serverPlayer);
+                }
                 serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.4F);
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
@@ -316,6 +329,29 @@ public class BioScannerItem extends Item {
                         String.format("%.0f/%.0f", mob.getHealth(), mob.getMaxHealth()),
                         tactical
                 ).withStyle(ChatFormatting.LIGHT_PURPLE));
+
+                HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
+                StimulusType dominantStimulus = null;
+                double dominantScore = 0.0D;
+                for (Map.Entry<StimulusType, Double> entry : hive.getStimulusScores().entrySet()) {
+                    if (entry.getValue() > dominantScore) {
+                        dominantScore = entry.getValue();
+                        dominantStimulus = entry.getKey();
+                    }
+                }
+                boolean witnessedDeflection = player instanceof ServerPlayer sp
+                        && sp.getData(ModAttachments.DISCOVERY).hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_DEFLECTION_WITNESSED);
+                ProgressionGoalEngine.CreatureObservation observation = ProgressionGoalEngine.resolveCreatureObservation(
+                        mob.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT),
+                        hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT),
+                        witnessedDeflection,
+                        hive.getStimulusScore(StimulusType.PROJECTILE),
+                        dominantStimulus,
+                        dominantScore,
+                        MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get()
+                );
+                sendObservationMessage(player, observation, dominantStimulus);
+
                 if (player instanceof ServerPlayer serverPlayer) {
                     PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
                     discovery.recordSpecies(mob.getType());
@@ -323,6 +359,7 @@ public class BioScannerItem extends Item {
                     for (AdaptationTrait trait : mob.getTraits()) {
                         discovery.recordTrait(trait);
                     }
+                    discovery.recordCreatureObservation(observation, serverLevel.dimension().location().toString());
                     if (mob.isPrimordialVariant()) {
                         discovery.incrementRareVariantsFound();
                         PlayerDiscoveryData.unlockSecret(serverPlayer, ProgressionGoalEngine.SECRET_PRIMORDIAL_SPECIMEN);
@@ -330,6 +367,9 @@ public class BioScannerItem extends Item {
                                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
                     }
                     DiscoverySyncPayload.syncToPlayer(serverPlayer);
+                    if (serverPlayer.connection != null) {
+                        PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
+                    }
                 }
                 serverLevel.playSound(null, mob.blockPosition(), ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.5F);
             }
@@ -465,6 +505,11 @@ public class BioScannerItem extends Item {
                 player.sendSystemMessage(Component.translatable(
                         "message.mycelialmind.scanner_nearest_node",
                         dist, nearestNode.getX(), nearestNode.getY(), nearestNode.getZ()).withStyle(ChatFormatting.AQUA));
+                if (player instanceof ServerPlayer serverPlayer && tracker.findNearestEnemyNode(player.blockPosition()) != null) {
+                    PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
+                    discovery.recordNodeThreatBaseline(hive.getThreatLevel(), serverLevel.dimension().location().toString());
+                    DiscoverySyncPayload.syncToPlayer(serverPlayer);
+                }
             } else {
                 BlockPos sanctum = serverLevel.findNearestMapStructure(SANCTUM_TAG, player.blockPosition(), 100, false);
                 if (sanctum != null) {
@@ -541,6 +586,26 @@ public class BioScannerItem extends Item {
             }
         }
         return best;
+    }
+
+    private static void sendObservationMessage(
+            Player player,
+            ProgressionGoalEngine.CreatureObservation observation,
+            StimulusType dominantStimulus
+    ) {
+        switch (observation) {
+            case CONFIRMED_PROJECTILE_ADAPTATION -> player.sendSystemMessage(
+                    Component.translatable(observation.translationKey()).withStyle(ChatFormatting.GOLD));
+            case LEARNING_PROJECTILE -> player.sendSystemMessage(
+                    Component.translatable(observation.translationKey()).withStyle(ChatFormatting.YELLOW));
+            case INSUFFICIENT_EVIDENCE -> player.sendSystemMessage(
+                    Component.translatable(observation.translationKey()).withStyle(ChatFormatting.GRAY));
+            case OTHER_DOMINANT_RESPONSE -> player.sendSystemMessage(
+                    Component.translatable(observation.translationKey(),
+                            MycelialText.stimulus(dominantStimulus != null ? dominantStimulus : StimulusType.MELEE))
+                            .withStyle(ChatFormatting.AQUA));
+            case NONE -> { }
+        }
     }
 
     public static Component formatMobTacticalStatus(MycelialMob mob) {

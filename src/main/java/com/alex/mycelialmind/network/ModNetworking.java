@@ -17,7 +17,7 @@ public final class ModNetworking {
     }
 
     private static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(MycelialMind.MODID).versioned("14");
+        PayloadRegistrar registrar = event.registrar(MycelialMind.MODID).versioned("15");
         registrar.playToClient(
                 HiveSyncPayload.TYPE,
                 HiveSyncPayload.STREAM_CODEC,
@@ -37,6 +37,11 @@ public final class ModNetworking {
                 DiscoverySyncPayload.TYPE,
                 DiscoverySyncPayload.STREAM_CODEC,
                 DiscoverySyncPayload::handleOnClient
+        );
+        registrar.playToServer(
+                PinExpeditionGoalPayload.TYPE,
+                PinExpeditionGoalPayload.STREAM_CODEC,
+                PinExpeditionGoalPayload::handleOnServer
         );
     }
 }

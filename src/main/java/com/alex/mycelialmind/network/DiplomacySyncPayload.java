@@ -52,6 +52,9 @@ public record DiplomacySyncPayload(
     }
 
     public static void syncToPlayer(ServerPlayer player) {
+        if (player == null || player.connection == null) {
+            return;
+        }
         PacketDistributor.sendToPlayer(player, forPlayer(player));
     }
 

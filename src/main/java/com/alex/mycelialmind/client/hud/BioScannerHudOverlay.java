@@ -5,6 +5,7 @@ import com.alex.mycelialmind.config.MycelialClientConfig;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.HiveSynergy;
+import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.ClientDiscoveryCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
@@ -358,23 +359,41 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
     }
 
     private static void drawGoalTrackerLine(GuiGraphics graphics, Font font, int x, int y, int maxWidth) {
-        HiveProgressionTier actTier = ClientDiscoveryCache.getEffectiveActTier();
-        Component goalLine = Component.translatable(
-                "hud.mycelialmind.goal_tracker",
-                actTier.actNumber(),
-                Component.translatable(ClientDiscoveryCache.getActiveShortTermGoal().translationKey()),
-                ClientDiscoveryCache.getLongTermMasteryPercent()
-        );
+        Minecraft mc = Minecraft.getInstance();
+        ProgressionGoalEngine.ExpeditionGoal pinnedGoal = ClientDiscoveryCache.getPinnedExpeditionGoal();
+        Component goalLine;
+        int color;
+        if (pinnedGoal != ProgressionGoalEngine.ExpeditionGoal.NONE) {
+            ProgressionGoalEngine.ResearchNextStep step = ClientDiscoveryCache.resolveClientResearchNextStep(mc.player);
+            Component stepText = step == ProgressionGoalEngine.ResearchNextStep.COMPLETED_NODE_DESTRUCTION
+                    ? Component.translatable(step.hudTranslationKey(), String.format("%.1f", ClientDiscoveryCache.getLastThreatDrop()))
+                    : Component.translatable(step.hudTranslationKey());
+            goalLine = Component.translatable(
+                    "hud.mycelialmind.pinned_goal_tracker",
+                    Component.translatable(pinnedGoal.translationKey()),
+                    stepText
+            );
+            color = step.isWarning() ? 0xFFFF758F : 0xFF72EFDD;
+        } else {
+            HiveProgressionTier actTier = ClientDiscoveryCache.getEffectiveActTier();
+            goalLine = Component.translatable(
+                    "hud.mycelialmind.goal_tracker",
+                    actTier.actNumber(),
+                    Component.translatable(ClientDiscoveryCache.getActiveShortTermGoal().translationKey()),
+                    ClientDiscoveryCache.getLongTermMasteryPercent()
+            );
+            color = 0xFFFFD166;
+        }
         int textW = font.width(goalLine);
         if (textW > maxWidth && textW > 0) {
             float scale = (float) maxWidth / (float) textW;
             graphics.pose().pushPose();
             graphics.pose().translate(x, y, 0);
             graphics.pose().scale(scale, scale, 1.0F);
-            graphics.drawString(font, goalLine, 0, 0, 0xFFFFD166, true);
+            graphics.drawString(font, goalLine, 0, 0, color, true);
             graphics.pose().popPose();
         } else {
-            graphics.drawString(font, goalLine, x, y, 0xFFFFD166, true);
+            graphics.drawString(font, goalLine, x, y, color, true);
         }
     }
 }

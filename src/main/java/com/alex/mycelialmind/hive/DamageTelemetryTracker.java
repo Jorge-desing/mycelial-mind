@@ -13,6 +13,7 @@ import com.alex.mycelialmind.entity.projectile.PurifierGrenadeProjectile;
 import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.network.DiplomacySyncPayload;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
+import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.network.SymbiosisSyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
@@ -47,7 +48,9 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
@@ -56,8 +59,10 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -159,6 +164,9 @@ public final class DamageTelemetryTracker {
             }
             double chance = Math.min(0.75, MycelialConfig.PROJECTILE_DEFLECT_CHANCE.get() + mastery * 0.12);
             if (mob.getRandom().nextDouble() < chance) {
+                if (mob.level() instanceof ServerLevel sl) {
+                    emitProjectileDeflectionSignal(sl, mob, source);
+                }
                 if (mob.hasSynergy(HiveSynergy.KINETIC_MIRROR) && source.getEntity() instanceof LivingEntity attacker && attacker != mob) {
                     reflectSynapticFragment(mob, attacker);
                 }
@@ -514,11 +522,31 @@ public final class DamageTelemetryTracker {
             PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
             tracker.alertNearbyNodes(serverLevel, pos, 240);
             HiveBlackboard.reportNodeLoss(serverLevel, pos);
+            double threatBefore = hive.getThreatLevel();
             hive.applyNodeDestructionBleed(
                     MycelialConfig.NODE_DESTRUCTION_STIMULUS_BLEED.get(),
                     2.5,
                     serverLevel.getGameTime()
             );
+            double threatAfter = hive.getThreatLevel();
+            double threatDrop = Math.max(0.0D, threatBefore - threatAfter);
+            if (event.getPlayer() instanceof ServerPlayer serverPlayer) {
+                PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
+                discovery.recordNodeDestroyedThreatDrop(threatDrop);
+                if (discovery.getPinnedExpeditionGoal() == ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE
+                        || discovery.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_NODE_THREAT_RECORDED)
+                        || hasBioScannerInInventory(serverPlayer)) {
+                    serverPlayer.sendSystemMessage(Component.translatable(
+                            "message.mycelialmind.scanner_node_threat_drop",
+                            String.format("%.1f", threatDrop),
+                            String.format("%.1f", threatAfter)
+                    ).withStyle(ChatFormatting.AQUA));
+                }
+                DiscoverySyncPayload.syncToPlayer(serverPlayer);
+                if (serverPlayer.connection != null) {
+                    PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
+                }
+            }
             serverLevel.playSound(null, pos, ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 0.9F, 0.65F);
             serverLevel.sendParticles(ModParticles.HIVE_EMBER.get(),
                     pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
@@ -631,6 +659,52 @@ public final class DamageTelemetryTracker {
         if (eliteArmor > 0 && source.getEntity() instanceof MycelialMob mycelialAttacker && mycelialAttacker.isAlive()) {
             mycelialAttacker.hurt(player.damageSources().magic(), 1.25F * eliteArmor);
         }
+    }
+
+    private static void emitProjectileDeflectionSignal(ServerLevel sl, MycelialMob mob, DamageSource source) {
+        Vec3 impact = source.getDirectEntity() != null
+                ? source.getDirectEntity().position()
+                : new Vec3(mob.getX(), mob.getY(0.6D), mob.getZ());
+        double ix = impact.x;
+        double iy = Math.max(mob.getY() + 0.2D, impact.y);
+        double iz = impact.z;
+        sl.sendParticles(ModParticles.SYNAPSE_SPARK.get(), ix, iy, iz, 10, 0.25, 0.25, 0.25, 0.06);
+        sl.sendParticles(ModParticles.CHITIN_SHARD.get(), ix, iy, iz, 6, 0.2, 0.2, 0.2, 0.08);
+        sl.playSound(null, ix, iy, iz, ModSounds.HIVE_CORE_SHIELD.get(), SoundSource.HOSTILE, 0.85F, 1.35F);
+
+        Set<ServerPlayer> witnesses = new LinkedHashSet<>();
+        if (source.getEntity() instanceof ServerPlayer attacker) {
+            witnesses.add(attacker);
+        }
+        for (ServerPlayer nearby : sl.players()) {
+            if (nearby.blockPosition().distSqr(mob.blockPosition()) <= 24.0D * 24.0D) {
+                witnesses.add(nearby);
+            }
+        }
+        for (ServerPlayer witness : witnesses) {
+            PlayerDiscoveryData discovery = witness.getData(ModAttachments.DISCOVERY);
+            if (discovery.recordDeflectionWitnessed()) {
+                witness.displayClientMessage(
+                        Component.translatable("message.mycelialmind.projectile_deflected_signal")
+                                .withStyle(ChatFormatting.AQUA),
+                        true
+                );
+                DiscoverySyncPayload.syncToPlayer(witness);
+            }
+        }
+    }
+
+    private static boolean hasBioScannerInInventory(ServerPlayer player) {
+        if (player.getMainHandItem().is(ModItems.BIO_SCANNER.get())
+                || player.getOffhandItem().is(ModItems.BIO_SCANNER.get())) {
+            return true;
+        }
+        for (ItemStack stack : player.getInventory().items) {
+            if (stack.is(ModItems.BIO_SCANNER.get())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void reflectSynapticFragment(MycelialMob sourceMob, LivingEntity attacker) {

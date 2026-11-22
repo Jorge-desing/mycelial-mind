@@ -1,10 +1,15 @@
 package com.alex.mycelialmind.menu;
 
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
+import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.item.GeneticSampleItem;
+import com.alex.mycelialmind.network.DiscoverySyncPayload;
+import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModMenuTypes;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.network.FriendlyByteBuf;
@@ -51,6 +56,7 @@ public class SynapticBenchMenu extends AbstractContainerMenu {
             @Override
             public void onTake(Player player, ItemStack stack) {
                 var details = blockEntity.computeSynthesisDetails();
+                ItemStack inputSample = blockEntity.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE).copy();
                 if (blockEntity.isOutputInputsConsumed()) {
                     blockEntity.refreshOutputSlot();
                 } else {
@@ -60,11 +66,16 @@ public class SynapticBenchMenu extends AbstractContainerMenu {
                     blockEntity.getLevel().playSound(null, blockEntity.getBlockPos(),
                             ModSounds.SYNAPTIC_BENCH_SYNTHESIZE.get(), SoundSource.BLOCKS, 0.85F, 1.0F);
                     if (player instanceof ServerPlayer serverPlayer && !details.output().isEmpty()) {
-                        PlayerDiscoveryData.unlockMilestone(
-                                serverPlayer, ProgressionGoalEngine.MILESTONE_SYNTHESIZED_BIOTECH);
+                        PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
+                        discovery.recordMilestone(ProgressionGoalEngine.MILESTONE_SYNTHESIZED_BIOTECH);
                         if (details.secretBit() >= 0) {
                             PlayerDiscoveryData.unlockSecret(serverPlayer, details.secretBit());
                         }
+                        if (AdaptationTrait.PROJECTILE_DEFLECT.id().equals(details.output().get(ModDataComponents.TRAIT_ID.get()))
+                                || GeneticSampleItem.getTrait(inputSample) == AdaptationTrait.PROJECTILE_DEFLECT) {
+                            discovery.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_BIOTECH_SYNTHESIZED);
+                        }
+                        DiscoverySyncPayload.syncToPlayer(serverPlayer);
                     }
                 }
                 super.onTake(player, stack);

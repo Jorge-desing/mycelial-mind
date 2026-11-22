@@ -14,22 +14,30 @@ import com.alex.mycelialmind.network.ClientDiscoveryCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.network.ClientSymbiosisCache;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.network.PinExpeditionGoalPayload;
+import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.SynapticNodeType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Interactive Bio-Scanner Codex GUI with 5 localized tabs:
  * (0) Live Stimulus Telemetry, (1) Evolutions & Symbiosis, (2) Territory 2D Radar,
- * (3) Chemical Diplomacy, (4) Field Guide (2 pages).
+ * (3) Chemical Diplomacy, (4) Field Guide (4 pages including Ongoing Research).
  */
 public class BioScannerCodexScreen extends Screen {
     private static final int PANEL_W = 312;
@@ -38,6 +46,8 @@ public class BioScannerCodexScreen extends Screen {
     private int activeTab = 0;
     private int guidePage = 0;
     private Button guidePageButton;
+    private Button pinAdvantageButton;
+    private Button pinReclaimButton;
 
     public BioScannerCodexScreen() {
         super(Component.translatable("screen.mycelialmind.bio_codex"));
@@ -59,14 +69,24 @@ public class BioScannerCodexScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("codex.mycelialmind.tab.guide"), btn -> setActiveTab(4))
                 .bounds(left + 246, top + 22, 58, 18).build());
 
+        this.pinAdvantageButton = this.addRenderableWidget(Button.builder(
+                pinButtonLabel(ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE),
+                btn -> toggleExpeditionGoal(ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE))
+                .bounds(left + 12, top + 176, 138, 16).build());
+        this.pinReclaimButton = this.addRenderableWidget(Button.builder(
+                pinButtonLabel(ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE),
+                btn -> toggleExpeditionGoal(ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE))
+                .bounds(left + 158, top + 176, 140, 16).build());
+
         this.guidePageButton = this.addRenderableWidget(Button.builder(
                 guidePageLabel(),
                 btn -> {
-                    this.guidePage = (this.guidePage + 1) % 3;
+                    this.guidePage = (this.guidePage + 1) % 4;
                     btn.setMessage(guidePageLabel());
+                    updateResearchButtonsVisibility();
                 })
                 .bounds(left + PANEL_W - 76, top + PANEL_H - 22, 66, 16).build());
-        this.guidePageButton.visible = (this.activeTab == 4);
+        updateResearchButtonsVisibility();
 
         var mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player != null && (mc.player.isCreative() || hasCodexBookInInventory(mc.player))) {
@@ -74,6 +94,40 @@ public class BioScannerCodexScreen extends Screen {
                     Component.translatable("gui.mycelialmind.scanner.open_codex"),
                     btn -> ClientCodexOpener.openBookCodex())
                     .bounds(left + 8, top + PANEL_H - 22, 58, 16).build());
+        }
+    }
+
+    private void toggleExpeditionGoal(ProgressionGoalEngine.ExpeditionGoal target) {
+        ProgressionGoalEngine.ExpeditionGoal next = (ClientDiscoveryCache.getPinnedExpeditionGoal() == target)
+                ? ProgressionGoalEngine.ExpeditionGoal.NONE
+                : target;
+        ClientDiscoveryCache.setClientPinnedExpeditionGoal(next.id());
+        PinExpeditionGoalPayload.sendToServer(next);
+        updateResearchButtonsVisibility();
+    }
+
+    private Component pinButtonLabel(ProgressionGoalEngine.ExpeditionGoal goal) {
+        boolean selected = ClientDiscoveryCache.getPinnedExpeditionGoal() == goal;
+        String prefixKey = selected ? "codex.mycelialmind.research.btn.pinned" : "codex.mycelialmind.research.btn.pin";
+        return Component.translatable(prefixKey, Component.translatable(goal.translationKey()));
+    }
+
+    private void updateResearchButtonsVisibility() {
+        boolean isGuide = this.activeTab == 4;
+        if (this.guidePageButton != null) {
+            this.guidePageButton.visible = isGuide;
+        }
+        boolean isResearchPage = isGuide && this.guidePage == 0;
+        boolean canChoose = ClientDiscoveryCache.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED);
+        if (this.pinAdvantageButton != null) {
+            this.pinAdvantageButton.visible = isResearchPage;
+            this.pinAdvantageButton.active = canChoose;
+            this.pinAdvantageButton.setMessage(pinButtonLabel(ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE));
+        }
+        if (this.pinReclaimButton != null) {
+            this.pinReclaimButton.visible = isResearchPage;
+            this.pinReclaimButton.active = canChoose;
+            this.pinReclaimButton.setMessage(pinButtonLabel(ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE));
         }
     }
 
@@ -92,9 +146,7 @@ public class BioScannerCodexScreen extends Screen {
 
     private void setActiveTab(int tab) {
         this.activeTab = tab;
-        if (this.guidePageButton != null) {
-            this.guidePageButton.visible = (this.activeTab == 4);
-        }
+        updateResearchButtonsVisibility();
     }
 
     private Component guidePageLabel() {
@@ -533,23 +585,171 @@ public class BioScannerCodexScreen extends Screen {
     }
 
     private void renderFieldGuideTab(GuiGraphics graphics, int x, int y) {
-        if (guidePage == 2) {
+        if (guidePage == 0) {
+            renderOngoingResearchPage(graphics, x, y);
+            return;
+        }
+        if (guidePage == 3) {
             renderProgressionGoalsPage(graphics, x, y);
             return;
         }
-        Component header = Component.translatable(guidePage == 0
+        boolean isPage1 = (guidePage == 1);
+        Component header = Component.translatable(isPage1
                 ? "codex.mycelialmind.guide.header1"
                 : "codex.mycelialmind.guide.header2");
-        graphics.drawString(this.font, header, x, y, guidePage == 0 ? 0xFFFFD166 : 0xFF72EFDD, true);
+        graphics.drawString(this.font, header, x, y, isPage1 ? 0xFFFFD166 : 0xFF72EFDD, true);
         y += 13;
 
-        int count = guidePage == 0 ? 10 : 12;
-        String prefix = guidePage == 0 ? "codex.mycelialmind.guide.p1." : "codex.mycelialmind.guide.p2.";
+        int count = isPage1 ? 10 : 12;
+        String prefix = isPage1 ? "codex.mycelialmind.guide.p1." : "codex.mycelialmind.guide.p2.";
         int lineStep = count > 11 ? 10 : 12;
         for (int i = 1; i <= count; i++) {
             graphics.drawString(this.font, Component.translatable(prefix + i), x, y, 0xFFE6C2FF, true);
             y += lineStep;
         }
+    }
+
+    private void renderOngoingResearchPage(GuiGraphics graphics, int x, int y) {
+        updateResearchButtonsVisibility();
+        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.guide.header0"), x, y, 0xFFFFD166, true);
+        y += 12;
+
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+
+        ProgressionGoalEngine.CreatureObservation obs = ClientDiscoveryCache.getLastObservation();
+        Component obsText = obs == ProgressionGoalEngine.CreatureObservation.OTHER_DOMINANT_RESPONSE
+                ? Component.translatable("codex.mycelialmind.research.obs.other_dominant")
+                : Component.translatable(obs.translationKey());
+        Component dimText = ClientDiscoveryCache.formatDimensionComponent(ClientDiscoveryCache.getLastObservationDimension());
+        drawScaledText(graphics,
+                Component.translatable("codex.mycelialmind.research.last_discovery", obsText, dimText),
+                x, y, 286, 0xFFE6C2FF);
+        y += 11;
+
+        ProgressionGoalEngine.ExpeditionGoal pinnedGoal = ClientDiscoveryCache.getPinnedExpeditionGoal();
+        drawScaledText(graphics,
+                Component.translatable("codex.mycelialmind.research.pinned_goal",
+                        Component.translatable(pinnedGoal.translationKey())),
+                x, y, 286, pinnedGoal == ProgressionGoalEngine.ExpeditionGoal.NONE ? 0xFFADB5BD : 0xFFFFD166);
+        y += 11;
+
+        if (pinnedGoal != ProgressionGoalEngine.ExpeditionGoal.NONE) {
+            String meritKey = pinnedGoal == ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE
+                    ? "codex.mycelialmind.research.merit.use_to_advantage"
+                    : "codex.mycelialmind.research.merit.reclaim_cave";
+            drawScaledText(graphics, Component.translatable(meritKey), x, y, 286, 0xFF72EFDD);
+            y += 11;
+        }
+
+        ProgressionGoalEngine.ResearchNextStep step = ClientDiscoveryCache.resolveClientResearchNextStep(player);
+        Component stepComp = step == ProgressionGoalEngine.ResearchNextStep.COMPLETED_NODE_DESTRUCTION
+                ? Component.translatable(step.translationKey(), String.format("%.1f", ClientDiscoveryCache.getLastThreatDrop()))
+                : Component.translatable(step.translationKey());
+        int stepColor = step.isWarning()
+                ? 0xFFFF758F
+                : ((step == ProgressionGoalEngine.ResearchNextStep.COMPLETED_BIOTECH_SYNTHESIS
+                || step == ProgressionGoalEngine.ResearchNextStep.COMPLETED_NODE_DESTRUCTION)
+                ? 0xFF72EFDD : 0xFF9DE0AD);
+        List<FormattedCharSequence> stepLines = this.font.split(
+                Component.translatable("codex.mycelialmind.research.next_step_prefix", stepComp), 286);
+        for (int i = 0; i < stepLines.size() && i < 2; i++) {
+            graphics.drawString(this.font, stepLines.get(i), x, y, stepColor, true);
+            y += 10;
+        }
+        y += 2;
+
+        boolean hasSample = ClientDiscoveryCache.hasProjectileDeflectSample(player)
+                || ClientDiscoveryCache.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SAMPLE_EXTRACTED);
+        if (pinnedGoal == ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE || hasSample) {
+            graphics.drawString(this.font,
+                    Component.translatable("codex.mycelialmind.research.sample_syntheses_header"),
+                    x, y, 0xFFFFE599, true);
+            y += 11;
+
+            boolean hasBiomass = ClientDiscoveryCache.hasItemInInventory(player, ModItems.MYCELIAL_BIOMASS.get());
+            boolean hasCore = ClientDiscoveryCache.hasItemInInventory(player, ModItems.SYNAPTIC_CORE.get());
+            boolean hasSpore = ClientDiscoveryCache.hasItemInInventory(player, ModItems.LATENT_SPORE.get());
+            boolean hasCounterCat = ClientDiscoveryCache.hasItemInInventory(player, Items.AMETHYST_SHARD)
+                    || ClientDiscoveryCache.hasItemInInventory(player, ModItems.PURIFIER_GRENADE.get());
+            boolean hasEcho = ClientDiscoveryCache.hasItemInInventory(player, ModItems.NEURAL_ECHO_CORE.get());
+
+            drawRecipeAvailabilityRow(graphics, x, y,
+                    "codex.mycelialmind.research.recipe_name.mutagen",
+                    hasSample, hasBiomass, "codex.mycelialmind.research.ing.biomass",
+                    hasCore, "codex.mycelialmind.research.ing.synaptic_core");
+            y += 10;
+            drawRecipeAvailabilityRow(graphics, x, y,
+                    "codex.mycelialmind.research.recipe_name.counter",
+                    hasSample, hasSpore, "codex.mycelialmind.research.ing.latent_spore",
+                    hasCounterCat, "codex.mycelialmind.research.ing.amethyst_or_grenade");
+            y += 10;
+            drawRecipeAvailabilityRow(graphics, x, y,
+                    "codex.mycelialmind.research.recipe_name.chimera",
+                    hasSample, hasBiomass, "codex.mycelialmind.research.ing.biomass",
+                    hasEcho, "codex.mycelialmind.research.ing.echo_core");
+        } else if (pinnedGoal == ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE) {
+            drawScaledText(graphics,
+                    Component.translatable("codex.mycelialmind.research.cave_telemetry",
+                            String.format("%.1f", ClientDiscoveryCache.getRecordedThreat()),
+                            String.format("%.1f", ClientHiveCache.getThreatLevel()),
+                            String.format("%.1f", ClientDiscoveryCache.getLastThreatDrop())),
+                    x, y, 286, 0xFFE6C2FF);
+            y += 12;
+            drawScaledText(graphics,
+                    Component.translatable("codex.mycelialmind.research.cave_tip"),
+                    x, y, 286, 0xFFADB5BD);
+        } else {
+            drawScaledText(graphics,
+                    Component.translatable("codex.mycelialmind.research.option_advantage_summary"),
+                    x, y, 286, 0xFFA3F7B5);
+            y += 11;
+            drawScaledText(graphics,
+                    Component.translatable("codex.mycelialmind.research.option_reclaim_summary"),
+                    x, y, 286, 0xFF72EFDD);
+        }
+    }
+
+    private void drawRecipeAvailabilityRow(
+            GuiGraphics graphics,
+            int x,
+            int y,
+            String recipeNameKey,
+            boolean hasSample,
+            boolean hasReagent1,
+            String reagent1Key,
+            boolean hasReagent2,
+            String reagent2Key
+    ) {
+        List<Component> missing = new ArrayList<>();
+        if (!hasSample) {
+            missing.add(Component.translatable("codex.mycelialmind.research.ing.sample"));
+        }
+        if (!hasReagent1) {
+            missing.add(Component.translatable(reagent1Key));
+        }
+        if (!hasReagent2) {
+            missing.add(Component.translatable(reagent2Key));
+        }
+        Component status;
+        int color;
+        if (missing.isEmpty()) {
+            status = Component.translatable("codex.mycelialmind.research.recipe_ready",
+                    Component.translatable(recipeNameKey));
+            color = 0xFF9DE0AD;
+        } else {
+            var joined = Component.empty();
+            for (int i = 0; i < missing.size(); i++) {
+                if (i > 0) {
+                    joined.append(", ");
+                }
+                joined.append(missing.get(i));
+            }
+            status = Component.translatable("codex.mycelialmind.research.recipe_missing",
+                    Component.translatable(recipeNameKey), joined);
+            color = 0xFFFFB703;
+        }
+        drawScaledText(graphics, status, x, y, 286, color);
     }
 
     private void renderProgressionGoalsPage(GuiGraphics graphics, int x, int y) {

@@ -41,6 +41,9 @@ public record SymbiosisSyncPayload(int mutagenMask, int infectionLevel) implemen
     }
 
     public static void syncToPlayer(ServerPlayer player) {
+        if (player == null || player.connection == null) {
+            return;
+        }
         PacketDistributor.sendToPlayer(player, forPlayer(player));
     }
 

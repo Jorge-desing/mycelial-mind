@@ -7629,4 +7629,235 @@ public final class MycelialGameTests {
             releaseArenaChunks(level, forcedChunks);
         }
     }
+
+    @GameTest(template = "empty", batch = "first_outbreak_research", timeoutTicks = 120)
+    public static void firstOutbreakProjectileHookAndOngoingResearchWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        hive.resetAll();
+        tracker.clearAll();
+
+        BlockPos anchor = homeostasisTestPos(helper, 9, new BlockPos(4, 12, 4));
+        BlockPos nodePos = anchor.east(3);
+        BlockPos benchPos = anchor.south(3);
+        var playerA = FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(
+                java.util.UUID.fromString("11111111-1111-1111-1111-111111111111"), "ResearcherA"));
+        var playerB = FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(
+                java.util.UUID.fromString("22222222-2222-2222-2222-222222222222"), "CoopPartnerB"));
+        playerA.getData(ModAttachments.DISCOVERY).deserializeNBT(level.registryAccess(), new CompoundTag());
+        playerB.getData(ModAttachments.DISCOVERY).deserializeNBT(level.registryAccess(), new CompoundTag());
+        playerA.getInventory().clearContent();
+        playerB.getInventory().clearContent();
+        playerA.getCooldowns().removeCooldown(ModItems.BIO_EXTRACTOR.get());
+
+        net.minecraft.resources.ResourceLocation scannerRecipeId =
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bio_scanner");
+        level.getRecipeManager().byKey(scannerRecipeId).ifPresent(holder -> {
+            playerA.getRecipeBook().remove(holder);
+            playerB.getRecipeBook().remove(holder);
+        });
+
+        SporelingEntity sporeling = ModEntities.SPORELING.get().create(level);
+        try {
+            helper.assertTrue(sporeling != null, "Sporeling must instantiate");
+            level.setBlockAndUpdate(anchor.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(nodePos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(benchPos.below(), Blocks.STONE.defaultBlockState());
+            sporeling.moveTo(anchor.getX() + 0.5, anchor.getY(), anchor.getZ() + 0.5);
+            level.addFreshEntity(sporeling);
+            playerA.setPos(anchor.getX() + 2.5, anchor.getY(), anchor.getZ() + 0.5);
+            playerB.setPos(anchor.getX() + 3.5, anchor.getY(), anchor.getZ() + 0.5);
+
+            // 1. First Latent Spore reveals Bio-Scanner recipe in new & existing worlds
+            helper.assertTrue(!playerA.getRecipeBook().contains(scannerRecipeId),
+                    "Bio-Scanner recipe should start locked for fresh player");
+            PlayerDiscoveryData.onLatentSporeAcquired(playerA);
+            PlayerDiscoveryData dataA = playerA.getData(ModAttachments.DISCOVERY);
+            helper.assertTrue(dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SPORE_FOUND)
+                            && playerA.getRecipeBook().contains(scannerRecipeId),
+                    "Acquiring first Latent Spore must unlock bio_scanner recipe and mark RESEARCH_BIT_SPORE_FOUND");
+
+            // Existing-world player already carrying Latent Spore unlocks on login sync
+            playerB.getInventory().add(new ItemStack(ModItems.LATENT_SPORE.get()));
+            HiveWaveDirector.onPlayerLoggedIn(new net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent(playerB));
+            PlayerDiscoveryData dataB = playerB.getData(ModAttachments.DISCOVERY);
+            helper.assertTrue(dataB.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SPORE_FOUND)
+                            && playerB.getRecipeBook().contains(scannerRecipeId),
+                    "Existing-world player holding Latent Spore must unlock bio_scanner recipe on sync");
+
+            // 2. Scan before combat -> INSUFFICIENT_EVIDENCE
+            ItemStack scannerStack = new ItemStack(ModItems.BIO_SCANNER.get());
+            playerA.setItemInHand(InteractionHand.MAIN_HAND, scannerStack);
+            ModItems.BIO_SCANNER.get().interactLivingEntity(scannerStack, playerA, sporeling, InteractionHand.MAIN_HAND);
+            helper.assertTrue(dataA.getLastObservation() == ProgressionGoalEngine.CreatureObservation.INSUFFICIENT_EVIDENCE
+                            && "minecraft:overworld".equals(dataA.getLastObservationDimension()),
+                    "Pre-combat scan must yield INSUFFICIENT_EVIDENCE with origin dimension");
+
+            // Unadapted arrow hits (does not witness deflection)
+            var hitArrow = new net.minecraft.world.entity.projectile.Arrow(
+                    level, playerA.getX(), playerA.getEyeY(), playerA.getZ(), new ItemStack(Items.ARROW), null);
+            float hpBeforeHit = sporeling.getHealth();
+            sporeling.hurt(level.damageSources().arrow(hitArrow, playerA), 4.0F);
+            hitArrow.discard();
+            helper.assertTrue(sporeling.getHealth() < hpBeforeHit
+                            && !dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_DEFLECTION_WITNESSED),
+                    "Arrow hit on unadapted mob must deal damage and not mark deflection");
+            sporeling.heal(20.0F);
+
+            // 3. Projectile learning phase -> LEARNING_PROJECTILE
+            double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
+            double midTarget = Math.max(ProgressionGoalEngine.MIN_OBSERVABLE_STIMULUS_SCORE + 1.0D,
+                    Math.min(threshold - 2.0D, threshold * 0.60D));
+            double currentProj = hive.getStimulusScore(StimulusType.PROJECTILE);
+            if (currentProj < midTarget) {
+                hive.recordStimulus(StimulusType.PROJECTILE,
+                        stimulusForScore((midTarget - currentProj) / 1.075D), level.getGameTime());
+            }
+            ModItems.BIO_SCANNER.get().interactLivingEntity(scannerStack, playerA, sporeling, InteractionHand.MAIN_HAND);
+            helper.assertTrue(dataA.getLastObservation() == ProgressionGoalEngine.CreatureObservation.LEARNING_PROJECTILE,
+                    "Mid-learning projectile stimulus must yield LEARNING_PROJECTILE (got " + dataA.getLastObservation() + ")");
+
+            // 4. Activate PROJECTILE_DEFLECT -> witness real deflection -> CONFIRMED_PROJECTILE_ADAPTATION
+            hive.recordStimulus(StimulusType.PROJECTILE, stimulusForScore(threshold + 15.0D), level.getGameTime());
+            sporeling.applyGlobalHiveState(level, hive);
+            boolean sawCanceledDeflection = false;
+            for (int attempt = 0; attempt < 40 && !dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_DEFLECTION_WITNESSED); attempt++) {
+                sporeling.heal(20.0F);
+                float pre = sporeling.getHealth();
+                var arrow = new net.minecraft.world.entity.projectile.Arrow(
+                        level, playerA.getX(), playerA.getEyeY(), playerA.getZ(), new ItemStack(Items.ARROW), null);
+                sporeling.hurt(level.damageSources().arrow(arrow, playerA), 2.0F);
+                arrow.discard();
+                if (sporeling.getHealth() >= pre) {
+                    sawCanceledDeflection = true;
+                }
+            }
+            helper.assertTrue(sawCanceledDeflection
+                            && dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_DEFLECTION_WITNESSED),
+                    "Adapted creature must visibly deflect an arrow and record RESEARCH_BIT_DEFLECTION_WITNESSED");
+
+            ModItems.BIO_SCANNER.get().interactLivingEntity(scannerStack, playerA, sporeling, InteractionHand.MAIN_HAND);
+            helper.assertTrue(dataA.getLastObservation() == ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION
+                            && dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED),
+                    "Post-adaptation scan must confirm CONFIRMED_PROJECTILE_ADAPTATION");
+
+            // 5. Pin Goal 1 (USE_TO_ADVANTAGE), check missing Bio-Extractor warning, extract sample, check missing Biomass
+            com.alex.mycelialmind.network.PinExpeditionGoalPayload.applyGoalChange(
+                    playerA, ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE.id());
+            helper.assertTrue(ProgressionGoalEngine.resolveResearchNextStep(
+                            dataA.getPinnedExpeditionGoal(), dataA.getResearchStageMask(),
+                            false, true, false, false, true, false, false, hive.getThreatLevel())
+                            == ProgressionGoalEngine.ResearchNextStep.MISSING_BIO_EXTRACTOR,
+                    "Must warn if Bio-Extractor is missing");
+
+            // Cooperative partner B shares Hive adaptation yet keeps independent goal choice
+            helper.assertTrue(dataB.getPinnedExpeditionGoal() == ProgressionGoalEngine.ExpeditionGoal.NONE,
+                    "Co-op partner B must start with independent unpinned goal");
+            com.alex.mycelialmind.network.PinExpeditionGoalPayload.applyGoalChange(
+                    playerB, ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE.id());
+            helper.assertTrue(dataB.getPinnedExpeditionGoal() == ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE
+                            && dataA.getPinnedExpeditionGoal() == ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE,
+                    "Co-op players must preserve independent expedition goals");
+
+            ItemStack extractorStack = new ItemStack(ModItems.BIO_EXTRACTOR.get());
+            playerA.setItemInHand(InteractionHand.MAIN_HAND, extractorStack);
+            sporeling.setHealth(sporeling.getMaxHealth() * 0.40F);
+            var extractRes = ModItems.BIO_EXTRACTOR.get().interactLivingEntity(
+                    extractorStack, playerA, sporeling, InteractionHand.MAIN_HAND);
+            helper.assertTrue(extractRes.consumesAction()
+                            && dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SAMPLE_EXTRACTED),
+                    "Bio-Extractor must extract projectile sample and set RESEARCH_BIT_SAMPLE_EXTRACTED");
+
+            boolean hasProjSample = playerA.getInventory().items.stream().anyMatch(
+                    st -> st.is(ModItems.GENETIC_SAMPLE.get())
+                            && GeneticSampleItem.getTrait(st) == AdaptationTrait.PROJECTILE_DEFLECT);
+            helper.assertTrue(hasProjSample, "Player A must hold coded projectile_deflect GeneticSample");
+            helper.assertTrue(ProgressionGoalEngine.resolveResearchNextStep(
+                            dataA.getPinnedExpeditionGoal(), dataA.getResearchStageMask(),
+                            true, true, true, false, true, false, false, hive.getThreatLevel())
+                            == ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS,
+                    "Must report missing biomass when sample is ready without biomass");
+
+            // Synthesize Mutagen on Synaptic Research Bench -> RESEARCH_BIT_BIOTECH_SYNTHESIZED
+            level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
+            if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
+                ItemStack sample = new ItemStack(ModItems.GENETIC_SAMPLE.get());
+                sample.set(ModDataComponents.TRAIT_ID.get(), AdaptationTrait.PROJECTILE_DEFLECT.id());
+                bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, sample);
+                bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
+                bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, new ItemStack(ModItems.SYNAPTIC_CORE.get()));
+                var menu = new com.alex.mycelialmind.menu.SynapticBenchMenu(1, playerA.getInventory(), bench);
+                var outSlot = menu.getSlot(SynapticBenchBlockEntity.SLOT_OUTPUT);
+                ItemStack synthesized = outSlot.getItem().copy();
+                outSlot.onTake(playerA, synthesized);
+                helper.assertTrue(dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_BIOTECH_SYNTHESIZED),
+                        "Synthesizing projectile biotech must mark RESEARCH_BIT_BIOTECH_SYNTHESIZED");
+            }
+
+            // 6. Switch playerA to Goal 2 (RECLAIM_CAVE), locate node, break node, check exact threat drop
+            com.alex.mycelialmind.network.PinExpeditionGoalPayload.applyGoalChange(
+                    playerA, ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE.id());
+            helper.assertTrue(ProgressionGoalEngine.resolveResearchNextStep(
+                            dataA.getPinnedExpeditionGoal(), dataA.getResearchStageMask(),
+                            true, true, true, true, true, true, true, 0.0D)
+                            == ProgressionGoalEngine.ResearchNextStep.THREAT_ALREADY_ZERO,
+                    "Reclaim Cave must warn when Hive Threat is already 0%");
+
+            level.setBlockAndUpdate(nodePos, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
+            playerA.setItemInHand(InteractionHand.MAIN_HAND, scannerStack);
+            ModItems.BIO_SCANNER.get().useOn(new net.minecraft.world.item.context.UseOnContext(
+                    playerA, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(nodePos), Direction.UP, nodePos, false)));
+            helper.assertTrue(dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_NODE_THREAT_RECORDED)
+                            && dataA.getRecordedThreat() > 0.0D,
+                    "Scanning node must record threat baseline");
+
+            double threatBeforeBreak = hive.getThreatLevel();
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                    new net.neoforged.neoforge.event.level.BlockEvent.BreakEvent(
+                            level, nodePos, level.getBlockState(nodePos), playerA));
+            level.removeBlock(nodePos, false);
+            double expectedDrop = Math.max(0.0D, threatBeforeBreak - hive.getThreatLevel());
+            helper.assertTrue(dataA.hasResearchBit(ProgressionGoalEngine.RESEARCH_BIT_NODE_DESTROYED)
+                            && expectedDrop > 0.0D
+                            && Math.abs(dataA.getLastThreatDrop() - expectedDrop) < 0.02D,
+                    "Destroying node must record exact threat drop for player A");
+
+            // 7. Save/load NBT persistence & dimension change preservation
+            CompoundTag savedA = dataA.serializeNBT(level.registryAccess());
+            PlayerDiscoveryData restoredA = new PlayerDiscoveryData();
+            restoredA.deserializeNBT(level.registryAccess(), savedA);
+            helper.assertTrue(restoredA.getLastObservation() == dataA.getLastObservation()
+                            && "minecraft:overworld".equals(restoredA.getLastObservationDimension())
+                            && restoredA.getPinnedExpeditionGoal() == ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE
+                            && restoredA.getResearchStageMask() == dataA.getResearchStageMask()
+                            && restoredA.getLastThreatDropPermille() == dataA.getLastThreatDropPermille(),
+                    "Ongoing research state must survive NBT save/load");
+
+            HiveWaveDirector.onPlayerChangedDimension(
+                    new net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent(
+                            playerA, level.dimension(), ModDimensions.DEEP_MYCELIUM_LEVEL));
+            helper.assertTrue("minecraft:overworld".equals(dataA.getLastObservationDimension())
+                            && dataA.getPinnedExpeditionGoal() == ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE,
+                    "Dimension change must preserve origin observation dimension and pinned goal");
+
+            helper.succeed();
+        } finally {
+            if (sporeling != null && !sporeling.isRemoved()) {
+                sporeling.discard();
+            }
+            playerA.getInventory().clearContent();
+            playerB.getInventory().clearContent();
+            playerA.getData(ModAttachments.DISCOVERY).deserializeNBT(level.registryAccess(), new CompoundTag());
+            playerB.getData(ModAttachments.DISCOVERY).deserializeNBT(level.registryAccess(), new CompoundTag());
+            level.removeBlock(nodePos, false);
+            level.removeBlock(nodePos.below(), false);
+            level.removeBlock(benchPos, false);
+            level.removeBlock(benchPos.below(), false);
+            level.removeBlock(anchor.below(), false);
+            tracker.clearAll();
+            hive.resetAll();
+        }
+    }
 }

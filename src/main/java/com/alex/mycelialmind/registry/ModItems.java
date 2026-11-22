@@ -166,7 +166,8 @@ public final class ModItems {
 
     public static final DeferredItem<Item> LATENT_SPORE = ITEMS.register("latent_spore",
             () -> new TooltipMaterialItem(new Item.Properties(),
-                    "tooltip.mycelialmind.latent_spore", ChatFormatting.LIGHT_PURPLE));
+                    "tooltip.mycelialmind.latent_spore", ChatFormatting.LIGHT_PURPLE,
+                    "tooltip.mycelialmind.latent_spore.hint", ChatFormatting.AQUA));
 
     public static final DeferredItem<Item> SYNAPTIC_CORE = ITEMS.register("synaptic_core",
             () -> new TooltipMaterialItem(new Item.Properties().rarity(Rarity.UNCOMMON),
