@@ -43,6 +43,24 @@ class CodexBookScreenLogicTest {
     }
 
     @Test
+    void computeHeartbeatIntensityIsBoundedAndScalesWithThreat() {
+        float lowMin = MycelialCodexBookScreen.computeHeartbeatIntensity(0.0F, 0L);
+        float highFloor = 1.0F;
+        float lowPeak = 0.0F;
+        for (long t = 0; t <= 4000; t += 100) {
+            float vLow = MycelialCodexBookScreen.computeHeartbeatIntensity(0.0F, t);
+            float vHigh = MycelialCodexBookScreen.computeHeartbeatIntensity(100.0F, t);
+            assertTrue(vLow >= 0.0F && vLow <= 1.0F);
+            assertTrue(vHigh >= 0.0F && vHigh <= 1.0F);
+            lowPeak = Math.max(lowPeak, vLow);
+            highFloor = Math.min(highFloor, vHigh);
+        }
+        assertTrue(lowPeak <= 0.36F);
+        assertTrue(highFloor >= 0.14F);
+        assertTrue(lowMin >= 0.0F);
+    }
+
+    @Test
     void codexBookDataFromJsonParsesDualRecipesEntityScaleAndCalloutAccent() {
         String json = """
                 {

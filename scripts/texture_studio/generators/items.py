@@ -642,41 +642,45 @@ def _quorum_seal(p: float) -> IconCanvas:
 def _mycelial_codex(p: float) -> IconCanvas:
     c = IconCanvas(seed=136)
     xx, yy = c.xx, c.yy
-    # Main obsidian-chitin tome boards
+    # Necrotic chitin-flesh tome boards
     cover = sdf_box(xx, yy, 0.06, 0.04, 0.50, 0.62)
-    _p(c, cover, "abyssal_obsidian", "OBSIDIAN_CHITIN", 0.46, height=0.64)
-    # Recessed inner board panel & dark seam
-    c.zone(sdf_box(xx, yy, 0.10, 0.04, 0.34, 0.46), "elite_carapace", "OBSIDIAN_CHITIN", tone=0.28)
-    c.zone(sdf_onion(sdf_box(xx, yy, 0.10, 0.04, 0.36, 0.48), 0.03), "abyssal_obsidian", "OBSIDIAN_CHITIN", tone=0.14)
-    # Bioluminescent amethyst spine with raised chitin ribs
+    _p(c, cover, "abyssal_obsidian", "OBSIDIAN_CHITIN", 0.42, height=0.64)
+    # Recessed necrotic umber fungal skin panel
+    c.zone(sdf_box(xx, yy, 0.10, 0.04, 0.34, 0.46), "necrotic_umber", "OBSIDIAN_CHITIN", tone=0.34)
+    c.zone(sdf_onion(sdf_box(xx, yy, 0.10, 0.04, 0.36, 0.48), 0.03), "abyssal_obsidian", "OBSIDIAN_CHITIN", tone=0.12)
+    # Vertebral crimson sinew spine with 4 raised chitin bone vertebrae
     spine = sdf_box(xx, yy, -0.40, 0.04, 0.14, 0.64)
-    _p(c, spine, "mycelial_violet", "LIVING_AMETHYST", 0.58, height=0.70)
+    _p(c, spine, "leech_crimson", "BIOLUM_MYCELIUM", 0.46, height=0.72)
     for ry in (-0.42, -0.14, 0.14, 0.42):
-        c.zone(sdf_box(xx, yy, -0.40, ry, 0.15, 0.035), "chitin_bone", "CHITIN_BONE", tone=0.82)
-    # Fore-edge gilded spore-parchment pages
+        c.zone(sdf_box(xx, yy, -0.40, ry, 0.15, 0.045), "chitin_bone", "CHITIN_BONE", tone=0.84)
+    # Spore-stained bone parchment fore-edge with crimson veins
     page_edge = sdf_box(xx, yy, 0.50, 0.04, 0.08, 0.54)
-    c.zone(page_edge, "warm_ivory", "CHITIN_BONE", tone=0.90)
+    c.zone(page_edge, "spectral_bone", "CHITIN_BONE", tone=0.82)
     for py in (-0.28, -0.06, 0.16, 0.36):
-        c.zone(sdf_box(xx, yy, 0.50, py, 0.07, 0.022), "imperial_brass", "PURIFICATION_GOLD", tone=0.68)
-    # Imperial brass corner mounts & fore-edge clasp
+        c.zone(sdf_box(xx, yy, 0.50, py, 0.07, 0.025), "leech_crimson", "BIOLUM_MYCELIUM", tone=0.45)
+    # Chitin bone corner claws & fang clasp
     for cy in (-0.52, 0.60):
-        c.zone(sdf_box(xx, yy, 0.44, cy, 0.12, 0.06), "imperial_brass", "PURIFICATION_GOLD", tone=0.82)
-    _p(c, sdf_box(xx, yy, 0.58, 0.04, 0.06, 0.22), "volcanic_ember", "PURIFICATION_GOLD", 0.72, height=0.72)
-    c.zone(sdf_box(xx, yy, 0.58, -0.10, 0.06, 0.04), "warm_ivory", "CHITIN_BONE", tone=0.95)
-    # Central glowing hexagonal synaptic sigil & mycelial tendrils
-    for ang in (45.0, 135.0, 225.0, 315.0):
+        c.zone(sdf_box(xx, yy, 0.44, cy, 0.12, 0.06), "chitin_bone", "CHITIN_BONE", tone=0.76)
+    _p(c, sdf_box(xx, yy, 0.58, 0.04, 0.06, 0.22), "chitin_bone", "CHITIN_BONE", 0.78, height=0.74)
+    c.zone(sdf_box(xx, yy, 0.58, 0.04, 0.05, 0.05), "leech_crimson", "BIOLUM_MYCELIUM", tone=0.92)
+    # Crawling crimson hyphal tendrils radiating from the central Hive Eye
+    for ang in (35.0, 145.0, 215.0, 325.0):
         a = np.deg2rad(ang)
         c.zone(
-            sdf_capsule(xx, yy, 0.08, 0.04, 0.08 + np.cos(a) * 0.30, 0.04 + np.sin(a) * 0.32, 0.028),
-            "biolum_cyan",
-            "BIOLUM_CYAN",
-            tone=0.78 + 0.18 * p,
+            sdf_capsule(xx, yy, 0.08, 0.04, 0.08 + np.cos(a) * 0.34, 0.04 + np.sin(a) * 0.36, 0.032),
+            "leech_crimson",
+            "BIOLUM_MYCELIUM",
+            tone=0.74 + 0.20 * p,
         )
-    sig = sdf_polygon(xx, yy, 0.08, 0.04, 0.23, sides=6)
-    _p(c, sig, "spore_chartreuse", "TOXIC_SPORE", 0.84 + 0.12 * p, emissive=True, height=0.80)
-    c.zone(sdf_polygon(xx, yy, 0.08, 0.04, 0.13, sides=6), "venom_emerald", "TOXIC_SPORE", tone=0.38)
-    _p(c, sdf_circle(xx, yy, 0.08, 0.04, 0.07), "warm_ivory", "BIOLUM_MYCELIUM", 0.96, emissive=True, height=0.86)
-    c.glow(sdf_onion(sdf_polygon(xx, yy, 0.08, 0.04, 0.19, sides=6), 0.03) <= 0.0, "spore_chartreuse")
+    # Unblinking Hive Mind Eye (crimson socket, glowing spore-chartreuse iris, vertical slit pupil)
+    eye_outer = sdf_circle(xx, yy, 0.08, 0.04, 0.23)
+    _p(c, eye_outer, "leech_crimson", "BIOLUM_MYCELIUM", 0.68, height=0.80)
+    eye_iris = sdf_circle(xx, yy, 0.08, 0.04, 0.16)
+    _p(c, eye_iris, "spore_chartreuse", "TOXIC_SPORE", 0.88 + 0.10 * p, emissive=True, height=0.85)
+    c.glow(eye_iris <= 0.0, "spore_chartreuse")
+    slit = sdf_box(xx, yy, 0.08, 0.04, 0.035, 0.14)
+    c.zone(slit, "abyssal_obsidian", "OBSIDIAN_CHITIN", tone=0.06)
+    c.zone(sdf_circle(xx, yy, 0.02, -0.02, 0.04) <= 0.0, "warm_ivory", "BIOLUM_MYCELIUM", tone=0.98)
     return c
 
 

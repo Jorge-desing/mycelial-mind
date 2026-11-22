@@ -3366,3 +3366,29 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Tipo:** `VERIFICACIÓN`
 - **Estado actual:** `renovate.json` está presente en `main`; `task verify:renovate` validó la configuración estrictamente. La búsqueda de PRs abiertos y la lectura de metadatos confirmaron que `renovate[bot]` mantiene abiertos los PRs [#1 de NeoForge](https://github.com/Jorge-desing/mycelial-mind/pull/1) y [#2 de Gradle](https://github.com/Jorge-desing/mycelial-mind/pull/2), con actividad reciente.
 - **Conclusión:** configuración, CI y Renovate hospedado están integrados y funcionando. No se modificaron ni fusionaron los PRs.
+
+
+## [2026-11-22 09:17] — Personalización temática Micelio-Hongos-Mente Colmena aterrador en el Códice (`/goal`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `DOCUMENTACIÓN`
+- **Resumen:**
+  1. **Grimorio bio-horror `mycelial_codex` (`scripts/texture_studio/generators/items.py`):** Rediseñado `_mycelial_codex` con cubierta de quitina necrótica y piel fúngica (`necrotic_umber`), lomo vertebral de tendón carmesí (`leech_crimson`) con 4 vértebras de hueso (`chitin_bone`), cantos de pergamino manchados de esporas/sangre, garras/broche de hueso, 4 zarcillos hifales radiales y **Ojo de la Mente Colmena** central (cuenca carmesí, iris emisivo `spore_chartreuse`, pupila vertical de obsidiana y mapas LabPBR `_n`/`_s`).
+  2. **Atlas GUI bio-horror `codex_book.png` (`scripts/texture_studio/generators/gui.py`):** Rediseñado íntegramente `256×256` RGBA con caparazón necrótico y venas arteriales perimetrales, 4 garras de hueso y pústulas emisivas en las esquinas, pergaminos manchados de moho/esporas con hifas invasoras (`_paint_hyphal_tendrils`), lomo central vertebral incrustado con ojos observadores emisivos, filete superior coronado por un ojo carmesí y fila de sprites adaptados (slots tendinosos `18×18`, pedestal de hueso/espora `22×22`, zarcillo de síntesis `22×16`, sombreros fúngicos de capítulo `20×18` y medallón **Ojo de la Mente Colmena** `16×16`).
+  3. **Ambientación viva y aterradora en `MycelialCodexBookScreen.java` + `CodexBookScreenLogicTest.java`:**
+     - **Latido reactivo a la Amenaza (`computeHeartbeatIntensity`):** pulso sinusoidal cuya cadencia e intensidad escalan con `ClientHiveCache.getThreatLevel()`, iluminando bordes, venas perimetrales, visor 3D, pestañas y el lomo vertebral cuando la Amenaza supera el `50%`.
+     - **Esporas flotantes (`renderFloatingSpores`):** `22` partículas de esporas chartreuse/carmesí/amatista derivando suavemente sin obstruir las zonas de lectura.
+     - **Paleta y audio inquietantes:** `CodexButton` y tarjetas en tonos obsidiana/hueso/carmesí/espora tóxica, línea de escaneo orgánica en el visor 3D de especímenes y señales acústicas con `ModSounds.HOMEOSTASIS_HEARTBEAT` (`0.85F`), `ModSounds.HIVE_TRAIT_ADAPT` (`0.90F`) y `SoundEvents.BOOK_PAGE_TURN` (`0.82F`). Añadida prueba JUnit `computeHeartbeatIntensityIsBoundedAndScalesWithThreat`.
+  4. **Skills revisadas y actualizadas:** Actualizada `.agents/skills/mycelial-texture-studio/SKILL.md` reflejando el rediseño bio-horror del icono y atlas GUI; resto de skills revisadas sin cambios (`validate_skills`: `8/8`).
+- **Archivos / Símbolos:**
+  - `scripts/texture_studio/generators/items.py` (`_mycelial_codex`)
+  - `scripts/texture_studio/generators/gui.py` (`_paint_horror_corner_claw`, `_paint_hyphal_tendrils`, `generate_gui_textures`)
+  - `src/main/resources/assets/mycelialmind/textures/item/mycelial_codex{,_n,_s}.png`
+  - `src/main/resources/assets/mycelialmind/textures/gui/codex_book.png`
+  - `src/main/java/com/alex/mycelialmind/client/screen/MycelialCodexBookScreen.java` (`computeHeartbeatIntensity`, `renderFloatingSpores`, `lerpBioColor`, `CodexButton`)
+  - `src/test/java/com/alex/mycelialmind/CodexBookScreenLogicTest.java`
+  - `.agents/skills/mycelial-texture-studio/SKILL.md`
+- **Estado / Verificación (FastMCP `CodeMode` `mycelial-mind-dev`):**
+  - `run_texture_studio(check_only=False, pbr=True, export_extras=True, run_tests=True)` y `check_only=True`: **`ok: true`**.
+  - `validate_skills`: **`ok: true`** (`8/8`).
+  - `audit_mod_assets`: **`ok: true`**.
+  - `run_gradle_task(["test"])`: **`56/56`** JUnit en `5` suites (`0` fallos).
+  - `run_gradle_task(["runGameTestServer"])`: **`gradle_ok: true`** (**`153/153`** `@GameTest`s aprobados en `6.147 s`).
