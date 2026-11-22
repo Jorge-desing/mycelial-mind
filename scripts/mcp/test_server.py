@@ -19,6 +19,7 @@ if str(MCP_DIR) not in sys.path:
 
 from server import (
     _annotate_gradle_result,
+    _build_gradle_task_command,
     _parse_hive_status_output,
     _parse_spark_tps_output,
     _pick_minecraft_jvm_pid,
@@ -92,6 +93,21 @@ async def verify_code_mode() -> None:
         pass
 
     assert Path(_resolve_temp_dir()).is_dir(), "Expected writable temp directory"
+
+    publish_cmd = _build_gradle_task_command(["publishMods"], 2, False, False)
+    assert "-PpublishDryRun=true" in publish_cmd, publish_cmd
+    assert not any(arg in {"-PpublishDryRun=false", "-Dorg.gradle.project.publishDryRun=false"} for arg in publish_cmd)
+    for unsafe_publish_args in (
+        ["publishMods", "-PpublishDryRun=false"],
+        ["publishMods", "-Dorg.gradle.project.publishDryRun=false"],
+        ["publishMods", "--init-script=release.gradle"],
+        ["build", "publishMods"],
+    ):
+        try:
+            _build_gradle_task_command(unsafe_publish_args, 2, False, False)
+            raise AssertionError(f"Expected publish safety guard for {unsafe_publish_args}")
+        except ValueError:
+            pass
 
     timeout_res = _run_subprocess([sys.executable, "-c", "import time; time.sleep(5)"], timeout_secs=0.35)
     assert timeout_res["ok"] is False and timeout_res["timed_out"] is True, timeout_res

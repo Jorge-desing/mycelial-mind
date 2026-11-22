@@ -11,6 +11,17 @@ permissions:
   contents: read
 
 jobs:
+  automation-config:
+    name: Validate automation config
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate Renovate configuration
+        run: npx --yes --package renovate@44.257.9 -- renovate-config-validator --no-global --strict
+
   assets:
     name: Asset checks
     runs-on: windows-latest
@@ -43,14 +54,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           cache-provider: basic
-      - name: Run JUnit, build, and NeoForge GameTests
+      - name: Run JUnit, build, GameTests, and release dry-run
         id: gradle-verification
         run: |
-          ./gradlew.bat --console=plain --max-workers=2 test build runGameTestServer 2>&1 |
+          ./gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true 2>&1 |
             Tee-Object -FilePath gradle-ci.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Select-String -Path gradle-ci.log -Pattern 'All [1-9][0-9]* required tests passed' -Quiet)) {
             throw 'NeoForge did not report that the required GameTests passed.'
+          }
+          if (-not (Select-String -Path gradle-ci.log -Pattern 'Dry run publishGithub' -Quiet)) {
+            throw 'Mod Publish did not report the expected release dry-run.'
           }
       - name: Release Gradle cache locks on Windows
         if: always() && steps.gradle-verification.outcome != 'skipped'

@@ -20,6 +20,7 @@ Para recetas completas y detalle del sandbox, consultar [.agents/skills/mycelial
 
 | En lugar de ejecutar manualmente… | Usar en `CodeMode` (`execute`) |
 | --- | --- |
+| `task release:dry-run` / `publishMods` | `run_gradle_task(tasks=["publishMods"])`; CodeMode fuerza `publishDryRun=true` y rechaza propiedades de proyecto/sistema |
 | `.\gradlew.bat build` / `test` / `pitest` / `runData` / `runGameTestServer` / `runVisualSmoke` / `runStructureVisualSmoke` / `runHiveLifecycleSmoke` | `run_gradle_task` (+ `get_latest_junit_report` / `get_latest_pitest_report`) |
 | `.\scripts\Verify-Mod.ps1 ...` / `verify_cache.py` | `run_verify_mod` / `manage_verify_cache` |
 | `python scripts/model_studio/build_models.py ...` + `unittest` | `run_model_studio` / `get_uv_manifest` |

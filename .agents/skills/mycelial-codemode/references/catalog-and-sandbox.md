@@ -35,7 +35,7 @@
 | `read_mod_file` | `start_line=1`, `end_line=200`; el servidor recorta a **400 líneas** por llamada. |
 | `search_mod_code` | `scope="src"`, `file_ext=".java"`, `max_results=50`, `ignore_case=false` (regex). |
 | `list_gametests` | `batch_filter=""` filtra por batch. |
-| `run_gradle_task` | `tasks` obligatorio; `timeout_secs=300`, `max_workers=2`, `no_daemon=false`, `offline=None` (auto `--offline` con `.gradle-user-home`). Devuelve `ok`, `error_lines`, `summary_markers`. |
+| `run_gradle_task` | `tasks` obligatorio; `timeout_secs=300`, `max_workers=2`, `no_daemon=false`, `offline=None` (auto `--offline` con `.gradle-user-home`). `publishMods` solo se ejecuta con `-PpublishDryRun=true` forzado; no acepta `-P`/`-D` ni banderas de publicación. Devuelve `ok`, `error_lines`, `summary_markers`. |
 | `run_verify_mod` | `timeout_secs=540`; flags `include_server_smoke`, `include_visual_smoke`, `include_structure_visual_smoke`, `include_worldgen_audit`, `worldgen_audit_radius=8`, `force_regenerate`, `no_daemon`. |
 | `manage_verify_cache` | `action="status"\|"clear"`, `scope="all"\|"gradle"\|"studios"` sobre `build/.verify-stamps/`. |
 | `run_model_studio` | `check_only=true`, `run_tests=true`. |

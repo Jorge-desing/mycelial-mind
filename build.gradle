@@ -4,6 +4,7 @@ plugins {
     id 'maven-publish'
     id 'net.neoforged.moddev' version '2.0.91'
     id 'info.solidsoft.pitest' version '1.15.0'
+    id 'me.modmuss50.mod-publish-plugin' version '1.1.0'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -320,6 +321,21 @@ publishing {
         maven {
             url "file://${project.projectDir}/repo"
         }
+    }
+}
+
+publishMods {
+    file = tasks.named('jar', Jar).flatMap { it.archiveFile }
+    changelog = providers.gradleProperty('releaseChangelog').getOrElse("Release ${project.version}")
+    displayName = "${mod_name} ${project.version}"
+    type = STABLE
+    modLoaders.add('neoforge')
+    dryRun = providers.gradleProperty('publishDryRun').map { it.toBoolean() }.getOrElse(true)
+
+    github {
+        repository = 'Jorge-desing/mycelial-mind'
+        accessToken = providers.environmentVariable('GITHUB_TOKEN')
+        commitish = 'main'
     }
 }
 

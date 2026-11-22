@@ -920,6 +920,55 @@ def _annotate_gradle_result(res: dict[str, Any]) -> dict[str, Any]:
     return res
 
 
+_ALLOWED_GRADLE_TASKS = {
+    "build",
+    "clean",
+    "classes",
+    "compileJava",
+    "runData",
+    "runGameTestServer",
+    "runHiveLifecycleSmoke",
+    "runVisualSmoke",
+    "runAnimationVisualSmoke",
+    "runStructureVisualSmoke",
+    "stageMcPilotDependency",
+    "publishMods",
+    "test",
+    "testClasses",
+    "pitest",
+}
+
+
+def _build_gradle_task_command(
+    tasks: list[str], max_workers: int, no_daemon: bool, use_offline: bool
+) -> list[str]:
+    """Build a safe Gradle command; CodeMode can only run publishMods in dry-run mode."""
+    publish_dry_run = "publishMods" in tasks
+    if publish_dry_run:
+        safe_publish_args = {"publishMods", "--offline", "--refresh-dependencies"}
+        unsafe_publish_args = [t for t in tasks if t not in safe_publish_args]
+        if unsafe_publish_args:
+            raise ValueError(
+                "publishMods is available through CodeMode only as a forced dry-run; "
+                f"remove project/system properties and unsupported flags: {unsafe_publish_args}"
+            )
+
+    for t in tasks:
+        if t not in _ALLOWED_GRADLE_TASKS and not t.startswith(("--", "-P", "-D")):
+            raise ValueError(f"Task '{t}' is not in allowed Gradle tasks: {sorted(_ALLOWED_GRADLE_TASKS)}")
+
+    cmd = ["cmd.exe", "/c", "gradlew.bat", *tasks]
+    if publish_dry_run:
+        # Never allow the MCP route to publish remotely, even if user Gradle properties differ.
+        cmd.append("-PpublishDryRun=true")
+    cmd.append(f"--max-workers={max_workers}")
+    if no_daemon:
+        cmd.append("--no-daemon")
+    if use_offline and "--offline" not in tasks:
+        cmd.append("--offline")
+    return cmd
+
+
 @_tool(tags={"gradle"})
 async def run_gradle_task(
     tasks: list[str],
@@ -928,33 +977,11 @@ async def run_gradle_task(
     timeout_secs: int = 300,
     offline: bool | None = None,
 ) -> dict[str, Any]:
-    """Run one or more Gradle tasks (e.g. ['build'], ['runData'], ['runGameTestServer'], ['runVisualSmoke']).
+    """Run allowlisted Gradle tasks; publishMods is restricted to a forced local dry-run.
 
     Uses JDK 21 and Windows root truststore automatically. Defaults to max_workers=2 for
     parallel task execution and auto-enables --offline when GRADLE_USER_HOME uses .gradle-user-home.
     """
-    allowed_tasks = {
-        "build",
-        "clean",
-        "classes",
-        "compileJava",
-        "runData",
-        "runGameTestServer",
-        "runHiveLifecycleSmoke",
-        "runVisualSmoke",
-        "runAnimationVisualSmoke",
-        "runStructureVisualSmoke",
-        "stageMcPilotDependency",
-        "test",
-        "testClasses",
-        "pitest",
-    }
-    for t in tasks:
-        if t not in allowed_tasks and not t.startswith(("--", "-P", "-D")):
-            raise ValueError(f"Task '{t}' is not in allowed Gradle tasks: {sorted(allowed_tasks)}")
-    cmd = ["cmd.exe", "/c", "gradlew.bat", *tasks, f"--max-workers={max_workers}"]
-    if no_daemon:
-        cmd.append("--no-daemon")
     use_offline = (
         offline
         if offline is not None
@@ -963,8 +990,7 @@ async def run_gradle_task(
             and "--refresh-dependencies" not in tasks
         )
     )
-    if use_offline and "--offline" not in tasks:
-        cmd.append("--offline")
+    cmd = _build_gradle_task_command(tasks, max_workers, no_daemon, use_offline)
     res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=60)
     _invalidate_cache()
     return _annotate_gradle_result(res)

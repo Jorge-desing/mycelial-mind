@@ -39,6 +39,12 @@ task verify:visual
 
 En la página de la ejecución, **Artifacts → gradle-verification** contiene la salida de Gradle y los informes JUnit disponibles. Consulta los logs de **Asset checks** para los fallos de recursos. Las pruebas gráficas, RCON y los estudios de audio con CUDA se ejecutan localmente.
 
+## Actualizaciones de dependencias
+
+`renovate.json` configura Renovate sin auto-merge y limita las actualizaciones de NeoForge a la línea `21.1.x` de Minecraft `1.21.1`. El manager Gradle cubre el wrapper y los plugins; una regla regex explícita rastrea `neo_version` en `gradle.properties`. Ejecuta `task verify:renovate` para validar la configuración antes de cambiarla. Para recibir PRs automáticos, instala la app hospedada Renovate en el repositorio de GitHub.
+
+CI valida la configuración de Renovate y ejecuta `publishMods` con `publishDryRun=true` como parte de la verificación Gradle, comprobando que el release plugin prepara la vista previa sin publicar. Las releases locales también usan simulación por defecto. Consulta [Preparar una release](releasing.md) para generar una release sin subirla y para ver los requisitos de una publicación aprobada.
+
 ## Actualizar las dependencias de los estudios
 
 Edita las versiones de NumPy, Pillow o scikit-image en `pyproject.toml`, ejecuta `uv lock` y vuelve a correr `task verify:assets`. Versiona el manifiesto y `uv.lock` juntos. scikit-image selecciona las operaciones de imagen usadas para generar las partículas versionadas. El servidor MCP usa su propio entorno.

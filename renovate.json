@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "America/Chihuahua",
+  "dependencyDashboard": {
+    "enabled": true
+  },
+  "prConcurrentLimit": 4,
+  "branchConcurrentLimit": 4,
+  "automerge": false,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track the NeoForge build version for Minecraft 1.21.1",
+      "managerFilePatterns": ["/^gradle\\.properties$/"],
+      "matchStrings": ["neo_version=(?<currentValue>\\d+(?:\\.\\d+){2})"],
+      "autoReplaceStringTemplate": "neo_version={{{newValue}}}",
+      "depNameTemplate": "net.neoforged:neoforge",
+      "packageNameTemplate": "net.neoforged:neoforge",
+      "datasourceTemplate": "maven",
+      "registryUrlTemplate": "https://maven.neoforged.net/releases/",
+      "versioningTemplate": "maven"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Keep NeoForge updates on the Minecraft 1.21.1 line for manual review",
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["net.neoforged:neoforge"],
+      "allowedVersions": "/^21\\.1\\./",
+      "groupName": "NeoForge 1.21.1"
+    },
+    {
+      "description": "Group Gradle plugin updates for one review",
+      "matchManagers": ["gradle"],
+      "matchDepTypes": ["plugin"],
+      "groupName": "Gradle plugins"
+    }
+  ]
+}

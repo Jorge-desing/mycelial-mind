@@ -91,6 +91,8 @@ Los cuatro apuntan al mismo par `scripts/mcp/.venv/Scripts/python.exe` + `script
 
 La comprobación reproducible de recursos de GitHub Actions comparte `scripts/Verify-Assets.ps1` con `task verify:assets`. Usa el entorno de uv para modelos, texturas y partículas. Para auditorías desde el bridge y para la verificación completa se mantienen los tools de CodeMode. Consulta [Verificación de desarrollo](../../../docs/development-automation.md).
 
+Para revisar una release sin subirla, `run_gradle_task` acepta `publishMods` y fuerza `publishDryRun=true`; no admite propiedades ni opciones que puedan desactivar el modo de simulación. También existe el alias local `task release:dry-run`. Consulta [Preparar una release](../../../docs/releasing.md). La publicación real requiere un comando local explícito y las credenciales correspondientes.
+
 **Salud + auditoría paralela (una pasada típica de cierre):**
 
 ```python

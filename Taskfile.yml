@@ -7,6 +7,12 @@ tasks:
     cmds:
       - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-Assets.ps1
 
+  verify:renovate:
+    desc: Valida renovate.json con la versión fijada de Renovate
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - npx --yes --package renovate@44.257.9 -- renovate-config-validator --no-global --strict
+
   verify:
     desc: Ejecuta la verificación completa local
     dir: '{{.ROOT_DIR}}'
@@ -24,3 +30,9 @@ tasks:
     dir: '{{.ROOT_DIR}}'
     cmds:
       - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-Mod.ps1 -IncludeVisualSmoke -IncludeStructureVisualSmoke
+
+  release:dry-run:
+    desc: Construye el JAR y prepara la release sin subirla
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - cmd.exe /d /c gradlew.bat publishMods
