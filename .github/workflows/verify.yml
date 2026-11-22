@@ -44,6 +44,7 @@ jobs:
         with:
           cache-provider: basic
       - name: Run JUnit, build, and NeoForge GameTests
+        id: gradle-verification
         run: |
           ./gradlew.bat --console=plain --max-workers=2 test build runGameTestServer 2>&1 |
             Tee-Object -FilePath gradle-ci.log
@@ -51,6 +52,10 @@ jobs:
           if (-not (Select-String -Path gradle-ci.log -Pattern 'All [1-9][0-9]* required tests passed' -Quiet)) {
             throw 'NeoForge did not report that the required GameTests passed.'
           }
+      - name: Release Gradle cache locks on Windows
+        if: always() && steps.gradle-verification.outcome != 'skipped'
+        continue-on-error: true
+        run: ./gradlew.bat --stop
       - name: Upload verification reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

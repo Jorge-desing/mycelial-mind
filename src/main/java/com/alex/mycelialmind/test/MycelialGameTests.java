@@ -663,6 +663,10 @@ public final class MycelialGameTests {
                 .thenSucceed();
     }
 
+    private static double stimulusForScore(double score) {
+        return score / MycelialConfig.LEARNING_MULTIPLIER.get();
+    }
+
     private static final java.util.Map<Long, Integer> ARENA_CHUNK_REFS = new java.util.HashMap<>();
 
     private static List<ChunkPos> forceArenaChunks(GameTestHelper helper, int minX, int maxX, int minZ, int maxZ) {
@@ -722,10 +726,11 @@ public final class MycelialGameTests {
         ServerLevel level = helper.getLevel();
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         hive.resetAll();
-        hive.recordStimulus(StimulusType.FIRE, 40.0);
+        double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
+        hive.recordStimulus(StimulusType.FIRE, stimulusForScore(threshold + 1.0));
 
         if (!hive.hasTrait(AdaptationTrait.FIRE_RESISTANT)) {
-            helper.fail("Expected FIRE_RESISTANT trait to activate after 40.0 FIRE stimulus.");
+            helper.fail("Expected FIRE_RESISTANT trait to activate above the configured threshold.");
             return;
         }
 
@@ -1307,11 +1312,13 @@ public final class MycelialGameTests {
     @GameTest(template = "empty")
     public static void tier2MutationAndSynergyActivation(GameTestHelper helper) {
         HiveMindSavedData hive = new HiveMindSavedData();
-        hive.recordStimulus(StimulusType.FIRE, 80.0, 100L);
-        hive.recordStimulus(StimulusType.EXPLOSION, 30.0, 100L);
+        double tier1 = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
+        double tier2 = MycelialConfig.getEffectiveTier2ActivationThreshold();
+        hive.recordStimulus(StimulusType.FIRE, stimulusForScore(tier2 + 1.0), 100L);
+        hive.recordStimulus(StimulusType.EXPLOSION, stimulusForScore(tier1 + 1.0), 100L);
 
         if (!hive.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)) {
-            helper.fail("Expected FIRE_RESISTANT Tier 2 mutation after 80.0 FIRE stimulus.");
+            helper.fail("Expected FIRE_RESISTANT Tier 2 mutation above the configured threshold.");
             return;
         }
         if (!hive.hasSynergy(HiveSynergy.PYROLYTIC_SHELL)) {
@@ -1419,8 +1426,10 @@ public final class MycelialGameTests {
     public static void synapticSuppressorDisablesTier2AndSynergies(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         HiveMindSavedData hive = new HiveMindSavedData();
-        hive.recordStimulus(StimulusType.PROJECTILE, 85.0, 100L);
-        hive.recordStimulus(StimulusType.MELEE, 35.0, 100L);
+        double tier1 = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
+        double tier2 = MycelialConfig.getEffectiveTier2ActivationThreshold();
+        hive.recordStimulus(StimulusType.PROJECTILE, stimulusForScore(tier2 + 1.0), 100L);
+        hive.recordStimulus(StimulusType.MELEE, stimulusForScore(tier1 + 1.0), 100L);
 
         if (!hive.hasTier2Trait(AdaptationTrait.PROJECTILE_DEFLECT) || !hive.hasSynergy(HiveSynergy.KINETIC_MIRROR)) {
             helper.fail("Expected PROJECTILE Tier 2 and KINETIC_MIRROR synergy before suppression.");
@@ -1485,13 +1494,14 @@ public final class MycelialGameTests {
     @GameTest(template = "empty")
     public static void counterSerumBleedsTargetedStimulus(GameTestHelper helper) {
         HiveMindSavedData hive = new HiveMindSavedData();
-        hive.recordStimulus(StimulusType.FIRE, 40.0, 100L);
+        double initialScore = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get() * 1.5;
+        hive.recordStimulus(StimulusType.FIRE, stimulusForScore(initialScore), 100L);
         if (!hive.hasTrait(AdaptationTrait.FIRE_RESISTANT)) {
             helper.fail("Expected FIRE_RESISTANT trait before Counter-Serum.");
             return;
         }
         double bled = hive.bleedStimulusRatio(StimulusType.FIRE, 0.50, 120L);
-        if (Math.abs(bled - 20.0) > 0.001 || hive.hasTrait(AdaptationTrait.FIRE_RESISTANT)) {
+        if (Math.abs(bled - initialScore * 0.5) > 0.001 || hive.hasTrait(AdaptationTrait.FIRE_RESISTANT)) {
             helper.fail("Expected Counter-Serum to bleed 50% FIRE stimulus and deactivate FIRE_RESISTANT.");
             return;
         }
@@ -2491,17 +2501,19 @@ public final class MycelialGameTests {
         hive.resetAll();
 
         long t0 = level.getGameTime();
-        hive.recordStimulus(com.alex.mycelialmind.hive.StimulusType.MELEE, 10.0, t0);
-        hive.recordStimulus(com.alex.mycelialmind.hive.StimulusType.MELEE, 10.0, t0 + 20L);
-        hive.recordStimulus(com.alex.mycelialmind.hive.StimulusType.MELEE, 10.0, t0 + 40L);
-        if (hive.getLastStimulusStreak() < 2 || hive.getStimulusScore(com.alex.mycelialmind.hive.StimulusType.MELEE) <= 30.0) {
-            helper.fail("Expected momentum streak to multiply repeated MELEE stimulus above 30.0.");
+        double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
+        double hit = stimulusForScore(threshold / 3.0);
+        hive.recordStimulus(StimulusType.MELEE, hit, t0);
+        hive.recordStimulus(StimulusType.MELEE, hit, t0 + 20L);
+        hive.recordStimulus(StimulusType.MELEE, hit, t0 + 40L);
+        if (hive.getLastStimulusStreak() < 2 || hive.getStimulusScore(StimulusType.MELEE) <= threshold) {
+            helper.fail("Expected momentum streak to raise repeated MELEE stimulus above the trait threshold.");
             return;
         }
 
         // Pivot to PROJECTILE after MELEE_THORNS activated -> 1.35x pivot bonus
-        hive.recordStimulus(com.alex.mycelialmind.hive.StimulusType.PROJECTILE, 10.0, t0 + 50L);
-        if (hive.getStimulusScore(com.alex.mycelialmind.hive.StimulusType.PROJECTILE) <= 13.0) {
+        hive.recordStimulus(StimulusType.PROJECTILE, stimulusForScore(10.0), t0 + 50L);
+        if (Math.abs(hive.getStimulusScore(StimulusType.PROJECTILE) - 13.5) > 0.001) {
             helper.fail("Expected 1.35x pivot bonus when switching stimulus after trait activation.");
             return;
         }

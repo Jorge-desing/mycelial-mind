@@ -103,6 +103,7 @@ $pySpecs = @(
     @{ Name = "ParticleTests"; FileName = "python"; Arguments = "-m unittest discover -s scripts\particle_studio\tests -v" },
     @{ Name = "SoundTests"; FileName = "python"; Arguments = "-m unittest discover -s scripts\sound_studio\tests -v" }
 )
+$buildSpecs = @()
 if ($modelsCached) {
     $pySpecs += @{ Name = "ModelCheck"; FileName = "python"; Arguments = "scripts\model_studio\build_models.py --check" }
 }
@@ -110,21 +111,23 @@ if ($texturesCached) {
     $pySpecs += @{ Name = "TextureCheck"; FileName = "python"; Arguments = "scripts\texture_studio\build_textures.py --pbr --check" }
 } else {
     Write-Host "[Texture Studio] Inputs changed or -ForceRegenerate set; regenerating textures + LabPBR..." -ForegroundColor DarkCyan
-    $pySpecs += @{ Name = "TextureBuild"; FileName = "python"; Arguments = "scripts\texture_studio\build_textures.py --all --export-extras --pbr --check" }
+    $buildSpecs += @{ Name = "TextureBuild"; FileName = "python"; Arguments = "scripts\texture_studio\build_textures.py --all --export-extras --pbr --check" }
 }
 if ($soundsCached) {
     $pySpecs += @{ Name = "SoundCheck"; FileName = "python"; Arguments = "scripts\sound_studio\build_sounds.py --check" }
 } else {
     Write-Host "[Sound Studio] Inputs changed or -ForceRegenerate set; regenerating mono Ogg Vorbis sounds..." -ForegroundColor DarkCyan
-    $pySpecs += @{ Name = "SoundBuild"; FileName = "python"; Arguments = "scripts\sound_studio\build_sounds.py --all --check" }
+    $buildSpecs += @{ Name = "SoundBuild"; FileName = "python"; Arguments = "scripts\sound_studio\build_sounds.py --all --check" }
 }
 if ($particlesCached) {
     $pySpecs += @{ Name = "ParticleCheck"; FileName = "python"; Arguments = "scripts\particle_studio\build_particles.py --check" }
 } else {
     Write-Host "[Particle Studio] Inputs changed or -ForceRegenerate set; regenerating particle sprites..." -ForegroundColor DarkCyan
-    $pySpecs += @{ Name = "ParticleBuild"; FileName = "python"; Arguments = "scripts\particle_studio\build_particles.py --all --export-extras --check" }
+    $buildSpecs += @{ Name = "ParticleBuild"; FileName = "python"; Arguments = "scripts\particle_studio\build_particles.py --all --export-extras --check" }
 }
 
+# Studio tests read the generated assets from disk.
+Invoke-ParallelProcesses -Specs $buildSpecs
 Invoke-ParallelProcesses -Specs $pySpecs
 if (-not $texturesCached) {
     python scripts\verify_cache.py update textures
