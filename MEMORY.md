@@ -3327,3 +3327,15 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - `validate_skills`: **`ok: true`** (`8/8` skills válidas).
   - `audit_mod_assets`: **`ok: true`** (`0` claves faltantes, paridad bilingüe `en_us`/`es_es` intacta).
   - `run_gradle_task(["test", "runGameTestServer", "--offline"], max_workers=2)`: **`gradle_ok: true`** (`51/51` JUnit en `4` suites, `0` fallos + `@GameTest` server en verde).
+
+## [2026-11-22 08:09] — Automatización de dependencias y releases
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `DOCUMENTACIÓN`
+- **Resumen:**
+  1. Añadido `renovate.json` con dashboard, concurrencia limitada, sin auto-merge y detección explícita de `neo_version` en `gradle.properties`, acotada a NeoForge `21.1.x` usando Maven versioning.
+  2. Integrado Mod Publish Plugin `1.1.0` con GitHub Releases, simulación por defecto y `task release:dry-run`. CodeMode restringe `publishMods` a simulación forzada y rechaza propiedades/opciones que pudieran habilitar una publicación.
+  3. GitHub Actions valida Renovate y ejecuta `publishMods -PpublishDryRun=true`; se añadieron instrucciones de desarrollo y release.
+- **Archivos principales:** `renovate.json`, `build.gradle`, `Taskfile.yml`, `.github/workflows/verify.yml`, `scripts/mcp/server.py`, `scripts/mcp/test_server.py`, `docs/development-automation.md`, `docs/releasing.md`, reglas y skill `mycelial-codemode`.
+- **Verificación:** `task verify:renovate`, extracción/lookup local de Renovate y `task release:dry-run` pasaron; CodeMode `test_server.py` y `validate_skills` (`8/8`) pasaron. GitHub Actions run `45035658171` completó en verde: `153/153` GameTests, `BUILD SUCCESSFUL`, `Dry run publishGithub` y validación de Renovate exitosa.
+- **Publicación/activación:** No se publicó ningún archivo. Para recibir PRs, Renovate requiere tener instalada su app hospedada en el repositorio; no se instaló desde esta sesión.
+- **Git y concurrencia:** Commit `74cefff` subido a `main` y confirmado como ancestro del HEAD remoto `9c0efa6`. Se dejaron intactos y sin stage los cambios concurrentes de modelos/estructuras.
+- **Skills:** Revisada y actualizada `.agents/skills/mycelial-codemode/SKILL.md` y su referencia `references/catalog-and-sandbox.md`; `validate_skills` pasó.
