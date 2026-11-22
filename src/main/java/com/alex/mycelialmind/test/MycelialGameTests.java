@@ -667,6 +667,13 @@ public final class MycelialGameTests {
         return score / MycelialConfig.LEARNING_MULTIPLIER.get();
     }
 
+    private static BlockPos insetInChunk(BlockPos pos, int margin) {
+        ChunkPos chunk = new ChunkPos(pos);
+        int x = Math.clamp(pos.getX() - chunk.getMinBlockX(), margin, 15 - margin);
+        int z = Math.clamp(pos.getZ() - chunk.getMinBlockZ(), margin, 15 - margin);
+        return chunk.getBlockAt(x, pos.getY(), z);
+    }
+
     private static final java.util.Map<Long, Integer> ARENA_CHUNK_REFS = new java.util.HashMap<>();
 
     private static List<ChunkPos> forceArenaChunks(GameTestHelper helper, int minX, int maxX, int minZ, int maxZ) {
@@ -921,7 +928,9 @@ public final class MycelialGameTests {
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         hive.resetAll();
 
-        for (int i = 0; i < 10; i++) {
+        double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
+        int maxHits = 10 + (int) Math.ceil(stimulusForScore(threshold) / 4.0);
+        for (int i = 0; i < maxHits && !hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT); i++) {
             SporelingEntity sporeling = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 1, 1, 1);
             BlockPos abs = helper.absolutePos(new BlockPos(1, 2, 1));
             Arrow arrow = new Arrow(level, abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5,
@@ -932,7 +941,8 @@ public final class MycelialGameTests {
         }
 
         if (!hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT)) {
-            helper.fail("Expected PROJECTILE_DEFLECT after repeated arrow damage.");
+            helper.fail("Expected PROJECTILE_DEFLECT after repeated arrow damage. Projectile score: "
+                    + hive.getStimulusScore(StimulusType.PROJECTILE) + ", threshold: " + threshold);
             return;
         }
 
@@ -7025,7 +7035,10 @@ public final class MycelialGameTests {
         BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        helper.runAfterDelay(2, () -> {
+        helper.startSequence().thenWaitUntil(() -> helper.assertTrue(
+                level.isPositionEntityTicking(core3) && forcedChunks.stream()
+                        .allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
+                "Expected the forced outbreak arena chunks to finish loading entities.")).thenExecute(() -> {
             try {
                 hive.resetAll();
                 tracker.clearAll();
@@ -7305,7 +7318,7 @@ public final class MycelialGameTests {
         hive.resetAll();
         tracker.clearAll();
 
-        BlockPos origin = helper.absolutePos(new BlockPos(6, 10, 6));
+        BlockPos origin = insetInChunk(helper.absolutePos(new BlockPos(6, 10, 6)), 4);
         BlockPos diagEnd = origin.offset(3, 0, 2);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
@@ -7374,7 +7387,7 @@ public final class MycelialGameTests {
         hive.resetAll();
         tracker.clearAll();
 
-        BlockPos rootPos = helper.absolutePos(new BlockPos(5, 10, 12));
+        BlockPos rootPos = insetInChunk(helper.absolutePos(new BlockPos(5, 10, 12)), 5);
         BlockPos v1 = rootPos.east(1);
         BlockPos v2 = rootPos.east(2);
         BlockPos v3 = rootPos.east(3);
