@@ -648,12 +648,13 @@ def _mycelial_codex(p: float) -> IconCanvas:
     # Recessed gill-textured inner membrane
     c.zone(sdf_box(xx, yy, 0.10, 0.04, 0.34, 0.46), "abyssal_indigo", "OBSIDIAN_CHITIN", tone=0.28)
     c.zone(sdf_onion(sdf_box(xx, yy, 0.10, 0.04, 0.36, 0.48), 0.03), "predator_amethyst", "LIVING_AMETHYST", tone=0.52)
-    # Segmented fungal stipe & chitin-bone spine with chartreuse spore rings
+    # Segmented fungal stipe & chitin-bone spine with pulsing chartreuse spore ring
     spine = sdf_box(xx, yy, -0.40, 0.04, 0.14, 0.64)
     _p(c, spine, "chitin_bone", "CHITIN_BONE", 0.60, height=0.72)
     for ry in (-0.42, -0.14, 0.14, 0.42):
         c.zone(sdf_box(xx, yy, -0.40, ry, 0.15, 0.04), "mycelial_violet", "LIVING_AMETHYST", tone=0.55)
-    c.zone(sdf_box(xx, yy, -0.40, 0.04, 0.15, 0.05), "spore_chartreuse", "TOXIC_SPORE", tone=0.82)
+    c.zone(sdf_box(xx, yy, -0.40, 0.04, 0.15, 0.05), "spore_chartreuse", "TOXIC_SPORE", tone=0.76 + 0.22 * p)
+    c.glow(sdf_box(xx, yy, -0.40, 0.04, 0.14, 0.045), "spore_chartreuse")
     # Hyphal ivory parchment fore-edge with spore chartreuse striations
     page_edge = sdf_box(xx, yy, 0.50, 0.04, 0.08, 0.54)
     c.zone(page_edge, "warm_ivory", "CHITIN_BONE", tone=0.88)
@@ -663,28 +664,31 @@ def _mycelial_codex(p: float) -> IconCanvas:
     for cy in (-0.52, 0.60):
         c.zone(sdf_box(xx, yy, 0.44, cy, 0.12, 0.06), "chitin_bone", "CHITIN_BONE", tone=0.76)
     _p(c, sdf_box(xx, yy, 0.58, 0.04, 0.06, 0.22), "chitin_bone", "CHITIN_BONE", 0.78, height=0.74)
-    c.zone(sdf_box(xx, yy, 0.58, 0.04, 0.05, 0.06), "biolum_cyan", "BIOLUM_CYAN", tone=0.92)
-    # Radial mycelial axons & corner synaptic nodes
+    c.zone(sdf_box(xx, yy, 0.58, 0.04, 0.05, 0.06), "biolum_cyan", "BIOLUM_CYAN", tone=0.80 + 0.18 * p)
+    c.glow(sdf_box(xx, yy, 0.58, 0.04, 0.05, 0.06), "biolum_cyan")
+    # Radial mycelial axons & pulsing corner synaptic nodes
     for ang in (40.0, 140.0, 220.0, 320.0):
         a = np.deg2rad(ang)
         tx = 0.08 + np.cos(a) * 0.32
         ty = 0.04 + np.sin(a) * 0.34
-        c.zone(sdf_capsule(xx, yy, 0.08, 0.04, tx, ty, 0.028), "biolum_cyan", "BIOLUM_CYAN", tone=0.78 + 0.16 * p)
-        c.zone(sdf_circle(xx, yy, tx, ty, 0.045) <= 0.0, "spore_chartreuse", "TOXIC_SPORE", tone=0.88)
+        axon = sdf_capsule(xx, yy, 0.08, 0.04, tx, ty, 0.028)
+        c.zone(axon, "biolum_cyan", "BIOLUM_CYAN", tone=0.72 + 0.24 * p)
+        c.glow(axon <= 0.0, "biolum_cyan")
+        c.zone(sdf_circle(xx, yy, tx, ty, 0.045) <= 0.0, "spore_chartreuse", "TOXIC_SPORE", tone=0.80 + 0.18 * p)
     # Central Hive Mind Bioluminescent Mushroom Emblem
     stem = sdf_box(xx, yy, 0.08, 0.16, 0.065, 0.12)
     _p(c, stem, "warm_ivory", "CHITIN_BONE", 0.88, height=0.76)
     cap = sdf_subtract(sdf_circle(xx, yy * 1.25, 0.08, -0.02, 0.21), sdf_box(xx, yy, 0.08, 0.18, 0.30, 0.10))
-    _p(c, cap, "spore_chartreuse", "TOXIC_SPORE", 0.85 + 0.12 * p, emissive=True, height=0.84)
+    _p(c, cap, "spore_chartreuse", "TOXIC_SPORE", 0.78 + 0.20 * p, emissive=True, height=0.84)
     c.glow(cap <= 0.0, "spore_chartreuse")
-    c.zone(sdf_circle(xx, yy, 0.03, -0.08, 0.045) <= 0.0, "biolum_cyan", "BIOLUM_CYAN", tone=0.95)
-    c.zone(sdf_circle(xx, yy, 0.14, -0.06, 0.04) <= 0.0, "biolum_cyan", "BIOLUM_CYAN", tone=0.92)
+    c.zone(sdf_circle(xx, yy, 0.03, -0.08, 0.045) <= 0.0, "biolum_cyan", "BIOLUM_CYAN", tone=0.82 + 0.16 * p)
+    c.zone(sdf_circle(xx, yy, 0.14, -0.06, 0.04) <= 0.0, "biolum_cyan", "BIOLUM_CYAN", tone=0.80 + 0.18 * p)
     return c
 
 
 _ICONS = {
     "bio_scanner": (_bio_scanner, True, 4),
-    "mycelial_codex": (_mycelial_codex, False, 0),
+    "mycelial_codex": (_mycelial_codex, True, 4),
     "enzyme_lance": (_enzyme_lance, True, 5),
     "neutralizing_spore_launcher": (_spore_launcher, True, 4),
     "symbiotic_blade": (_symbiotic_blade, True, 4),

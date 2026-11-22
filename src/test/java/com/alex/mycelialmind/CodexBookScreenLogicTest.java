@@ -2,6 +2,7 @@ package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.client.screen.MycelialCodexBookScreen;
 import com.alex.mycelialmind.data.CodexBookData;
+import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.google.gson.JsonParser;
 import net.minecraft.network.chat.Component;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,32 @@ class CodexBookScreenLogicTest {
         assertTrue(lowPeak <= 0.36F);
         assertTrue(highFloor >= 0.14F);
         assertTrue(lowMin >= 0.0F);
+    }
+
+    @Test
+    void atlasForTierAndPreviewCyclingCoverAllFourEvolutionStages() {
+        assertEquals("mycelialmind:textures/gui/codex_book.png",
+                MycelialCodexBookScreen.atlasForTier(HiveProgressionTier.DORMANT).toString());
+        assertEquals("mycelialmind:textures/gui/codex_book_awakened.png",
+                MycelialCodexBookScreen.atlasForTier(HiveProgressionTier.AWAKENED).toString());
+        assertEquals("mycelialmind:textures/gui/codex_book_adaptive.png",
+                MycelialCodexBookScreen.atlasForTier(HiveProgressionTier.ADAPTIVE).toString());
+        assertEquals("mycelialmind:textures/gui/codex_book_overmind.png",
+                MycelialCodexBookScreen.atlasForTier(HiveProgressionTier.OVERMIND).toString());
+        assertEquals("mycelialmind:textures/gui/codex_book.png",
+                MycelialCodexBookScreen.atlasForTier(null).toString());
+
+        // Unlocked up to Act II (effectiveLevel=1), allowAllActs=false
+        assertEquals(0, MycelialCodexBookScreen.cyclePreviewActTier(-1, 1, false));
+        assertEquals(1, MycelialCodexBookScreen.cyclePreviewActTier(0, 1, false));
+        assertEquals(-1, MycelialCodexBookScreen.cyclePreviewActTier(1, 1, false));
+
+        // Spoilers/Creative mode allows cycling all 4 Acts (0..3) and returning to Auto (-1)
+        int state = MycelialCodexBookScreen.cyclePreviewActTier(-1, 0, true);
+        assertEquals(1, state);
+        assertEquals(2, MycelialCodexBookScreen.cyclePreviewActTier(1, 0, true));
+        assertEquals(3, MycelialCodexBookScreen.cyclePreviewActTier(2, 0, true));
+        assertEquals(-1, MycelialCodexBookScreen.cyclePreviewActTier(3, 0, true));
     }
 
     @Test

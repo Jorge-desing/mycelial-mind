@@ -50,18 +50,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
- * Custom bio-mycelial double-spread Codex Book GUI rendering {@code codex_book.json}
- * with procedural chitin/vellum textures ({@code textures/gui/codex_book.png}),
- * 12 interactive chapter icon ribbon tabs, live cross-book search, scrollable entry
- * index cards with item icons, custom themed buttons, persistent reading position,
- * inline markdown styling (**bold** and `code`), recipe crafting/station grids with live
- * hover tooltips, 3D rotating entity containment previews, callout frames, and audio cues.
+ * Custom evolving bio-mycelial double-spread Codex Book GUI rendering {@code codex_book.json}
+ * across 4 evolutionary Hive Mind atlases ({@code codex_book{,_awakened,_adaptive,_overmind}.png}),
+ * 12 interactive chapter fungal ribbon tabs, live cross-book search, scrollable sprite-backed
+ * entry index cards, textured buttons, clickable Act Medallion previewer, live synaptic spore
+ * network, recipe crafting/station grids with hover tooltips, 3D rotating entity containment
+ * previews, callout frames, and synaptic audio cues.
  */
 public class MycelialCodexBookScreen extends Screen {
-    private static final ResourceLocation CODEX_GUI_TEXTURE =
+    private static final ResourceLocation ATLAS_DORMANT =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "textures/gui/codex_book.png");
+    private static final ResourceLocation ATLAS_AWAKENED =
+            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "textures/gui/codex_book_awakened.png");
+    private static final ResourceLocation ATLAS_ADAPTIVE =
+            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "textures/gui/codex_book_adaptive.png");
+    private static final ResourceLocation ATLAS_OVERMIND =
+            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "textures/gui/codex_book_overmind.png");
 
     private static final int PANEL_W = 368;
     private static final int PANEL_H = 228;
@@ -88,6 +95,7 @@ public class MycelialCodexBookScreen extends Screen {
     private int textScrollOffset = 0;
     private int maxTextScroll = 0;
     private boolean showSpoilers = savedShowSpoilers;
+    private int previewActOverride = -1;
     private String searchQuery = "";
 
     @Nullable
@@ -129,39 +137,35 @@ public class MycelialCodexBookScreen extends Screen {
     }
 
     /**
-     * Custom chitin & mycelial violet button matching the Fungal Hive Mind Codex.
+     * Sprite-backed chitin & mycelial violet button matching the active evolutionary Codex atlas.
      */
     private static final class CodexButton extends Button {
         private final boolean accent;
+        private final Supplier<ResourceLocation> atlasSupplier;
 
-        CodexButton(int x, int y, int w, int h, Component message, OnPress onPress, boolean accent) {
+        CodexButton(int x, int y, int w, int h, Component message, OnPress onPress, boolean accent,
+                    Supplier<ResourceLocation> atlasSupplier) {
             super(x, y, w, h, message, onPress, DEFAULT_NARRATION);
             this.accent = accent;
+            this.atlasSupplier = atlasSupplier;
         }
 
         @Override
         protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             boolean hovered = this.isHoveredOrFocused() && this.active;
-            int bg;
-            int border;
+            int u = (hovered || (accent && this.active)) ? 220 : 184;
+            graphics.blit(this.atlasSupplier.get(), getX(), getY(), width, height, u, 204, 36, 16, 256, 256);
             int textColor;
             if (!this.active) {
-                bg = 0x88120C1C;
-                border = 0xFF34244A;
+                graphics.fill(getX(), getY(), getX() + width, getY() + height, 0x880B0812);
+                graphics.renderOutline(getX(), getY(), width, height, 0xFF34244A);
                 textColor = 0xFF5D4F73;
             } else if (hovered) {
-                bg = accent ? 0xEE4A2B78 : 0xEE352056;
-                border = accent ? 0xFFB5E48C : 0xFF72EFDD;
+                graphics.renderOutline(getX(), getY(), width, height, accent ? 0xFFB5E48C : 0xFF72EFDD);
                 textColor = 0xFFFFFFFF;
             } else {
-                bg = accent ? 0xDD2B1848 : 0xCC1C122E;
-                border = accent ? 0xFF7B48B8 : 0xFF593D82;
+                graphics.renderOutline(getX(), getY(), width, height, accent ? 0xFF9B4DFF : 0xFF593D82);
                 textColor = accent ? 0xFFB5E48C : 0xFFEDE7F6;
-            }
-            graphics.fill(getX(), getY(), getX() + width, getY() + height, bg);
-            graphics.renderOutline(getX(), getY(), width, height, border);
-            if (this.active) {
-                graphics.fill(getX() + 1, getY() + 1, getX() + width - 1, getY() + 2, hovered ? 0x4472EFDD : 0x22B5E48C);
             }
             var font = Minecraft.getInstance().font;
             Component msg = getMessage();
@@ -182,6 +186,46 @@ public class MycelialCodexBookScreen extends Screen {
 
     public MycelialCodexBookScreen() {
         super(Component.translatable("book.mycelialmind.mycelial_codex.name"));
+    }
+
+    public static ResourceLocation atlasForTier(@Nullable HiveProgressionTier tier) {
+        if (tier == null) {
+            return ATLAS_DORMANT;
+        }
+        return switch (tier) {
+            case DORMANT -> ATLAS_DORMANT;
+            case AWAKENED -> ATLAS_AWAKENED;
+            case ADAPTIVE -> ATLAS_ADAPTIVE;
+            case OVERMIND -> ATLAS_OVERMIND;
+        };
+    }
+
+    public static int cyclePreviewActTier(int currentOverride, int effectiveActLevel, boolean allowAllActs) {
+        int maxAllowed = Mth.clamp(allowAllActs ? 3 : effectiveActLevel, 0, 3);
+        if (currentOverride < 0) {
+            return maxAllowed > 0 ? Math.min(maxAllowed, effectiveActLevel == 0 ? 1 : 0) : 0;
+        }
+        int next = currentOverride + 1;
+        return next > maxAllowed ? -1 : next;
+    }
+
+    private HiveProgressionTier resolveEffectiveHiveTier() {
+        return HiveProgressionTier.resolveEffectiveTier(
+                ClientHiveCache.getThreatLevel(),
+                ClientDiscoveryCache.getEffectiveActTier().level()
+        );
+    }
+
+    private HiveProgressionTier resolveDisplayedTier() {
+        HiveProgressionTier effective = resolveEffectiveHiveTier();
+        if (this.previewActOverride >= 0 && this.previewActOverride < HiveProgressionTier.values().length) {
+            return HiveProgressionTier.values()[this.previewActOverride];
+        }
+        return effective;
+    }
+
+    private ResourceLocation getActiveAtlas() {
+        return atlasForTier(resolveDisplayedTier());
     }
 
     @Override
@@ -225,7 +269,7 @@ public class MycelialCodexBookScreen extends Screen {
 
         if (book == null || book.chapters().isEmpty()) {
             this.addRenderableWidget(new CodexButton(width / 2 - 40, height / 2 + 60, 80, 20,
-                    CommonComponents.GUI_DONE, b -> onClose(), true));
+                    CommonComponents.GUI_DONE, b -> onClose(), true, this::getActiveAtlas));
             return;
         }
 
@@ -235,11 +279,11 @@ public class MycelialCodexBookScreen extends Screen {
         // Top-bar Chapter < / > cycle buttons
         this.addRenderableWidget(new CodexButton(left + 12, top + 8, 52, 16,
                 Component.translatable("gui.mycelialmind.codex.prev_chapter"),
-                b -> selectChapter((chapterIdx - 1 + book.chapters().size()) % book.chapters().size()), false));
+                b -> selectChapter((chapterIdx - 1 + book.chapters().size()) % book.chapters().size()), false, this::getActiveAtlas));
 
         this.addRenderableWidget(new CodexButton(left + 72, top + 8, 52, 16,
                 Component.translatable("gui.mycelialmind.codex.next_chapter"),
-                b -> selectChapter((chapterIdx + 1) % book.chapters().size()), false));
+                b -> selectChapter((chapterIdx + 1) % book.chapters().size()), false, this::getActiveAtlas));
 
         // Spoiler toggle button
         this.addRenderableWidget(new CodexButton(left + PANEL_W - 114, top + 8, 82, 16,
@@ -251,11 +295,11 @@ public class MycelialCodexBookScreen extends Screen {
                     persistReadingPosition();
                     playUiSound(ModSounds.BIO_SCANNER_PING.get(), 1.15F);
                     rebuildNav();
-                }, showSpoilers));
+                }, showSpoilers, this::getActiveAtlas));
 
         // Close button
         this.addRenderableWidget(new CodexButton(left + PANEL_W - 28, top + 8, 18, 16,
-                Component.literal("X"), b -> onClose(), false));
+                Component.literal("X"), b -> onClose(), false, this::getActiveAtlas));
 
         // Live Search EditBox inside top of left index vellum
         this.searchBox = new EditBox(this.font, left + INDEX_X_OFFSET + 4, top + 47, INDEX_W - 8, 13,
@@ -279,7 +323,7 @@ public class MycelialCodexBookScreen extends Screen {
                     b -> {
                         playUiSound(ModSounds.BIO_SCANNER_PING.get(), 1.0F);
                         ClientCodexOpener.openBioCodex();
-                    }, true));
+                    }, true, this::getActiveAtlas));
         }
 
         // Build 12 Chapter Ribbon Tabs along the top spine edge
@@ -296,10 +340,10 @@ public class MycelialCodexBookScreen extends Screen {
 
         // Page < and > navigation buttons on the right reading spread
         this.prevPageBtn = this.addRenderableWidget(new CodexButton(left + PAGE_X_OFFSET + 6, top + PANEL_H - 25, 28, 16,
-                Component.literal("<"), b -> turnPage(-1), false));
+                Component.literal("<"), b -> turnPage(-1), false, this::getActiveAtlas));
 
         this.nextPageBtn = this.addRenderableWidget(new CodexButton(left + PANEL_W - 42, top + PANEL_H - 25, 28, 16,
-                Component.literal(">"), b -> turnPage(1), false));
+                Component.literal(">"), b -> turnPage(1), false, this::getActiveAtlas));
         updatePageButtonStates();
     }
 
@@ -477,6 +521,22 @@ public class MycelialCodexBookScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
+            int left = (this.width - PANEL_W) / 2;
+            int top = (this.height - PANEL_H) / 2;
+            int medX = left + INDEX_X_OFFSET + 3;
+            int medY = top + 29;
+            int telX = left + PAGE_X_OFFSET;
+            int telY = top + 8;
+            boolean clickedMedallion = mouseX >= medX && mouseX < medX + 18 && mouseY >= medY && mouseY < medY + 18;
+            boolean clickedTelemetry = mouseX >= telX && mouseX < telX + 114 && mouseY >= telY && mouseY < telY + 19;
+            if (clickedMedallion || clickedTelemetry) {
+                Minecraft mc = Minecraft.getInstance();
+                boolean allowAll = this.showSpoilers || (mc.player != null && mc.player.isCreative());
+                int effectiveLevel = resolveEffectiveHiveTier().level();
+                this.previewActOverride = cyclePreviewActTier(this.previewActOverride, effectiveLevel, allowAll);
+                playUiSound(ModSounds.SYNAPTIC_PULSE.get(), 1.15F);
+                return true;
+            }
             for (ChapterTabHitbox tab : this.chapterTabs) {
                 if (tab.contains(mouseX, mouseY)) {
                     selectChapter(tab.index());
@@ -565,10 +625,12 @@ public class MycelialCodexBookScreen extends Screen {
         long nowMs = System.currentTimeMillis();
         float threatLevel = (float) ClientHiveCache.getThreatLevel();
         float pulse = computeHeartbeatIntensity(threatLevel, nowMs);
+        HiveProgressionTier displayedTier = resolveDisplayedTier();
+        ResourceLocation atlas = atlasForTier(displayedTier);
 
-        renderFloatingSpores(graphics, left, top, nowMs, pulse);
-        renderChapterRibbonTabs(graphics, mouseX, mouseY, pulse);
-        renderBookTomeFrame(graphics, left, top, threatLevel, pulse);
+        renderFloatingSpores(graphics, left, top, nowMs, pulse, displayedTier.level());
+        renderChapterRibbonTabs(graphics, atlas, mouseX, mouseY, pulse);
+        renderBookTomeFrame(graphics, atlas, left, top, threatLevel, pulse);
 
         if (book == null || book.chapters().isEmpty()) {
             graphics.drawCenteredString(this.font,
@@ -579,8 +641,8 @@ public class MycelialCodexBookScreen extends Screen {
         }
 
         CodexBookData.Chapter ch = book.chapters().get(chapterIdx);
-        renderLeftIndexSpread(graphics, left, top, ch, mouseX, mouseY, pulse);
-        renderRightReadingSpread(graphics, left, top, ch, mouseX, mouseY, threatLevel, pulse);
+        renderLeftIndexSpread(graphics, atlas, left, top, ch, displayedTier, mouseX, mouseY, pulse);
+        renderRightReadingSpread(graphics, atlas, left, top, ch, displayedTier, threatLevel, mouseX, mouseY, pulse);
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
@@ -606,10 +668,13 @@ public class MycelialCodexBookScreen extends Screen {
         return Mth.clamp(0.15F * threatNorm + wave * (0.35F + 0.50F * threatNorm), 0.0F, 1.0F);
     }
 
-    private void renderFloatingSpores(GuiGraphics graphics, int left, int top, long nowMs, float pulse) {
+    private void renderFloatingSpores(GuiGraphics graphics, int left, int top, long nowMs, float pulse, int stage) {
         double t = nowMs * 0.001;
         int w = Math.max(1, this.width);
         int h = Math.max(1, this.height);
+        int[] xs = new int[24];
+        int[] ys = new int[24];
+        boolean[] visible = new boolean[24];
         for (int i = 0; i < 24; i++) {
             float seedX = ((i * 73 + 19) % 100) / 100.0F;
             float seedY = ((i * 41 + 37) % 100) / 100.0F;
@@ -618,6 +683,8 @@ public class MycelialCodexBookScreen extends Screen {
             double swayX = seedX + Math.sin(t * 0.85 + i * 1.6) * 0.028;
             int sx = Mth.clamp((int) (swayX * w), 2, w - 4);
             int sy = Mth.clamp((int) (driftY * h), 2, h - 4);
+            xs[i] = sx;
+            ys[i] = sy;
             boolean insideReadZone = sx > left + INDEX_X_OFFSET + 4
                     && sx < left + PANEL_W - 8
                     && sy > top + 28
@@ -625,24 +692,49 @@ public class MycelialCodexBookScreen extends Screen {
             if (insideReadZone && (i % 3 != 0)) {
                 continue;
             }
+            visible[i] = true;
             int size = (i % 5 == 0) ? 3 : 2;
             int alpha = Math.round(60 + 75 * pulse) << 24;
             int rgb = switch (i % 3) {
-                case 0 -> 0xB5E48C; // Bioluminescent spore chartreuse
-                case 1 -> 0x72EFDD; // Synaptic cyan glow
-                default -> 0x9B4DFF; // Mycelial amethyst mist
+                case 0 -> 0xB5E48C;
+                case 1 -> 0x72EFDD;
+                default -> 0x9B4DFF;
             };
             graphics.fill(sx, sy, sx + size, sy + size, alpha | rgb);
         }
+        // Connect nearby outer synaptic spores with dotted luminous axons from Awakened onward
+        if (stage >= 1) {
+            int maxDistSq = (42 + stage * 22) * (42 + stage * 22);
+            int linkAlpha = Math.round(28 + stage * 18 + pulse * 30) << 24;
+            int linksDrawn = 0;
+            int maxLinks = 10 + stage * 8;
+            for (int i = 0; i < 24 && linksDrawn < maxLinks; i++) {
+                if (!visible[i]) continue;
+                for (int j = i + 1; j < 24 && linksDrawn < maxLinks; j++) {
+                    if (!visible[j]) continue;
+                    int dx = xs[j] - xs[i];
+                    int dy = ys[j] - ys[i];
+                    if (dx * dx + dy * dy <= maxDistSq) {
+                        int linkCol = linkAlpha | ((linksDrawn % 2 == 0) ? 0x72EFDD : 0xB5E48C);
+                        for (int s = 1; s < 5; s++) {
+                            int lx = xs[i] + (dx * s) / 5;
+                            int ly = ys[i] + (dy * s) / 5;
+                            graphics.fill(lx, ly, lx + 1, ly + 1, linkCol);
+                        }
+                        linksDrawn++;
+                    }
+                }
+            }
+        }
     }
 
-    private void renderChapterRibbonTabs(GuiGraphics graphics, int mouseX, int mouseY, float pulse) {
+    private void renderChapterRibbonTabs(GuiGraphics graphics, ResourceLocation atlas, int mouseX, int mouseY, float pulse) {
         for (ChapterTabHitbox tab : this.chapterTabs) {
             boolean active = tab.index() == this.chapterIdx;
             boolean hovered = tab.contains(mouseX, mouseY);
             int ty = active ? tab.y() - 2 : (hovered ? tab.y() - 1 : tab.y());
             int u = active ? 90 : 68;
-            graphics.blit(CODEX_GUI_TEXTURE, tab.x(), ty, u, 204, 20, 18, 256, 256);
+            graphics.blit(atlas, tab.x(), ty, u, 204, 20, 18, 256, 256);
             graphics.fill(tab.x() + 20, ty, tab.x() + tab.w(), ty + 18, active ? 0xFF5A3286 : 0xFF281D3A);
             if (active || hovered) {
                 int outline = active ? lerpBioColor(0xFFB5E48C, 0xFF72EFDD, pulse) : 0xFF9B4DFF;
@@ -660,8 +752,7 @@ public class MycelialCodexBookScreen extends Screen {
         }
     }
 
-    private void renderBookTomeFrame(GuiGraphics graphics, int left, int top, float threatLevel, float pulse) {
-        // Outer chitin carapace & pulsing mycelial/Hive-Mind synaptic border
+    private void renderBookTomeFrame(GuiGraphics graphics, ResourceLocation atlas, int left, int top, float threatLevel, float pulse) {
         graphics.fill(left - 3, top - 3, left + PANEL_W + 3, top + PANEL_H + 3, 0xCC09060E);
         graphics.fill(left, top, left + PANEL_W, top + PANEL_H, 0xFF171124);
         int outerBorder = threatLevel >= 50.0F
@@ -671,62 +762,60 @@ public class MycelialCodexBookScreen extends Screen {
         graphics.renderOutline(left, top, PANEL_W, PANEL_H, outerBorder);
         graphics.renderOutline(left + 2, top + 2, PANEL_W - 4, PANEL_H - 4, innerBorder);
 
-        // Glowing synaptic axons along perimeter
         int axonGlow = lerpBioColor(0xFF6B3FA0, 0xFF72EFDD, pulse);
         graphics.fill(left + 12, top + 4, left + PANEL_W - 12, top + 5, axonGlow);
         graphics.fill(left + 12, top + PANEL_H - 5, left + PANEL_W - 12, top + PANEL_H - 4, axonGlow);
 
-        // Left index membrane panel sampled from mycelial codex_book.png
         int indexX = left + INDEX_X_OFFSET;
         int indexY = top + 28;
         int indexH = PANEL_H - 56;
-        graphics.blit(CODEX_GUI_TEXTURE, indexX, indexY, INDEX_W, indexH, 9, 9, 76, 182, 256, 256);
+        graphics.blit(atlas, indexX, indexY, INDEX_W, indexH, 9, 9, 76, 182, 256, 256);
         graphics.renderOutline(indexX, indexY, INDEX_W, indexH, 0xFF5A3E85);
 
-        // Central Hive Mind neural spine sampled from codex_book.png
         int spineX = left + SPINE_X_OFFSET;
-        graphics.blit(CODEX_GUI_TEXTURE, spineX, top + 6, SPINE_W, PANEL_H - 12, 85, 7, 7, 186, 256, 256);
+        graphics.blit(atlas, spineX, top + 6, SPINE_W, PANEL_H - 12, 85, 7, 7, 186, 256, 256);
 
-        // Subtle cyan/chartreuse neural surge along the spine when threat is elevated
         if (threatLevel >= 50.0F) {
             int surgeAlpha = Math.round(36 + 64 * pulse) << 24;
             graphics.fill(spineX + 1, top + 14, spineX + SPINE_W - 1, top + PANEL_H - 14, surgeAlpha | 0x72EFDD);
         }
 
-        // Right mycelial parchment spread sampled from codex_book.png
         int pageX = left + PAGE_X_OFFSET;
         int pageY = top + 28;
         int pageH = PANEL_H - 56;
-        graphics.blit(CODEX_GUI_TEXTURE, pageX, pageY, PAGE_W, pageH, 92, 9, 155, 182, 256, 256);
+        graphics.blit(atlas, pageX, pageY, PAGE_W, pageH, 92, 9, 155, 182, 256, 256);
         graphics.renderOutline(pageX, pageY, PAGE_W, pageH, 0xFF7A56B0);
 
-        // Four fungal shelf corner clusters from codex_book.png
-        graphics.blit(CODEX_GUI_TEXTURE, left + 1, top + 1, 2, 2, 10, 10, 256, 256);
-        graphics.blit(CODEX_GUI_TEXTURE, left + PANEL_W - 11, top + 1, 243, 2, 10, 10, 256, 256);
-        graphics.blit(CODEX_GUI_TEXTURE, left + 1, top + PANEL_H - 11, 2, 187, 10, 10, 256, 256);
-        graphics.blit(CODEX_GUI_TEXTURE, left + PANEL_W - 11, top + PANEL_H - 11, 243, 187, 10, 10, 256, 256);
+        graphics.blit(atlas, left + 1, top + 1, 2, 2, 10, 10, 256, 256);
+        graphics.blit(atlas, left + PANEL_W - 11, top + 1, 243, 2, 10, 10, 256, 256);
+        graphics.blit(atlas, left + 1, top + PANEL_H - 11, 2, 187, 10, 10, 256, 256);
+        graphics.blit(atlas, left + PANEL_W - 11, top + PANEL_H - 11, 243, 187, 10, 10, 256, 256);
     }
 
-    private void renderLeftIndexSpread(GuiGraphics graphics, int left, int top, CodexBookData.Chapter ch, int mouseX, int mouseY, float pulse) {
+    private void renderLeftIndexSpread(GuiGraphics graphics, ResourceLocation atlas, int left, int top, CodexBookData.Chapter ch, HiveProgressionTier displayedTier, int mouseX, int mouseY, float pulse) {
         int indexX = left + INDEX_X_OFFSET;
         int indexY = top + 28;
 
-        // Mushroom medallion + unlocked entry counter
         int unlockedCount = 0;
         for (CodexBookData.Entry e : ch.entries()) {
             if (isGateUnlocked(e.unlockGate())) {
                 unlockedCount++;
             }
         }
-        graphics.blit(CODEX_GUI_TEXTURE, indexX + 4, indexY + 3, 12, 12, 112, 204, 16, 16, 256, 256);
+        int medU = 112 + displayedTier.level() * 18;
+        graphics.blit(atlas, indexX + 3, indexY + 2, 14, 14, medU, 204, 16, 16, 256, 256);
         String chBadge = "#" + ch.number() + "  [" + unlockedCount + "/" + ch.entries().size() + "]";
-        drawScaledText(graphics, Component.literal(chBadge), indexX + 19, indexY + 5, INDEX_W - 24, 0xFFD8B4F8, true);
+        drawScaledText(graphics, Component.literal(chBadge), indexX + 20, indexY + 5, INDEX_W - 24, 0xFFD8B4F8, true);
 
-        // Pulsing search input well
+        if (mouseX >= indexX + 3 && mouseX < indexX + 19 && mouseY >= indexY + 2 && mouseY < indexY + 18) {
+            this.hoveredCustomTooltip = buildActTooltip(displayedTier);
+        }
+
+        // Textured Search input well (0, 228, 106, 15)
         int sx = indexX + 3;
         int sy = top + 45;
         int sw = INDEX_W - 6;
-        graphics.fill(sx, sy, sx + sw, sy + 15, 0xCC110B1D);
+        graphics.blit(atlas, sx, sy, sw, 15, 0, 228, 106, 15, 256, 256);
         boolean searchFocused = this.searchBox != null && this.searchBox.isFocused();
         int searchBorder = searchFocused ? lerpBioColor(0xFFB5E48C, 0xFF72EFDD, pulse) : 0xFF5A3E85;
         graphics.renderOutline(sx, sy, sw, 15, searchBorder);
@@ -735,9 +824,14 @@ public class MycelialCodexBookScreen extends Screen {
             boolean selected = card.chapterIndex() == this.chapterIdx && card.entryIndex() == this.entryIdx;
             boolean hovered = card.contains(mouseX, mouseY);
 
-            int bg = selected ? 0xCC3B235E : (hovered ? 0xB0291944 : 0x88180F29);
+            // Textured entry index card plate (180, 228, 72, 17)
+            graphics.blit(atlas, card.x(), card.y(), card.w(), card.h(), 180, 228, 72, 17, 256, 256);
+            if (selected) {
+                graphics.fill(card.x(), card.y(), card.x() + card.w(), card.y() + card.h(), 0x554A2B78);
+            } else if (hovered) {
+                graphics.fill(card.x(), card.y(), card.x() + card.w(), card.y() + card.h(), 0x33352056);
+            }
             int border = selected ? 0xFFB5E48C : (hovered ? 0xFF72EFDD : 0xFF473168);
-            graphics.fill(card.x(), card.y(), card.x() + card.w(), card.y() + card.h(), bg);
             graphics.renderOutline(card.x(), card.y(), card.w(), card.h(), border);
 
             if (selected) {
@@ -763,12 +857,30 @@ public class MycelialCodexBookScreen extends Screen {
         }
     }
 
-    private void renderRightReadingSpread(GuiGraphics graphics, int left, int top, CodexBookData.Chapter ch, int mouseX, int mouseY, float threatLevel, float pulse) {
-        // Chapter Header Banner + Live Hive Mind Threat Telemetry Pill on top bar
+    private Component buildActTooltip(HiveProgressionTier tier) {
+        String mode = this.previewActOverride >= 0 ? "Preview" : "Live";
+        return Component.literal(String.format(
+                Locale.ROOT,
+                "Act %d (%s) [%s] - HP x%.2f  DMG x%.2f  ARM +%.0f  SPD x%.2f",
+                tier.actNumber(),
+                MycelialText.progressionTier(tier).getString(),
+                mode,
+                tier.healthMultiplier(),
+                tier.damageMultiplier(),
+                tier.armorBonus(),
+                tier.speedMultiplier()
+        ));
+    }
+
+    private void renderRightReadingSpread(GuiGraphics graphics, ResourceLocation atlas, int left, int top, CodexBookData.Chapter ch, HiveProgressionTier displayedTier, float threatLevel, int mouseX, int mouseY, float pulse) {
         Component chHeader = Component.translatable("gui.mycelialmind.codex.chapter_header",
                 ch.number(), Component.translatable(ch.titleKey()));
         drawScaledText(graphics, chHeader, left + PAGE_X_OFFSET, top + 8, 114, 0xFFE0C3FC, true);
-        renderSynapticHeaderTelemetry(graphics, left + PAGE_X_OFFSET, top + 18, 114, threatLevel, pulse);
+        renderSynapticHeaderTelemetry(graphics, left + PAGE_X_OFFSET, top + 18, 114, displayedTier, threatLevel, pulse);
+
+        if (mouseX >= left + PAGE_X_OFFSET && mouseX < left + PAGE_X_OFFSET + 114 && mouseY >= top + 8 && mouseY < top + 27) {
+            this.hoveredCustomTooltip = buildActTooltip(displayedTier);
+        }
 
         if (ch.entries().isEmpty()) {
             return;
@@ -781,7 +893,8 @@ public class MycelialCodexBookScreen extends Screen {
         int pageBottom = top + PANEL_H - 32;
 
         if (!isGateUnlocked(entry.unlockGate())) {
-            graphics.blit(CODEX_GUI_TEXTURE, contentX, pageTop, 16, 16, 112, 204, 16, 16, 256, 256);
+            int medU = 112 + displayedTier.level() * 18;
+            graphics.blit(atlas, contentX, pageTop, 16, 16, medU, 204, 16, 16, 256, 256);
             drawScaledText(graphics, Component.translatable(entry.titleKey()), contentX + 20, pageTop + 4, contentW - 22, 0xFFFFB703, true);
             graphics.fill(contentX, pageTop + 20, contentX + contentW, pageTop + 21, 0xFF7B2CBF);
 
@@ -802,7 +915,6 @@ public class MycelialCodexBookScreen extends Screen {
 
         CodexBookData.Page page = entry.pages().get(Math.min(pageIdx, entry.pages().size() - 1));
 
-        // Page Header with Entry Icon & Page Title
         ItemStack headerIcon = page.itemId() != null ? resolveItem(page.itemId()) : resolveItem(entry.iconItem());
         graphics.pose().pushPose();
         graphics.pose().translate(contentX, pageTop - 1, 0);
@@ -819,11 +931,11 @@ public class MycelialCodexBookScreen extends Screen {
         String type = page.type() != null ? page.type() : "text";
 
         if ("spotlight".equals(type) && page.itemId() != null) {
-            textY = renderSpotlightWidget(graphics, page, contentX, textY, contentW, mouseX, mouseY);
+            textY = renderSpotlightWidget(graphics, atlas, page, contentX, textY, contentW, mouseX, mouseY);
         } else if ("recipe".equals(type) && page.recipeId() != null) {
-            textY = renderRecipeWidget(graphics, page, contentX, textY, contentW, mouseX, mouseY);
+            textY = renderRecipeWidget(graphics, atlas, page, contentX, textY, contentW, mouseX, mouseY);
         } else if ("entity".equals(type) && page.entityId() != null) {
-            textY = renderEntityWidget(graphics, page, contentX, textY, contentW, mouseX, mouseY, pulse);
+            textY = renderEntityWidget(graphics, atlas, page, contentX, textY, contentW, mouseX, mouseY, pulse);
         }
 
         if (page.isSpoiler() && !showSpoilers) {
@@ -836,19 +948,18 @@ public class MycelialCodexBookScreen extends Screen {
             }
             this.maxTextScroll = 0;
         } else {
-            renderFormattedBodyText(graphics, page, type, contentX, textY, contentW, pageBottom);
+            renderFormattedBodyText(graphics, atlas, page, type, contentX, textY, contentW, pageBottom);
         }
 
-        // Page counter footer between < and >
         String pageCounter = (pageIdx + 1) + " / " + entry.pages().size();
         graphics.drawCenteredString(this.font, pageCounter, left + PAGE_X_OFFSET + PAGE_W / 2, top + PANEL_H - 21, 0xFFD8B4F8);
     }
 
-    private int renderSpotlightWidget(GuiGraphics graphics, CodexBookData.Page page, int contentX, int y, int contentW, int mouseX, int mouseY) {
+    private int renderSpotlightWidget(GuiGraphics graphics, ResourceLocation atlas, CodexBookData.Page page, int contentX, int y, int contentW, int mouseX, int mouseY) {
         ItemStack stack = resolveItem(page.itemId());
         int frameX = contentX + 4;
         int frameY = y;
-        graphics.blit(CODEX_GUI_TEXTURE, frameX, frameY, 20, 204, 22, 22, 256, 256);
+        graphics.blit(atlas, frameX, frameY, 20, 204, 22, 22, 256, 256);
         graphics.renderItem(stack, frameX + 3, frameY + 3);
 
         drawScaledText(graphics, stack.getHoverName(), frameX + 28, frameY + 3, contentW - 34, 0xFFFFE6A7, true);
@@ -860,7 +971,7 @@ public class MycelialCodexBookScreen extends Screen {
         return y + 26;
     }
 
-    private int renderRecipeWidget(GuiGraphics graphics, CodexBookData.Page page, int contentX, int y, int contentW, int mouseX, int mouseY) {
+    private int renderRecipeWidget(GuiGraphics graphics, ResourceLocation atlas, CodexBookData.Page page, int contentX, int y, int contentW, int mouseX, int mouseY) {
         boolean hasSecond = page.recipeId2() != null && !page.recipeId2().isBlank();
         int boxH = 56;
         graphics.fill(contentX, y, contentX + contentW, y + boxH, 0x88130C21);
@@ -868,11 +979,11 @@ public class MycelialCodexBookScreen extends Screen {
 
         if (hasSecond) {
             int halfW = (contentW - 6) / 2;
-            renderSingleRecipeCard(graphics, page.recipeId(), contentX + 2, y + 2, halfW, boxH - 4, mouseX, mouseY, true);
+            renderSingleRecipeCard(graphics, atlas, page.recipeId(), contentX + 2, y + 2, halfW, boxH - 4, mouseX, mouseY, true);
             graphics.fill(contentX + halfW + 3, y + 4, contentX + halfW + 4, y + boxH - 4, 0xFF4A306D);
-            renderSingleRecipeCard(graphics, page.recipeId2(), contentX + halfW + 5, y + 2, halfW, boxH - 4, mouseX, mouseY, true);
+            renderSingleRecipeCard(graphics, atlas, page.recipeId2(), contentX + halfW + 5, y + 2, halfW, boxH - 4, mouseX, mouseY, true);
         } else {
-            renderSingleRecipeCard(graphics, page.recipeId(), contentX + 4, y + 2, contentW - 8, boxH - 4, mouseX, mouseY, false);
+            renderSingleRecipeCard(graphics, atlas, page.recipeId(), contentX + 4, y + 2, contentW - 8, boxH - 4, mouseX, mouseY, false);
         }
 
         Component badge = Component.translatable("gui.mycelialmind.codex.recipe_badge", page.recipeId());
@@ -882,6 +993,7 @@ public class MycelialCodexBookScreen extends Screen {
 
     private void renderSingleRecipeCard(
             GuiGraphics graphics,
+            ResourceLocation atlas,
             String recipeIdStr,
             int rx,
             int ry,
@@ -902,7 +1014,7 @@ public class MycelialCodexBookScreen extends Screen {
             ItemStack fallback = resolveItem(recipeIdStr);
             int fx = rx + rw / 2 - 11;
             int fy = ry + 10;
-            graphics.blit(CODEX_GUI_TEXTURE, fx, fy, 20, 204, 22, 22, 256, 256);
+            graphics.blit(atlas, fx, fy, 20, 204, 22, 22, 256, 256);
             graphics.renderItem(fallback, fx + 3, fy + 3);
             if (mouseX >= fx && mouseX < fx + 22 && mouseY >= fy && mouseY < fy + 22) {
                 this.hoveredRecipeOrSpotlightStack = fallback;
@@ -944,32 +1056,33 @@ public class MycelialCodexBookScreen extends Screen {
                             ingStack = pickCycledIngredient(ingredients.get(idx));
                         }
                     }
-                    renderScaledSlot(graphics, ingStack, sx, sy, scale, false, mouseX, mouseY);
+                    renderScaledSlot(graphics, atlas, ingStack, sx, sy, scale, false, mouseX, mouseY);
                 }
             }
             int arrowX = gx0 + 3 * cell + (compact ? 3 : 8);
             int arrowY = gy0 + cell;
-            graphics.blit(CODEX_GUI_TEXTURE, arrowX, arrowY, Math.round(18 * scale), Math.round(14 * scale), 44, 204, 22, 16, 256, 256);
+            graphics.blit(atlas, arrowX, arrowY, Math.round(18 * scale), Math.round(14 * scale), 44, 204, 22, 16, 256, 256);
 
             int outX = arrowX + Math.round(20 * scale);
             int outY = gy0 + cell - 2;
-            renderScaledSlot(graphics, result, outX, outY, scale, true, mouseX, mouseY);
+            renderScaledSlot(graphics, atlas, result, outX, outY, scale, true, mouseX, mouseY);
         } else {
             int inX = rx + (compact ? 8 : 26);
             int inY = ry + 11;
             ItemStack inStack = ingredients.isEmpty() ? ItemStack.EMPTY : pickCycledIngredient(ingredients.get(0));
-            renderScaledSlot(graphics, inStack, inX, inY, 0.95F, false, mouseX, mouseY);
+            renderScaledSlot(graphics, atlas, inStack, inX, inY, 0.95F, false, mouseX, mouseY);
 
             int arrowX = inX + 22;
-            graphics.blit(CODEX_GUI_TEXTURE, arrowX, inY + 1, 20, 15, 44, 204, 22, 16, 256, 256);
+            graphics.blit(atlas, arrowX, inY + 1, 20, 15, 44, 204, 22, 16, 256, 256);
 
             int outX = arrowX + 24;
-            renderScaledSlot(graphics, result, outX, inY - 2, 0.95F, true, mouseX, mouseY);
+            renderScaledSlot(graphics, atlas, result, outX, inY - 2, 0.95F, true, mouseX, mouseY);
         }
     }
 
     private void renderScaledSlot(
             GuiGraphics graphics,
+            ResourceLocation atlas,
             ItemStack stack,
             int x,
             int y,
@@ -980,9 +1093,9 @@ public class MycelialCodexBookScreen extends Screen {
     ) {
         int boxSize = Math.round((isOutput ? 20 : 16) * scale);
         if (isOutput) {
-            graphics.blit(CODEX_GUI_TEXTURE, x, y, boxSize, boxSize, 20, 204, 22, 22, 256, 256);
+            graphics.blit(atlas, x, y, boxSize, boxSize, 20, 204, 22, 22, 256, 256);
         } else {
-            graphics.blit(CODEX_GUI_TEXTURE, x, y, boxSize, boxSize, 0, 204, 18, 18, 256, 256);
+            graphics.blit(atlas, x, y, boxSize, boxSize, 0, 204, 18, 18, 256, 256);
         }
 
         if (!stack.isEmpty()) {
@@ -1009,8 +1122,7 @@ public class MycelialCodexBookScreen extends Screen {
         return items[cycle];
     }
 
-    private void renderSynapticHeaderTelemetry(GuiGraphics graphics, int x, int y, int width, float threatLevel, float pulse) {
-        HiveProgressionTier tier = HiveProgressionTier.fromThreat(threatLevel);
+    private void renderSynapticHeaderTelemetry(GuiGraphics graphics, int x, int y, int width, HiveProgressionTier tier, float threatLevel, float pulse) {
         float fillFrac = Mth.clamp(threatLevel / 100.0F, 0.0F, 1.0F);
         int barH = 4;
         graphics.fill(x, y, x + width, y + barH, 0xCC110B1D);
@@ -1026,17 +1138,17 @@ public class MycelialCodexBookScreen extends Screen {
             graphics.fill(x + 1, y + 1, x + 1 + fillW, y + barH - 1, fillColor);
         }
         Component tierLabel = MycelialText.progressionTier(tier);
-        String statText = tierLabel.getString() + " (" + Math.round(threatLevel) + "%)";
+        String prefix = this.previewActOverride >= 0 ? "[Vista] " : "";
+        String statText = prefix + tierLabel.getString() + " (" + Math.round(threatLevel) + "%)";
         drawScaledText(graphics, Component.literal(statText), x, y + 5, width, 0xFF9D84B7, false);
     }
 
-    private int renderEntityWidget(GuiGraphics graphics, CodexBookData.Page page, int contentX, int y, int contentW, int mouseX, int mouseY, float pulse) {
+    private int renderEntityWidget(GuiGraphics graphics, ResourceLocation atlas, CodexBookData.Page page, int contentX, int y, int contentW, int mouseX, int mouseY, float pulse) {
         int boxW = 54;
         int boxH = 50;
-        graphics.fill(contentX, y, contentX + boxW, y + boxH, 0xCC100B1C);
+        // Textured Bio-Resonance Specimen Containment Chamber (108, 228, 54, 28)
+        graphics.blit(atlas, contentX, y, boxW, boxH, 108, 228, 54, 28, 256, 256);
         graphics.renderOutline(contentX, y, boxW, boxH, lerpBioColor(0xFF72EFDD, 0xFFB5E48C, pulse));
-        // Mycelial bio-resonance floor & cyan scan lines inside containment box
-        graphics.fill(contentX + 2, y + boxH - 10, contentX + boxW - 2, y + boxH - 3, 0x662B193E);
         int scanY = y + 3 + (int) (((System.currentTimeMillis() / 35L) % Math.max(1, boxH - 8)));
         graphics.fill(contentX + 2, scanY, contentX + boxW - 2, scanY + 1, 0x5572EFDD);
 
@@ -1148,6 +1260,7 @@ public class MycelialCodexBookScreen extends Screen {
 
     private void renderFormattedBodyText(
             GuiGraphics graphics,
+            ResourceLocation atlas,
             CodexBookData.Page page,
             String type,
             int contentX,
@@ -1183,14 +1296,15 @@ public class MycelialCodexBookScreen extends Screen {
             graphics.drawString(this.font, lines.get(i + this.textScrollOffset), textX, textY + i * lineStep, 0xFFEDE7F6, false);
         }
 
+        // Textured scrollbar track (164, 228, 6, 24) & spore thumb (172, 228, 6, 10)
         if (this.maxTextScroll > 0) {
-            int barX = contentX + contentW - 2;
+            int barX = contentX + contentW - 5;
             int barTop = textY;
             int barH = visibleLines * lineStep;
-            graphics.fill(barX, barTop, barX + 2, barTop + barH, 0x553B2854);
-            int thumbH = Math.max(8, (barH * visibleLines) / lines.size());
+            graphics.blit(atlas, barX, barTop, 5, barH, 164, 228, 6, 24, 256, 256);
+            int thumbH = Math.max(10, (barH * visibleLines) / lines.size());
             int thumbY = barTop + ((barH - thumbH) * this.textScrollOffset) / this.maxTextScroll;
-            graphics.fill(barX, thumbY, barX + 2, thumbY + thumbH, 0xFFB5E48C);
+            graphics.blit(atlas, barX, thumbY, 5, thumbH, 172, 228, 6, 10, 256, 256);
         }
     }
 

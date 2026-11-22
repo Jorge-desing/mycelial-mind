@@ -318,7 +318,7 @@ def build_contact_sheet() -> str:
 
 
 ITEM_ANIMATED = {
-    "bio_scanner", "enzyme_lance", "neutralizing_spore_launcher", "symbiotic_blade",
+    "bio_scanner", "mycelial_codex", "enzyme_lance", "neutralizing_spore_launcher", "symbiotic_blade",
     "spore_antidote", "purifier_grenade", "hive_heart", "synaptic_suppressor",
 }
 ITEM_MINIMUM = {
@@ -536,7 +536,7 @@ def run_checks(check_pbr: bool = False) -> None:
 
     expected_animated_items = [
         os.path.join(TEX_ROOT, "item", f"{n}.png")
-        for n in ("bio_scanner", "enzyme_lance", "neutralizing_spore_launcher", "symbiotic_blade", "spore_antidote", "purifier_grenade", "hive_heart", "synaptic_suppressor")
+        for n in ("bio_scanner", "mycelial_codex", "enzyme_lance", "neutralizing_spore_launcher", "symbiotic_blade", "spore_antidote", "purifier_grenade", "hive_heart", "synaptic_suppressor")
     ]
     for p in expected_animated_items:
         im = Image.open(p)
@@ -647,10 +647,20 @@ def run_checks(check_pbr: bool = False) -> None:
         im = Image.open(ep)
         assert im.size == (18, 18), f"{ep} expected (18, 18), got {im.size}"
         assert im.getextrema()[3][1] > 0, f"{ep} has no opaque pixels"
-    codex_gui_path = os.path.join(TEX_ROOT, "gui", "codex_book.png")
-    assert os.path.exists(codex_gui_path), f"Missing Codex GUI texture: {codex_gui_path}"
-    codex_gui_im = Image.open(codex_gui_path)
-    assert codex_gui_im.size == (256, 256), f"{codex_gui_path} expected (256, 256), got {codex_gui_im.size}"
+    codex_gui_variants = (
+        "codex_book.png",
+        "codex_book_awakened.png",
+        "codex_book_adaptive.png",
+        "codex_book_overmind.png",
+    )
+    gui_hashes = set()
+    for fname in codex_gui_variants:
+        codex_gui_path = os.path.join(TEX_ROOT, "gui", fname)
+        assert os.path.exists(codex_gui_path), f"Missing Codex GUI texture: {codex_gui_path}"
+        codex_gui_im = Image.open(codex_gui_path).convert("RGBA")
+        assert codex_gui_im.size == (256, 256), f"{codex_gui_path} expected (256, 256), got {codex_gui_im.size}"
+        gui_hashes.add(hashlib.sha1(np.asarray(codex_gui_im).tobytes()).hexdigest())
+    assert len(gui_hashes) == len(codex_gui_variants), "Codex GUI evolution atlases must be visually distinct"
     check_block_textures(check_pbr=check_pbr)
     check_item_icon_language(check_pbr=check_pbr)
     print("All texture dimension, .mcmeta, and emissive pair checks PASSED.")

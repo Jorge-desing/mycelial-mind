@@ -159,21 +159,34 @@ class TestGeneratedItemIcons(unittest.TestCase):
         self.assertIn("predator_amethyst", PALETTES)
 
     def test_codex_book_gui_atlas_exists_and_has_rich_regions(self):
-        gui_path = os.path.join(
-            REPO_ROOT, "src", "main", "resources", "assets", "mycelialmind", "textures", "gui", "codex_book.png"
-        )
-        self.assertTrue(os.path.exists(gui_path))
-        rgba = np.asarray(Image.open(gui_path).convert("RGBA"))
-        self.assertEqual(rgba.shape, (256, 256, 4))
-        # Main tome frame (0..200, 0..256) is fully opaque
-        self.assertTrue(np.all(rgba[:200, :256, 3] == 255))
-        # Widget sprites row (slot frame, pedestal, arrow, chapter tabs, medallion) are populated
-        self.assertTrue(np.all(rgba[204:222, 0:18, 3] == 255))
-        self.assertTrue(np.all(rgba[204:226, 20:42, 3] == 255))
-        self.assertGreater(int(np.count_nonzero(rgba[204:220, 44:66, 3] > 0)), 40)
-        self.assertTrue(np.all(rgba[204:222, 68:88, 3] == 255))
-        self.assertTrue(np.all(rgba[204:222, 90:110, 3] == 255))
-        self.assertGreater(int(np.count_nonzero(rgba[204:220, 112:128, 3] > 0)), 100)
+        gui_dir = os.path.join(REPO_ROOT, "src", "main", "resources", "assets", "mycelialmind", "textures", "gui")
+        variants = ("codex_book.png", "codex_book_awakened.png", "codex_book_adaptive.png", "codex_book_overmind.png")
+        digests = set()
+        for fname in variants:
+            gui_path = os.path.join(gui_dir, fname)
+            self.assertTrue(os.path.exists(gui_path), fname)
+            rgba = np.asarray(Image.open(gui_path).convert("RGBA"))
+            self.assertEqual(rgba.shape, (256, 256, 4))
+            # Main tome frame (0..200, 0..256) is fully opaque
+            self.assertTrue(np.all(rgba[:200, :256, 3] == 255))
+            # Widget sprites row (slot, pedestal, arrow, chapter tabs, 4 act medallions, buttons, search, entity chamber, scroll, card)
+            self.assertTrue(np.all(rgba[204:222, 0:18, 3] == 255))
+            self.assertTrue(np.all(rgba[204:226, 20:42, 3] == 255))
+            self.assertGreater(int(np.count_nonzero(rgba[204:220, 44:66, 3] > 0)), 40)
+            self.assertTrue(np.all(rgba[204:222, 68:88, 3] == 255))
+            self.assertTrue(np.all(rgba[204:222, 90:110, 3] == 255))
+            for act_i in range(4):
+                mx = 112 + act_i * 18
+                self.assertGreater(int(np.count_nonzero(rgba[204:220, mx : mx + 16, 3] > 0)), 100)
+            self.assertTrue(np.all(rgba[204:220, 184:220, 3] == 255))
+            self.assertTrue(np.all(rgba[204:220, 220:256, 3] == 255))
+            self.assertTrue(np.all(rgba[228:243, 0:106, 3] == 255))
+            self.assertTrue(np.all(rgba[228:256, 108:162, 3] == 255))
+            self.assertTrue(np.all(rgba[228:252, 164:170, 3] == 255))
+            self.assertTrue(np.all(rgba[228:238, 172:178, 3] == 255))
+            self.assertTrue(np.all(rgba[228:245, 180:252, 3] == 255))
+            digests.add(hash(rgba.tobytes()))
+        self.assertEqual(len(digests), 4, "Each Act GUI atlas must differ visually")
 
 
 if __name__ == "__main__":

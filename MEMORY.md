@@ -3417,3 +3417,29 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - `audit_mod_assets`: **`ok: true`**.
   - `run_gradle_task(["test"])`: **`56/56`** JUnit en `5` suites (`0` fallos).
   - `run_gradle_task(["runGameTestServer"])`: **`gradle_ok: true`** (**`153/153`** `@GameTest`s aprobados en `5.194 s`).
+
+
+## [2026-11-22 09:46] — Evolución viva por Actos (I–IV) del Códice Micelial y 4 Atlas GUI (`/goal` + `/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `DOCUMENTACIÓN`
+- **Resumen:**
+  1. **Icono animado `16×64` (`scripts/texture_studio/generators/items.py` + `build_textures.py`):** Actualizado `_mycelial_codex` para animar el brillo del hongo bioluminiscente central, motas cian, axones radiales y anillo de espora del lomo en 4 fotogramas (`16×64` + `.mcmeta`), registrado en `ITEM_ANIMATED` y `expected_animated_items`.
+  2. **4 Atlas GUI Evolutivos (`scripts/texture_studio/generators/gui.py` + `test_icon_language.py`):** Implementada generación de `codex_book.png` (Acto I `DORMANT`), `codex_book_awakened.png` (Acto II `AWAKENED`), `codex_book_adaptive.png` (Acto III `ADAPTIVE`) y `codex_book_overmind.png` (Acto IV `OVERMIND`) en `256×256` RGBA, con crecimiento progresivo de racimos fúngicos en las esquinas, expansión de la red hifal en los pliegos (`_paint_mycelial_network`) y aumento de ganglios sinápticos en el lomo central (`5 → 7 → 8 → 9`), además de la banda completa de widgets en `y=204..255` (4 medallones de Acto `112..166`, placas `CodexButton` `184/220`, pozo de búsqueda `0,228`, cámara 3D `108,228`, scrollbar `164/172,228` y tarjetas `180,228`).
+  3. **Evolución interactiva por Acto y Red Sináptica en `MycelialCodexBookScreen.java` + `CodexBookScreenLogicTest.java`:**
+     - **Selección y Previsualización de Acto (`atlasForTier`, `cyclePreviewActTier`):** El libro selecciona automáticamente el atlas correspondiente a `HiveProgressionTier.resolveEffectiveTier(...)` y permite ciclar las fases desbloqueadas (o los 4 Actos con Spoilers/Creativo) haciendo clic en el **Medallón de Acto** o en la barra superior de telemetría (con tooltip de multiplicadores `HP`/`DMG`/`ARM`/`SPD`).
+     - **Widgets sprite-backed + Red Sináptica Viva (`renderFloatingSpores`):** `CodexButton`, buscador, tarjetas del índice, cámara de especímenes y barra de scroll renderizan desde los sprites del atlas activo; desde `AWAKENED`, axones punteados cian/chartreuse conectan dinámicamente esporas flotantes cercanas en los márgenes. Añadida prueba JUnit `atlasForTierAndPreviewCyclingCoverAllFourEvolutionStages`.
+  4. **Skills revisadas y actualizadas:** Actualizada `.agents/skills/mycelial-texture-studio/SKILL.md` documentando el flipbook de `mycelial_codex` y los 4 atlas `codex_book{,_awakened,_adaptive,_overmind}.png`.
+- **Archivos / Símbolos:**
+  - `scripts/texture_studio/generators/items.py` (`_mycelial_codex`)
+  - `scripts/texture_studio/generators/gui.py` (`GUI_VARIANTS`, `_paint_act_medallion`, `_build_atlas_for_stage`, `generate_gui_textures`)
+  - `scripts/texture_studio/build_textures.py` (`ITEM_ANIMATED`, `run_checks`)
+  - `scripts/texture_studio/tests/test_icon_language.py` (`test_codex_book_gui_atlas_exists_and_has_rich_regions`)
+  - `src/main/resources/assets/mycelialmind/textures/gui/codex_book{,_awakened,_adaptive,_overmind}.png`
+  - `src/main/resources/assets/mycelialmind/textures/item/mycelial_codex{,.png.mcmeta,_n,_s}.png`
+  - `src/main/java/com/alex/mycelialmind/client/screen/MycelialCodexBookScreen.java` (`atlasForTier`, `cyclePreviewActTier`, `buildActTooltip`, `renderFloatingSpores`, `CodexButton`)
+  - `src/test/java/com/alex/mycelialmind/CodexBookScreenLogicTest.java`
+  - `.agents/skills/mycelial-texture-studio/SKILL.md`
+- **Estado / Verificación (FastMCP `CodeMode` `mycelial-mind-dev`):**
+  - `validate_skills`: **`ok: true`** (`8/8`).
+  - `run_texture_studio(check_only=False, pbr=True, export_extras=True, run_tests=True)` y `check_only=True`: **`ok: true`** (4 atlas GUI únicos + 9 ítems animados + `test_icon_language.py`).
+  - `audit_mod_assets`: **`ok: true`**.
+  - `run_gradle_task(["test"])`: bloqueda la compilación completa del workspace únicamente por cambios concurrentes activos en `ReclaimedBloomBlock.java:94` y `ModCreativeTabs.java:48` (`0` errores reportados en `MycelialCodexBookScreen.java` ni `CodexBookScreenLogicTest.java`); se preservaron intactos todos los archivos de la sesión concurrente.
