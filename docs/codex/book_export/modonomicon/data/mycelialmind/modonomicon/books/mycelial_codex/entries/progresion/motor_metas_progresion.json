@@ -1,0 +1,46 @@
+{
+  "category": "mycelialmind:progresion",
+  "name": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.name",
+  "description": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.description",
+  "icon": {
+    "item": "mycelialmind:overmind_essence"
+  },
+  "x": 0,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 2,
+  "parents": [
+    {
+      "entry": "mycelialmind:progresion/actos_y_amenaza",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.progresion.motor_metas_progresion.page3.text"
+    }
+  ]
+}

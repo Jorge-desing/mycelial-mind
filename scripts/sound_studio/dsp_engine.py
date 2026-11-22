@@ -1,0 +1,993 @@
+"""Deterministic bio-horror & clinical-tech DSP synthesis + 44.1 kHz mono Ogg Vorbis encoding."""
+
+from __future__ import annotations
+
+import hashlib
+import shutil
+import struct
+import subprocess
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+from scipy import signal
+
+try:
+    from .cuda_dsp import (
+        gpu_fftconvolve_1d as _gpu_fftconvolve_1d,
+        gpu_harmonic_sum as _gpu_harmonic_sum,
+        gpu_spectral_noise as _gpu_spectral_noise,
+    )
+except ImportError:
+    try:
+        from cuda_dsp import (
+            gpu_fftconvolve_1d as _gpu_fftconvolve_1d,
+            gpu_harmonic_sum as _gpu_harmonic_sum,
+            gpu_spectral_noise as _gpu_spectral_noise,
+        )
+    except ImportError:
+        from sound_studio.cuda_dsp import (
+            gpu_fftconvolve_1d as _gpu_fftconvolve_1d,
+            gpu_harmonic_sum as _gpu_harmonic_sum,
+            gpu_spectral_noise as _gpu_spectral_noise,
+        )
+
+SAMPLE_RATE = 44100
+VORBIS_QUALITY = "4"
+TRUE_PEAK_CEILING = 0.94
+DEFAULT_PEAK = TRUE_PEAK_CEILING
+
+# Category-calibrated active loudness targets (dBFS)
+LOUDNESS_TARGETS_DBFS: dict[str, float] = {
+    "footstep": -21.5,
+    "block_light": -18.0,
+    "block_heavy": -15.5,
+    "ambient": -16.5,
+    "ui_item": -15.0,
+    "combat": -13.5,
+    "death": -13.0,
+    "boss_cinematic": -11.5,
+}
+
+
+def find_ffmpeg() -> str:
+    """Locate ffmpeg executable for libvorbis encoding."""
+    on_path = shutil.which("ffmpeg")
+    if on_path:
+        return on_path
+    candidates = [
+        Path(r"C:\Users\Alex\Downloads\yt-dlp_win_x86\ffmpeg\bin\ffmpeg.exe"),
+        Path(r"C:\ffmpeg\bin\ffmpeg.exe"),
+        Path(r"C:\Program Files\ffmpeg\bin\ffmpeg.exe"),
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate)
+    raise FileNotFoundError("ffmpeg executable not found on PATH or standard Windows directories.")
+
+
+def deterministic_rng(sound_id: str, seed_offset: int = 0, variation_idx: int = 0) -> np.random.Generator:
+    """Create a deterministic NumPy Generator seeded from sound_id, seed_offset, and take index."""
+    token = f"{sound_id}:{seed_offset}" if variation_idx == 0 else f"{sound_id}:{seed_offset}:v{variation_idx}"
+    digest = hashlib.sha256(token.encode("utf-8")).digest()
+    seed = int.from_bytes(digest[:8], "little")
+    return np.random.default_rng(seed)
+
+
+def apply_fade_guards(wave: np.ndarray, fade_in_ms: float = 3.0, fade_out_ms: float = 14.0) -> np.ndarray:
+    """Apply smooth raised-cosine fades at buffer boundaries to eliminate clicks/pops."""
+    n = len(wave)
+    if n == 0:
+        return wave
+    out = wave.copy()
+    fi = min(n // 4, max(2, int(SAMPLE_RATE * fade_in_ms / 1000.0)))
+    fo = min(n // 2, max(2, int(SAMPLE_RATE * fade_out_ms / 1000.0)))
+    if fi > 0:
+        out[:fi] *= 0.5 * (1.0 - np.cos(np.linspace(0.0, np.pi, fi, dtype=np.float64)))
+    if fo > 0:
+        out[-fo:] *= 0.5 * (1.0 + np.cos(np.linspace(0.0, np.pi, fo, dtype=np.float64)))
+    return out
+
+
+def adsr_envelope(n: int, attack: float = 0.04, decay: float = 0.2, sustain: float = 0.5, release: float = 0.25) -> np.ndarray:
+    """Build a normalized ADSR amplitude envelope of length n."""
+    if n <= 0:
+        return np.zeros(0, dtype=np.float64)
+    a_n = max(1, int(n * attack))
+    d_n = max(1, int(n * decay))
+    r_n = max(1, int(n * release))
+    if a_n + d_n + r_n >= n:
+        scale = (n - 1) / max(1, (a_n + d_n + r_n))
+        a_n = max(1, int(a_n * scale))
+        d_n = max(1, int(d_n * scale))
+        r_n = max(1, n - a_n - d_n)
+    s_n = max(0, n - a_n - d_n - r_n)
+
+    env = np.empty(n, dtype=np.float64)
+    idx = 0
+    env[idx:idx + a_n] = np.linspace(0.0, 1.0, a_n, endpoint=False)
+    idx += a_n
+    env[idx:idx + d_n] = np.linspace(1.0, sustain, d_n, endpoint=False)
+    idx += d_n
+    if s_n > 0:
+        env[idx:idx + s_n] = sustain
+        idx += s_n
+    rem = n - idx
+    if rem > 0:
+        env[idx:] = np.linspace(sustain if s_n > 0 else 1.0, 0.0, rem)
+    return env
+
+
+def exp_decay(t: np.ndarray, tau: float) -> np.ndarray:
+    """Exponential decay envelope."""
+    return np.exp(-t / max(1e-4, tau))
+
+
+def _clamp_norm(hz: float) -> float:
+    return float(np.clip(hz / (0.5 * SAMPLE_RATE), 0.0006, 0.96))
+
+
+def _sos_bandpass(sig: np.ndarray, low_hz: float, high_hz: float, order: int = 2) -> np.ndarray:
+    lo = _clamp_norm(low_hz)
+    hi = max(lo + 0.002, _clamp_norm(high_hz))
+    hi = min(hi, 0.97)
+    sos = signal.butter(order, [lo, hi], btype="bandpass", output="sos")
+    return signal.sosfilt(sos, sig)
+
+
+def _sos_lowpass(sig: np.ndarray, cutoff_hz: float, order: int = 2) -> np.ndarray:
+    wn = _clamp_norm(cutoff_hz)
+    sos = signal.butter(order, wn, btype="lowpass", output="sos")
+    return signal.sosfilt(sos, sig)
+
+
+def _sos_highpass(sig: np.ndarray, cutoff_hz: float, order: int = 2) -> np.ndarray:
+    wn = _clamp_norm(cutoff_hz)
+    sos = signal.butter(order, wn, btype="highpass", output="sos")
+    return signal.sosfilt(sos, sig)
+
+
+def _biquad_bpf_coefs(center_hz: float, q: float) -> tuple[np.ndarray, np.ndarray]:
+    fc = float(np.clip(center_hz, 25.0, SAMPLE_RATE * 0.45))
+    q_clamped = float(np.clip(q, 0.5, 24.0))
+    w0 = 2.0 * np.pi * fc / SAMPLE_RATE
+    alpha = np.sin(w0) / (2.0 * q_clamped)
+    cos_w0 = np.cos(w0)
+    b0 = alpha
+    b1 = 0.0
+    b2 = -alpha
+    a0 = 1.0 + alpha
+    a1 = -2.0 * cos_w0
+    a2 = 1.0 - alpha
+    return np.array([b0 / a0, b1 / a0, b2 / a0], dtype=np.float64), np.array([1.0, a1 / a0, a2 / a0], dtype=np.float64)
+
+
+def _apply_formant_bank(sig: np.ndarray, formants: list[tuple[float, float, float]]) -> np.ndarray:
+    """Pass excitation through parallel biological vocal-tract resonant bandpass filters."""
+    out = np.zeros_like(sig)
+    for center_hz, q, gain in formants:
+        b, a = _biquad_bpf_coefs(center_hz, q)
+        out += gain * signal.lfilter(b, a, sig)
+    return out
+
+
+def _swept_resonant_filter(sig: np.ndarray, f_start: float, f_end: float, q: float = 2.4, n_bands: int = 12) -> np.ndarray:
+    """Overlap-add time-varying resonant bandpass filter for smooth organic sweeps."""
+    n = len(sig)
+    if n < 256:
+        b, a = _biquad_bpf_coefs(0.5 * (f_start + f_end), q)
+        return signal.lfilter(b, a, sig)
+    hop = max(64, n // (n_bands + 1))
+    win_len = min(n, hop * 2)
+    hann = np.hanning(win_len)
+    out = np.zeros(n, dtype=np.float64)
+    weight = np.zeros(n, dtype=np.float64)
+    pos = 0
+    while pos < n:
+        end = min(n, pos + win_len)
+        seg = sig[pos:end]
+        w = hann[: len(seg)]
+        frac = (pos + 0.5 * len(seg)) / max(1, n)
+        fc = f_start * ((f_end / max(25.0, f_start)) ** frac)
+        b, a = _biquad_bpf_coefs(fc, q)
+        filtered = signal.lfilter(b, a, seg) * w
+        out[pos:end] += filtered
+        weight[pos:end] += w
+        if end == n:
+            break
+        pos += hop
+    return out / np.maximum(weight, 1e-4)
+
+
+def _pink_noise(rng: np.random.Generator, n: int) -> np.ndarray:
+    """Generate 1/f pink noise via spectral shaping."""
+    if n <= 0:
+        return np.zeros(0, dtype=np.float64)
+    white = rng.normal(0.0, 1.0, n)
+    gpu_pink = _gpu_spectral_noise(white, 0.52, 25.0, SAMPLE_RATE)
+    if gpu_pink is not None:
+        return gpu_pink
+    spec = np.fft.rfft(white)
+    freqs = np.fft.rfftfreq(n, 1.0 / SAMPLE_RATE)
+    scale = 1.0 / np.maximum(freqs, 25.0) ** 0.52
+    scale[0] = 0.0
+    pink = np.fft.irfft(spec * scale, n=n)
+    std = float(np.std(pink))
+    return pink / max(std, 1e-6)
+
+
+def _brown_noise(rng: np.random.Generator, n: int) -> np.ndarray:
+    """Generate deep 1/f^2 subterranean rumble noise."""
+    if n <= 0:
+        return np.zeros(0, dtype=np.float64)
+    white = rng.normal(0.0, 1.0, n)
+    gpu_brown = _gpu_spectral_noise(white, 1.0, 22.0, SAMPLE_RATE)
+    if gpu_brown is not None:
+        return gpu_brown
+    spec = np.fft.rfft(white)
+    freqs = np.fft.rfftfreq(n, 1.0 / SAMPLE_RATE)
+    scale = 1.0 / np.maximum(freqs, 22.0) ** 1.0
+    scale[0] = 0.0
+    brown = np.fft.irfft(spec * scale, n=n)
+    std = float(np.std(brown))
+    return brown / max(std, 1e-6)
+
+
+def _fm_tone(
+    t: np.ndarray,
+    carrier_hz: np.ndarray | float,
+    mod_hz: float,
+    mod_index: float,
+    phase_jit: float = 0.0,
+    mod_phase: float = 0.0,
+) -> np.ndarray:
+    """Synthesize FM waveform integrating instantaneous carrier frequency."""
+    if np.ndim(carrier_hz) == 0:
+        phase = 2.0 * np.pi * float(carrier_hz) * t
+    else:
+        phase = 2.0 * np.pi * np.cumsum(carrier_hz) / SAMPLE_RATE
+    mod = mod_index * np.sin(2.0 * np.pi * mod_hz * t + mod_phase)
+    return np.sin(phase + phase_jit + mod)
+
+
+def _glottal_sub_source(
+    t: np.ndarray,
+    freq_curve: np.ndarray,
+    rng: np.random.Generator,
+    *,
+    harmonics: int = 11,
+    sub_weight: float = 0.72,
+    rattle_hz: float = 26.0,
+) -> np.ndarray:
+    """Asymmetric glottal pulse source with sub-harmonics and throat mucus flutter."""
+    n = len(t)
+    # Slow pitch instability / organic growl tremor
+    jitter = 1.0 + 0.018 * _sos_lowpass(rng.normal(0.0, 1.0, n), 45.0)
+    inst_f = np.maximum(24.0, freq_curve * jitter)
+    base_phase = 2.0 * np.pi * np.cumsum(inst_f) / SAMPLE_RATE + rng.uniform(0.0, 2.0 * np.pi)
+    ks = range(1, harmonics + 1)
+    mults = [float(k) for k in ks]
+    amps = [(1.0 if k % 2 == 1 else -0.82) / (k ** 1.15) for k in ks]
+    offs = [0.35 * (k - 1) for k in ks]
+    pulse = _gpu_harmonic_sum(base_phase / (2.0 * np.pi), mults, amps, offs)
+    if pulse is None:
+        pulse = np.zeros(n, dtype=np.float64)
+        for mult_k, amp_k, off_k in zip(mults, amps, offs):
+            pulse += amp_k * np.sin(mult_k * base_phase + off_k)
+    # Wet vocal-fold amplitude modulation (rattle)
+    rattle = 1.0 - 0.32 * (0.5 + 0.5 * np.sin(2.0 * np.pi * rattle_hz * t + rng.uniform(0.0, 6.28)))
+    sub_oct = np.sin(0.5 * base_phase + rng.uniform(0.0, 6.28)) * (sub_weight * 0.72)
+    sub_fifth = np.sin(0.333 * base_phase + rng.uniform(0.0, 6.28)) * (sub_weight * 0.36)
+    return (pulse * rattle) + sub_oct + sub_fifth
+
+
+def _wet_squelch_layer(
+    n: int,
+    rng: np.random.Generator,
+    base_freq: float,
+    count: int,
+    *,
+    intensity: float = 1.0,
+) -> np.ndarray:
+    """Staggered organic mucus bubbles, membrane tears, and wet cavity resonance."""
+    out = np.zeros(n, dtype=np.float64)
+    for _ in range(max(1, count)):
+        start = int(rng.uniform(0.0, 0.80) * n)
+        dur = float(rng.uniform(0.016, 0.068))
+        blen = min(n - start, max(48, int(dur * SAMPLE_RATE)))
+        if blen <= 16:
+            continue
+        st = np.linspace(0.0, blen / SAMPLE_RATE, blen, endpoint=False)
+        f0 = float(np.clip(base_freq * rng.uniform(0.55, 1.75), 95.0, 2800.0))
+        direction = 1.0 if rng.random() > 0.25 else -0.55
+        f_sweep = f0 * np.exp(direction * 1.25 * st / max(1e-4, st[-1]))
+        phase = 2.0 * np.pi * np.cumsum(f_sweep) / SAMPLE_RATE + rng.uniform(0.0, 6.28)
+        bub = np.sin(phase) + 0.35 * np.sin(2.0 * phase + 0.4)
+        env = np.sin(np.linspace(0.0, np.pi, blen)) ** 1.15
+        out[start : start + blen] += bub * env * rng.uniform(0.45, 0.95) * intensity
+    sticky = _sos_bandpass(_pink_noise(rng, n), max(160.0, base_freq * 0.65), min(4200.0, base_freq * 4.0))
+    return out + sticky * (0.28 * intensity)
+
+
+def _chitin_modal_hits(
+    n: int,
+    rng: np.random.Generator,
+    base_freq: float,
+    hit_count: int,
+    decay_s: float,
+    *,
+    spread_frac: float = 0.72,
+) -> np.ndarray:
+    """Hollow inharmonic exoskeleton clicks/snaps and brittle impact transients."""
+    out = np.zeros(n, dtype=np.float64)
+    ratios = (1.0, 1.57, 2.29, 3.16, 4.41)
+    weights = (0.48, 0.32, 0.24, 0.16, 0.10)
+    for i in range(max(1, hit_count)):
+        if hit_count == 1:
+            pos = 0
+        else:
+            anchor = (i / hit_count) * spread_frac
+            pos = min(n - 32, max(0, int((anchor + rng.uniform(0.0, spread_frac / (hit_count * 1.6))) * n)))
+        hlen = min(n - pos, max(48, int(SAMPLE_RATE * decay_s * rng.uniform(0.75, 1.35))))
+        if hlen <= 16:
+            continue
+        st = np.linspace(0.0, hlen / SAMPLE_RATE, hlen, endpoint=False)
+        f_jit = base_freq * rng.uniform(0.84, 1.22)
+        modal = np.zeros(hlen, dtype=np.float64)
+        for idx_r, (r, w) in enumerate(zip(ratios, weights)):
+            f_mode = min(14000.0, f_jit * r)
+            modal += w * np.sin(2.0 * np.pi * f_mode * st + rng.uniform(0.0, 6.28)) * exp_decay(st, decay_s / (1.0 + 0.45 * idx_r))
+        snap = _sos_bandpass(rng.normal(0.0, 1.0, hlen), 1800.0, 13500.0) * exp_decay(st, min(0.008, decay_s * 0.25))
+        out[pos : pos + hlen] += (modal * 0.72 + snap * 0.55) * rng.uniform(0.65, 1.05)
+    return out
+
+
+def _cavern_reverb(sig: np.ndarray, rng: np.random.Generator, *, wet: float = 0.20, rt60: float = 0.48, lp_hz: float = 2800.0) -> np.ndarray:
+    """Deterministic subterranean mono early reflections + low-pass damped tail."""
+    if wet <= 1e-4 or len(sig) < 64:
+        return sig
+    ir_len = min(len(sig), max(int(SAMPLE_RATE * 0.12), int(SAMPLE_RATE * min(rt60, 0.75))))
+    ir = np.zeros(ir_len, dtype=np.float64)
+    ir[0] = 1.0
+    # Dense diffuse noise tail decaying at rt60
+    t_ir = np.linspace(0.0, ir_len / SAMPLE_RATE, ir_len, endpoint=False)
+    decay = np.exp(-6.9078 * t_ir / max(0.08, rt60))
+    diffuse = _sos_lowpass(rng.normal(0.0, 1.0, ir_len), lp_hz) * decay * 0.085
+    # Distinct subterranean wall early reflections (beyond tiny phase correlation offsets)
+    taps_ms = [rng.uniform(7.0, 12.0), rng.uniform(14.0, 22.0), rng.uniform(25.0, 36.0), rng.uniform(41.0, 56.0), rng.uniform(62.0, 82.0)]
+    for idx_t, ms in enumerate(taps_ms):
+        tap_pos = int(ms * SAMPLE_RATE / 1000.0)
+        if tap_pos < ir_len:
+            ir[tap_pos] += (0.48 * (0.68 ** idx_t)) * (1.0 if idx_t % 2 == 0 else -1.0)
+    tail_ir = _sos_lowpass(ir + diffuse, lp_hz)
+    tail_ir[0] = 0.0
+    wet_sig = _gpu_fftconvolve_1d(sig, tail_ir)
+    if wet_sig is None:
+        wet_sig = signal.fftconvolve(sig, tail_ir, mode="full")[: len(sig)]
+    return sig * (1.0 - wet * 0.35) + wet_sig * wet
+
+
+def active_rms(wave: np.ndarray, gate_ratio: float = 0.05) -> float:
+    """Compute RMS over the active signal envelope so reverb tails don't skew loudness."""
+    if len(wave) == 0:
+        return 0.0
+    abs_w = np.abs(wave)
+    peak = float(np.max(abs_w))
+    if peak < 1e-9:
+        return 0.0
+    active = abs_w[abs_w >= peak * gate_ratio]
+    if len(active) < 8:
+        active = abs_w
+    return float(np.sqrt(np.mean(active * active)))
+
+
+def _soft_knee_limit(wave: np.ndarray, threshold: float = 0.78, ceiling: float = TRUE_PEAK_CEILING) -> np.ndarray:
+    """Smooth nonlinear true-peak soft limiter preserving punch without hard digital clipping."""
+    out = wave.copy()
+    abs_w = np.abs(out)
+    over = abs_w > threshold
+    if np.any(over):
+        headroom = ceiling - threshold
+        excess = (abs_w[over] - threshold) / max(1e-6, headroom)
+        shaped = threshold + headroom * np.tanh(excess)
+        out[over] = np.sign(out[over]) * shaped
+    return np.clip(out, -ceiling, ceiling)
+
+
+def master_waveform(
+    wave: np.ndarray,
+    *,
+    loudness_group: str = "combat",
+    target_peak: float | None = None,
+    sound_id: str = "",
+    species: str = "default",
+    category: str = "",
+) -> np.ndarray:
+    """High-pass clean, process through Pedalboard + Convolution IR, converge LUFS/RMS, and apply fade guards."""
+    from scripts.sound_studio.mastering import master_with_pedalboard
+
+    return master_with_pedalboard(
+        wave,
+        sound_id=sound_id,
+        species=species,
+        loudness_group=loudness_group,
+        category=category,
+        target_peak=target_peak,
+    )
+
+
+def synthesize_waveform(
+    sound_id: str,
+    *,
+    recipe: str,
+    duration: float,
+    base_freq: float,
+    mod_freq: float = 8.0,
+    variant: str = "default",
+    species: str = "default",
+    loudness_group: str = "combat",
+    seed_offset: int = 0,
+    variation_idx: int = 0,
+    target_peak: float | None = None,
+    category: str = "",
+) -> np.ndarray:
+    """Synthesize a deterministic 44.1 kHz mono float64 waveform in [-TRUE_PEAK_CEILING, +TRUE_PEAK_CEILING]."""
+    rng = deterministic_rng(sound_id, seed_offset, variation_idx)
+
+    # Intentional acoustic variation across takes so multi-variation playback never sounds identical
+    if variation_idx > 0:
+        # Spread deterministic pitch shifts wider across variations while staying organic
+        pitch_ladder = (0.93, 1.07, 0.87, 1.13)
+        pitch_mult = pitch_ladder[(variation_idx - 1) % len(pitch_ladder)] * float(rng.uniform(0.975, 1.025))
+        dur_mult = float(rng.uniform(0.91, 1.09))
+        formant_shift = pitch_ladder[(variation_idx + 1) % len(pitch_ladder)] * float(rng.uniform(0.96, 1.04))
+    else:
+        pitch_mult = 1.0
+        dur_mult = 1.0
+        formant_shift = 1.0
+
+    dur = max(0.11, float(duration) * dur_mult)
+    bf = max(32.0, float(base_freq) * pitch_mult)
+    mf = max(1.0, float(mod_freq) * float(rng.uniform(0.92, 1.08)))
+
+    n = max(int(SAMPLE_RATE * 0.11), int(round(SAMPLE_RATE * dur)))
+    t = np.linspace(0.0, dur, n, endpoint=False, dtype=np.float64)
+    white = rng.normal(0.0, 1.0, n)
+    pink = _pink_noise(rng, n)
+    brown = _brown_noise(rng, n)
+    pjit = float(rng.uniform(0.0, 2.0 * np.pi))
+
+    from scripts.sound_studio.block_synth import (
+        BLOCK_FUNCTIONAL_IDS,
+        synthesize_block_functional,
+        synthesize_block_surface,
+    )
+    from scripts.sound_studio.boss_synth import (
+        BOSS_CINEMATIC_IDS,
+        synthesize_boss_sound,
+    )
+    from scripts.sound_studio.entity_synth import (
+        ENTITY_SYNTH_IDS,
+        synthesize_entity_sound,
+    )
+    from scripts.sound_studio.item_synth import (
+        ITEM_PROJECTILE_IDS,
+        synthesize_item_sound,
+    )
+    from scripts.sound_studio.system_env_synth import (
+        SYSTEM_ENV_IDS,
+        synthesize_system_env_sound,
+    )
+
+    is_boss = loudness_group == "boss_cinematic" or species == "colossal_organic" and dur >= 0.85
+    rev_wet = 0.28 if is_boss else 0.18
+    rev_rt60 = 0.62 if is_boss else 0.42
+
+    if sound_id in BOSS_CINEMATIC_IDS:
+        wave = synthesize_boss_sound(
+            sound_id,
+            duration=dur,
+            base_freq=bf,
+            mod_freq=mf,
+            rng=rng,
+            formant_shift=formant_shift,
+        )
+    elif sound_id in BLOCK_FUNCTIONAL_IDS:
+        wave = synthesize_block_functional(
+            sound_id,
+            duration=dur,
+            base_freq=bf,
+            mod_freq=mf,
+            rng=rng,
+            formant_shift=formant_shift,
+        )
+    elif sound_id in ENTITY_SYNTH_IDS:
+        wave = synthesize_entity_sound(
+            sound_id,
+            duration=dur,
+            base_freq=bf,
+            mod_freq=mf,
+            rng=rng,
+            formant_shift=formant_shift,
+        )
+    elif sound_id in ITEM_PROJECTILE_IDS:
+        wave = synthesize_item_sound(
+            sound_id,
+            duration=dur,
+            base_freq=bf,
+            mod_freq=mf,
+            rng=rng,
+            formant_shift=formant_shift,
+        )
+    elif sound_id in SYSTEM_ENV_IDS or recipe == "system_env":
+        wave = synthesize_system_env_sound(
+            sound_id,
+            duration=dur,
+            base_freq=bf,
+            mod_freq=mf,
+            rng=rng,
+            formant_shift=formant_shift,
+        )
+    elif recipe == "block_functional":
+        wave = synthesize_block_functional(
+            sound_id,
+            duration=dur,
+            base_freq=bf,
+            mod_freq=mf,
+            rng=rng,
+            formant_shift=formant_shift,
+        )
+
+    elif recipe == "chitter":
+        # Mandible clicks + insectoid tracheal formant bursts
+        snaps = _chitin_modal_hits(n, rng, bf * 1.4, rng.integers(5, 9), 0.042, spread_frac=0.80)
+        pulses = int(rng.integers(4, 8))
+        vocal = np.zeros(n, dtype=np.float64)
+        for i in range(pulses):
+            start = int((i / pulses) * n * 0.84 + rng.uniform(0.0, n * 0.04))
+            plen = min(n - start, max(128, int(n * rng.uniform(0.07, 0.15))))
+            if plen <= 32:
+                continue
+            seg_t = t[:plen]
+            f_sw = bf * rng.uniform(0.88, 1.24) * (1.0 + 0.38 * np.sin(2.0 * np.pi * mf * seg_t + rng.uniform(0, 6.28)))
+            tone = _fm_tone(seg_t, f_sw, mf * 3.4, 2.6, rng.uniform(0, 6.28))
+            env = np.sin(np.linspace(0.0, np.pi, plen)) ** 1.3
+            vocal[start : start + plen] += tone * env
+        vocal = _apply_formant_bank(vocal, [(bf * 1.15 * formant_shift, 3.2, 1.0), (bf * 2.55 * formant_shift, 4.0, 0.75)])
+        air = _sos_bandpass(pink, bf * 0.9, min(11000.0, bf * 4.0)) * 0.25
+        wave = _cavern_reverb((vocal * 0.85 + snaps * 0.72 + air) * adsr_envelope(n, 0.03, 0.25, 0.45, 0.28), rng, wet=0.14, rt60=0.35)
+
+    elif recipe == "growl":
+        # Bio-horror guttural roar with glottal sub-harmonics, chest formants, and throat mucus rattle
+        f_env = bf * (1.06 - 0.28 * (t / dur) + 0.07 * np.sin(2.0 * np.pi * (mf * 0.85) * t + pjit))
+        source = _glottal_sub_source(t, f_env, rng, harmonics=12, sub_weight=0.85, rattle_hz=mf * 4.5 + rng.uniform(2, 8))
+        tract = _apply_formant_bank(
+            source,
+            [
+                (max(75.0, bf * 1.45 * formant_shift), 2.8, 1.1),
+                (bf * 3.8 * formant_shift, 3.4, 0.85),
+                (min(4200.0, bf * 8.2 * formant_shift), 4.2, 0.50),
+            ],
+        )
+        mucus = _wet_squelch_layer(n, rng, bf * 1.8, int(rng.integers(3, 7)), intensity=0.45)
+        sub_bed = np.sin(2.0 * np.pi * np.cumsum(np.maximum(28.0, f_env * 0.5)) / SAMPLE_RATE + pjit) * 0.55
+        rumble = _sos_bandpass(brown, 42.0, max(180.0, bf * 1.6)) * 0.42
+        raw = np.tanh((tract * 1.35 + sub_bed + mucus + rumble) * 1.45) * adsr_envelope(n, 0.07, 0.22, 0.56, 0.30)
+        wave = _cavern_reverb(raw, rng, wet=rev_wet, rt60=rev_rt60, lp_hz=2600.0)
+
+    elif recipe == "hiss":
+        # Swept serpentine/spitter respiration + saliva crackle + sinister throat undertone
+        breath = _swept_resonant_filter(pink * 0.8 + white * 0.35, min(9500.0, bf * 3.8), max(180.0, bf * 0.72), q=2.2)
+        sibilance = _sos_bandpass(white, max(1600.0, bf * 2.2), 11500.0) * 0.48
+        undertone = _glottal_sub_source(t, np.full(n, max(65.0, bf * 0.26)), rng, harmonics=5, sub_weight=0.5, rattle_hz=28.0) * 0.24
+        wet_droplets = _wet_squelch_layer(n, rng, bf * 1.4, int(rng.integers(4, 8)), intensity=0.35)
+        raw = (breath * 1.15 + sibilance + undertone + wet_droplets) * adsr_envelope(n, 0.04, 0.24, 0.45, 0.32)
+        wave = _cavern_reverb(raw, rng, wet=0.16, rt60=0.40)
+
+    elif recipe == "gurgle":
+        # Visceral boiling bio-sac mucus + dark sub cavity
+        wet = _wet_squelch_layer(n, rng, bf, int(rng.integers(7, 13)), intensity=1.15)
+        cavity = _apply_formant_bank(
+            wet + brown * 0.3,
+            [(max(85.0, bf * 0.85 * formant_shift), 3.0, 1.0), (bf * 2.1 * formant_shift, 3.8, 0.72)],
+        )
+        sub = np.sin(2.0 * np.pi * (max(48.0, bf * 0.45)) * t + pjit) * 0.28
+        raw = np.tanh((cavity * 1.2 + wet * 0.5 + sub) * 1.25) * adsr_envelope(n, 0.05, 0.20, 0.60, 0.25)
+        wave = _cavern_reverb(raw, rng, wet=0.18, rt60=0.44)
+
+    elif recipe == "grind":
+        # Abrasive chitin-on-basalt scraping + serrated resonance
+        scrapes = 0.38 + 0.62 * np.abs(np.sin(2.0 * np.pi * (mf * 0.75) * t + 0.9 * np.sin(2.0 * np.pi * 4.2 * t + pjit)))
+        grit = _swept_resonant_filter(pink + white * 0.45, bf * 1.1, min(7500.0, bf * 3.9), q=3.0) * scrapes
+        chitin_crunch = _chitin_modal_hits(n, rng, bf * 1.6, int(rng.integers(5, 9)), 0.055, spread_frac=0.82) * 0.65
+        low_grind = _glottal_sub_source(t, bf * (0.9 + 0.15 * np.sin(2.0 * np.pi * mf * t)), rng, harmonics=7, sub_weight=0.55) * 0.42
+        raw = np.tanh((grit * 1.35 + chitin_crunch + low_grind) * 1.3) * adsr_envelope(n, 0.03, 0.24, 0.52, 0.26)
+        wave = _cavern_reverb(raw, rng, wet=0.20, rt60=0.45)
+
+    elif recipe == "crackle":
+        # Smoldering fungal cinder + snapping pyro embers + low thermal draft
+        draft = _sos_bandpass(brown, 75.0, max(350.0, bf * 1.2)) * 0.55 + _sos_bandpass(pink, 600.0, 4200.0) * 0.40
+        pops = np.zeros(n, dtype=np.float64)
+        for _ in range(int(rng.integers(10, 22))):
+            idx = int(rng.uniform(0.02, 0.90) * n)
+            plen = min(n - idx, max(32, int(SAMPLE_RATE * rng.uniform(0.008, 0.034))))
+            st = np.linspace(0.0, plen / SAMPLE_RATE, plen, endpoint=False)
+            pf = bf * rng.uniform(1.1, 4.8)
+            pop = (_fm_tone(st, pf, pf * 0.35, 1.4, rng.uniform(0, 6.28)) + rng.normal(0.0, 0.6, plen)) * exp_decay(st, 0.0065)
+            pops[idx : idx + plen] += pop * rng.uniform(0.45, 1.15)
+        raw = (draft + pops * 1.15) * adsr_envelope(n, 0.03, 0.20, 0.55, 0.28)
+        wave = _cavern_reverb(raw, rng, wet=0.14, rt60=0.35)
+
+    elif recipe == "crystal_hum":
+        if species == "synaptic_eldritch":
+            # Haunted eldritch synaptic dissonance (tritone/minor-2nd crystal partials + dark sub-pulse)
+            partials = (0.5, 1.0, 1.414, 1.89, 2.71, 3.86)
+            amps = (0.48, 0.52, 0.36, 0.26, 0.16, 0.09)
+            lfo = 1.0 + 0.018 * np.sin(2.0 * np.pi * mf * t + pjit)
+            wave_tone = np.zeros(n, dtype=np.float64)
+            for r, a in zip(partials, amps):
+                wave_tone += a * np.sin(2.0 * np.pi * np.cumsum(bf * r * lfo) / SAMPLE_RATE + rng.uniform(0, 6.28))
+            eerie_air = _sos_bandpass(pink, max(150.0, bf * 0.7), min(5200.0, bf * 4.5)) * 0.32
+            raw = (wave_tone + eerie_air) * adsr_envelope(n, 0.08, 0.24, 0.58, 0.34)
+            wave = _cavern_reverb(raw, rng, wet=0.26, rt60=0.58, lp_hz=3600.0)
+        else:
+            # Clean bio-relic / purifier crystal hum
+            partials = (1.0, 1.50, 2.005, 3.01, 4.02)
+            amps = (0.55, 0.32, 0.24, 0.14, 0.08)
+            lfo = 1.0 + 0.010 * np.sin(2.0 * np.pi * mf * t + pjit)
+            wave_tone = np.zeros(n, dtype=np.float64)
+            for r, a in zip(partials, amps):
+                wave_tone += a * np.sin(2.0 * np.pi * np.cumsum(bf * r * lfo) / SAMPLE_RATE + rng.uniform(0, 6.28))
+            wave = _cavern_reverb(wave_tone * adsr_envelope(n, 0.06, 0.22, 0.55, 0.32), rng, wet=0.16, rt60=0.40)
+
+    elif recipe == "heavy_thud":
+        # Seismic body/stone slam with sub-bass drop + chitin/rock scatter + cavern boom
+        f_drop = np.maximum(28.0, bf * (0.42 + 2.2 * exp_decay(t, max(0.032, dur * 0.18))))
+        sub = np.sin(2.0 * np.pi * np.cumsum(f_drop) / SAMPLE_RATE + pjit) * exp_decay(t, dur * 0.44)
+        transient = _chitin_modal_hits(n, rng, bf * 3.2, 2, 0.045, spread_frac=0.10) * 0.75
+        debris = _sos_bandpass(brown * 0.7 + pink * 0.45, 55.0, max(900.0, bf * 6.0)) * exp_decay(t, dur * 0.32)
+        raw = np.tanh((sub * 1.15 + transient + debris * 0.85) * 1.45)
+        wave = _cavern_reverb(raw, rng, wet=0.26, rt60=0.54, lp_hz=2200.0)
+
+    elif recipe == "screech":
+        # Shrieking bio-horror predator/matriarch vocal tract + breathless rasp + dark cavern tail
+        curve = np.sin(np.pi * t / dur)
+        f_sweep = bf * (0.82 + 0.78 * curve + 0.04 * np.sin(2.0 * np.pi * 34.0 * t + pjit))
+        vocal_src = _glottal_sub_source(t, f_sweep, rng, harmonics=13, sub_weight=0.45, rattle_hz=36.0)
+        fm_bite = _fm_tone(t, f_sweep * 1.01, mf * 5.2, 3.6, pjit, rng.uniform(0, 6.28)) * 0.55
+        shriek = _apply_formant_bank(
+            vocal_src + fm_bite,
+            [
+                (max(240.0, bf * 1.2 * formant_shift), 2.8, 0.9),
+                (min(4800.0, bf * 2.7 * formant_shift), 3.6, 1.1),
+                (min(7200.0, bf * 4.4 * formant_shift), 4.2, 0.65),
+            ],
+        )
+        rasp = _swept_resonant_filter(pink, min(6800.0, bf * 2.5), max(400.0, bf * 1.1), q=2.0) * 0.45
+        raw = np.tanh((shriek + rasp) * 1.35) * adsr_envelope(n, 0.04, 0.18, 0.56, 0.28)
+        wave = _cavern_reverb(raw, rng, wet=0.30 if is_boss else 0.20, rt60=0.65 if is_boss else 0.44, lp_hz=4200.0)
+
+    elif recipe == "bellow":
+        # Massive subterranean boss roar: raspy inhale -> tectonic sub-octave + dark chest formants
+        inhale_len = min(n // 5, int(SAMPLE_RATE * 0.14))
+        inhale = np.zeros(n, dtype=np.float64)
+        if inhale_len > 32:
+            st_in = np.linspace(0.0, inhale_len / SAMPLE_RATE, inhale_len, endpoint=False)
+            inhale[:inhale_len] = _sos_bandpass(pink[:inhale_len], 140.0, 1400.0) * (st_in / max(1e-4, st_in[-1])) * 0.65
+        f_roar = bf * (1.04 - 0.18 * (t / dur) + 0.045 * np.sin(2.0 * np.pi * mf * t + pjit))
+        roar_src = _glottal_sub_source(t, f_roar, rng, harmonics=12, sub_weight=0.95, rattle_hz=22.0)
+        chest = _apply_formant_bank(
+            roar_src,
+            [
+                (max(70.0, bf * 1.65 * formant_shift), 2.5, 1.15),
+                (bf * 4.2 * formant_shift, 3.2, 0.85),
+                (min(3200.0, bf * 8.5 * formant_shift), 3.8, 0.45),
+            ],
+        )
+        sub_boom = np.sin(2.0 * np.pi * np.cumsum(np.maximum(30.0, f_roar * 0.5)) / SAMPLE_RATE + pjit) * 0.72
+        rumble = _sos_bandpass(brown, 36.0, 260.0) * 0.45
+        body = np.tanh((chest + sub_boom + rumble) * 1.4) * adsr_envelope(n, 0.10, 0.20, 0.62, 0.34)
+        wave = _cavern_reverb(inhale + body, rng, wet=0.32, rt60=0.68, lp_hz=2400.0)
+
+    elif recipe == "bio_pulse":
+        # Deep neural surge + dark harmonic swell + synaptic micro-crackles
+        env_p = np.sin(np.pi * t / dur) ** 1.25
+        f_mod = bf * (1.0 + 0.16 * np.sin(2.0 * np.pi * mf * t + pjit))
+        core = _fm_tone(t, f_mod, bf * 0.5, 1.6, pjit, rng.uniform(0, 6.28)) * 0.72
+        sub = np.sin(2.0 * np.pi * (max(40.0, bf * 0.5)) * t + rng.uniform(0, 6.28)) * 0.48
+        swept = _swept_resonant_filter(pink, max(160.0, bf * 0.7), min(5400.0, bf * 3.8), q=2.6) * 0.45
+        raw = (core + sub + swept) * env_p
+        wave = _cavern_reverb(raw, rng, wet=0.22, rt60=0.48, lp_hz=3400.0)
+
+    elif recipe == "tech_chime":
+        # Sterile, clinical Purification Tech — pure harmonic triad + crisp switch click, minimal reverb
+        notes = (1.0, 1.25, 1.498)
+        wave_c = np.zeros(n, dtype=np.float64)
+        step = n // 3
+        for i, ratio in enumerate(notes):
+            start = min(n - 32, int(i * step * 0.52))
+            st = t[: n - start]
+            f = min(9000.0, bf * ratio)
+            note_p = rng.uniform(0.0, 6.28)
+            tone = (
+                np.sin(2.0 * np.pi * f * st + note_p) * 0.72
+                + np.sin(2.0 * np.pi * min(14000.0, f * 2.0) * st + note_p) * 0.22
+                + np.sin(2.0 * np.pi * min(16000.0, f * 3.0) * st) * 0.08
+            )
+            wave_c[start:] += tone * exp_decay(st, max(0.045, dur * 0.42))
+        relay_click = _sos_bandpass(white, 2400.0, 11000.0) * exp_decay(t, 0.012) * 0.35
+        wave = _cavern_reverb(wave_c + relay_click, rng, wet=0.10, rt60=0.24, lp_hz=6500.0)
+
+    elif recipe == "weapon_slash":
+        # Whipping air arc + wet/chitinous tearing edge + resonant steel/enzyme ring
+        air = _swept_resonant_filter(pink * 0.8 + white * 0.4, min(10500.0, bf * 5.2), max(180.0, bf * 0.65), q=1.9) * exp_decay(t, dur * 0.44)
+        tear = _wet_squelch_layer(n, rng, bf * 1.4, 3, intensity=0.5) * exp_decay(t, dur * 0.35)
+        edge = _fm_tone(t, bf * (1.5 - 0.85 * (t / dur)), mf * 2.4, 1.8, pjit) * exp_decay(t, dur * 0.30) * 0.55
+        raw = air * 1.1 + tear + edge
+        wave = _cavern_reverb(raw, rng, wet=0.14, rt60=0.32, lp_hz=4500.0)
+
+    elif recipe == "projectile_pop":
+        # Pressurized bio-sac pop / spore burst + wet droplet splatter
+        f_drop = np.maximum(45.0, bf * (0.48 + 1.65 * exp_decay(t, max(0.015, dur * 0.16))))
+        pop = np.sin(2.0 * np.pi * np.cumsum(f_drop) / SAMPLE_RATE + pjit) * exp_decay(t, dur * 0.34)
+        splash = _wet_squelch_layer(n, rng, bf * 1.3, 4, intensity=0.75) * exp_decay(t, dur * 0.32)
+        snap = _sos_bandpass(white, 1200.0, 9500.0) * exp_decay(t, 0.025) * 0.45
+        raw = np.tanh((pop * 1.05 + splash + snap) * 1.35)
+        wave = _cavern_reverb(raw, rng, wet=0.12, rt60=0.30, lp_hz=4000.0)
+
+    elif recipe == "explosion_purge":
+        # Cinematic multi-stage blast: crack transient -> tectonic sub shockwave -> roar + purge shimmer
+        crack = _sos_bandpass(white, 1400.0, 11000.0) * exp_decay(t, 0.022) * 0.9
+        sub = np.sin(2.0 * np.pi * np.cumsum(np.maximum(28.0, bf * (0.35 + 2.1 * exp_decay(t, 0.075)))) / SAMPLE_RATE + pjit) * exp_decay(t, dur * 0.55)
+        roar = _sos_bandpass(brown * 0.85 + pink * 0.55, 45.0, 2200.0) * exp_decay(t, dur * 0.44)
+        rise_f = np.minimum(3200.0, bf * (1.8 + 2.6 * (t / dur)))
+        shimmer = np.sin(2.0 * np.pi * np.cumsum(rise_f) / SAMPLE_RATE + rng.uniform(0, 6.28)) * adsr_envelope(n, 0.06, 0.25, 0.35, 0.40) * 0.32
+        raw = np.tanh((crack + sub * 1.15 + roar * 1.1 + shimmer) * 1.35)
+        wave = _cavern_reverb(raw, rng, wet=0.28, rt60=0.62, lp_hz=3200.0)
+
+    elif recipe == "hurt":
+        # Species-differentiated damage reactions
+        if species == "purifier_tech":
+            ring = _chitin_modal_hits(n, rng, bf * 1.8, 2, 0.09, spread_frac=0.12)
+            spark = _sos_bandpass(white, 2800.0, 12000.0) * exp_decay(t, 0.05) * 0.55
+            servo = np.sin(2.0 * np.pi * np.cumsum(bf * (1.2 - 0.65 * (t / dur))) / SAMPLE_RATE + pjit) * exp_decay(t, dur * 0.45) * 0.5
+            wave = _cavern_reverb(ring + spark + servo, rng, wet=0.12, rt60=0.25, lp_hz=6200.0)
+        elif species == "wet_visceral":
+            slap = _sos_bandpass(pink, 140.0, 1800.0) * exp_decay(t, 0.045) * 0.9
+            squelch = _wet_squelch_layer(n, rng, bf * 1.1, 4, intensity=0.95) * exp_decay(t, dur * 0.5)
+            grunt = _apply_formant_bank(_glottal_sub_source(t, bf * (1.15 - 0.45 * (t / dur)), rng, harmonics=8, sub_weight=0.7), [(bf * 1.6 * formant_shift, 2.8, 1.0)]) * 0.85
+            wave = _cavern_reverb(np.tanh((slap + squelch + grunt) * 1.3) * adsr_envelope(n, 0.02, 0.2, 0.45, 0.35), rng, wet=0.18, rt60=0.40)
+        elif species == "pyro_fungal":
+            pop = np.sin(2.0 * np.pi * np.cumsum(bf * (1.4 - 0.7 * (t / dur))) / SAMPLE_RATE + pjit) * exp_decay(t, 0.05)
+            steam = _sos_bandpass(white, 2200.0, 10000.0) * exp_decay(t, dur * 0.45) * 0.65
+            cinder = _chitin_modal_hits(n, rng, bf * 2.0, 3, 0.03, spread_frac=0.35) * 0.5
+            wave = _cavern_reverb((pop + steam + cinder) * adsr_envelope(n, 0.015, 0.22, 0.40, 0.38), rng, wet=0.15, rt60=0.34)
+        elif species == "synaptic_eldritch":
+            fracture = _chitin_modal_hits(n, rng, bf * 1.414, 3, 0.11, spread_frac=0.22)
+            bent = _fm_tone(t, bf * (1.2 - 0.5 * (t / dur)), bf * 0.707, 2.2, pjit) * 0.72
+            wave = _cavern_reverb((fracture * 0.7 + bent) * adsr_envelope(n, 0.02, 0.2, 0.42, 0.38), rng, wet=0.24, rt60=0.50)
+        elif species == "colossal_organic":
+            impact = _sos_bandpass(brown, 45.0, 350.0) * exp_decay(t, 0.12) * 1.2
+            grunt = _apply_formant_bank(_glottal_sub_source(t, bf * (1.05 - 0.38 * (t / dur)), rng, harmonics=10, sub_weight=0.9), [(bf * 1.5 * formant_shift, 2.5, 1.1), (bf * 3.5 * formant_shift, 3.0, 0.65)])
+            wave = _cavern_reverb(np.tanh((impact + grunt) * 1.35) * adsr_envelope(n, 0.02, 0.22, 0.46, 0.36), rng, wet=0.26, rt60=0.54)
+        else:  # insectoid_chitin / default
+            snap = _chitin_modal_hits(n, rng, bf * 1.4, 3, 0.045, spread_frac=0.18)
+            squeak = _fm_tone(t, bf * (1.3 - 0.65 * (t / dur)), mf * 2.8, 2.3, pjit) * 0.68
+            wave = _cavern_reverb((snap + squeak) * adsr_envelope(n, 0.015, 0.2, 0.40, 0.38), rng, wet=0.16, rt60=0.36)
+
+    elif recipe == "death":
+        # Species-differentiated dramatic collapses
+        if species == "purifier_tech":
+            f_down = np.maximum(45.0, bf * np.exp(-1.7 * t / dur))
+            whine = (np.sin(2.0 * np.pi * np.cumsum(f_down) / SAMPLE_RATE + pjit) * 0.75 + _fm_tone(t, f_down * 1.5, 35.0, 0.8) * 0.3)
+            click_pos = min(n - 64, int(n * 0.72))
+            clicks = np.zeros(n, dtype=np.float64)
+            clicks[click_pos:] += _chitin_modal_hits(n - click_pos, rng, 950.0, 2, 0.04, spread_frac=0.35) * 0.7
+            static = _sos_bandpass(white, 1500.0, 8500.0) * exp_decay(t, dur * 0.25) * 0.35
+            wave = _cavern_reverb((whine * adsr_envelope(n, 0.02, 0.2, 0.45, 0.40) + clicks + static), rng, wet=0.12, rt60=0.28)
+        elif species == "wet_visceral":
+            f_down = np.maximum(38.0, bf * np.exp(-1.1 * t / dur))
+            groan = _apply_formant_bank(_glottal_sub_source(t, f_down, rng, harmonics=9, sub_weight=0.85), [(bf * 1.2 * formant_shift, 2.5, 1.0)]) * adsr_envelope(n, 0.03, 0.2, 0.4, 0.45)
+            deflate = _wet_squelch_layer(n, rng, bf * 1.2, 8, intensity=1.15) * adsr_envelope(n, 0.05, 0.25, 0.45, 0.45)
+            wave = _cavern_reverb(np.tanh((groan + deflate) * 1.35), rng, wet=0.24, rt60=0.52)
+        elif species == "pyro_fungal":
+            f_down = np.maximum(45.0, bf * np.exp(-1.4 * t / dur))
+            puff = _sos_bandpass(pink, 180.0, 2400.0) * exp_decay(t, dur * 0.42) * 0.9
+            ember = _chitin_modal_hits(n, rng, bf * 2.4, 6, 0.04, spread_frac=0.7) * 0.55
+            whistle = _fm_tone(t, f_down, mf * 1.4, 1.5, pjit) * adsr_envelope(n, 0.02, 0.2, 0.35, 0.45) * 0.55
+            wave = _cavern_reverb(puff + ember + whistle, rng, wet=0.18, rt60=0.40)
+        elif species == "synaptic_eldritch":
+            f_down = np.maximum(38.0, bf * np.exp(-1.35 * t / dur))
+            shatter = _chitin_modal_hits(n, rng, bf * 1.5, 5, 0.14, spread_frac=0.45)
+            void = (_fm_tone(t, f_down, f_down * 0.707, 2.6, pjit) * 0.7 + np.sin(2.0 * np.pi * np.cumsum(f_down * 0.5) / SAMPLE_RATE) * 0.55)
+            wave = _cavern_reverb((shatter * 0.65 + void * adsr_envelope(n, 0.03, 0.22, 0.45, 0.46)), rng, wet=0.32, rt60=0.68, lp_hz=3800.0)
+        elif species == "colossal_organic":
+            f_down = np.maximum(32.0, bf * np.exp(-1.15 * t / dur))
+            groan = _apply_formant_bank(_glottal_sub_source(t, f_down, rng, harmonics=12, sub_weight=0.95), [(max(65.0, bf * 1.4 * formant_shift), 2.4, 1.1), (bf * 3.1 * formant_shift, 3.0, 0.7)]) * adsr_envelope(n, 0.04, 0.22, 0.48, 0.44)
+            # Heavy body hitting cavern floor halfway through death
+            collapse = np.zeros(n, dtype=np.float64)
+            imp = int(n * rng.uniform(0.36, 0.48))
+            clen = n - imp
+            if clen > 32:
+                st_c = np.linspace(0.0, clen / SAMPLE_RATE, clen, endpoint=False)
+                collapse[imp:] = (np.sin(2.0 * np.pi * np.cumsum(48.0 * (0.6 + 1.5 * exp_decay(st_c, 0.04))) / SAMPLE_RATE) + _sos_bandpass(brown[imp:], 40.0, 320.0)) * exp_decay(st_c, dur * 0.26)
+            wave = _cavern_reverb(np.tanh((groan + collapse * 0.85) * 1.4), rng, wet=0.32, rt60=0.70, lp_hz=2400.0)
+        else:  # insectoid_chitin
+            f_down = np.maximum(55.0, bf * np.exp(-1.45 * t / dur))
+            rattle = _chitin_modal_hits(n, rng, bf * 1.3, 6, 0.055, spread_frac=0.72)
+            wail = _fm_tone(t, f_down, mf * 1.8, 2.4, pjit) * adsr_envelope(n, 0.02, 0.2, 0.4, 0.46) * 0.65
+            wave = _cavern_reverb(rattle * 0.8 + wail, rng, wet=0.20, rt60=0.45)
+
+    elif recipe == "rift_hum":
+        f1 = bf * (1.0 + 0.024 * np.sin(2.0 * np.pi * 1.7 * t + pjit))
+        pad = (
+            np.sin(2.0 * np.pi * np.cumsum(f1 * 0.5) / SAMPLE_RATE + pjit) * 0.65
+            + np.sin(2.0 * np.pi * np.cumsum(f1) / SAMPLE_RATE + rng.uniform(0, 6.28)) * 0.48
+            + np.sin(2.0 * np.pi * np.cumsum(f1 * 1.414) / SAMPLE_RATE + rng.uniform(0, 6.28)) * 0.34
+            + _fm_tone(t, f1 * 2.0, mf, 1.5, pjit) * 0.22
+        )
+        air = _sos_bandpass(brown * 0.6 + pink * 0.5, 90.0, max(400.0, bf * 3.5)) * 0.45
+        wave = _cavern_reverb((pad + air) * adsr_envelope(n, 0.16, 0.22, 0.62, 0.36), rng, wet=0.34, rt60=0.72, lp_hz=2600.0)
+
+    elif recipe == "heartbeat":
+        # Deep lub-dub biological pulse with dark chest resonance (timing shifts > 25 ms prevent correlation!)
+        wave_h = np.zeros(n, dtype=np.float64)
+        second_offset = dur * rng.uniform(0.36, 0.48)
+        for beat_t, gain in ((rng.uniform(0.02, 0.06), 1.0), (second_offset, 0.74)):
+            idx = min(n - 32, int(beat_t * SAMPLE_RATE))
+            blen = min(n - idx, int(SAMPLE_RATE * 0.24))
+            st = np.linspace(0.0, blen / SAMPLE_RATE, blen, endpoint=False)
+            f_b = max(36.0, bf) * (0.58 + 1.25 * exp_decay(st, 0.042))
+            thump = np.sin(2.0 * np.pi * np.cumsum(f_b) / SAMPLE_RATE + rng.uniform(0, 6.28)) * exp_decay(st, 0.068)
+            rush = _sos_bandpass(pink[idx : idx + blen], 65.0, 420.0) * exp_decay(st, 0.075) * 0.45
+            wave_h[idx : idx + blen] += (thump + rush) * gain
+        wave = _cavern_reverb(np.tanh(wave_h * 1.45), rng, wet=0.28, rt60=0.55, lp_hz=1400.0)
+
+    elif recipe == "sizzle":
+        chem = _sos_bandpass(white, 2400.0, 12500.0)
+        melt = _swept_resonant_filter(pink, 1400.0, 420.0, q=2.5) * (0.45 + 0.55 * np.sin(2.0 * np.pi * mf * 2.2 * t + pjit))
+        fizz = _wet_squelch_layer(n, rng, bf * 1.8, 5, intensity=0.55)
+        raw = (chem * 0.72 + melt * 0.55 + fizz * 0.48) * adsr_envelope(n, 0.03, 0.20, 0.55, 0.30)
+        wave = _cavern_reverb(raw, rng, wet=0.08, rt60=0.22, lp_hz=6800.0)
+
+    elif recipe == "feast":
+        crunch = _chitin_modal_hits(n, rng, bf * 1.4, 5, 0.045, spread_frac=0.76) * 0.75
+        tear = _sos_bandpass(pink, 220.0, 2800.0) * (0.35 + 0.65 * np.abs(np.sin(2.0 * np.pi * mf * t + pjit)))
+        squelch = _wet_squelch_layer(n, rng, bf * 1.1, 6, intensity=0.95)
+        raw = np.tanh((crunch + tear * 0.8 + squelch) * 1.3) * adsr_envelope(n, 0.04, 0.24, 0.52, 0.28)
+        wave = _cavern_reverb(raw, rng, wet=0.14, rt60=0.35)
+
+    elif recipe == "hatch":
+        crack_len = min(n // 3, int(SAMPLE_RATE * 0.11))
+        wave_e = np.zeros(n, dtype=np.float64)
+        if crack_len > 32:
+            wave_e[:crack_len] += _chitin_modal_hits(crack_len, rng, bf * 2.1, 3, 0.032, spread_frac=0.65)
+        chirp_start = min(n - 32, int(crack_len * 0.65))
+        rem = n - chirp_start
+        st2 = np.linspace(0.0, rem / SAMPLE_RATE, rem, endpoint=False)
+        f_c = bf * (0.85 + 0.65 * (st2 / max(1e-4, st2[-1])))
+        bio = _glottal_sub_source(st2, f_c, rng, harmonics=7, sub_weight=0.5) * 0.65 + _wet_squelch_layer(rem, rng, bf, 3, intensity=0.55)
+        wave_e[chirp_start:] += bio * exp_decay(st2, dur * 0.45)
+        wave = _cavern_reverb(wave_e, rng, wet=0.18, rt60=0.40)
+
+    elif recipe == "portal_ignite":
+        f_up = bf * (0.50 + 1.55 * (t / dur))
+        beam = _glottal_sub_source(t, f_up, rng, harmonics=9, sub_weight=0.8) * 0.65 + _fm_tone(t, f_up * 1.414, bf * 0.5, 2.2, pjit) * 0.45
+        tear = _swept_resonant_filter(pink, 280.0, 5600.0, q=2.4) * adsr_envelope(n, 0.06, 0.25, 0.45, 0.30) * 0.65
+        wave = _cavern_reverb(np.tanh((beam + tear) * 1.3), rng, wet=0.32, rt60=0.68, lp_hz=3600.0)
+
+    elif recipe.startswith("surface_"):
+        action = recipe.split("_", 1)[1]
+        wave = synthesize_block_surface(
+            variant,
+            action,
+            duration=dur,
+            base_freq=bf,
+            rng=rng,
+        )
+
+    elif recipe.startswith("step_"):
+        if recipe == "step_hover":
+            pulse_f = bf * (1.0 + 0.06 * np.sin(2.0 * np.pi * mf * t + pjit))
+            hum = np.sin(2.0 * np.pi * np.cumsum(pulse_f) / SAMPLE_RATE + pjit) * 0.45 + _fm_tone(t, pulse_f * 1.5, mf, 0.8, pjit) * 0.30
+            air = _sos_bandpass(pink, 500.0, 2600.0) * 0.45
+            wave = _cavern_reverb((hum + air) * adsr_envelope(n, 0.14, 0.22, 0.42, 0.32), rng, wet=0.12, rt60=0.28)
+        elif recipe == "step_arachnid":
+            wave_s = np.zeros(n, dtype=np.float64)
+            taps = (0.008, rng.uniform(0.24, 0.36), rng.uniform(0.50, 0.64), rng.uniform(0.72, 0.84))
+            for idx_f in taps[: int(rng.integers(3, 5))]:
+                pos = min(n - 32, int(idx_f * n))
+                clen = min(n - pos, int(SAMPLE_RATE * 0.048))
+                wave_s[pos : pos + clen] += _chitin_modal_hits(clen, rng, bf * rng.uniform(1.1, 1.8), 1, 0.022)
+            wave = _cavern_reverb(wave_s, rng, wet=0.14, rt60=0.32)
+        elif recipe == "step_colossal":
+            f_drop = np.maximum(30.0, bf * (0.45 + 1.45 * exp_decay(t, 0.042)))
+            sub = np.sin(2.0 * np.pi * np.cumsum(f_drop) / SAMPLE_RATE + pjit) * 0.92
+            rumble = _sos_bandpass(brown, 42.0, 750.0) * 0.72
+            gravel = _chitin_modal_hits(n, rng, bf * 3.5, 4, 0.04, spread_frac=0.45) * 0.45
+            wave = _cavern_reverb(np.tanh((sub + rumble + gravel) * exp_decay(t, dur * 0.44) * 1.35), rng, wet=0.24, rt60=0.52, lp_hz=1800.0)
+        elif recipe == "step_heavy":
+            f_drop = np.maximum(38.0, bf * (0.55 + 1.15 * exp_decay(t, 0.032)))
+            sub = np.sin(2.0 * np.pi * np.cumsum(f_drop) / SAMPLE_RATE + pjit) * 0.75
+            grit = _sos_bandpass(pink, 140.0, 2600.0) * 0.65
+            chitin = _chitin_modal_hits(n, rng, bf * 2.2, 2, 0.03, spread_frac=0.25) * 0.40
+            wave = _cavern_reverb((sub + grit + chitin) * exp_decay(t, dur * 0.38), rng, wet=0.18, rt60=0.40, lp_hz=2200.0)
+        else:  # step_chitin
+            click = _chitin_modal_hits(n, rng, bf * 1.1, 2, 0.028, spread_frac=0.28)
+            grit = _sos_bandpass(pink, 450.0, 3800.0) * exp_decay(t, dur * 0.25) * 0.5
+            wave = _cavern_reverb(click + grit, rng, wet=0.12, rt60=0.28)
+    else:
+        raise ValueError(f"Unknown sound synthesis recipe: {recipe}")
+
+    from scripts.sound_studio.ai_stem_generator import blend_with_ai_stem, is_ai_hybrid
+
+    if is_ai_hybrid(sound_id):
+        wave = blend_with_ai_stem(
+            wave,
+            sound_id,
+            variation_idx=variation_idx,
+            rng=rng,
+        )
+
+    return master_waveform(
+        wave,
+        loudness_group=loudness_group,
+        target_peak=target_peak,
+        sound_id=sound_id,
+        species=species,
+        category=category,
+    )
+
+
+def float_to_pcm16(wave: np.ndarray) -> bytes:
+    """Convert normalized float64 [-1, 1] array to little-endian signed 16-bit PCM bytes."""
+    clipped = np.clip(wave, -1.0, 1.0)
+    pcm = np.round(clipped * 32767.0).astype("<i2")
+    return pcm.tobytes()
+
+
+def encode_ogg_vorbis_mono(pcm16_bytes: bytes, out_path: Path, ffmpeg_exe: str | None = None) -> None:
+    """Encode raw 44100 Hz mono PCM16 bytes into an Ogg Vorbis file."""
+    ffmpeg = ffmpeg_exe or find_ffmpeg()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        ffmpeg,
+        "-y",
+        "-loglevel",
+        "error",
+        "-f",
+        "s16le",
+        "-ar",
+        str(SAMPLE_RATE),
+        "-ac",
+        "1",
+        "-i",
+        "pipe:0",
+        "-c:a",
+        "libvorbis",
+        "-q:a",
+        VORBIS_QUALITY,
+        str(out_path),
+    ]
+    proc = subprocess.run(cmd, input=pcm16_bytes, capture_output=True, check=False)
+    if proc.returncode != 0:
+        err = proc.stderr.decode("utf-8", errors="replace")
+        raise RuntimeError(f"ffmpeg failed encoding {out_path}: {err}")
+
+
+def inspect_ogg_vorbis(path: Path) -> dict[str, Any]:
+    """Validate OggS container and parse Vorbis identification header (mono + 44100 Hz)."""
+    data = path.read_bytes()
+    if len(data) < 64 or not data.startswith(b"OggS"):
+        return {"ok": False, "error": "Missing OggS capture pattern or truncated file"}
+    marker = data.find(b"\x01vorbis")
+    if marker < 0 or marker + 30 > len(data):
+        return {"ok": False, "error": "Missing Vorbis identification header"}
+    version, channels, sample_rate = struct.unpack_from("<IBI", data, marker + 7)
+    return {
+        "ok": version == 0 and channels == 1 and sample_rate == SAMPLE_RATE,
+        "version": version,
+        "channels": channels,
+        "sample_rate": sample_rate,
+        "size_bytes": len(data),
+    }

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "C C",
+    "C C"
+  ],
+  "key": {
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:chitin_boots",
+    "count": 1
+  }
+}

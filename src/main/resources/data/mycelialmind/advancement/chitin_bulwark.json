@@ -1,0 +1,31 @@
+{
+  "parent": "mycelialmind:root",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:chitin_chestplate"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.chitin_bulwark.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.chitin_bulwark.description"
+    }
+  },
+  "criteria": {
+    "has_chitin_armor": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "mycelialmind:chitin_helmet",
+              "mycelialmind:chitin_chestplate",
+              "mycelialmind:chitin_leggings",
+              "mycelialmind:chitin_boots"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "volume": 2,
+  "chapters": [
+    "bestiario",
+    "red_sinaptica",
+    "biotecnologia",
+    "arsenal_defensa"
+  ],
+  "page_count": 77,
+  "component": {
+    "title": {
+      "raw": "Códice Micelial Vol.II"
+    },
+    "author": "Mycelial Mind v2.0.0",
+    "generation": 0,
+    "resolved": true,
+    "pages": [
+      {
+        "raw": "Cap.5: Rangos\nEvolutivos y\nPrimordiales\nRangos y Variantes\nPrimordiales (1/2)\n• `BASE`: 1.00x HP,\n1.00x daño, 1.00\nescala, 1.00x XP, tono\nvocal 1.00, vol. 1.00.\n• `MUTATED`: 1.25x HP,\n1.15x daño, 1.12\nescala, 1.25x XP, tono\n0.89, vol. 1.10."
+      },
+      {
+        "raw": "• `ELITE`: 1.60x HP,\n1.35x daño, 1.25\nescala, 1.75x XP, tono\n0.78, vol. 1.22 (aura\nde esporas carmesí)."
+      },
+      {
+        "raw": "Rangos y Variantes\nPrimordiales (2/2)\n• Primordiales\nBioluminiscentes: +25%\nHP máx.\n(`primordial_variant_h\nealth`), pulsos\n`bio_scanner_ping`\ncada 200t, curan\naliados de igual cepa\nen 6m cada 40t y\ndesbloquean el\nSecreto #7."
+      },
+      {
+        "raw": "Cap.5: Enjambre\nLigero y Parasitario\nSporeling\nEntidad:\nmycelialmind:sporeling\n14 HP | 3.5 Daño | 0.34\nVel\nEnjambre velocista:\ngana Velocidad en\ngrupo (`6m`) y suma\n+1 daño/aliado (máx.\n+3). Cerca de tu cama\ngenera +5.0 MELEE al\nmorir."
+      },
+      {
+        "raw": "Sanguijuela Parásita\nEntidad:\nmycelialmind:leech_par\nasite\n12 HP | 3.0 Daño | 0.35\nVel\nSifón: aplica Hambre II,\nFatiga,\n`mycelial_infection`\n(160t), drena\nsaturación, se cura\n+2 HP y atasca\nDrones 80t o Gólems."
+      },
+      {
+        "raw": "Acechador Micelial\nEntidad:\nmycelialmind:mycelial_st\nalker\n22 HP | 5.0 Daño | 0.36\nVel\nInvisibilidad sobre\n`creeping_mycelium`.\nGolpear por la\nespalda o invisible\ninflige +3.0 daño extra\nantes de saltar\nlateralmente."
+      },
+      {
+        "raw": "Cap.5: Artillería Ácida\ny Pirófitos\nEscupidor de Ácido\nEntidad:\nmycelialmind:acid_spitte\nr\n20 HP | 4.0 Daño | 0.26\nVel\nTiro parabólico\n`acid_spit` con\npredicción si está en\nescuadrón (`Desync`\nla anula). En `ELITE`\ndispara proyectil"
+      },
+      {
+        "raw": "doble. Atasque a\ntorretas: 120t."
+      },
+      {
+        "raw": "Piro-Hongo\nEntidad:\nmycelialmind:pyro_shro\nom\n24 HP | 5.0 Daño | 0.29\nVel\nInmune al fuego (+1\nHP si recibe daño\nígneo). Al caer <=35%\nHP enciende mecha\n(30t, explosión 2.6F);\nexplota al morir\n(2.2F)."
+      },
+      {
+        "raw": "Cap.5: Zapadores,\nTejedores y\nArquitectos\nExcavador\nEntidad:\nmycelialmind:burrower\n28 HP | 5 Dmg | 3 Arm |\n0.25 Vel\nZapador: rompe\nbloques cada 30t (18t\ncon `BLAST_SHIELDED`\nN2). Velocidad II a\n>8m."
+      },
+      {
+        "raw": "Tejedor de Sinapsis\nEntidad:\nmycelialmind:synapse_w\neaver\n26 HP | 4 Dmg | 0.25\nVel\nSoporte\n(`WeaverSupportGoal`\n+\n`EvasiveStrafeGoal`):\nguarda distancia y\npotencia al\nescuadrón."
+      },
+      {
+        "raw": "Arquitecto de Esporas\nEntidad:\nmycelialmind:spore_arc\nhitect\n28 HP | 4 Dmg | 3 Arm |\n0.27 Vel\nConstructor\n(`BuildColonyGoal`):\nlevanta nuevos\n`mycelial_node` fuera\nde zonas con Pilón."
+      },
+      {
+        "raw": "Cap.5: Bruto, Góliat y\nMímico Sináptico\nBruto de Quitina\nEntidad:\nmycelialmind:chitin_brut\ne\n40 HP | 7 Dmg | 4 Arm |\n0.5 KB\nVanguardia\n(`BruteChargeGoal`)\ncon 0.23 vel. y alta\nresistencia al empuje."
+      },
+      {
+        "raw": "Portador Góliat\nEntidad:\nmycelialmind:goliath_ca\nrrier\n55 HP | 8 Dmg | 0.7 KB |\n0.21 Vel\nPisotón cada 110t\n(`5m`, Lentitud II).\nSuelta 1 Sporeling\n<=50% HP y 2 al morir."
+      },
+      {
+        "raw": "Mímico Sináptico\nEntidad:\nmycelialmind:synaptic_m\nimic\n65 HP | 6 Dmg | 6 Arm |\n0.32 Vel\nAdapta 3 `MimicStance`:\n`BLADE_DANCER`,\n`SPORE_MARKSMAN`,\n`AEGIS_MIRROR`."
+      },
+      {
+        "raw": "Cap.5: Guardián y\nBehemot de Esporas\nGuardián de Colonia\nEntidad:\nmycelialmind:colony_wa\nrden\n110 HP | 11 Dmg | 8\nArm | 0.85 KB\nAcelera enjambre\n(60t) y lanza Onda\n(140t: Fuerza+Vel\n`12m`, empuje `4m`)."
+      },
+      {
+        "raw": "Behemot de Esporas\nEntidad:\nmycelialmind:spore_beh\nemoth\n200 HP | 10 Dmg | 8\nArm | 0.85 KB | 45 XP\nCampeón de Marea y\n`MatriarchCitadel`.\nSuelta `tide_beacon`."
+      },
+      {
+        "raw": "Cap.5: Jefe Overworld:\nNúcleo Colmena\nNúcleo de la Colmena\nEntidad:\nmycelialmind:hive_core\n350 HP | 14 Dmg | 10\nArm | 350 XP\n`hive_altar`. F1: ácido\nx3. F2 (65–30%):\ninvulnerable con 3\n`sentinel_node`."
+      },
+      {
+        "raw": "Fase 3 y Botín del\nNúcleo\n• Anclas Fase 2:\ndestruye los 3\n`sentinel_node`\nenlazados para\naturdir al jefe y\nromper su escudo.\n• Fase 3 (<30% HP) y\nBotín: rota sinergias\nN2 + ondas de choque.\nBotín: `hive_heart`,\n`synaptic_core`,\n`neural_echo_core`,"
+      },
+      {
+        "raw": "`synaptic_graft`."
+      },
+      {
+        "raw": "Cap.5: Jefe Final:\nMatriarca Suprema\nMatriarca Suprema\nEntidad:\nmycelialmind:apex_matri\narch\n600 HP | 18 Dmg | 12\nArm | 750 XP\n`matriarch_altar`. F1:\nandanada + blink. F2\n(<60%): +20 estrés, 2\nCentinelas + élite."
+      },
+      {
+        "raw": "Fase 3, Botín y\nRemisión\n• Fase 3 (<25% HP):\npulsos mágicos cada\n100t en 8m (6.0 daño\nmágico +\n`mycelial_infection` II\n`160t`) y sinergias\nactivas.\n• Recompensas:\n`overmind_essence`,\n`hive_heart`,\n`quorum_seal`,\n`chimera_ovum`,"
+      },
+      {
+        "raw": "`echo_shard` y activa\n20 min de Remisión\nglobal."
+      },
+      {
+        "raw": "Cap.5: Aliados\nBioforjados: Dron y\nQuimera\nDron Purificador\nEntidad:\nmycelialmind:purifier_d\nrone\n60 HP | 6 Arm | 0.45\nVuelo\n`purifier_drone_core`:\ndispara\n`neutralizing_spore`,\nlimpia micelio y\npatrulla. Sanguijuela"
+      },
+      {
+        "raw": "atasca 80t."
+      },
+      {
+        "raw": "Quimera Micelial\nEntidad:\nmycelialmind:mycelial_c\nhimera\n52/68 HP | 5.5/8.5 Dmg\n| 4/8 Arm\nDe `chimera_ovum` en\n`symbiotic_node`\n(>=35%). Montura\n`CommandMode`\n(`FOLLOW`, `PATROL`,\n`WAIT`)."
+      },
+      {
+        "raw": "Matriz Genética 5×5 de\nla Quimera (1/3)\n• Chasis\n(`ChassisGene`,\n+Base):\n`MELEE_THORNS` (8.5\ndaño),\n`PROJECTILE_DEFLECT`\n(0.35 vel.),\n`FIRE_RESISTANT`\n(inmune fuego),\n`BLAST_SHIELDED` (68\nHP, 8.0 Arm),\n`MAGIC_CARAPACE`"
+      },
+      {
+        "raw": "(cura 1 HP/100t)."
+      },
+      {
+        "raw": "Matriz Genética 5×5 de\nla Quimera (2/3)\n• Mutación Activa\n(`140t` / `160t`\nmontada):\n`MELEE_THORNS` (salto\n+ Veneno),\n`PROJECTILE_DEFLECT`\n(doble espora `16m`),\n`FIRE_RESISTANT`\n(aura ígnea + Res.\njinete),\n`BLAST_SHIELDED`\n(onda empujón),"
+      },
+      {
+        "raw": "`MAGIC_CARAPACE`\n(Absorción a jinete)."
+      },
+      {
+        "raw": "Matriz Genética 5×5 de\nla Quimera (3/3)\n• Lluvia Ácida\n(Homeostasis): con\n`FIRE_RESISTANT` y\n`MAGIC_CARAPACE`\nregenera +0.8F; con\nuno de ambos es\ninmune (0.0F); sin ellos\nsufre -0.75F."
+      },
+      {
+        "raw": "Cap.5: Proyectiles (3)\ny Spawn Eggs (17)\nProyectiles y Huevos\nGeneradores (1/5)\n• 3 Proyectiles\nRegistrados\n(`ModEntities`):\n`acid_spit` (escupitajo\ncorrosivo que atasca\ntorretas 120t y\nrefleja\n`KINETIC_MIRROR`),\n`neutralizing_spore`\n(lanzador/dron"
+      },
+      {
+        "raw": "purificador) y\n`purifier_grenade`\n(desincroniza\nescuadrones 5s)."
+      },
+      {
+        "raw": "Proyectiles y Huevos\nGeneradores (2/5)\n• Huevos 1/4:\n`sporeling_spawn_egg`\n,\n`chitin_brute_spawn_e\ngg`,\n`mycelial_stalker_spaw\nn_egg`,\n`acid_spitter_spawn_e\ngg`."
+      },
+      {
+        "raw": "Proyectiles y Huevos\nGeneradores (3/5)\n• Huevos 2/4:\n`burrower_spawn_egg`\n,\n`pyro_shroom_spawn_\negg`,\n`synapse_weaver_spa\nwn_egg`,\n`goliath_carrier_spaw\nn_egg`,\n`leech_parasite_spawn\n_egg`."
+      },
+      {
+        "raw": "Proyectiles y Huevos\nGeneradores (4/5)\n• Huevos 3/4:\n`colony_warden_spawn\n_egg`,\n`spore_architect_spa\nwn_egg`,\n`synaptic_mimic_spawn\n_egg`,\n`spore_behemoth_spa\nwn_egg`."
+      },
+      {
+        "raw": "Proyectiles y Huevos\nGeneradores (5/5)\n• Huevos 4/4:\n`hive_core_spawn_egg\n`,\n`apex_matriarch_spaw\nn_egg`,\n`purifier_drone_spawn\n_egg`,\n`mycelial_chimera_spa\nwn_egg`."
+      },
+      {
+        "raw": "Cap.6: Los 4 Nodos\nSinápticos\nTipología de Red\nNodal (1/3)\n• `RELAY`\n(`mycelial_node`):\nenlaza nodos dentro\nde\n`synapticNodeLinkRadiu\ns` (28m), amplifica x1.5\nel aprendizaje local y\nalberga búfer `60/40`\n(`600t`)."
+      },
+      {
+        "raw": "Tipología de Red\nNodal (2/3)\n• `INCUBATOR`\n(`incubator_node`):\nengendra refuerzos\ny `spore_architect`;\ntope global autónomo\n`maxAutonomousNodes\n= 32` con espaciado\nmínimo\n`minNodeSpacing =\n18m`."
+      },
+      {
+        "raw": "Tipología de Red\nNodal (3/3)\n• `SENTINEL`\n(`sentinel_node`):\nblinda mobs cercanos\ny actúa como ancla de\ninvulnerabilidad en\nFase 2 de `hive_core`\ny `apex_matriarch`.\n• `SYMBIOTIC`\n(`symbiotic_node`, BE\n`synaptic_node`): nodo\nreprogramado aliado"
+      },
+      {
+        "raw": "silenciador y portal\nde viaje rápido."
+      },
+      {
+        "raw": "Cap.6: Injerto y Viaje\nMicorrizal\nSecuestro con\nInjerto Sináptico\nÍtem:\nmycelialmind:synaptic_g\nraft\nAplica `synaptic_graft`\nen un nodo hostil ->\n`symbiotic_node` (máx.\n`maxSymbioticNodes =\n4`). Recarga +15% con\n`mycelial_biomass`."
+      },
+      {
+        "raw": "Viaje Rápido\nMicorrizal (1/2)\n• Enlace (`Shift +\nClic`): conecta con\n`symbiotic_node`\ndentro de 96m\n(`mycorrhizalTravelRa\nnge`, rango `16–256m`)\nsin spawns hostiles.\n• Costo y Bloqueo: 6\ncomida, 15 estabilidad,\n`240t`\n`mycelial_infection`,"
+      },
+      {
+        "raw": "`60t` Náusea (`1500t`\nCD); bloqueado en\ncombate (`100t`) o ya\ninfectado."
+      },
+      {
+        "raw": "Viaje Rápido\nMicorrizal (2/2)\n• Escolta Aliada:\ntransfiere Quimeras\n(`FOLLOW` o montadas)\ny Drones (sin\npatrulla) en un radio\nde 12m al instante."
+      },
+      {
+        "raw": "Cap.6: Acústica\nMicorrizal y Señuelo\nEco\nVibraciones y Silencio\nAcústico\nÍtem:\nmycelialmind:neural_ec\nho_decoy\nPisar\n`creeping_mycelium`\nalerta Nodos (`32m`) y\npatrullas (`18m`, `40t`\nCD).\n`neural_echo_decoy`"
+      },
+      {
+        "raw": "silencia 16m y atrae\nen 20m."
+      },
+      {
+        "raw": "Cap.7: Mesa Sináptica y\nNiveles Lab 1–3\nMejora de\nLaboratorio\n(N1->N2->N3)\nÍtem:\nmycelialmind:synaptic_r\nesearch_bench\n`Shift + Clic`: N1->N2\n(`synaptic_core`, 25%\nahorro biomasa);\nN2->N3\n(`neural_echo_core`/`\novermind_essence`,"
+      },
+      {
+        "raw": "50% y x2 sueros)."
+      },
+      {
+        "raw": "Las 4 Síntesis\nOficiales (1/2)\n• `symbiotic_mutagen`:\n`GeneticSample` (con\nrasgo) +\n`MycelialBiomass` +\n`SynapticCore`.\n• `counter_serum`:\n`GeneticSample` (con\nrasgo) +\n`LatentSpore` +\n(`PurifierGrenade` o\nAmatista) -> x1 (o x2\nen N3)."
+      },
+      {
+        "raw": "Las 4 Síntesis\nOficiales (2/2)\n•\n`concentrated_antidot\ne`: `SporeAntidote` +\n`LatentSpore` +\nAmatista -> x1 (x2 en\nN3).\n• `chimera_ovum`:\n`GeneticSample` +\n`MycelialBiomass` +\n`NeuralEchoCore`.\nTolvas vía\n`SidedSynapticBenchHa"
+      },
+      {
+        "raw": "ndler` (menú\n`synaptic_bench`)."
+      },
+      {
+        "raw": "Cap.7: Simbiosis y los 5\nMutágenos\nLos 5 Mutágenos\nSimbióticos (1/4)\n• Reglas (`symbiosis`):\nmáx. `maxMutagenSlots\n= 2`, añade +15%\nAmenaza/slot (`1.0 +\n0.15*n`), aplica\n`mycelial_infection`\n(`120t`) cada `60t`\nsobre micelio sin"
+      },
+      {
+        "raw": "proteger y se limpia al\nmorir."
+      },
+      {
+        "raw": "Los 5 Mutágenos\nSimbióticos (2/4)\n• `CHITIN_THORNS`\n(`chitin_thorns`,\n`MELEE`): +2.0\nArmadura y refleja\n25% del daño melee\nrecibido (mín. `1.0F`)\ncomo espinas.\n• `KINETIC_STRAFE`\n(`kinetic_strafe`,\n`PROJECTILE`): 30%\nprob. de esquivar\nproyectiles"
+      },
+      {
+        "raw": "cancelando el golpe y\nganar Velocidad I\n(`60t`)."
+      },
+      {
+        "raw": "Los 5 Mutágenos\nSimbióticos (3/4)\n• `PYRO_GLAND`\n(`pyro_gland`, `FIRE`):\ninmunidad total al\nfuego (cancela\n`IS_FIRE` y apaga\nllamas) + ataques\ncuerpo a cuerpo\nprenden `3s`."
+      },
+      {
+        "raw": "Los 5 Mutágenos\nSimbióticos (4/4)\n• `BLAST_CARAPACE`\n(`blast_carapace`,\n`EXPLOSION`): +0.5\nEmpuje Res. y reduce\ndaño explosivo al 55%\n(-45%).\n• `ARCANE_SYNAPSE`\n(`arcane_synapse`,\n`MAGIC`): Visión\nNocturna continua y\ndaño mágico al 60%\n(-40%)."
+      },
+      {
+        "raw": "Cap.7: Cismas y\nDiplomacia Química\nGuerra Civil de Cepas\nÍtem:\nmycelialmind:schism_inj\nector\nUsa `schism_injector`\nen un nodo/mob:\n`ORTHODOX` (#9B4DFF,\n-100) vs `AMBER`\n(#F2A93B) vs\n`CRIMSON` (#E03C5C).\nLuchan entre sí."
+      },
+      {
+        "raw": "Reputación, Tributo y\nTraición (1/2)\n• Rangos (`Standing`,\n`-100..+100`):\n`HOSTILE` `<=-40`,\n`NEUTRAL` `-39..24`,\n`PACT` `>=+25` (`BASE`\nignora `>4.5m`),\n`ALLIED` `>=+60`\n(`BASE` y `MUTATED`).\nGanar rep aplica\n`-0.5x` en la cepa\nopuesta."
+      },
+      {
+        "raw": "Reputación, Tributo y\nTraición (2/2)\n• Herramientas y\nReglas: `ELITE` y\nJefes siempre atacan.\nTraición: -35 rep y\n30s (`600t`) de\nbloqueo.\n`truce_pheromone` da\ntregua; `quorum_seal`\ntributa 4\n`mycelial_biomass`\n(+12 rep) e invoca\nhasta 2 escoltas"
+      },
+      {
+        "raw": "(45s)."
+      },
+      {
+        "raw": "Cap.8: Armadura de\nQuitina Evolutiva\nEstadísticas del\nMaterial `chitin`\nÍtem:\nmycelialmind:chitin_che\nstplate\nDefensa `[2, 5, 6, 2]`\n(Cuerpo 9), Encant.\n14, Dureza 1.0F,\nrepara con\n`chitin_plate`. Recorta\ninfección -20% por\npieza."
+      },
+      {
+        "raw": "Evolución y\n`DataComponents`\n(1/2)\n• `armor_rank` (`BASE`\n-> `MUTATED` ->\n`ELITE`): sube a\n`MUTATED` con\n`synaptic_core`\n(autorepara sobre\nmicelio/Marea) y a\n`ELITE` con\n`overmind_essence` o\n`tide_beacon`."
+      },
+      {
+        "raw": "Evolución y\n`DataComponents`\n(2/2)\n• Reflejo Élite y\n`trait_id`: `ELITE`\notorga Absorción\nperiódica y refleja\n`1.25 * piezas` daño\nmágico; `trait_id`\ncodifica afinidad\nelemental en piezas,\n`genetic_sample` y\nsueros."
+      },
+      {
+        "raw": "Cap.8: Arsenal de\nCombate y Campo\nArmas y Consumibles\nTácticos (1/4)\n• `symbiotic_blade`:\nespada simbiótica de\ntier diamante\nalimentada por\n`hive_heart`.\n• `enzyme_lance`:\nlanza enzimática ligera\nque perfora tejido\nquitinoso."
+      },
+      {
+        "raw": "Armas y Consumibles\nTácticos (2/4)\n•\n`neutralizing_spore_la\nuncher` y\n`purifier_grenade`:\nproyectiles\nneutralizantes; las\ngranadas\ndesincronizan\nescuadrones (5s) y\ndañan\ncarroña/esporas."
+      },
+      {
+        "raw": "Armas y Consumibles\nTácticos (3/4)\n• `bio_extractor` ->\nextrae\n`genetic_sample`;\n`spore_antidote` /\n`concentrated_antidot\ne` curan infección y\npodredumbre;\n`chimera_ovum`\neclosiona Quimeras."
+      },
+      {
+        "raw": "Armas y Consumibles\nTácticos (4/4)\n• Reactivos Clave:\n`mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`neural_echo_core`,\n`hive_heart` y\n`overmind_essence`."
+      },
+      {
+        "raw": "Cap.8: Las 4 Reliquias\nEndgame\nCorona de la\nSupramente\nÍtem:\nmycelialmind:overmind_\ncrown\n• En el aire: purga\n15.0% de Amenaza\nGlobal (cooldown\n1200t / 60s).\n• Sobre\n`purification_pylon`:\nsobrecarga y limpia"
+      },
+      {
+        "raw": "12m alrededor (400t /\n20s)."
+      },
+      {
+        "raw": "Faro, Supresor y\nCatalizador (1/2)\n• `tide_beacon`: disipa\nla Marea Fúngica\nactiva y recarga su\nnúcleo con amatista y\nquitina\n(`tide_beacon_rechar\nge`).\n•\n`synaptic_suppressor`\n: congela la\nadaptación de la\nColmena (`120s` CD)."
+      },
+      {
+        "raw": "Faro, Supresor y\nCatalizador (2/2)\n• `rift_catalyst`:\nusado dentro de un\nmarco válido de\n`reinforced_bio_barri\ner`, abre el portal\n`mycelial_rift` hacia el\nMicelio Profundo\n(`deep_mycelium`)."
+      },
+      {
+        "raw": "Cap.8: Defensa del\nBastión y Torretas\nIngeniería del Bastión\n(1/2)\n• `purification_pylon`\n(`monument_focus`):\nfrena expansión\nmicelial (`24m` base,\n`pylonPurificationRadiu\ns`), cura infección,\nimpide carroña y\nsofoca si sufre >=4\n`antibody_cyst`"
+      },
+      {
+        "raw": "adyacentes en el\nMicelio Profundo."
+      },
+      {
+        "raw": "Ingeniería del Bastión\n(2/2)\n• `purification_turret`\n(Niveles 1–3): dispara\nesporas\nneutralizantes;\nreparable con\nAntídoto, Quitina o\nHierro. Si `AcidSpit` la\natasca (120t), límpiala\nal vuelo.\n•\n`purifier_drone_core`\ndespliega al Dron;"
+      },
+      {
+        "raw": "`reinforced_bio_barri\ner` blinda muros."
+      }
+    ]
+  }
+}

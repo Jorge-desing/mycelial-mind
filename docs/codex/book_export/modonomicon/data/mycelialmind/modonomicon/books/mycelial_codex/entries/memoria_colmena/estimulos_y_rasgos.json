@@ -1,0 +1,60 @@
+{
+  "category": "mycelialmind:memoria_colmena",
+  "name": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.name",
+  "description": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.description",
+  "icon": {
+    "item": "mycelialmind:genetic_sample"
+  },
+  "x": 0,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 2,
+  "parents": [
+    {
+      "entry": "mycelialmind:memoria_colmena/enrutamiento_memoria",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page4.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page5.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.estimulos_y_rasgos.page5.text"
+    }
+  ]
+}

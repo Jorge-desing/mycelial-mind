@@ -1,0 +1,25 @@
+{
+  "values": {
+    "mycelialmind:antibody_cyst": {
+      "chance": 0.5
+    },
+    "mycelialmind:bioluminescent_mycelial_cap": {
+      "chance": 0.65
+    },
+    "mycelialmind:hyphal_vein": {
+      "chance": 0.3
+    },
+    "mycelialmind:latent_spore": {
+      "chance": 0.5
+    },
+    "mycelialmind:mycelial_biomass": {
+      "chance": 0.65
+    },
+    "mycelialmind:mycelial_tendrils": {
+      "chance": 0.5
+    },
+    "mycelialmind:spore_bulb": {
+      "chance": 0.65
+    }
+  }
+}

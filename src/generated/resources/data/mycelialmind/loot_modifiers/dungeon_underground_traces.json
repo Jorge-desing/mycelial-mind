@@ -1,0 +1,11 @@
+{
+  "type": "mycelialmind:mycelial_trace_loot",
+  "chance": 0.2,
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "loot_table_id": "minecraft:chests/simple_dungeon"
+    }
+  ],
+  "pool_preset": "underground_traces"
+}

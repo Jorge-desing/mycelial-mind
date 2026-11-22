@@ -1,0 +1,28 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_latent_spore": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:latent_spore"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_latent_spore"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:bio_scanner",
+      "mycelialmind:concentrated_antidote",
+      "mycelialmind:false_engram_injector",
+      "mycelialmind:schism_injector"
+    ]
+  }
+}

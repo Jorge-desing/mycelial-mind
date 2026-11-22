@@ -1,0 +1,41 @@
+{
+  "fallback": "mycelialmind:hive_sanctum/caps",
+  "elements": [
+    {
+      "weight": 4,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/corridor_straight",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/corridor_turn",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/corridor_cross",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/ribbed_nave",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    }
+  ]
+}

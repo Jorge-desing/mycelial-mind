@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " C ",
+    "ESA",
+    " C "
+  ],
+  "key": {
+    "C": { "item": "mycelialmind:chitin_plate" },
+    "E": { "item": "mycelialmind:neural_echo_core" },
+    "S": { "item": "mycelialmind:synaptic_core" },
+    "A": { "item": "minecraft:amethyst_shard" }
+  },
+  "result": {
+    "id": "mycelialmind:quorum_seal",
+    "count": 1
+  }
+}

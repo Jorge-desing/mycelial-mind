@@ -1,0 +1,66 @@
+{
+  "category": "mycelialmind:bestiario",
+  "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.name",
+  "description": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.description",
+  "icon": {
+    "item": "mycelialmind:chimera_ovum"
+  },
+  "x": -3,
+  "y": 4,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 9,
+  "parents": [
+    {
+      "entry": "mycelialmind:bestiario/rangos_y_primordiales",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page1.entity_name",
+      "entity_id": "mycelialmind:purifier_drone",
+      "scale": 0.85,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page1.text"
+    },
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page2.entity_name",
+      "entity_id": "mycelialmind:mycelial_chimera",
+      "scale": 0.68,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page4.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page5.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page5.text"
+    }
+  ]
+}

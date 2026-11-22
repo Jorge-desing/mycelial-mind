@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  C",
+    " S ",
+    "I  "
+  ],
+  "key": {
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "S": {
+      "item": "mycelialmind:latent_spore"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:enzyme_lance",
+    "count": 1
+  }
+}

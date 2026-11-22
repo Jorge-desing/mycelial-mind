@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "mycelialmind:chitin_plate"
+  },
+  "result": {
+    "id": "mycelialmind:bio_chitin_lattice",
+    "count": 2
+  }
+}

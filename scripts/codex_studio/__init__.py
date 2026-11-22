@@ -1,0 +1,41 @@
+"""Codex Studio for Mycelial Mind (v2.0.0) — Canonical encyclopedia & in-game book generator."""
+
+from .schema import (
+    BOOK_MOD_VERSION,
+    BOOK_MC_VERSION,
+    BOOK_NEOFORGE_VERSION,
+    MAX_VANILLA_BOOK_CHARS,
+    MAX_VANILLA_BOOK_LINES,
+    MAX_VANILLA_BOOK_PAGES,
+    PAGE_BUDGETS,
+    VALID_PAGE_TYPES,
+    CodexBook,
+    CodexChapter,
+    CodexEntry,
+    CodexPage,
+    LocalizedText,
+    check_book_budgets,
+    estimate_pixel_width,
+    paginate_vanilla_lines,
+    wrap_lines_px,
+)
+
+__all__ = [
+    "BOOK_MC_VERSION",
+    "BOOK_MOD_VERSION",
+    "BOOK_NEOFORGE_VERSION",
+    "CodexBook",
+    "CodexChapter",
+    "CodexEntry",
+    "CodexPage",
+    "LocalizedText",
+    "MAX_VANILLA_BOOK_CHARS",
+    "MAX_VANILLA_BOOK_LINES",
+    "MAX_VANILLA_BOOK_PAGES",
+    "PAGE_BUDGETS",
+    "VALID_PAGE_TYPES",
+    "check_book_budgets",
+    "estimate_pixel_width",
+    "paginate_vanilla_lines",
+    "wrap_lines_px",
+]

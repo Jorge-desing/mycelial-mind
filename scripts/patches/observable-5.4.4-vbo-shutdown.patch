@@ -1,0 +1,46 @@
+diff --git a/common/src/main/kotlin/observable/client/Overlay.kt b/common/src/main/kotlin/observable/client/Overlay.kt
+index 107a35f..85c53f4 100644
+--- a/common/src/main/kotlin/observable/client/Overlay.kt
++++ b/common/src/main/kotlin/observable/client/Overlay.kt
+@@ -249,11 +249,19 @@ object Overlay {
+     fun createVBO(camera: Camera) {
+         Observable.LOGGER.info("Initializing VBO")
+         vertexBuf?.close()
+-        val buf = BufferBuilder(ByteBufferBuilder(renderType.bufferSize() * blocks.size), renderType.mode(), renderType.format())
++        vertexBuf = null
++        val visibleBlocks = blocks.filter { block -> block.pos.distSqr(camera.blockPosition) < 1_440_000 }
++        if (visibleBlocks.isEmpty()) {
++            vertexBufPosition = camera.position
++            dataAvailable = false
++            return
++        }
++
++        val buf = BufferBuilder(ByteBufferBuilder(renderType.bufferSize() * visibleBlocks.size), renderType.mode(), renderType.format())
+ 
+         var stack = PoseStack()
+ 
+-        for (entry in blocks.filter { block -> block.pos.distSqr(camera.blockPosition) < 1_440_000 }) {
++        for (entry in visibleBlocks) {
+             drawBlockOutline(entry, stack, camera, buf)
+         }
+ 
+diff --git a/common/src/main/kotlin/observable/server/Profiler.kt b/common/src/main/kotlin/observable/server/Profiler.kt
+index 0206104..461c6bb 100644
+--- a/common/src/main/kotlin/observable/server/Profiler.kt
++++ b/common/src/main/kotlin/observable/server/Profiler.kt
+@@ -128,8 +128,13 @@ class Profiler {
+             GameInstance.getServer()!!.playerList.players,
+             S2CPacket.ProfilingStarted(startTime + durMs)
+         )
+-        Timer("Profiler", false).schedule(durMs) {
+-            stopRunning()
++        val profilerTimer = Timer("Profiler", true)
++        profilerTimer.schedule(durMs) {
++            try {
++                stopRunning()
++            } finally {
++                profilerTimer.cancel()
++            }
+         }
+     }
+ 

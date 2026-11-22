@@ -1,0 +1,25 @@
+diff --git a/client-mod/version-1.21.1/src/main/java/com/mct/version/impl/VersionAdaptersImpl.java b/client-mod/version-1.21.1/src/main/java/com/mct/version/impl/VersionAdaptersImpl.java
+index c6975a6..9c51567 100644
+--- a/client-mod/version-1.21.1/src/main/java/com/mct/version/impl/VersionAdaptersImpl.java
++++ b/client-mod/version-1.21.1/src/main/java/com/mct/version/impl/VersionAdaptersImpl.java
+@@ -64,7 +64,19 @@ public final class VersionAdaptersImpl {
+     }
+ 
+     private static TextAdapter createTextAdapter() {
+-        return text -> Text.Serialization.toJsonString(text, MinecraftClient.getInstance().world.getRegistryManager());
++        return text -> {
++            var world = MinecraftClient.getInstance().world;
++            if (world != null) {
++                try {
++                    return Text.Serialization.toJsonString(text, world.getRegistryManager());
++                } catch (RuntimeException ignored) {
++                    // Local-only actions such as OPEN_FILE are not network-serializable.
++                }
++            }
++            var fallback = new com.google.gson.JsonObject();
++            fallback.addProperty("text", text.getString());
++            return fallback.toString();
++        };
+     }
+ 
+     private static ScoreboardAdapter createScoreboardAdapter() {

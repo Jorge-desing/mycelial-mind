@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " A ",
+    "CSC",
+    "BBB"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    },
+    "B": {
+      "item": "minecraft:polished_deepslate"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:purification_pylon",
+    "count": 1
+  }
+}

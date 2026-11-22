@@ -1,0 +1,236 @@
+{
+  "volume": 2,
+  "chapters": [
+    "bestiario",
+    "red_sinaptica",
+    "biotecnologia",
+    "arsenal_defensa"
+  ],
+  "page_count": 72,
+  "component": {
+    "title": {
+      "raw": "Mycelial Codex Vol.II"
+    },
+    "author": "Mycelial Mind v2.0.0",
+    "generation": 0,
+    "resolved": true,
+    "pages": [
+      {
+        "raw": "Cap.5: Evolution Ranks\n& Primordials\nRanks & Primordial\nVariants (1/2)\n• `BASE`: 1.00x HP,\n1.00x dmg, 1.00 scale,\n1.00x XP, voice pitch\n1.00, vol 1.00.\n• `MUTATED`: 1.25x HP,\n1.15x dmg, 1.12 scale,\n1.25x XP, pitch 0.89,\nvol 1.10.\n• `ELITE`: 1.60x HP,"
+      },
+      {
+        "raw": "1.35x dmg, 1.25 scale,\n1.75x XP, pitch 0.78,\nvol 1.22 (crimson\nspore aura)."
+      },
+      {
+        "raw": "Ranks & Primordial\nVariants (2/2)\n• Bioluminescent\nPrimordials: +25% max\nHP\n(`primordial_variant_h\nealth`), pulse\n`bio_scanner_ping`\nevery 200t, heal\nsame-strain allies in\n6m every 40t, and\nunlock Secret #7."
+      },
+      {
+        "raw": "Cap.5: Light & Parasitic\nSwarm\nSporeling\nEntity:\nmycelialmind:sporeling\n14 HP | 3.5 Dmg | 0.34\nSpd\nPack rusher: gains\nSpeed near allies\n(`6m`) and deals +1\nbonus dmg per nearby\nally (max +3). Dying\nnear respawn injects\n+5.0 MELEE."
+      },
+      {
+        "raw": "Leech Parasite\nEntity:\nmycelialmind:leech_par\nasite\n12 HP | 3.0 Dmg | 0.35\nSpd\nSiphon bite: inflicts\nHunger II, Mining\nFatigue,\n`mycelial_infection`\n(160t), drains\nsaturation, heals +2\nHP, and jams Drones\n80t."
+      },
+      {
+        "raw": "Mycelial Stalker\nEntity:\nmycelialmind:mycelial_st\nalker\n22 HP | 5.0 Dmg | 0.36\nSpd\nCloaks with Invisibility\nwhile standing on\n`creeping_mycelium`.\nStrikes from behind or\ncloaked deal +3.0\nbonus damage then\nevade."
+      },
+      {
+        "raw": "Cap.5: Acid Artillery &\nPyrophytes\nAcid Spitter\nEntity:\nmycelialmind:acid_spitte\nr\n20 HP | 4.0 Dmg | 0.26\nSpd\nLobs `acid_spit` with\npredictive squad lead\n(`Desync` breaks aim).\n`ELITE` rank fires twin\nvolleys. Corrosive spit\njams turrets for"
+      },
+      {
+        "raw": "120t."
+      },
+      {
+        "raw": "Pyro-Shroom\nEntity:\nmycelialmind:pyro_shro\nom\n24 HP | 5.0 Dmg | 0.29\nSpd\nFire-immune (+1 HP\nfrom fire hits). Below\n35% HP lights a 30t\nfuse (2.6F incendiary\nblast); also detonates\non death (2.2F)."
+      },
+      {
+        "raw": "Cap.5: Sappers,\nWeavers & Architects\nBurrower\nEntity:\nmycelialmind:burrower\n28 HP | 5 Dmg | 3 Arm |\n0.25 Spd\nTunneling sapper:\nbreaks blocks every\n30t (18t with T2\n`BLAST_SHIELDED`).\nSpeed II >8m."
+      },
+      {
+        "raw": "Synapse Weaver\nEntity:\nmycelialmind:synapse_w\neaver\n26 HP | 4 Dmg | 0.25\nSpd\nSupport\n(`WeaverSupportGoal`\n+\n`EvasiveStrafeGoal`):\nkeeps range and\nbolsters nearby\nallies."
+      },
+      {
+        "raw": "Spore Architect\nEntity:\nmycelialmind:spore_arc\nhitect\n28 HP | 4 Dmg | 3 Arm |\n0.27 Spd\nBuilder\n(`BuildColonyGoal`):\nexpands the network\nby erecting\n`mycelial_node`s\noutside Pylons."
+      },
+      {
+        "raw": "Cap.5: Brute, Goliath &\nSynaptic Mimic\nChitin Brute\nEntity:\nmycelialmind:chitin_brut\ne\n40 HP | 7 Dmg | 4 Arm |\n0.5 KB\nArmored vanguard\n(`BruteChargeGoal`)\nat 0.23 speed with\nstrong knockback\nresistance."
+      },
+      {
+        "raw": "Goliath Carrier\nEntity:\nmycelialmind:goliath_ca\nrrier\n55 HP | 8 Dmg | 0.7 KB |\n0.21 Spd\nStomp every 110t\n(`5m`, Slowness II).\nSpawns 1 Sporeling\n<=50% HP, 2 on death."
+      },
+      {
+        "raw": "Synaptic Mimic\nEntity:\nmycelialmind:synaptic_m\nimic\n65 HP | 6 Dmg | 6 Arm |\n0.32 Spd\nMirrors gear via 3\n`MimicStance`:\n`BLADE_DANCER`,\n`SPORE_MARKSMAN`,\n`AEGIS_MIRROR`."
+      },
+      {
+        "raw": "Cap.5: Colony Warden\n& Spore Behemoth\nColony Warden\nEntity:\nmycelialmind:colony_wa\nrden\n110 HP | 11 Dmg | 8\nArm | 0.85 KB\nHastens swarm (60t) +\nShockwave (140t:\nbuffs allies `12m`,\nknockback `4m`)."
+      },
+      {
+        "raw": "Spore Behemoth\nEntity:\nmycelialmind:spore_beh\nemoth\n200 HP | 10 Dmg | 8\nArm | 0.85 KB | 45 XP\nTide &\n`MatriarchCitadel`\nchampion. Drops\n`tide_beacon`."
+      },
+      {
+        "raw": "Cap.5: Overworld Boss:\nHive Core\nThe Hive Core\nEntity:\nmycelialmind:hive_core\n350 HP | 14 Dmg | 10\nArm | 350 XP\n`hive_altar`. P1: 3-acid\nfan. P2 (65–30%):\ninvulnerable via 3\n`sentinel_node`."
+      },
+      {
+        "raw": "Phase 3 & Hive Core\nLoot\n• Phase 2 Anchors:\nshatter all 3 tethered\n`sentinel_node`s to\nbreak its shield and\nstun it.\n• Phase 3 (<30% HP) &\nLoot: cycles Tier 2\nsynergies +\nshockwaves. Drops:\n`hive_heart`,\n`synaptic_core`,\n`neural_echo_core`,"
+      },
+      {
+        "raw": "`synaptic_graft`."
+      },
+      {
+        "raw": "Cap.5: Final Boss: Apex\nMatriarch\nApex Matriarch\nEntity:\nmycelialmind:apex_matri\narch\n600 HP | 18 Dmg | 12\nArm | 750 XP\n`matriarch_altar`. P1:\nbarrage + blink. P2\n(<60%): +20 stress, 2\nSentinels + elite."
+      },
+      {
+        "raw": "Phase 3, Loot &\nRemission\n• Phase 3 (<25% HP):\nAoE pulses every\n100t in 8m (6.0 magic\ndmg +\n`mycelial_infection` II\n`160t`) with active\nsynergies.\n• Rewards:\n`overmind_essence`,\n`hive_heart`,\n`quorum_seal`,\n`chimera_ovum`,"
+      },
+      {
+        "raw": "`echo_shard` and\nstarts 20-min global\nRemission."
+      },
+      {
+        "raw": "Cap.5: Allies: Purifier\nDrone & Chimera\nPurifier Drone\nEntity:\nmycelialmind:purifier_d\nrone\n60 HP | 6 Arm | 0.45\nFly\n`purifier_drone_core`:\nfires\n`neutralizing_spore`,\ncleanses mycelium &\npatrols. Leech jams\n80t."
+      },
+      {
+        "raw": "Mycelial Chimera\nEntity:\nmycelialmind:mycelial_c\nhimera\n52/68 HP | 5.5/8.5 Dmg\n| 4/8 Arm\nHatched from\n`chimera_ovum` on\n`symbiotic_node`\n(>=35%). Rideable\n`CommandMode`\n(`FOLLOW`, `PATROL`,\n`WAIT`)."
+      },
+      {
+        "raw": "Chimera 5×5 Gene\nMatrix (1/3)\n• Chassis\n(`ChassisGene`):\n`MELEE_THORNS` (8.5\ndmg),\n`PROJECTILE_DEFLECT`\n(0.35 spd),\n`FIRE_RESISTANT` (fire\nimmunity),\n`BLAST_SHIELDED` (68\nHP, 8.0 Arm),\n`MAGIC_CARAPACE` (1\nHP/100t)."
+      },
+      {
+        "raw": "Chimera 5×5 Gene\nMatrix (2/3)\n• Active Mutation\n(`140t` / `160t`\nridden):\n`MELEE_THORNS` (leap\n+ Poison),\n`PROJECTILE_DEFLECT`\n(twin spores `16m`),\n`FIRE_RESISTANT`\n(flame burst + rider\nFire Res),\n`BLAST_SHIELDED`\n(blast slow),"
+      },
+      {
+        "raw": "`MAGIC_CARAPACE`\n(rider Absorption)."
+      },
+      {
+        "raw": "Chimera 5×5 Gene\nMatrix (3/3)\n• Acid Rain\n(Homeostasis): having\nboth `FIRE_RESISTANT`\n& `MAGIC_CARAPACE`\nheals +0.8F; either\ngrants immunity (0.0F);\nneither takes -0.75F."
+      },
+      {
+        "raw": "Cap.5: Projectiles (3)\n& Spawn Eggs (17)\nProjectiles & Spawn\nEggs (1/5)\n• 3 Registered\nProjectiles\n(`ModEntities`):\n`acid_spit` (corrosive\nspit jamming turrets\n120t &\n`KINETIC_MIRROR`\nshards),\n`neutralizing_spore`\n(launcher/drone"
+      },
+      {
+        "raw": "ammo), and\n`purifier_grenade`\n(triggers 5s squad\nDesync)."
+      },
+      {
+        "raw": "Projectiles & Spawn\nEggs (2/5)\n• Eggs 1/4:\n`sporeling_spawn_egg`\n,\n`chitin_brute_spawn_e\ngg`,\n`mycelial_stalker_spaw\nn_egg`,\n`acid_spitter_spawn_e\ngg`."
+      },
+      {
+        "raw": "Projectiles & Spawn\nEggs (3/5)\n• Eggs 2/4:\n`burrower_spawn_egg`\n,\n`pyro_shroom_spawn_\negg`,\n`synapse_weaver_spa\nwn_egg`,\n`goliath_carrier_spaw\nn_egg`,\n`leech_parasite_spawn\n_egg`."
+      },
+      {
+        "raw": "Projectiles & Spawn\nEggs (4/5)\n• Eggs 3/4:\n`colony_warden_spawn\n_egg`,\n`spore_architect_spa\nwn_egg`,\n`synaptic_mimic_spawn\n_egg`,\n`spore_behemoth_spa\nwn_egg`."
+      },
+      {
+        "raw": "Projectiles & Spawn\nEggs (5/5)\n• Eggs 4/4:\n`hive_core_spawn_egg\n`,\n`apex_matriarch_spaw\nn_egg`,\n`purifier_drone_spawn\n_egg`,\n`mycelial_chimera_spa\nwn_egg`."
+      },
+      {
+        "raw": "Cap.6: The 4 Synaptic\nNode Types\nSynaptic Node\nTypology (1/3)\n• `RELAY`\n(`mycelial_node`): links\nhubs within\n`synapticNodeLinkRadiu\ns` (28m), amplifies\nlocal stimulus x1.5,\nand holds 60/40\nbuffers (`600t`)."
+      },
+      {
+        "raw": "Synaptic Node\nTypology (2/3)\n• `INCUBATOR`\n(`incubator_node`):\nhatches combat\nsquads and\n`spore_architect`;\nglobal cap\n`maxAutonomousNodes\n= 32` with\n`minNodeSpacing =\n18m`."
+      },
+      {
+        "raw": "Synaptic Node\nTypology (3/3)\n• `SENTINEL`\n(`sentinel_node`):\nshields nearby\nswarmers and\nanchors Phase 2\ninvulnerability for\n`hive_core` and\n`apex_matriarch`.\n• `SYMBIOTIC`\n(`symbiotic_node`, BE\n`synaptic_node`):\nreprogrammed allied"
+      },
+      {
+        "raw": "hub for acoustic\nsilencing and fast\ntravel."
+      },
+      {
+        "raw": "Cap.6: Synaptic Graft\n& Fast Travel\nHijacking with Synaptic\nGraft\nItem:\nmycelialmind:synaptic_g\nraft\nApply `synaptic_graft`\nto a hostile node ->\n`symbiotic_node` (cap\n`maxSymbioticNodes =\n4`). Recharge +15%\nusing\n`mycelial_biomass`."
+      },
+      {
+        "raw": "Mycorrhizal Fast\nTravel (1/2)\n• Link (`Shift +\nRight-Click`): warps\nbetween\n`symbiotic_node`s\nwithin 96m\n(`mycorrhizalTravelRa\nnge`, `16–256m`).\n• Cost & Locks: 6\nfood, 15 stability,\n`240t`\n`mycelial_infection`,\n`60t` Nausea (`1500t`"
+      },
+      {
+        "raw": "CD); blocked if hurt\n`<100t` or infected."
+      },
+      {
+        "raw": "Mycorrhizal Fast\nTravel (2/2)\n• Escort Transfer:\nteleports owned\n`FOLLOW`/ridden\nChimeras and\nnon-patrol Drones\nwithin 12m right\nalongside you."
+      },
+      {
+        "raw": "Cap.6: Mycorrhizal\nAcoustics & Decoy\nVibrations & Acoustic\nSilencing\nItem:\nmycelialmind:neural_ec\nho_decoy\nStepping on\n`creeping_mycelium`\npings Nodes (`32m`)\nand patrols (`18m`,\n`40t` CD).\n`neural_echo_decoy`\nsilences 16m and"
+      },
+      {
+        "raw": "lures 20m."
+      },
+      {
+        "raw": "Cap.7: Synaptic Bench\n& Lab Tiers 1–3\nLaboratory Upgrades\n(T1->T2->T3)\nItem:\nmycelialmind:synaptic_r\nesearch_bench\n`Shift + Click`: T1->T2\n(`synaptic_core`, 25%\nbiomass save); T2->T3\n(`neural_echo_core`/`\novermind_essence`,\n50% save + 2x\nserums)."
+      },
+      {
+        "raw": "The 4 Official\nSyntheses (1/2)\n• `symbiotic_mutagen`:\n`GeneticSample`\n(typed) +\n`MycelialBiomass` +\n`SynapticCore`.\n• `counter_serum`:\n`GeneticSample`\n(typed) +\n`LatentSpore` +\n(`PurifierGrenade` or\nAmethyst) -> 1x (2x\nat T3)."
+      },
+      {
+        "raw": "The 4 Official\nSyntheses (2/2)\n•\n`concentrated_antidot\ne`: `SporeAntidote` +\n`LatentSpore` +\nAmethyst -> 1x (2x at\nT3).\n• `chimera_ovum`:\n`GeneticSample` +\n`MycelialBiomass` +\n`NeuralEchoCore`.\nHoppers via\n`SidedSynapticBenchHa"
+      },
+      {
+        "raw": "ndler`\n(`synaptic_bench`)."
+      },
+      {
+        "raw": "Cap.7: Symbiosis & The\n5 Mutagens\nThe 5 Symbiotic\nMutagens (1/4)\n• Rules (`symbiosis`):\nmax `maxMutagenSlots\n= 2`, adds +15%\nThreat/slot (`1.0 +\n0.15*n`), inflicts\n`mycelial_infection`\n(`120t`) every `60t` on\nbare mycelium, and\nclears upon death."
+      },
+      {
+        "raw": "The 5 Symbiotic\nMutagens (2/4)\n• `CHITIN_THORNS`\n(`chitin_thorns`,\n`MELEE`): +2.0 Armor\nand reflects 25%\nmelee damage back as\nthorns (min `1.0F`).\n• `KINETIC_STRAFE`\n(`kinetic_strafe`,\n`PROJECTILE`): 30%\nchance to dodge\nprojectiles completely"
+      },
+      {
+        "raw": "and burst Speed I\n(`60t`)."
+      },
+      {
+        "raw": "The 5 Symbiotic\nMutagens (3/4)\n• `PYRO_GLAND`\n(`pyro_gland`, `FIRE`):\nfull fire immunity\n(cancels `IS_FIRE` &\ndouses flames) +\nmelee strikes ignite\nattackers for `3s`."
+      },
+      {
+        "raw": "The 5 Symbiotic\nMutagens (4/4)\n• `BLAST_CARAPACE`\n(`blast_carapace`,\n`EXPLOSION`): +0.5 KB\nRes. and cuts blast\ndamage to 55% (-45%).\n• `ARCANE_SYNAPSE`\n(`arcane_synapse`,\n`MAGIC`): permanent\nNight Vision and magic\ndamage reduced to\n60% (-40%)."
+      },
+      {
+        "raw": "Cap.7: Strain Schisms &\nDiplomacy\nStrain Civil War\nItem:\nmycelialmind:schism_inj\nector\nInject a node/mob\nwith `schism_injector`:\n`ORTHODOX` (#9B4DFF,\n-100) vs `AMBER`\n(#F2A93B) vs\n`CRIMSON` (#E03C5C)\nfight on sight."
+      },
+      {
+        "raw": "Standing, Tribute &\nBetrayal (1/2)\n• Ranks (`Standing`,\n`-100..+100`):\n`HOSTILE` `<=-40`,\n`NEUTRAL` `-39..24`,\n`PACT` `>=+25` (`BASE`\nignores `>4.5m`),\n`ALLIED` `>=+60`\n(`BASE` & `MUTATED`).\nPositive rep applies\n`-0.5x` to rival strain."
+      },
+      {
+        "raw": "Standing, Tribute &\nBetrayal (2/2)\n• Tools & Limits:\n`ELITE` and Bosses\nnever respect pacts.\nBetrayal triggers -35\nrep and 30s (`600t`)\nlockout.\n`truce_pheromone`\npacifies temporarily;\n`quorum_seal` tributes\n4 biomass (+12 rep) /\nmax 2 escorts (45s)."
+      },
+      {
+        "raw": "Cap.8: Evolving Chitin\nArmor\nStats of `chitin`\nMaterial\nItem:\nmycelialmind:chitin_che\nstplate\nArmor `[2, 5, 6, 2]`\n(Body 9), Ench 14,\nTough 1.0F, repaired\nwith `chitin_plate`. Cuts\ninfection duration\n-20% per piece."
+      },
+      {
+        "raw": "Evolution &\n`DataComponents`\n(1/2)\n• `armor_rank` (`BASE`\n-> `MUTATED` ->\n`ELITE`): upgrade to\n`MUTATED` with\n`synaptic_core`\n(self-repairs on\nmycelium/Tide) and to\n`ELITE` with\n`overmind_essence` or\n`tide_beacon`."
+      },
+      {
+        "raw": "Evolution &\n`DataComponents`\n(2/2)\n• Elite Reflect &\n`trait_id`: `ELITE`\ngrants Absorption &\nreflects `1.25 *\npieces` magic dmg;\n`trait_id` stores\nelemental affinity on\narmor,\n`genetic_sample`, and\nserums."
+      },
+      {
+        "raw": "Cap.8: Combat & Field\nArsenal\nWeapons & Tactical\nConsumables (1/4)\n• `symbiotic_blade`:\ndiamond-class\nsymbiotic blade\npowered by a\n`hive_heart`.\n• `enzyme_lance`:\nlightweight enzymatic\nlance engineered to\ncleave chitin."
+      },
+      {
+        "raw": "Weapons & Tactical\nConsumables (2/4)\n•\n`neutralizing_spore_la\nuncher` &\n`purifier_grenade`:\nneutralizing ranged\nsuite; grenades force\n5s squad Desync and\npurge spores."
+      },
+      {
+        "raw": "Weapons & Tactical\nConsumables (3/4)\n• `bio_extractor` ->\nextracts\n`genetic_sample`;\n`spore_antidote` /\n`concentrated_antidot\ne` cure infection &\nrot; `chimera_ovum`\nhatches Chimeras."
+      },
+      {
+        "raw": "Weapons & Tactical\nConsumables (4/4)\n• Key Reagents:\n`mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`neural_echo_core`,\n`hive_heart`, and\n`overmind_essence`."
+      },
+      {
+        "raw": "Cap.8: The 4 Endgame\nRelics\nOvermind Crown\nItem:\nmycelialmind:overmind_\ncrown\n• In mid-air: purges\n15.0% Global Threat\n(1200t / 60s\ncooldown).\n• On\n`purification_pylon`:\novercharges and\ncleanses a 12m radius"
+      },
+      {
+        "raw": "(400t / 20s)."
+      },
+      {
+        "raw": "Beacon, Suppressor &\nCatalyst (1/2)\n• `tide_beacon`:\ndispels an active\nFungal Tide;\nrechargeable via\namethyst and chitin\n(`tide_beacon_rechar\nge`).\n•\n`synaptic_suppressor`\n: locks global Hive\nadaptation (`120s` CD)."
+      },
+      {
+        "raw": "Beacon, Suppressor &\nCatalyst (2/2)\n• `rift_catalyst`:\nignites a `mycelial_rift`\nportal inside a valid\n`reinforced_bio_barri\ner` frame toward Deep\nMycelium\n(`deep_mycelium`)."
+      },
+      {
+        "raw": "Cap.8: Bastion Defense\n& Turrets\nBastion Defense\nEngineering (1/2)\n• `purification_pylon`\n(`monument_focus`):\nblocks mycelium (`24m`\ndefault,\n`pylonPurificationRadiu\ns`), cures infection,\nblocks carrion, and\nsmothers if >=4\n`antibody_cyst` cover"
+      },
+      {
+        "raw": "its faces in Deep\nMycelium."
+      },
+      {
+        "raw": "Bastion Defense\nEngineering (2/2)\n• `purification_turret`\n(Tiers 1–3):\nauto-fires\nneutralizing spores;\nrepairable with\nAntidote, Chitin, or\nIron (cleanse if\njammed 120t).\n•\n`purifier_drone_core`\ndeploys Drones;\n`reinforced_bio_barri"
+      },
+      {
+        "raw": "er` fortifies walls."
+      }
+    ]
+  }
+}

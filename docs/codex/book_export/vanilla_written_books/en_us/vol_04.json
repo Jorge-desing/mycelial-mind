@@ -1,0 +1,89 @@
+{
+  "volume": 4,
+  "chapters": [
+    "tecnica_comandos"
+  ],
+  "page_count": 24,
+  "component": {
+    "title": {
+      "raw": "Mycelial Codex Vol.IV"
+    },
+    "author": "Mycelial Mind v2.0.0",
+    "generation": 0,
+    "resolved": true,
+    "pages": [
+      {
+        "raw": "Cap.12: Config Catalog\n(12 Client / 39\nServer)\nTOML Configuration\nKeys (1/11)\n• `[hud] hudAnchor` =\n`TOP_LEFT`\n(`TOP_LEFT`,\n`TOP_RIGHT`,\n`BOTTOM_LEFT`,\n`BOTTOM_RIGHT`).\n• `[hud] hudOffsetX` =\n`0` (`-200..200`);\n`hudOffsetY` = `0`"
+      },
+      {
+        "raw": "(`-200..200`).\n• `[hud]\nhudCompactMode` =\n`false`;\n`hudRequireHeld` =\n`true`;\n`showSynapticVisionBo\nrder` = `true`."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (2/11)\n• `[atmosphere]\nsporeFogDensityScale`\n= `1.0` (`0.25..1.0`).\n• `[audio]\nambientSoundscapeVol\nume` = `1.0` (`0..1`);\n`hiveAdaptationAudioAl\nerts` = `true`;\n`caveSoundOcclusion`\n= `true`."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (3/11)\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle\nGlow` = `true`.\n• `[hive_memory]`\n`learningMultiplier`=`1.0\n` (`0.1..10`),\n`decayPerMinute`=`2.0`\n(`0..50`),\n`traitActivationThresh"
+      },
+      {
+        "raw": "old`=`70.0` (`5..500`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (4/11)\n• `[hive_memory]`\n`tier2ActivationThresh\nold`=`200.0` (`25..500`),\n`tier2DecayMultiplier`=`\n1.75` (`1..5`),\n`synergiesEnabled`=`tr\nue`.\n• `[hive_memory]`\n`suppressorCooldownS\neconds`=`120`\n(`15..600`),"
+      },
+      {
+        "raw": "`projectileDeflectChan\nce`=`0.30` (`0..0.95`),\n`symbiosisThreatMultipl\nierPerSlot`=`0.15`\n(`0..1`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (5/11)\n• `[hive_memory]`\n`maxMutagenSlots`=`2`\n(`1..5`),\n`counterSerumBleedRa\ntio`=`0.50` (`0.1..0.95`).\n• `[territory]`\n`myceliumSpreadEnable\nd`=`true`,\n`myceliumSpreadChanc\ne`=`0.12` (`0..1`),\n`pylonPurificationRadiu"
+      },
+      {
+        "raw": "s`=`24` (`4..64`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (6/11)\n• `[territory]`\n`synapticNodeLinkRadiu\ns`=`28` (`8..64`),\n`nodeDestructionStimul\nusBleed`=`18.0`\n(`0..100`),\n`burrowerBlockBreakin\ng`=`true`.\n• `[territory]`\n`playerCountScaling`=`\n0.15` (`0..1`),\n`wavesEnabled`=`true`,"
+      },
+      {
+        "raw": "`waveCooldownTicks`=`\n3600` (`200..72000`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (7/11)\n• `[territory]`\n`autonomousExpansion\nEnabled`=`true`,\n`aggressiveVillageAssi\nmilation`=`true`,\n`maxAutonomousNodes`\n=`32` (`4..128`),\n`minNodeSpacing`=`18`\n(`8..48`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (8/11)\n• `[territory]`\n`infectionConversionEn\nabled`=`true`,\n`fungalTideEnabled`=`t\nrue`,\n`fungalTideDurationTic\nks`=`6000`\n(`600..24000`).\n• `[territory]`\n`fungalTideCooldownTic\nks`=`24000`\n(`1200..72000`),"
+      },
+      {
+        "raw": "`mycorrhizalAcoustics\nEnabled`=`true`,\n`maxSymbioticNodes`=`4\n` (`1..16`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (9/11)\n• `[territory]`\n`mycorrhizalTravelRan\nge`=`96` (`16..256`),\n`mycorrhizalTravelCoo\nldownTicks`=`1500`\n(`100..6000`).\n• `[territory]`\n`progressiveThreatSc\naling`=`true`,\n`deathThreatPenalty`=`\n5.0` (`0..25`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (10/11)\n•\n`[dimensional_homeosta\nsis]`\n`homeostasisEnabled`=`\ntrue`,\n`homeostasisExplosion\nStressScale`=`1.0`\n(`0.1..5`),\n`homeostasisAcidRainD\namage`=`2.0` (`0.5..10`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (11/11)\n•\n`[dimensional_homeosta\nsis]`\n`homeostasisAntibodyE\nncapsulationEnabled`=`\ntrue`,\n`homeostasisMaxCysts\nPerChunk`=`64`\n(`8..256`)."
+      },
+      {
+        "raw": "Cap.12: Net v14,\n`/mycelial` & 22 Verify\nAdmin Commands,\nPayloads & Verify\n(1/5)\n• Networking\n(`ModNetworking` v14):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+      },
+      {
+        "raw": "`,\n`DiscoverySyncPayloa\nd`."
+      },
+      {
+        "raw": "Admin Commands,\nPayloads & Verify\n(2/5)\n• Operational\nCommands (`perm 2`):\n`/mycelial status`,\n`/mycelial reset`,\n`/mycelial stimulus\n<type> <0.1..500>`,\n`/mycelial habits`,\n`/mycelial schism\n<strain>`, `/mycelial\ndiplomacy <strain>\n<-100..100>`."
+      },
+      {
+        "raw": "Admin Commands,\nPayloads & Verify\n(3/5)\n• Symbiosis,\nHomeostasis & Audit:\n`/mycelial symbiosis\n<status|clear|grant\n<mutagen>>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,\n`/mycelial worldgen\naudit [radius] [grid]`."
+      },
+      {
+        "raw": "Admin Commands,\nPayloads & Verify\n(4/5)\n• `/mycelial verify\n<scenario|worldgen|all\n>` (1–11):\n`projectile_adaptation\n`, `pylon_containment`,\n`boss_encounter`,\n`tier2_synergy`,\n`synaptic_network`,\n`symbiosis`, `units`,\n`expansion`, `tide`,"
+      },
+      {
+        "raw": "`counteroffensive`,\n`arsenal`."
+      },
+      {
+        "raw": "Admin Commands,\nPayloads & Verify\n(5/5)\n• `/mycelial verify`\n(12–22): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`."
+      }
+    ]
+  }
+}

@@ -1,0 +1,795 @@
+{
+  "ok": true,
+  "particle_count": 34,
+  "sprite_count": 116,
+  "families": [
+    "estado",
+    "consumible",
+    "suero",
+    "proyectil",
+    "hive",
+    "combate",
+    "jefe",
+    "purificacion",
+    "homeostasis",
+    "mundo"
+  ],
+  "specs": {
+    "infection": {
+      "family": "estado",
+      "size": 32,
+      "frames": 3,
+      "shape": "spore",
+      "palette": "mycelial_violet",
+      "accent": "elite_crimson",
+      "render": "translucent",
+      "archetype": "drift",
+      "textures": [
+        "mycelialmind:infection_0",
+        "mycelialmind:infection_1",
+        "mycelialmind:infection_2"
+      ],
+      "frame_sha256": [
+        "bb2177507fe1a682ced89e6835b37a52fcca5673da6b50c97356a978c69d5d90",
+        "2c54355d5754d8c275ddaa64a981904397ac858a23786e3438ca795e087b264a",
+        "b37cebfab6376adbbabdcf5c1067088045b068782383314f5ff48e2388cdbc3c"
+      ],
+      "description_es": "Racimo de 3 l\u00f3bulos con cilios, n\u00facleo magenta y halo violeta.",
+      "description_en": "Three-lobed spore cluster with cilia, magenta nucleus and violet halo."
+    },
+    "rot": {
+      "family": "estado",
+      "size": 32,
+      "frames": 3,
+      "shape": "teardrop",
+      "palette": "necrotic_umber",
+      "accent": "spore_chartreuse",
+      "render": "translucent",
+      "archetype": "fall",
+      "textures": [
+        "mycelialmind:rot_0",
+        "mycelialmind:rot_1",
+        "mycelialmind:rot_2"
+      ],
+      "frame_sha256": [
+        "2115b753828e1a63142202f464abdb0e1247a67da7614b2d599a9900210c3040",
+        "fc529a4f396acb87b902ba78cbdce8072534993529b89550c4909e80ff34f775",
+        "a07a240c7c691f9e2a34d32adbd0675dc98d44fbbea36912fd1f52e2d5af2a65"
+      ],
+      "description_es": "Gota necr\u00f3tica umber con fisuras chartreuse y goteo carmes\u00ed.",
+      "description_en": "Umber necrotic droplet with chartreuse fissures and crimson drip."
+    },
+    "insight": {
+      "family": "estado",
+      "size": 32,
+      "frames": 3,
+      "shape": "crystal",
+      "palette": "venom_emerald",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "rise",
+      "textures": [
+        "mycelialmind:insight_0",
+        "mycelialmind:insight_1",
+        "mycelialmind:insight_2"
+      ],
+      "frame_sha256": [
+        "4bffdc6510592c047f15b0ed5fdb7d0329040adea0f885c23b8b5e1c63604823",
+        "50de79487893c7433f1a766caa50bd8e23f05886a6ef28696253636e7dd724bc",
+        "b351eeaeb969bddfc652ad18c9a852f13ff4f7ef673d1bbd9255f3c7c984eba7"
+      ],
+      "description_es": "Cristal esmeralda de 4 puntas con vena r\u00fanica y catch especular.",
+      "description_en": "Four-point emerald crystal with rune vein and specular catch."
+    },
+    "vision": {
+      "family": "estado",
+      "size": 32,
+      "frames": 3,
+      "shape": "reticle",
+      "palette": "biolum_cyan",
+      "accent": "mutant_amber",
+      "render": "additive",
+      "archetype": "orbit",
+      "textures": [
+        "mycelialmind:vision_0",
+        "mycelialmind:vision_1",
+        "mycelialmind:vision_2"
+      ],
+      "frame_sha256": [
+        "deecd38a07231971a3564192c6159aeaba04ac4adf9234bab676712c5984a747",
+        "28bd4e73ad8f53b9fd3c85d0e1c3d1f3e4a68b91244ee89af163fd37bf894b1c",
+        "0830f845c58f8b688d2c4224a23a4b80564217302d81f8b26bc304cad757dec5"
+      ],
+      "description_es": "Iris t\u00e9rmico cian con 4 muescas de cuadrante y pupila \u00e1mbar.",
+      "description_en": "Cyan thermal iris with four quadrant notches and amber pupil."
+    },
+    "recovery": {
+      "family": "consumible",
+      "size": 32,
+      "frames": 3,
+      "shape": "arc",
+      "palette": "spore_chartreuse",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "arc",
+      "textures": [
+        "mycelialmind:recovery_0",
+        "mycelialmind:recovery_1",
+        "mycelialmind:recovery_2"
+      ],
+      "frame_sha256": [
+        "a8ff8eb8c6c24fc20952222f9d735580783aa4fafa8816a94008bf99ab53d4c2",
+        "472f94720f0ba99fd172ef062b64d0592cd92e1d2ca8273a7d5e41bf9b9d7501",
+        "caa37432a1da43cc787518c415aaefc78923adc3dee3180db63d393acad860c0"
+      ],
+      "description_es": "Esquirla de arco verde-lima con n\u00facleo blanco y mota sat\u00e9lite.",
+      "description_en": "Lime-green arc shard with white core and satellite mote."
+    },
+    "purge": {
+      "family": "consumible",
+      "size": 32,
+      "frames": 3,
+      "shape": "cross",
+      "palette": "purifier_glow",
+      "accent": "spore_chartreuse",
+      "render": "additive",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:purge_0",
+        "mycelialmind:purge_1",
+        "mycelialmind:purge_2"
+      ],
+      "frame_sha256": [
+        "aafb951f012e7afd07c125272f7c5541b43e8ec80358934d47b22a2bcbe1c4be",
+        "44e718f2761f74af29de48131661169fbceb2310effdad78df5cafd0aa9df9e5",
+        "d45fdf973e7edf63a747a3de09cf10b99a9c81aaabbff7fad77b26f0e80295de"
+      ],
+      "description_es": "Fragmento de cruz cl\u00ednica cian con n\u00facleo verde y sat\u00e9lites.",
+      "description_en": "Clinical cyan cross fragment with green core and satellites."
+    },
+    "scan": {
+      "family": "consumible",
+      "size": 32,
+      "frames": 3,
+      "shape": "chevron",
+      "palette": "biolum_cyan",
+      "accent": "purifier_glow",
+      "render": "additive",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:scan_0",
+        "mycelialmind:scan_1",
+        "mycelialmind:scan_2"
+      ],
+      "frame_sha256": [
+        "f3c7e6f3c0b92c4f7d20d10bc40501992a672ba9d07a749718e4cbb86c521165",
+        "ff2d4c5652141f82ebd98a0676b6832502ffe3c8494d2384749aa72743ae0b7c",
+        "a58e25818779773668bcaa70bae300f6ff478d257b5bdf0d9c208ad758da2a85"
+      ],
+      "description_es": "Chevr\u00f3n de barrido azul con cola de datos y doble punta.",
+      "description_en": "Blue scan chevron with data tail and twin tip."
+    },
+    "serum_melee": {
+      "family": "suero",
+      "size": 32,
+      "frames": 3,
+      "shape": "slash",
+      "palette": "leech_crimson",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:serum_melee_0",
+        "mycelialmind:serum_melee_1",
+        "mycelialmind:serum_melee_2"
+      ],
+      "frame_sha256": [
+        "1f40a32e3275d04ad4f97b4e3d2ce9f9b07976a5ff18eb60c9b028d51e0aa2ef",
+        "d7bc9c8affdac9b2d5aeaf9bfe9ed3479c9a4dfe9acc70c3fd345689a5a58327",
+        "45cd7a70e03b886e3a90cec96cdf057c314311aa092018543e528274c6f1ad58"
+      ],
+      "description_es": "Tajo carmes\u00ed con borde blanco y virutas.",
+      "description_en": "Crimson slash with white edge and chips."
+    },
+    "serum_projectile": {
+      "family": "suero",
+      "size": 32,
+      "frames": 3,
+      "shape": "dart",
+      "palette": "mutant_amber",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:serum_projectile_0",
+        "mycelialmind:serum_projectile_1",
+        "mycelialmind:serum_projectile_2"
+      ],
+      "frame_sha256": [
+        "eb895eaf1fffc77e84375ce19c55fae0db10775fe3cbd251f42f520c1ee6634f",
+        "865be09eacdc23136022be4452b83886896d977875f2b53b3f37819343f80e3a",
+        "234b4da7a6adb6eb1ee4f708524549d09064460d2f770eca13ce9b0f743946fa"
+      ],
+      "description_es": "Dardo \u00e1mbar con aletas traseras y punta brillante.",
+      "description_en": "Amber dart with rear fins and bright tip."
+    },
+    "serum_fire": {
+      "family": "suero",
+      "size": 32,
+      "frames": 3,
+      "shape": "ember",
+      "palette": "ember_orange",
+      "accent": "basalt_slate",
+      "render": "additive",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:serum_fire_0",
+        "mycelialmind:serum_fire_1",
+        "mycelialmind:serum_fire_2"
+      ],
+      "frame_sha256": [
+        "3a6274946e4316511c7e12af621b477d7396c36cb9c3c66378a6adf67d4a33c4",
+        "32765ac5c15f5b0f16f77f0ede1586fc86853683d634907f8aae0825eaa099c4",
+        "3a6274946e4316511c7e12af621b477d7396c36cb9c3c66378a6adf67d4a33c4"
+      ],
+      "description_es": "Ascua naranja con costra oscura y chispas.",
+      "description_en": "Orange ember with dark crust and sparks."
+    },
+    "serum_explosion": {
+      "family": "suero",
+      "size": 32,
+      "frames": 3,
+      "shape": "wave_crystal",
+      "palette": "purifier_glow",
+      "accent": "spectral_bone",
+      "render": "additive",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:serum_explosion_0",
+        "mycelialmind:serum_explosion_1",
+        "mycelialmind:serum_explosion_2"
+      ],
+      "frame_sha256": [
+        "6bea7c72a0533896145ca8744e8f132f2f7a4ff1d0d2607fe8369cd31797a412",
+        "6fbbb3ea90192ff92eb87da0e89a00ac2d70648f7e183a940c7ec6651996b025",
+        "35d196bf18ba832d267648c1b0f5844222a753c02083e3dc39eefb6acb0eb3b8"
+      ],
+      "description_es": "Cristal de onda azul con fractura radial.",
+      "description_en": "Blue wave crystal with radial fracture."
+    },
+    "serum_magic": {
+      "family": "suero",
+      "size": 32,
+      "frames": 3,
+      "shape": "rune",
+      "palette": "predator_amethyst",
+      "accent": "royal_gold",
+      "render": "additive",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:serum_magic_0",
+        "mycelialmind:serum_magic_1",
+        "mycelialmind:serum_magic_2"
+      ],
+      "frame_sha256": [
+        "1008c76723d0ed0dcc9db35a825822676d8d75ee4cfa6361af88a1ba56aae21d",
+        "94359466fc33584c4480b91e05921bd791eae7fb1ff181207f844b94427711ed",
+        "adf30282f661d1504855248db5eac6a62ada03ba2fd087c579c92d7012470832"
+      ],
+      "description_es": "Glifo violeta flotante con anillo r\u00fanico.",
+      "description_en": "Floating violet glyph with rune ring."
+    },
+    "engram": {
+      "family": "hive",
+      "size": 32,
+      "frames": 4,
+      "shape": "hex_glyph",
+      "palette": "royal_gold",
+      "accent": "mutant_amber",
+      "render": "additive",
+      "archetype": "glyph",
+      "textures": [
+        "mycelialmind:engram_0",
+        "mycelialmind:engram_1",
+        "mycelialmind:engram_2",
+        "mycelialmind:engram_3"
+      ],
+      "frame_sha256": [
+        "cc0650255e01b9c25a8fd19cf36bea5fa912ac22fa10d11bdcde9495f5d5aa1b",
+        "dbbf66a3972534644566ce8a16766c16c2a54ea635d8fe630653becbd45583a1",
+        "e7dc2db7443032ff14238bbc630aa069938201067c6d07b2a5acb11214bc8b49",
+        "fee4883edda837ce2823f29b217e5c31de80096bdb467b36df0bc22189e2b802"
+      ],
+      "description_es": "Hex\u00e1gono \u00e1mbar con circuito interno y 3 pines.",
+      "description_en": "Amber hexagon with inner circuit and three pins."
+    },
+    "impact": {
+      "family": "proyectil",
+      "size": 32,
+      "frames": 4,
+      "shape": "star",
+      "palette": "purifier_glow",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "ring",
+      "textures": [
+        "mycelialmind:impact_0",
+        "mycelialmind:impact_1",
+        "mycelialmind:impact_2",
+        "mycelialmind:impact_3"
+      ],
+      "frame_sha256": [
+        "59974b57bda840e8ea3da41ffda3df63a826f1d6dc2cc6b3e83597b1cb22cf01",
+        "91acd3aa64e1a7fa21dcbf9bd0fe83241881499eec9342e5e0a5c657442d9429",
+        "0ba811a961938cbae4ab3daa3fc453471f7a21571bc9644855e089644a5b411b",
+        "1c9b34ca757fca457c3298fd707c451879ec46873c931bc35aaf7aef6ef964b0"
+      ],
+      "description_es": "Estrella menta de 8 p\u00faas con n\u00facleo blanco.",
+      "description_en": "Mint eight-point impact star with white core."
+    },
+    "trail": {
+      "family": "proyectil",
+      "size": 32,
+      "frames": 3,
+      "shape": "wisp",
+      "palette": "purifier_glow",
+      "accent": "spore_chartreuse",
+      "render": "translucent",
+      "archetype": "drift",
+      "textures": [
+        "mycelialmind:trail_0",
+        "mycelialmind:trail_1",
+        "mycelialmind:trail_2"
+      ],
+      "frame_sha256": [
+        "44c1361e044af8345ad50421e5ad0a8e0a42f3eeede692dbd228e9a935e74a69",
+        "91562ede24f94e43e77156f18d4c3660c7f29ae331ff172e542c9973d0a029c9",
+        "0ea228a1a37fd2aad3fe21deb704f232b9da068096139dd6676af9f33db7c3fd"
+      ],
+      "description_es": "Espiral de esporas menta con fizz y gota.",
+      "description_en": "Mint spore spiral with fizz and droplet."
+    },
+    "spore_mote": {
+      "family": "hive",
+      "size": 32,
+      "frames": 3,
+      "shape": "spore",
+      "palette": "spore_chartreuse",
+      "accent": "warm_ivory",
+      "render": "translucent",
+      "archetype": "drift",
+      "textures": [
+        "mycelialmind:spore_mote_0",
+        "mycelialmind:spore_mote_1",
+        "mycelialmind:spore_mote_2"
+      ],
+      "frame_sha256": [
+        "65258e9e148e95070cdf9a1f92f03426e0fbb2b412a8f984a5cef583eaf237a3",
+        "1efc9267cdddf63246105293217bad06e7cfb9cda737cc3eac90d9588dcbdd1c",
+        "5fd89add18eaf417de6cb6fdfa54d9af43c8c40cb5e319647aef7a0719f9d038"
+      ],
+      "description_es": "Espora lobulada con cilios y n\u00facleo bioluminiscente.",
+      "description_en": "Lobed spore with cilia and bioluminescent nucleus."
+    },
+    "spore_cloud": {
+      "family": "hive",
+      "size": 64,
+      "frames": 4,
+      "shape": "mist",
+      "palette": "mycelial_violet",
+      "accent": "chitin_bone",
+      "render": "translucent",
+      "archetype": "mist",
+      "textures": [
+        "mycelialmind:spore_cloud_0",
+        "mycelialmind:spore_cloud_1",
+        "mycelialmind:spore_cloud_2",
+        "mycelialmind:spore_cloud_3"
+      ],
+      "frame_sha256": [
+        "110c17d9357feed11069dca6755c87db6052cf8895a17151bdf9e4b726a1bf6a",
+        "37f41a60cd290e94adf7dc170dacd1e300a74bca348c545587c9837cea41c015",
+        "e487bd96e0f4d7d002eee1effc06da093e09670e7415a3f213524cd058925e7c",
+        "357e936e7d620f8f3920ed030ea7d940b299f4c9160d684fa8ae664dae0955a6"
+      ],
+      "description_es": "Nube FBM con filamentos deshilachados.",
+      "description_en": "FBM cloud with frayed filaments."
+    },
+    "spore_fall": {
+      "family": "mundo",
+      "size": 32,
+      "frames": 3,
+      "shape": "spore",
+      "palette": "spore_chartreuse",
+      "accent": "biolum_cyan",
+      "render": "translucent",
+      "archetype": "fall",
+      "textures": [
+        "mycelialmind:spore_fall_0",
+        "mycelialmind:spore_fall_1",
+        "mycelialmind:spore_fall_2"
+      ],
+      "frame_sha256": [
+        "8ddcade8de385f90be500ba21cb0291aeb3cb42d43ed589a72e32b4bdd0ac625",
+        "4da1b4d796fdab012ad6d7425f362afa3db2a4c91012769e25239449321ed5ae",
+        "f601b6757851dc93e0dbedff39a3bfc016d5ecb9b7a01ba295178299a789f897"
+      ],
+      "description_es": "Espora con aleta y estela corta.",
+      "description_en": "Spore with fin and short wake."
+    },
+    "bio_lume": {
+      "family": "mundo",
+      "size": 32,
+      "frames": 3,
+      "shape": "spore",
+      "palette": "spore_chartreuse",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "drift",
+      "textures": [
+        "mycelialmind:bio_lume_0",
+        "mycelialmind:bio_lume_1",
+        "mycelialmind:bio_lume_2"
+      ],
+      "frame_sha256": [
+        "a28116130a52170d9c8b1753e1dcfb4b882b78e1c2a4229dbfd3a2c38c9a636c",
+        "16601d1aee0ed80d4ba25832c2402d4d58e8b5906a5e814b612eaa79b6cb6afd",
+        "9804d9e3e54b713031cf7cbdc38e1f7e25a21dad9ec6d06b6e0f535c7d6b28fd"
+      ],
+      "description_es": "Mota bioluminiscente chartreuse con anillo y destello estelar.",
+      "description_en": "Chartreuse bioluminescent mote with ring and star glint."
+    },
+    "amber_glint": {
+      "family": "mundo",
+      "size": 32,
+      "frames": 3,
+      "shape": "crystal",
+      "palette": "mutant_amber",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "spark",
+      "textures": [
+        "mycelialmind:amber_glint_0",
+        "mycelialmind:amber_glint_1",
+        "mycelialmind:amber_glint_2"
+      ],
+      "frame_sha256": [
+        "d03b91732e720e25f4c3ac71a8b8e532fd389673c16999df48efdbed04b6ff0d",
+        "d5b2d614cdc247c4a58c473b4545ba2cfb1c30922fc9aa63270c86e5ea757cb9",
+        "b95647fa2d0d825c5223f0fd84f50ca33c1ae82f1939b400bba4f7773b4b5ac3"
+      ],
+      "description_es": "Gema \u00e1mbar facetada con destello en cruz.",
+      "description_en": "Faceted amber gem with cross glint."
+    },
+    "chitin_shard": {
+      "family": "combate",
+      "size": 32,
+      "frames": 3,
+      "shape": "crystal",
+      "palette": "chitin_bone",
+      "accent": "basalt_slate",
+      "render": "translucent",
+      "archetype": "tumble",
+      "textures": [
+        "mycelialmind:chitin_shard_0",
+        "mycelialmind:chitin_shard_1",
+        "mycelialmind:chitin_shard_2"
+      ],
+      "frame_sha256": [
+        "8be9ab2e34b814139e457425cf712f39d1327693621884eb0af68ed0f7183125",
+        "37c3c366d910721b402da6c84b2d49f7b15647881eaa2df16c96ab737269274f",
+        "0427e82283e6d49d452cd90638d9b1106fc3f965960e2e1ee38b311fb25808bf"
+      ],
+      "description_es": "Esquirla beige angular con bisel y fractura.",
+      "description_en": "Angular beige shard with bevel and fracture."
+    },
+    "acid_droplet": {
+      "family": "combate",
+      "size": 32,
+      "frames": 3,
+      "shape": "teardrop",
+      "palette": "acid_lime",
+      "accent": "purifier_glow",
+      "render": "translucent",
+      "archetype": "arc",
+      "textures": [
+        "mycelialmind:acid_droplet_0",
+        "mycelialmind:acid_droplet_1",
+        "mycelialmind:acid_droplet_2"
+      ],
+      "frame_sha256": [
+        "9172641851f7270a7beba78f9f17a6467fd2eafe61ced08ca1c436f7b20eea79",
+        "9e24eab8268c53d3e54a2972ca6e061bbcdc578648e718f062aae7e58b215242",
+        "b7ec4d0b793bc335a6e488ff5dc6a5c762ca20bc361d0beef800f7b9e9041185"
+      ],
+      "description_es": "Gota lima con c\u00e1ustica interna y borde brillante.",
+      "description_en": "Lime droplet with internal caustic and bright rim."
+    },
+    "acid_splash": {
+      "family": "combate",
+      "size": 32,
+      "frames": 4,
+      "shape": "splash",
+      "palette": "acid_lime",
+      "accent": "purifier_glow",
+      "render": "translucent",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:acid_splash_0",
+        "mycelialmind:acid_splash_1",
+        "mycelialmind:acid_splash_2",
+        "mycelialmind:acid_splash_3"
+      ],
+      "frame_sha256": [
+        "0bae833f7b97359eca0cae46121014300452c6cfb15ba1a86934bc5b3a7e83be",
+        "783a3441ed46ae8fb1dc9de87ebe91dfa81279f93ca52b625cc70e8ab9973ad1",
+        "adf3b007bac5aea5073cde522262958240586ec61f4e232cd2c59e3ea0374b38",
+        "131f12e4c4f05790dae18e7a93b38fe7dc7d0f4e0625b4dc10e897ab20e56505"
+      ],
+      "description_es": "Salpicadura radial de 8 gotas con anillo de vapor.",
+      "description_en": "Radial splash of eight droplets with vapour ring."
+    },
+    "necrotic_mist": {
+      "family": "combate",
+      "size": 32,
+      "frames": 4,
+      "shape": "mist",
+      "palette": "necrotic_umber",
+      "accent": "leech_crimson",
+      "render": "translucent",
+      "archetype": "mist",
+      "textures": [
+        "mycelialmind:necrotic_mist_0",
+        "mycelialmind:necrotic_mist_1",
+        "mycelialmind:necrotic_mist_2",
+        "mycelialmind:necrotic_mist_3"
+      ],
+      "frame_sha256": [
+        "912d874327abcbaddf76c4d880ca09eb0ff25cd9e863528892307b174b7f8a8d",
+        "c1ba66c6a24b8ecbd731901884fff3c9f38d1f1f1e3f28aaa5f37a16161321a1",
+        "1d4295bae4687cc8dc95ad70f9b53ca4ce43b2229969598f22e55ac00511dde7",
+        "ba1761dbdacc5c1d5da29f29cbd9bef1a1eb652b1af0049dcb4ab0b9bfc16790"
+      ],
+      "description_es": "Bruma umber/carmes\u00ed con filamentos necr\u00f3ticos.",
+      "description_en": "Umber/crimson mist with necrotic filaments."
+    },
+    "synapse_spark": {
+      "family": "hive",
+      "size": 32,
+      "frames": 4,
+      "shape": "spark",
+      "palette": "biolum_cyan",
+      "accent": "spectral_bone",
+      "render": "additive",
+      "archetype": "spark",
+      "textures": [
+        "mycelialmind:synapse_spark_0",
+        "mycelialmind:synapse_spark_1",
+        "mycelialmind:synapse_spark_2",
+        "mycelialmind:synapse_spark_3"
+      ],
+      "frame_sha256": [
+        "06c2e2bc624d827e9111185262e3cf11de22ed5576efb4ea2df83db5d6be7f8d",
+        "0fe0d63dcc6d63b60ffa4ce4406678f615c30ffefa1a7ba1e2f9fb9e96062d76",
+        "c28d60a05f1482f415795d1d3c5a9a32d621b322f388782eaacc89319527d50a",
+        "06c2e2bc624d827e9111185262e3cf11de22ed5576efb4ea2df83db5d6be7f8d"
+      ],
+      "description_es": "Chispa de 4 puntas con tendril bifurcado.",
+      "description_en": "Four-point spark with forked tendril."
+    },
+    "hive_pulse": {
+      "family": "hive",
+      "size": 64,
+      "frames": 5,
+      "shape": "ring",
+      "palette": "mycelial_violet",
+      "accent": "royal_gold",
+      "render": "additive",
+      "archetype": "ring",
+      "textures": [
+        "mycelialmind:hive_pulse_0",
+        "mycelialmind:hive_pulse_1",
+        "mycelialmind:hive_pulse_2",
+        "mycelialmind:hive_pulse_3",
+        "mycelialmind:hive_pulse_4"
+      ],
+      "frame_sha256": [
+        "e8a833a2bc557204567736a10b020efccffa45668344827a544b623e73d136da",
+        "f1b42d944b47492be582da3078e27812289b84dd5c988d5bd8f91b79f36e1438",
+        "1f552031219d0054d5815800da96f782710c4204c804636f2e50256a62a5ff64",
+        "d87c432272645cb084f6a04948c610ef8ecee1e236b54f071b1d6b2d3c15f6a4",
+        "f5fcce65de71dea8296e4b918181eba21c6d6ab03c31f2d4c602a519e4bca58a"
+      ],
+      "description_es": "Anillo r\u00fanico con 8 muescas y glifos.",
+      "description_en": "Rune ring with eight notches and glyphs."
+    },
+    "psychic_wave": {
+      "family": "hive",
+      "size": 64,
+      "frames": 4,
+      "shape": "ring",
+      "palette": "predator_amethyst",
+      "accent": "spectral_bone",
+      "render": "additive",
+      "archetype": "ring",
+      "textures": [
+        "mycelialmind:psychic_wave_0",
+        "mycelialmind:psychic_wave_1",
+        "mycelialmind:psychic_wave_2",
+        "mycelialmind:psychic_wave_3"
+      ],
+      "frame_sha256": [
+        "a670b719a0d027f78e91a1d258b15d2ab6eee5e4044adafc0bf0ddcff105e944",
+        "97ad952105e7257f62c363b810ace02da5ec29c0ffd90ff6e8f983dee86babbe",
+        "fb4b75ab21cf1daa1479317a2c2d89596304519ea2c3a3f54a6e0ab389c3d5c5",
+        "96da58d324c44114efa01f8759c89d2b92f6b1903abf4fd280b3296ef0fb4626"
+      ],
+      "description_es": "Ondas conc\u00e9ntricas distorsionadas con runas.",
+      "description_en": "Distorted concentric waves with runes."
+    },
+    "tide_mote": {
+      "family": "jefe",
+      "size": 32,
+      "frames": 4,
+      "shape": "spore",
+      "palette": "tide_violet",
+      "accent": "spectral_bone",
+      "render": "additive",
+      "archetype": "vortex",
+      "textures": [
+        "mycelialmind:tide_mote_0",
+        "mycelialmind:tide_mote_1",
+        "mycelialmind:tide_mote_2",
+        "mycelialmind:tide_mote_3"
+      ],
+      "frame_sha256": [
+        "500889495a48982302ad4ef31661377f511033a347a293956726a526c3c0df7a",
+        "c86db25b92d0956c5e84ee84f2736ef4a08c573ff075a3b60ce64fb0da1f6981",
+        "33a28787c9f0e6465f9a3d4cd6806e2d484d4129d927251ed84ee6386c21f2b0",
+        "6484d3f0011d101cb571e0f82bc33a26d5037dca9ea3c57673e1df5532ab6f96"
+      ],
+      "description_es": "Espora violeta con halo giratorio y sat\u00e9lites.",
+      "description_en": "Violet spore with spinning halo and satellites."
+    },
+    "hive_ember": {
+      "family": "jefe",
+      "size": 32,
+      "frames": 3,
+      "shape": "ember",
+      "palette": "ember_orange",
+      "accent": "mycelial_violet",
+      "render": "additive",
+      "archetype": "rise",
+      "textures": [
+        "mycelialmind:hive_ember_0",
+        "mycelialmind:hive_ember_1",
+        "mycelialmind:hive_ember_2"
+      ],
+      "frame_sha256": [
+        "281904be8d76e26fe9ed280204a54c039dec1a16795739d9048229829a31ed20",
+        "e195453c09591b99e931d80d9043ed16e5cafeac597517cad3cfc4f0e10f40b8",
+        "281904be8d76e26fe9ed280204a54c039dec1a16795739d9048229829a31ed20"
+      ],
+      "description_es": "Brasa con humo f\u00fangico y n\u00facleo naranja.",
+      "description_en": "Ember with fungal smoke and orange core."
+    },
+    "purifier_cross": {
+      "family": "purificacion",
+      "size": 32,
+      "frames": 4,
+      "shape": "cross",
+      "palette": "purifier_glow",
+      "accent": "warm_ivory",
+      "render": "additive",
+      "archetype": "ring",
+      "textures": [
+        "mycelialmind:purifier_cross_0",
+        "mycelialmind:purifier_cross_1",
+        "mycelialmind:purifier_cross_2",
+        "mycelialmind:purifier_cross_3"
+      ],
+      "frame_sha256": [
+        "44b865ddd833a110bac25f496373b6c1991ad1371ed40c01eaaee813e208de65",
+        "829319a83aaea0d43ab9f638912851fca745c00d02504c7724fdc2345d6a693b",
+        "9468b64bcf7ab90b698900690c4bc374037d04256a14df3c707d76556dc90d11",
+        "ffa5e67e43a70f1b746ec8629459d853c9a8ec5fd96fa8b7ca83866408c0edf1"
+      ],
+      "description_es": "Cruz de luz cl\u00ednica con hex\u00e1gono y 4 destellos.",
+      "description_en": "Clinical light cross with hexagon and four glints."
+    },
+    "thermal_reticle": {
+      "family": "purificacion",
+      "size": 64,
+      "frames": 4,
+      "shape": "reticle",
+      "palette": "purifier_glow",
+      "accent": "mutant_amber",
+      "render": "additive",
+      "archetype": "ring",
+      "textures": [
+        "mycelialmind:thermal_reticle_0",
+        "mycelialmind:thermal_reticle_1",
+        "mycelialmind:thermal_reticle_2",
+        "mycelialmind:thermal_reticle_3"
+      ],
+      "frame_sha256": [
+        "fb6c7077d75efceff1167fd816bb1b8ea88ed7a5da54c7836ecce283ceb2e8f6",
+        "e799322821fc7924936c4887a4d69efbe94f05b8c9e6e131a360f842f3c345ad",
+        "fa32be873602d6bac1d1ade08255667b00f051eae97e1673e462c3d617c4608b",
+        "22e56944750aba17747dcdbb5964889fccc1ac6923e16b642557decd59246d72"
+      ],
+      "description_es": "Ret\u00edcula con anillo, ticks y cruz.",
+      "description_en": "Reticle with ring, ticks and cross."
+    },
+    "histamine_pulse": {
+      "family": "homeostasis",
+      "size": 32,
+      "frames": 4,
+      "shape": "spike_pulse",
+      "palette": "histamine_rose",
+      "accent": "elite_crimson",
+      "render": "translucent",
+      "archetype": "burst",
+      "textures": [
+        "mycelialmind:histamine_pulse_0",
+        "mycelialmind:histamine_pulse_1",
+        "mycelialmind:histamine_pulse_2",
+        "mycelialmind:histamine_pulse_3"
+      ],
+      "frame_sha256": [
+        "053ea9329ef9d20572698914e71b84faa48840fa1cd4ac9d143326e045e8a8ca",
+        "41d65c563d487ea1b3a8676b21563c5aed47d9de6e7755ecfa4de485ab859c14",
+        "77d685ac04234b2b139e33bfd39ceb749ed65f0775f4f177784296217cd05ca4",
+        "5227ca4482cda6b64b4007aaf4f1a668308fb98fc75538c0330fb73ad372ca06"
+      ],
+      "description_es": "Estallido de espinas rosa con anillo de histamina.",
+      "description_en": "Pink spine burst with histamine ring."
+    },
+    "hive_dust": {
+      "family": "hive",
+      "size": 32,
+      "frames": 3,
+      "shape": "dust",
+      "palette": "warm_ivory",
+      "accent": "spectral_bone",
+      "render": "additive",
+      "archetype": "drift",
+      "textures": [
+        "mycelialmind:hive_dust_0",
+        "mycelialmind:hive_dust_1",
+        "mycelialmind:hive_dust_2"
+      ],
+      "frame_sha256": [
+        "080253c8f0c320a92f5a826178a43eb602cbf82348b99472338849c0b534e360",
+        "5ce2cee9aa201371fbbcec53415ee4798c4917b6c91524a1da1420804c78be9f",
+        "861b217ca4496ad7d11db401be22bab6cd0ed3ac9c9f4b0f482297858888af50"
+      ],
+      "description_es": "Polvo marfil neutro con n\u00facleo blanco (tintable por cepa).",
+      "description_en": "Neutral ivory dust with white core (strain-tinted)."
+    },
+    "desync_fragment": {
+      "family": "hive",
+      "size": 32,
+      "frames": 4,
+      "shape": "rune",
+      "palette": "predator_amethyst",
+      "accent": "biolum_cyan",
+      "render": "additive",
+      "archetype": "spark",
+      "textures": [
+        "mycelialmind:desync_fragment_0",
+        "mycelialmind:desync_fragment_1",
+        "mycelialmind:desync_fragment_2",
+        "mycelialmind:desync_fragment_3"
+      ],
+      "frame_sha256": [
+        "1334e5684ce8bece886a93fdbb78d23c1d5c86540892d44a37878e7ad698bf80",
+        "3ffc812d6ffff959d3ad7949f3793b09b7743168d7aa5ebe40d08e4bc76a7abf",
+        "bbda2c27363d8d113ba53c62f70993a778833740f088a5b444fa0e21cc3f2768",
+        "ecea944a4c551492b27e735c6b074c1769516bc101e29983c11b45dbe1a6e8c8"
+      ],
+      "description_es": "Fragmentos de p\u00edxel glitch p\u00farpura/cian con desplazamiento.",
+      "description_en": "Purple/cyan glitch pixel fragments with drift."
+    }
+  }
+}

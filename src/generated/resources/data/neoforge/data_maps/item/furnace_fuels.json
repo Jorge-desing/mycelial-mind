@@ -1,0 +1,13 @@
+{
+  "values": {
+    "mycelialmind:luminescent_amber_vein": {
+      "burn_time": 1200
+    },
+    "mycelialmind:mycelial_biomass": {
+      "burn_time": 400
+    },
+    "mycelialmind:volatile_engram": {
+      "burn_time": 1600
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "category": "mycelialmind:fundamentos",
+  "name": "book.mycelialmind.mycelial_codex.fundamentos.supervivencia_dia_uno.name",
+  "description": "book.mycelialmind.mycelial_codex.fundamentos.supervivencia_dia_uno.description",
+  "icon": {
+    "item": "mycelialmind:bio_extractor"
+  },
+  "x": 0,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 2,
+  "parents": [
+    {
+      "entry": "mycelialmind:fundamentos/identidad_organismica",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "title": "book.mycelialmind.mycelial_codex.fundamentos.supervivencia_dia_uno.page1.title",
+      "item": {
+        "item": "mycelialmind:creeping_mycelium",
+        "count": 1
+      },
+      "text": "book.mycelialmind.mycelial_codex.fundamentos.supervivencia_dia_uno.page1.text"
+    },
+    {
+      "type": "modonomicon:spotlight",
+      "title": "book.mycelialmind.mycelial_codex.fundamentos.supervivencia_dia_uno.page2.title",
+      "item": {
+        "item": "mycelialmind:spore_antidote",
+        "count": 1
+      },
+      "text": "book.mycelialmind.mycelial_codex.fundamentos.supervivencia_dia_uno.page2.text"
+    }
+  ]
+}

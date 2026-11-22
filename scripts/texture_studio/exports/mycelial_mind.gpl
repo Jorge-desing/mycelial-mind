@@ -1,0 +1,220 @@
+GIMP Palette
+Name: Mycelial Mind Oklab
+Columns: 8
+#
+ 37  30  33	abyssal_obsidian_0
+ 45  36  40	abyssal_obsidian_1
+ 52  42  47	abyssal_obsidian_2
+ 60  48  54	abyssal_obsidian_3
+ 68  55  61	abyssal_obsidian_4
+ 76  63  69	abyssal_obsidian_5
+ 85  71  77	abyssal_obsidian_6
+ 93  79  85	abyssal_obsidian_7
+ 68  53  65	mycelial_violet_0
+ 80  65  78	mycelial_violet_1
+ 93  76  90	mycelial_violet_2
+107  88 103	mycelial_violet_3
+120 100 116	mycelial_violet_4
+135 114 131	mycelial_violet_5
+149 127 145	mycelial_violet_6
+164 141 160	mycelial_violet_7
+ 35  76  73	biolum_cyan_0
+ 46  94  91	biolum_cyan_1
+ 57 112 108	biolum_cyan_2
+ 68 132 126	biolum_cyan_3
+ 85 152 146	biolum_cyan_4
+107 174 166	biolum_cyan_5
+129 197 188	biolum_cyan_6
+152 219 209	biolum_cyan_7
+ 40  81  77	purification_aqua_0
+ 51 105  99	purification_aqua_1
+ 63 129 121	purification_aqua_2
+ 75 155 144	purification_aqua_3
+ 95 177 165	purification_aqua_4
+122 195 184	purification_aqua_5
+148 214 204	purification_aqua_6
+174 233 223	purification_aqua_7
+ 55  69  30	spore_chartreuse_0
+ 70  88  36	spore_chartreuse_1
+ 85 107  42	spore_chartreuse_2
+100 127  48	spore_chartreuse_3
+118 148  59	spore_chartreuse_4
+140 170  73	spore_chartreuse_5
+163 193  88	spore_chartreuse_6
+186 216 104	spore_chartreuse_7
+ 89  81  71	chitin_bone_0
+107  98  87	chitin_bone_1
+124 115 103	chitin_bone_2
+142 133 119	chitin_bone_3
+160 151 137	chitin_bone_4
+178 169 155	chitin_bone_5
+197 188 174	chitin_bone_6
+215 208 193	chitin_bone_7
+ 77  56  23	royal_gold_0
+ 99  73  31	royal_gold_1
+122  91  39	royal_gold_2
+145 110  47	royal_gold_3
+167 129  59	royal_gold_4
+186 150  73	royal_gold_5
+206 170  88	royal_gold_6
+226 192 103	royal_gold_7
+ 57  28  19	pyro_magma_0
+ 87  39  24	pyro_magma_1
+118  50  28	pyro_magma_2
+151  62  31	pyro_magma_3
+178  80  36	pyro_magma_4
+198 105  46	pyro_magma_5
+219 130  57	pyro_magma_6
+240 155  67	pyro_magma_7
+ 66  21  24	leech_crimson_0
+ 86  27  29	leech_crimson_1
+107  32  35	leech_crimson_2
+128  37  41	leech_crimson_3
+150  47  50	leech_crimson_4
+170  62  62	leech_crimson_5
+190  77  75	leech_crimson_6
+212  91  88	leech_crimson_7
+ 45  40  37	basalt_slate_0
+ 54  47  45	basalt_slate_1
+ 63  55  52	basalt_slate_2
+ 73  63  60	basalt_slate_3
+ 83  72  68	basalt_slate_4
+ 94  83  78	basalt_slate_5
+106  93  88	basalt_slate_6
+118 103  97	basalt_slate_7
+ 77  49  17	mutant_amber_0
+106  68  24	mutant_amber_1
+136  87  30	mutant_amber_2
+167 107  36	mutant_amber_3
+191 128  49	mutant_amber_4
+206 149  66	mutant_amber_5
+221 170  83	mutant_amber_6
+235 191  99	mutant_amber_7
+ 45  16  23	elite_crimson_0
+ 67  21  31	elite_crimson_1
+ 90  26  39	elite_crimson_2
+113  31  47	elite_crimson_3
+136  41  59	elite_crimson_4
+158  56  75	elite_crimson_5
+181  72  91	elite_crimson_6
+203  88 107	elite_crimson_7
+ 35  28  33	elite_carapace_0
+ 47  37  44	elite_carapace_1
+ 59  48  56	elite_carapace_2
+ 71  58  68	elite_carapace_3
+ 85  71  81	elite_carapace_4
+102  86  97	elite_carapace_5
+118 102 113	elite_carapace_6
+136 117 130	elite_carapace_7
+ 49  41  49	abyssal_indigo_0
+ 58  49  58	abyssal_indigo_1
+ 67  57  67	abyssal_indigo_2
+ 77  65  77	abyssal_indigo_3
+ 87  74  87	abyssal_indigo_4
+ 97  84  97	abyssal_indigo_5
+108  94 108	abyssal_indigo_6
+120 103 120	abyssal_indigo_7
+ 53  33  49	predator_amethyst_0
+ 66  42  61	predator_amethyst_1
+ 79  50  73	predator_amethyst_2
+ 93  59  85	predator_amethyst_3
+107  69  99	predator_amethyst_4
+123  81 113	predator_amethyst_5
+139  93 128	predator_amethyst_6
+155 106 144	predator_amethyst_7
+ 28  41  29	venom_emerald_0
+ 35  53  38	venom_emerald_1
+ 43  65  46	venom_emerald_2
+ 51  77  55	venom_emerald_3
+ 61  91  65	venom_emerald_4
+ 73 105  76	venom_emerald_5
+ 85 120  88	venom_emerald_6
+ 98 135  99	venom_emerald_7
+ 43  28  21	volcanic_ember_0
+ 59  36  27	volcanic_ember_1
+ 76  45  32	volcanic_ember_2
+ 93  55  37	volcanic_ember_3
+111  66  43	volcanic_ember_4
+129  79  50	volcanic_ember_5
+148  92  58	volcanic_ember_6
+167 106  65	volcanic_ember_7
+ 59  58  62	platinum_tech_0
+ 76  74  79	platinum_tech_1
+ 94  91  97	platinum_tech_2
+112 109 116	platinum_tech_3
+132 128 136	platinum_tech_4
+152 148 156	platinum_tech_5
+174 170 178	platinum_tech_6
+196 191 200	platinum_tech_7
+ 70  49  23	imperial_brass_0
+ 90  65  30	imperial_brass_1
+112  82  37	imperial_brass_2
+134  99  44	imperial_brass_3
+155 117  55	imperial_brass_4
+175 138  69	imperial_brass_5
+195 158  84	imperial_brass_6
+216 179 100	imperial_brass_7
+ 81  70  59	warm_ivory_0
+ 98  85  73	warm_ivory_1
+115 101  87	warm_ivory_2
+133 117 102	warm_ivory_3
+151 135 119	warm_ivory_4
+169 154 138	warm_ivory_5
+188 174 158	warm_ivory_6
+207 193 177	warm_ivory_7
+ 38  50  14	acid_lime_0
+ 57  74  18	acid_lime_1
+ 77 100  23	acid_lime_2
+ 99 126  26	acid_lime_3
+124 154  40	acid_lime_4
+153 183  62	acid_lime_5
+184 213  84	acid_lime_6
+216 244 105	acid_lime_7
+ 41  23  20	necrotic_umber_0
+ 56  28  24	necrotic_umber_1
+ 71  33  29	necrotic_umber_2
+ 86  39  33	necrotic_umber_3
+105  49  41	necrotic_umber_4
+128  65  54	necrotic_umber_5
+151  81  66	necrotic_umber_6
+175  98  79	necrotic_umber_7
+ 57  52  71	spectral_bone_0
+ 79  72  95	spectral_bone_1
+102  94 120	spectral_bone_2
+125 116 146	spectral_bone_3
+151 141 172	spectral_bone_4
+178 170 197	spectral_bone_5
+207 199 223	spectral_bone_6
+236 230 249	spectral_bone_7
+ 41  22  55	tide_violet_0
+ 56  27  77	tide_violet_1
+ 70  33  99	tide_violet_2
+ 86  39 122	tide_violet_3
+105  53 147	tide_violet_4
+129  75 174	tide_violet_5
+154  98 203	tide_violet_6
+180 121 232	tide_violet_7
+ 57  20  31	histamine_rose_0
+ 80  26  42	histamine_rose_1
+103  33  54	histamine_rose_2
+127  40  66	histamine_rose_3
+153  57  84	histamine_rose_4
+181  84 109	histamine_rose_5
+209 110 136	histamine_rose_6
+237 138 164	histamine_rose_7
+ 22  58  57	purifier_glow_0
+ 35  87  85	purifier_glow_1
+ 50 118 114	purifier_glow_2
+ 66 151 144	purifier_glow_3
+ 96 180 171	purifier_glow_4
+137 204 196	purifier_glow_5
+177 229 220	purifier_glow_6
+215 254 246	purifier_glow_7
+ 57  22   7	ember_orange_0
+ 91  35  11	ember_orange_1
+127  50  14	ember_orange_2
+164  66  15	ember_orange_3
+194  92  31	ember_orange_4
+215 126  57	ember_orange_5
+235 161  81	ember_orange_6
+254 196 105	ember_orange_7

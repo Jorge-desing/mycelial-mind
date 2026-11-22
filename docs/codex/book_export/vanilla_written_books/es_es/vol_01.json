@@ -1,0 +1,251 @@
+{
+  "volume": 1,
+  "chapters": [
+    "fundamentos",
+    "progresion",
+    "memoria_colmena",
+    "ia_tactica"
+  ],
+  "page_count": 77,
+  "component": {
+    "title": {
+      "raw": "Códice Micelial Vol.I"
+    },
+    "author": "Mycelial Mind v2.0.0",
+    "generation": 0,
+    "resolved": true,
+    "pages": [
+      {
+        "raw": "Cap.1: El Organismo\nAdaptativo\nUna Mente Única y\nEvolutiva\nMycelial Mind v2.0.0\n(MC 1.21.1, NeoForge\n21.1.176, Java 21)\nsustituye la dificultad\nestática por una\ncolmena con memoria\npersistente\n(`HiveMindSavedData`).\nCada daño\n(`StimulusType`) y"
+      },
+      {
+        "raw": "hábito (`PlayerHabit`)\nrecalibran sus\nrasgos\n(`AdaptationTrait`),\nsinergias, oleadas y\nred subterránea."
+      },
+      {
+        "raw": "Regla de Oro: Varía\ntu Arsenal\nRepetir un mismo tipo\nde ataque dispara el\numbral adaptativo\n(70.0 en Nivel 1 y\n200.0 efectivo en Nivel\n2) y blinda al\nenjambre.\nAlterna armas melee,\nproyectiles, fuego,\nexplosivos y magia;\npurga Nodos y\nsintetiza"
+      },
+      {
+        "raw": "contramedidas en la\nMesa Sináptica para\ndrenar su memoria."
+      },
+      {
+        "raw": "Cap.1: Manual de Día 1\n1. Detección y\nMuestreo\nÍtem:\nmycelialmind:creeping_\nmycelium\nLocaliza\n`creeping_mycelium` y\nbrotes.\nForja `bio_scanner` y\n`bio_extractor` para\nextraer\n`genetic_sample`\ncodificadas."
+      },
+      {
+        "raw": "2. Profilaxis y\nContención\nÍtem:\nmycelialmind:spore_anti\ndote\nPrepara\n`spore_antidote` y\nrompe `mycelial_node`.\nAl 25% Amenaza, erige\n`purification_pylon` y\n`synaptic_research_b\nench`."
+      },
+      {
+        "raw": "Cap.1: Bio-Escáner y\nVisión Térmica\nUso Activo y Códice\n(K)\nÍtem:\nmycelialmind:bio_scann\ner\nClic Derecho escanea\nmobs, nodos y aliados.\nPulsa K\n(`open_codex`) para\nabrir las 5 pestañas\ny radar `±128m`."
+      },
+      {
+        "raw": "Visión Sináptica\nTérmica (1/3)\n• Pestañas HUD\n(`BioScannerCodexScr\neen`): Telemetría,\nEvolución, Territorio\n(`±128m`), Diplomacia y\nGuía; atajo opcional\n`toggle_hud_compact`\npara modo compacto.\n• Activación: `Shift +\nClic Derecho` aplica"
+      },
+      {
+        "raw": "`synaptic_vision`;\ndetecta mobs a 32m y\nbloques clave a 36m\ntras muros."
+      },
+      {
+        "raw": "Visión Sináptica\nTérmica (2/3)\n• Entidades (32m):\nPrimordial = Lima-oro\npulsante; Líder =\nDorado; Hostil =\nRojo-naranja;\nDron/Quimera/Jugado\nr = Menta-cian.\n• Nodos y Defensas\n(36m): Nodo Simbiótico\n= Verde; Nodo Hostil =\nPúrpura;"
+      },
+      {
+        "raw": "Pilón/Torreta activa =\nCian; Torreta\natascada = Naranja."
+      },
+      {
+        "raw": "Visión Sináptica\nTérmica (3/3)\n• Amenazas Ocultas\n(36m): Pilón Sofocado\n= Rojo; Quiste\n(`antibody_cyst`) =\nÁmbar; Bóveda sellada\nsin abrir = Oro\npulsante."
+      },
+      {
+        "raw": "Cap.1: Efectos de\nEstado (4)\nEfectos Clínicos\n(ModEffects) (1/4)\n• `mycelial_infection`\n(#7B2CBF,\nPerjudicial): aumenta\nel daño recibido de\n`MycelialMob` en +15%\npor nivel (`1.0 +\n0.15*(amp+1)`),\nbloquea Viaje\nMicorrizal y convierte\nmobs/aldeanos"
+      },
+      {
+        "raw": "cercanos; cada pieza\nde Quitina reduce su\nduración un 20%."
+      },
+      {
+        "raw": "Efectos Clínicos\n(ModEffects) (2/4)\n• `spore_rot`\n(#9B2226,\nPerjudicial):\ncontra-adaptación del\nhábito `COMBAT_MEDIC`\ny contacto con\n`antibody_cyst`;\nreduce toda curación\nen -30% (`* 0.70F`).\nPurga con\n`concentrated_antidot\ne`."
+      },
+      {
+        "raw": "Efectos Clínicos\n(ModEffects) (3/4)\n• `synaptic_insight`\n(#38B000,\nBeneficioso): lectura\ntáctica obtenida al\nabsorber\n`volatile_engram`,\npurgar Nodos o\ndesplegar\n`neural_echo_decoy`;\nconcede +15% de daño\nadicional contra\nunidades de la"
+      },
+      {
+        "raw": "Colmena."
+      },
+      {
+        "raw": "Efectos Clínicos\n(ModEffects) (4/4)\n• `synaptic_vision`\n(#00F5D4,\nBeneficioso): visión\ntérmica por paredes\n(32m entidades, 36m\nnodos/pilones/torret\nas/quistes/bóvedas)\ncon borde HUD cian."
+      },
+      {
+        "raw": "Cap.1: Atlas de\nPartículas (34)\nPartículas\nPersonalizadas (34)\n(1/6)\n• Estados clínicos:\n`infection` (racimo\nvioleta con cilios),\n`rot` (gota necrótica\number), `insight`\n(cristal esmeralda),\n`vision` (iris térmico),\n`recovery` (arcos"
+      },
+      {
+        "raw": "verde-lima), `purge`\n(cruz clínica) y\n`scan` (chevrón de\nbarrido)."
+      },
+      {
+        "raw": "Partículas\nPersonalizadas (34)\n(2/6)\n• Sueros y\ntelemetría:\n`serum_melee`,\n`serum_projectile`,\n`serum_fire`,\n`serum_explosion` y\n`serum_magic` (tajo,\ndardo, ascua, onda y\nglifo); `engram`\n(hexágono ámbar),\n`impact` (estrella"
+      },
+      {
+        "raw": "menta) y `trail`\n(espiral)."
+      },
+      {
+        "raw": "Partículas\nPersonalizadas (34)\n(3/6)\n• Colmena y mundo:\n`spore_mote`,\n`spore_cloud` (bruma\n64px), `spore_fall`,\n`bio_lume`,\n`amber_glint`,\n`chitin_shard`,\n`acid_droplet`,\n`acid_splash` y\n`necrotic_mist`."
+      },
+      {
+        "raw": "Partículas\nPersonalizadas (34)\n(4/6)\n• Red neural:\n`synapse_spark`,\n`hive_pulse` (anillo\nrúnico),\n`psychic_wave`,\n`tide_mote`,\n`hive_ember`,\n`purifier_cross`,\n`thermal_reticle`\n(retícula 64px),\n`histamine_pulse`,"
+      },
+      {
+        "raw": "`hive_dust` (polvo\ntintable) y\n`desync_fragment`."
+      },
+      {
+        "raw": "Partículas\nPersonalizadas (34)\n(5/6)\n• Presupuesto y\nescala: máximo 24\nfragmentos por\nemisión y 48 por\nescena (64 en jefes);\ntamaño 100 %→80 %,\nreducción monótona\ncerca de cámara y\nnada de crecimiento\nposterior."
+      },
+      {
+        "raw": "Partículas\nPersonalizadas (34)\n(6/6)\n• Render y cepas:\nglow aditivo propio\n(desactivable en\n`[particles]`) y\n`hive_dust` tintado por\ncepa (`#9B4DFF`,\n`#F2A93B`, `#E03C5C`)."
+      },
+      {
+        "raw": "Cap.2: Los 4 Actos y\nAmenaza Global\nEscalado por Acto\n(0–100%) (1/3)\n• Acto I `DORMANT`\n(0–25%): HP x1.00,\nDaño x1.00, 0.0 XP/int.,\nVel. x1.00, Mutación 0%,\nDecay Bioma 0.85.\n• Acto II `AWAKENED`\n(25–50%): HP x1.15,\nDaño x1.10, 1.0 XP/int.,"
+      },
+      {
+        "raw": "Vel. x1.03, Mutación 5%,\nDecay 1.00. Activa\nasedios y síntesis N2."
+      },
+      {
+        "raw": "Escalado por Acto\n(0–100%) (2/3)\n• Acto III `ADAPTIVE`\n(50–75%): HP x1.30,\nDaño x1.22, 2.5 XP/int.,\nVel. x1.06, Mutación\n12%, Decay 1.15. Desde\n50.0%\n(`SURFACE_DAY_SPAWN\n_THREAT_THRESHOLD`)\nbrotan de día en\nsuperficie."
+      },
+      {
+        "raw": "Escalado por Acto\n(0–100%) (3/3)\n• Acto IV `OVERMIND`\n(>=75%): HP x1.50,\nDaño x1.35, 4.0 XP/int.,\nVel. x1.10, Mutación\n20%, Decay 1.30.\nEscala con\n`playerCountScaling`\n(+0.15/jugador),\n`deathThreatPenalty`\n(+5.0%) y se\nsincroniza al Micelio\nProfundo."
+      },
+      {
+        "raw": "Cap.2: Motor de Metas\ny Maestría\nMetas de Progresión\n(1/3)\n• 6 Metas a Corto\nPlazo\n(`ShortTermGoal`):\n`CRAFT_SCANNER`,\n`BUILD_RESEARCH_BEN\nCH`,\n`EXTRACT_GENETIC_SA\nMPLE`,\n`SYNTHESIZE_BIOTECH`,\n`UPGRADE_GEAR_OR_ST"
+      },
+      {
+        "raw": "ATION`,\n`MASTER_EXPERIMENTS`."
+      },
+      {
+        "raw": "Metas de Progresión\n(2/3)\n• 5 Metas a Medio\nPlazo (`MidTermGoal`):\n`ESTABLISH_PERIMETER\n` (Pilón),\n`CONQUER_HIVE_SANCT\nUM` (Hive Heart),\n`BREACH_DEEP_MYCELI\nUM` (Grieta),\n`OVERCOME_TIDE_AND_\nMATRIARCH`,\n`MAINTAIN_DOMINION`."
+      },
+      {
+        "raw": "Metas de Progresión\n(3/3)\n• 7 Hitos\n(`MILESTONE_*`):\nBio-Escáner, Mesa\nSináptica,\nBio-Extractor,\nSíntesis Biotech,\nMejora Estación,\nQuitina Evolucionada y\nNúcleo Derrotado.\n• Maestría Larga:\n17/17 especies, 5/5\nrasgos, 8/8 secretos,"
+      },
+      {
+        "raw": "3/3 cepas,\nPrimordiales y\nBastionScore 100/100."
+      },
+      {
+        "raw": "Cap.2: Oleadas, Marea\nFúngica y Remisión\nOleadas, Marea y\nRemisión (1/3)\n• Oleadas\n(`HiveWaveDirector`):\nevalúa cada 100 ticks\nlos hitos 25%, 50%, 75%\ny 100% (enfriamiento\n`waveCooldownTicks =\n3600t` = 3 min). Las\nzonas bajo\n`PurificationZoneTrack"
+      },
+      {
+        "raw": "er` desvían el\nepicentro del asedio."
+      },
+      {
+        "raw": "Oleadas, Marea y\nRemisión (2/3)\n• Marea Fúngica:\nestalla al alcanzar\n>=75% Amenaza\n(`fungalTideDurationTi\ncks = 6000t` = 5 min;\ncooldown `24000t` =\n20 min). Invoca un\n`spore_behemoth`\ncuyo botín da\n`tide_beacon`; suena\n`fungal_tide_horn`."
+      },
+      {
+        "raw": "Oleadas, Marea y\nRemisión (3/3)\n• Remisión de\nMatriarca: derrotar a\n`apex_matriarch` abre\n20 minutos (`24000t`)\nde remisión global:\natenúa la presión de\nAmenaza, calma nodos\ny reduce el estrés\nhomeostático tras\nconquistar el Acto IV."
+      },
+      {
+        "raw": "Cap.3: Memoria Inmune\ny Enrutador\nEnrutamiento Sináptico\n(1/2)\n• División 40/60\n(`SynapticMemoryRoute\nr`): si existe un Nodo\nhostil a <=48m\n(`BUFFER_NODE_RANGE`\n), solo el 40% del\nestímulo sube directo\na la Colmena y el 60%\nqueda en búfer volátil"
+      },
+      {
+        "raw": "del nodo."
+      },
+      {
+        "raw": "Enrutamiento Sináptico\n(2/2)\n• Consolidación vs\nPurga: tras 600 ticks\n(30s) el búfer se\nconsolida en la red.\nRomper o purgar el\nNodo antes disipa el\nbúfer sin consolidar,\ndropea\n`volatile_engram` y\nsangra\n`nodeDestructionStimul\nusBleed` (18.0)."
+      },
+      {
+        "raw": "Cap.3: Estímulos (5) y\nRasgos (5)\n5 Estímulos y 5\nRasgos (1/5)\n• MELEE ->\n`MELEE_THORNS` (N1 >=\n70, N2\n`flanking_swarm` >=\n200): refleja castigo\ncuerpo a cuerpo y\ncoordina flanqueos en\nmasa."
+      },
+      {
+        "raw": "5 Estímulos y 5\nRasgos (2/5)\n• PROJECTILE ->\n`PROJECTILE_DEFLECT`\n(N2 `evasive_strafe`):\nprob. de desvío\n(`projectileDeflectCha\nnce = 0.30`) y\nmaniobras laterales\nevasivas."
+      },
+      {
+        "raw": "5 Estímulos y 5\nRasgos (3/5)\n• FIRE ->\n`FIRE_RESISTANT` (N2\n`pyro_surge`):\ninmunidad/mitigación\ntérmica y asaltos\nagresivos a través de\nfuego."
+      },
+      {
+        "raw": "5 Estímulos y 5\nRasgos (4/5)\n• EXPLOSION ->\n`BLAST_SHIELDED` (N2\n`phalanx_breach`):\neleva armadura base\nmínima a 8.0 y acelera\nla brecha de muros\n(`Burrower` cada 18t)."
+      },
+      {
+        "raw": "5 Estímulos y 5\nRasgos (5/5)\n• MAGIC ->\n`MAGIC_CARAPACE` (N2\n`psychic_disrupt`):\namortigua daño\narcano/veneno y\ndisrumpe al\nconjurador.\nDecaimiento: 2.0/min\n(x1.75 en N2)."
+      },
+      {
+        "raw": "Cap.3: Las 5 Sinergias\n(`HiveSynergy`)\nSinergias Compuestas\n(5) (1/5)\n• `PYROLYTIC_SHELL`\n(`FIRE_RESISTANT` +\n`BLAST_SHIELDED`):\ncaparazón pirolítico\nque emite pulsos\nígneos reactivos al\nrecibir presión\nsostenida."
+      },
+      {
+        "raw": "Sinergias Compuestas\n(5) (2/5)\n• `VENOMOUS_COUNTER`\n(`MELEE_THORNS` +\n`MAGIC_CARAPACE`):\nreparte réplicas\ntóxicas e infecciosas\nante castigo cuerpo a\ncuerpo o arcano."
+      },
+      {
+        "raw": "Sinergias Compuestas\n(5) (3/5)\n• `KINETIC_MIRROR`\n(`PROJECTILE_DEFLECT\n` + `MELEE_THORNS`):\ndispara fragmentos\nde ácido\n(`AcidSpitProjectile`)\nhacia el atacante tras\nrecibir impacto."
+      },
+      {
+        "raw": "Sinergias Compuestas\n(5) (4/5)\n•\n`ARCANE_ABSORPTION`\n(`MAGIC_CARAPACE` +\n`FIRE_RESISTANT`):\nmitiga conjuros,\npociones y calor\nelemental mientras\nsostiene curación en\ncombate."
+      },
+      {
+        "raw": "Sinergias Compuestas\n(5) (5/5)\n• `SIEGE_JUGGERNAUT`\n(`BLAST_SHIELDED` +\n`PROJECTILE_DEFLECT`\n): garantiza >=0.75\nresistencia al empuje\ny potencia ruptura de\nfortificaciones (`18t`)."
+      },
+      {
+        "raw": "Cap.3: Los 4 Hábitos\ndel Jugador\nHábitos Tácticos (>=60\n/ 500) (1/3)\n• `COMBAT_MEDIC`:\ncurarte >=1.5 HP en\ncombate (<16m)\nacumula hábito; a\n>=60.0 aplica\n`spore_rot`\nreduciendo\ncuraciones un -30%\n(`* 0.70F`).\n• `HIGH_MOBILITY`:"
+      },
+      {
+        "raw": "kiting/sprint\nconstante provoca\nemboscadas rápidas y\najuste vectorial de\nflanco (`Stalker`,\n`SwarmFlankGoal`)."
+      },
+      {
+        "raw": "Hábitos Tácticos (>=60\n/ 500) (2/3)\n• `BASTION_BUILDER`:\nlevantar muros,\ntorretas o mejoras\nde laboratorio\ndespierta prioridad\nzapadora (`Burrower`,\n`SporeArchitect`,\ncarga de asedio)."
+      },
+      {
+        "raw": "Hábitos Tácticos (>=60\n/ 500) (3/3)\n•\n`SHADOW_INFILTRATOR`:\nabuso de\ninvisibilidad/agachars\ne activa detección\nsináptica de\nescuadrón. Rota tu\nestilo para enfriar\ncada marcador."
+      },
+      {
+        "raw": "Cap.3: Engaño\nPavloviano y\nContramedidas\nContra-Ingeniería\nCognitiva (1/2)\n•\n`false_engram_injecto\nr`: inyecta +150.0 de\nestímulo falso\ndurante 90s (`1800t`),\nforzando\nsobre-adaptación a\nun elemento para\ninfligir +25% de daño"
+      },
+      {
+        "raw": "con los tipos\nopuestos (cooldown\n60s si se descubre /\n20s natural)."
+      },
+      {
+        "raw": "Contra-Ingeniería\nCognitiva (2/2)\n• `counter_serum`:\ndrena el estímulo\ncodificado según\n`counterSerumBleedRa\ntio` (50% por defecto)\npara desmontar\nrasgos activos.\n•\n`synaptic_suppressor`\n: silencia globalmente\nel aprendizaje\n(`suppressorCooldown"
+      },
+      {
+        "raw": "Seconds = 120s`)."
+      },
+      {
+        "raw": "Cap.4: Arquitectura\nHíbrida SBL + gdx-AI\nSmartBrainLib,\nMemorias y gdx-AI\n(1/3)\n• Capa SBL\n(`MycelialSblBridge`):\nsensor\n`HiveMindSensor` + 5\nconductas\n(`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh\naviour`,"
+      },
+      {
+        "raw": "`AcidSpitterCombatBeh\naviour`,\n`StalkerFlankBehaviou\nr`,\n`WeaverSupportBehavi\nour`)."
+      },
+      {
+        "raw": "SmartBrainLib,\nMemorias y gdx-AI\n(2/3)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
+      },
+      {
+        "raw": "`nearby_ally_count`,\n`hive_mind_sensor`."
+      },
+      {
+        "raw": "SmartBrainLib,\nMemorias y gdx-AI\n(3/3)\n• Capa gdx-AI\n(`HiveTacticalTree`):\nÁrbol de\nComportamiento +\nevaluador de utilidad\n(`HiveUtilityEvaluator`)\n+ pizarra táctica\n(`HiveAiBlackboard`,\n`TacticalIntent`) y\ncampos orgánicos\n`FastNoiseLite`."
+      },
+      {
+        "raw": "Cap.4: Doctrinas,\nEscuadrones y Pacing\nMando Táctico e\nInfluencia (1/4)\n• 5 Doctrinas\n(`HiveDoctrine`) y 4\nÓrdenes (`HiveOrder`):\n`DORMANT`->`NONE`,\n`FORAGING`->`FLANK_PE\nRIMETER`,\n`ADAPTIVE_HUNT`->`FLA\nNK_PERIMETER`,\n`SIEGE_ASSAULT`->`PRE"
+      },
+      {
+        "raw": "SSURE_TARGET`,\n`RECOVERY`->`RALLY_N\nODE`."
+      },
+      {
+        "raw": "Mando Táctico e\nInfluencia (2/4)\n• Escuadrón\n(`SwarmRole` /\n`CommandRole`): roles\n`FRONT_ANCHOR`,\n`FLANK_LEFT`,\n`FLANK_RIGHT`,\n`SUPPORT_REAR` con\n`LEADER`\n(`ALERT_CALL_RADIUS\n= 20m`). Activa\nbalística predictiva y\nFrenesí por bajas."
+      },
+      {
+        "raw": "Mando Táctico e\nInfluencia (3/4)\n• Contramedida\n`Desync` (5s): abate\nal `LEADER` o impacta\ncon\n`purifier_grenade`\npara romper el enlace\n(`SquadTacticalStatus`\n), anular el plomo\nbalístico e inducir\n`10.0` de imprecisión."
+      },
+      {
+        "raw": "Mando Táctico e\nInfluencia (4/4)\n• Pacing y Mapa de\nCalor:\n`HiveBlackboard`\n(`PacingPhase`)\nalterna\npresión/tregua;\n`HiveInfluenceMap`\nguarda hasta 512\nceldas (difusión 0.35,\npoda 0.01) y\n`HiveHotspot` máx. 24\nfocos."
+      },
+      {
+        "raw": "Cap.4: IA de Campo\nVivo y Goals\nMecánicas de Campo\nVivo (1/4)\n• Trauma y Zapadores\n(`LivingBattlefieldSyst\nem`): si una celda\nacumula trauma\n`>=0.55`, la infantería\nla rodea; solo\nZapadores\n(`Burrower`,\n`ColonyWarden`,\n`ELITE` o"
+      },
+      {
+        "raw": "`BLAST_SHIELDED`) la\ncruzan directo."
+      },
+      {
+        "raw": "Mecánicas de Campo\nVivo (2/4)\n• Terraforming y\nAnti-Pilar\n(`ephemeral_chitin`): si\nel jugador se eleva\n>=2 bloques o dispara\na distancia, levantan\nrampas y barricadas\ntemporales de\n`ephemeral_chitin` que\ndecaen en 240t (12s)."
+      },
+      {
+        "raw": "Mecánicas de Campo\nVivo (3/4)\n• Necrofagia\n(`NecrophagyGoal`):\ncadáveres no-jefe\ndejan carroña 240t:\ncomerla cura +6.0 HP\ny otorga +20 XP de\nrango. El fuego o\nzonas de Pilón impiden\nla carroña\n(`shouldDropCarrion`).\n• Atascos: `AcidSpit`"
+      },
+      {
+        "raw": "atasca torretas 120t\n(6s) y `Leech` atasca\ndrones 80t (4s)."
+      },
+      {
+        "raw": "Mecánicas de Campo\nVivo (4/4)\n• Goals (10):\n`BruteCharge`,\n`EvasiveStrafe`,\n`FlankingAmbush`,\n`HiveAlertSupport`,\n`HiveRegroup`,\n`KitingRetreat`,\n`Necrophagy`,\n`SwarmFlank`,\n`TacticalTerraforming`,\n`WeaverSupport`."
+      }
+    ]
+  }
+}

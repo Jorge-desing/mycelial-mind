@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "mycelialmind:mycelial_arch_brick"
+  },
+  "result": {
+    "id": "mycelialmind:chitin_pillar",
+    "count": 1
+  }
+}

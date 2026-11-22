@@ -1,0 +1,245 @@
+{
+  "volume": 1,
+  "chapters": [
+    "fundamentos",
+    "progresion",
+    "memoria_colmena",
+    "ia_tactica"
+  ],
+  "page_count": 75,
+  "component": {
+    "title": {
+      "raw": "Mycelial Codex Vol.I"
+    },
+    "author": "Mycelial Mind v2.0.0",
+    "generation": 0,
+    "resolved": true,
+    "pages": [
+      {
+        "raw": "Cap.1: The Adaptive\nOrganism\nOne Living, Evolving\nMind\nMycelial Mind v2.0.0\n(MC 1.21.1, NeoForge\n21.1.176, Java 21)\nreplaces static\ndifficulty with a\npersistent-memory\nhive\n(`HiveMindSavedData`).\nEvery damage stimulus\n(`StimulusType`) and"
+      },
+      {
+        "raw": "tactical habit\n(`PlayerHabit`)\nrecalibrates traits\n(`AdaptationTrait`),\nsynergies, raids, and\nsubterranean nodes."
+      },
+      {
+        "raw": "Golden Rule: Vary\nYour Arsenal\nRepeating one damage\ntype fills its threshold\n(70.0 at Tier 1 and\neffective 200.0 at Tier\n2), hardening the\nswarm against that\ntactic.\nRotate melee,\nprojectiles, fire,\nblasts, and magic;\npurge Nodes and\ncraft"
+      },
+      {
+        "raw": "countermeasures at\nthe Synaptic Bench to\nbleed Hive memory."
+      },
+      {
+        "raw": "Cap.1: Day-1 Survival\nProtocol\n1. Detection & Sampling\nItem:\nmycelialmind:creeping_\nmycelium\nFind\n`creeping_mycelium`\noutcrops.\nCraft `bio_scanner` &\n`bio_extractor` to\nextract coded\n`genetic_sample`\nspecimens."
+      },
+      {
+        "raw": "2. Prophylaxis &\nContainment\nItem:\nmycelialmind:spore_anti\ndote\nBrew `spore_antidote`\n& break\n`mycelial_node`.\nAt 25% Threat, build\n`purification_pylon` &\n`synaptic_research_b\nench`."
+      },
+      {
+        "raw": "Cap.1: Bio-Scanner &\nThermal Vision\nActive Use & Codex\n(K)\nItem:\nmycelialmind:bio_scann\ner\nRight-click scans\nmobs, nodes, and\nallies.\nPress K\n(`open_codex`) to\nopen all 5 tabs and\n`±128m` radar."
+      },
+      {
+        "raw": "Synaptic Thermal\nVision (1/3)\n• HUD & Tabs\n(`BioScannerCodexScr\neen`): Telemetry,\nEvolutions, Territory\n(`±128m`), Diplomacy &\nGuide; optional key\n`toggle_hud_compact`\ntoggles compact HUD.\n• Trigger: `Shift +\nRight-Click` grants\n`synaptic_vision`;"
+      },
+      {
+        "raw": "reveals mobs at 32m\nand key blocks at 36m\nthrough walls."
+      },
+      {
+        "raw": "Synaptic Thermal\nVision (2/3)\n• Entities (32m):\nPrimordial = pulsing\nLime-Gold; Leader =\nGold; Hostile =\nRed-Orange;\nDrone/Chimera/Player\n= Mint-Cyan.\n• Nodes & Defense\n(36m): Symbiotic Node\n= Green; Hostile Node\n= Purple; Pylon/Active"
+      },
+      {
+        "raw": "Turret = Cyan; Jammed\nTurret = Orange."
+      },
+      {
+        "raw": "Synaptic Thermal\nVision (3/3)\n• Hidden Hazards\n(36m): Smothered\nPylon = Red; Cyst\n(`antibody_cyst`) =\nAmber; Sealed\nunopened Bio-Vault =\npulsing Gold."
+      },
+      {
+        "raw": "Cap.1: Clinical Status\nEffects (4)\nClinical Effects\n(ModEffects) (1/4)\n• `mycelial_infection`\n(#7B2CBF, Harmful):\namplifies incoming\ndamage from\n`MycelialMob` by +15%\nper level (`1.0 +\n0.15*(amp+1)`), blocks\nFast Travel, and\nconverts nearby"
+      },
+      {
+        "raw": "victims; each Chitin\narmor piece cuts\nduration 20%."
+      },
+      {
+        "raw": "Clinical Effects\n(ModEffects) (2/4)\n• `spore_rot`\n(#9B2226, Harmful):\ncounter-adaptation\nfrom `COMBAT_MEDIC`\nhabit and\n`antibody_cyst`\ncontact; cuts all\nhealing by -30% (`*\n0.70F`). Cleanse with\n`concentrated_antidot\ne`."
+      },
+      {
+        "raw": "Clinical Effects\n(ModEffects) (3/4)\n• `synaptic_insight`\n(#38B000, Beneficial):\ntactical clarity gained\nfrom `volatile_engram`\nconsumption, Node\npurges, or\n`neural_echo_decoy`;\ngrants +15% bonus\ndamage against Hive\nentities."
+      },
+      {
+        "raw": "Clinical Effects\n(ModEffects) (4/4)\n• `synaptic_vision`\n(#00F5D4, Beneficial):\nthrough-wall thermal\noverlay (32m entities,\n36m\nnodes/pylons/turrets\n/cysts/vaults) with\ncyan HUD border."
+      },
+      {
+        "raw": "Cap.1: Particle Atlas\n(34)\nCustom Particles (34)\n(1/6)\n• Clinical states:\n`infection` (violet\nciliated cluster), `rot`\n(umber necrotic\ndroplet), `insight`\n(emerald crystal),\n`vision` (thermal iris),\n`recovery` (lime\narcs), `purge` (clinical"
+      },
+      {
+        "raw": "cross) and `scan`\n(sweep chevron)."
+      },
+      {
+        "raw": "Custom Particles (34)\n(2/6)\n• Serums & telemetry:\n`serum_melee`,\n`serum_projectile`,\n`serum_fire`,\n`serum_explosion`,\n`serum_magic` (slash,\ndart, ember, wave,\nglyph); `engram`\n(amber hexagon),\n`impact` (mint star)\nand `trail` (spiral)."
+      },
+      {
+        "raw": "Custom Particles (34)\n(3/6)\n• Hive & world:\n`spore_mote`,\n`spore_cloud` (64px\nmist), `spore_fall`,\n`bio_lume`,\n`amber_glint`,\n`chitin_shard`,\n`acid_droplet`,\n`acid_splash` and\n`necrotic_mist`."
+      },
+      {
+        "raw": "Custom Particles (34)\n(4/6)\n• Neural web:\n`synapse_spark`,\n`hive_pulse` (rune\nring), `psychic_wave`,\n`tide_mote`,\n`hive_ember`,\n`purifier_cross`,\n`thermal_reticle`\n(64px reticle),\n`histamine_pulse`,\n`hive_dust` (tintable\ndust) and"
+      },
+      {
+        "raw": "`desync_fragment`."
+      },
+      {
+        "raw": "Custom Particles (34)\n(5/6)\n• Budget & scale: at\nmost 24 fragments\nper emission and 48\nper scene (64 for\nbosses); size\n100%→80%, monotonic\nnear-camera shrink\nand no regrowth."
+      },
+      {
+        "raw": "Custom Particles (34)\n(6/6)\n• Render & strains:\ncustom additive glow\n(toggleable in\n`[particles]`) and\n`hive_dust` tinted per\nstrain (`#9B4DFF`,\n`#F2A93B`, `#E03C5C`)."
+      },
+      {
+        "raw": "Cap.2: The 4 Acts &\nGlobal Threat\nAct Progression\nScaling (0–100%)\n(1/3)\n• Act I `DORMANT`\n(0–25%): HP x1.00, Dmg\nx1.00, 0.0 XP/int.,\nSpeed x1.00, Mutation\n0%, Biome Decay 0.85.\n• Act II `AWAKENED`\n(25–50%): HP x1.15,\nDmg x1.10, 1.0 XP/int.,"
+      },
+      {
+        "raw": "Speed x1.03, Mutation\n5%, Decay 1.00.\nUnlocks raids & Lab\nT2."
+      },
+      {
+        "raw": "Act Progression\nScaling (0–100%)\n(2/3)\n• Act III `ADAPTIVE`\n(50–75%): HP x1.30,\nDmg x1.22, 2.5 XP/int.,\nSpeed x1.06, Mutation\n12%, Decay 1.15. At\n50.0%\n(`SURFACE_DAY_SPAWN\n_THREAT_THRESHOLD`)\ndaylight surface\nspawns unlock."
+      },
+      {
+        "raw": "Act Progression\nScaling (0–100%)\n(3/3)\n• Act IV `OVERMIND`\n(>=75%): HP x1.50, Dmg\nx1.35, 4.0 XP/int.,\nSpeed x1.10, Mutation\n20%, Decay 1.30.\nScales via\n`playerCountScaling`\n(+0.15/player),\n`deathThreatPenalty`\n(+5.0%), syncing\nOverworld & Deep"
+      },
+      {
+        "raw": "Mycelium."
+      },
+      {
+        "raw": "Cap.2: Progression\nGoal Engine\nProgression Goals\n(1/3)\n• 6 Short-Term Goals\n(`ShortTermGoal`):\n`CRAFT_SCANNER`,\n`BUILD_RESEARCH_BEN\nCH`,\n`EXTRACT_GENETIC_SA\nMPLE`,\n`SYNTHESIZE_BIOTECH`,\n`UPGRADE_GEAR_OR_ST\nATION`,"
+      },
+      {
+        "raw": "`MASTER_EXPERIMENTS`."
+      },
+      {
+        "raw": "Progression Goals\n(2/3)\n• 5 Mid-Term Goals\n(`MidTermGoal`):\n`ESTABLISH_PERIMETER\n` (Pylon),\n`CONQUER_HIVE_SANCT\nUM` (Hive Heart),\n`BREACH_DEEP_MYCELI\nUM` (Rift),\n`OVERCOME_TIDE_AND_\nMATRIARCH`,\n`MAINTAIN_DOMINION`."
+      },
+      {
+        "raw": "Progression Goals\n(3/3)\n• 7 Milestones\n(`MILESTONE_*`):\nBio-Scanner, Synaptic\nBench, Bio-Extractor,\nSynthesized Biotech,\nUpgraded Station,\nEvolved Chitin, Hive\nCore Defeated.\n• Long-Term Mastery:\n17/17 species, 5/5\ntraits, 8/8 secrets,\n3/3 strains,"
+      },
+      {
+        "raw": "Primordials & 100/100\nBastionScore."
+      },
+      {
+        "raw": "Cap.2: Raids, Fungal\nTide & Remission\nRaids, Tide & Remission\n(1/3)\n• Raids\n(`HiveWaveDirector`):\nchecks every 100\nticks at 25%, 50%, 75%,\nand 100%\n(`waveCooldownTicks =\n3600t` = 3 min).\nProtected zones\nunder\n`PurificationZoneTrack"
+      },
+      {
+        "raw": "er` repel direct raid\nspawns."
+      },
+      {
+        "raw": "Raids, Tide & Remission\n(2/3)\n• Fungal Tide: erupts\nat >=75% Threat\n(`fungalTideDurationTi\ncks = 6000t` = 5 min;\ncooldown `24000t` =\n20 min). Spawns a\n`spore_behemoth`\ndropping\n`tide_beacon`;\nbroadcasts\n`fungal_tide_horn`."
+      },
+      {
+        "raw": "Raids, Tide & Remission\n(3/3)\n• Matriarch Remission:\nslaying\n`apex_matriarch`\nopens a 20-minute\n(`24000t`) global\nremission: dampens\nThreat escalation,\ncalms nodes, and\neases dimensional\nhomeostasis stress\nafter Act IV."
+      },
+      {
+        "raw": "Cap.3: Immune Memory\n& Router\nSynaptic Memory\nRouting (1/2)\n• 40/60 Split\n(`SynapticMemoryRoute\nr`): if a hostile Node\nlies within 48m\n(`BUFFER_NODE_RANGE`\n), only 40% enters\nglobal memory directly\nwhile 60% stays in the\nnode's volatile buffer."
+      },
+      {
+        "raw": "Synaptic Memory\nRouting (2/2)\n• Consolidation vs\nPurge: after 600 ticks\n(30s) the buffer\ncommits globally.\nShattering the Node\nearlier voids\nuncommitted data,\ndrops\n`volatile_engram`, and\nbleeds\n`nodeDestructionStimul\nusBleed` (18.0)."
+      },
+      {
+        "raw": "Cap.3: Stimuli (5) &\nAdaptation Traits (5)\n5 Stimuli & 5\nAdaptation Traits\n(1/5)\n• MELEE ->\n`MELEE_THORNS` (T1 >=\n70, T2\n`flanking_swarm` >=\n200): punishes melee\nstrikes with thorns\nand triggers pack\nflanking."
+      },
+      {
+        "raw": "5 Stimuli & 5\nAdaptation Traits\n(2/5)\n• PROJECTILE ->\n`PROJECTILE_DEFLECT`\n(T2 `evasive_strafe`):\ndeflection chance\n(`projectileDeflectCha\nnce = 0.30`) plus\nevasive strafing."
+      },
+      {
+        "raw": "5 Stimuli & 5\nAdaptation Traits\n(3/5)\n• FIRE ->\n`FIRE_RESISTANT` (T2\n`pyro_surge`): thermal\nresilience and\naggressive\npyro-surge advances."
+      },
+      {
+        "raw": "5 Stimuli & 5\nAdaptation Traits\n(4/5)\n• EXPLOSION ->\n`BLAST_SHIELDED` (T2\n`phalanx_breach`):\nraises base armor\nfloor to 8.0 and\nspeeds siege\nbreaching (`Burrower`\nevery 18t)."
+      },
+      {
+        "raw": "5 Stimuli & 5\nAdaptation Traits\n(5/5)\n• MAGIC ->\n`MAGIC_CARAPACE` (T2\n`psychic_disrupt`):\ndampens magic/potion\nbursts and disrupts\ncasters. Decay:\n2.0/min (x1.75 in Tier\n2)."
+      },
+      {
+        "raw": "Cap.3: The 5 Hive\nSynergies\nCompound Synergies\n(5) (1/5)\n• `PYROLYTIC_SHELL`\n(`FIRE_RESISTANT` +\n`BLAST_SHIELDED`):\npyrolytic shell\ndischarging reactive\nflame pulses under\nsustained pressure."
+      },
+      {
+        "raw": "Compound Synergies\n(5) (2/5)\n• `VENOMOUS_COUNTER`\n(`MELEE_THORNS` +\n`MAGIC_CARAPACE`):\ninflicts toxic infection\ncounters against\nmelee and arcane\nstrikes."
+      },
+      {
+        "raw": "Compound Synergies\n(5) (3/5)\n• `KINETIC_MIRROR`\n(`PROJECTILE_DEFLECT\n` + `MELEE_THORNS`):\nfires reflective acid\nshard fragments\n(`AcidSpitProjectile`)\nback at attackers."
+      },
+      {
+        "raw": "Compound Synergies\n(5) (4/5)\n•\n`ARCANE_ABSORPTION`\n(`MAGIC_CARAPACE` +\n`FIRE_RESISTANT`):\ndampens magic,\npotions, and fire while\nsustaining combat\nvitality."
+      },
+      {
+        "raw": "Compound Synergies\n(5) (5/5)\n• `SIEGE_JUGGERNAUT`\n(`BLAST_SHIELDED` +\n`PROJECTILE_DEFLECT`\n): grants >=0.75\nknockback resistance\nfloor and turbo wall\nbreaching (`18t`)."
+      },
+      {
+        "raw": "Cap.3: The 4 Player\nHabits\nTactical Habits (>=60\n/ 500) (1/3)\n• `COMBAT_MEDIC`:\nhealing >=1.5 HP near\nHive mobs (<16m)\ncharges this habit; at\n>=60.0 triggers\n`spore_rot`, cutting\nhealing by -30% (`*\n0.70F`).\n• `HIGH_MOBILITY`:\nsustained"
+      },
+      {
+        "raw": "kiting/sprinting\nprovokes rapid\nflanking intercepts\n(`Stalker`,\n`SwarmFlankGoal`)."
+      },
+      {
+        "raw": "Tactical Habits (>=60\n/ 500) (2/3)\n• `BASTION_BUILDER`:\nbuilding walls, turrets,\nor bench tiers\nescalates sapper\npriority (`Burrower`,\n`SporeArchitect`, siege\ncharges)."
+      },
+      {
+        "raw": "Tactical Habits (>=60\n/ 500) (3/3)\n•\n`SHADOW_INFILTRATOR`:\nheavy\nstealth/crouching\ntriggers synaptic\nsweep reveals. Vary\ntactics to let habit\ngauges cool down."
+      },
+      {
+        "raw": "Cap.3: Pavlovian\nDeception & Purges\nCognitive\nCounter-Engineering\n(1/2)\n•\n`false_engram_injecto\nr`: injects +150.0\nfalse stimulus for 90s\n(`1800t`), forcing\nover-adaptation to\none trait so off-type\nattacks deal +25%\nbonus damage"
+      },
+      {
+        "raw": "(cooldown 60s\nexposed / 20s\nnatural)."
+      },
+      {
+        "raw": "Cognitive\nCounter-Engineering\n(2/2)\n• `counter_serum`:\nbleeds the coded\nstimulus by\n`counterSerumBleedRa\ntio` (50% default) to\nstrip active\nadaptations.\n•\n`synaptic_suppressor`\n: triggers global\nlearning suppression"
+      },
+      {
+        "raw": "(`suppressorCooldown\nSeconds = 120s`)."
+      },
+      {
+        "raw": "Cap.4: SBL + gdx-AI\nArchitecture\nSmartBrainLib,\nMemories & gdx-AI\n(1/3)\n• SBL Layer\n(`MycelialSblBridge`):\n`HiveMindSensor` + 5\nbehaviours\n(`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh\naviour`,\n`AcidSpitterCombatBeh"
+      },
+      {
+        "raw": "aviour`,\n`StalkerFlankBehaviou\nr`,\n`WeaverSupportBehavi\nour`)."
+      },
+      {
+        "raw": "SmartBrainLib,\nMemories & gdx-AI\n(2/3)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
+      },
+      {
+        "raw": "`nearby_ally_count`,\n`hive_mind_sensor`."
+      },
+      {
+        "raw": "SmartBrainLib,\nMemories & gdx-AI\n(3/3)\n• gdx-AI Layer\n(`HiveTacticalTree`):\nBehavior Tree + utility\nscoring\n(`HiveUtilityEvaluator`)\n+ tactical blackboard\n(`HiveAiBlackboard`,\n`TacticalIntent`) and\n`FastNoiseLite`\nsteering fields."
+      },
+      {
+        "raw": "Cap.4: Doctrines,\nSquads & Pacing\nTactical Command &\nInfluence (1/4)\n• 5 Doctrines\n(`HiveDoctrine`) & 4\nOrders (`HiveOrder`):\n`DORMANT`->`NONE`,\n`FORAGING`->`FLANK_PE\nRIMETER`,\n`ADAPTIVE_HUNT`->`FLA\nNK_PERIMETER`,\n`SIEGE_ASSAULT`->`PRE\nSSURE_TARGET`,"
+      },
+      {
+        "raw": "`RECOVERY`->`RALLY_N\nODE`."
+      },
+      {
+        "raw": "Tactical Command &\nInfluence (2/4)\n• Squad (`SwarmRole`\n/ `CommandRole`):\nassigns\n`FRONT_ANCHOR`,\n`FLANK_LEFT`,\n`FLANK_RIGHT`,\n`SUPPORT_REAR` under\n`LEADER` (`20m`).\nEnables predictive\nlead aim and casualty\nFrenzy."
+      },
+      {
+        "raw": "Tactical Command &\nInfluence (3/4)\n• Counter `Desync`\n(5s): snipe the\n`LEADER` or detonate\n`purifier_grenade` to\nshatter command links\n(`SquadTacticalStatus`\n), zero out ballistic\nlead, and inflict `10.0`\ninaccuracy."
+      },
+      {
+        "raw": "Tactical Command &\nInfluence (4/4)\n• Pacing & Influence\nMap: `HiveBlackboard`\n(`PacingPhase`)\nmodulates assault\nintensity;\n`HiveInfluenceMap`\ntracks 512 cells\n(`0.35` diffusion, `0.01`\nprune) alongside max\n24 `HiveHotspot` foci."
+      },
+      {
+        "raw": "Cap.4: Living\nBattlefield AI & Goals\nLiving Battlefield\nMechanics (1/4)\n• Trauma & Sappers\n(`LivingBattlefieldSyst\nem`): cells >=`0.55`\ntrauma force infantry\ndetours; only Sappers\n(`Burrower`,\n`ColonyWarden`,\n`ELITE`, or\n`BLAST_SHIELDED`)"
+      },
+      {
+        "raw": "push straight through."
+      },
+      {
+        "raw": "Living Battlefield\nMechanics (2/4)\n• Anti-Pillar &\nBarricades\n(`ephemeral_chitin`):\npillaring >=2 blocks or\nsniping prompts\ntemporary\n`ephemeral_chitin`\nramps/barricades\nthat crumble after\n240t (12s)."
+      },
+      {
+        "raw": "Living Battlefield\nMechanics (3/4)\n• Necrophagy\n(`NecrophagyGoal`):\nnon-boss kills leave\ncarrion for 240t:\nfeeding heals +6.0 HP\nand grants +20 XP\ntoward promotion. Fire\ndamage or Pylon\nzones prevent\ncarrion drops.\n• Jams: `AcidSpit` jams"
+      },
+      {
+        "raw": "turrets 120t (6s) and\n`Leech` jams drones\n80t (4s)."
+      },
+      {
+        "raw": "Living Battlefield\nMechanics (4/4)\n• Goals (10):\n`BruteCharge`,\n`EvasiveStrafe`,\n`FlankingAmbush`,\n`HiveAlertSupport`,\n`HiveRegroup`,\n`KitingRetreat`,\n`Necrophagy`,\n`SwarmFlank`,\n`TacticalTerraforming`,\n`WeaverSupport`."
+      }
+    ]
+  }
+}

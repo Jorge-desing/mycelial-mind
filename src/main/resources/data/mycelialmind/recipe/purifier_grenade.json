@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " A ",
+    "LGL",
+    " B "
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "L": {
+      "item": "mycelialmind:latent_spore"
+    },
+    "G": {
+      "item": "minecraft:gunpowder"
+    },
+    "B": {
+      "item": "mycelialmind:mycelial_biomass"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:purifier_grenade",
+    "count": 2
+  }
+}

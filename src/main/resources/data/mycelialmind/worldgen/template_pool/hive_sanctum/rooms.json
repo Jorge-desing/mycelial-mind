@@ -1,0 +1,50 @@
+{
+  "fallback": "mycelialmind:hive_sanctum/caps",
+  "elements": [
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/spore_vault",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/incubation_wing",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/forbidden_lab",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/ossuary_crypt",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/corridor_straight",
+        "projection": "rigid",
+        "processors": "mycelialmind:architectural_reflection"
+      }
+    }
+  ]
+}

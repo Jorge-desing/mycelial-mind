@@ -1,0 +1,27 @@
+{
+  "parent": "mycelialmind:synaptic_graft_network",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:quorum_seal"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.chemical_diplomat.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.chemical_diplomat.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "has_quorum_seal": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:quorum_seal"
+          }
+        ]
+      }
+    }
+  }
+}

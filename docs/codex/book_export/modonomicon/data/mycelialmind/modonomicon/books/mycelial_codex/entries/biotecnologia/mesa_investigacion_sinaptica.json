@@ -1,0 +1,41 @@
+{
+  "category": "mycelialmind:biotecnologia",
+  "name": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.name",
+  "description": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.description",
+  "icon": {
+    "item": "mycelialmind:synaptic_research_bench"
+  },
+  "x": -2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 1,
+  "parents": [],
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "title": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.page1.title",
+      "item": {
+        "item": "mycelialmind:synaptic_research_bench",
+        "count": 1
+      },
+      "text": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.biotecnologia.mesa_investigacion_sinaptica.page3.text"
+    }
+  ]
+}

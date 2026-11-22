@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "mature=true": {
+      "model": "mycelialmind:block/mycelial_tendrils"
+    },
+    "mature=false": {
+      "model": "mycelialmind:block/mycelial_tendrils"
+    }
+  }
+}

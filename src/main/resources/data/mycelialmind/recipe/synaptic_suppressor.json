@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " S ",
+    "PHP",
+    " D "
+  ],
+  "key": {
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    },
+    "P": {
+      "item": "mycelialmind:purification_pylon"
+    },
+    "H": {
+      "item": "mycelialmind:hive_heart"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:synaptic_suppressor",
+    "count": 1
+  }
+}

@@ -1,0 +1,3202 @@
+{
+  "book_id": "mycelialmind:mycelial_codex",
+  "mod_version": "2.0.0",
+  "mc_version": "1.21.1",
+  "neoforge_version": "21.1.176",
+  "title_key": "book.mycelialmind.mycelial_codex.name",
+  "subtitle_key": "book.mycelialmind.mycelial_codex.subtitle",
+  "tooltip_key": "book.mycelialmind.mycelial_codex.tooltip",
+  "icon_item": "mycelialmind:bio_scanner",
+  "chapters": [
+    {
+      "id": "fundamentos",
+      "number": 1,
+      "title_key": "codex.mycelialmind.chapter.fundamentos.name",
+      "subtitle_key": "codex.mycelialmind.chapter.fundamentos.desc",
+      "icon_item": "mycelialmind:bio_scanner",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "identidad_organismica",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.fundamentos.identidad_organismica.name",
+          "subtitle_key": "codex.mycelialmind.entry.fundamentos.identidad_organismica.desc",
+          "icon_item": "mycelialmind:hive_heart",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:hive_heart",
+            "DamageTelemetryTracker",
+            "HiveMindSavedData"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "intro_arquitectura",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.identidad_organismica.page.1.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.identidad_organismica.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "intro_regla_oro",
+              "type": "callout",
+              "title_key": "codex.mycelialmind.entry.fundamentos.identidad_organismica.page.2.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.identidad_organismica.page.2.text",
+              "is_spoiler": false,
+              "accent_color": "#9B4DFF"
+            }
+          ]
+        },
+        {
+          "id": "supervivencia_dia_uno",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.fundamentos.supervivencia_dia_uno.name",
+          "subtitle_key": "codex.mycelialmind.entry.fundamentos.supervivencia_dia_uno.desc",
+          "icon_item": "mycelialmind:bio_extractor",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "fundamentos/identidad_organismica"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:creeping_mycelium",
+            "mycelialmind:bio_extractor",
+            "mycelialmind:bio_scanner",
+            "mycelialmind:spore_antidote",
+            "mycelialmind:synaptic_research_bench",
+            "mycelialmind:purification_pylon"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "dia1_p1",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.fundamentos.supervivencia_dia_uno.page.1.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.supervivencia_dia_uno.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:creeping_mycelium"
+            },
+            {
+              "page_number": 2,
+              "id": "dia1_p2",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.fundamentos.supervivencia_dia_uno.page.2.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.supervivencia_dia_uno.page.2.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:spore_antidote"
+            }
+          ]
+        },
+        {
+          "id": "bio_scanner_telemetria",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.name",
+          "subtitle_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.desc",
+          "icon_item": "mycelialmind:bio_scanner",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "fundamentos/supervivencia_dia_uno"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:bio_scanner",
+            "BioScannerCodexScreen",
+            "BioScannerHudOverlay",
+            "key.mycelialmind.open_codex",
+            "key.mycelialmind.toggle_hud_compact"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "scanner_tabs",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.1.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:bio_scanner"
+            },
+            {
+              "page_number": 2,
+              "id": "scanner_thermal_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.2.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "scanner_thermal_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.3.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "scanner_thermal_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.4.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.bio_scanner_telemetria.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "efectos_clinicos",
+          "order": 4,
+          "title_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.name",
+          "subtitle_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.desc",
+          "icon_item": "mycelialmind:concentrated_antidote",
+          "x": -2,
+          "y": 2,
+          "parents": [
+            "fundamentos/supervivencia_dia_uno"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:mycelial_infection",
+            "mycelialmind:spore_rot",
+            "mycelialmind:synaptic_insight",
+            "mycelialmind:synaptic_vision"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "effects_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.1.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "effects_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.2.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "effects_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.3.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "effects_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.4.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.efectos_clinicos.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "atlas_particulas",
+          "order": 5,
+          "title_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.name",
+          "subtitle_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.desc",
+          "icon_item": "mycelialmind:volatile_engram",
+          "x": 0,
+          "y": 2,
+          "parents": [
+            "fundamentos/efectos_clinicos"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:infection",
+            "mycelialmind:rot",
+            "mycelialmind:insight",
+            "mycelialmind:vision",
+            "mycelialmind:recovery",
+            "mycelialmind:purge",
+            "mycelialmind:scan",
+            "mycelialmind:serum_melee",
+            "mycelialmind:serum_projectile",
+            "mycelialmind:serum_fire",
+            "mycelialmind:serum_explosion",
+            "mycelialmind:serum_magic",
+            "mycelialmind:engram",
+            "mycelialmind:impact",
+            "mycelialmind:trail",
+            "mycelialmind:spore_mote",
+            "mycelialmind:spore_cloud",
+            "mycelialmind:spore_fall",
+            "mycelialmind:bio_lume",
+            "mycelialmind:amber_glint",
+            "mycelialmind:chitin_shard",
+            "mycelialmind:acid_droplet",
+            "mycelialmind:acid_splash",
+            "mycelialmind:necrotic_mist",
+            "mycelialmind:synapse_spark",
+            "mycelialmind:hive_pulse",
+            "mycelialmind:psychic_wave",
+            "mycelialmind:tide_mote",
+            "mycelialmind:hive_ember",
+            "mycelialmind:purifier_cross",
+            "mycelialmind:thermal_reticle",
+            "mycelialmind:histamine_pulse",
+            "mycelialmind:hive_dust",
+            "mycelialmind:desync_fragment"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "particles_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.1.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "particles_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.2.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "particles_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.3.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "particles_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.4.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "particles_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.5.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.5.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 6,
+              "id": "particles_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.6.title",
+              "text_key": "codex.mycelialmind.entry.fundamentos.atlas_particulas.page.6.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "progresion",
+      "number": 2,
+      "title_key": "codex.mycelialmind.chapter.progresion.name",
+      "subtitle_key": "codex.mycelialmind.chapter.progresion.desc",
+      "icon_item": "mycelialmind:synaptic_core",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "actos_y_amenaza",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.name",
+          "subtitle_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.desc",
+          "icon_item": "mycelialmind:synaptic_core",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "HiveProgressionTier",
+            "DORMANT",
+            "AWAKENED",
+            "ADAPTIVE",
+            "OVERMIND",
+            "SURFACE_DAY_SPAWN_THREAT_THRESHOLD"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "tiers_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.page.1.title",
+              "text_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "tiers_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.page.2.title",
+              "text_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "tiers_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.page.3.title",
+              "text_key": "codex.mycelialmind.entry.progresion.actos_y_amenaza.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "motor_metas_progresion",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.name",
+          "subtitle_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.desc",
+          "icon_item": "mycelialmind:overmind_essence",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "progresion/actos_y_amenaza"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "ProgressionGoalEngine",
+            "ShortTermGoal",
+            "MidTermGoal",
+            "MILESTONE_BIO_SCANNER",
+            "MILESTONE_SYNAPTIC_BENCH",
+            "MILESTONE_BIO_EXTRACTOR",
+            "MILESTONE_SYNTHESIZED_BIOTECH",
+            "MILESTONE_STATION_UPGRADED",
+            "MILESTONE_CHITIN_EVOLVED",
+            "MILESTONE_HIVE_CORE_DEFEATED"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "goals_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.page.1.title",
+              "text_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "goals_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.page.2.title",
+              "text_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "goals_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.page.3.title",
+              "text_key": "codex.mycelialmind.entry.progresion.motor_metas_progresion.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "oleadas_marea_remision",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.name",
+          "subtitle_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.desc",
+          "icon_item": "mycelialmind:tide_beacon",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "progresion/actos_y_amenaza"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "HiveWaveDirector",
+            "mycelialmind:tide_beacon",
+            "MATRIARCH_REMISSION_DURATION_TICKS"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "waves_tide_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.page.1.title",
+              "text_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "waves_tide_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.page.2.title",
+              "text_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "waves_tide_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.page.3.title",
+              "text_key": "codex.mycelialmind.entry.progresion.oleadas_marea_remision.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "memoria_colmena",
+      "number": 3,
+      "title_key": "codex.mycelialmind.chapter.memoria_colmena.name",
+      "subtitle_key": "codex.mycelialmind.chapter.memoria_colmena.desc",
+      "icon_item": "mycelialmind:false_engram_injector",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "enrutamiento_memoria",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.memoria_colmena.enrutamiento_memoria.name",
+          "subtitle_key": "codex.mycelialmind.entry.memoria_colmena.enrutamiento_memoria.desc",
+          "icon_item": "mycelialmind:volatile_engram",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "SynapticMemoryRouter",
+            "mycelialmind:volatile_engram"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "memory_router_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.enrutamiento_memoria.page.1.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.enrutamiento_memoria.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "memory_router_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.enrutamiento_memoria.page.2.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.enrutamiento_memoria.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "estimulos_y_rasgos",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.name",
+          "subtitle_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.desc",
+          "icon_item": "mycelialmind:genetic_sample",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "memoria_colmena/enrutamiento_memoria"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "StimulusType",
+            "MELEE",
+            "PROJECTILE",
+            "FIRE",
+            "EXPLOSION",
+            "MAGIC",
+            "AdaptationTrait",
+            "MELEE_THORNS",
+            "PROJECTILE_DEFLECT",
+            "FIRE_RESISTANT",
+            "BLAST_SHIELDED",
+            "MAGIC_CARAPACE"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "traits_map_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.1.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "traits_map_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.2.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "traits_map_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.3.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "traits_map_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.4.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "traits_map_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.5.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.estimulos_y_rasgos.page.5.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "sinergias_evolutivas",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.name",
+          "subtitle_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.desc",
+          "icon_item": "mycelialmind:hive_altar",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "memoria_colmena/estimulos_y_rasgos"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "HiveSynergy",
+            "PYROLYTIC_SHELL",
+            "VENOMOUS_COUNTER",
+            "KINETIC_MIRROR",
+            "ARCANE_ABSORPTION",
+            "SIEGE_JUGGERNAUT"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "synergies_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.1.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "synergies_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.2.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "synergies_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.3.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "synergies_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.4.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "synergies_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.5.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.sinergias_evolutivas.page.5.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "habitos_telemetria",
+          "order": 4,
+          "title_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.name",
+          "subtitle_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.desc",
+          "icon_item": "mycelialmind:antibody_cyst",
+          "x": -2,
+          "y": 2,
+          "parents": [
+            "memoria_colmena/enrutamiento_memoria"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "PlayerHabit",
+            "HabitTelemetryTracker",
+            "COMBAT_MEDIC",
+            "HIGH_MOBILITY",
+            "BASTION_BUILDER",
+            "SHADOW_INFILTRATOR"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "habits_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.page.1.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "habits_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.page.2.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "habits_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.page.3.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.habitos_telemetria.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engano_pavloviano",
+          "order": 5,
+          "title_key": "codex.mycelialmind.entry.memoria_colmena.engano_pavloviano.name",
+          "subtitle_key": "codex.mycelialmind.entry.memoria_colmena.engano_pavloviano.desc",
+          "icon_item": "mycelialmind:false_engram_injector",
+          "x": 0,
+          "y": 2,
+          "parents": [
+            "memoria_colmena/estimulos_y_rasgos",
+            "memoria_colmena/habitos_telemetria"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:false_engram_injector",
+            "mycelialmind:counter_serum",
+            "mycelialmind:synaptic_suppressor",
+            "DECEPTION_DURATION_TICKS"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "deception_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.engano_pavloviano.page.1.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.engano_pavloviano.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "deception_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.memoria_colmena.engano_pavloviano.page.2.title",
+              "text_key": "codex.mycelialmind.entry.memoria_colmena.engano_pavloviano.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ia_tactica",
+      "number": 4,
+      "title_key": "codex.mycelialmind.chapter.ia_tactica.name",
+      "subtitle_key": "codex.mycelialmind.chapter.ia_tactica.desc",
+      "icon_item": "mycelialmind:neural_echo_core",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "arquitectura_sbl_gdxai",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.name",
+          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.desc",
+          "icon_item": "mycelialmind:neural_echo_core",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "MycelialSblBridge",
+            "HiveMindSensor",
+            "HiveTacticalTree",
+            "HiveUtilityEvaluator",
+            "HiveAiBlackboard",
+            "TacticalIntent",
+            "mycelialmind:shared_target_pos",
+            "mycelialmind:hive_alert_level",
+            "mycelialmind:nearest_node_pos",
+            "mycelialmind:stalker_flank_pos",
+            "mycelialmind:weaver_support_pos",
+            "mycelialmind:nearest_pylon_pos",
+            "mycelialmind:hive_order",
+            "mycelialmind:mob_combat_xp",
+            "mycelialmind:last_attack_stimulus",
+            "mycelialmind:nearby_ally_count",
+            "mycelialmind:hive_mind_sensor"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "sbl_gdx_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.1.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "sbl_gdx_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.2.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "sbl_gdx_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.3.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "doctrina_escuadron_pacing",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.name",
+          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.desc",
+          "icon_item": "mycelialmind:purifier_grenade",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "ia_tactica/arquitectura_sbl_gdxai"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "HiveDoctrine",
+            "HiveOrder",
+            "SwarmRole",
+            "CommandRole",
+            "SquadTacticalStatus",
+            "PacingPhase",
+            "HiveInfluenceMap",
+            "HiveHotspot",
+            "HiveSquadComposer",
+            "HiveSwarmCoordinator",
+            "SynapticCommandSystem",
+            "HiveBlackboard"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "command_pacing_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.1.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "command_pacing_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.2.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "command_pacing_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.3.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "command_pacing_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.4.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.doctrina_escuadron_pacing.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "campo_batalla_vivo",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.name",
+          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.desc",
+          "icon_item": "mycelialmind:ephemeral_chitin",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "ia_tactica/doctrina_escuadron_pacing"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "LivingBattlefieldSystem",
+            "mycelialmind:ephemeral_chitin",
+            "BruteChargeGoal",
+            "EvasiveStrafeGoal",
+            "FlankingAmbushGoal",
+            "HiveAlertSupportGoal",
+            "HiveRegroupGoal",
+            "KitingRetreatGoal",
+            "NecrophagyGoal",
+            "SwarmFlankGoal",
+            "TacticalTerraformingGoal",
+            "WeaverSupportGoal"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "living_field_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.1.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "living_field_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.2.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "living_field_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.3.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "living_field_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.4.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.campo_batalla_vivo.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bestiario",
+      "number": 5,
+      "title_key": "codex.mycelialmind.chapter.bestiario.name",
+      "subtitle_key": "codex.mycelialmind.chapter.bestiario.desc",
+      "icon_item": "mycelialmind:apex_matriarch_spawn_egg",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "rangos_y_primordiales",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.bestiario.rangos_y_primordiales.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.rangos_y_primordiales.desc",
+          "icon_item": "mycelialmind:spore_behemoth_spawn_egg",
+          "x": -3,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "EvolutionRank",
+            "BASE",
+            "MUTATED",
+            "ELITE",
+            "MycelialMob"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ranks_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.rangos_y_primordiales.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.rangos_y_primordiales.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "ranks_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.rangos_y_primordiales.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.rangos_y_primordiales.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "bestiario_enjambre_ligero",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.desc",
+          "icon_item": "mycelialmind:sporeling_spawn_egg",
+          "x": -1,
+          "y": 0,
+          "parents": [
+            "bestiario/rangos_y_primordiales"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:sporeling",
+            "mycelialmind:leech_parasite",
+            "mycelialmind:mycelial_stalker"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_sporeling",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:sporeling",
+              "entity_scale": 1.1,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "ent_leech",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.2.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:leech_parasite",
+              "entity_scale": 1.1,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.2.entity"
+            },
+            {
+              "page_number": 3,
+              "id": "ent_stalker",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.3.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.3.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:mycelial_stalker",
+              "entity_scale": 0.9,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_enjambre_ligero.page.3.entity"
+            }
+          ]
+        },
+        {
+          "id": "bestiario_artilleria_fuego",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.desc",
+          "icon_item": "mycelialmind:acid_spitter_spawn_egg",
+          "x": 1,
+          "y": 0,
+          "parents": [
+            "bestiario/rangos_y_primordiales"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:acid_spitter",
+            "mycelialmind:pyro_shroom"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_acid_spitter",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:acid_spitter",
+              "entity_scale": 0.9,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "ent_pyro_shroom",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.page.2.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:pyro_shroom",
+              "entity_scale": 0.95,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_artilleria_fuego.page.2.entity"
+            }
+          ]
+        },
+        {
+          "id": "bestiario_ingenieros_soporte",
+          "order": 4,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.desc",
+          "icon_item": "mycelialmind:burrower_spawn_egg",
+          "x": 3,
+          "y": 0,
+          "parents": [
+            "bestiario/rangos_y_primordiales"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:burrower",
+            "mycelialmind:synapse_weaver",
+            "mycelialmind:spore_architect"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_burrower",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:burrower",
+              "entity_scale": 0.85,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "ent_weaver",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.2.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:synapse_weaver",
+              "entity_scale": 0.9,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.2.entity"
+            },
+            {
+              "page_number": 3,
+              "id": "ent_architect",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.3.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.3.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:spore_architect",
+              "entity_scale": 0.85,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_ingenieros_soporte.page.3.entity"
+            }
+          ]
+        },
+        {
+          "id": "bestiario_pesados_mimico",
+          "order": 5,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.desc",
+          "icon_item": "mycelialmind:synaptic_mimic_spawn_egg",
+          "x": -3,
+          "y": 2,
+          "parents": [
+            "bestiario/bestiario_enjambre_ligero"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:chitin_brute",
+            "mycelialmind:goliath_carrier",
+            "mycelialmind:synaptic_mimic",
+            "MimicStance",
+            "BLADE_DANCER",
+            "SPORE_MARKSMAN",
+            "AEGIS_MIRROR"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_brute",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:chitin_brute",
+              "entity_scale": 0.75,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "ent_goliath",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.2.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:goliath_carrier",
+              "entity_scale": 0.65,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.2.entity"
+            },
+            {
+              "page_number": 3,
+              "id": "ent_mimic",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.3.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.3.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:synaptic_mimic",
+              "entity_scale": 0.78,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_pesados_mimico.page.3.entity"
+            }
+          ]
+        },
+        {
+          "id": "bestiario_elite_campeon",
+          "order": 6,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.desc",
+          "icon_item": "mycelialmind:colony_warden_spawn_egg",
+          "x": -1,
+          "y": 2,
+          "parents": [
+            "bestiario/bestiario_pesados_mimico"
+          ],
+          "unlock_gate": "act_3",
+          "registry_refs": [
+            "mycelialmind:colony_warden",
+            "mycelialmind:spore_behemoth"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_warden",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:colony_warden",
+              "entity_scale": 0.62,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "ent_behemoth",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.page.2.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:spore_behemoth",
+              "entity_scale": 0.52,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_elite_campeon.page.2.entity"
+            }
+          ]
+        },
+        {
+          "id": "bestiario_jefe_hive_core",
+          "order": 7,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_hive_core.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_hive_core.desc",
+          "icon_item": "mycelialmind:hive_core_spawn_egg",
+          "x": 1,
+          "y": 2,
+          "parents": [
+            "bestiario/bestiario_elite_campeon"
+          ],
+          "unlock_gate": "act_3",
+          "registry_refs": [
+            "mycelialmind:hive_core",
+            "mycelialmind:hive_heart"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_hive_core",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_hive_core.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_hive_core.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:hive_core",
+              "entity_scale": 0.45,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_hive_core.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "hive_core_tactics_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_hive_core.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_hive_core.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "bestiario_jefe_matriarca",
+          "order": 8,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_matriarca.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_matriarca.desc",
+          "icon_item": "mycelialmind:apex_matriarch_spawn_egg",
+          "x": 3,
+          "y": 2,
+          "parents": [
+            "bestiario/bestiario_jefe_hive_core"
+          ],
+          "unlock_gate": "deep_mycelium",
+          "registry_refs": [
+            "mycelialmind:apex_matriarch",
+            "mycelialmind:overmind_essence"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_matriarch",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_matriarca.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_matriarca.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:apex_matriarch",
+              "entity_scale": 0.4,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_matriarca.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "matriarch_f3_drops",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_matriarca.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_jefe_matriarca.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "bestiario_aliados_quimera",
+          "order": 9,
+          "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.desc",
+          "icon_item": "mycelialmind:chimera_ovum",
+          "x": -3,
+          "y": 4,
+          "parents": [
+            "bestiario/rangos_y_primordiales"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:purifier_drone",
+            "mycelialmind:mycelial_chimera",
+            "CommandMode",
+            "FOLLOW",
+            "PATROL",
+            "WAIT"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_drone",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:purifier_drone",
+              "entity_scale": 0.85,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "ent_chimera",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.2.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:mycelial_chimera",
+              "entity_scale": 0.68,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.2.entity"
+            },
+            {
+              "page_number": 3,
+              "id": "chimera_matrix_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.3.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "chimera_matrix_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.4.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "chimera_matrix_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.5.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.5.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "proyectiles_y_huevos",
+          "order": 10,
+          "title_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.desc",
+          "icon_item": "mycelialmind:hive_core_spawn_egg",
+          "x": -1,
+          "y": 4,
+          "parents": [
+            "bestiario/rangos_y_primordiales"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:acid_spit",
+            "mycelialmind:neutralizing_spore",
+            "mycelialmind:purifier_grenade",
+            "mycelialmind:sporeling_spawn_egg",
+            "mycelialmind:chitin_brute_spawn_egg",
+            "mycelialmind:mycelial_stalker_spawn_egg",
+            "mycelialmind:acid_spitter_spawn_egg",
+            "mycelialmind:burrower_spawn_egg",
+            "mycelialmind:pyro_shroom_spawn_egg",
+            "mycelialmind:synapse_weaver_spawn_egg",
+            "mycelialmind:goliath_carrier_spawn_egg",
+            "mycelialmind:leech_parasite_spawn_egg",
+            "mycelialmind:colony_warden_spawn_egg",
+            "mycelialmind:spore_architect_spawn_egg",
+            "mycelialmind:synaptic_mimic_spawn_egg",
+            "mycelialmind:mycelial_chimera_spawn_egg",
+            "mycelialmind:spore_behemoth_spawn_egg",
+            "mycelialmind:purifier_drone_spawn_egg",
+            "mycelialmind:hive_core_spawn_egg",
+            "mycelialmind:apex_matriarch_spawn_egg"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "proj_eggs_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "proj_eggs_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "proj_eggs_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.3.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "proj_eggs_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.4.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "proj_eggs_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.5.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.5.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "red_sinaptica",
+      "number": 6,
+      "title_key": "codex.mycelialmind.chapter.red_sinaptica.name",
+      "subtitle_key": "codex.mycelialmind.chapter.red_sinaptica.desc",
+      "icon_item": "mycelialmind:symbiotic_node",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "nodos_y_malla_sinaptica",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.name",
+          "subtitle_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.desc",
+          "icon_item": "mycelialmind:mycelial_node",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "SynapticNodeType",
+            "RELAY",
+            "INCUBATOR",
+            "SENTINEL",
+            "SYMBIOTIC",
+            "mycelialmind:mycelial_node",
+            "mycelialmind:incubator_node",
+            "mycelialmind:sentinel_node",
+            "mycelialmind:symbiotic_node",
+            "mycelialmind:synaptic_node"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "nodes_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.page.1.title",
+              "text_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "nodes_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.page.2.title",
+              "text_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "nodes_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.page.3.title",
+              "text_key": "codex.mycelialmind.entry.red_sinaptica.nodos_y_malla_sinaptica.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "injerto_y_viaje_micorrizal",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.name",
+          "subtitle_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.desc",
+          "icon_item": "mycelialmind:symbiotic_node",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "red_sinaptica/nodos_y_malla_sinaptica"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:synaptic_graft",
+            "mycelialmind:symbiotic_node"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "graft_usage",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.page.1.title",
+              "text_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:synaptic_graft"
+            },
+            {
+              "page_number": 2,
+              "id": "fast_travel_rules_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.page.2.title",
+              "text_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "fast_travel_rules_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.page.3.title",
+              "text_key": "codex.mycelialmind.entry.red_sinaptica.injerto_y_viaje_micorrizal.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "acustica_micorrizal_senuelo",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.red_sinaptica.acustica_micorrizal_senuelo.name",
+          "subtitle_key": "codex.mycelialmind.entry.red_sinaptica.acustica_micorrizal_senuelo.desc",
+          "icon_item": "mycelialmind:neural_echo_decoy",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "red_sinaptica/nodos_y_malla_sinaptica"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "MycorrhizalAcousticTracker",
+            "mycelialmind:neural_echo_decoy"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "acoustic_net",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.red_sinaptica.acustica_micorrizal_senuelo.page.1.title",
+              "text_key": "codex.mycelialmind.entry.red_sinaptica.acustica_micorrizal_senuelo.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:neural_echo_decoy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "biotecnologia",
+      "number": 7,
+      "title_key": "codex.mycelialmind.chapter.biotecnologia.name",
+      "subtitle_key": "codex.mycelialmind.chapter.biotecnologia.desc",
+      "icon_item": "mycelialmind:synaptic_research_bench",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "mesa_investigacion_sinaptica",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.name",
+          "subtitle_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.desc",
+          "icon_item": "mycelialmind:synaptic_research_bench",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:synaptic_research_bench",
+            "mycelialmind:synaptic_bench",
+            "SynapticBenchRecipeDefinitions",
+            "SidedSynapticBenchHandler"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "bench_upgrades",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.1.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:synaptic_research_bench"
+            },
+            {
+              "page_number": 2,
+              "id": "bench_recipes_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.2.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "bench_recipes_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.3.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "simbiosis_mutagenos",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.name",
+          "subtitle_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.desc",
+          "icon_item": "mycelialmind:symbiotic_mutagen",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "biotecnologia/mesa_investigacion_sinaptica"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:symbiosis",
+            "mycelialmind:symbiotic_mutagen",
+            "SymbioticMutagen",
+            "CHITIN_THORNS",
+            "KINETIC_STRAFE",
+            "PYRO_GLAND",
+            "BLAST_CARAPACE",
+            "ARCANE_SYNAPSE"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "mutagens_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.1.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "mutagens_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.2.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "mutagens_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.3.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "mutagens_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.4.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.simbiosis_mutagenos.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "cisma_y_diplomacia_quimica",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.name",
+          "subtitle_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.desc",
+          "icon_item": "mycelialmind:quorum_seal",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "biotecnologia/simbiosis_mutagenos"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:diplomacy",
+            "HiveStrain",
+            "ORTHODOX",
+            "AMBER",
+            "CRIMSON",
+            "Standing",
+            "HOSTILE",
+            "NEUTRAL",
+            "PACT",
+            "ALLIED",
+            "mycelialmind:schism_injector",
+            "mycelialmind:truce_pheromone",
+            "mycelialmind:quorum_seal"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "schism_mechanics",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.page.1.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:schism_injector"
+            },
+            {
+              "page_number": 2,
+              "id": "diplomacy_rules_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.page.2.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "diplomacy_rules_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.page.3.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.cisma_y_diplomacia_quimica.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arsenal_defensa",
+      "number": 8,
+      "title_key": "codex.mycelialmind.chapter.arsenal_defensa.name",
+      "subtitle_key": "codex.mycelialmind.chapter.arsenal_defensa.desc",
+      "icon_item": "mycelialmind:overmind_crown",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "armadura_quitina_reactiva",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.name",
+          "subtitle_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.desc",
+          "icon_item": "mycelialmind:chitin_chestplate",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:chitin",
+            "mycelialmind:chitin_helmet",
+            "mycelialmind:chitin_chestplate",
+            "mycelialmind:chitin_leggings",
+            "mycelialmind:chitin_boots",
+            "mycelialmind:armor_rank",
+            "mycelialmind:trait_id"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "chitin_stats",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.page.1.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:chitin_chestplate"
+            },
+            {
+              "page_number": 2,
+              "id": "chitin_evolution_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.page.2.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "chitin_evolution_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.page.3.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.armadura_quitina_reactiva.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "arsenal_tactico_completo",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.name",
+          "subtitle_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.desc",
+          "icon_item": "mycelialmind:symbiotic_blade",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "arsenal_defensa/armadura_quitina_reactiva"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:symbiotic_blade",
+            "mycelialmind:enzyme_lance",
+            "mycelialmind:neutralizing_spore_launcher",
+            "mycelialmind:purifier_grenade",
+            "mycelialmind:bio_extractor",
+            "mycelialmind:spore_antidote",
+            "mycelialmind:concentrated_antidote",
+            "mycelialmind:genetic_sample",
+            "mycelialmind:chimera_ovum",
+            "mycelialmind:neural_echo_core",
+            "mycelialmind:mycelial_biomass",
+            "mycelialmind:chitin_plate",
+            "mycelialmind:latent_spore",
+            "mycelialmind:synaptic_core",
+            "mycelialmind:hive_heart",
+            "mycelialmind:overmind_essence"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "arsenal_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.1.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "arsenal_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.2.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "arsenal_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.3.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "arsenal_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.4.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.arsenal_tactico_completo.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "reliquias_endgame",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.name",
+          "subtitle_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.desc",
+          "icon_item": "mycelialmind:overmind_crown",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "arsenal_defensa/arsenal_tactico_completo"
+          ],
+          "unlock_gate": "act_3",
+          "registry_refs": [
+            "mycelialmind:tide_beacon",
+            "mycelialmind:synaptic_suppressor",
+            "mycelialmind:rift_catalyst",
+            "mycelialmind:overmind_crown"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "relic_crown",
+              "type": "spotlight",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.page.1.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.page.1.text",
+              "is_spoiler": false,
+              "item_id": "mycelialmind:overmind_crown"
+            },
+            {
+              "page_number": 2,
+              "id": "relics_other_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.page.2.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "relics_other_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.page.3.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.reliquias_endgame.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "bastion_defensivo",
+          "order": 4,
+          "title_key": "codex.mycelialmind.entry.arsenal_defensa.bastion_defensivo.name",
+          "subtitle_key": "codex.mycelialmind.entry.arsenal_defensa.bastion_defensivo.desc",
+          "icon_item": "mycelialmind:purification_pylon",
+          "x": -2,
+          "y": 2,
+          "parents": [
+            "arsenal_defensa/reliquias_endgame"
+          ],
+          "unlock_gate": "act_2",
+          "registry_refs": [
+            "mycelialmind:purification_pylon",
+            "mycelialmind:monument_focus",
+            "mycelialmind:purification_turret",
+            "mycelialmind:purifier_drone_core",
+            "mycelialmind:reinforced_bio_barrier"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "bastion_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.bastion_defensivo.page.1.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.bastion_defensivo.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "bastion_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.arsenal_defensa.bastion_defensivo.page.2.title",
+              "text_key": "codex.mycelialmind.entry.arsenal_defensa.bastion_defensivo.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "economia_datos",
+      "number": 9,
+      "title_key": "codex.mycelialmind.chapter.economia_datos.name",
+      "subtitle_key": "codex.mycelialmind.chapter.economia_datos.desc",
+      "icon_item": "mycelialmind:chitin_plate",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "catalogo_bloques_items",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.name",
+          "subtitle_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.desc",
+          "icon_item": "mycelialmind:mycelial_biomass",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:creeping_mycelium",
+            "mycelialmind:hyphal_vein",
+            "mycelialmind:spore_vent",
+            "mycelialmind:mycelial_node",
+            "mycelialmind:incubator_node",
+            "mycelialmind:sentinel_node",
+            "mycelialmind:symbiotic_node",
+            "mycelialmind:purification_pylon",
+            "mycelialmind:purification_turret",
+            "mycelialmind:reinforced_bio_barrier",
+            "mycelialmind:synaptic_research_bench",
+            "mycelialmind:hive_altar",
+            "mycelialmind:bioluminescent_mycelial_cap",
+            "mycelialmind:spore_bulb",
+            "mycelialmind:mycelial_tendrils",
+            "mycelialmind:mycelial_stone",
+            "mycelialmind:mycelial_rift",
+            "mycelialmind:chitin_pillar",
+            "mycelialmind:mycelial_arch_brick",
+            "mycelialmind:bio_chitin_lattice",
+            "mycelialmind:luminescent_amber_vein",
+            "mycelialmind:matriarch_altar",
+            "mycelialmind:ephemeral_chitin",
+            "mycelialmind:antibody_cyst",
+            "mycelialmind:chitin_helmet",
+            "mycelialmind:chitin_chestplate",
+            "mycelialmind:chitin_leggings",
+            "mycelialmind:chitin_boots",
+            "mycelialmind:bio_scanner",
+            "mycelialmind:bio_extractor",
+            "mycelialmind:enzyme_lance",
+            "mycelialmind:neutralizing_spore_launcher",
+            "mycelialmind:symbiotic_blade",
+            "mycelialmind:spore_antidote",
+            "mycelialmind:concentrated_antidote",
+            "mycelialmind:purifier_grenade",
+            "mycelialmind:synaptic_suppressor",
+            "mycelialmind:genetic_sample",
+            "mycelialmind:symbiotic_mutagen",
+            "mycelialmind:counter_serum",
+            "mycelialmind:rift_catalyst",
+            "mycelialmind:overmind_essence",
+            "mycelialmind:overmind_crown",
+            "mycelialmind:tide_beacon",
+            "mycelialmind:purifier_drone_core",
+            "mycelialmind:neural_echo_core",
+            "mycelialmind:synaptic_graft",
+            "mycelialmind:neural_echo_decoy",
+            "mycelialmind:schism_injector",
+            "mycelialmind:truce_pheromone",
+            "mycelialmind:quorum_seal",
+            "mycelialmind:chimera_ovum",
+            "mycelialmind:volatile_engram",
+            "mycelialmind:false_engram_injector",
+            "mycelialmind:mycelial_biomass",
+            "mycelialmind:chitin_plate",
+            "mycelialmind:latent_spore",
+            "mycelialmind:synaptic_core",
+            "mycelialmind:hive_heart",
+            "mycelialmind:mycelial_codex"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "flora_eco_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.1.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "flora_eco_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.2.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "flora_eco_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.3.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "flora_eco_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.4.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "all_23_blocks_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.5.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.5.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 6,
+              "id": "all_23_blocks_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.6.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.6.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 7,
+              "id": "all_23_blocks_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.7.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.7.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 8,
+              "id": "all_35_items_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.8.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.8.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 9,
+              "id": "all_35_items_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.9.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.9.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 10,
+              "id": "all_35_items_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.10.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.10.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 11,
+              "id": "all_35_items_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "recetas_36_datapack",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.name",
+          "subtitle_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.desc",
+          "icon_item": "mycelialmind:chitin_plate",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "economia_datos/catalogo_bloques_items"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:bio_extractor",
+            "mycelialmind:bio_scanner",
+            "mycelialmind:blast_cyst_to_chitin_plate",
+            "mycelialmind:chimera_ovum",
+            "mycelialmind:chitin_boots",
+            "mycelialmind:chitin_chestplate",
+            "mycelialmind:chitin_helmet",
+            "mycelialmind:chitin_leggings",
+            "mycelialmind:concentrated_antidote",
+            "mycelialmind:enzyme_lance",
+            "mycelialmind:false_engram_injector",
+            "mycelialmind:mycelial_codex",
+            "mycelialmind:neural_echo_decoy",
+            "mycelialmind:neutralizing_spore_launcher",
+            "mycelialmind:overmind_crown",
+            "mycelialmind:purification_pylon",
+            "mycelialmind:purification_turret",
+            "mycelialmind:purifier_drone_core",
+            "mycelialmind:purifier_grenade",
+            "mycelialmind:quorum_seal",
+            "mycelialmind:reinforced_bio_barrier",
+            "mycelialmind:rift_catalyst",
+            "mycelialmind:schism_injector",
+            "mycelialmind:smelt_cap_to_latent_spore",
+            "mycelialmind:smelt_creeping_mycelium_to_stone",
+            "mycelialmind:smelt_cyst_to_chitin_plate",
+            "mycelialmind:smoke_cap_to_latent_spore",
+            "mycelialmind:spore_antidote",
+            "mycelialmind:stonecut_arch_brick_to_chitin_pillar",
+            "mycelialmind:stonecut_chitin_plate_to_lattice",
+            "mycelialmind:stonecut_mycelial_stone_to_arch_brick",
+            "mycelialmind:symbiotic_blade",
+            "mycelialmind:synaptic_graft",
+            "mycelialmind:synaptic_research_bench",
+            "mycelialmind:synaptic_suppressor",
+            "mycelialmind:tide_beacon_recharge",
+            "mycelialmind:truce_pheromone"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "rec_craft_1",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.1.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.1.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:bio_scanner",
+              "recipe_id_2": "mycelialmind:bio_extractor",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.1.title2"
+            },
+            {
+              "page_number": 2,
+              "id": "rec_craft_2",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.2.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.2.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:spore_antidote",
+              "recipe_id_2": "mycelialmind:concentrated_antidote",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.2.title2"
+            },
+            {
+              "page_number": 3,
+              "id": "rec_craft_3",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.3.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.3.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:chitin_helmet",
+              "recipe_id_2": "mycelialmind:chitin_chestplate",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.3.title2"
+            },
+            {
+              "page_number": 4,
+              "id": "rec_craft_4",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.4.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.4.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:chitin_leggings",
+              "recipe_id_2": "mycelialmind:chitin_boots",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.4.title2"
+            },
+            {
+              "page_number": 5,
+              "id": "rec_craft_5",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.5.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.5.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:enzyme_lance",
+              "recipe_id_2": "mycelialmind:symbiotic_blade",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.5.title2"
+            },
+            {
+              "page_number": 6,
+              "id": "rec_craft_6",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.6.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.6.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:neutralizing_spore_launcher",
+              "recipe_id_2": "mycelialmind:purifier_grenade",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.6.title2"
+            },
+            {
+              "page_number": 7,
+              "id": "rec_craft_7",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.7.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.7.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:purification_pylon",
+              "recipe_id_2": "mycelialmind:purification_turret",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.7.title2"
+            },
+            {
+              "page_number": 8,
+              "id": "rec_craft_8",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.8.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.8.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:reinforced_bio_barrier",
+              "recipe_id_2": "mycelialmind:purifier_drone_core",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.8.title2"
+            },
+            {
+              "page_number": 9,
+              "id": "rec_craft_9",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.9.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.9.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:synaptic_research_bench",
+              "recipe_id_2": "mycelialmind:synaptic_graft",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.9.title2"
+            },
+            {
+              "page_number": 10,
+              "id": "rec_craft_10",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.10.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.10.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:neural_echo_decoy",
+              "recipe_id_2": "mycelialmind:false_engram_injector",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.10.title2"
+            },
+            {
+              "page_number": 11,
+              "id": "rec_craft_11",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.11.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.11.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:schism_injector",
+              "recipe_id_2": "mycelialmind:truce_pheromone",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.11.title2"
+            },
+            {
+              "page_number": 12,
+              "id": "rec_craft_12",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.12.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.12.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:quorum_seal",
+              "recipe_id_2": "mycelialmind:chimera_ovum",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.12.title2"
+            },
+            {
+              "page_number": 13,
+              "id": "rec_craft_13",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.13.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.13.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:synaptic_suppressor",
+              "recipe_id_2": "mycelialmind:rift_catalyst",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.13.title2"
+            },
+            {
+              "page_number": 14,
+              "id": "rec_craft_14",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.14.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.14.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:overmind_crown",
+              "recipe_id_2": "mycelialmind:tide_beacon_recharge",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.14.title2"
+            },
+            {
+              "page_number": 15,
+              "id": "rec_craft_15",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.15.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.15.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:mycelial_codex"
+            },
+            {
+              "page_number": 16,
+              "id": "rec_smelt_1",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.16.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.16.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:smelt_cap_to_latent_spore",
+              "recipe_id_2": "mycelialmind:smelt_creeping_mycelium_to_stone",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.16.title2"
+            },
+            {
+              "page_number": 17,
+              "id": "rec_smelt_2",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.17.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.17.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:smelt_cyst_to_chitin_plate"
+            },
+            {
+              "page_number": 18,
+              "id": "rec_smoke_1",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.18.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.18.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:smoke_cap_to_latent_spore"
+            },
+            {
+              "page_number": 19,
+              "id": "rec_blast_1",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.19.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.19.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:blast_cyst_to_chitin_plate"
+            },
+            {
+              "page_number": 20,
+              "id": "rec_stonecut_1",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.20.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.20.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:stonecut_mycelial_stone_to_arch_brick",
+              "recipe_id_2": "mycelialmind:stonecut_arch_brick_to_chitin_pillar",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.20.title2"
+            },
+            {
+              "page_number": 21,
+              "id": "rec_stonecut_2",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.21.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.21.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:stonecut_chitin_plate_to_lattice"
+            }
+          ]
+        },
+        {
+          "id": "vanilla_brew_compost_trades",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.name",
+          "subtitle_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.desc",
+          "icon_item": "mycelialmind:latent_spore",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "economia_datos/recetas_36_datapack"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "MycelialVanillaIntegration",
+            "compostables"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "vanilla_econ_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.1.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "vanilla_econ_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.2.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "vanilla_econ_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.3.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "botin_48_tablas",
+          "order": 4,
+          "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.name",
+          "subtitle_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.desc",
+          "icon_item": "mycelialmind:hive_heart",
+          "x": -2,
+          "y": 2,
+          "parents": [
+            "economia_datos/catalogo_bloques_items"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "MycelialLootSystem",
+            "blocks/antibody_cyst",
+            "blocks/bio_chitin_lattice",
+            "blocks/bioluminescent_mycelial_cap",
+            "blocks/chitin_pillar",
+            "blocks/creeping_mycelium",
+            "blocks/hive_altar",
+            "blocks/hyphal_vein",
+            "blocks/incubator_node",
+            "blocks/luminescent_amber_vein",
+            "blocks/matriarch_altar",
+            "blocks/mycelial_arch_brick",
+            "blocks/mycelial_node",
+            "blocks/mycelial_stone",
+            "blocks/mycelial_tendrils",
+            "blocks/purification_pylon",
+            "blocks/purification_turret",
+            "blocks/reinforced_bio_barrier",
+            "blocks/sentinel_node",
+            "blocks/spore_bulb",
+            "blocks/spore_vent",
+            "blocks/symbiotic_node",
+            "blocks/synaptic_research_bench",
+            "chests/citadel_amber_chapel",
+            "chests/citadel_crimson_chapel",
+            "chests/citadel_royal_crypt",
+            "chests/outbreak_sealed_vault",
+            "chests/sanctum_forbidden_lab",
+            "chests/sanctum_ossuary_crypt",
+            "chests/sanctum_spore_vault",
+            "chests/surface_hive_cache",
+            "chests/surface_hive_crypt",
+            "chests/surface_hive_gallery",
+            "entities/acid_spitter",
+            "entities/apex_matriarch",
+            "entities/burrower",
+            "entities/chitin_brute",
+            "entities/colony_warden",
+            "entities/goliath_carrier",
+            "entities/hive_core",
+            "entities/leech_parasite",
+            "entities/mycelial_chimera",
+            "entities/mycelial_stalker",
+            "entities/purifier_drone",
+            "entities/pyro_shroom",
+            "entities/spore_architect",
+            "entities/spore_behemoth",
+            "entities/sporeling",
+            "entities/synapse_weaver",
+            "entities/synaptic_mimic"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "loot_tables_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.1.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "loot_tables_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.2.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "loot_tables_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.3.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "loot_tables_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.4.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "loot_tables_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.5.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.5.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 6,
+              "id": "loot_tables_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.6.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.6.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 7,
+              "id": "loot_tables_p7",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.7.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.7.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 8,
+              "id": "loot_tables_p8",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.8.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.8.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 9,
+              "id": "loot_tables_p9",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.9.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.9.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mundo_dimension",
+      "number": 10,
+      "title_key": "codex.mycelialmind.chapter.mundo_dimension.name",
+      "subtitle_key": "codex.mycelialmind.chapter.mundo_dimension.desc",
+      "icon_item": "mycelialmind:rift_catalyst",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "generacion_overworld_ruido",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.name",
+          "subtitle_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.desc",
+          "icon_item": "mycelialmind:luminescent_amber_vein",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:mycelial_outbreak",
+            "mycelialmind:surface_hive",
+            "mycelialmind:hive_tier_rarity",
+            "StructureProgressionPolicy",
+            "MycelialFastNoise",
+            "FastNoiseLite",
+            "WorldgenAuditEngine"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "worldgen_ow_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.1.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "worldgen_ow_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.2.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "worldgen_ow_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.3.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "micelio_profundo_y_biomas",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.name",
+          "subtitle_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.desc",
+          "icon_item": "mycelialmind:rift_catalyst",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "mundo_dimension/generacion_overworld_ruido"
+          ],
+          "unlock_gate": "act_3",
+          "registry_refs": [
+            "mycelialmind:deep_mycelium",
+            "mycelialmind:deep_mycelium_caverns",
+            "mycelialmind:hive_heart_sanctum",
+            "mycelialmind:latent_spore_forest",
+            "WfcCavernLayout",
+            "mycelialmind:mycelial_rift"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "deep_dim_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.page.1.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "deep_dim_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.page.2.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "deep_dim_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.page.3.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.micelio_profundo_y_biomas.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "megaestructuras_santuario_ciudadela",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.name",
+          "subtitle_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.desc",
+          "icon_item": "mycelialmind:matriarch_altar",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "mundo_dimension/micelio_profundo_y_biomas"
+          ],
+          "unlock_gate": "deep_mycelium",
+          "registry_refs": [
+            "mycelialmind:hive_sanctum",
+            "mycelialmind:matriarch_citadel",
+            "mycelialmind:matriarch_citadel_piece",
+            "mycelialmind:twisted_citadel",
+            "mycelialmind:twisted_citadel_piece",
+            "mycelialmind:architectural_accent"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "megastructures_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.1.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "megastructures_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.2.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "megastructures_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.3.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "homeostasis_dimensional",
+          "order": 4,
+          "title_key": "codex.mycelialmind.entry.mundo_dimension.homeostasis_dimensional.name",
+          "subtitle_key": "codex.mycelialmind.entry.mundo_dimension.homeostasis_dimensional.desc",
+          "icon_item": "mycelialmind:antibody_cyst",
+          "x": -2,
+          "y": 2,
+          "parents": [
+            "mundo_dimension/micelio_profundo_y_biomas"
+          ],
+          "unlock_gate": "deep_mycelium",
+          "registry_refs": [
+            "DimensionalHomeostasisEngine",
+            "HomeostasisStage",
+            "STABLE",
+            "IRRITATED",
+            "IMMUNE_RESPONSE",
+            "mycelialmind:antibody_cyst"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "homeostasis_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.homeostasis_dimensional.page.1.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.homeostasis_dimensional.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "homeostasis_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.homeostasis_dimensional.page.2.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.homeostasis_dimensional.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "secretos_logros",
+      "number": 11,
+      "title_key": "codex.mycelialmind.chapter.secretos_logros.name",
+      "subtitle_key": "codex.mycelialmind.chapter.secretos_logros.desc",
+      "icon_item": "mycelialmind:neural_echo_core",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "secretos_pistas_seguras",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.desc",
+          "icon_item": "mycelialmind:bio_scanner",
+          "x": -2,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "secret_hint",
+          "registry_refs": [
+            "PlayerDiscoveryData",
+            "mycelialmind:discovery",
+            "SECRET_EXP_SYNAPTIC_CORE",
+            "SECRET_EXP_TRUCE_PHEROMONE",
+            "SECRET_EXP_VOLATILE_ENGRAM",
+            "SECRET_EXP_NEURAL_ECHO",
+            "SECRET_WORLD_VENT_PURIFICATION",
+            "SECRET_WORLD_AMBER_CRYSTALLIZATION",
+            "SECRET_PRIMORDIAL_SPECIMEN",
+            "SECRET_SEALED_BIO_VAULT"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "secrets_hints_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "secrets_hints_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "secrets_hints_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.page.3.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_pistas_seguras.page.3.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "secretos_revelaciones_spoiler",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.desc",
+          "icon_item": "mycelialmind:neural_echo_core",
+          "x": 0,
+          "y": 0,
+          "parents": [
+            "secretos_logros/secretos_pistas_seguras"
+          ],
+          "unlock_gate": "secret_spoiler",
+          "registry_refs": [],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "secrets_spoilers_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.1.text",
+              "is_spoiler": true,
+              "accent_color": "#FFB703"
+            },
+            {
+              "page_number": 2,
+              "id": "secrets_spoilers_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.2.text",
+              "is_spoiler": true,
+              "accent_color": "#FFB703"
+            },
+            {
+              "page_number": 3,
+              "id": "secrets_spoilers_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.3.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.3.text",
+              "is_spoiler": true,
+              "accent_color": "#FFB703"
+            },
+            {
+              "page_number": 4,
+              "id": "secrets_spoilers_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.4.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.4.text",
+              "is_spoiler": true,
+              "accent_color": "#FFB703"
+            },
+            {
+              "page_number": 5,
+              "id": "secrets_spoilers_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.5.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.5.text",
+              "is_spoiler": true,
+              "accent_color": "#FFB703"
+            },
+            {
+              "page_number": 6,
+              "id": "secrets_spoilers_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.6.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.secretos_revelaciones_spoiler.page.6.text",
+              "is_spoiler": true,
+              "accent_color": "#FFB703"
+            }
+          ]
+        },
+        {
+          "id": "logros_30_advancements",
+          "order": 3,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.desc",
+          "icon_item": "mycelialmind:overmind_crown",
+          "x": 2,
+          "y": 0,
+          "parents": [
+            "secretos_logros/secretos_pistas_seguras"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "root",
+            "first_adaptation",
+            "genetic_sampler",
+            "sever_the_network",
+            "biotech_research",
+            "targeted_purge",
+            "chitin_bulwark",
+            "tier2_awakening",
+            "base_sentinel",
+            "bastion_tier3",
+            "purifier_drone_deployed",
+            "symbiotic_vessel",
+            "synaptic_graft_network",
+            "pavlovian_deceiver",
+            "chemical_diplomat",
+            "architect_bane",
+            "chimera_bioforge",
+            "hive_core_slayer",
+            "synaptic_mastery",
+            "tide_breaker",
+            "counteroffensive_master",
+            "enter_deep_mycelium",
+            "immune_homeostasis",
+            "overmind_ascendant",
+            "apex_matriarch_slayer",
+            "recipes/unlock_biomass_recipes",
+            "recipes/unlock_chitin_recipes",
+            "recipes/unlock_hive_heart_recipes",
+            "recipes/unlock_latent_spore_recipes",
+            "recipes/unlock_synaptic_core_recipes"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "advancements_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "advancements_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "advancements_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.3.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "advancements_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.4.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.logros_30_advancements.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "redstone_y_ecosistema_mods",
+          "order": 4,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.desc",
+          "icon_item": "mycelialmind:purification_turret",
+          "x": -2,
+          "y": 2,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "MycelialRedstoneTelemetry",
+            "MycelialJadePlugin",
+            "MycelialJeiPlugin",
+            "MycelialEmiPlugin",
+            "MycelialIrisCompat",
+            "MycelialModonomiconCompat",
+            "MycelialAzureLibCompat"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "redstone_compat_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "redstone_compat_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "redstone_compat_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.3.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "redstone_compat_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.4.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tecnica_comandos",
+      "number": 12,
+      "title_key": "codex.mycelialmind.chapter.tecnica_comandos.name",
+      "subtitle_key": "codex.mycelialmind.chapter.tecnica_comandos.desc",
+      "icon_item": "mycelialmind:bio_scanner",
+      "unlock_gate": "always",
+      "entries": [
+        {
+          "id": "configuracion_cliente_servidor",
+          "order": 1,
+          "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.name",
+          "subtitle_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.desc",
+          "icon_item": "mycelialmind:synaptic_research_bench",
+          "x": -1,
+          "y": 0,
+          "parents": [],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "MycelialConfig",
+            "MycelialClientConfig",
+            "HudAnchor",
+            "MycelialKeyBindings"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "config_ref_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.1.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "config_ref_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.2.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "config_ref_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.3.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "config_ref_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.4.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "config_ref_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.5.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.5.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 6,
+              "id": "config_ref_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.6.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.6.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 7,
+              "id": "config_ref_p7",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.7.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.7.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 8,
+              "id": "config_ref_p8",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.8.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.8.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 9,
+              "id": "config_ref_p9",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.9.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.9.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 10,
+              "id": "config_ref_p10",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.10.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.10.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 11,
+              "id": "config_ref_p11",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.11.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.11.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "comandos_red_y_verificacion",
+          "order": 2,
+          "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.name",
+          "subtitle_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.desc",
+          "icon_item": "mycelialmind:bio_scanner",
+          "x": 1,
+          "y": 0,
+          "parents": [
+            "tecnica_comandos/configuracion_cliente_servidor"
+          ],
+          "unlock_gate": "admin",
+          "registry_refs": [
+            "ModNetworking",
+            "HiveSyncPayload",
+            "SymbiosisSyncPayload",
+            "DiplomacySyncPayload",
+            "DiscoverySyncPayload",
+            "MycelialCommands",
+            "projectile_adaptation",
+            "pylon_containment",
+            "boss_encounter",
+            "tier2_synergy",
+            "synaptic_network",
+            "symbiosis",
+            "units",
+            "expansion",
+            "tide",
+            "counteroffensive",
+            "arsenal",
+            "mycorrhizal",
+            "hive_ai",
+            "chimera",
+            "memory",
+            "tactical_ai",
+            "field_ai",
+            "hyphal_siege",
+            "loot",
+            "homeostasis",
+            "polish",
+            "dimension_progression"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "commands_net_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.1.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "commands_net_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.2.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "commands_net_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.3.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "commands_net_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.4.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "commands_net_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.5.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.5.text",
+              "is_spoiler": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

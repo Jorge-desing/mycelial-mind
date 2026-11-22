@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "mature=true": {
+      "model": "mycelialmind:block/bioluminescent_mycelial_cap"
+    },
+    "mature=false": {
+      "model": "mycelialmind:block/bioluminescent_mycelial_cap"
+    }
+  }
+}

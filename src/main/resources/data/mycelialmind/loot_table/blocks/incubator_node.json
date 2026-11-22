@@ -1,0 +1,70 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "conditions": [{ "condition": "minecraft:survives_explosion" }],
+      "entries": [
+        { "type": "minecraft:item", "name": "mycelialmind:synaptic_core" }
+      ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "conditions": [{ "condition": "minecraft:survives_explosion" }],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:mycelial_biomass",
+          "weight": 45,
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 2, "max": 4 } },
+            { "function": "minecraft:apply_bonus", "enchantment": "minecraft:fortune", "formula": "minecraft:uniform_bonus_count", "parameters": { "bonusMultiplier": 1 } }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:latent_spore",
+          "weight": 35,
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 2, "max": 3 } },
+            { "function": "minecraft:apply_bonus", "enchantment": "minecraft:fortune", "formula": "minecraft:uniform_bonus_count", "parameters": { "bonusMultiplier": 1 } }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:chitin_plate",
+          "weight": 20,
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } },
+            { "function": "minecraft:apply_bonus", "enchantment": "minecraft:fortune", "formula": "minecraft:uniform_bonus_count", "parameters": { "bonusMultiplier": 1 } }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "conditions": [
+        { "condition": "minecraft:survives_explosion" },
+        { "condition": "minecraft:random_chance", "chance": 0.30 }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:genetic_sample",
+          "weight": 50,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": { "mycelialmind:trait_id": "melee_thorns" }
+            }
+          ]
+        },
+        { "type": "minecraft:item", "name": "mycelialmind:volatile_engram", "weight": 30 },
+        { "type": "minecraft:item", "name": "mycelialmind:chimera_ovum", "weight": 20 }
+      ]
+    }
+  ]
+}

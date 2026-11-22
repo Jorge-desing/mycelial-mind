@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_chitin_plate": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:chitin_plate"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_chitin_plate"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:chitin_helmet",
+      "mycelialmind:chitin_chestplate",
+      "mycelialmind:chitin_leggings",
+      "mycelialmind:chitin_boots",
+      "mycelialmind:enzyme_lance",
+      "mycelialmind:neutralizing_spore_launcher",
+      "mycelialmind:purification_pylon",
+      "mycelialmind:reinforced_bio_barrier"
+    ]
+  }
+}

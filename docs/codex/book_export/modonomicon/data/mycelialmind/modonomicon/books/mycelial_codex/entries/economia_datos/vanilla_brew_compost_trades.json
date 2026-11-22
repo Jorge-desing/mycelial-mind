@@ -1,0 +1,46 @@
+{
+  "category": "mycelialmind:economia_datos",
+  "name": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.name",
+  "description": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.description",
+  "icon": {
+    "item": "mycelialmind:latent_spore"
+  },
+  "x": 2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 3,
+  "parents": [
+    {
+      "entry": "mycelialmind:economia_datos/recetas_36_datapack",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page3.text"
+    }
+  ]
+}

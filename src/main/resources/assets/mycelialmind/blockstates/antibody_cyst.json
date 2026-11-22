@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=true": {
+      "model": "mycelialmind:block/antibody_cyst"
+    },
+    "active=false": {
+      "model": "mycelialmind:block/antibody_cyst_withered"
+    }
+  }
+}

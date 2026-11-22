@@ -1,0 +1,5 @@
+// 1.21.1	2026-11-22T05:25:50.2045423	Global Loot Modifiers : mycelialmind
+f54708e7f1d86d155c74e618beec122fc0c70da8 data/mycelialmind/loot_modifiers/ancient_city_deep_traces.json
+ece5d3758e0070035fcb3dac5976c875208eef96 data/mycelialmind/loot_modifiers/dungeon_underground_traces.json
+af8d932276b17de346532e05f75df6063bb2d0eb data/mycelialmind/loot_modifiers/mineshaft_underground_traces.json
+df5fad99c6b8cefb7562b885a94c8849d0157ecb data/neoforge/loot_modifiers/global_loot_modifiers.json

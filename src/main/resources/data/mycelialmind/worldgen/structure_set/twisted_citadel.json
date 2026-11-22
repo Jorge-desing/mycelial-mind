@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "mycelialmind:twisted_citadel",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 91472835,
+    "spacing": 24,
+    "separation": 12
+  }
+}

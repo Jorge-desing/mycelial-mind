@@ -1,0 +1,209 @@
+{
+  "ok": true,
+  "stats": {
+    "chapters": 12,
+    "entries": 50,
+    "pages": 201
+  },
+  "summary": {
+    "blocks": {
+      "expected": 24,
+      "covered": 24,
+      "missing": 0
+    },
+    "items": {
+      "expected": 53,
+      "covered": 53,
+      "missing": 0
+    },
+    "entities": {
+      "expected": 20,
+      "covered": 20,
+      "missing": 0
+    },
+    "effects": {
+      "expected": 4,
+      "covered": 4,
+      "missing": 0
+    },
+    "particles": {
+      "expected": 34,
+      "covered": 34,
+      "missing": 0
+    },
+    "attachments": {
+      "expected": 3,
+      "covered": 3,
+      "missing": 0
+    },
+    "data_components": {
+      "expected": 2,
+      "covered": 2,
+      "missing": 0
+    },
+    "armor_materials": {
+      "expected": 1,
+      "covered": 1,
+      "missing": 0
+    },
+    "block_entities": {
+      "expected": 4,
+      "covered": 4,
+      "missing": 0
+    },
+    "menu_types": {
+      "expected": 1,
+      "covered": 1,
+      "missing": 0
+    },
+    "features": {
+      "expected": 3,
+      "covered": 3,
+      "missing": 0
+    },
+    "structures": {
+      "expected": 6,
+      "covered": 6,
+      "missing": 0
+    },
+    "memory_types": {
+      "expected": 11,
+      "covered": 11,
+      "missing": 0
+    },
+    "recipes": {
+      "expected": 37,
+      "covered": 37,
+      "missing": 0
+    },
+    "advancements": {
+      "expected": 30,
+      "covered": 30,
+      "missing": 0
+    },
+    "loot_tables": {
+      "expected": 49,
+      "covered": 49,
+      "missing": 0
+    },
+    "biomes": {
+      "expected": 3,
+      "covered": 3,
+      "missing": 0
+    },
+    "dimensions": {
+      "expected": 1,
+      "covered": 1,
+      "missing": 0
+    },
+    "compostables": {
+      "expected": 5,
+      "covered": 5,
+      "missing": 0
+    },
+    "server_configs": {
+      "expected": 39,
+      "covered": 39,
+      "missing": 0
+    },
+    "client_configs": {
+      "expected": 12,
+      "covered": 12,
+      "missing": 0
+    },
+    "keybindings": {
+      "expected": 2,
+      "covered": 2,
+      "missing": 0
+    },
+    "secrets": {
+      "expected": 8,
+      "covered": 8,
+      "missing": 0
+    },
+    "verify_scenarios": {
+      "expected": 21,
+      "covered": 21,
+      "missing": 0
+    },
+    "stimuli": {
+      "expected": 5,
+      "covered": 5,
+      "missing": 0
+    },
+    "traits": {
+      "expected": 5,
+      "covered": 5,
+      "missing": 0
+    },
+    "synergies": {
+      "expected": 5,
+      "covered": 5,
+      "missing": 0
+    },
+    "ranks": {
+      "expected": 3,
+      "covered": 3,
+      "missing": 0
+    },
+    "tiers": {
+      "expected": 4,
+      "covered": 4,
+      "missing": 0
+    },
+    "strains": {
+      "expected": 3,
+      "covered": 3,
+      "missing": 0
+    },
+    "habits": {
+      "expected": 4,
+      "covered": 4,
+      "missing": 0
+    },
+    "doctrines": {
+      "expected": 5,
+      "covered": 5,
+      "missing": 0
+    },
+    "orders": {
+      "expected": 4,
+      "covered": 4,
+      "missing": 0
+    },
+    "swarm_roles": {
+      "expected": 4,
+      "covered": 4,
+      "missing": 0
+    },
+    "mutagens": {
+      "expected": 5,
+      "covered": 5,
+      "missing": 0
+    },
+    "node_types": {
+      "expected": 4,
+      "covered": 4,
+      "missing": 0
+    },
+    "homeostasis_stages": {
+      "expected": 3,
+      "covered": 3,
+      "missing": 0
+    },
+    "recipe_widgets": {
+      "expected": 37,
+      "covered": 37,
+      "missing": 0
+    },
+    "entity_widgets": {
+      "expected": 17,
+      "covered": 17,
+      "missing": 0
+    }
+  },
+  "missing": {},
+  "invalid_refs": [],
+  "recipe_pair_errors": [],
+  "budget_issues": []
+}

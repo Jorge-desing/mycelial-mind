@@ -1,0 +1,79 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": { "type": "minecraft:uniform", "min": 2, "max": 3 },
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:synaptic_core",
+          "weight": 35,
+          "functions": [{ "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 2, "max": 3 } }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:chitin_plate",
+          "weight": 40,
+          "functions": [{ "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 4, "max": 8 } }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 25,
+          "functions": [{ "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 2, "max": 4 } }]
+        }
+      ]
+    },
+    {
+      "rolls": { "type": "minecraft:uniform", "min": 1, "max": 2 },
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:concentrated_antidote",
+          "weight": 28,
+          "functions": [{ "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:purifier_grenade",
+          "weight": 28,
+          "functions": [{ "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 2, "max": 3 } }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:truce_pheromone",
+          "weight": 24,
+          "functions": [{ "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }]
+        },
+        { "type": "minecraft:item", "name": "minecraft:golden_apple", "weight": 20 }
+      ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "entries": [
+        { "type": "minecraft:item", "name": "mycelialmind:quorum_seal", "weight": 30 },
+        { "type": "minecraft:item", "name": "mycelialmind:neural_echo_core", "weight": 28 },
+        { "type": "minecraft:item", "name": "mycelialmind:synaptic_graft", "weight": 22 },
+        { "type": "minecraft:item", "name": "mycelialmind:false_engram_injector", "weight": 20 }
+      ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "entries": [
+        { "type": "minecraft:item", "name": "mycelialmind:overmind_essence", "weight": 40 },
+        { "type": "minecraft:item", "name": "mycelialmind:tide_beacon", "weight": 25 },
+        { "type": "minecraft:item", "name": "mycelialmind:chimera_ovum", "weight": 20 },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:echo_shard",
+          "weight": 15,
+          "functions": [{ "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 2, "max": 4 } }]
+        }
+      ]
+    }
+  ]
+}

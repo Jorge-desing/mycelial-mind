@@ -1,0 +1,22 @@
+{
+  "parent": "mycelialmind:hive_core_slayer",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:rift_catalyst"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.enter_deep_mycelium.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.enter_deep_mycelium.description"
+    }
+  },
+  "criteria": {
+    "entered_deep_mycelium": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "mycelialmind:deep_mycelium"
+      }
+    }
+  }
+}

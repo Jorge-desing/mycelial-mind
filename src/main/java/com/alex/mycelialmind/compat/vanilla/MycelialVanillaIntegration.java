@@ -1,0 +1,365 @@
+package com.alex.mycelialmind.compat.vanilla;
+
+import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
+import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
+import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.hive.PlayerDiscoveryData;
+import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.registry.ModBlockEntities;
+import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModItems;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.BasicItemListing;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
+import net.neoforged.neoforge.event.brewing.RegisterBrewingRecipesEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.village.VillagerTradesEvent;
+import net.neoforged.neoforge.event.village.WandererTradesEvent;
+import net.neoforged.neoforge.items.IItemHandler;
+
+import javax.annotation.Nullable;
+
+/**
+ * Integrates Mycelial Mind organically with Vanilla Minecraft systems:
+ * - Hopper / sided IItemHandler capability on the Synaptic Research Bench,
+ *   Purification Turret, Purification Pylon, and Symbiotic Nodes
+ * - Brewing Stand recipes for Spore Antidote and Concentrated Antidote
+ * - Cleric, Mason, and Wandering Trader offers
+ * - Crafting / pickup progression milestone detection
+ */
+public final class MycelialVanillaIntegration {
+    private MycelialVanillaIntegration() {
+    }
+
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(MycelialVanillaIntegration::onRegisterCapabilities);
+        NeoForge.EVENT_BUS.register(MycelialVanillaIntegration.class);
+    }
+
+    private static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                ModBlockEntities.SYNAPTIC_BENCH.get(),
+                SidedSynapticBenchHandler::new
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                ModBlockEntities.PURIFICATION_TURRET.get(),
+                (turret, side) -> new PurificationTurretItemHandler(turret)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                ModBlockEntities.MONUMENT_FOCUS.get(),
+                (focus, side) -> focus.getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())
+                        ? new MonumentFocusItemHandler(focus)
+                        : null
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                ModBlockEntities.SYNAPTIC_NODE.get(),
+                (node, side) -> new SynapticNodeItemHandler(node)
+        );
+    }
+
+    @SubscribeEvent
+    public static void onRegisterBrewingRecipes(RegisterBrewingRecipesEvent event) {
+        var builder = event.getBuilder();
+        builder.addRecipe(
+                DataComponentIngredient.of(false, PotionContents.createItemStack(Items.POTION, Potions.AWKWARD)),
+                Ingredient.of(ModItems.LATENT_SPORE.get()),
+                new ItemStack(ModItems.SPORE_ANTIDOTE.get())
+        );
+        builder.addRecipe(
+                Ingredient.of(ModItems.SPORE_ANTIDOTE.get()),
+                Ingredient.of(Items.AMETHYST_SHARD),
+                new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get())
+        );
+    }
+
+    @SubscribeEvent
+    public static void onVillagerTrades(VillagerTradesEvent event) {
+        if (event.getType() == VillagerProfession.CLERIC) {
+            event.getTrades().get(2).add(new BasicItemListing(
+                    new ItemStack(ModItems.MYCELIAL_BIOMASS.get(), 4),
+                    new ItemStack(Items.EMERALD, 1),
+                    12, 5, 0.05F));
+            event.getTrades().get(3).add(new BasicItemListing(
+                    3,
+                    new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 1),
+                    8, 10, 0.05F));
+            event.getTrades().get(4).add(new BasicItemListing(
+                    4,
+                    new ItemStack(ModItems.LATENT_SPORE.get(), 2),
+                    6, 15, 0.05F));
+            event.getTrades().get(5).add(new BasicItemListing(
+                    9,
+                    new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get(), 1),
+                    4, 20, 0.05F));
+        } else if (event.getType() == VillagerProfession.MASON) {
+            event.getTrades().get(3).add(new BasicItemListing(
+                    1,
+                    new ItemStack(ModBlocks.MYCELIAL_ARCH_BRICK.get(), 4),
+                    12, 10, 0.05F));
+            event.getTrades().get(4).add(new BasicItemListing(
+                    2,
+                    new ItemStack(ModBlocks.CHITIN_PILLAR.get(), 2),
+                    8, 15, 0.05F));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onWandererTrades(WandererTradesEvent event) {
+        event.getGenericTrades().add(new BasicItemListing(
+                2,
+                new ItemStack(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get(), 2),
+                6, 5, 0.05F));
+        event.getGenericTrades().add(new BasicItemListing(
+                3,
+                new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 1),
+                6, 5, 0.05F));
+        event.getRareTrades().add(new BasicItemListing(
+                5,
+                new ItemStack(ModBlocks.LUMINESCENT_AMBER_VEIN.get(), 2),
+                4, 15, 0.05F));
+        event.getRareTrades().add(new BasicItemListing(
+                6,
+                new ItemStack(ModItems.TRUCE_PHEROMONE.get(), 1),
+                3, 15, 0.05F));
+    }
+
+    @SubscribeEvent
+    public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            recordMilestoneForItem(serverPlayer, event.getCrafting());
+        }
+    }
+
+    @SubscribeEvent
+    public static void onItemPickedUp(ItemEntityPickupEvent.Post event) {
+        if (event.getPlayer() instanceof ServerPlayer serverPlayer) {
+            recordMilestoneForItem(serverPlayer, event.getCurrentStack());
+        }
+    }
+
+    private static void recordMilestoneForItem(ServerPlayer player, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        if (stack.is(ModItems.BIO_SCANNER.get())) {
+            PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_BIO_SCANNER);
+        } else if (stack.is(ModBlocks.SYNAPTIC_RESEARCH_BENCH.asItem())) {
+            PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_SYNAPTIC_BENCH);
+        } else if (stack.is(ModItems.BIO_EXTRACTOR.get())) {
+            PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_BIO_EXTRACTOR);
+        } else if (stack.is(ModItems.SYMBIOTIC_MUTAGEN.get()) || stack.is(ModItems.COUNTER_SERUM.get())) {
+            PlayerDiscoveryData.unlockMilestone(player, ProgressionGoalEngine.MILESTONE_SYNTHESIZED_BIOTECH);
+        }
+    }
+
+    private static ItemStack remainderAfterSingleUse(ItemStack stack) {
+        return stack.getCount() <= 1 ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - 1);
+    }
+
+    private static abstract class InsertOnlySingleUseHandler implements IItemHandler {
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return slot == 0 ? 1 : 0;
+        }
+    }
+
+    public static final class PurificationTurretItemHandler extends InsertOnlySingleUseHandler {
+        private final PurificationTurretBlockEntity turret;
+
+        public PurificationTurretItemHandler(PurificationTurretBlockEntity turret) {
+            this.turret = turret;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return slot == 0 && (turret.canCleanJamWith(stack) || turret.canUpgradeWith(stack));
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (slot != 0 || stack.isEmpty()) {
+                return stack;
+            }
+            if (turret.canCleanJamWith(stack)) {
+                if (!simulate && !turret.tryCleanJam(stack.copyWithCount(1), null)) {
+                    return stack;
+                }
+                return remainderAfterSingleUse(stack);
+            }
+            if (turret.canUpgradeWith(stack)) {
+                if (!simulate && !turret.tryUpgrade(stack.copyWithCount(1), null)) {
+                    return stack;
+                }
+                return remainderAfterSingleUse(stack);
+            }
+            return stack;
+        }
+    }
+
+    public static final class MonumentFocusItemHandler extends InsertOnlySingleUseHandler {
+        private final MonumentFocusBlockEntity focus;
+
+        public MonumentFocusItemHandler(MonumentFocusBlockEntity focus) {
+            this.focus = focus;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return slot == 0 && focus.canUpgradeWith(stack);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (slot != 0 || stack.isEmpty() || !focus.canUpgradeWith(stack)) {
+                return stack;
+            }
+            if (!simulate && !focus.tryUpgrade(stack.copyWithCount(1), null)) {
+                return stack;
+            }
+            return remainderAfterSingleUse(stack);
+        }
+    }
+
+    public static final class SynapticNodeItemHandler extends InsertOnlySingleUseHandler {
+        private final SynapticNodeBlockEntity node;
+
+        public SynapticNodeItemHandler(SynapticNodeBlockEntity node) {
+            this.node = node;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return slot == 0 && node.canRechargeSymbiotic(stack);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (slot != 0 || stack.isEmpty() || !node.canRechargeSymbiotic(stack)) {
+                return stack;
+            }
+            if (!node.tryRechargeSymbiotic(stack.copyWithCount(1), simulate)) {
+                return stack;
+            }
+            return remainderAfterSingleUse(stack);
+        }
+    }
+
+    public static final class SidedSynapticBenchHandler implements IItemHandler {
+        private final SynapticBenchBlockEntity bench;
+        @Nullable
+        private final Direction side;
+
+        public SidedSynapticBenchHandler(SynapticBenchBlockEntity bench, @Nullable Direction side) {
+            this.bench = bench;
+            this.side = side;
+        }
+
+        private int mapSlot(int localSlot) {
+            if (side == null) {
+                return localSlot;
+            }
+            if (side == Direction.UP) {
+                return SynapticBenchBlockEntity.SLOT_SAMPLE;
+            }
+            if (side == Direction.DOWN) {
+                return SynapticBenchBlockEntity.SLOT_OUTPUT;
+            }
+            return localSlot == 0 ? SynapticBenchBlockEntity.SLOT_BIOMASS : SynapticBenchBlockEntity.SLOT_CATALYST;
+        }
+
+        @Override
+        public int getSlots() {
+            if (side == null) {
+                return 4;
+            }
+            if (side == Direction.UP || side == Direction.DOWN) {
+                return 1;
+            }
+            return 2;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            if (slot < 0 || slot >= getSlots()) {
+                return ItemStack.EMPTY;
+            }
+            return bench.getInventory().getStackInSlot(mapSlot(slot));
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (stack.isEmpty() || slot < 0 || slot >= getSlots() || side == Direction.DOWN) {
+                return stack;
+            }
+            int targetSlot = mapSlot(slot);
+            if (targetSlot == SynapticBenchBlockEntity.SLOT_OUTPUT
+                    || !SynapticBenchBlockEntity.isValidSlotInput(targetSlot, stack)) {
+                return stack;
+            }
+            return bench.getInventory().insertItem(targetSlot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (amount <= 0 || slot < 0 || slot >= getSlots()) {
+                return ItemStack.EMPTY;
+            }
+            int targetSlot = mapSlot(slot);
+            if (targetSlot != SynapticBenchBlockEntity.SLOT_OUTPUT) {
+                return ItemStack.EMPTY;
+            }
+            return bench.extractOutputForAutomation(amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            if (slot < 0 || slot >= getSlots()) {
+                return 0;
+            }
+            return bench.getInventory().getSlotLimit(mapSlot(slot));
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            if (slot < 0 || slot >= getSlots() || side == Direction.DOWN) {
+                return false;
+            }
+            int targetSlot = mapSlot(slot);
+            return targetSlot != SynapticBenchBlockEntity.SLOT_OUTPUT
+                    && SynapticBenchBlockEntity.isValidSlotInput(targetSlot, stack);
+        }
+    }
+}

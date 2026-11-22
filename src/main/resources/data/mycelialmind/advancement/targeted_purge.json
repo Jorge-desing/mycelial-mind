@@ -1,0 +1,26 @@
+{
+  "parent": "mycelialmind:biotech_research",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:counter_serum"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.targeted_purge.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.targeted_purge.description"
+    }
+  },
+  "criteria": {
+    "has_serum": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:counter_serum"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "values": {
+    "minecraft:cleric": {
+      "loot_table": "mycelialmind:gameplay/hero_of_the_village/cleric_mycelial_gift"
+    }
+  }
+}

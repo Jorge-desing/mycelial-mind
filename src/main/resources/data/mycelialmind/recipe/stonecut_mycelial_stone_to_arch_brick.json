@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "mycelialmind:mycelial_stone"
+  },
+  "result": {
+    "id": "mycelialmind:mycelial_arch_brick",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_biomass": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:mycelial_biomass"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_biomass"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:spore_antidote",
+      "mycelialmind:purifier_grenade",
+      "mycelialmind:bio_extractor",
+      "mycelialmind:synaptic_research_bench",
+      "mycelialmind:neural_echo_decoy",
+      "mycelialmind:truce_pheromone"
+    ]
+  }
+}

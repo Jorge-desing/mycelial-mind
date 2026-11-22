@@ -1,0 +1,48 @@
+{
+  "category": "mycelialmind:arsenal_defensa",
+  "name": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.name",
+  "description": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.description",
+  "icon": {
+    "item": "mycelialmind:overmind_crown"
+  },
+  "x": 2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 3,
+  "parents": [
+    {
+      "entry": "mycelialmind:arsenal_defensa/arsenal_tactico_completo",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "title": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.page1.title",
+      "item": {
+        "item": "mycelialmind:overmind_crown",
+        "count": 1
+      },
+      "text": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.arsenal_defensa.reliquias_endgame.page3.text"
+    }
+  ]
+}

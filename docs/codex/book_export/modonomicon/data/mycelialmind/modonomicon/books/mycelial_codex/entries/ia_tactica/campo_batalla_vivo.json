@@ -1,0 +1,53 @@
+{
+  "category": "mycelialmind:ia_tactica",
+  "name": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.name",
+  "description": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.description",
+  "icon": {
+    "item": "mycelialmind:ephemeral_chitin"
+  },
+  "x": 2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 3,
+  "parents": [
+    {
+      "entry": "mycelialmind:ia_tactica/doctrina_escuadron_pacing",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.ia_tactica.campo_batalla_vivo.page4.text"
+    }
+  ]
+}

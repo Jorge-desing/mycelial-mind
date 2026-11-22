@@ -1,0 +1,383 @@
+plugins {
+    id 'idea'
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.91'
+    id 'info.solidsoft.pitest' version '1.15.0'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    // Define wrapper values here so as to not have to always do so when updating gradlew.properties.
+    // Switching this to Wrapper.DistributionType.ALL will download the full gradle sources that comes with
+    // documentation attached on cursor hover of gradle classes and methods. However, this comes with increased
+    // file size for Gradle. If you do switch this to ALL, run the Gradle wrapper task twice afterwards.
+    // (Verify by checking gradle/wrapper/gradle-wrapper.properties to see if distributionUrl now points to `-all`)
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/releases/"
+    }
+    maven {
+        name = "BlameJared Maven"
+        url = "https://maven.blamejared.com/"
+    }
+    maven {
+        name = "SmartBrainLib (SBL) Maven Repo"
+        url = "https://dl.cloudsmith.io/public/tslat/sbl/maven/"
+        content {
+            includeGroup "net.tslat.smartbrainlib"
+        }
+    }
+    maven {
+        name = "Klikli-Dev Maven"
+        url = "https://dl.cloudsmith.io/public/klikli-dev/mods/maven/"
+        content {
+            includeGroup "com.klikli_dev"
+        }
+    }
+}
+
+base {
+    archivesName = mod_id
+}
+
+// Mojang ships Java 21 to end users starting in 1.20.5, so mods should target Java 21.
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    // Specify the version of NeoForge to use.
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    // This line is optional. Access Transformers are automatically detected
+    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            client()
+
+            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        visualSmoke {
+            client()
+            if (providers.gradleProperty('particleVisualSmoke').getOrElse('false') == 'true') {
+                gameDirectory = project.file('artifacts/diagnostics/particle-visual-client')
+            }
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'mycelialmind.visualSmoke', 'true'
+            systemProperty 'mycelialmind.particleVisualSmoke', providers.gradleProperty('particleVisualSmoke').getOrElse('false')
+            jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+
+        animationVisualSmoke {
+            client()
+            gameDirectory = project.file('artifacts/diagnostics/animation-visual-client')
+            programArguments.addAll '--width', '1600', '--height', '900'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'mycelialmind.visualSmoke', 'true'
+            systemProperty 'mycelialmind.animationVisualSmoke', 'true'
+            systemProperty 'mycelialmind.animationPair', providers.gradleProperty('animationPair').getOrElse('brute_warden')
+            systemProperty 'mycelialmind.animationHideEmissive', providers.gradleProperty('animationHideEmissive').getOrElse('false')
+            systemProperty 'mycelialmind.animationRank', providers.gradleProperty('animationRank').getOrElse('base')
+            jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+
+        structureVisualSmoke {
+            client()
+            gameDirectory = project.file('artifacts/diagnostics/structure-visual-client')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'mycelialmind.structureVisualSmoke', 'true'
+            jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+
+        bridgeDevClient {
+            client()
+            gameDirectory = project.file('artifacts/diagnostics/bridge-dev-client')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        hiveLifecycleSmoke {
+            client()
+            gameDirectory = project.file('artifacts/diagnostics/hive-lifecycle-client')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'mycelialmind.hiveLifecycleSmoke', 'true'
+            systemProperty 'mycelialmind.hiveLifecycleForceFailure', providers.gradleProperty('hiveLifecycleForceFailure').getOrElse('false')
+            systemProperty 'mycelialmind.hiveLifecycleHoldTicks', providers.gradleProperty('hiveLifecycleHoldTicks').getOrElse('0')
+            jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        diagnosticServer {
+            server()
+            gameDirectory = project.file('artifacts/diagnostics/live-server')
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        smokeServer {
+            server()
+            gameDirectory = project.file(providers.gradleProperty('smokeRunDirectory').getOrElse('artifacts/diagnostics/server-smoke'))
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+
+        // This run config launches GameTestServer and runs all registered gametests, then exits.
+        // By default, the server will crash when no gametests are provided.
+        // The gametest system is also enabled by default for other run configs under the /test command.
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+
+        data {
+            data()
+
+            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+            // gameDirectory = project.file('run-data')
+
+            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+            jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+
+        // applies to all the run configs above
+        configureEach {
+            // Gradle's own JVM options are not inherited by the launched game JVM.
+            // On Windows use the same system trust store as the development tools.
+            if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+                systemProperty 'javax.net.ssl.trustStoreType', 'Windows-ROOT'
+            }
+
+            // Default to INFO for automated runs; interactive runs opt into DEBUG above.
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        // define mod <-> source bindings
+        // these are used to tell the game which sources are for which mod
+        // mostly optional in a single mod project
+        // but multi mod projects should define one per mod
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+
+    // Wire Minecraft/NeoForge classes onto sourceSets.test for fast headless JUnit 5
+    // algorithm tests without ModLauncher/FML bootstrap (~10s saved per :test run).
+    // NeoForge runtime integration tests belong in @GameTest / runGameTestServer.
+    addModdingDependenciesTo(sourceSets.test)
+}
+
+// Include resources generated by data generators.
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+// Sets up a dependency configuration called 'localRuntime'.
+// This configuration should be used instead of 'runtimeOnly' to declare
+// a dependency that will be present for runtime testing but that is
+// "optional", meaning it will not be pulled by dependents of this mod.
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+    mcPilotDependency
+}
+
+def smartBrainDependency = "net.tslat.smartbrainlib:SmartBrainLib-neoforge-1.21.1:1.16.11"
+
+dependencies {
+    // Opt-in diagnostics only; never published as mod dependencies.
+    if (providers.gradleProperty('diagnostics').isPresent()) {
+        localRuntime 'maven.modrinth:spark:v5qtqRQi'
+        localRuntime 'maven.modrinth:observable:f8lSH3bs'
+        localRuntime 'maven.modrinth:kotlin-for-forge:9ZlVvei8'
+        localRuntime 'maven.modrinth:architectury-api:xGfBrBzj'
+    }
+    // Required AI framework
+    implementation smartBrainDependency
+    mcPilotDependency(smartBrainDependency) { transitive = false }
+
+    // gdxAI (Apache-2.0): Steering behaviors, FSM/MessageDispatcher & formation AI
+    implementation "com.badlogicgames.gdx:gdx-ai:1.8.2"
+    additionalRuntimeClasspath "com.badlogicgames.gdx:gdx-ai:1.8.2"
+    additionalRuntimeClasspath "com.badlogicgames.gdx:gdx:1.9.8"
+    jarJar("com.badlogicgames.gdx:gdx-ai:1.8.2")
+    jarJar("com.badlogicgames.gdx:gdx:1.9.8")
+
+    // Unit testing & Pitest mutation testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Optional mod integrations (compileOnly so Mycelial Mind runs standalone or alongside any of them)
+    compileOnly "maven.modrinth:jade:15.10.5+neoforge"
+    compileOnly "dev.emi:emi-neoforge:1.1.24+1.21.1:api"
+    compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.21.0.247"
+    compileOnly "maven.modrinth:iris:1.8.8+1.21.1-neoforge"
+    compileOnly "com.klikli_dev:modonomicon-1.21.1-neoforge:1.123.0"
+    compileOnly "maven.modrinth:azurelib:rzVuOJoh"
+
+    // Example optional mod dependency with JEI
+    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
+    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
+    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
+    // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
+    // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
+
+    // Example mod dependency using a mod jar from ./libs with a flat dir repository
+    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
+    // The group id is ignored when searching -- in this case, it is "blank"
+    // implementation "blank:coolmod-${mc_version}:${coolmod_version}"
+
+    // Example mod dependency using a file as dependency
+    // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
+
+    // Example project dependency using a sister or child project:
+    // implementation project(":myproject")
+
+    // For more info:
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+}
+
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+// Include the output of "generateModMetadata" as an input directory for the build
+// this works with both building through Gradle and the IDE.
+sourceSets.main.resources.srcDir generateModMetadata
+// To avoid having to run "generateModMetadata" manually, make it run on every project reload
+neoForge.ideSyncTask generateModMetadata
+
+// Example configuration to allow publishing using the maven-publish plugin
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    jvmArgs '-XX:TieredStopAtLevel=1'
+    maxParallelForks = Math.max(1, Math.min(4, Runtime.runtime.availableProcessors().intdiv(2)))
+}
+
+pitest {
+    pitestVersion = '1.17.1'
+    junit5PluginVersion = '1.2.1'
+    useClasspathFile = true
+    verbose = false
+    jvmArgs = ['-XX:TieredStopAtLevel=1', '-Xmx512m']
+    targetClasses = [
+            'com.alex.mycelialmind.hive.HiveInfluenceMap*',
+            'com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator*',
+            'com.alex.mycelialmind.world.MycelialFastNoise*',
+            'com.alex.mycelialmind.world.DimensionalHomeostasisEngine*',
+            'com.alex.mycelialmind.hive.LivingBattlefieldSystem*',
+            'com.alex.mycelialmind.world.structure.StructureProgressionPolicy*',
+            'com.alex.mycelialmind.hive.HiveProgressionTier*',
+            'com.alex.mycelialmind.hive.ProgressionGoalEngine*',
+            'com.alex.mycelialmind.config.MycelialClientConfig*',
+            'com.alex.mycelialmind.util.MycelialRedstoneTelemetry*',
+            'com.alex.mycelialmind.util.ParticleEmissionBudget*',
+            'com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine*'
+    ]
+    targetTests = ['com.alex.mycelialmind.*Test']
+    threads = Math.max(2, Runtime.runtime.availableProcessors() - 1)
+    withHistory = true
+    outputFormats = ['HTML', 'CSV']
+    timestampedReports = false
+}
+
+afterEvaluate {
+    tasks.withType(info.solidsoft.gradle.pitest.PitestTask).configureEach {
+        def cleanCp = additionalClasspath.files.findAll { f ->
+            !f.name.contains('junit-fml') && !f.name.contains('fml-junit') && !f.name.contains('neoforge-junit')
+        }
+        additionalClasspath.setFrom(cleanCp)
+    }
+}
+
+tasks.register('stageMcPilotDependency', Sync) {
+    from configurations.mcPilotDependency
+    into layout.buildDirectory.dir('mc-pilot-dependencies')
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

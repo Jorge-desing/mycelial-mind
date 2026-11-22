@@ -1,0 +1,39 @@
+{
+  "multipart": [
+    {
+      "apply": { "model": "mycelialmind:block/hyphal_vein_dot" }
+    },
+    {
+      "when": { "OR": [{ "north": "side" }, { "north": "up" }] },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_side" }
+    },
+    {
+      "when": { "OR": [{ "east": "side" }, { "east": "up" }] },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_side", "y": 90 }
+    },
+    {
+      "when": { "OR": [{ "south": "side" }, { "south": "up" }] },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_side", "y": 180 }
+    },
+    {
+      "when": { "OR": [{ "west": "side" }, { "west": "up" }] },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_side", "y": 270 }
+    },
+    {
+      "when": { "north": "up" },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_up" }
+    },
+    {
+      "when": { "east": "up" },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_up", "y": 90 }
+    },
+    {
+      "when": { "south": "up" },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_up", "y": 180 }
+    },
+    {
+      "when": { "west": "up" },
+      "apply": { "model": "mycelialmind:block/hyphal_vein_up", "y": 270 }
+    }
+  ]
+}

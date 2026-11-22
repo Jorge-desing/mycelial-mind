@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mycelial-mind-dev": {
+      "command": "c:\\Users\\Alex\\Documents\\Mod Minecraft\\scripts\\mcp\\.venv\\Scripts\\python.exe",
+      "args": [
+        "c:\\Users\\Alex\\Documents\\Mod Minecraft\\scripts\\mcp\\server.py"
+      ]
+    }
+  }
+}

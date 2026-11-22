@@ -1,0 +1,45 @@
+{
+  "category": "mycelialmind:bestiario",
+  "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_elite_campeon.name",
+  "description": "book.mycelialmind.mycelial_codex.bestiario.bestiario_elite_campeon.description",
+  "icon": {
+    "item": "mycelialmind:colony_warden_spawn_egg"
+  },
+  "x": -1,
+  "y": 2,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 6,
+  "parents": [
+    {
+      "entry": "mycelialmind:bestiario/bestiario_pesados_mimico",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_elite_campeon.page1.entity_name",
+      "entity_id": "mycelialmind:colony_warden",
+      "scale": 0.62,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_elite_campeon.page1.text"
+    },
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_elite_campeon.page2.entity_name",
+      "entity_id": "mycelialmind:spore_behemoth",
+      "scale": 0.52,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_elite_campeon.page2.text"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " O ",
+    "DHD",
+    " S "
+  ],
+  "key": {
+    "O": {
+      "item": "mycelialmind:overmind_essence"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "H": {
+      "item": "mycelialmind:hive_heart"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:overmind_crown",
+    "count": 1
+  }
+}

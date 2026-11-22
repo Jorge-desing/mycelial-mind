@@ -1,0 +1,26 @@
+{
+  "parent": "mycelialmind:tier2_awakening",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:synaptic_core"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.sever_the_network.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.sever_the_network.description"
+    }
+  },
+  "criteria": {
+    "has_synaptic_core": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:synaptic_core"
+          }
+        ]
+      }
+    }
+  }
+}

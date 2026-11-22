@@ -1,0 +1,48 @@
+# Eclipse / VS Code / OS
+bin/
+*.launch
+.settings/
+.metadata/
+.classpath
+.project
+eclipse/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IntelliJ IDEA
+out/
+*.ipr
+*.iws
+*.iml
+.idea/
+
+# Gradle
+build/
+.gradle/
+.gradle-user-home/
+
+# Minecraft / NeoForge runtime & logs
+run/
+runs/
+run-data/
+logs/
+*.log
+*.log.gz
+
+# Distribución y artefactos locales
+dist/
+artifacts/
+.tools/
+.mct/
+repo/
+
+# Python / MCP / PyTorch
+scripts/mcp/.venv/
+.venv/
+venv/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+torchinductor_*/

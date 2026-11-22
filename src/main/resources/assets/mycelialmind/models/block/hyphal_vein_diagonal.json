@@ -1,0 +1,24 @@
+{
+  "render_type": "minecraft:cutout",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "mycelialmind:block/hyphal_vein_dot",
+    "line": "mycelialmind:block/hyphal_vein_line"
+  },
+  "elements": [
+    {
+      "from": [5.5, 0.28, -3.3],
+      "to": [10.5, 0.28, 8.0],
+      "shade": false,
+      "rotation": {
+        "origin": [8, 0.28, 8],
+        "axis": "y",
+        "angle": -45
+      },
+      "faces": {
+        "up": { "uv": [5, 0, 11, 16], "texture": "#line", "tintindex": 0 },
+        "down": { "uv": [5, 16, 11, 0], "texture": "#line", "tintindex": 0 }
+      }
+    }
+  ]
+}

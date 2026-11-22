@@ -1,0 +1,32 @@
+{
+  "category": "mycelialmind:bestiario",
+  "name": "book.mycelialmind.mycelial_codex.bestiario.rangos_y_primordiales.name",
+  "description": "book.mycelialmind.mycelial_codex.bestiario.rangos_y_primordiales.description",
+  "icon": {
+    "item": "mycelialmind:spore_behemoth_spawn_egg"
+  },
+  "x": -3,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 1,
+  "parents": [],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.rangos_y_primordiales.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.rangos_y_primordiales.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.rangos_y_primordiales.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.rangos_y_primordiales.page2.text"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "parent": "mycelialmind:first_adaptation",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:purification_pylon"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.tier2_awakening.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.tier2_awakening.description"
+    }
+  },
+  "criteria": {
+    "has_pylon": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:purification_pylon"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,636 @@
+{
+  "meta": {
+    "format_version": "4.10",
+    "model_format": "modded_entity",
+    "box_uv": true
+  },
+  "name": "purifier_drone",
+  "model_identifier": "mycelialmind:purifier_drone",
+  "resolution": {
+    "width": 128,
+    "height": 64
+  },
+  "elements": [
+    {
+      "name": "chassis",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -4.0,
+        8.0,
+        -4.0
+      ],
+      "to": [
+        4.0,
+        13.0,
+        4.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        0,
+        0
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "231f8f6b-4f70-54a9-bc1a-9d30bd4ea575"
+    },
+    {
+      "name": "top_dome",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -3.0,
+        12.5,
+        -3.0
+      ],
+      "to": [
+        3.0,
+        14.5,
+        3.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        71,
+        0
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "fe89316a-b54b-5ac3-897c-275f1933ea02"
+    },
+    {
+      "name": "purifier_core",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -2.5,
+        6.0,
+        -2.5
+      ],
+      "to": [
+        2.5,
+        8.0,
+        2.5
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        96,
+        0
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "d70ee59c-eff3-5232-852d-79fcbfdb55c1"
+    },
+    {
+      "name": "tail_fin",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -0.5,
+        9.0,
+        4.0
+      ],
+      "to": [
+        0.5,
+        13.0,
+        7.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        117,
+        0
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "1afe9f6b-3185-58bf-9f76-6b0eb9a6b403"
+    },
+    {
+      "name": "chassis_boom_r",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -6.0,
+        11.5,
+        -1.0
+      ],
+      "to": [
+        -3.0,
+        12.5,
+        1.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        68,
+        14
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "d4c1e98c-4252-5f9c-a4e0-60628d3db339"
+    },
+    {
+      "name": "chassis_boom_l",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        3.0,
+        11.5,
+        -1.0
+      ],
+      "to": [
+        6.0,
+        12.5,
+        1.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": true,
+      "uv_offset": [
+        57,
+        14
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "0db7befc-2534-56a7-84af-9391f866a5c7"
+    },
+    {
+      "name": "sensor_mast",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -0.5,
+        14.0,
+        -1.0
+      ],
+      "to": [
+        0.5,
+        18.0,
+        0.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        30,
+        14
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "f9f8e86e-908b-5eb7-986f-93da4f561b34"
+    },
+    {
+      "name": "vent_baffle_r",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -4.5,
+        11.5,
+        2.0
+      ],
+      "to": [
+        -2.5,
+        12.5,
+        5.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        46,
+        14
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "e3b75306-b7ca-5a24-ad5f-77ce461f9cfd"
+    },
+    {
+      "name": "vent_baffle_l",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        2.5,
+        11.5,
+        2.0
+      ],
+      "to": [
+        4.5,
+        12.5,
+        5.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": true,
+      "uv_offset": [
+        35,
+        14
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "04991698-1ce4-53af-96f5-6fe0709a53a8"
+    },
+    {
+      "name": "landing_skid_r",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -4.0,
+        6.5,
+        2.0
+      ],
+      "to": [
+        -2.0,
+        7.5,
+        7.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        15,
+        14
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "33be638f-75e5-5497-b069-234fcf4afc86"
+    },
+    {
+      "name": "landing_skid_l",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        2.0,
+        6.5,
+        2.0
+      ],
+      "to": [
+        4.0,
+        7.5,
+        7.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": true,
+      "uv_offset": [
+        0,
+        14
+      ],
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "uuid": "22e3bf3c-3007-59bf-b643-b9215fa43660"
+    },
+    {
+      "name": "arm_strut_r",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -6.0,
+        11.5,
+        -0.5
+      ],
+      "to": [
+        -5.0,
+        13.5,
+        0.5
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        84,
+        14
+      ],
+      "origin": [
+        -5.5,
+        13.5,
+        0.0
+      ],
+      "uuid": "dbc8f21f-fc8b-56f1-997e-f8010c99ce1f"
+    },
+    {
+      "name": "blade_rx",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -9.5,
+        13.0,
+        -0.5
+      ],
+      "to": [
+        -1.5,
+        14.0,
+        0.5
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        108,
+        14
+      ],
+      "origin": [
+        -5.5,
+        13.5,
+        0.0
+      ],
+      "uuid": "d8efb409-d421-5f90-94c9-ced45af816e8"
+    },
+    {
+      "name": "blade_rz",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        -6.0,
+        13.0,
+        -4.0
+      ],
+      "to": [
+        -5.0,
+        14.0,
+        4.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": false,
+      "uv_offset": [
+        52,
+        0
+      ],
+      "origin": [
+        -5.5,
+        13.5,
+        0.0
+      ],
+      "uuid": "6b857cce-062c-5e0b-882b-b0849dc7d089"
+    },
+    {
+      "name": "arm_strut_l",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        5.0,
+        11.5,
+        -0.5
+      ],
+      "to": [
+        6.0,
+        13.5,
+        0.5
+      ],
+      "inflate": 0.0,
+      "mirror_uv": true,
+      "uv_offset": [
+        79,
+        14
+      ],
+      "origin": [
+        5.5,
+        13.5,
+        0.0
+      ],
+      "uuid": "0007dea4-3658-545f-87d8-c3ea2cbb5f8f"
+    },
+    {
+      "name": "blade_lx",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        1.5,
+        13.0,
+        -0.5
+      ],
+      "to": [
+        9.5,
+        14.0,
+        0.5
+      ],
+      "inflate": 0.0,
+      "mirror_uv": true,
+      "uv_offset": [
+        89,
+        14
+      ],
+      "origin": [
+        5.5,
+        13.5,
+        0.0
+      ],
+      "uuid": "5452565a-53d8-54f1-8770-c6e598419c72"
+    },
+    {
+      "name": "blade_lz",
+      "box_uv": true,
+      "rescale": false,
+      "locked": false,
+      "from": [
+        5.0,
+        13.0,
+        -4.0
+      ],
+      "to": [
+        6.0,
+        14.0,
+        4.0
+      ],
+      "inflate": 0.0,
+      "mirror_uv": true,
+      "uv_offset": [
+        33,
+        0
+      ],
+      "origin": [
+        5.5,
+        13.5,
+        0.0
+      ],
+      "uuid": "2fab2878-ca57-54fd-a112-0d31ee0b2a5b"
+    }
+  ],
+  "outliner": [
+    {
+      "name": "chassis",
+      "origin": [
+        0.0,
+        10.0,
+        0.0
+      ],
+      "rotation": [
+        -0.0,
+        -0.0,
+        0.0
+      ],
+      "uuid": "7a36b014-d4c5-5e3d-99d6-61f0c8758426",
+      "export": true,
+      "isOpen": true,
+      "visibility": true,
+      "children": [
+        "231f8f6b-4f70-54a9-bc1a-9d30bd4ea575",
+        "fe89316a-b54b-5ac3-897c-275f1933ea02",
+        "d70ee59c-eff3-5232-852d-79fcbfdb55c1",
+        "1afe9f6b-3185-58bf-9f76-6b0eb9a6b403",
+        "d4c1e98c-4252-5f9c-a4e0-60628d3db339",
+        "0db7befc-2534-56a7-84af-9391f866a5c7",
+        "f9f8e86e-908b-5eb7-986f-93da4f561b34",
+        "e3b75306-b7ca-5a24-ad5f-77ce461f9cfd",
+        "04991698-1ce4-53af-96f5-6fe0709a53a8",
+        "33be638f-75e5-5497-b069-234fcf4afc86",
+        "22e3bf3c-3007-59bf-b643-b9215fa43660",
+        {
+          "name": "rotor_r",
+          "origin": [
+            -5.5,
+            13.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "uuid": "e9fc5b36-07df-585e-8201-8d16838e6923",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "children": [
+            "dbc8f21f-fc8b-56f1-997e-f8010c99ce1f",
+            "d8efb409-d421-5f90-94c9-ced45af816e8",
+            "6b857cce-062c-5e0b-882b-b0849dc7d089"
+          ]
+        },
+        {
+          "name": "rotor_l",
+          "origin": [
+            5.5,
+            13.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "uuid": "a4ceb700-ae8f-5bbc-bcd7-bae29d5885ad",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "children": [
+            "0007dea4-3658-545f-87d8-c3ea2cbb5f8f",
+            "5452565a-53d8-54f1-8770-c6e598419c72",
+            "2fab2878-ca57-54fd-a112-0d31ee0b2a5b"
+          ]
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "name": "purifier_drone.png",
+      "folder": "entity",
+      "namespace": "mycelialmind",
+      "id": "0",
+      "particle": true,
+      "visible": true,
+      "uv_width": 128,
+      "uv_height": 64,
+      "relative_path": "../../../../src/main/resources/assets/mycelialmind/textures/entity/purifier_drone.png"
+    }
+  ],
+  "animations": [
+    {
+      "uuid": "4c492888-3fc1-5858-8697-e2a1f251854c",
+      "name": "idle",
+      "loop": "loop",
+      "length": 2.0,
+      "snapping": 24,
+      "animators": {
+        "7a36b014-d4c5-5e3d-99d6-61f0c8758426": {
+          "name": "chassis",
+          "type": "bone",
+          "keyframes": [
+            {
+              "channel": "rotation",
+              "data_points": [
+                {
+                  "x": "0",
+                  "y": "0",
+                  "z": "0"
+                }
+              ],
+              "time": 0.0,
+              "interpolation": "smooth",
+              "uuid": "c41563f0-432a-5689-9104-22a87aa6c750"
+            },
+            {
+              "channel": "rotation",
+              "data_points": [
+                {
+                  "x": "4",
+                  "y": "0",
+                  "z": "2"
+                }
+              ],
+              "time": 1.0,
+              "interpolation": "smooth",
+              "uuid": "e170c2e5-09f2-5a84-bc35-13df67c9d83c"
+            },
+            {
+              "channel": "rotation",
+              "data_points": [
+                {
+                  "x": "0",
+                  "y": "0",
+                  "z": "0"
+                }
+              ],
+              "time": 2.0,
+              "interpolation": "smooth",
+              "uuid": "af5dca43-a1f6-5580-8e0c-0bb4b30e3d84"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

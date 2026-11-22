@@ -1,0 +1,9 @@
+{
+  "name": "book.mycelialmind.mycelial_codex.name",
+  "tooltip": "book.mycelialmind.mycelial_codex.tooltip",
+  "model": "mycelialmind:bio_scanner",
+  "book_texture": "modonomicon:textures/gui/book_gray.png",
+  "creative_tab": "mycelialmind:mycelial_tab",
+  "generate_book_item": false,
+  "auto_add_read_conditions": false
+}

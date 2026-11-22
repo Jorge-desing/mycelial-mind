@@ -1,0 +1,39 @@
+{
+  "category": "mycelialmind:mundo_dimension",
+  "name": "book.mycelialmind.mycelial_codex.mundo_dimension.homeostasis_dimensional.name",
+  "description": "book.mycelialmind.mycelial_codex.mundo_dimension.homeostasis_dimensional.description",
+  "icon": {
+    "item": "mycelialmind:antibody_cyst"
+  },
+  "x": -2,
+  "y": 2,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 4,
+  "parents": [
+    {
+      "entry": "mycelialmind:mundo_dimension/micelio_profundo_y_biomas",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.homeostasis_dimensional.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.homeostasis_dimensional.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.homeostasis_dimensional.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.homeostasis_dimensional.page2.text"
+    }
+  ]
+}

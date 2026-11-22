@@ -1,0 +1,820 @@
+{
+  "model_repo": "joeriben/stable-audio-open-small",
+  "device_name": "NVIDIA GeForce RTX 4060",
+  "torch_version": "2.11.0+cu128",
+  "dtype": "bfloat16",
+  "steps": 14,
+  "batch_size": 13,
+  "vae_sliced_decode": true,
+  "sampler_type": "pingpong",
+  "sample_rate": 44100,
+  "stem_count": 52,
+  "mapped_sound_events": 181,
+  "stems": {
+    "acid_spitter_wet_gurgle": {
+      "group": "entity",
+      "prompt": "Wet slimy organic bubbling acid sac gurgle, viscous mucus squelch, corrosive hiss",
+      "seed": 527620650,
+      "batch_index": 2,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -24.3,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "acid_spitter_gurgle",
+        "acid_spitter_hurt",
+        "acid_spitter_death",
+        "acid_spitter_spit"
+      ]
+    },
+    "anatomical_chitin_footsteps": {
+      "group": "entity",
+      "prompt": "Dry insect tarsus claw footsteps tapping briskly on dark cave floor, crisp close foley",
+      "seed": 255099232,
+      "batch_index": 0,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -30.58,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "mob_step_chitin",
+        "mob_step_arachnid",
+        "mob_step_heavy",
+        "mob_step_hover"
+      ]
+    },
+    "boss_behemoth_death": {
+      "group": "boss",
+      "prompt": "Towering monster dying bellow collapsing onto cavern stone, cascading rock debris avalanche, sub rumble",
+      "seed": 409518115,
+      "batch_index": 6,
+      "seconds_total": 3.8,
+      "duration_secs": 3.8,
+      "rms_dbfs": -15.08,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "spore_behemoth_death"
+      ]
+    },
+    "boss_behemoth_hurt": {
+      "group": "boss",
+      "prompt": "Giant armored beast pained grunt, heavy chitin plate crunch, deep sub stagger impact, dry foley",
+      "seed": 255099232,
+      "batch_index": 1,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -18.72,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "spore_behemoth_hurt"
+      ]
+    },
+    "boss_behemoth_roar": {
+      "group": "boss",
+      "prompt": "Colossal tectonic kaiju monster roar, deep chest glottal growl, cavern earth rumble, dry cinematic foley",
+      "seed": 409518115,
+      "batch_index": 2,
+      "seconds_total": 3.6,
+      "duration_secs": 3.6,
+      "rms_dbfs": -16.13,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "spore_behemoth_roar"
+      ]
+    },
+    "boss_behemoth_slam": {
+      "group": "boss",
+      "prompt": "Colossal boulder fist ground slam explosion, cracking limestone crust shockwave, seismic footstep thud",
+      "seed": 1751353161,
+      "batch_index": 12,
+      "seconds_total": 3.2,
+      "duration_secs": 3.2,
+      "rms_dbfs": -22.18,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "spore_behemoth_slam",
+        "mob_step_colossal"
+      ]
+    },
+    "boss_hive_core_death": {
+      "group": "boss",
+      "prompt": "Catastrophic alien monolith meltdown siren, vacuum implosion, shattering obsidian prisms and dying horn",
+      "seed": 409518115,
+      "batch_index": 8,
+      "seconds_total": 4.0,
+      "duration_secs": 4.0,
+      "rms_dbfs": -13.04,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "hive_core_death"
+      ]
+    },
+    "boss_hive_core_hurt": {
+      "group": "boss",
+      "prompt": "Resonant metallic crystal core cracking recoil, descending brass groan, electric arc spark overload",
+      "seed": 255099232,
+      "batch_index": 2,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -13.7,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "hive_core_hurt"
+      ]
+    },
+    "boss_hive_core_resonance": {
+      "group": "boss",
+      "prompt": "Alien psychic monolith Reaper brass horn braaam, deep harmonic metallic drone, ominous sci-fi SFX",
+      "seed": 409518115,
+      "batch_index": 3,
+      "seconds_total": 3.6,
+      "duration_secs": 3.6,
+      "rms_dbfs": -14.46,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "hive_core_resonance"
+      ]
+    },
+    "boss_hive_core_shield": {
+      "group": "boss",
+      "prompt": "Prismatic geodesic energy barrier lock-on chime, ascending crystal resonance, high tension static repulsion",
+      "seed": 527620650,
+      "batch_index": 12,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -16.29,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "hive_core_shield"
+      ]
+    },
+    "boss_matriarch_barrage": {
+      "group": "boss",
+      "prompt": "Rapid volley of dimensional plasma energy bolts crackling through air, crystalline whip-crack shriek",
+      "seed": 1751353161,
+      "batch_index": 0,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -16.89,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "apex_matriarch_barrage"
+      ]
+    },
+    "boss_matriarch_death": {
+      "group": "boss",
+      "prompt": "Anguished eldritch choir crescendo into gravitational void rupture, crystal veil shattering and abyss echo",
+      "seed": 409518115,
+      "batch_index": 9,
+      "seconds_total": 4.0,
+      "duration_secs": 4.0,
+      "rms_dbfs": -16.12,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "apex_matriarch_death"
+      ]
+    },
+    "boss_matriarch_hurt": {
+      "group": "boss",
+      "prompt": "Sharp obsidian crystal shriek snap, discordant phantom soprano gasp, brittle glass chitin crack",
+      "seed": 255099232,
+      "batch_index": 3,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -35.27,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "apex_matriarch_hurt"
+      ]
+    },
+    "boss_matriarch_wail": {
+      "group": "boss",
+      "prompt": "Haunting eldritch soprano banshee wail, dissonant ghostly female choir scream, dimensional portal shimmer",
+      "seed": 409518115,
+      "batch_index": 4,
+      "seconds_total": 3.6,
+      "duration_secs": 3.6,
+      "rms_dbfs": -13.36,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "apex_matriarch_wail"
+      ]
+    },
+    "burrower_chitin_grind": {
+      "group": "entity",
+      "prompt": "Scraping insect claws grinding against coarse basalt rock, crumbling earth gravel tunnel",
+      "seed": 1751353161,
+      "batch_index": 1,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -22.69,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "burrower_grind",
+        "burrower_hurt",
+        "burrower_death",
+        "burrower_tunnel"
+      ]
+    },
+    "chimera_alpha_roar": {
+      "group": "entity",
+      "prompt": "Apex agile monster combat war roar, reverberating cavern beast snarl, fierce bite",
+      "seed": 1751353161,
+      "batch_index": 2,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -15.68,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "chimera_roar"
+      ]
+    },
+    "chimera_beast_growl": {
+      "group": "entity",
+      "prompt": "Fierce agile biomechanical beast growl and roar, snapping muscle tendons, wild snarl",
+      "seed": 1751353161,
+      "batch_index": 3,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -20.03,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "mycelial_chimera_growl",
+        "mycelial_chimera_hurt",
+        "mycelial_chimera_death",
+        "mycelial_chimera_strike"
+      ]
+    },
+    "chitin_brute_growl_heavy": {
+      "group": "entity",
+      "prompt": "Heavy armored monster guttural growl, grinding insectoid carapace plates, heavy thud",
+      "seed": 1751353161,
+      "batch_index": 4,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -15.11,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "chitin_brute_growl",
+        "chitin_brute_hurt",
+        "chitin_brute_death",
+        "chitin_brute_smash"
+      ]
+    },
+    "colony_warden_deep_bellow": {
+      "group": "entity",
+      "prompt": "Deep subterranean sentinel horn bellow, heavy chitin shield impact shockwave",
+      "seed": 1751353161,
+      "batch_index": 9,
+      "seconds_total": 3.0,
+      "duration_secs": 3.0,
+      "rms_dbfs": -15.59,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "colony_warden_bellow",
+        "colony_warden_hurt",
+        "colony_warden_death",
+        "colony_warden_shockwave"
+      ]
+    },
+    "env_biome_caverns_abyss": {
+      "group": "system_env",
+      "prompt": "Deep subterranean cave wind ambience, slow water spore drips in darkness, distant rock creak",
+      "seed": 409518115,
+      "batch_index": 10,
+      "seconds_total": 6.2,
+      "duration_secs": 6.2,
+      "rms_dbfs": -14.85,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "biome_caverns_loop",
+        "biome_caverns_mood",
+        "biome_caverns_additions",
+        "fungal_tide_ambience"
+      ]
+    },
+    "env_biome_forest_canopy": {
+      "group": "system_env",
+      "prompt": "Bioluminescent mushroom forest night wind rustling giant caps, mystical shimmering spores floating",
+      "seed": 409518115,
+      "batch_index": 11,
+      "seconds_total": 6.2,
+      "duration_secs": 6.2,
+      "rms_dbfs": -15.77,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "biome_forest_loop",
+        "biome_forest_mood",
+        "biome_forest_additions",
+        "mycorrhizal_tremor"
+      ]
+    },
+    "env_biome_sanctum_arterial": {
+      "group": "system_env",
+      "prompt": "Dark organic cathedral ambience, slow subterranean biological heartbeat throb, eerie neural shimmer",
+      "seed": 409518115,
+      "batch_index": 12,
+      "seconds_total": 6.2,
+      "duration_secs": 6.2,
+      "rms_dbfs": -17.93,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "biome_sanctum_loop",
+        "biome_sanctum_mood",
+        "biome_sanctum_additions",
+        "homeostasis_heartbeat"
+      ]
+    },
+    "func_mycelial_rift_portal": {
+      "group": "block_func",
+      "prompt": "Dark subterranean portal rift drone, low throbbing subspace energy hum with cosmic static whisper",
+      "seed": 409518115,
+      "batch_index": 0,
+      "seconds_total": 3.2,
+      "duration_secs": 3.2,
+      "rms_dbfs": -10.89,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "mycelial_rift_hum"
+      ]
+    },
+    "func_purifier_turret_pylon": {
+      "group": "block_func",
+      "prompt": "Clinical futuristic energy turret shot, ascending power lock chime, pneumatic mechanical craft latch",
+      "seed": 527620650,
+      "batch_index": 3,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -13.59,
+      "peak_dbfs": -1.62,
+      "sound_ids": [
+        "purification_pylon_pulse",
+        "purification_turret_fire",
+        "purification_turret_upgrade",
+        "purification_turret_repair",
+        "synaptic_bench_synthesize"
+      ]
+    },
+    "func_spore_vent_bulb": {
+      "group": "block_func",
+      "prompt": "Pressurized underground steam fungal geyser puff, wet organic spore pod pop, dry chitin crumble",
+      "seed": 527620650,
+      "batch_index": 4,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -22.44,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "spore_vent_puff",
+        "spore_bulb_burst",
+        "ephemeral_chitin_crumble"
+      ]
+    },
+    "func_synaptic_symbiotic_node": {
+      "group": "block_func",
+      "prompt": "Crystalline energy node awakening chime, warm shimmering harmonic chord, whooshing portal teleport",
+      "seed": 1751353161,
+      "batch_index": 5,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -15.47,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "synaptic_node_mature",
+        "symbiotic_node_charge",
+        "symbiotic_node_teleport"
+      ]
+    },
+    "goliath_carrier_hollow_thud": {
+      "group": "entity",
+      "prompt": "Massive hollow bloated sack thud, wet subterranean sloshing, heavy organic groan",
+      "seed": 1751353161,
+      "batch_index": 10,
+      "seconds_total": 3.0,
+      "duration_secs": 3.0,
+      "rms_dbfs": -21.98,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "goliath_carrier_thud",
+        "goliath_carrier_hurt",
+        "goliath_carrier_death",
+        "goliath_carrier_spawn"
+      ]
+    },
+    "item_ballistic_launcher_grenade": {
+      "group": "item",
+      "prompt": "Pneumatic launcher thump, crisp clean purifier shockwave grenade blast, acid splash sizzle",
+      "seed": 527620650,
+      "batch_index": 5,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -18.79,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "spore_launcher_fire",
+        "purifier_grenade_throw",
+        "purifier_grenade_detonate",
+        "acid_spit_impact",
+        "neutralizing_spore_impact"
+      ]
+    },
+    "item_eldritch_relic_catalyst": {
+      "group": "item",
+      "prompt": "Arcane eldritch relic surge, dimensional rift tearing open with sharp crystalline chime and sub drop",
+      "seed": 1751353161,
+      "batch_index": 11,
+      "seconds_total": 3.0,
+      "duration_secs": 3.0,
+      "rms_dbfs": -19.21,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "synaptic_graft_splice",
+        "volatile_engram_pulse",
+        "schism_injector_sting",
+        "quorum_seal_pact",
+        "tide_beacon_activate",
+        "rift_catalyst_ignite",
+        "overmind_crown_surge"
+      ]
+    },
+    "item_purifier_scanner_tech": {
+      "group": "item",
+      "prompt": "Crisp medical bio-scanner radar ping, high-tech thermal pulse sweep, clean spray fizz and electronic deploy",
+      "seed": 255099232,
+      "batch_index": 4,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -17.36,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "bio_scanner_ping",
+        "bio_scanner_thermal_pulse",
+        "spore_antidote_cure",
+        "neural_decoy_deploy",
+        "purifier_drone_deploy"
+      ]
+    },
+    "item_symbiotic_melee_blades": {
+      "group": "item",
+      "prompt": "Razor-sharp organic blade whoosh slash, interlocking chitin plate armor clasp, resonant metallic harmonic",
+      "seed": 255099232,
+      "batch_index": 5,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -25.44,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "symbiotic_blade_slash",
+        "enzyme_lance_thrust",
+        "chitin_armor_equip",
+        "chitin_armor_evolve"
+      ]
+    },
+    "item_visceral_mutagen_serum": {
+      "group": "item",
+      "prompt": "Organic glass syringe injection, pressurized bio-fluid squelch, pheromone mist spray, egg shell crack",
+      "seed": 527620650,
+      "batch_index": 6,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -32.04,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "bio_extractor_draw",
+        "counter_serum_inject",
+        "symbiotic_mutagen_implant",
+        "truce_pheromone_spray",
+        "chimera_ovum_hatch"
+      ]
+    },
+    "leech_parasite_shriek": {
+      "group": "entity",
+      "prompt": "High-pitched frantic parasite screech, wet suction siphon slurp, brittle insect chitin",
+      "seed": 255099232,
+      "batch_index": 6,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -15.01,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "leech_parasite_screech",
+        "leech_parasite_hurt",
+        "leech_parasite_death",
+        "leech_parasite_siphon"
+      ]
+    },
+    "purifier_drone_servo_thruster": {
+      "group": "entity",
+      "prompt": "Clean miniature futuristic quadcopter servo hum, crisp clinical electronic telemetry chirp, metallic impact",
+      "seed": 255099232,
+      "batch_index": 7,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -15.42,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "purifier_drone_hum",
+        "purifier_drone_hurt",
+        "purifier_drone_death",
+        "purifier_drone_fire"
+      ]
+    },
+    "pyro_shroom_ember_sizzle": {
+      "group": "entity",
+      "prompt": "Smoldering glowing embers crackling, pressurized fungal gas hiss and dry thermal fuse",
+      "seed": 1751353161,
+      "batch_index": 6,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -29.38,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "pyro_shroom_crackle",
+        "pyro_shroom_hurt",
+        "pyro_shroom_death",
+        "pyro_shroom_ignite"
+      ]
+    },
+    "ritual_dimensional_rift": {
+      "group": "boss",
+      "prompt": "Urgent sci-fi power surge alarm, reverse vacuum suction cut, massive cinematic sub bass drop and choir shockwave",
+      "seed": 409518115,
+      "batch_index": 5,
+      "seconds_total": 3.6,
+      "duration_secs": 3.6,
+      "rms_dbfs": -14.29,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "matriarch_altar_awaken",
+        "boss_phase_shift"
+      ]
+    },
+    "ritual_monolith_awaken": {
+      "group": "boss",
+      "prompt": "Ancient carved stone temple slabs grinding open, deep bronze monolith bell toll, subterranean warhorn blast",
+      "seed": 409518115,
+      "batch_index": 7,
+      "seconds_total": 3.8,
+      "duration_secs": 3.8,
+      "rms_dbfs": -11.0,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "hive_altar_awaken",
+        "fungal_tide_horn"
+      ]
+    },
+    "spore_architect_pulse": {
+      "group": "entity",
+      "prompt": "Precision bio-organic pulse beacon, wet fleshy node construction snap",
+      "seed": 527620650,
+      "batch_index": 7,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -20.27,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "spore_architect_pulse",
+        "spore_architect_hurt",
+        "spore_architect_death",
+        "spore_architect_construct"
+      ]
+    },
+    "sporeling_chitter_insect": {
+      "group": "entity",
+      "prompt": "Tiny insectoid beetle chittering, rapid hollow chitin mandible clicks, small creature squeak",
+      "seed": 255099232,
+      "batch_index": 8,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -25.37,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "sporeling_chitter",
+        "sporeling_hurt",
+        "sporeling_death",
+        "sporeling_burst"
+      ]
+    },
+    "stalker_predator_hiss": {
+      "group": "entity",
+      "prompt": "Sinister predatory insectoid hiss, sharp scythe chitin blade swipe, stalking breath",
+      "seed": 527620650,
+      "batch_index": 8,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -22.6,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "stalker_hiss",
+        "stalker_hurt",
+        "stalker_death",
+        "stalker_pounce"
+      ]
+    },
+    "surf_antibody_cyst_visceral": {
+      "group": "surface",
+      "prompt": "Viscous organic fluid sac squelch, taut membrane rupturing wetly with sticky droplets",
+      "seed": 255099232,
+      "batch_index": 9,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -26.26,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "block_antibody_cyst_break",
+        "block_antibody_cyst_step",
+        "block_antibody_cyst_place",
+        "block_antibody_cyst_hit",
+        "block_antibody_cyst_fall"
+      ]
+    },
+    "surf_chitin_hollow_shell": {
+      "group": "surface",
+      "prompt": "Dry hollow beetle exoskeleton shell snapping, brittle insect chitin cracking and rattling",
+      "seed": 255099232,
+      "batch_index": 10,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -34.99,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "block_chitin_break",
+        "block_chitin_step",
+        "block_chitin_place",
+        "block_chitin_hit",
+        "block_chitin_fall"
+      ]
+    },
+    "surf_hive_altar_monolith": {
+      "group": "surface",
+      "prompt": "Massive subterranean carved stone monolith impact thud, low resonant granite temple toll",
+      "seed": 527620650,
+      "batch_index": 9,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -19.73,
+      "peak_dbfs": -2.26,
+      "sound_ids": [
+        "block_hive_altar_break",
+        "block_hive_altar_step",
+        "block_hive_altar_place",
+        "block_hive_altar_hit",
+        "block_hive_altar_fall"
+      ]
+    },
+    "surf_mycelial_stone_basalt": {
+      "group": "surface",
+      "prompt": "Sharp chisel striking coarse dark volcanic basalt rock, gritty slate rubble gravel tumble",
+      "seed": 255099232,
+      "batch_index": 11,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -18.37,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "block_mycelial_stone_break",
+        "block_mycelial_stone_step",
+        "block_mycelial_stone_place",
+        "block_mycelial_stone_hit",
+        "block_mycelial_stone_fall"
+      ]
+    },
+    "surf_mycelium_wet_moss": {
+      "group": "surface",
+      "prompt": "Damp spongy forest moss turf tearing softly, wet fibrous fungal soil squish, close foley",
+      "seed": 255099232,
+      "batch_index": 12,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -29.84,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "block_mycelium_break",
+        "block_mycelium_step",
+        "block_mycelium_place",
+        "block_mycelium_hit",
+        "block_mycelium_fall"
+      ]
+    },
+    "surf_purification_alloy_plate": {
+      "group": "surface",
+      "prompt": "Precision stainless steel armor plate ring, crisp clean metallic clink and brushed alloy lock",
+      "seed": 527620650,
+      "batch_index": 0,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -26.08,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "block_purification_tech_break",
+        "block_purification_tech_step",
+        "block_purification_tech_place",
+        "block_purification_tech_hit",
+        "block_purification_tech_fall"
+      ]
+    },
+    "surf_synaptic_quartz_chime": {
+      "group": "surface",
+      "prompt": "Struck resonant quartz crystal slab, crisp glassy harmonic ping, brittle crystalline shatter",
+      "seed": 527620650,
+      "batch_index": 1,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -30.56,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "block_synaptic_node_break",
+        "block_synaptic_node_step",
+        "block_synaptic_node_place",
+        "block_synaptic_node_hit",
+        "block_synaptic_node_fall"
+      ]
+    },
+    "synapse_weaver_crystal_hum": {
+      "group": "entity",
+      "prompt": "Floating telepathic crystal chime hum, subtle electric synapse buzz, eerie harmonic glass resonance",
+      "seed": 1751353161,
+      "batch_index": 7,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -12.33,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "synapse_weaver_hum",
+        "synapse_weaver_hurt",
+        "synapse_weaver_death",
+        "synapse_weaver_buff"
+      ]
+    },
+    "synaptic_mimic_vocal": {
+      "group": "entity",
+      "prompt": "Uncanny shifting double-voice alien echo, sinister whispered formant glide, sharp chitin strike",
+      "seed": 527620650,
+      "batch_index": 10,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -15.45,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "synaptic_mimic_echo",
+        "synaptic_mimic_hurt",
+        "synaptic_mimic_death",
+        "synaptic_mimic_strike"
+      ]
+    },
+    "sys_hive_evolution_surge": {
+      "group": "system_env",
+      "prompt": "Dark ascending alien hive evolution fanfare, pulsing synaptic power surge and crystalline chord swell",
+      "seed": 409518115,
+      "batch_index": 1,
+      "seconds_total": 3.2,
+      "duration_secs": 3.2,
+      "rms_dbfs": -18.16,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "hive_mutate_tier2",
+        "synaptic_pulse",
+        "immune_surge",
+        "mob_promote_mutated",
+        "mob_promote_elite",
+        "hive_trait_adapt",
+        "hive_synergy_unlock",
+        "hive_threat_milestone"
+      ]
+    },
+    "sys_purifier_emp_suppression": {
+      "group": "system_env",
+      "prompt": "Heavy futuristic electromagnetic pulse capacitor discharge, servo stall fizz, clinical containment hum",
+      "seed": 1751353161,
+      "batch_index": 8,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -18.76,
+      "peak_dbfs": -2.47,
+      "sound_ids": [
+        "suppressor_discharge",
+        "squad_desync",
+        "corrosive_jam",
+        "purification_pylon_hum"
+      ]
+    },
+    "sys_visceral_assimilation": {
+      "group": "system_env",
+      "prompt": "Corrosive acid rain sizzle on damp stone, rapid organic tissue burrowing and sinister creature feeding",
+      "seed": 527620650,
+      "batch_index": 11,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -21.13,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "mob_dawn_retreat",
+        "infected_mob_convert",
+        "antibody_cyst_encapsulate",
+        "acid_rain_sizzle",
+        "necrophagy_feast",
+        "swarm_flank_call"
+      ]
+    }
+  }
+}

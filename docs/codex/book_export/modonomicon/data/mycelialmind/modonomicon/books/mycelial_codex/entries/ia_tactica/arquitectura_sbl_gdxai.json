@@ -1,0 +1,39 @@
+{
+  "category": "mycelialmind:ia_tactica",
+  "name": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.name",
+  "description": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.description",
+  "icon": {
+    "item": "mycelialmind:neural_echo_core"
+  },
+  "x": -2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 1,
+  "parents": [],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.ia_tactica.arquitectura_sbl_gdxai.page3.text"
+    }
+  ]
+}

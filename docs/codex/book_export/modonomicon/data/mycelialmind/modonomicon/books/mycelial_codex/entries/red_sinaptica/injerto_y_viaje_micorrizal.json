@@ -1,0 +1,48 @@
+{
+  "category": "mycelialmind:red_sinaptica",
+  "name": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.name",
+  "description": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.description",
+  "icon": {
+    "item": "mycelialmind:symbiotic_node"
+  },
+  "x": 0,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 2,
+  "parents": [
+    {
+      "entry": "mycelialmind:red_sinaptica/nodos_y_malla_sinaptica",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "title": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.page1.title",
+      "item": {
+        "item": "mycelialmind:synaptic_graft",
+        "count": 1
+      },
+      "text": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.red_sinaptica.injerto_y_viaje_micorrizal.page3.text"
+    }
+  ]
+}

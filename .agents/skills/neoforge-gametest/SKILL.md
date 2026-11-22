@@ -1,0 +1,68 @@
+---
+name: neoforge-gametest
+description: >-
+  Workflow y convenciones para escribir, depurar y ejecutar pruebas automatizadas
+  @GameTest en Mycelial Mind (NeoForge 21.1.176 / Minecraft 1.21.1) con JDK 21,
+  batches en MycelialGameTests.java y smoke tests RCON/MCPMC.
+---
+
+# NeoForge GameTest & Runtime Verification Workflow
+
+Para investigar síntomas y coordinar pruebas funcionales, visuales y de rendimiento, consultar también `../mycelial-diagnostics/SKILL.md`.
+
+Cuando un cambio afecte estado estático de la colmena o la descarga de mundos, ejecutar también `./gradlew.bat runHiveLifecycleSmoke --no-daemon` con JDK 21. Este cliente aislado crea dos mundos integrados consecutivos y comprueba que los informes del primero se limpien y no aparezcan en el segundo. Confirmar el marcador `HiveLifecycleSmoke PASSED` y el código de salida: `runGameTestServer` y `Verify-Mod.ps1` no ejecutan este escenario automáticamente. La opción `-PhiveLifecycleForceFailure=true` comprueba la propagación de errores y debe fallar intencionalmente.
+
+## 1. Convenciones en `MycelialGameTests.java`
+- Ubicación: `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`.
+- Anotar la clase con `@GameTestHolder(MycelialMind.MODID)` y `@PrefixGameTestTemplate(false)`.
+- Usar `template = "mycelialmind:empty"` (estructura `3x3x3` en `y = -60` sobre vacío en `y = -64`, ubicada en `src/main/resources/data/mycelialmind/structure/empty.nbt` y `structures/empty.nbt`).
+  - **Aislamiento espacial de `empty.nbt`:** los batches se ejecutan sobre la misma instancia de Overworld compartiendo terreno. Estructuras grandes deben colocarse en su propia banda `Y` limpiando el volumen antes de construir. En arenas con mobs con libre albedrío, cercar el perímetro con muros de 3 bloques para evitar caídas al vacío en `y = -64` y descartar cualquier entidad o proyectil generado fuera de `3x3x3` en limpieza/`.thenExecute`.
+  - **Chunks entity-ticking en arenas de IA viva:** cuando una prueba sobre `empty.nbt` coloque o mueva entidades fuera del bloque `0..2` en `X`/`Z` (`stalkerLeapsDuringCombat`, `stalkersShareFlankOrderAndClearInvalidDestinations`, `acidSpitterBrainShootsRetreatsAndInvalidatesTarget`, `matriarchCitadelPieceGeneratesCryptChapelsAndGuardians`, `hyphalRouteDensity...`, `blindSpotOutbreak...`), forzar y cargar todo el rectángulo de chunks con `forceArenaChunks(helper, minBlockX, maxBlockX, minBlockZ, maxBlockZ)` (`ServerLevel.setChunkForced`, los argumentos son **offsets en bloques**, no índices de chunks) antes de spawnear, esperar ~`2` ticks con `helper.runAfterDelay(2, ...)` si se consultan entidades en chunks recién forzados para evitar carreras con `PersistentEntitySectionManager`, y liberar con `releaseArenaChunks(...)` al finalizar; de lo contrario, el origen aleatorio de `GameTestServer` puede cruzar un borde de chunk y dejar entidades congeladas o fuera de consulta en el mismo tick. Pruebas espaciales amplias también deben usar un `batch` dedicado, construirse sobre `y = 10`/`120`/`180` y limpiar el volumen antes de construir para no pisar bloques residuales ni `minecraft:barrier` en `y = -60..-58` de `defaultBatch`.
+- Organizar pruebas nuevas en `batch` dedicados (ej. `tide`, `counteroffensive`, `expansion`, `arsenal`, `compat`, `worldgen_audit`) cuando prueben subsistemas independientes o requieran aislamiento de estado de `HiveMindSavedData`.
+- Resetear estado global si la prueba modifica la Mente Colmena (`HiveMindSavedData.get(helper.getLevel()).resetAll()`).
+- **Unit tests puros vs `@GameTest`:** `HiveAlgorithmsUnitTest` (`./gradlew.bat test` y `pitest`) corre sin bootstrap de registros `DeferredRegister` (`ModItems`/`ModDataComponents`) ni Access Transformers en runtime; expón descriptores y funciones matemáticas en clases de dominio puras (p. ej. `AdaptiveDropSpec`, `EvolutionRank`, `SynapticCommandSystem`, `MycelialClientConfig`) sin cargar `MycelialMob` (`SmartBrainProvider` lanza `IncompatibleClassChangeError` contra `Brain$Provider` final en JUnit puro), subclases de `Entity`/`PartEntity` (`ExceptionInInitializerError` en static init de `Entity`) ni `net.minecraft.client.*`, y valida las entidades/`ItemStack` reales en `@GameTest` y `/mycelial verify ...`.
+- **Muestreo con `RandomSource.create(seed)` (`LegacyRandomSource` LCG):** Nunca reinicialices `RandomSource.create(seed)` en cada iteración con enteros pequeños consecutivos (`1..N`), porque el primer `nextFloat()` colapsa alrededor de `~0.73` al descartar los 24 bits bajos. Instancia un único `RandomSource` antes del bucle y reutilízalo entre iteraciones.
+
+### Patrones NeoForge `21.1.176` y trampas en `@GameTest`
+- **`ItemEntityPickupEvent.Post`:** Extiende `ItemEntityPickupEvent` (que hereda de `Event`, **no** de `PlayerEvent`). Usar `event.getPlayer()` en lugar de `event.getEntity()`.
+- **Sided `IItemHandler` (`Capabilities.ItemHandler.BLOCK`) con tolvas:** Las tolvas extraen ítems de 1 en 1 usando el índice de ranura **local** de cada cara (`0..getSlots()-1`), no el índice global del contenedor. En salidas multi-ítem (`SLOT_OUTPUT`), usa una bandera transitoria (`outputInputsConsumed`) al extraer el primer ítem para consumir una sola vez los ingredientes y regenerar `refreshOutputSlot()` solo al vaciar `SLOT_OUTPUT`.
+- **`StreamCodec` con más de 6 campos:** `StreamCodec.composite(...)` en Vanilla `1.21.1` soporta hasta **6** campos (`T1..T6`). Para paquetes con $\ge 7$ campos, implementar `new StreamCodec<ByteBuf, Payload>()` explícito con `ByteBufCodecs.*`.
+- **Recetas de Alambique (`RegisterBrewingRecipesEvent`):** Usar `DataComponentIngredient.of(false, PotionContents.createItemStack(Items.POTION, Potions.AWKWARD))` como base en `PotionBrewing.Builder.addRecipe(...)`.
+- **Límites verticales en `WorldGenLevel`:** `WorldGenLevel` hereda `LevelHeightAccessor`, que expone `!level.isOutsideBuildHeight(pos)` (no existe `isInWorldBounds(BlockPos)`).
+- **`makeMockPlayer` vs `FakePlayer` y envío de paquetes:** `helper.makeMockPlayer(...)` no queda indexado en `serverLevel.getEntitiesOfClass(Player.class, ...)`, por lo que mecánicas con aura cercana deben aplicar explícitamente el efecto también al `player` activador vivo. Asimismo, `FakePlayer` (`FakePlayerFactory.getMinecraft(level)`) tiene `player.connection == null`: comprobar `player == null || player.connection == null` antes de llamar a `PacketDistributor.sendToPlayer`.
+- **`ThreadedLevelLightEngine.runLightUpdates()` prohibido en servidor:** en Minecraft 1.21.1 llamar a `level.getChunkSource().getLightEngine().runLightUpdates()` lanza siempre `UnsupportedOperationException("Ran automatically on a different thread!")`. Para disparar luz sin bloquear usa `threaded.tryScheduleUpdate()`, y para reactividad determinista en un mismo tick combina `LightLayer.BLOCK` con escaneo local directo (`HyphalSiegeDirector.measureEffectiveBlockLight`).
+- **`PartEntity<T>` en jefes (`MycelialBossPart`):** toda entidad multiparte debe asignar IDs contiguos en `setId(int)` (`bossParts[i].setId(id + i + 1)`), llamar a `this.refreshDimensions()` en el constructor de `PartEntity` tras fijar sus dimensiones, y actualizar posiciones en `aiStep()`. Los proyectiles (`AcidSpitProjectile`, `NeutralizingSporeProjectile`) deben desempaquetar `hit instanceof PartEntity<?> p ? p.getParent() : hit` al comprobar instancias de `MycelialMob`, pero invocar `.hurt(...)` sobre `hit` para aplicar multiplicadores por zona.
+- **DataGen (`DataMapProvider` + `GlobalLootModifierProvider`) sin duplicados:** si `src/generated/resources` está incluido en `sourceSets.main.resources`, los JSON generados (`data/neoforge/data_maps/...` y `loot_modifiers/...`) deben vivir solo en `src/generated/resources` para evitar colisiones de recursos duplicados con `src/main/resources`.
+
+## 2. Validación vía FastMCP `CodeMode` (`mycelial-mind-dev`) y JDK 21
+Cuando el servidor MCP `mycelial-mind-dev` esté disponible, **usar siempre `run_verify_mod` (y `run_gradle_task`) a través de `execute` en lugar de invocar `.\scripts\Verify-Mod.ps1` o `.\gradlew.bat` manualmente**:
+```python
+await call_tool("run_verify_mod", {
+    "include_server_smoke": True,
+    "include_visual_smoke": True,
+    "no_daemon": False,
+})
+```
+*(Usa `"force_regenerate": True` si necesitas forzar regeneración completa ignorando los stamps SHA-256 en `build/.verify-stamps/`, y `"include_structure_visual_smoke": True` para validar estructuras en paralelo desde `artifacts/diagnostics/structure-visual-client/`.)*
+- **Pruebas unitarias headless (`:test`) y mutación (`pitest`):** `build.gradle` conecta `addModdingDependenciesTo(sourceSets.test)`, `maxParallelForks` (hasta `3` forks) y `-XX:TieredStopAtLevel=1` para ejecutar JUnit 5 (`HiveAlgorithmsUnitTest`, `MigratedGameTestLogicTest`, etc.) sin arrancar `ModLauncher`/`FML` ni `:downloadAssets` (`~0.9s` de suite JUnit, `~13–17s` `--rerun-tasks`); `pitest` usa `threads = availableProcessors() - 1`, `jvmArgs = ['-XX:TieredStopAtLevel=1', '-Xmx512m']` y `withHistory = true`, y los runs `gameTestServer`, `smokeServer`, `visualSmoke`, `animationVisualSmoke`, `structureVisualSmoke`, `hiveLifecycleSmoke` y `data` añaden `-Xms512m -Xmx2G -XX:+UseParallelGC`.
+- **Terreno rápido en `@GameTest`:** usar `homeostasisTestPos(..., slot * 64)` (separación por chunk sin regiones remotas) y `level.setBlock(..., 18)` (`UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE`) al construir o limpiar plataformas amplias de prueba donde no se prueben cascadas de vecinos.
+Fallback por consola únicamente si `mycelial-mind-dev` no está conectado (fijando `JAVA_HOME` en Windows):
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat runGameTestServer
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat test
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat pitest --no-daemon
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat build
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\scripts\Verify-Mod.ps1 -IncludeServerSmoke
+```
+
+## 3. Smoke Testing Autónomo con MCPMC
+Para pruebas interactivas con un bot en el servidor dev (`localhost:25565`), usar la configuración `.agents/mcpmc.json` o `.\scripts\Start-Mcpmc.ps1`.
+
+## Pruebas con cliente real y perfiles de rendimiento
+- MC Pilot 0.20.2: instalar localmente con `npm install --prefix .tools/mc-pilot --no-audit --no-fund --ignore-scripts @kzheart_/mc-pilot@0.20.2`; ejecutar `./scripts/Invoke-McPilot.ps1 --help`. Crear el cliente NeoForge 1.21.1 con `client create mycelial-1211 --version 1.21.1 --loader neoforge --java "C:\Program Files\Java\jdk-21\bin\java.exe"`. Preparar una instancia aislada con el JAR del mod y sus dependencias antes de conectar al servidor de prueba; no asumir que una captura prueba el estado del servidor. Consultar `client launch --help` y `schema` para acciones y aserciones.
+- Activar spark 1.10.124 y Observable 5.4.4, Kotlin for Forge y Architectury solo para desarrollo con `./gradlew.bat runClient -Pdiagnostics` o `runServer -Pdiagnostics`. spark perfila métodos y ticks (`/spark profiler`); Observable muestra coste por entidad/bloque y requiere asignar una tecla en controles. Comparar escenas y duración equivalentes; verificar que ambos mods cargaron en el log. No incluirlos en la publicación del mod.
+- `./scripts/Invoke-Jfr.ps1 -ProcessId <PID> -Action Start -DurationSeconds 120` inicia JFR con JDK 21; `Check`, `Stop` y `Threads` usan `jcmd` sobre ese PID. Las grabaciones quedan en `artifacts/diagnostics`; usar el PID real de Minecraft, no el daemon Gradle. Analizar CPU, asignaciones y pausas GC y conservar escenario/versión al comparar.
+- GameTest verifica comportamiento del servidor; usar cliente real para HUD, interacción, red y pruebas multijugador; la regresión visual no prueba corrección de juego. Probar persistencia con guardar/recargar y los bordes de radios y umbrales cuando corresponda.
+- Después de crear el cliente, ejecutar `./scripts/Prepare-McPilotClient.ps1` para compilar y copiar el JAR actual y SmartBrainLib; repetir tras cada cambio. La instancia creada por MC Pilot usa NeoForge 21.1.235 (el servidor dev usa 21.1.176); comprobar compatibilidad en cada prueba. `client launch mycelial-1211 --no-server` y `--client mycelial-1211 screenshot --output artifacts/diagnostics/menu.png` permiten un smoke del cliente; conectarlo a un servidor de prueba requiere configuración y verificación adicionales. En Windows, si `client stop` comunica `PORT_CONFLICT`, comprobar el proceso Java hijo y no finalizar procesos ajenos.
+- MC Pilot 0.10.1 original falla con Observable durante la carga y al registrar enlaces `OPEN_FILE`. El parche local compilable con `scripts/Build-McPilotCompat.ps1` se verificó con entrada y perfil completos; conserva el texto plano cuando no se puede serializar. Usar `scripts/Stop-McPilotClient.ps1` para confirmar el cierre tras el `PORT_CONFLICT` transitorio de Windows sin terminar procesos ajenos.
+- Para servidor NeoForge de desarrollo, `runBridgeDevClient` permite cargar MC Pilot desde el directorio aislado de diagnóstico y se verificó una conexión por WebSocket directo tras terminar la carga; consultar `../mycelial-diagnostics/references/herramientas-y-escenarios.md` para condiciones y límites.

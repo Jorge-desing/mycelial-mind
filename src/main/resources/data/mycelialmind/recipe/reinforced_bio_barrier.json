@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CPC",
+    "PDP",
+    "CPC"
+  ],
+  "key": {
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "P": {
+      "item": "minecraft:polished_deepslate"
+    },
+    "D": {
+      "item": "mycelialmind:mycelial_biomass"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:reinforced_bio_barrier",
+    "count": 4
+  }
+}

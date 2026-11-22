@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:gift",
+  "pools": [
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:redstone",
+          "weight": 35
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:lapis_lazuli",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:spore_antidote",
+          "weight": 22
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:latent_spore",
+          "weight": 18
+        }
+      ]
+    }
+  ]
+}

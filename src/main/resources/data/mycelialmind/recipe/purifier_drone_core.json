@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "CPC",
+    " S "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "P": {
+      "item": "mycelialmind:purification_pylon"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:purifier_drone_core",
+    "count": 1
+  }
+}

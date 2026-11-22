@@ -1,0 +1,39 @@
+{
+  "category": "mycelialmind:arsenal_defensa",
+  "name": "book.mycelialmind.mycelial_codex.arsenal_defensa.bastion_defensivo.name",
+  "description": "book.mycelialmind.mycelial_codex.arsenal_defensa.bastion_defensivo.description",
+  "icon": {
+    "item": "mycelialmind:purification_pylon"
+  },
+  "x": -2,
+  "y": 2,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 4,
+  "parents": [
+    {
+      "entry": "mycelialmind:arsenal_defensa/reliquias_endgame",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.arsenal_defensa.bastion_defensivo.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.arsenal_defensa.bastion_defensivo.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.arsenal_defensa.bastion_defensivo.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.arsenal_defensa.bastion_defensivo.page2.text"
+    }
+  ]
+}

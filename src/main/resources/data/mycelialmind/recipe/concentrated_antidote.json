@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "mycelialmind:spore_antidote"
+    },
+    {
+      "item": "mycelialmind:latent_spore"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    }
+  ],
+  "result": {
+    "id": "mycelialmind:concentrated_antidote",
+    "count": 1
+  }
+}
