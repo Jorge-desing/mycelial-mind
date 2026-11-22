@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `50` entradas y `201` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `50` entradas y `202` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -53,7 +53,7 @@
   - [Catálogo: 24 Bloques y 53 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
   - [Recetario Total (37 Datapack)](#cap9-recetas_36_datapack) — _29 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras_
   - [Alambique, Compostaje y Comercio](#cap9-vanilla_brew_compost_trades) — _Poción Awkward, 5 compostables NeoForge y ofertas Clérigo/Albañil_
-  - [Las 49 Tablas de Botín](#cap9-botin_48_tablas) — _21 bloques, 10 cofres y 17 entidades + multiplicadores_
+  - [Las 50 Tablas de Botín](#cap9-botin_48_tablas) — _22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores_
 - **Capítulo 10 — Mundo, Estructuras y Dimensión** (`mundo_dimension`): Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis
   - [Brotes y Colmenas del Overworld](#cap10-generacion_overworld_ruido) — _MycelialOutbreak (56m), SurfaceHive (192m) y FastNoiseLite_
   - [Dimensión Micelio Profundo (3 Biomas)](#cap10-micelio_profundo_y_biomas) — _Portal mycelial_rift, WfcCavernLayout y los 3 biomas_
@@ -65,7 +65,7 @@
   - [Los 30 Logros (`advancement`)](#cap11-logros_30_advancements) — _25 logros de campaña y 5 desbloqueos automáticos de recetas_
   - [Redstone (7) y Ecosistema de Mods](#cap11-redstone_y_ecosistema_mods) — _MycelialRedstoneTelemetry + SBL, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon_
 - **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify
-  - [Configuraciones (12 Cliente / 39 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
+  - [Configuraciones (12 Cliente / 43 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
   - [Red v14, `/mycelial` y 22 Verify](#cap12-comandos_red_y_verificacion) — _4 Payloads de red, sintaxis /mycelial y escenarios de prueba_
 
 ---
@@ -1103,46 +1103,47 @@ Calcina `antibody_cyst` al doble de velocidad (`100t`, `0.2 XP`) -> `chitin_plat
 • **Aldeanos y Errante:** Clérigos (N2–N5) comercian `mycelial_biomass`, `spore_antidote`, `latent_spore`, `concentrated_antidote`; Albañiles y Vendedor Errante ofrecen bloques miceliales y `truce_pheromone`.
 
 <a id="cap9-botin_48_tablas"></a>
-### 4. Las 49 Tablas de Botín
+### 4. Las 50 Tablas de Botín
 
 - **ID de Entrada:** `economia_datos/botin_48_tablas` | **Ícono:** `mycelialmind:hive_heart` | **Unlock:** `always`
-- **Resumen:** 21 bloques, 10 cofres y 17 entidades + multiplicadores
+- **Resumen:** 22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.1] Botín Multi-Pool (49 Tablas) (1/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.1] Botín Multi-Pool (50 Tablas) (1/9)
 
 • **Bloques 1/4:** `blocks/antibody_cyst`, `blocks/bio_chitin_lattice`, `blocks/bioluminescent_mycelial_cap`, `blocks/chitin_pillar`, `blocks/creeping_mycelium`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.2] Botín Multi-Pool (49 Tablas) (2/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.2] Botín Multi-Pool (50 Tablas) (2/9)
 
 • **Bloques 2/4:** `blocks/hive_altar`, `blocks/hyphal_vein`, `blocks/incubator_node`, `blocks/luminescent_amber_vein`, `blocks/matriarch_altar`, `blocks/mycelial_arch_brick`, `blocks/mycelial_node`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (49 Tablas) (3/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (50 Tablas) (3/9)
 
 • **Bloques 3/4:** `blocks/mycelial_stone`, `blocks/mycelial_tendrils`, `blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reinforced_bio_barrier`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.4] Botín Multi-Pool (49 Tablas) (4/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.4] Botín Multi-Pool (50 Tablas) (4/9)
 
 • **Bloques 4/4:** `blocks/sentinel_node`, `blocks/spore_bulb`, `blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.5] Botín Multi-Pool (49 Tablas) (5/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.5] Botín Multi-Pool (50 Tablas) (5/9)
 
 • **Cofres 1/2:** `chests/outbreak_sealed_vault`, `chests/surface_hive_cache`, `chests/surface_hive_crypt`, `chests/surface_hive_gallery`, `chests/sanctum_spore_vault`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.6] Botín Multi-Pool (49 Tablas) (6/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.6] Botín Multi-Pool (50 Tablas) (6/9)
 
 • **Cofres 2/2:** `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, `chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.7] Botín Multi-Pool (49 Tablas) (7/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.7] Botín Multi-Pool (50 Tablas) (7/9)
 
 • **Entidades 1/3:** `entities/acid_spitter`, `entities/apex_matriarch`, `entities/burrower`, `entities/chitin_brute`, `entities/colony_warden`, `entities/goliath_carrier`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.8] Botín Multi-Pool (49 Tablas) (8/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.8] Botín Multi-Pool (50 Tablas) (8/9)
 
 • **Entidades 2/3:** `entities/hive_core`, `entities/leech_parasite`, `entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, `entities/pyro_shroom`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.9] Botín Multi-Pool (49 Tablas) (9/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.9] Botín Multi-Pool (50 Tablas) (9/9)
 
 • **Entidades 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, `entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (escala con Saqueo/Rango/Cepa).
+• **Aldea / Héroe:** `gameplay/hero_of_the_village/cleric_mycelial_gift` (regalo de Clérigo al defender aldeas).
 
 ---
 
@@ -1360,63 +1361,67 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 _181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
 
 <a id="cap12-configuracion_cliente_servidor"></a>
-### 1. Configuraciones (12 Cliente / 39 Servidor)
+### 1. Configuraciones (12 Cliente / 43 Servidor)
 
 - **ID de Entrada:** `tecnica_comandos/configuracion_cliente_servidor` | **Ícono:** `mycelialmind:synaptic_research_bench` | **Unlock:** `always`
 - **Resumen:** MycelialClientConfig, KeyBindings y MycelialConfig TOML completo
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.1] Claves de Configuración TOML (1/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.1] Claves de Configuración TOML (1/12)
 
 • `[hud] hudAnchor` = `TOP_LEFT` (`TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, `BOTTOM_RIGHT`).
 • `[hud] hudOffsetX` = `0` (`-200..200`); `hudOffsetY` = `0` (`-200..200`).
 • `[hud] hudCompactMode` = `false`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`.
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.2] Claves de Configuración TOML (2/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.2] Claves de Configuración TOML (2/12)
 
 • `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`).
 • `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`.
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.3] Claves de Configuración TOML (3/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.3] Claves de Configuración TOML (3/12)
 
 • `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.
 • `[hive_memory]` `learningMultiplier`=`1.0` (`0.1..10`), `decayPerMinute`=`2.0` (`0..50`), `traitActivationThreshold`=`70.0` (`5..500`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.4] Claves de Configuración TOML (4/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.4] Claves de Configuración TOML (4/12)
 
 • `[hive_memory]` `tier2ActivationThreshold`=`200.0` (`25..500`), `tier2DecayMultiplier`=`1.75` (`1..5`), `synergiesEnabled`=`true`.
 • `[hive_memory]` `suppressorCooldownSeconds`=`120` (`15..600`), `projectileDeflectChance`=`0.30` (`0..0.95`), `symbiosisThreatMultiplierPerSlot`=`0.15` (`0..1`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/12)
 
 • `[hive_memory]` `maxMutagenSlots`=`2` (`1..5`), `counterSerumBleedRatio`=`0.50` (`0.1..0.95`).
-• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/12)
+
+• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`), `pylonTier3ChunkLoadingEnabled`=`true`.
+
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.7] Claves de Configuración TOML (7/12)
 
 • `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`.
 • `[territory]` `playerCountScaling`=`0.15` (`0..1`), `wavesEnabled`=`true`, `waveCooldownTicks`=`3600` (`200..72000`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.7] Claves de Configuración TOML (7/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.8] Claves de Configuración TOML (8/12)
 
 • `[territory]` `autonomousExpansionEnabled`=`true`, `aggressiveVillageAssimilation`=`true`, `maxAutonomousNodes`=`32` (`4..128`), `minNodeSpacing`=`18` (`8..48`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.8] Claves de Configuración TOML (8/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.9] Claves de Configuración TOML (9/12)
 
 • `[territory]` `infectionConversionEnabled`=`true`, `fungalTideEnabled`=`true`, `fungalTideDurationTicks`=`6000` (`600..24000`).
 • `[territory]` `fungalTideCooldownTicks`=`24000` (`1200..72000`), `mycorrhizalAcousticsEnabled`=`true`, `maxSymbioticNodes`=`4` (`1..16`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.9] Claves de Configuración TOML (9/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.10] Claves de Configuración TOML (10/12)
 
 • `[territory]` `mycorrhizalTravelRange`=`96` (`16..256`), `mycorrhizalTravelCooldownTicks`=`1500` (`100..6000`).
 • `[territory]` `progressiveThreatScaling`=`true`, `deathThreatPenalty`=`5.0` (`0..25`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.10] Claves de Configuración TOML (10/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.11] Claves de Configuración TOML (11/12)
 
 • `[dimensional_homeostasis]` `homeostasisEnabled`=`true`, `homeostasisExplosionStressScale`=`1.0` (`0.1..5`), `homeostasisAcidRainDamage`=`2.0` (`0.5..10`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.11] Claves de Configuración TOML (11/11)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.12] Claves de Configuración TOML (12/12)
 
 • `[dimensional_homeostasis]` `homeostasisAntibodyEncapsulationEnabled`=`true`, `homeostasisMaxCystsPerChunk`=`64` (`8..256`).
+• `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).
 
 <a id="cap12-comandos_red_y_verificacion"></a>
 ### 2. Red v14, `/mycelial` y 22 Verify

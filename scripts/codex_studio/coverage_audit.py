@@ -129,6 +129,9 @@ def scan_repo_inventory(repo_root: Path) -> dict:
     biomes = [Path(p).stem for p in sorted(glob.glob(str(data_root / "worldgen/biome/*.json")))]
     dimensions = [Path(p).stem for p in sorted(glob.glob(str(data_root / "dimension/*.json")))]
     sounds = list(json.loads((res_root / "assets/mycelialmind/sounds.json").read_text(encoding="utf-8")).keys())
+    compostables_json = repo_root / "src/generated/resources/data/neoforge/data_maps/item/compostables.json"
+    if not compostables_json.is_file():
+        compostables_json = res_root / "data/neoforge/data_maps/item/compostables.json"
 
     inventory = {
         "blocks": _extract_registered_ids(reg / "ModBlocks.java"),
@@ -151,7 +154,7 @@ def scan_repo_inventory(repo_root: Path) -> dict:
         "loot_tables": loot_tables,
         "biomes": biomes,
         "dimensions": dimensions,
-        "compostables": _extract_compostables(res_root / "data/neoforge/data_maps/item/compostables.json"),
+        "compostables": _extract_compostables(compostables_json),
         "server_configs": _extract_config_keys(src_java / "config/MycelialConfig.java"),
         "client_configs": _extract_config_keys(src_java / "config/MycelialClientConfig.java"),
         "keybindings": _extract_keybindings(src_java / "client/MycelialKeyBindings.java"),

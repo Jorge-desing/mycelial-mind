@@ -429,6 +429,7 @@ import asyncio
     diag_fuzzy,
     diag_unknown,
     sound_chk,
+    codex_chk,
 ) = await asyncio.gather(
     call_tool("run_live_scenario", {{"preset": "progression_ramp", "session_id": "nonexistent"}}),
     call_tool("run_live_scenario", {{"preset": "custom", "custom_commands": ["mycelial status"], "rcon_port": {rcon_port}, "rcon_password": "secret", "capture_perf": True}}),
@@ -439,6 +440,7 @@ import asyncio
     call_tool("diagnose_symptom", {{"symptom": "estructuras", "include_live_state": False}}),
     call_tool("diagnose_symptom", {{"symptom": "unknown_symptom_xyz", "include_live_state": False}}),
     call_tool("run_sound_studio", {{"check_only": True, "run_tests": True}}),
+    call_tool("run_codex_studio", {{"check_only": True, "run_tests": True}}),
 )
 latest_live, diag_bundle, missing_artifacts = await asyncio.gather(
     call_tool("get_latest_live_report", {{}}),
@@ -467,6 +469,7 @@ return {{
         and missing_artifacts.get("returned_count") == 0
     ),
     "sound_studio_ok": sound_chk.get("ok"),
+    "codex_studio_ok": codex_chk.get("ok"),
 }}
 """
                 exec_live = await client.call_tool("execute", {"code": code_live})
@@ -517,6 +520,7 @@ return {{
             assert payload["vanilla_event_redirects"] == 0
             assert payload["audio_quality_ok"] is True
             assert payload["sound_studio_ok"] is True
+            assert payload["codex_studio_ok"] is True
             assert payload["entities_without_uv"] == []
             assert payload["datapack_total"] > 0
             assert payload["datapack_external_total"] >= 15
@@ -569,7 +573,7 @@ return {{
             assert payload["rcon_closed_ok"] is False
             assert payload["struct_studio_ok"] is True
             assert payload["tags_ok"] is True
-            assert payload["tagged_tools_count"] >= 62
+            assert payload["tagged_tools_count"] >= 64
             assert payload["metrics_tracked_tools"] >= 20
             assert payload["cache_hits"] >= 1
             assert payload["cleared_ok"] is True

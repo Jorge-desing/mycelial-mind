@@ -227,7 +227,7 @@ mcp = FastMCP(
         "list_datapack_content, get_gradle_config, list_skills, get_skill_guide('mycelial-codemode'), "
         "validate_skills; "
         "(3) Studios & Visual QA: run_model_studio, run_texture_studio, run_particle_studio, run_sound_studio, "
-        "run_structure_studio, get_uv_manifest, audit_mod_assets, check_visual_regression, "
+        "run_codex_studio, run_structure_studio, get_uv_manifest, audit_mod_assets, check_visual_regression, "
         "check_structure_visual_regression, get_latest_structure_visual_smoke; "
         "(4) Build/Suites/Cache/Reports: manage_verify_cache, run_gradle_task, run_verify_mod, "
         "get_latest_junit_report, get_latest_pitest_report, get_latest_worldgen_audit; "
@@ -780,6 +780,33 @@ async def run_sound_studio(
         "sound_studio",
         args,
         "scripts/sound_studio/tests",
+        check_only=check_only,
+        run_tests=run_tests,
+    )
+
+
+@_tool(tags={"studios"})
+async def run_codex_studio(
+    check_only: bool = True,
+    report: bool = False,
+    run_tests: bool = True,
+) -> dict[str, Any]:
+    """Run Mycelial Mind Codex Studio (12 chapters / 50 entries) and its unit tests.
+
+    Args:
+        check_only: If True, audits coverage, refs, recipe pairs, and page budgets without exporting files.
+        report: If True, emits full JSON coverage report to stdout.
+        run_tests: Also run scripts/codex_studio/tests.
+    """
+    args = [sys.executable, "scripts/codex_studio/build_codex.py", "--check"]
+    if not check_only:
+        args.append("--all")
+    if report:
+        args.append("--report")
+    return await _run_studio_with_tests(
+        "codex_studio",
+        args,
+        "scripts/codex_studio/tests",
         check_only=check_only,
         run_tests=run_tests,
     )

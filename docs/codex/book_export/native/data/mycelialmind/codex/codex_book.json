@@ -2418,6 +2418,7 @@
           "unlock_gate": "always",
           "registry_refs": [
             "MycelialLootSystem",
+            "gameplay/hero_of_the_village/cleric_mycelial_gift",
             "blocks/antibody_cyst",
             "blocks/bio_chitin_lattice",
             "blocks/bioluminescent_mycelial_cap",
@@ -3107,6 +3108,14 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.11.title",
               "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.11.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 12,
+              "id": "config_ref_p12",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.12.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.12.text",
               "is_spoiler": false
             }
           ]

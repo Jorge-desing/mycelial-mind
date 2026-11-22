@@ -486,10 +486,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="botin_48_tablas",
             order=4,
-            title=lt("Las 49 Tablas de Botín", "All 49 Loot Tables"),
+            title=lt("Las 50 Tablas de Botín", "All 50 Loot Tables"),
             subtitle=lt(
-                "21 bloques, 10 cofres y 17 entidades + multiplicadores",
-                "21 blocks, 10 structure chests, 17 entities & multipliers",
+                "22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores",
+                "22 blocks, 10 structure chests, 17 entities & village + multipliers",
             ),
             icon_item="mycelialmind:hive_heart",
             x=grid_xy(3, 3)[0],
@@ -498,6 +498,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             unlock_gate="always",
             registry_refs=(
                 "MycelialLootSystem",
+                "gameplay/hero_of_the_village/cleric_mycelial_gift",
                 "blocks/antibody_cyst",
                 "blocks/bio_chitin_lattice",
                 "blocks/bioluminescent_mycelial_cap",
@@ -551,8 +552,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             pages=tuple(
                 chunk_paired_blocks(
                     "loot_tables",
-                    "Botín Multi-Pool (49 Tablas)",
-                    "Multi-Pool Loot (49 Tables)",
+                    "Botín Multi-Pool (50 Tablas)",
+                    "Multi-Pool Loot (50 Tables)",
                     [
                         (
                             "• **Bloques 1/4:** `blocks/antibody_cyst`, `blocks/bio_chitin_lattice`, "
@@ -607,6 +608,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (escala con Saqueo/Rango/Cepa).",
                             "• **Entities 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, "
                             "`entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (scales via Looting/Rank/Strain).",
+                        ),
+                        (
+                            "• **Aldea / Héroe:** `gameplay/hero_of_the_village/cleric_mycelial_gift` (regalo de Clérigo al defender aldeas).",
+                            "• **Village / Hero:** `gameplay/hero_of_the_village/cleric_mycelial_gift` (Cleric gift after village raid victory).",
                         ),
                     ],
                 )
@@ -1237,8 +1242,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[hive_memory]` `suppressorCooldownSeconds`=`120` (`15..600`), `projectileDeflectChance`=`0.30` (`0..0.95`), `symbiosisThreatMultiplierPerSlot`=`0.15` (`0..1`)."),
         ("• `[hive_memory]` `maxMutagenSlots`=`2` (`1..5`), `counterSerumBleedRatio`=`0.50` (`0.1..0.95`).",
          "• `[hive_memory]` `maxMutagenSlots`=`2` (`1..5`), `counterSerumBleedRatio`=`0.50` (`0.1..0.95`)."),
-        ("• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`).",
-         "• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`)."),
+        ("• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`), `pylonTier3ChunkLoadingEnabled`=`true`.",
+         "• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`), `pylonTier3ChunkLoadingEnabled`=`true`."),
         ("• `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`.",
          "• `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`."),
         ("• `[territory]` `playerCountScaling`=`0.15` (`0..1`), `wavesEnabled`=`true`, `waveCooldownTicks`=`3600` (`200..72000`).",
@@ -1257,13 +1262,15 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[dimensional_homeostasis]` `homeostasisEnabled`=`true`, `homeostasisExplosionStressScale`=`1.0` (`0.1..5`), `homeostasisAcidRainDamage`=`2.0` (`0.5..10`)."),
         ("• `[dimensional_homeostasis]` `homeostasisAntibodyEncapsulationEnabled`=`true`, `homeostasisMaxCystsPerChunk`=`64` (`8..256`).",
          "• `[dimensional_homeostasis]` `homeostasisAntibodyEncapsulationEnabled`=`true`, `homeostasisMaxCystsPerChunk`=`64` (`8..256`)."),
+        ("• `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).",
+         "• `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`)."),
     ]
 
     ch12_entries = (
         CodexEntry(
             id="configuracion_cliente_servidor",
             order=1,
-            title=lt("Configuraciones (12 Cliente / 39 Servidor)", "Config Catalog (12 Client / 39 Server)"),
+            title=lt("Configuraciones (12 Cliente / 43 Servidor)", "Config Catalog (12 Client / 43 Server)"),
             subtitle=lt(
                 "MycelialClientConfig, KeyBindings y MycelialConfig TOML completo",
                 "MycelialClientConfig, KeyBindings & full MycelialConfig TOML",

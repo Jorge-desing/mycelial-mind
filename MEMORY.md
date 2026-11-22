@@ -3247,3 +3247,30 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Archivos / Símbolos:** `.agents/rules/git-auto-commit.md`, `MEMORY.md`.
 - **Skills revisadas:** Sin cambios requeridos.
 - **Estado / Siguiente paso:** Commiteado y sincronizado con `origin/main`.
+
+## [2026-11-22 06:53] — Optimización de `runStructureVisualSmoke` y `structure_visual_check.py` (`/goal`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Optimizados los tests visuales de estructuras manteniendo intactos `isSectionCompiled`, `areHorizonFlanksCompiled`, la limpieza de partículas y los umbrales SSIM/pHash/LPIPS:
+  1. [StructureVisualSmokeClient.java](file:///c:/Users/Alex/Documents/Mod%20Minecraft/src/main/java/com/alex/mycelialmind/client/StructureVisualSmokeClient.java): ajustados tiempos fijos redundantes (`inWorldTicks`: `15 → 5`, `SHOTS.settleTicks`: `[25,45,25,45,25] → [12,16,10,16,10]`, apagado `shotWaitTicks`: `12 → 4`) y reemplazado `setBlockAndUpdate` por `setBlock(..., 18)` en las plataformas de `outbreakPos` y `hivePos`.
+  2. [structure_visual_check.py](file:///c:/Users/Alex/Documents/Mod%20Minecraft/scripts/structure_visual_check.py): omitida la inferencia `compute_lpips` cuando `ssim >= 0.995` y `phash_dist <= max_hamming` (conservando LPIPS completo si cualquier captura baja de `0.995`).
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/client/StructureVisualSmokeClient.java`, `scripts/structure_visual_check.py`.
+- **Skills revisadas:** `.agents/skills/mycelial-diagnostics/SKILL.md` y `.agents/skills/neoforge-gametest/SKILL.md` revisadas; sin cambios requeridos (`validate_skills` = `ok`).
+- **Estado / Verificación (FastMCP `CodeMode`):** `runStructureVisualSmoke --offline`: **`66.44 s → 59.23 s`** (`smoke_ok = true`, `all_placed = true`, `timed_out = false`); `check_structure_visual_regression`: **`14.56 s → 14.17 s`** (`check_ok = true`, `failed_shots = []`, `SSIM` `[0.9997, 1.0, 0.9994, 0.9998, 0.9571]` con LPIPS `0.0125` en el interior de Ciudadela).
+
+
+## [2026-11-22 07:07] — Incorporación de `run_codex_studio` (`64` herramientas) y sincronización de `codex_studio` + `/mycelial-codemode` (`/goal`)
+- **Tipo:** `IMPLEMENTACIÓN` | `CORRECCIÓN` | `DOCUMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:**
+  - **Nueva herramienta MCP (`scripts/mcp/server.py`):** Añadida `run_codex_studio(check_only=True, report=False, run_tests=True)` bajo la etiqueta `studios` usando `_run_studio_with_tests(...)` (auditoría de cobertura/referencias/presupuesto o exportación `--all --check` + `scripts/codex_studio/tests`, con invalidación automática de caché al mutar) y documentada en `instructions` de `FastMCP`, elevando el catálogo de `63` a `64` herramientas (`studios`: `8`).
+  - **Pruebas MCP (`scripts/mcp/test_server.py`):** Añadida llamada a `run_codex_studio` dentro de `code_live` (`verify_code_mode`) con aserción `codex_studio_ok is True` y conteo mínimo `tagged_tools_count >= 64`.
+  - **Correcciones en `scripts/codex_studio/`:** Actualizado `coverage_audit.py` (`scan_repo_inventory`) para resolver `compostables.json` en `src/generated/resources/data/neoforge/data_maps/item/compostables.json` (con fallback a `src/main/resources/...`), y cubiertas las 5 claves faltantes en `content_part3.py` (`gameplay/hero_of_the_village/cleric_mycelial_gift`, `pylonTier3ChunkLoadingEnabled`, `rootTraversalThreshold`, `growthIntervalTicks`, `maxTrailPointsPerChunk`), regenerando los exportables del Códice (`12` capítulos, `50` entradas, `202` páginas).
+  - **Skills y reglas actualizadas:** Sincronizadas `.agents/skills/mycelial-codemode/SKILL.md` (`64` herramientas, `studios 8`, `run_codex_studio`), `.agents/skills/mycelial-codemode/references/catalog-and-sandbox.md`, `.agents/rules/codemode-first.md` y `scripts/mcp/README.md`.
+- **Archivos / Símbolos:**
+  - `scripts/mcp/server.py` (`run_codex_studio`)
+  - `scripts/mcp/test_server.py` (`verify_code_mode`)
+  - `scripts/mcp/README.md`
+  - `scripts/codex_studio/coverage_audit.py` (`scan_repo_inventory`)
+  - `scripts/codex_studio/content_part3.py`
+  - `docs/codex/**` (exportables regenerados por `build_codex.py --all --check`)
+  - `.agents/skills/mycelial-codemode/SKILL.md`, `.agents/skills/mycelial-codemode/references/catalog-and-sandbox.md`, `.agents/rules/codemode-first.md`
+- **Estado / Siguiente paso:** Verificados con código `0`: `scripts\mcp\.venv\Scripts\python.exe -m py_compile scripts/mcp/server.py scripts/mcp/test_server.py`, `python scripts/codex_studio/build_codex.py --all --check` / `--check` (`chapters=12 entries=50 pages=202 ok=True`), `python -m unittest discover -s scripts/codex_studio/tests -v` (`5/5 OK`), `python scripts/validate_agent_skills.py` (`8/8 OK`), y vía `mycelial-mind-dev` `execute` (`validate_skills=True`, `audit_mod_assets=True`, `lang=1476/1476`). Nota: el cliente MCP requiere reconexión para cargar la 64.ª herramienta en el proceso vivo (`instance_pid=30844` sigue con `tool_count=63`).

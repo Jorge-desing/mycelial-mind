@@ -90,6 +90,13 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.configuracion_cliente_servidor.page11.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.configuracion_cliente_servidor.page12.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.configuracion_cliente_servidor.page12.text"
     }
   ]
 }

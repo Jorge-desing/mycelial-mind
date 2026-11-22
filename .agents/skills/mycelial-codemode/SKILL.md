@@ -4,13 +4,13 @@ description: >-
   Guía operativa maestra de FastMCP CodeMode (mycelial-mind-dev) para Mycelial
   Mind: conexión con DeepSeek Harness y otros clientes MCP, descubrimiento con
   search/get_schema, sandbox Monty en execute (50 llamadas, 600 s, 100 MB), las
-  63 herramientas del bridge, ciclo servidor+cliente aislado, auditorías y
+  64 herramientas del bridge, ciclo servidor+cliente aislado, auditorías y
   fallback de consola.
 ---
 
 # Guía Maestra de FastMCP `CodeMode` (`mycelial-mind-dev`)
 
-`scripts/mcp/server.py` (**FastMCP 4.2.1** + `CodeMode`/`MontySandboxProvider`) expone **63 herramientas** detrás de tres meta-herramientas: `search`, `get_schema` y `execute`. Es la interfaz obligatoria del proyecto para auditar suites, inspeccionar registros/IA/activos y operar Minecraft/NeoForge ([.agents/rules/codemode-first.md](../../rules/codemode-first.md)).
+`scripts/mcp/server.py` (**FastMCP 4.2.1** + `CodeMode`/`MontySandboxProvider`) expone **64 herramientas** detrás de tres meta-herramientas: `search`, `get_schema` y `execute`. Es la interfaz obligatoria del proyecto para auditar suites, inspeccionar registros/IA/activos y operar Minecraft/NeoForge ([.agents/rules/codemode-first.md](../../rules/codemode-first.md)).
 
 ## 1. Conexión
 
@@ -45,7 +45,7 @@ El perfil `desktop` monta el servidor con la fila `mcp-manager` en `C:\Users\Ale
 
 ### 1.3 Autocomprobación (una sola llamada)
 
-`execute` → `get_bridge_health()` devuelve `ok=true`, `tool_count=63`, `server="MycelialMindDev"`, `fastmcp_version`, `python_executable`, `java_home_detected=C:\Program Files\Java\jdk-21`, `jcmd_available=true`, `temp_dir`, `repo_root`, `active_live_sessions`, `cache_entries` e identidad de instancia (`instance_id`, `instance_pid`, `instance_started_utc`, `instance_uptime_secs`). Es el primer `call_tool` de cualquier pasada.
+`execute` → `get_bridge_health()` devuelve `ok=true`, `tool_count=64`, `server="MycelialMindDev"`, `fastmcp_version`, `python_executable`, `java_home_detected=C:\Program Files\Java\jdk-21`, `jcmd_available=true`, `temp_dir`, `repo_root`, `active_live_sessions`, `cache_entries` e identidad de instancia (`instance_id`, `instance_pid`, `instance_started_utc`, `instance_uptime_secs`). Es el primer `call_tool` de cualquier pasada.
 
 ### 1.4 Coexistencia con Codex y Antigravity
 
@@ -65,7 +65,7 @@ Los cuatro apuntan al mismo par `scripts/mcp/.venv/Scripts/python.exe` + `script
 
 ## 2. Descubrimiento y ejecución
 
-1. **Buscar:** `search(query)` → lista ranking de herramientas con descripción corta (`N of 63 tools`).
+1. **Buscar:** `search(query)` → lista ranking de herramientas con descripción corta (`N of 64 tools`).
 2. **Confirmar contrato:** `get_schema(tools=[...], detail="brief|detailed|full")` → parámetros con tipos y defaults. También resuelve las propias meta-herramientas (`get_schema(["execute","search","get_schema"])`); solo responde `Tools not found` para nombres inexistentes.
 3. **Ejecutar:** `execute(code)` con un bloque Python `async`.
 
@@ -75,7 +75,7 @@ Los cuatro apuntan al mismo par `scripts/mcp/.venv/Scripts/python.exe` + `script
 - **Límite duro:** 50 llamadas `call_tool()` por bloque, `max_feed_duration_secs=600`, `max_memory=100 MB`. Divide auditorías largas en varios `execute` y guarda lo esencial en el resultado.
 - Paraleliza comprobaciones independientes con `import asyncio` + `await asyncio.gather(...)`.
 - Devuelve siempre un **dict resumen compacto** (booleanos, conteos, rutas, primeros errores). Nunca vuelques logs completos: usa `error_lines`, `matched_lines`, `summary_markers`.
-- Los 3 meta-tools **no** son invocables dentro de `execute` (solo las 63 herramientas del bridge). `list_tool_tags()` sí es una herramienta del bridge.
+- Los 3 meta-tools **no** son invocables dentro de `execute` (solo las 64 herramientas del bridge). `list_tool_tags()` sí es una herramienta del bridge.
 - Valores por defecto conservadores: `check_only=True` y `run_tests=True` en los estudios; los mutantes regeneran activos y tardan más.
 
 ## 3. Enrutador rápido por objetivo
@@ -84,7 +84,7 @@ Los cuatro apuntan al mismo par `scripts/mcp/.venv/Scripts/python.exe` + `script
 | --- | --- | --- |
 | Explorar código, registros, IA, tests, métricas o caché del bridge | `list_tool_tags`, `get_bridge_health`, `get_bridge_metrics`, `get_registered_content`, `get_hive_ai_overview`, `list_gametests`, `list_unit_tests`, `get_memory_tail`, `capture_audit_snapshot`, `diff_audit_snapshots`, `clear_bridge_cache` | [references/catalog-and-sandbox.md](references/catalog-and-sandbox.md) |
 | Servidor aislado, RCON `/mycelial`, `spark`, MC Pilot, JFR y reportes en vivo | `start_smoke_server`, `start_live_session`, `run_live_scenario`, `get_live_hive_status`, `run_live_verify_scenario`, `rcon_command`, `run_rcon_batch`, `run_rcon_verify_suite`, `collect_spark_tps`, `capture_mcpilot_screenshot`, `run_jfr`, `summarize_jfr`, `get_latest_live_report`, `compare_live_reports`, `stop_live_session` | [references/live-game-lifecycle.md](references/live-game-lifecycle.md) |
-| Auditorías de activos, modelos 3D, texturas PBR, partículas, audio Ogg, GameTests, build | `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio`, `run_structure_studio`, `audit_mod_assets`, `run_gradle_task`, `run_verify_mod`, `manage_verify_cache`, `check_visual_regression`, `check_structure_visual_regression`, `read_diagnostic_logs` | [references/audit-playbooks.md](references/audit-playbooks.md) |
+| Auditorías de activos, modelos 3D, texturas PBR, partículas, audio Ogg, códice, GameTests, build | `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio`, `run_codex_studio`, `run_structure_studio`, `audit_mod_assets`, `run_gradle_task`, `run_verify_mod`, `manage_verify_cache`, `check_visual_regression`, `check_structure_visual_regression`, `read_diagnostic_logs` | [references/audit-playbooks.md](references/audit-playbooks.md) |
 | Diagnosticar fallos, regresiones, cuelgues o TPS/FPS (`/mycelial-diagnostics`) | `collect_diagnostic_bundle`, `diagnose_symptom`, `get_diagnostics_guide`, `list_diagnostic_artifacts`, `run_live_scenario`, `compare_live_reports` | [references/audit-playbooks.md](references/audit-playbooks.md) y [../mycelial-diagnostics/SKILL.md](../mycelial-diagnostics/SKILL.md) |
 
 ## 4. Recetas esenciales
@@ -147,5 +147,5 @@ return {"status": status.get("threat_pct"), "verify_ok": verify.get("ok"), "stop
 ## 6. Mantenimiento
 
 - Al añadir/renombrar herramientas en `scripts/mcp/server.py`, actualiza [references/catalog-and-sandbox.md](references/catalog-and-sandbox.md) (conteo, etiquetas, args) y verifica con `validate_skills` + `python scripts/mcp/.venv/Scripts/python.exe scripts/mcp/test_server.py`.
-- El conteo canónico vive en `get_bridge_health()["tool_count"]` (**63**); `list_tool_tags()` da los grupos semánticos (meta 9, code 10, gradle 8, lifecycle 13, rcon 10, mcpilot 9, jfr 3, diagnostics 22, studios 7, structures 3, visual 4, reports 6, skills 5, registry 2, hive 2, observability 5).
+- El conteo canónico vive en `get_bridge_health()["tool_count"]` (**64**); `list_tool_tags()` da los grupos semánticos (meta 9, code 10, gradle 8, lifecycle 13, rcon 10, mcpilot 9, jfr 3, diagnostics 22, studios 8, structures 3, visual 4, reports 6, skills 5, registry 2, hive 2, observability 5).
 - Fallback por consola **solo** si el servidor no está conectado o al depurar el propio `server.py` (ver `AGENTS.md` §5).

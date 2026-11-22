@@ -26,6 +26,7 @@ Para recetas completas y detalle del sandbox, consultar [.agents/skills/mycelial
 | `python scripts/texture_studio/build_textures.py ...` + `unittest` | `run_texture_studio` / `audit_mod_assets` |
 | `python scripts/particle_studio/build_particles.py ...` + `unittest` | `run_particle_studio` / `audit_mod_assets` |
 | `python scripts/sound_studio/build_sounds.py ...` + `unittest` | `run_sound_studio` / `audit_mod_assets` |
+| `python scripts/codex_studio/build_codex.py ...` + `unittest` | `run_codex_studio` |
 | `python scripts/build_structures.py` | `run_structure_studio` |
 | `python scripts/validate_agent_skills.py` | `validate_skills` / `list_skills` / `get_skill_guide` |
 | `python scripts/visual_regression.py` / `structure_visual_check.py` | `check_visual_regression` / `check_structure_visual_regression` / `get_latest_structure_visual_smoke` |

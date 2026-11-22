@@ -4,7 +4,7 @@
     "economia_datos",
     "mundo_dimension"
   ],
-  "page_count": 81,
+  "page_count": 82,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -170,31 +170,34 @@
         "raw": "Integración Económica\nVanilla+ (3/3)\n• Aldeanos y Errante:\nClérigos (N2–N5)\ncomercian\n`mycelial_biomass`,\n`spore_antidote`,\n`latent_spore`,\n`concentrated_antidot\ne`; Albañiles y\nVendedor Errante\nofrecen bloques\nmiceliales y\n`truce_pheromone`."
       },
       {
-        "raw": "Cap.9: Las 49 Tablas\nde Botín\nBotín Multi-Pool (49\nTablas) (1/9)\n• Bloques 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
+        "raw": "Cap.9: Las 50 Tablas\nde Botín\nBotín Multi-Pool (50\nTablas) (1/9)\n• Bloques 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (2/9)\n• Bloques 2/4:\n`blocks/hive_altar`,\n`blocks/hyphal_vein`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
+        "raw": "Botín Multi-Pool (50\nTablas) (2/9)\n• Bloques 2/4:\n`blocks/hive_altar`,\n`blocks/hyphal_vein`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (3/9)\n• Bloques 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reinforced_bi\no_barrier`."
+        "raw": "Botín Multi-Pool (50\nTablas) (3/9)\n• Bloques 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reinforced_bi\no_barrier`."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (4/9)\n• Bloques 4/4:\n`blocks/sentinel_node`\n, `blocks/spore_bulb`,\n`blocks/spore_vent`,\n`blocks/symbiotic_nod\ne`,\n`blocks/synaptic_rese\narch_bench`."
+        "raw": "Botín Multi-Pool (50\nTablas) (4/9)\n• Bloques 4/4:\n`blocks/sentinel_node`\n, `blocks/spore_bulb`,\n`blocks/spore_vent`,\n`blocks/symbiotic_nod\ne`,\n`blocks/synaptic_rese\narch_bench`."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (5/9)\n• Cofres 1/2:\n`chests/outbreak_sea\nled_vault`,\n`chests/surface_hive\n_cache`,\n`chests/surface_hive\n_crypt`,\n`chests/surface_hive\n_gallery`,\n`chests/sanctum_spor\ne_vault`."
+        "raw": "Botín Multi-Pool (50\nTablas) (5/9)\n• Cofres 1/2:\n`chests/outbreak_sea\nled_vault`,\n`chests/surface_hive\n_cache`,\n`chests/surface_hive\n_crypt`,\n`chests/surface_hive\n_gallery`,\n`chests/sanctum_spor\ne_vault`."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (6/9)\n• Cofres 2/2:\n`chests/sanctum_forbi\ndden_lab`,\n`chests/sanctum_ossu\nary_crypt`,\n`chests/citadel_amber\n_chapel`,\n`chests/citadel_crimso\nn_chapel`,\n`chests/citadel_royal\n_crypt`."
+        "raw": "Botín Multi-Pool (50\nTablas) (6/9)\n• Cofres 2/2:\n`chests/sanctum_forbi\ndden_lab`,\n`chests/sanctum_ossu\nary_crypt`,\n`chests/citadel_amber\n_chapel`,\n`chests/citadel_crimso\nn_chapel`,\n`chests/citadel_royal\n_crypt`."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (7/9)\n• Entidades 1/3:\n`entities/acid_spitter`,\n`entities/apex_matriar\nch`,\n`entities/burrower`,\n`entities/chitin_brute`,\n`entities/colony_warde\nn`,\n`entities/goliath_carri\ner`."
+        "raw": "Botín Multi-Pool (50\nTablas) (7/9)\n• Entidades 1/3:\n`entities/acid_spitter`,\n`entities/apex_matriar\nch`,\n`entities/burrower`,\n`entities/chitin_brute`,\n`entities/colony_warde\nn`,\n`entities/goliath_carri\ner`."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (8/9)\n• Entidades 2/3:\n`entities/hive_core`,\n`entities/leech_parasit\ne`,\n`entities/mycelial_chim\nera`,\n`entities/mycelial_stalk\ner`,\n`entities/purifier_dron\ne`,\n`entities/pyro_shroom`\n."
+        "raw": "Botín Multi-Pool (50\nTablas) (8/9)\n• Entidades 2/3:\n`entities/hive_core`,\n`entities/leech_parasit\ne`,\n`entities/mycelial_chim\nera`,\n`entities/mycelial_stalk\ner`,\n`entities/purifier_dron\ne`,\n`entities/pyro_shroom`\n."
       },
       {
-        "raw": "Botín Multi-Pool (49\nTablas) (9/9)\n• Entidades 3/3:\n`entities/spore_archit\nect`,\n`entities/spore_behem\noth`,\n`entities/sporeling`,\n`entities/synapse_wea\nver`,\n`entities/synaptic_mimi\nc` (escala con\nSaqueo/Rango/Cepa)."
+        "raw": "Botín Multi-Pool (50\nTablas) (9/9)\n• Entidades 3/3:\n`entities/spore_archit\nect`,\n`entities/spore_behem\noth`,\n`entities/sporeling`,\n`entities/synapse_wea\nver`,\n`entities/synaptic_mimi\nc` (escala con\nSaqueo/Rango/Cepa).\n• Aldea / Héroe:"
+      },
+      {
+        "raw": "`gameplay/hero_of_th\ne_village/cleric_myceli\nal_gift` (regalo de\nClérigo al defender\naldeas)."
       },
       {
         "raw": "Cap.10: Brotes y\nColmenas del\nOverworld\nEstructuras y\nCaracterísticas\nOverworld (1/3)\n• `mycelial_outbreak`:\ngarra orgánica altura\n9, conectividad\n6-vecinos estricta (0\nflotantes),\n`MIN_OUTBREAK_SPACIN\nG = 56` y bóveda\n`outbreak_sealed_vaul"

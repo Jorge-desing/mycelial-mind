@@ -2,9 +2,9 @@
 
 ## 0. Identidad y nombres
 
-- El bridge registra **63 herramientas** (`get_bridge_health()["tool_count"]`) y las expone con CodeMode detrás de **3 meta-herramientas**: `search`, `get_schema`, `execute`.
+- El bridge registra **64 herramientas** (`get_bridge_health()["tool_count"]`) y las expone con CodeMode detrás de **3 meta-herramientas**: `search`, `get_schema`, `execute`.
 - En DSH cada herramienta pública se llama `mcp__mycelial-mind-dev__<rawName>` (el sufijo `rawName` es idéntico al nombre del catálogo, p. ej. `mcp__mycelial-mind-dev__run_gradle_task`).
-- `get_schema` resuelve las 63 del catálogo **y** las 3 meta-herramientas (un `get_schema` propio, `MycelialCodeMode`, fusiona ambas listas); solo responde `Tools not found` para nombres inexistentes. Dentro de `execute` solo existe `call_tool`, no los meta-tools.
+- `get_schema` resuelve las 64 del catálogo **y** las 3 meta-herramientas (un `get_schema` propio, `MycelialCodeMode`, fusiona ambas listas); solo responde `Tools not found` para nombres inexistentes. Dentro de `execute` solo existe `call_tool`, no los meta-tools.
 - `list_tool_tags()` devuelve `{"ok", "tags", "tagged_tools"}`; un tool puede pertenecer a varias etiquetas.
 
 ## 1. Etiquetas semánticas (miembros reales)
@@ -17,7 +17,7 @@
 | `registry` | 2 | `get_registered_content`, `list_datapack_content` |
 | `hive` | 2 | `get_hive_ai_overview`, `get_live_hive_status` |
 | `skills` | 5 | `list_skills`, `get_skill_guide`, `validate_skills`, `diagnose_symptom`, `get_diagnostics_guide` |
-| `studios` | 7 | `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio`, `run_structure_studio`, `get_uv_manifest`, `audit_mod_assets` |
+| `studios` | 8 | `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio`, `run_codex_studio`, `run_structure_studio`, `get_uv_manifest`, `audit_mod_assets` |
 | `structures` | 3 | `run_structure_studio`, `check_structure_visual_regression`, `get_latest_structure_visual_smoke` |
 | `visual` | 4 | `check_visual_regression`, `check_structure_visual_regression`, `get_latest_structure_visual_smoke`, `capture_mcpilot_screenshot` |
 | `gradle` | 8 | `run_gradle_task`, `run_verify_mod`, `manage_verify_cache`, `get_latest_junit_report`, `get_latest_pitest_report`, `list_gametests`, `list_unit_tests`, `get_gradle_config` |
@@ -42,6 +42,7 @@
 | `run_particle_studio` | `check_only=true`, `export_extras=false`, `run_tests=true`; valida sprites/descriptores/registro y paridad con `particles.json`. |
 | `run_texture_studio` | `check_only=true`, **`pbr=true`**, `export_extras=false`, `run_tests=true`. |
 | `run_sound_studio` | `check_only=true`, `run_tests=true`; no expone `--regen-ai-stems` (hazlo por consola con `build_sounds.py --regen-ai-stems`). |
+| `run_codex_studio` | `check_only=true`, `report=false`, `run_tests=true`; valida cobertura/refs/presupuesto del códice o exporta con `check_only=false`. |
 | `check_visual_regression` | baseline `scripts/model_studio/exports/baseline_visual_smoke.png`, actual `run/screenshots/visual_smoke_mobs.png`, `threshold_ssim=0.9`, `include_diff_regions=false`, `include_lpips=false`. |
 | `start_smoke_server` | `world_type="flat"`, puertos `0` (auto), `enable_diagnostics=false`, `timeout_secs=120`. |
 | `start_live_session` | `client_name="mycelial-1211"`, `world_type="flat"`, `launch_client=true`, `enable_diagnostics=false`, `timeout_secs=120`. |
@@ -55,7 +56,7 @@
 ## 3. Caché TTL (15 s) y métricas
 
 - Se cachean **7** herramientas: `get_registered_content`, `list_gametests`, `list_unit_tests`, `get_hive_ai_overview`, `audit_mod_assets`, `list_datapack_content`, `get_gradle_config`.
-- Las mutantes invalidan la caché: `run_model_studio`/`run_texture_studio`/`run_particle_studio`/`run_sound_studio` con `check_only=false`, `run_structure_studio`, `run_gradle_task`, `run_verify_mod`.
+- Las mutantes invalidan la caché: `run_model_studio`/`run_texture_studio`/`run_particle_studio`/`run_sound_studio`/`run_codex_studio` con `check_only=false`, `run_structure_studio`, `run_gradle_task`, `run_verify_mod`.
 - Tras editar Java/JSON por fuera del bridge: `clear_bridge_cache()` antes de leer o de capturar el snapshot `after`.
 - `get_bridge_metrics()` da llamadas/errores/latencia por herramienta y `hits`/`misses`; `get_bridge_health()` da `tool_count`, `cache_entries`, `active_live_sessions`, `jdk21`/`jcmd`.
 
@@ -84,7 +85,7 @@ return await call_tool("diff_audit_snapshots", {"before_label": "before", "after
 | Recurso | Tipo | Contenido |
 | --- | --- | --- |
 | `mycelial://bridge/health` | JSON | `get_bridge_health()` (incluye `instance_id`/`pid`/uptime) |
-| `mycelial://bridge/tools` | JSON | `{count, tools:[{name, tags}]}` de las 63 herramientas |
+| `mycelial://bridge/tools` | JSON | `{count, tools:[{name, tags}]}` de las 64 herramientas |
 | `mycelial://bridge/tags` | JSON | `list_tool_tags()` |
 | `mycelial://memory/tail` | Markdown | últimas 60 líneas de `MEMORY.md` |
 | `mycelial://skills` | JSON | índice de skills y sus referencias |
