@@ -917,7 +917,20 @@ class HiveAlgorithmsUnitTest {
                     <= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveRarityChance(tiers[i - 1]));
             assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tiers[i])
                     <= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tiers[i - 1]));
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceBreachChance(tiers[i])
+                    >= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceBreachChance(tiers[i - 1]));
         }
+        assertEquals(0.35F, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceBreachChance(null), 1.0E-5F);
+        assertTrue(com.alex.mycelialmind.world.PurificationZoneTracker.isWithinLinkRange(
+                new BlockPos(0, 20, 0), new BlockPos(28, 20, 0), 28));
+        assertFalse(com.alex.mycelialmind.world.PurificationZoneTracker.isWithinLinkRange(
+                new BlockPos(0, 20, 0), new BlockPos(29, 20, 0), 28));
+        assertTrue(com.alex.mycelialmind.world.PurificationZoneTracker.isWithinLinkRange(
+                new BlockPos(0, 20, 0), new BlockPos(4, 68, 4), 28));
+        assertFalse(com.alex.mycelialmind.world.PurificationZoneTracker.isWithinLinkRange(
+                new BlockPos(0, 20, 0), new BlockPos(4, 104, 4), 28));
+        assertFalse(com.alex.mycelialmind.world.PurificationZoneTracker.isWithinLinkRange(
+                new BlockPos(0, 20, 0), new BlockPos(15, 68, 0), 28));
         assertEquals(com.alex.mycelialmind.world.SynapticNodeType.SENTINEL,
                 com.alex.mycelialmind.world.structure.StructureProgressionPolicy.pickOutbreakNodeType(
                         com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, 0.049F));

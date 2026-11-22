@@ -242,6 +242,27 @@ public class PurificationZoneTracker extends SavedData {
         return false;
     }
 
+    public static final int VERTICAL_TAPROOT_MAX_HORIZ = 12;
+    public static final int VERTICAL_TAPROOT_MIN_DY = 8;
+    public static final int VERTICAL_TAPROOT_MAX_DY = 80;
+
+    /**
+     * Returns true when two synaptic nodes are within standard 3D link radius, OR
+     * vertically aligned along a subterranean-to-surface hyphal taproot shaft.
+     */
+    public static boolean isWithinLinkRange(BlockPos a, BlockPos b, int maxRadius) {
+        double maxSq = (double) maxRadius * maxRadius;
+        if (a.distSqr(b) <= maxSq) {
+            return true;
+        }
+        int dx = a.getX() - b.getX();
+        int dz = a.getZ() - b.getZ();
+        int absDy = Math.abs(a.getY() - b.getY());
+        return absDy >= VERTICAL_TAPROOT_MIN_DY
+                && absDy <= VERTICAL_TAPROOT_MAX_DY
+                && (dx * dx + dz * dz) <= VERTICAL_TAPROOT_MAX_HORIZ * VERTICAL_TAPROOT_MAX_HORIZ;
+    }
+
     public List<BlockPos> getLinkedNodes(BlockPos origin) {
         return getLinkedNodes(origin, MycelialConfig.SYNAPTIC_NODE_LINK_RADIUS.get());
     }
@@ -251,12 +272,11 @@ public class PurificationZoneTracker extends SavedData {
         if (isProtected(origin) || getNodeType(origin) == SynapticNodeType.SYMBIOTIC) {
             return linked;
         }
-        double maxSq = (double) maxRadius * maxRadius;
         for (BlockPos candidate : nodePositions) {
             if (candidate.equals(origin) || getNodeType(candidate) == SynapticNodeType.SYMBIOTIC) {
                 continue;
             }
-            if (origin.distSqr(candidate) <= maxSq && !isSegmentBlockedByPylon(origin, candidate)) {
+            if (isWithinLinkRange(origin, candidate, maxRadius) && !isSegmentBlockedByPylon(origin, candidate)) {
                 linked.add(candidate);
             }
         }
@@ -277,7 +297,6 @@ public class PurificationZoneTracker extends SavedData {
 
     public synchronized int countActiveNetworkLinks() {
         int maxRadius = MycelialConfig.SYNAPTIC_NODE_LINK_RADIUS.get();
-        double maxSq = (double) maxRadius * maxRadius;
         List<BlockPos> list = new ArrayList<>(nodePositions);
         int links = 0;
         for (int i = 0; i < list.size(); i++) {
@@ -289,7 +308,7 @@ public class PurificationZoneTracker extends SavedData {
                 BlockPos b = list.get(j);
                 if (getNodeType(b) != SynapticNodeType.SYMBIOTIC
                         && !isProtected(b)
-                        && a.distSqr(b) <= maxSq
+                        && isWithinLinkRange(a, b, maxRadius)
                         && !isSegmentBlockedByPylon(a, b)) {
                     links++;
                 }

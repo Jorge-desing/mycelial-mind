@@ -5183,7 +5183,8 @@ public final class MycelialGameTests {
                 for (var desc : recipes) {
                     bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, desc.sampleInputs().get(0).copy());
                     bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS, desc.biomassInputs().get(0).copy());
-                    bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, desc.catalystInputs().get(0).copy());
+                    bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST,
+                            desc.catalystInputs().isEmpty() ? ItemStack.EMPTY : desc.catalystInputs().get(0).copy());
                     ItemStack result = bench.computeSynthesisResult();
                     if (!result.isEmpty() && result.is(desc.output().getItem())) {
                         matchedRecipes++;
@@ -7971,6 +7972,85 @@ public final class MycelialGameTests {
                     }
                 }
             }
+
+            helper.succeed();
+        } finally {
+            tracker.clearAll();
+        }
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_vertical_taproot")
+    public static void subterraneanOutbreakCaveCrownAndSurfaceTaprootConnectionWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        BlockPos caveGround = helper.absolutePos(new BlockPos(8, 130, 8));
+        BlockPos surfaceGround = helper.absolutePos(new BlockPos(8, 160, 40));
+        BlockPos lowerCaveGround = surfaceGround.below(24);
+
+        try {
+            // 1. Low-ceiling subterranean cave (headroom = 5) generates compact ceiling-welded crown
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    level.setBlock(caveGround.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
+                    level.setBlock(caveGround.offset(dx, 0, dz), Blocks.STONE.defaultBlockState(), 18);
+                    for (int dy = 1; dy <= 5; dy++) {
+                        level.setBlock(caveGround.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 18);
+                    }
+                    level.setBlock(caveGround.offset(dx, 6, dz), Blocks.STONE.defaultBlockState(), 18);
+                    level.setBlock(caveGround.offset(dx, 14, dz), Blocks.GRASS_BLOCK.defaultBlockState(), 18);
+                }
+            }
+            boolean cavePlaced = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), caveGround);
+            helper.assertTrue(cavePlaced, "Subterranean outbreak must place in low-ceiling cave.");
+            helper.assertTrue(level.getBlockState(caveGround.above(5)).is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()),
+                    "Compact cave crown must place luminescent_amber_vein core welded at ceiling headroom.");
+
+            // 2. Surface outbreak above a subterranean cavern weaves vertical taproot & links both nodes
+            tracker.clearAll();
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    for (int y = lowerCaveGround.getY() - 1; y <= surfaceGround.getY() + 10; y++) {
+                        BlockPos p = new BlockPos(surfaceGround.getX() + dx, y, surfaceGround.getZ() + dz);
+                        if (y > surfaceGround.getY()) {
+                            level.setBlock(p, Blocks.AIR.defaultBlockState(), 18);
+                        } else if (y == surfaceGround.getY()) {
+                            level.setBlock(p, Blocks.GRASS_BLOCK.defaultBlockState(), 18);
+                        } else if (y >= lowerCaveGround.getY() + 1 && y <= lowerCaveGround.getY() + 5) {
+                            level.setBlock(p, Blocks.AIR.defaultBlockState(), 18);
+                        } else {
+                            level.setBlock(p, Blocks.STONE.defaultBlockState(), 18);
+                        }
+                    }
+                }
+            }
+
+            boolean surfPlaced = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), surfaceGround);
+            helper.assertTrue(surfPlaced, "Surface outbreak must place above subterranean cavern.");
+            helper.assertTrue(level.getBlockState(lowerCaveGround).is(ModBlocks.MYCELIAL_NODE.get()),
+                    "Surface outbreak must seed a linked subterranean MYCELIAL_NODE on the cavern floor below.");
+
+            boolean foundTaprootBlock = false;
+            for (int y = lowerCaveGround.getY() + 6; y <= surfaceGround.getY() - 2; y++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        BlockState st = level.getBlockState(new BlockPos(surfaceGround.getX() + dx, y, surfaceGround.getZ() + dz));
+                        if (st.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()) || st.is(ModBlocks.MYCELIAL_ARCH_BRICK.get())) {
+                            foundTaprootBlock = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(foundTaprootBlock, "Vertical taproot must weave amber/arch_brick conduit between surface and cavern.");
+
+            var linked = tracker.getLinkedNodes(surfaceGround);
+            helper.assertTrue(linked.contains(lowerCaveGround),
+                    "Surface outbreak node must have an active vertical synaptic link to the subterranean node below.");
 
             helper.succeed();
         } finally {

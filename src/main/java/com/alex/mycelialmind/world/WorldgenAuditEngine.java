@@ -684,7 +684,8 @@ public final class WorldgenAuditEngine {
                 if (bProtected) {
                     continue;
                 }
-                if (a.distSqr(b) <= maxSq && (tracker == null || !tracker.isSegmentBlockedByPylon(a, b))) {
+                if (PurificationZoneTracker.isWithinLinkRange(a, b, linkRadius)
+                        && (tracker == null || !tracker.isSegmentBlockedByPylon(a, b))) {
                     adj.get(i).add(j);
                     adj.get(j).add(i);
                     links++;

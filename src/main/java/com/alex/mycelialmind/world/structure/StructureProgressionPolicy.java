@@ -197,4 +197,18 @@ public final class StructureProgressionPolicy {
             case OVERMIND -> 0.55F;
         };
     }
+
+    /**
+     * Probability that a shallow/mid-depth Overworld subterranean outbreak sends an upward
+     * hyphal taproot to breach the surface with a linked spore tell.
+     */
+    public static float surfaceBreachChance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 0.35F;
+            case AWAKENED -> 0.50F;
+            case ADAPTIVE -> 0.65F;
+            case OVERMIND -> 0.80F;
+        };
+    }
 }

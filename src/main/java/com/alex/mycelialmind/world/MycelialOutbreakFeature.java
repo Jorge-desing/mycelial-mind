@@ -10,11 +10,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -106,14 +108,14 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
             }
         }
 
+        boolean isOverworld = level.getLevel() instanceof ServerLevel sl && sl.dimension().equals(Level.OVERWORLD);
+        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, center.getX(), center.getZ());
+        boolean isSubterranean = center.getY() < surfaceY - 6;
+
         // 70/20/10 6-connected curving fungal stalk, counter-rib & stratified cap (height 9)
-        boolean hasHeadroom = true;
-        for (int dy = 1; dy <= 9; dy++) {
-            if (!isOpenAirOrReplaceable(level, center.above(dy))) {
-                hasHeadroom = false;
-                break;
-            }
-        }
+        // or compact ceiling-welded cave crown in low/medium subterranean caverns (headroom 4..8)
+        int headroom = measureHeadroom(level, center, 9);
+        boolean hasHeadroom = headroom >= 9;
         Direction leanDir = hasHeadroom ? pickSupportedLeanDirection(level, center, random) : null;
         if (leanDir != null) {
             BoundingBox canopyBox = new BoundingBox(
@@ -188,6 +190,8 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
                 level.setBlock(center.above(8), amberVein, 2);
             }
             VoxelStructureOps.placeAnchoredChain(level, canopyBox, center.above(5), 1, archBrick, amberVein);
+        } else if (isSubterranean && headroom >= 4) {
+            buildCompactCaveCrown(level, center, headroom, random, archBrick, chitinPillar, amberVein, amethyst, deepslateTiles);
         }
 
         // WFC core mosaic + Domain-warped radial root veins (radius 6, slope-adaptive ±2 Y)
@@ -257,6 +261,19 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
         if (random.nextFloat() < StructureProgressionPolicy.sealedBioVaultChance(tier)
                 && canPlaceSealedBioVault(level, vaultCenter)) {
             placeSealedBioVault(level, vaultCenter, random, tier);
+        }
+
+        // Overworld subterranean <-> surface hyphal taproot & linked relay connection
+        if (isOverworld) {
+            if (isSubterranean) {
+                int depthBelowSurface = surfaceY - center.getY();
+                if (depthBelowSurface >= 8 && depthBelowSurface <= 72
+                        && random.nextFloat() < StructureProgressionPolicy.surfaceBreachChance(tier)) {
+                    connectSubterraneanToSurface(level, center, surfaceY, Math.max(2, headroom), random);
+                }
+            } else {
+                connectSurfaceToSubterranean(level, center, random);
+            }
         }
         return true;
     }
@@ -491,6 +508,234 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
                 || state.is(Blocks.DEEPSLATE_TILES)
                 || state.is(Blocks.PURPLE_STAINED_GLASS)
                 || state.is(Blocks.AMETHYST_BLOCK);
+    }
+
+    private static int measureHeadroom(WorldGenLevel level, BlockPos center, int maxCheck) {
+        int clear = 0;
+        for (int dy = 1; dy <= maxCheck; dy++) {
+            if (!isOpenAirOrReplaceable(level, center.above(dy))) {
+                break;
+            }
+            clear = dy;
+        }
+        return clear;
+    }
+
+    private static void buildCompactCaveCrown(
+            WorldGenLevel level,
+            BlockPos center,
+            int headroom,
+            RandomSource random,
+            BlockState archBrick,
+            BlockState chitinPillar,
+            BlockState amberVein,
+            BlockState amethyst,
+            BlockState deepslateTiles
+    ) {
+        int crownY = headroom;
+        BoundingBox box = new BoundingBox(
+                center.getX() - 3, center.getY() - 2, center.getZ() - 3,
+                center.getX() + 3, center.getY() + crownY + 1, center.getZ() + 3
+        );
+        Direction dir = Direction.Plane.HORIZONTAL.getRandomDirection(random);
+        BlockPos base = center.relative(dir, 2);
+        if (isBaseAnchorable(level, base)) {
+            anchorBaseSupport(level, base, archBrick);
+            VoxelStructureOps.placeFaceConnectedPath(
+                    level, box,
+                    List.of(
+                            base,
+                            base.above(1),
+                            center.relative(dir, 1).above(Math.max(2, crownY - 1)),
+                            center.above(crownY)
+                    ),
+                    step -> (step % 2 == 0) ? chitinPillar : archBrick
+            );
+        }
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                double r = Math.sqrt(dx * dx + dz * dz);
+                if (r > 2.15D) {
+                    continue;
+                }
+                BlockPos capPos = center.offset(dx, crownY, dz);
+                if (isOpenAirOrReplaceable(level, capPos) || isOwnCanopyBlock(level.getBlockState(capPos))) {
+                    BlockState st = (dx == 0 && dz == 0) ? amberVein : (r <= 1.1D ? amethyst : deepslateTiles);
+                    level.setBlock(capPos, st, 2);
+                }
+                if (r >= 1.0D && level.getBlockState(capPos).isSolid()
+                        && isOpenAirOrReplaceable(level, capPos.below())
+                        && (Math.abs(dx) + Math.abs(dz)) % 2 == 0) {
+                    level.setBlock(capPos.below(), ModBlocks.MYCELIAL_TENDRILS.get().defaultBlockState(), 2);
+                }
+            }
+        }
+    }
+
+    private static void connectSubterraneanToSurface(
+            WorldGenLevel level,
+            BlockPos caveCenter,
+            int surfaceY,
+            int headroom,
+            RandomSource random
+    ) {
+        BlockPos surfaceAnchor = null;
+        int[] offsets = {0, -1, 1, -2, 2, -3};
+        for (int dy : offsets) {
+            BlockPos cand = new BlockPos(caveCenter.getX(), surfaceY + dy, caveCenter.getZ());
+            if (!level.isOutsideBuildHeight(cand)
+                    && !level.isOutsideBuildHeight(cand.above())
+                    && isSafeToOverwrite(level, cand)
+                    && canReplaceGround(level.getBlockState(cand))
+                    && isOpenAirOrReplaceable(level, cand.above())
+                    && level.getFluidState(cand.above()).isEmpty()) {
+                surfaceAnchor = cand;
+                break;
+            }
+        }
+        if (surfaceAnchor == null) {
+            return;
+        }
+        int deltaY = surfaceAnchor.getY() - caveCenter.getY();
+        if (deltaY < 8 || deltaY > 76) {
+            return;
+        }
+        if (level.getLevel() instanceof ServerLevel serverLevel
+                && PurificationZoneTracker.get(serverLevel).isProtected(surfaceAnchor)) {
+            return;
+        }
+
+        BlockPos tapStart = caveCenter.above(Math.min(headroom + 1, 9));
+        buildVerticalTaproot(level, tapStart, surfaceAnchor.below(), random);
+        spreadMiniSporePatch(level, surfaceAnchor, 3, random);
+
+        if (level.getLevel() instanceof ServerLevel serverLevel) {
+            PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
+            if (!tracker.hasAnyNodeWithin(surfaceAnchor, 16) && isSafeToOverwrite(level, surfaceAnchor)) {
+                level.setBlock(surfaceAnchor, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 2);
+                tracker.addNode(surfaceAnchor, SynapticNodeType.RELAY);
+            }
+        }
+    }
+
+    private static void connectSurfaceToSubterranean(
+            WorldGenLevel level,
+            BlockPos surfaceCenter,
+            RandomSource random
+    ) {
+        int minY = Math.max(level.getMinBuildHeight() + 8, surfaceCenter.getY() - 72);
+        BlockPos caveFloor = null;
+        for (int y = surfaceCenter.getY() - 8; y >= minY; y--) {
+            BlockPos cand = new BlockPos(surfaceCenter.getX(), y, surfaceCenter.getZ());
+            if (!level.isOutsideBuildHeight(cand)
+                    && !level.isOutsideBuildHeight(cand.above(2))
+                    && isSafeToOverwrite(level, cand)
+                    && canReplaceGround(level.getBlockState(cand))
+                    && isOpenAirOrReplaceable(level, cand.above())
+                    && isOpenAirOrReplaceable(level, cand.above(2))
+                    && level.getFluidState(cand.above()).isEmpty()) {
+                caveFloor = cand;
+                break;
+            }
+        }
+        if (caveFloor == null) {
+            return;
+        }
+        if (level.getLevel() instanceof ServerLevel serverLevel
+                && PurificationZoneTracker.get(serverLevel).isProtected(caveFloor)) {
+            return;
+        }
+
+        int ceilingY = caveFloor.getY() + 3;
+        while (ceilingY < surfaceCenter.getY() - 2 && isOpenAirOrReplaceable(level, new BlockPos(caveFloor.getX(), ceilingY, caveFloor.getZ()))) {
+            ceilingY++;
+        }
+        BlockPos ceilingPos = new BlockPos(caveFloor.getX(), ceilingY, caveFloor.getZ());
+        buildVerticalTaproot(level, ceilingPos, surfaceCenter.below(2), random);
+        if (isOpenAirOrReplaceable(level, ceilingPos.below())) {
+            level.setBlock(ceilingPos.below(), ModBlocks.MYCELIAL_TENDRILS.get().defaultBlockState(), 2);
+        }
+        spreadMiniSporePatch(level, caveFloor, 3, random);
+
+        if (level.getLevel() instanceof ServerLevel serverLevel) {
+            PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
+            if (!tracker.hasAnyNodeWithin(caveFloor, 16) && isSafeToOverwrite(level, caveFloor)) {
+                level.setBlock(caveFloor, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 2);
+                tracker.addNode(caveFloor, SynapticNodeType.RELAY);
+            }
+        }
+    }
+
+    private static void buildVerticalTaproot(
+            WorldGenLevel level,
+            BlockPos bottom,
+            BlockPos top,
+            RandomSource random
+    ) {
+        int startY = Math.min(bottom.getY(), top.getY());
+        int endY = Math.max(bottom.getY(), top.getY());
+        int baseX = bottom.getX();
+        int baseZ = bottom.getZ();
+        int curX = baseX;
+        int curZ = baseZ;
+        BlockState archBrick = ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState();
+        BlockState stone = ModBlocks.MYCELIAL_STONE.get().defaultBlockState();
+        BlockState amberVein = ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState();
+
+        for (int y = startY; y <= endY; y++) {
+            int step = y - startY;
+            if (step > 1 && y < endY - 1 && step % 5 == 0) {
+                int nextX = curX + (random.nextInt(3) - 1);
+                int nextZ = curZ + (random.nextInt(3) - 1);
+                if (Math.abs(nextX - baseX) <= 1) {
+                    curX = nextX;
+                }
+                if (Math.abs(nextZ - baseZ) <= 1) {
+                    curZ = nextZ;
+                }
+            } else if (y >= endY - 1) {
+                curX = baseX;
+                curZ = baseZ;
+            }
+            BlockPos p = new BlockPos(curX, y, curZ);
+            if (isSafeToOverwrite(level, p) && level.getFluidState(p).isEmpty()) {
+                BlockState state = (step % 4 == 0) ? amberVein : ((step % 2 == 0) ? archBrick : stone);
+                level.setBlock(p, state, 2);
+            }
+        }
+    }
+
+    private static void spreadMiniSporePatch(
+            WorldGenLevel level,
+            BlockPos anchor,
+            int radius,
+            RandomSource random
+    ) {
+        BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+                if (dx * dx + dz * dz > radius * radius + 1 || random.nextFloat() > 0.78F) {
+                    continue;
+                }
+                BlockPos floor = findSlopeFloor(level, anchor.getX() + dx, anchor.getY(), anchor.getZ() + dz, 1);
+                if (floor != null && isSafeToOverwrite(level, floor) && canReplaceGround(level.getBlockState(floor))) {
+                    level.setBlock(floor, mycelium, 2);
+                    if (isOpenAirOrReplaceable(level, floor.above())) {
+                        float roll = random.nextFloat();
+                        if (roll < 0.16F) {
+                            level.setBlock(floor.above(), ModBlocks.SPORE_VENT.get().defaultBlockState(), 2);
+                        } else if (roll < 0.36F) {
+                            level.setBlock(floor.above(), ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get().defaultBlockState(), 2);
+                        } else if (roll < 0.50F) {
+                            level.setBlock(floor.above(), ModBlocks.SPORE_BULB.get().defaultBlockState(), 2);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static boolean canReplaceGround(BlockState state) {
