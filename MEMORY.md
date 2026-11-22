@@ -3240,3 +3240,10 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Archivos / Símbolos:** `C:\Users\Alex\.gemini\GEMINI.md`, `MEMORY.md`.
 - **Skills revisadas:** Sin cambios requeridos.
 - **Estado / Siguiente paso:** Regla global creada y `MEMORY.md` sincronizado con `origin/main`.
+
+## [2026-11-22 06:42] — Regla de commit y push automático en `.agents/rules/`
+- **Tipo:** `IMPLEMENTACIÓN`
+- **Resumen:** Se añadió `.agents/rules/git-auto-commit.md` para versionar dentro del repositorio la regla de commit y push automático tras cambios relevantes.
+- **Archivos / Símbolos:** `.agents/rules/git-auto-commit.md`, `MEMORY.md`.
+- **Skills revisadas:** Sin cambios requeridos.
+- **Estado / Siguiente paso:** Commiteado y sincronizado con `origin/main`.
