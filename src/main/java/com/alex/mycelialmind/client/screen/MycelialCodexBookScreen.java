@@ -8,10 +8,10 @@ import com.alex.mycelialmind.network.ClientDiscoveryCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -45,13 +45,15 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 /**
  * Custom bio-mycelial double-spread Codex Book GUI rendering {@code codex_book.json}
  * with procedural chitin/vellum textures ({@code textures/gui/codex_book.png}),
- * 12 interactive chapter icon ribbon tabs, custom entry index cards with item icons,
+ * 12 interactive chapter icon ribbon tabs, live cross-book search, scrollable entry
+ * index cards with item icons, custom themed buttons, persistent reading position,
  * inline markdown styling (**bold** and `code`), recipe crafting/station grids with live
  * hover tooltips, 3D rotating entity containment previews, callout frames, and audio cues.
  */
@@ -67,15 +69,31 @@ public class MycelialCodexBookScreen extends Screen {
     private static final int SPINE_W = 8;
     private static final int PAGE_X_OFFSET = 136;
     private static final int PAGE_W = 220;
+    private static final int MAX_VISIBLE_ENTRIES = 7;
+
+    // Persist last reading state across screen reopenings during the client session
+    private static int savedChapterIdx = 0;
+    private static int savedEntryIdx = 0;
+    private static int savedPageIdx = 0;
+    private static boolean savedShowSpoilers = false;
 
     @Nullable
     private CodexBookData book;
-    private int chapterIdx = 0;
-    private int entryIdx = 0;
-    private int pageIdx = 0;
+    private int chapterIdx = savedChapterIdx;
+    private int entryIdx = savedEntryIdx;
+    private int pageIdx = savedPageIdx;
+    private int entryScrollOffset = 0;
     private int textScrollOffset = 0;
     private int maxTextScroll = 0;
-    private boolean showSpoilers = false;
+    private boolean showSpoilers = savedShowSpoilers;
+    private String searchQuery = "";
+
+    @Nullable
+    private EditBox searchBox;
+    @Nullable
+    private CodexButton prevPageBtn;
+    @Nullable
+    private CodexButton nextPageBtn;
 
     private final Map<String, LivingEntity> entityPreviewCache = new HashMap<>();
     private final List<ChapterTabHitbox> chapterTabs = new ArrayList<>();
@@ -91,9 +109,73 @@ public class MycelialCodexBookScreen extends Screen {
         }
     }
 
-    private record EntryCardHitbox(int index, int x, int y, int w, int h, CodexBookData.Entry entry, ItemStack icon, boolean unlocked) {
+    private record EntryCardHitbox(
+            int chapterIndex,
+            int entryIndex,
+            int x,
+            int y,
+            int w,
+            int h,
+            CodexBookData.Entry entry,
+            ItemStack icon,
+            boolean unlocked,
+            boolean fromSearch
+    ) {
         boolean contains(double mx, double my) {
             return mx >= x && mx < x + w && my >= y && my < y + h;
+        }
+    }
+
+    /**
+     * Custom obsidian-chitin themed button matching {@code codex_book.png} aesthetics.
+     */
+    private static final class CodexButton extends Button {
+        private final boolean accent;
+
+        CodexButton(int x, int y, int w, int h, Component message, OnPress onPress, boolean accent) {
+            super(x, y, w, h, message, onPress, DEFAULT_NARRATION);
+            this.accent = accent;
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            boolean hovered = this.isHoveredOrFocused() && this.active;
+            int bg;
+            int border;
+            int textColor;
+            if (!this.active) {
+                bg = 0x88120C1C;
+                border = 0xFF34244A;
+                textColor = 0xFF5D4F73;
+            } else if (hovered) {
+                bg = accent ? 0xEE4A2B78 : 0xEE352056;
+                border = accent ? 0xFFB5E48C : 0xFF9B4DFF;
+                textColor = 0xFFFFFFFF;
+            } else {
+                bg = accent ? 0xDD2B1848 : 0xCC1C122E;
+                border = accent ? 0xFF7B48B8 : 0xFF593D82;
+                textColor = accent ? 0xFFD8B4F8 : 0xFFEDE7F6;
+            }
+            graphics.fill(getX(), getY(), getX() + width, getY() + height, bg);
+            graphics.renderOutline(getX(), getY(), width, height, border);
+            // Subtle top-edge highlight
+            if (this.active) {
+                graphics.fill(getX() + 1, getY() + 1, getX() + width - 1, getY() + 2, hovered ? 0x44FFFFFF : 0x22D8B4F8);
+            }
+            var font = Minecraft.getInstance().font;
+            Component msg = getMessage();
+            int tw = font.width(msg);
+            int maxW = width - 6;
+            if (tw <= maxW || maxW <= 4) {
+                graphics.drawCenteredString(font, msg, getX() + width / 2, getY() + (height - 8) / 2, textColor);
+            } else {
+                float scale = Math.max(0.65F, (float) maxW / (float) tw);
+                graphics.pose().pushPose();
+                graphics.pose().translate(getX() + width / 2.0F, getY() + height / 2.0F, 0);
+                graphics.pose().scale(scale, scale, 1.0F);
+                graphics.drawCenteredString(font, msg, 0, -4, textColor);
+                graphics.pose().popPose();
+            }
         }
     }
 
@@ -104,18 +186,45 @@ public class MycelialCodexBookScreen extends Screen {
     @Override
     protected void init() {
         this.book = CodexReloadListener.getBook();
+        clampReadingPosition();
         rebuildNav();
+    }
+
+    private void clampReadingPosition() {
+        if (book == null || book.chapters().isEmpty()) {
+            this.chapterIdx = 0;
+            this.entryIdx = 0;
+            this.pageIdx = 0;
+            return;
+        }
+        this.chapterIdx = Mth.clamp(this.chapterIdx, 0, book.chapters().size() - 1);
+        List<CodexBookData.Entry> entries = book.chapters().get(this.chapterIdx).entries();
+        if (entries.isEmpty()) {
+            this.entryIdx = 0;
+            this.pageIdx = 0;
+        } else {
+            this.entryIdx = Mth.clamp(this.entryIdx, 0, entries.size() - 1);
+            int pages = Math.max(1, entries.get(this.entryIdx).pages().size());
+            this.pageIdx = Mth.clamp(this.pageIdx, 0, pages - 1);
+        }
+        persistReadingPosition();
+    }
+
+    private void persistReadingPosition() {
+        savedChapterIdx = this.chapterIdx;
+        savedEntryIdx = this.entryIdx;
+        savedPageIdx = this.pageIdx;
+        savedShowSpoilers = this.showSpoilers;
     }
 
     private void rebuildNav() {
         this.clearWidgets();
         this.chapterTabs.clear();
-        this.entryCards.clear();
         this.textScrollOffset = 0;
 
         if (book == null || book.chapters().isEmpty()) {
-            this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> onClose())
-                    .bounds(width / 2 - 40, height / 2 + 60, 80, 20).build());
+            this.addRenderableWidget(new CodexButton(width / 2 - 40, height / 2 + 60, 80, 20,
+                    CommonComponents.GUI_DONE, b -> onClose(), true));
             return;
         }
 
@@ -123,39 +232,53 @@ public class MycelialCodexBookScreen extends Screen {
         int top = (this.height - PANEL_H) / 2;
 
         // Top-bar Chapter < / > cycle buttons
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.codex.prev_chapter"), b -> {
-            selectChapter((chapterIdx - 1 + book.chapters().size()) % book.chapters().size());
-        }).bounds(left + 12, top + 8, 52, 16).build());
+        this.addRenderableWidget(new CodexButton(left + 12, top + 8, 52, 16,
+                Component.translatable("gui.mycelialmind.codex.prev_chapter"),
+                b -> selectChapter((chapterIdx - 1 + book.chapters().size()) % book.chapters().size()), false));
 
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.codex.next_chapter"), b -> {
-            selectChapter((chapterIdx + 1) % book.chapters().size());
-        }).bounds(left + 72, top + 8, 52, 16).build());
+        this.addRenderableWidget(new CodexButton(left + 72, top + 8, 52, 16,
+                Component.translatable("gui.mycelialmind.codex.next_chapter"),
+                b -> selectChapter((chapterIdx + 1) % book.chapters().size()), false));
 
         // Spoiler toggle button
-        this.addRenderableWidget(Button.builder(
+        this.addRenderableWidget(new CodexButton(left + PANEL_W - 114, top + 8, 82, 16,
                 Component.translatable(showSpoilers
                         ? "gui.mycelialmind.codex.spoilers_on"
                         : "gui.mycelialmind.codex.spoilers_off"),
                 b -> {
                     showSpoilers = !showSpoilers;
+                    persistReadingPosition();
                     playUiSound(ModSounds.BIO_SCANNER_PING.get(), 1.15F);
                     rebuildNav();
-                }).bounds(left + PANEL_W - 114, top + 8, 82, 16).build());
+                }, showSpoilers));
 
         // Close button
-        this.addRenderableWidget(Button.builder(Component.literal("X"), b -> onClose())
-                .bounds(left + PANEL_W - 28, top + 8, 18, 16).build());
+        this.addRenderableWidget(new CodexButton(left + PANEL_W - 28, top + 8, 18, 16,
+                Component.literal("X"), b -> onClose(), false));
+
+        // Live Search EditBox inside top of left index vellum
+        this.searchBox = new EditBox(this.font, left + INDEX_X_OFFSET + 4, top + 47, INDEX_W - 8, 13,
+                Component.literal("Search"));
+        this.searchBox.setMaxLength(40);
+        this.searchBox.setBordered(false);
+        this.searchBox.setTextColor(0xFFEDE7F6);
+        this.searchBox.setValue(this.searchQuery);
+        this.searchBox.setResponder(val -> {
+            this.searchQuery = val == null ? "" : val;
+            this.entryScrollOffset = 0;
+            rebuildEntryCards(left, top);
+        });
+        this.addRenderableWidget(this.searchBox);
 
         // Bidirectional Bio-Scanner telemetry shortcut
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null && (mc.player.isCreative() || hasItemInInventory(mc.player, ModItems.BIO_SCANNER.get()))) {
-            this.addRenderableWidget(Button.builder(
+            this.addRenderableWidget(new CodexButton(left + 14, top + PANEL_H - 25, 108, 16,
                     Component.translatable("gui.mycelialmind.codex.open_scanner"),
                     b -> {
                         playUiSound(ModSounds.BIO_SCANNER_PING.get(), 1.0F);
                         ClientCodexOpener.openBioCodex();
-                    })
-                    .bounds(left + 14, top + PANEL_H - 25, 108, 16).build());
+                    }, true));
         }
 
         // Build 12 Chapter Ribbon Tabs along the top spine edge
@@ -168,28 +291,104 @@ public class MycelialCodexBookScreen extends Screen {
             chapterTabs.add(new ChapterTabHitbox(i, tabStartX + i * 28, tabY, 24, 18, ch, icon));
         }
 
-        // Build custom Entry Index Cards on the left vellum spread
-        CodexBookData.Chapter ch = chapters.get(chapterIdx);
-        List<CodexBookData.Entry> entries = ch.entries();
-        if (!entries.isEmpty()) {
-            int cardX = left + INDEX_X_OFFSET + 3;
-            int cardY = top + 46;
-            int cardW = INDEX_W - 6;
-            int cardH = 17;
-            for (int i = 0; i < entries.size() && i < 8; i++) {
-                CodexBookData.Entry e = entries.get(i);
-                boolean unlocked = isGateUnlocked(e.unlockGate());
-                ItemStack icon = resolveItem(e.iconItem());
-                entryCards.add(new EntryCardHitbox(i, cardX, cardY + i * 19, cardW, cardH, e, icon, unlocked));
-            }
+        rebuildEntryCards(left, top);
 
-            // Page < and > navigation buttons on the right reading spread
-            this.addRenderableWidget(Button.builder(Component.literal("<"), b -> turnPage(-1))
-                    .bounds(left + PAGE_X_OFFSET + 6, top + PANEL_H - 25, 28, 16).build());
+        // Page < and > navigation buttons on the right reading spread
+        this.prevPageBtn = this.addRenderableWidget(new CodexButton(left + PAGE_X_OFFSET + 6, top + PANEL_H - 25, 28, 16,
+                Component.literal("<"), b -> turnPage(-1), false));
 
-            this.addRenderableWidget(Button.builder(Component.literal(">"), b -> turnPage(1))
-                    .bounds(left + PANEL_W - 42, top + PANEL_H - 25, 28, 16).build());
+        this.nextPageBtn = this.addRenderableWidget(new CodexButton(left + PANEL_W - 42, top + PANEL_H - 25, 28, 16,
+                Component.literal(">"), b -> turnPage(1), false));
+        updatePageButtonStates();
+    }
+
+    private void rebuildEntryCards(int left, int top) {
+        this.entryCards.clear();
+        if (book == null || book.chapters().isEmpty()) {
+            return;
         }
+        String query = this.searchQuery.trim().toLowerCase(Locale.ROOT);
+        int cardX = left + INDEX_X_OFFSET + 3;
+        int cardY = top + 64;
+        int cardW = INDEX_W - 6;
+        int cardH = 17;
+
+        if (!query.isEmpty()) {
+            List<int[]> matches = new ArrayList<>();
+            for (int ci = 0; ci < book.chapters().size(); ci++) {
+                CodexBookData.Chapter ch = book.chapters().get(ci);
+                for (int ei = 0; ei < ch.entries().size(); ei++) {
+                    CodexBookData.Entry e = ch.entries().get(ei);
+                    if (matchesQuery(ch, e, query)) {
+                        matches.add(new int[]{ci, ei});
+                    }
+                }
+            }
+            int maxScroll = Math.max(0, matches.size() - MAX_VISIBLE_ENTRIES);
+            this.entryScrollOffset = Mth.clamp(this.entryScrollOffset, 0, maxScroll);
+            for (int slot = 0; slot < MAX_VISIBLE_ENTRIES && (slot + this.entryScrollOffset) < matches.size(); slot++) {
+                int[] pair = matches.get(slot + this.entryScrollOffset);
+                CodexBookData.Entry e = book.chapters().get(pair[0]).entries().get(pair[1]);
+                boolean unlocked = isGateUnlocked(e.unlockGate());
+                entryCards.add(new EntryCardHitbox(
+                        pair[0], pair[1], cardX, cardY + slot * 19, cardW, cardH,
+                        e, resolveItem(e.iconItem()), unlocked, true
+                ));
+            }
+        } else {
+            List<CodexBookData.Entry> entries = book.chapters().get(chapterIdx).entries();
+            int maxScroll = Math.max(0, entries.size() - MAX_VISIBLE_ENTRIES);
+            this.entryScrollOffset = Mth.clamp(this.entryScrollOffset, 0, maxScroll);
+            for (int slot = 0; slot < MAX_VISIBLE_ENTRIES && (slot + this.entryScrollOffset) < entries.size(); slot++) {
+                int idx = slot + this.entryScrollOffset;
+                CodexBookData.Entry e = entries.get(idx);
+                boolean unlocked = isGateUnlocked(e.unlockGate());
+                entryCards.add(new EntryCardHitbox(
+                        chapterIdx, idx, cardX, cardY + slot * 19, cardW, cardH,
+                        e, resolveItem(e.iconItem()), unlocked, false
+                ));
+            }
+        }
+    }
+
+    private static boolean matchesQuery(CodexBookData.Chapter ch, CodexBookData.Entry entry, String query) {
+        if (entry.id().toLowerCase(Locale.ROOT).contains(query)) {
+            return true;
+        }
+        if (Component.translatable(entry.titleKey()).getString().toLowerCase(Locale.ROOT).contains(query)) {
+            return true;
+        }
+        if (Component.translatable(ch.titleKey()).getString().toLowerCase(Locale.ROOT).contains(query)) {
+            return true;
+        }
+        for (CodexBookData.Page p : entry.pages()) {
+            if (Component.translatable(p.titleKey()).getString().toLowerCase(Locale.ROOT).contains(query)) {
+                return true;
+            }
+            if (p.itemId() != null && p.itemId().toLowerCase(Locale.ROOT).contains(query)) {
+                return true;
+            }
+            if (p.entityId() != null && p.entityId().toLowerCase(Locale.ROOT).contains(query)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void updatePageButtonStates() {
+        if (this.prevPageBtn == null || this.nextPageBtn == null || book == null || book.chapters().isEmpty()) {
+            return;
+        }
+        List<CodexBookData.Entry> entries = book.chapters().get(chapterIdx).entries();
+        if (entries.isEmpty()) {
+            this.prevPageBtn.active = false;
+            this.nextPageBtn.active = false;
+            return;
+        }
+        CodexBookData.Entry curEntry = entries.get(Math.min(entryIdx, entries.size() - 1));
+        int totalPages = Math.max(1, curEntry.pages().size());
+        this.prevPageBtn.active = this.pageIdx > 0;
+        this.nextPageBtn.active = this.pageIdx + 1 < totalPages;
     }
 
     private void selectChapter(int newChapterIdx) {
@@ -199,15 +398,19 @@ public class MycelialCodexBookScreen extends Screen {
         this.chapterIdx = Mth.clamp(newChapterIdx, 0, book.chapters().size() - 1);
         this.entryIdx = 0;
         this.pageIdx = 0;
+        this.entryScrollOffset = 0;
         this.textScrollOffset = 0;
+        this.searchQuery = "";
+        persistReadingPosition();
         playUiSound(ModSounds.SYNAPTIC_PULSE.get(), 1.25F);
         rebuildNav();
     }
 
-    private void selectEntry(int newEntryIdx) {
+    private void selectEntry(int targetChapterIdx, int newEntryIdx) {
         if (book == null || book.chapters().isEmpty()) {
             return;
         }
+        this.chapterIdx = Mth.clamp(targetChapterIdx, 0, book.chapters().size() - 1);
         List<CodexBookData.Entry> entries = book.chapters().get(chapterIdx).entries();
         if (entries.isEmpty()) {
             return;
@@ -215,6 +418,8 @@ public class MycelialCodexBookScreen extends Screen {
         this.entryIdx = Mth.clamp(newEntryIdx, 0, entries.size() - 1);
         this.pageIdx = 0;
         this.textScrollOffset = 0;
+        persistReadingPosition();
+        updatePageButtonStates();
         playUiSound(SoundEvents.BOOK_PAGE_TURN, 1.05F);
     }
 
@@ -232,6 +437,8 @@ public class MycelialCodexBookScreen extends Screen {
         if (next != this.pageIdx) {
             this.pageIdx = next;
             this.textScrollOffset = 0;
+            persistReadingPosition();
+            updatePageButtonStates();
             playUiSound(SoundEvents.BOOK_PAGE_TURN, delta > 0 ? 1.0F : 0.92F);
         }
     }
@@ -277,7 +484,7 @@ public class MycelialCodexBookScreen extends Screen {
             }
             for (EntryCardHitbox card : this.entryCards) {
                 if (card.contains(mouseX, mouseY)) {
-                    selectEntry(card.index());
+                    selectEntry(card.chapterIndex(), card.entryIndex());
                     return true;
                 }
             }
@@ -288,6 +495,12 @@ public class MycelialCodexBookScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         int left = (this.width - PANEL_W) / 2;
+        int top = (this.height - PANEL_H) / 2;
+        if (mouseX >= left + INDEX_X_OFFSET && mouseX < left + SPINE_X_OFFSET) {
+            this.entryScrollOffset = Math.max(0, this.entryScrollOffset - (int) Math.signum(scrollY));
+            rebuildEntryCards(left, top);
+            return true;
+        }
         if (mouseX >= left + PAGE_X_OFFSET) {
             if (this.maxTextScroll > 0) {
                 int nextScroll = Mth.clamp(this.textScrollOffset - (int) Math.signum(scrollY), 0, this.maxTextScroll);
@@ -309,6 +522,15 @@ public class MycelialCodexBookScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (this.searchBox != null && this.searchBox.isFocused()) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                this.searchBox.setFocused(false);
+                return true;
+            }
+            if (this.searchBox.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
+            }
+        }
         if (keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_PAGE_UP) {
             turnPage(-1);
             return true;
@@ -318,13 +540,13 @@ public class MycelialCodexBookScreen extends Screen {
             return true;
         }
         if (keyCode == GLFW.GLFW_KEY_UP && this.entryIdx > 0) {
-            selectEntry(this.entryIdx - 1);
+            selectEntry(this.chapterIdx, this.entryIdx - 1);
             return true;
         }
         if (keyCode == GLFW.GLFW_KEY_DOWN && book != null && !book.chapters().isEmpty()) {
             int count = book.chapters().get(chapterIdx).entries().size();
             if (this.entryIdx + 1 < count) {
-                selectEntry(this.entryIdx + 1);
+                selectEntry(this.chapterIdx, this.entryIdx + 1);
                 return true;
             }
         }
@@ -357,6 +579,11 @@ public class MycelialCodexBookScreen extends Screen {
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
+        // Subtle search box placeholder hint when empty & unfocused
+        if (this.searchBox != null && this.searchQuery.isEmpty() && !this.searchBox.isFocused()) {
+            graphics.drawString(this.font, "...", this.searchBox.getX() + 2, this.searchBox.getY() + 1, 0xFF7B6796, false);
+        }
+
         if (this.hoveredRecipeOrSpotlightStack != null && !this.hoveredRecipeOrSpotlightStack.isEmpty()) {
             graphics.renderTooltip(this.font, this.hoveredRecipeOrSpotlightStack, mouseX, mouseY);
         } else if (this.hoveredCustomTooltip != null) {
@@ -377,7 +604,7 @@ public class MycelialCodexBookScreen extends Screen {
             }
             graphics.pose().pushPose();
             graphics.pose().translate(tab.x() + 4, ty + 1, 0);
-            graphics. renderItem(tab.icon(), 0, 0);
+            graphics.renderItem(tab.icon(), 0, 0);
             graphics.pose().popPose();
 
             if (hovered) {
@@ -427,14 +654,27 @@ public class MycelialCodexBookScreen extends Screen {
         int indexX = left + INDEX_X_OFFSET;
         int indexY = top + 28;
 
-        // Chapter miniature badge + index header inside left vellum
+        // Chapter medallion + unlocked entry counter
+        int unlockedCount = 0;
+        for (CodexBookData.Entry e : ch.entries()) {
+            if (isGateUnlocked(e.unlockGate())) {
+                unlockedCount++;
+            }
+        }
         graphics.blit(CODEX_GUI_TEXTURE, indexX + 4, indexY + 3, 12, 12, 112, 204, 16, 16, 256, 256);
-        String chNum = "Cap. " + ch.number() + " (" + ch.entries().size() + ")";
-        drawScaledText(graphics, Component.literal(chNum), indexX + 19, indexY + 5, INDEX_W - 24, 0xFFD8B4F8, true);
-        graphics.fill(indexX + 5, indexY + 16, indexX + INDEX_W - 5, indexY + 17, 0xFF6C46A2);
+        String chBadge = "#" + ch.number() + "  [" + unlockedCount + "/" + ch.entries().size() + "]";
+        drawScaledText(graphics, Component.literal(chBadge), indexX + 19, indexY + 5, INDEX_W - 24, 0xFFD8B4F8, true);
+
+        // Search input well frame
+        int sx = indexX + 3;
+        int sy = top + 45;
+        int sw = INDEX_W - 6;
+        graphics.fill(sx, sy, sx + sw, sy + 15, 0xCC110B1D);
+        boolean searchFocused = this.searchBox != null && this.searchBox.isFocused();
+        graphics.renderOutline(sx, sy, sw, 15, searchFocused ? 0xFFB5E48C : 0xFF5A3E85);
 
         for (EntryCardHitbox card : this.entryCards) {
-            boolean selected = card.index() == this.entryIdx;
+            boolean selected = card.chapterIndex() == this.chapterIdx && card.entryIndex() == this.entryIdx;
             boolean hovered = card.contains(mouseX, mouseY);
 
             int bg = selected ? 0xCC3B235E : (hovered ? 0xB0291944 : 0x88180F29);
@@ -442,20 +682,19 @@ public class MycelialCodexBookScreen extends Screen {
             graphics.fill(card.x(), card.y(), card.x() + card.w(), card.y() + card.h(), bg);
             graphics.renderOutline(card.x(), card.y(), card.w(), card.h(), border);
 
-            // Active selection left indicator bar
             if (selected) {
                 graphics.fill(card.x(), card.y(), card.x() + 2, card.y() + card.h(), 0xFFB5E48C);
             }
 
-            // Render scaled 12x12 entry icon
             graphics.pose().pushPose();
             graphics.pose().translate(card.x() + 3, card.y() + 2.5F, 0);
             graphics.pose().scale(0.75F, 0.75F, 1.0F);
             graphics.renderItem(card.icon(), 0, 0);
             graphics.pose().popPose();
 
-            // Entry title
-            String prefix = card.unlocked() ? "" : "[?] ";
+            String prefix = card.fromSearch()
+                    ? ("#" + (card.chapterIndex() + 1) + " ")
+                    : (card.unlocked() ? "" : "[?] ");
             Component titleComp = Component.literal(prefix).append(Component.translatable(card.entry().titleKey()));
             int textColor = !card.unlocked() ? 0xFFFFB703 : (selected ? 0xFF9EF01A : 0xFFEDE7F6);
             drawClippedOrScaledText(graphics, titleComp, card.x() + 18, card.y() + 5, card.w() - 21, textColor, selected);
@@ -552,7 +791,6 @@ public class MycelialCodexBookScreen extends Screen {
         graphics.blit(CODEX_GUI_TEXTURE, frameX, frameY, 20, 204, 22, 22, 256, 256);
         graphics.renderItem(stack, frameX + 3, frameY + 3);
 
-        // Item Name & Registry ID next to pedestal
         drawScaledText(graphics, stack.getHoverName(), frameX + 28, frameY + 3, contentW - 34, 0xFFFFE6A7, true);
         drawScaledText(graphics, Component.literal(page.itemId()), frameX + 28, frameY + 13, contentW - 34, 0xFF9D84B7, false);
 
@@ -577,7 +815,6 @@ public class MycelialCodexBookScreen extends Screen {
             renderSingleRecipeCard(graphics, page.recipeId(), contentX + 4, y + 2, contentW - 8, boxH - 4, mouseX, mouseY, false);
         }
 
-        // Keep localized recipe_badge reference and subtle footer caption
         Component badge = Component.translatable("gui.mycelialmind.codex.recipe_badge", page.recipeId());
         drawScaledText(graphics, badge, contentX + 4, y + boxH - 9, contentW - 8, 0xFF9D84B7, false);
         return y + boxH + 4;
@@ -658,7 +895,6 @@ public class MycelialCodexBookScreen extends Screen {
             int outY = gy0 + cell - 2;
             renderScaledSlot(graphics, result, outX, outY, scale, true, mouseX, mouseY);
         } else {
-            // Single-input station recipe (Furnace / Smoker / Blast Furnace / Stonecutter)
             int inX = rx + (compact ? 8 : 26);
             int inY = ry + 11;
             ItemStack inStack = ingredients.isEmpty() ? ItemStack.EMPTY : pickCycledIngredient(ingredients.get(0));
@@ -724,9 +960,15 @@ public class MycelialCodexBookScreen extends Screen {
         if (living != null) {
             try {
                 float bbMax = Math.max(0.8F, Math.max(living.getBbWidth(), living.getBbHeight()));
-                int entityScale = Mth.clamp(Math.round(24.0F / bbMax), 9, 22);
-                float angleX = (float) Math.atan((contentX + boxW / 2.0F - mouseX) / 40.0F);
-                float angleY = (float) Math.atan((y + boxH / 2.0F - mouseY) / 40.0F);
+                float pageScaleFactor = Mth.clamp(page.entityScale(), 0.55F, 1.35F);
+                int entityScale = Mth.clamp(Math.round((24.0F * pageScaleFactor) / bbMax), 9, 24);
+                boolean hoverBox = mouseX >= contentX && mouseX < contentX + boxW && mouseY >= y && mouseY < y + boxH;
+                float angleX = hoverBox
+                        ? (float) Math.atan((contentX + boxW / 2.0F - mouseX) / 40.0F)
+                        : (float) Math.sin(System.currentTimeMillis() * 0.0012) * 0.55F;
+                float angleY = hoverBox
+                        ? (float) Math.atan((y + boxH / 2.0F - mouseY) / 40.0F)
+                        : -0.08F;
                 InventoryScreen.renderEntityInInventoryFollowsAngle(
                         graphics,
                         contentX + 2,
@@ -748,7 +990,6 @@ public class MycelialCodexBookScreen extends Screen {
             graphics.renderItem(egg, contentX + boxW / 2 - 8, y + boxH / 2 - 8);
         }
 
-        // Specimen Telemetry Card to the right of the containment frame
         int infoX = contentX + boxW + 6;
         int infoW = contentW - boxW - 6;
         graphics.fill(infoX, y, infoX + infoW, y + boxH, 0x66160F26);
@@ -757,10 +998,14 @@ public class MycelialCodexBookScreen extends Screen {
         Component badge = Component.translatable("gui.mycelialmind.codex.entity_badge", page.entityId());
         drawScaledText(graphics, badge, infoX + 4, y + 5, infoW - 8, 0xFF06D6A0, true);
 
+        Component entityDisplayName = (page.entityNameKey() != null && !page.entityNameKey().isBlank())
+                ? Component.translatable(page.entityNameKey())
+                : (living != null ? living.getName() : Component.literal(page.entityId()));
+        drawScaledText(graphics, entityDisplayName, infoX + 4, y + 17, infoW - 8, 0xFFEDE7F6, true);
+
         if (living != null) {
-            drawScaledText(graphics, living.getName(), infoX + 4, y + 17, infoW - 8, 0xFFEDE7F6, true);
             String hpText = "HP: " + Math.round(living.getMaxHealth()) + "  |  "
-                    + String.format("%.1fm x %.1fm", living.getBbWidth(), living.getBbHeight());
+                    + String.format(Locale.ROOT, "%.1fm x %.1fm", living.getBbWidth(), living.getBbHeight());
             drawScaledText(graphics, Component.literal(hpText), infoX + 4, y + 29, infoW - 8, 0xFFFFD166, false);
         }
         drawScaledText(graphics, Component.literal(page.entityId()), infoX + 4, y + 40, infoW - 8, 0xFF9D84B7, false);
@@ -845,7 +1090,6 @@ public class MycelialCodexBookScreen extends Screen {
             graphics.drawString(this.font, lines.get(i + this.textScrollOffset), textX, textY + i * lineStep, 0xFFEDE7F6, false);
         }
 
-        // Scroll indicator bar if text overflows
         if (this.maxTextScroll > 0) {
             int barX = contentX + contentW - 2;
             int barTop = textY;

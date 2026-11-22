@@ -3339,3 +3339,21 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Publicación/activación:** No se publicó ningún archivo. Para recibir PRs, Renovate requiere tener instalada su app hospedada en el repositorio; no se instaló desde esta sesión.
 - **Git y concurrencia:** Commit `74cefff` subido a `main` y confirmado como ancestro del HEAD remoto `9c0efa6`. Se dejaron intactos y sin stage los cambios concurrentes de modelos/estructuras.
 - **Skills:** Revisada y actualizada `.agents/skills/mycelial-codemode/SKILL.md` y su referencia `references/catalog-and-sandbox.md`; `validate_skills` pasó.
+
+
+## [2026-11-22 09:05] — Pulido UX/UI del Códice Micelial (`MycelialCodexBookScreen` + `CodexBookScreenLogicTest`) (`/goal`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:**
+  1. **Botones temáticos `CodexButton`:** Reemplazados todos los botones vanilla grises en `MycelialCodexBookScreen` por `CodexButton` (obsidiana-quitina con bordes amatista/chartreuse, realce superior y estados activo/inactivo reales para `<` y `>`).
+  2. **Buscador en vivo multi-capítulo (`EditBox`) y lista de entradas desplazable:** Añadida barra de búsqueda en tiempo real sobre las 50 entradas / 202 páginas (por ID, título de entrada/capítulo/página, `itemId` o `entityId`) con prefijo `#cap` y scroll independiente con rueda del ratón sobre el índice izquierdo (`entryScrollOffset`, sin truncar capítulos largos).
+  3. **Persistencia de lectura y mejoras de vista previa:** Guardado automático en sesión de `chapterIdx`/`entryIdx`/`pageIdx`/`showSpoilers` al reabrir el libro; indicador neutro `#N [desbloqueadas/total]`; y soporte completo de `page.entityScale()`, `page.entityNameKey()` y rotación suave en reposo para el visor 3D de entidades.
+  4. **Pruebas unitarias (`CodexBookScreenLogicTest.java`):** Añadidas 4 pruebas JUnit 5 sobre `parseMarkdownComponent`, `parseAccentColor` y `CodexBookData.fromJson` (recetas dobles, `entity_scale`, `accent_color`).
+  5. **Skills revisadas:** Se revisó la pertinencia de las skills del proyecto; no requerían cambios al ser mejoras internas de UX/UI y pruebas unitarias.
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/client/screen/MycelialCodexBookScreen.java` (`CodexButton`, `searchBox`, `rebuildEntryCards`, `matchesQuery`, `persistReadingPosition`, `renderEntityWidget`)
+  - `src/test/java/com/alex/mycelialmind/CodexBookScreenLogicTest.java`
+- **Estado / Verificación (FastMCP `CodeMode` `mycelial-mind-dev`):**
+  - `validate_skills`: **`ok: true`** (`8/8`).
+  - `run_texture_studio(check_only=True, pbr=True, run_tests=True)`: **`ok: true`**.
+  - `audit_mod_assets`: **`ok: true`**.
+  - `run_gradle_task(["test", "runGameTestServer", "--offline"], max_workers=2)`: **`gradle_ok: true`** (`55/55` JUnit en `5` suites, `0` fallos + `@GameTest` server en verde).
