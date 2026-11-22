@@ -158,6 +158,23 @@ class TestGeneratedItemIcons(unittest.TestCase):
         self.assertIn("spore_chartreuse", PALETTES)
         self.assertIn("predator_amethyst", PALETTES)
 
+    def test_codex_book_gui_atlas_exists_and_has_rich_regions(self):
+        gui_path = os.path.join(
+            REPO_ROOT, "src", "main", "resources", "assets", "mycelialmind", "textures", "gui", "codex_book.png"
+        )
+        self.assertTrue(os.path.exists(gui_path))
+        rgba = np.asarray(Image.open(gui_path).convert("RGBA"))
+        self.assertEqual(rgba.shape, (256, 256, 4))
+        # Main tome frame (0..200, 0..256) is fully opaque
+        self.assertTrue(np.all(rgba[:200, :256, 3] == 255))
+        # Widget sprites row (slot frame, pedestal, arrow, chapter tabs, medallion) are populated
+        self.assertTrue(np.all(rgba[204:222, 0:18, 3] == 255))
+        self.assertTrue(np.all(rgba[204:226, 20:42, 3] == 255))
+        self.assertGreater(int(np.count_nonzero(rgba[204:220, 44:66, 3] > 0)), 40)
+        self.assertTrue(np.all(rgba[204:222, 68:88, 3] == 255))
+        self.assertTrue(np.all(rgba[204:222, 90:110, 3] == 255))
+        self.assertGreater(int(np.count_nonzero(rgba[204:220, 112:128, 3] > 0)), 100)
+
 
 if __name__ == "__main__":
     unittest.main()

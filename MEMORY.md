@@ -3301,3 +3301,29 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - `src/main/java/com/alex/mycelialmind/client/{screen/BioScannerCodexScreen,hud/BioScannerHudOverlay}.java`, `src/main/resources/assets/mycelialmind/lang/{en_us,es_es}.json`
   - `src/test/java/com/alex/mycelialmind/{HiveAlgorithmsUnitTest,MigratedGameTestLogicTest}.java`, `command/MycelialCommands.java`, `test/MycelialGameTests.java` (`firstOutbreakProjectileHookAndOngoingResearchWork`, `batch = "first_outbreak_research"`)
 - **Estado / Siguiente paso:** Verificado íntegramente vía `mycelial-mind-dev:execute`: `audit_mod_assets` (`ok=true`, `1549/1549` claves, `0` faltantes), `validate_skills` (`8/8 OK`), Gradle `build`/`test`/`pitest`/`runGameTestServer` (`51/51` JUnit PASS en `4` suites; Pitest `881/1120` = `78.66%`; `153/153` `@GameTest`s PASS en `6.893s`) y `run_verify_mod(include_server_smoke=True)` (`ALL VERIFICATION STEPS COMPLETED SUCCESSFULLY`, `[Mycelial Verify] ALL 21 automated scenario checks PASSED.`). Pendiente únicamente commit y push en Git.
+
+
+## [2026-11-22 08:08] — Personalización de apariencia y texturas del Códice Micelial (`mycelial_codex` + `codex_book.png` + `MycelialCodexBookScreen`) (`/goal`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `DOCUMENTACIÓN`
+- **Resumen:**
+  1. **Textura mejorada del ítem `mycelial_codex` (`scripts/texture_studio/generators/items.py`):** Rediseñado `_mycelial_codex` bajo `Icon Language v2` como un grimorio de quitina y obsidiana con panel interior rebajado, lomo de amatista bioluminiscente con 4 nervaduras de quitina, páginas doradas en el canto, monturas de esquina y broche de latón imperial, y sigilo hexagonal sináptico con zarcillos cian y núcleo emisivo (con sus mapas LabPBR 1.3 `mycelial_codex_n.png` y `mycelial_codex_s.png`).
+  2. **Nuevo generador procedural de atlas GUI (`scripts/texture_studio/generators/gui.py` + `build_textures.py`):** Añadido `generate_gui_textures` para sintetizar `src/main/resources/assets/mycelialmind/textures/gui/codex_book.png` (`256×256` RGBA): marco doble de quitina y obsidiana con trazado sináptico violeta y 4 esquineras de latón con gemas (`256×200`), pergamino izquierdo de índice teñido de índigo abisal, lomo nervioso central con nódulos bioluminiscentes, pergamino derecho de lectura con viñeta orgánica y filete decorativo, y fila de widgets en `y=204` (slot de receta `18×18`, pedestal de resultado/spotlight `22×22`, flecha de síntesis `22×16`, pestañas de capítulo inactiva/activa `20×18` y medallón sináptico `16×16`). Añadida validación en `build_textures.py` y prueba unitaria `test_codex_book_gui_atlas_exists_and_has_rich_regions` en `test_icon_language.py`.
+  3. **Interfaz personalizada de doble pliego en `MycelialCodexBookScreen.java`:**
+     - Renderizado del tomo abierto usando `textures/gui/codex_book.png` (`368×228`), con 12 pestañas superiores interactivas (`ChapterTabHitbox`) que muestran el icono de cada capítulo y su tooltip, y tarjetas de índice en la página izquierda (`EntryCardHitbox`) con icono `ItemStack` escalado, barra de selección activa y estado de bloqueo (`[?]`).
+     - Renderizado visual de los 5 tipos de página: `"spotlight"` (pedestal ornamentado `22×22` con `ItemStack`, nombre, ID y tooltip al pasar el ratón), `"recipe"` (consulta real a `RecipeManager.byKey(...)` dibujando cuadrícula `3×3` para `CraftingRecipe` o entrada → flecha → salida para hornos/ahumador/cortapiedras, con soporte dual lado a lado para `recipeId` + `recipeId2`, ingredientes cíclicos y tooltips en cada slot), `"entity"` (cámara de contención con vista previa 3D viva vía `InventoryScreen.renderEntityInInventoryFollowsAngle` que sigue al cursor + tarjeta de telemetría con HP y dimensiones), `"callout"` (panel tintado y bordeado con el color hexadecimal `page.accentColor()`) y `"text"` (con parser `parseMarkdownComponent` que estiliza `**negrita**` en dorado y `` `código` `` en aguamarina, más barra de desplazamiento con rueda del ratón).
+     - Navegación por teclado (`Left`/`Right`/`PageUp`/`PageDown` para páginas, `Up`/`Down` para entradas), rueda del ratón y efectos de sonido (`ModSounds.SYNAPTIC_PULSE`, `ModSounds.BIO_SCANNER_PING` y `SoundEvents.BOOK_PAGE_TURN`).
+  4. **Skills revisadas y actualizadas:** Actualizada `.agents/skills/mycelial-texture-studio/SKILL.md` documentando `generators/gui.py` y `textures/gui/codex_book.png`; resto de skills revisadas sin requerir cambios.
+- **Archivos / Símbolos:**
+  - `scripts/texture_studio/generators/gui.py` (`generate_gui_textures`)
+  - `scripts/texture_studio/generators/items.py` (`_mycelial_codex`)
+  - `scripts/texture_studio/build_textures.py`
+  - `scripts/texture_studio/tests/test_icon_language.py` (`test_codex_book_gui_atlas_exists_and_has_rich_regions`)
+  - `src/main/resources/assets/mycelialmind/textures/gui/codex_book.png`
+  - `src/main/resources/assets/mycelialmind/textures/item/mycelial_codex{,_n,_s}.png`
+  - `src/main/java/com/alex/mycelialmind/client/screen/MycelialCodexBookScreen.java`
+  - `.agents/skills/mycelial-texture-studio/SKILL.md`
+- **Estado / Verificación (FastMCP `CodeMode` `mycelial-mind-dev`):**
+  - `run_texture_studio(check_only=False, pbr=True, export_extras=True, run_tests=True)` y `check_only=True`: **`ok: true`** (`36` iconos + `codex_book.png` `256×256` + unit tests en verde).
+  - `validate_skills`: **`ok: true`** (`8/8` skills válidas).
+  - `audit_mod_assets`: **`ok: true`** (`0` claves faltantes, paridad bilingüe `en_us`/`es_es` intacta).
+  - `run_gradle_task(["test", "runGameTestServer", "--offline"], max_workers=2)`: **`gradle_ok: true`** (`51/51` JUnit en `4` suites, `0` fallos + `@GameTest` server en verde).

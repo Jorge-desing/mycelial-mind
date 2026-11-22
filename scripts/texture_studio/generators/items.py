@@ -642,21 +642,41 @@ def _quorum_seal(p: float) -> IconCanvas:
 def _mycelial_codex(p: float) -> IconCanvas:
     c = IconCanvas(seed=136)
     xx, yy = c.xx, c.yy
-    _p(c, sdf_box(xx, yy, 0.08, 0.04, 0.54, 0.66), "abyssal_obsidian", "OBSIDIAN_CHITIN", 0.48, height=0.62)
-    c.zone(sdf_box(xx, yy, 0.08, 0.04, 0.54, 0.03), "abyssal_obsidian", "OBSIDIAN_CHITIN", tone=0.20)
-    c.zone(sdf_box(xx, yy, 0.08, 0.04, 0.03, 0.66), "abyssal_obsidian", "OBSIDIAN_CHITIN", tone=0.22)
-    _p(c, sdf_box(xx, yy, -0.42, 0.04, 0.16, 0.66), "mycelial_violet", "LIVING_AMETHYST", 0.55, height=0.55)
-    c.zone(sdf_box(xx, yy, -0.42, 0.04, 0.16, 0.035), "mycelial_violet", "LIVING_AMETHYST", tone=0.82)
-    page_edge = sdf_box(xx, yy, 0.50, 0.04, 0.08, 0.60)
-    c.zone(page_edge, "warm_ivory", "CHITIN_BONE", tone=0.85)
-    for py in (-0.30, -0.10, 0.10, 0.30):
-        c.zone(sdf_box(xx, yy, 0.24, py, 0.24, 0.022), "warm_ivory", "CHITIN_BONE", tone=0.88)
-    sig = sdf_polygon(xx, yy, 0.04, 0.06, 0.24, sides=6)
-    _p(c, sig, "spore_chartreuse", "TOXIC_SPORE", 0.80, emissive=True, height=0.72)
-    c.zone(sdf_polygon(xx, yy, 0.04, 0.06, 0.13, sides=6), "venom_emerald", "TOXIC_SPORE", tone=0.42)
-    c.glow(sdf_onion(sdf_polygon(xx, yy, 0.04, 0.06, 0.19, sides=6), 0.025) <= 0.0, "spore_chartreuse")
-    _p(c, sdf_box(xx, yy, 0.62, 0.04, 0.05, 0.28), "volcanic_ember", "PURIFICATION_GOLD", 0.68)
-    c.zone(sdf_box(xx, yy, 0.62, -0.24, 0.05, 0.04), "volcanic_ember", "PURIFICATION_GOLD", tone=0.90)
+    # Main obsidian-chitin tome boards
+    cover = sdf_box(xx, yy, 0.06, 0.04, 0.50, 0.62)
+    _p(c, cover, "abyssal_obsidian", "OBSIDIAN_CHITIN", 0.46, height=0.64)
+    # Recessed inner board panel & dark seam
+    c.zone(sdf_box(xx, yy, 0.10, 0.04, 0.34, 0.46), "elite_carapace", "OBSIDIAN_CHITIN", tone=0.28)
+    c.zone(sdf_onion(sdf_box(xx, yy, 0.10, 0.04, 0.36, 0.48), 0.03), "abyssal_obsidian", "OBSIDIAN_CHITIN", tone=0.14)
+    # Bioluminescent amethyst spine with raised chitin ribs
+    spine = sdf_box(xx, yy, -0.40, 0.04, 0.14, 0.64)
+    _p(c, spine, "mycelial_violet", "LIVING_AMETHYST", 0.58, height=0.70)
+    for ry in (-0.42, -0.14, 0.14, 0.42):
+        c.zone(sdf_box(xx, yy, -0.40, ry, 0.15, 0.035), "chitin_bone", "CHITIN_BONE", tone=0.82)
+    # Fore-edge gilded spore-parchment pages
+    page_edge = sdf_box(xx, yy, 0.50, 0.04, 0.08, 0.54)
+    c.zone(page_edge, "warm_ivory", "CHITIN_BONE", tone=0.90)
+    for py in (-0.28, -0.06, 0.16, 0.36):
+        c.zone(sdf_box(xx, yy, 0.50, py, 0.07, 0.022), "imperial_brass", "PURIFICATION_GOLD", tone=0.68)
+    # Imperial brass corner mounts & fore-edge clasp
+    for cy in (-0.52, 0.60):
+        c.zone(sdf_box(xx, yy, 0.44, cy, 0.12, 0.06), "imperial_brass", "PURIFICATION_GOLD", tone=0.82)
+    _p(c, sdf_box(xx, yy, 0.58, 0.04, 0.06, 0.22), "volcanic_ember", "PURIFICATION_GOLD", 0.72, height=0.72)
+    c.zone(sdf_box(xx, yy, 0.58, -0.10, 0.06, 0.04), "warm_ivory", "CHITIN_BONE", tone=0.95)
+    # Central glowing hexagonal synaptic sigil & mycelial tendrils
+    for ang in (45.0, 135.0, 225.0, 315.0):
+        a = np.deg2rad(ang)
+        c.zone(
+            sdf_capsule(xx, yy, 0.08, 0.04, 0.08 + np.cos(a) * 0.30, 0.04 + np.sin(a) * 0.32, 0.028),
+            "biolum_cyan",
+            "BIOLUM_CYAN",
+            tone=0.78 + 0.18 * p,
+        )
+    sig = sdf_polygon(xx, yy, 0.08, 0.04, 0.23, sides=6)
+    _p(c, sig, "spore_chartreuse", "TOXIC_SPORE", 0.84 + 0.12 * p, emissive=True, height=0.80)
+    c.zone(sdf_polygon(xx, yy, 0.08, 0.04, 0.13, sides=6), "venom_emerald", "TOXIC_SPORE", tone=0.38)
+    _p(c, sdf_circle(xx, yy, 0.08, 0.04, 0.07), "warm_ivory", "BIOLUM_MYCELIUM", 0.96, emissive=True, height=0.86)
+    c.glow(sdf_onion(sdf_polygon(xx, yy, 0.08, 0.04, 0.19, sides=6), 0.03) <= 0.0, "spore_chartreuse")
     return c
 
 

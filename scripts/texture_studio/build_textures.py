@@ -24,6 +24,7 @@ from scripts.texture_studio.generators.entities import (
     generate_entities,
 )
 from scripts.texture_studio.generators.entity_skins import ENTITY_SKINS, NO_RANK_ENTITIES, box_face_rects
+from scripts.texture_studio.generators.gui import generate_gui_textures
 from scripts.texture_studio.generators.items import generate_items, generate_mob_effects
 from scripts.texture_studio.palette_oklab import export_gpl, export_hex
 
@@ -646,6 +647,10 @@ def run_checks(check_pbr: bool = False) -> None:
         im = Image.open(ep)
         assert im.size == (18, 18), f"{ep} expected (18, 18), got {im.size}"
         assert im.getextrema()[3][1] > 0, f"{ep} has no opaque pixels"
+    codex_gui_path = os.path.join(TEX_ROOT, "gui", "codex_book.png")
+    assert os.path.exists(codex_gui_path), f"Missing Codex GUI texture: {codex_gui_path}"
+    codex_gui_im = Image.open(codex_gui_path)
+    assert codex_gui_im.size == (256, 256), f"{codex_gui_path} expected (256, 256), got {codex_gui_im.size}"
     check_block_textures(check_pbr=check_pbr)
     check_item_icon_language(check_pbr=check_pbr)
     print("All texture dimension, .mcmeta, and emissive pair checks PASSED.")
@@ -672,6 +677,7 @@ def main() -> None:
     if args.all or args.items:
         generate_items(item_dir, pbr_dir=item_dir if args.pbr else None)
         generate_mob_effects(os.path.join(TEX_ROOT, "mob_effect"))
+        generate_gui_textures(os.path.join(TEX_ROOT, "gui"))
     if args.all or args.entities:
         ent_dir = os.path.join(TEX_ROOT, "entity")
         generate_entities(ent_dir, pbr_dir=ent_dir if args.pbr else None)
