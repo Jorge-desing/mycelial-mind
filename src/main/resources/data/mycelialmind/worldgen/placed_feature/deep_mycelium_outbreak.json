@@ -1,0 +1,30 @@
+{
+  "feature": "mycelialmind:mycelial_outbreak",
+  "placement": [
+    {
+      "type": "mycelialmind:hive_tier_rarity",
+      "dormant_chance": 16,
+      "awakened_chance": 12,
+      "adaptive_chance": 9,
+      "overmind_chance": 6
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": {
+          "absolute": 25
+        },
+        "max_inclusive": {
+          "absolute": 112
+        }
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

@@ -33,14 +33,43 @@ public final class StructureProgressionPolicy {
     }
 
     /**
-     * 1-in-N chunk rarity for MycelialOutbreakFeature. Higher tiers spawn more densely.
+     * 1-in-N chunk rarity for subterranean Overworld MycelialOutbreakFeature.
+     * Compensates solid stone columns in caves so underground outbreaks stay reliably discoverable.
      */
     public static int outbreakRarityChance(HiveProgressionTier tier) {
-        return switch (tier) {
-            case DORMANT -> 36;
-            case AWAKENED -> 26;
-            case ADAPTIVE -> 18;
-            case OVERMIND -> 12;
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 14;
+            case AWAKENED -> 10;
+            case ADAPTIVE -> 7;
+            case OVERMIND -> 5;
+        };
+    }
+
+    /**
+     * 1-in-N chunk rarity for Overworld surface_spore_patch outbreaks.
+     * Rare early on so outbreaks originate underground and breach the surface as Threat climbs.
+     */
+    public static int surfaceOutbreakRarityChance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 96;
+            case AWAKENED -> 64;
+            case ADAPTIVE -> 44;
+            case OVERMIND -> 28;
+        };
+    }
+
+    /**
+     * 1-in-N chunk rarity for deep_mycelium_outbreak inside the Deep Mycelium dimension (Y=25..112).
+     */
+    public static int deepMyceliumOutbreakRarityChance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 16;
+            case AWAKENED -> 12;
+            case ADAPTIVE -> 9;
+            case OVERMIND -> 6;
         };
     }
 
@@ -48,7 +77,8 @@ public final class StructureProgressionPolicy {
      * Minimum block spacing between Mycelial Outbreak nodes.
      */
     public static int outbreakMinSpacing(HiveProgressionTier tier) {
-        return switch (tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
             case DORMANT -> 72;
             case AWAKENED -> 60;
             case ADAPTIVE -> 52;
@@ -85,11 +115,24 @@ public final class StructureProgressionPolicy {
      * 1-in-N chunk rarity for SurfaceHiveFeature.
      */
     public static int surfaceHiveRarityChance(HiveProgressionTier tier) {
-        return switch (tier) {
-            case DORMANT -> 240;
-            case AWAKENED -> 160;
-            case ADAPTIVE -> 112;
-            case OVERMIND -> 80;
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 220;
+            case AWAKENED -> 150;
+            case ADAPTIVE -> 104;
+            case OVERMIND -> 72;
+        };
+    }
+
+    /**
+     * Minimum horizontal distance (in blocks) from world spawn before a natural SurfaceHive may spawn.
+     */
+    public static int surfaceHiveMinSpawnDistance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 96;
+            case AWAKENED -> 64;
+            case ADAPTIVE, OVERMIND -> 0;
         };
     }
 

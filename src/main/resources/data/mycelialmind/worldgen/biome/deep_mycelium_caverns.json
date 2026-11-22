@@ -38,5 +38,5 @@
   "carvers": {
     "air": ["minecraft:cave", "minecraft:cave_extra_underground"]
   },
-  "features": [[], [], [], [], [], [], [], [], [], ["mycelialmind:mycelial_outbreak", "mycelialmind:surface_spore_patch"]]
+  "features": [[], [], [], [], [], [], [], [], [], ["mycelialmind:deep_mycelium_outbreak"]]
 }

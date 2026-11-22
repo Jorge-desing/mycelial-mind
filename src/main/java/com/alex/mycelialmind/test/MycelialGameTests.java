@@ -2748,7 +2748,7 @@ public final class MycelialGameTests {
     public static void worldgenSanctumJigsawPlacementAndBiomeModifiersRegistered(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         var placedReg = level.registryAccess().registryOrThrow(Registries.PLACED_FEATURE);
-        for (String id : java.util.List.of("mycelial_outbreak", "surface_spore_patch", "surface_hive")) {
+        for (String id : java.util.List.of("mycelial_outbreak", "surface_spore_patch", "deep_mycelium_outbreak", "surface_hive")) {
             ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, id);
             if (!placedReg.containsKey(rl)) {
                 helper.fail("Missing PlacedFeature in registry: " + rl);
@@ -2773,11 +2773,30 @@ public final class MycelialGameTests {
     public static void worldgenPlacementUsesHiveTierRarityAndProgressionPolicy(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         var placedReg = level.registryAccess().registryOrThrow(Registries.PLACED_FEATURE);
-        for (String id : java.util.List.of("mycelial_outbreak", "surface_hive")) {
+        for (String id : java.util.List.of("mycelial_outbreak", "surface_spore_patch", "deep_mycelium_outbreak", "surface_hive")) {
             var holder = placedReg.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, id));
-            if (holder == null || holder.placement().stream().noneMatch(p -> p instanceof com.alex.mycelialmind.world.HiveTierRarityPlacement)) {
+            var rarityOpt = holder == null ? java.util.Optional.<com.alex.mycelialmind.world.HiveTierRarityPlacement>empty()
+                    : holder.placement().stream()
+                    .filter(p -> p instanceof com.alex.mycelialmind.world.HiveTierRarityPlacement)
+                    .map(p -> (com.alex.mycelialmind.world.HiveTierRarityPlacement) p)
+                    .findFirst();
+            if (rarityOpt.isEmpty()) {
                 helper.fail("PlacedFeature " + id + " must use HiveTierRarityPlacement.");
                 return;
+            }
+            var placement = rarityOpt.get();
+            for (var tier : com.alex.mycelialmind.hive.HiveProgressionTier.values()) {
+                int expected = switch (id) {
+                    case "mycelial_outbreak" -> com.alex.mycelialmind.world.structure.StructureProgressionPolicy.outbreakRarityChance(tier);
+                    case "surface_spore_patch" -> com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceOutbreakRarityChance(tier);
+                    case "deep_mycelium_outbreak" -> com.alex.mycelialmind.world.structure.StructureProgressionPolicy.deepMyceliumOutbreakRarityChance(tier);
+                    default -> com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveRarityChance(tier);
+                };
+                if (placement.chanceForTier(tier) != expected) {
+                    helper.fail("PlacedFeature " + id + " chance mismatch at tier " + tier
+                            + ": expected=" + expected + " actual=" + placement.chanceForTier(tier));
+                    return;
+                }
             }
         }
 
@@ -7858,6 +7877,104 @@ public final class MycelialGameTests {
             level.removeBlock(anchor.below(), false);
             tracker.clearAll();
             hive.resetAll();
+        }
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_and_hive_fixes")
+    public static void outbreakDeepMyceliumSubstrateStairsVaultAndCryptIntegrity(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        BlockPos outbreakGround = helper.absolutePos(new BlockPos(8, 160, 8));
+        BlockPos protectedGround = helper.absolutePos(new BlockPos(36, 160, 8));
+        BlockPos pylonPos = protectedGround.offset(2, 1, 0);
+        BlockPos waterHiveOrigin = helper.absolutePos(new BlockPos(8, 160, 40));
+        BlockPos hiveOrigin = helper.absolutePos(new BlockPos(36, 160, 40));
+        BlockPos protectedChest = outbreakGround.offset(3, 0, 3);
+        BlockPos protectedBedrock = outbreakGround.offset(1, 0, 1);
+
+        try {
+            // 1. MycelialOutbreakFeature on MYCELIAL_STONE with visible cardinal stairs and BlockEntity/Bedrock protection
+            for (int dx = -6; dx <= 6; dx++) {
+                for (int dz = -6; dz <= 6; dz++) {
+                    for (int dy = -5; dy <= 9; dy++) {
+                        BlockPos p = outbreakGround.offset(dx, dy, dz);
+                        if (dy <= 0) {
+                            level.setBlock(p, ModBlocks.MYCELIAL_STONE.get().defaultBlockState(), 18);
+                        } else {
+                            level.setBlock(p, Blocks.AIR.defaultBlockState(), 18);
+                        }
+                    }
+                }
+            }
+            level.setBlock(protectedChest, Blocks.CHEST.defaultBlockState(), 18);
+            level.setBlock(protectedBedrock, Blocks.BEDROCK.defaultBlockState(), 18);
+
+            boolean placedDeep = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), outbreakGround);
+            helper.assertTrue(placedDeep, "MycelialOutbreakFeature must place on MYCELIAL_STONE substrate.");
+
+            for (Direction dir : Direction.Plane.HORIZONTAL) {
+                BlockPos stairPos = outbreakGround.relative(dir).above();
+                helper.assertTrue(level.getBlockState(stairPos).is(Blocks.DEEPSLATE_BRICK_STAIRS),
+                        "Expected visible cardinal stair at " + stairPos + " on flat substrate.");
+            }
+            helper.assertTrue(level.getBlockEntity(protectedChest) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity,
+                    "Outbreak carpet must never overwrite an existing BlockEntity.");
+            helper.assertTrue(level.getBlockState(protectedBedrock).is(Blocks.BEDROCK),
+                    "Outbreak must never overwrite indestructible bedrock.");
+
+            // 2. Purification Pylon blocks Outbreak placement inside protected radius
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    level.setBlock(protectedGround.offset(dx, 0, dz), Blocks.DIRT.defaultBlockState(), 18);
+                    level.setBlock(protectedGround.offset(dx, 1, dz), Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            boolean placedProtected = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), protectedGround);
+            helper.assertFalse(placedProtected, "MycelialOutbreakFeature must not generate inside a Purification Pylon zone.");
+
+            // 3. SurfaceHiveFeature rejects water and generates a continuous 4-step crypt stairwell
+            tracker.clearAll();
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    level.setBlock(waterHiveOrigin.below().offset(dx, 0, dz), Blocks.WATER.defaultBlockState(), 18);
+                }
+            }
+            boolean placedWaterHive = com.alex.mycelialmind.world.SurfaceHiveFeature.generateHiveAt(
+                    level, waterHiveOrigin, level.getRandom());
+            helper.assertFalse(placedWaterHive, "SurfaceHiveFeature must reject liquid/water terrain.");
+
+            for (int dx = -10; dx <= 10; dx++) {
+                for (int dz = -10; dz <= 10; dz++) {
+                    for (int dy = -6; dy <= 16; dy++) {
+                        BlockPos p = hiveOrigin.offset(dx, dy, dz);
+                        level.setBlock(p, (dy == -1 || dy == -2) ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState(), 18);
+                    }
+                }
+            }
+            boolean placedCleanHive = com.alex.mycelialmind.world.SurfaceHiveFeature.generateHiveAt(
+                    level, hiveOrigin, level.getRandom());
+            helper.assertTrue(placedCleanHive, "SurfaceHiveFeature must succeed on flat stone terrain.");
+            for (int step = 0; step < 4; step++) {
+                for (int w = 2; w <= 3; w++) {
+                    BlockPos stairPos = hiveOrigin.offset(w, -1 - step, -step);
+                    helper.assertTrue(level.getBlockState(stairPos).is(Blocks.DEEPSLATE_BRICK_STAIRS),
+                            "SurfaceHive crypt stairwell missing stair at step=" + step + " w=" + w + " pos=" + stairPos);
+                    for (int h = 1; h <= 3; h++) {
+                        helper.assertTrue(level.getBlockState(stairPos.above(h)).isAir(),
+                                "SurfaceHive crypt stairwell blocked headroom at " + stairPos.above(h));
+                    }
+                }
+            }
+
+            helper.succeed();
+        } finally {
+            tracker.clearAll();
         }
     }
 }

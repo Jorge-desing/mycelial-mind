@@ -882,11 +882,41 @@ class HiveAlgorithmsUnitTest {
             assertTrue(tier.armorBonus() >= 0.0D && tier.speedMultiplier() >= 1.0D);
             assertTrue(tier.wavePromotionBonus() >= 0.0D);
             assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.outbreakRarityChance(tier) > 0);
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceOutbreakRarityChance(tier) > 0);
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.deepMyceliumOutbreakRarityChance(tier) > 0);
             assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.outbreakMinSpacing(tier) > 0);
             assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveRarityChance(tier) > 0);
             assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpacing(tier) > 0);
             assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveNodeClearance(tier) > 0);
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tier) >= 0);
             assertEquals(tier.level(), com.alex.mycelialmind.world.structure.StructureProgressionPolicy.chestBonusCount(tier));
+        }
+        assertEquals(14, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.outbreakRarityChance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+        assertEquals(96, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceOutbreakRarityChance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+        assertEquals(16, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.deepMyceliumOutbreakRarityChance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+        assertEquals(220, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveRarityChance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+        assertEquals(96, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+        assertEquals(14, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.outbreakRarityChance(null));
+        assertEquals(96, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceOutbreakRarityChance(null));
+        assertEquals(16, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.deepMyceliumOutbreakRarityChance(null));
+        assertEquals(96, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(null));
+        var tiers = com.alex.mycelialmind.hive.HiveProgressionTier.values();
+        for (int i = 1; i < tiers.length; i++) {
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.outbreakRarityChance(tiers[i])
+                    <= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.outbreakRarityChance(tiers[i - 1]));
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceOutbreakRarityChance(tiers[i])
+                    <= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceOutbreakRarityChance(tiers[i - 1]));
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.deepMyceliumOutbreakRarityChance(tiers[i])
+                    <= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.deepMyceliumOutbreakRarityChance(tiers[i - 1]));
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveRarityChance(tiers[i])
+                    <= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveRarityChance(tiers[i - 1]));
+            assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tiers[i])
+                    <= com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tiers[i - 1]));
         }
         assertEquals(com.alex.mycelialmind.world.SynapticNodeType.SENTINEL,
                 com.alex.mycelialmind.world.structure.StructureProgressionPolicy.pickOutbreakNodeType(
