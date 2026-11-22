@@ -23,6 +23,16 @@ Estas tareas usan el entorno local que ya requiere `scripts/Verify-Mod.ps1`: Jav
 
 Para agentes conectados al bridge del proyecto, el punto de entrada de la verificación completa sigue siendo `run_verify_mod` de CodeMode. Las capturas se comparan con las referencias del proyecto.
 
+Si LWJGL o JNA no pueden extraer sus DLL en el directorio temporal predeterminado, configura uno escribible para esa sesión de PowerShell y vuelve a ejecutar la tarea visual.
+
+```powershell
+$verifyTemp = (New-Item -ItemType Directory -Force '.tools/verify-temp').FullName
+$env:TEMP = $verifyTemp
+$env:TMP = $verifyTemp
+$env:JAVA_TOOL_OPTIONS = ('{0} -Djava.io.tmpdir="{1}" -Djna.tmpdir="{1}"' -f $env:JAVA_TOOL_OPTIONS, $verifyTemp).Trim()
+task verify:visual
+```
+
 ## GitHub Actions
 
 **Verify Mycelial Mind** se ejecuta en los pull requests a `main`, en los pushes a `main` y bajo demanda desde la pestaña **Actions**. **Asset checks** ejecuta el mismo script que `task verify:assets`. **Build and GameTests** ejecuta JUnit, compila el mod y verifica que NeoForge informe que aprobó los GameTests requeridos.
