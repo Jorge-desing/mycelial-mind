@@ -3357,3 +3357,8 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - `run_texture_studio(check_only=True, pbr=True, run_tests=True)`: **`ok: true`**.
   - `audit_mod_assets`: **`ok: true`**.
   - `run_gradle_task(["test", "runGameTestServer", "--offline"], max_workers=2)`: **`gradle_ok: true`** (`55/55` JUnit en `5` suites, `0` fallos + `@GameTest` server en verde).
+
+## [2026-11-22 09:07] — Renovate hospedado verificado en el repositorio
+- **Tipo:** `VERIFICACIÓN`
+- **Resultado:** La búsqueda de PRs abiertos de `renovate[bot]` en `Jorge-desing/mycelial-mind` encontró dos PRs creados por Mend Renovate: [#1](https://github.com/Jorge-desing/mycelial-mind/pull/1) actualiza NeoForge de `21.1.176` a `21.1.267`, y [#2](https://github.com/Jorge-desing/mycelial-mind/pull/2) actualiza Gradle de `8.14.2` a `8.14.8`.
+- **Conclusión:** Renovate hospedado está instalado y activo para el repositorio; ya está abriendo PRs. Solo se consultó el estado, sin modificar configuración ni PRs.
