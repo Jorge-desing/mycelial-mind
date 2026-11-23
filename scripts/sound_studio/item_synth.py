@@ -66,6 +66,7 @@ ITEM_PROJECTILE_IDS: frozenset[str] = frozenset(
         "tide_beacon_activate",
         "rift_catalyst_ignite",
         "overmind_crown_surge",
+        "command_staff_mark",
     }
 )
 
@@ -410,5 +411,19 @@ def synthesize_item_sound(
         )
         raw = np.tanh((bomb * 1.25 + choir * 1.10 + crown * 0.85) * 1.3)
         return _abyssal_reverb(raw, rng, predelay_ms=18.0, wet=0.34, rt60=0.96, lp_hz=5800.0, shimmer=0.30)
+
+    if sound_id == "command_staff_mark":
+        # Metallic staff ferrule tap -> crisp waypoint resonance chime
+        tap_s = int(rng.uniform(0.01, 0.09) * n)
+        rt = np.arange(n - tap_s, dtype=np.float64) / SAMPLE_RATE
+        tap = np.zeros(n, dtype=np.float64)
+        tap[tap_s:] = _modal_bank(rt, bf * rng.uniform(0.92, 1.12), (1.0, 1.498, 2.42, 3.65), (0.14, 0.10, 0.06, 0.03), (0.85, 0.60, 0.38, 0.20), rng)
+        lock_s = min(n - 48, tap_s + int(rng.uniform(0.08, 0.15) * SAMPLE_RATE))
+        lt = np.arange(n - lock_s, dtype=np.float64) / SAMPLE_RATE
+        lock = np.zeros(n, dtype=np.float64)
+        lock[lock_s:] = np.sin(2.0 * np.pi * (bf * 1.5) * lt + rng.uniform(0, 6.28)) * exp_decay(lt, 0.11) * 0.65
+        snap = np.zeros(n, dtype=np.float64)
+        snap[tap_s:] = _sos_bandpass(white[tap_s:], 2400.0, 10500.0) * exp_decay(rt, 0.010) * 0.45
+        return _cavern_reverb(_sos_highpass(tap + lock + snap, 180.0), rng, wet=0.14, rt60=0.34, lp_hz=7200.0)
 
     raise ValueError(f"Unhandled item/projectile sound_id in item_synth: {sound_id}")

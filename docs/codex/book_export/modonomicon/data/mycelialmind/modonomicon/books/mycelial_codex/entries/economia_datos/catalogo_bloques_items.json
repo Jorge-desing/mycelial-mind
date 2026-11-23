@@ -97,6 +97,27 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page12.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page13.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page13.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page14.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page14.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page15.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page15.text"
     }
   ]
 }

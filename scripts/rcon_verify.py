@@ -55,7 +55,7 @@ def main():
             send_packet(sock, idx, 2, cmd)
             _, _, resp = recv_packet(sock)
             print(f"[RCON {cmd}] {resp}")
-            if cmd == "mycelial verify all" and "ALL 22 automated scenario checks PASSED" not in resp:
+            if cmd == "mycelial verify all" and "ALL 23 automated scenario checks PASSED" not in resp:
                 send_packet(sock, 99, 2, "stop")
                 raise RuntimeError(f"Verification command failed: {resp}")
             if cmd.startswith("mycelial worldgen audit") and "[Mycelial WorldgenAudit] PASS" not in resp:

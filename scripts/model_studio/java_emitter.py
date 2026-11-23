@@ -374,6 +374,18 @@ def emit_java_model(model: ModelDef) -> str:
         anim_lines.append("                }")
         anim_lines.append("            }")
         anim_lines.append("        }")
+    elif model.registry_id == "colony_symbiont":
+        anim_lines.append("        if (entity instanceof com.alex.mycelialmind.entity.ColonySymbiontEntity symbiont) {")
+        anim_lines.append("            var caste = symbiont.getCaste();")
+        anim_lines.append("            this.casteHarvesterScythe.visible = (caste == com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER);")
+        anim_lines.append("            this.casteExcavatorPick.visible = (caste == com.alex.mycelialmind.colony.SymbiontCaste.EXCAVATOR);")
+        anim_lines.append("            this.casteCourierPack.visible = (caste == com.alex.mycelialmind.colony.SymbiontCaste.COURIER);")
+        anim_lines.append("            this.casteArchitectHammer.visible = (caste == com.alex.mycelialmind.colony.SymbiontCaste.ARCHITECT);")
+        anim_lines.append("            this.casteSentinelShield.visible = (caste == com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL);")
+        anim_lines.append("            if (symbiont.isResting() || symbiont.isStandby()) {")
+        anim_lines.append("                this.head.xRot += 0.18F;")
+        anim_lines.append("            }")
+        anim_lines.append("        }")
 
     spring_import = "import java.util.Map;\nimport java.util.WeakHashMap;\n" if uses_spring else ""
     spring_field = "    private final Map<Entity, float[]> springState = new WeakHashMap<>();\n" if uses_spring else ""

@@ -710,6 +710,28 @@ def _field_engram(p: float) -> IconCanvas:
     return c
 
 
+def _sovereign_command_staff(p: float) -> IconCanvas:
+    c = IconCanvas(seed=141)
+    xx, yy = c.xx, c.yy
+    shaft = sdf_capsule(xx, yy, -0.56, 0.56, 0.24, -0.24, 0.085)
+    _p(c, shaft, "chitin_bone", "CHITIN_BONE", 0.62, height=0.66)
+    wrap1 = sdf_capsule(xx, yy, -0.44, 0.44, -0.26, 0.26, 0.105)
+    c.zone(wrap1, "imperial_brass", "PURIFICATION_GOLD", tone=0.72)
+    pommel = sdf_circle(xx, yy, -0.60, 0.60, 0.13)
+    _p(c, pommel, "royal_gold", "PURIFICATION_GOLD", 0.70, height=0.72)
+    collar = rot_box(xx, yy, 0.18, -0.18, 0.22, 0.10, -0.785)
+    _p(c, collar, "royal_gold", "PURIFICATION_GOLD", 0.78, height=0.78)
+    prong_l = sdf_capsule(xx, yy, 0.22, -0.22, 0.18, -0.60, 0.065)
+    prong_r = sdf_capsule(xx, yy, 0.22, -0.22, 0.60, -0.18, 0.065)
+    _p(c, np.minimum(prong_l, prong_r), "imperial_brass", "PURIFICATION_GOLD", 0.74, height=0.76)
+    orb = sdf_diamond(xx, yy, 0.46, -0.46, 0.25)
+    _p(c, orb, "biolum_cyan", "BIOLUM_CYAN", 0.80 + 0.20 * p, emissive=True, height=0.92)
+    c.glow(orb <= 0.0, "biolum_cyan")
+    c.zone(sdf_circle(xx, yy, 0.46, -0.46, 0.10), "spore_chartreuse", "TOXIC_SPORE", tone=0.84 + 0.16 * p)
+    c.glow(sdf_circle(xx, yy, 0.46, -0.46, 0.08) <= 0.0, "spore_chartreuse")
+    return c
+
+
 _ICONS = {
     "bio_scanner": (_bio_scanner, True, 4),
     "mycelial_codex": (_mycelial_codex, True, 4),
@@ -748,6 +770,7 @@ _ICONS = {
     "chimera_ovum": (_chimera_ovum, False, 0),
     "volatile_engram": (_volatile_engram, False, 0),
     "false_engram_injector": (_false_engram_injector, False, 0),
+    "sovereign_command_staff": (_sovereign_command_staff, True, 4),
 }
 
 

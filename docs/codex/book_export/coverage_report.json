@@ -3,22 +3,22 @@
   "stats": {
     "chapters": 12,
     "entries": 61,
-    "pages": 223
+    "pages": 230
   },
   "summary": {
     "blocks": {
-      "expected": 25,
-      "covered": 25,
+      "expected": 26,
+      "covered": 26,
       "missing": 0
     },
     "items": {
-      "expected": 59,
-      "covered": 59,
+      "expected": 61,
+      "covered": 61,
       "missing": 0
     },
     "entities": {
-      "expected": 20,
-      "covered": 20,
+      "expected": 21,
+      "covered": 21,
       "missing": 0
     },
     "effects": {
@@ -37,8 +37,8 @@
       "missing": 0
     },
     "data_components": {
-      "expected": 3,
-      "covered": 3,
+      "expected": 4,
+      "covered": 4,
       "missing": 0
     },
     "armor_materials": {
@@ -47,8 +47,8 @@
       "missing": 0
     },
     "block_entities": {
-      "expected": 5,
-      "covered": 5,
+      "expected": 6,
+      "covered": 6,
       "missing": 0
     },
     "menu_types": {
@@ -72,18 +72,18 @@
       "missing": 0
     },
     "recipes": {
-      "expected": 37,
-      "covered": 37,
+      "expected": 39,
+      "covered": 39,
       "missing": 0
     },
     "advancements": {
-      "expected": 32,
-      "covered": 32,
+      "expected": 34,
+      "covered": 34,
       "missing": 0
     },
     "loot_tables": {
-      "expected": 50,
-      "covered": 50,
+      "expected": 51,
+      "covered": 51,
       "missing": 0
     },
     "biomes": {
@@ -122,8 +122,8 @@
       "missing": 0
     },
     "verify_scenarios": {
-      "expected": 22,
-      "covered": 22,
+      "expected": 23,
+      "covered": 23,
       "missing": 0
     },
     "stimuli": {
@@ -192,13 +192,13 @@
       "missing": 0
     },
     "recipe_widgets": {
-      "expected": 37,
-      "covered": 37,
+      "expected": 39,
+      "covered": 39,
       "missing": 0
     },
     "entity_widgets": {
-      "expected": 17,
-      "covered": 17,
+      "expected": 18,
+      "covered": 18,
       "missing": 0
     }
   },

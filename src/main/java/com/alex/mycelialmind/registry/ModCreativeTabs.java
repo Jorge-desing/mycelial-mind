@@ -61,6 +61,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SCHISM_INJECTOR.get());
                         output.accept(ModItems.TRUCE_PHEROMONE.get());
                         output.accept(ModItems.QUORUM_SEAL.get());
+                        output.accept(ModItems.SOVEREIGN_COMMAND_STAFF.get());
 
                         output.accept(ModItems.MYCELIAL_BIOMASS.get());
                         output.accept(ModItems.CHITIN_PLATE.get());
@@ -75,6 +76,7 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.INCUBATOR_NODE.get());
                         output.accept(ModBlocks.SENTINEL_NODE.get());
                         output.accept(ModBlocks.SYMBIOTIC_NODE.get());
+                        output.accept(ModBlocks.SOVEREIGN_NEXUS.get());
                         output.accept(ModBlocks.PURIFICATION_PYLON.get());
                         output.accept(ModBlocks.PURIFICATION_TURRET.get());
                         output.accept(ModBlocks.REINFORCED_BIO_BARRIER.get());
@@ -106,6 +108,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SPORE_ARCHITECT_SPAWN_EGG.get());
                         output.accept(ModItems.SYNAPTIC_MIMIC_SPAWN_EGG.get());
                         output.accept(ModItems.MYCELIAL_CHIMERA_SPAWN_EGG.get());
+                        output.accept(ModItems.COLONY_SYMBIONT_SPAWN_EGG.get());
                         output.accept(ModItems.SPORE_BEHEMOTH_SPAWN_EGG.get());
                         output.accept(ModItems.PURIFIER_DRONE_SPAWN_EGG.get());
                         output.accept(ModItems.HIVE_CORE_SPAWN_EGG.get());

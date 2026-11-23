@@ -1291,6 +1291,69 @@
       }
     ]
   },
+  "colony_symbiont_ambient": {
+    "subtitle": "subtitles.mycelialmind.colony_symbiont_ambient",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_symbiont_ambient_1",
+        "volume": 0.77,
+        "pitch": 1.02,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "mycelialmind:colony_symbiont_ambient_2",
+        "volume": 0.76,
+        "pitch": 1.009,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "mycelialmind:colony_symbiont_ambient_3",
+        "volume": 0.799,
+        "pitch": 0.968,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "colony_symbiont_work": {
+    "subtitle": "subtitles.mycelialmind.colony_symbiont_work",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_symbiont_work_1",
+        "volume": 0.798,
+        "pitch": 1.015,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "mycelialmind:colony_symbiont_work_2",
+        "volume": 0.796,
+        "pitch": 1.002,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "mycelialmind:colony_symbiont_work_3",
+        "volume": 0.803,
+        "pitch": 1.028,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "colony_symbiont_promote": {
+    "subtitle": "subtitles.mycelialmind.colony_symbiont_promote",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_symbiont_promote_1",
+        "volume": 0.924,
+        "pitch": 1.004,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:colony_symbiont_promote_2",
+        "volume": 0.914,
+        "pitch": 1.029,
+        "attenuation_distance": 24
+      }
+    ]
+  },
   "mycelial_chimera_growl": {
     "subtitle": "subtitles.mycelialmind.mycelial_chimera_growl",
     "sounds": [
@@ -2786,6 +2849,23 @@
       }
     ]
   },
+  "sovereign_nexus_pulse": {
+    "subtitle": "subtitles.mycelialmind.sovereign_nexus_pulse",
+    "sounds": [
+      {
+        "name": "mycelialmind:sovereign_nexus_pulse_1",
+        "volume": 0.865,
+        "pitch": 0.978,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "mycelialmind:sovereign_nexus_pulse_2",
+        "volume": 0.887,
+        "pitch": 0.986,
+        "attenuation_distance": 20
+      }
+    ]
+  },
   "bio_scanner_ping": {
     "subtitle": "subtitles.mycelialmind.bio_scanner_ping",
     "sounds": [
@@ -3237,6 +3317,23 @@
         "volume": 0.98,
         "pitch": 1.0,
         "attenuation_distance": 46
+      }
+    ]
+  },
+  "command_staff_mark": {
+    "subtitle": "subtitles.mycelialmind.command_staff_mark",
+    "sounds": [
+      {
+        "name": "mycelialmind:command_staff_mark_1",
+        "volume": 0.887,
+        "pitch": 1.026,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "mycelialmind:command_staff_mark_2",
+        "volume": 0.901,
+        "pitch": 0.995,
+        "attenuation_distance": 16
       }
     ]
   },

@@ -1130,6 +1130,64 @@ def build_all_models() -> List[ModelDef]:
         ),
     ))
 
+    # 18) ColonySymbiontModel (256x256): Polymorphic player-aligned colony worker with 5 caste modules
+    models.append(ModelDef(
+        class_name="ColonySymbiontModel",
+        registry_id="colony_symbiont",
+        description="Polymorphic cooperative Sovereign Colony helper with sensory crest, courier pack, and caste-reactive tools",
+        tex_size=(256, 256),
+        palettes={
+            "skin": "abyssal_indigo",
+            "armor": "venom_emerald",
+            "bone": "chitin_bone",
+            "spore_sac": "mycelial_violet",
+            "glow_eye": "warm_ivory",
+            "glow_core": "spore_chartreuse",
+        },
+        parts=(
+            PartNode("body", pivot=(0.0, 12.0, 0.0), anim_role="breath_chest", cubes=(
+                CubeSpec("torso", (-3.5, -10, -2), (7, 10, 4), role="armor", detail_tags=("chitin_plates",)),
+                CubeSpec("symbiont_sternum", (-2, -8, -2.5), (4, 4, 1), role="glow_core", emissive=True, detail_tags=("neural_veins",)),
+                CubeSpec("symbiont_collar", (-2.5, -11, -2), (5, 2, 4), role="bone"),
+            ), children=(
+                PartNode("head", pivot=(0.0, -10.5, 0.0), anim_role="head", cubes=(
+                    CubeSpec("head", (-3, -6, -3), (6, 6, 6), role="skin", eye_pattern="three_eyes", detail_tags=("neural_veins",)),
+                    CubeSpec("visor_brow", (-3, -5, -3.5), (6, 2, 1), role="glow_eye", emissive=True),
+                    CubeSpec("antenna_crest", (-1, -9, -1), (2, 3, 2), role="glow_core", emissive=True, detail_tags=("crystal_facets",)),
+                )),
+                PartNode("caste_courier_pack", pivot=(0.0, -5.5, 2.0), cubes=(
+                    CubeSpec("pack_frame", (-3, -4, 0), (6, 7, 3), role="bone", detail_tags=("chitin_plates",)),
+                    CubeSpec("pack_core", (-2, -3, 2.5), (4, 4, 1), role="glow_core", emissive=True),
+                )),
+                PartNode("arm_r", pivot=(-4.5, -8.5, 0.0), anim_role="combat_arm_r", cubes=(
+                    CubeSpec("arm_r", (-1.5, -1, -1.5), (3, 9, 3), role="armor"),
+                ), children=(
+                    PartNode("caste_harvester_scythe", pivot=(0.0, 7.0, 0.0), cubes=(
+                        CubeSpec("scythe_haft", (-0.5, 0, -4), (1, 1, 5), role="bone"),
+                        CubeSpec("scythe_blade", (-0.5, 0, -6), (1, 3, 2), role="glow_core", emissive=True),
+                    )),
+                    PartNode("caste_excavator_pick", pivot=(0.0, 7.0, 0.0), cubes=(
+                        CubeSpec("pick_haft", (-0.5, 0, -4), (1, 1, 5), role="bone"),
+                        CubeSpec("pick_head", (-0.5, -2, -5), (1, 5, 2), role="glow_eye", emissive=True),
+                    )),
+                    PartNode("caste_architect_hammer", pivot=(0.0, 7.0, 0.0), cubes=(
+                        CubeSpec("hammer_haft", (-0.5, 0, -3.5), (1, 1, 4), role="bone"),
+                        CubeSpec("hammer_head", (-1.5, -1.5, -5), (3, 3, 2), role="glow_core", emissive=True),
+                    )),
+                )),
+                PartNode("arm_l", pivot=(4.5, -8.5, 0.0), anim_role="combat_arm_l", anim_phase=0.8, cubes=(
+                    CubeSpec("arm_l", (-1.5, -1, -1.5), (3, 9, 3), role="armor", mirror=True),
+                ), children=(
+                    PartNode("caste_sentinel_shield", pivot=(1.5, 4.0, 0.0), cubes=(
+                        CubeSpec("shield_plate_s", (-0.5, -3, -2.5), (1, 6, 5), role="bone", mirror=True),
+                        CubeSpec("shield_boss_s", (0, -1, -1.5), (1, 2, 3), role="glow_eye", emissive=True, mirror=True),
+                    )),
+                )),
+            )),
+            *_biped_legs(y_hip=12.0, x_off=1.8, w=3, h=12, d=3, role="armor", knee_guard=True),
+        ),
+    ))
+
     from .legendary_upgrades import apply_legendary_upgrades
 
     apply_legendary_upgrades(models)

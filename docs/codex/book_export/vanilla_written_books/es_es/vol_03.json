@@ -4,7 +4,7 @@
     "economia_datos",
     "mundo_dimension"
   ],
-  "page_count": 89,
+  "page_count": 97,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -14,7 +14,7 @@
     "resolved": true,
     "pages": [
       {
-        "raw": "Cap.9: Catálogo: 24\nBloques y 53 Ítems\nFlora, Geología y\nBloques Estructurales\n(1/4)\n• `creeping_mycelium`:\npropaga micelio y\ntransmisiones\nacústicas (32m);\nhorneable a\n`mycelial_stone`.\n• `hyphal_vein`: vena\nnegra en forma de\nrayo sobre tus rutas"
+        "raw": "Cap.9: Catálogo: 25\nBloques y 56 Ítems\nFlora, Geología y\nBloques Estructurales\n(1/4)\n• `creeping_mycelium`:\npropaga micelio y\ntransmisiones\nacústicas (32m);\nhorneable a\n`mycelial_stone`.\n• `hyphal_vein`: vena\nnegra en forma de\nrayo sobre tus rutas"
       },
       {
         "raw": "habituales (`CHARGED`\nsi densidad >=60%).\nCortable con Tijeras,\nAzada o Hoja\nSimbiótica."
@@ -35,13 +35,13 @@
         "raw": "Los 24 Bloques\n(`ModBlocks`) (2/3)\n• Fortificación y Flora\n(8):\n`reinforced_bio_barri\ner`,\n`synaptic_research_b\nench`, `hive_altar`,\n`matriarch_altar`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`,\n`antibody_cyst`."
       },
       {
-        "raw": "Los 24 Bloques\n(`ModBlocks`) (3/3)\n• Arquitectura y\nDimensión (8):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`."
+        "raw": "Los 24 Bloques\n(`ModBlocks`) (3/3)\n• Arquitectura y\nDimensión (9):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`,\n`sovereign_nexus`."
       },
       {
-        "raw": "Ítems y Armadura\n(`ModItems`) (1/5)\n• Instrumentos y\nArmas (10):\n`bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,\n`rift_catalyst`,"
+        "raw": "Ítems y Armadura\n(`ModItems`) (1/5)\n• Instrumentos y\nArmas (11):\n`bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,\n`rift_catalyst`,"
       },
       {
-        "raw": "`mycelial_codex`."
+        "raw": "`mycelial_codex`,\n`sovereign_command_s\ntaff` (`staff_mode`)."
       },
       {
         "raw": "Ítems y Armadura\n(`ModItems`) (2/5)\n• Armadura y Sueros\n(10): `chitin_helmet`,\n`chitin_chestplate`,\n`chitin_leggings`,\n`chitin_boots`,\n`spore_antidote`,\n`concentrated_antidot\ne`, `genetic_sample`,\n`symbiotic_mutagen`,\n`counter_serum`,\n`tide_beacon`."
@@ -53,13 +53,31 @@
         "raw": "`field_engram`."
       },
       {
-        "raw": "Ítems y Armadura\n(`ModItems`) (4/5)\n• Inyección y\nReactivos (7):\n`false_engram_injecto\nr`, `mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`hive_heart`,\n`overmind_essence` (+\n17 `*_spawn_egg` en\nCap.5)."
+        "raw": "Ítems y Armadura\n(`ModItems`) (4/5)\n• Inyección y\nReactivos (7):\n`false_engram_injecto\nr`, `mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`hive_heart`,\n`overmind_essence` (+\n18 `*_spawn_egg` en\nCap.5)."
       },
       {
         "raw": "Ítems y Armadura\n(`ModItems`) (5/5)\n• Brotes Recuperados\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
-        "raw": "Cap.9: Recetario Total\n(37 Datapack)\nBio-Escáner y\nBio-Extractor\n[crafting_shaped]  R\n/ICI/ S  (C=compass,\nI=copper_ingot,\nR=redstone,\nS=latent_spore) -> 1x\nbio_scanner\n[crafting_shaped]  A\n/IBI/ S \n(A=amethyst_shard,\nB=mycelial_biomass,"
+        "raw": "Colonia Soberana\nPost-Matriarca (1/3)\n• Ancla y Puestos\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`): tras derrotar\na la Matriarca, el\n`sovereign_nexus`\nacepta\n`mycelial_biomass`\n(mano o tolvas) e\nintegra hasta 4\n`symbiotic_node`"
+      },
+      {
+        "raw": "cercanos (+8m radio\ncada uno)."
+      },
+      {
+        "raw": "Colonia Soberana\nPost-Matriarca (2/3)\n• Niveles y Mando\n(`SovereignColonyDire\nctor`): Nivel 1–3\n(4/8/12 simbiontes,\nradio 24/36/48m). Usa\n`sovereign_command_s\ntaff` (`staff_mode`)\npara marcar cofres\n`INPUT`/`OUTPUT` y\nzonas de trabajo;"
+      },
+      {
+        "raw": "desbloquea rasgos\n`SovereignTrait` y\nrangos."
+      },
+      {
+        "raw": "Colonia Soberana\nPost-Matriarca (3/3)\n• Castas y Sondeos\nRivales: `HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT` y\n`SENTINEL` operan\n`ColonyOrderBoard`\npor\nprioridad/reserva\ncon descanso y humor\n(`SymbiontTemperament\n`). Repeler sondeos"
+      },
+      {
+        "raw": "de la Colmena rival\notorga XP de Dominio y\nmoral."
+      },
+      {
+        "raw": "Cap.9: Recetario Total\n(39 Datapack)\nBio-Escáner y\nBio-Extractor\n[crafting_shaped]  R\n/ICI/ S  (C=compass,\nI=copper_ingot,\nR=redstone,\nS=latent_spore) -> 1x\nbio_scanner\n[crafting_shaped]  A\n/IBI/ S \n(A=amethyst_shard,\nB=mycelial_biomass,"
       },
       {
         "raw": "I=iron_ingot, S=stick)\n-> 1x bio_extractor\nTelemetría inicial:\nBrújula, Redstone,\nCobre y Espora\n(`bio_scanner`);\nAmatista, Hierro y\nBiomasa\n(`bio_extractor`)."
@@ -164,6 +182,12 @@
         "raw": "Cortapiedras: Celosía\nBio-Quitina\n[stonecutting]\nchitin_plate -> 2x\nbio_chitin_lattice\n1 `chitin_plate` se\ntalla en 2\n`bio_chitin_lattice`\npara galerías y\nventanales."
       },
       {
+        "raw": "Nexo Soberano y\nBáculo de Mando\n[crafting_shaped]\nOCO/HSN/CPC\n(C=chitin_plate,\nH=hive_heart,\nN=neural_echo_core,\nO=overmind_essence,\nP=purification_pylon,\nS=symbiotic_node) ->\n1x sovereign_nexus\n[crafting_shaped] \nOG/ NO/C  \n(C=chitin_plate,"
+      },
+      {
+        "raw": "G=synaptic_graft,\nN=neural_echo_core,\nO=overmind_essence)\n-> 1x\nsovereign_command_st\naff\nAncla endgame\npost-Matriarca\n(`sovereign_nexus`) y\nherramienta de\nmarcaje táctico\n(`sovereign_command_\nstaff`)."
+      },
+      {
         "raw": "Cap.9: Alambique,\nCompostaje y\nComercio\nIntegración Económica\nVanilla+ (1/3)\n• Alambique\n(`onRegisterBrewingRe\ncipes`): Poción Rara\n(`Awkward`) +\n`latent_spore` ->\n`spore_antidote`;\nluego + Amatista ->\n`concentrated_antidot\ne`."
       },
       {
@@ -173,31 +197,31 @@
         "raw": "Integración Económica\nVanilla+ (3/3)\n• Aldeanos y Errante:\nClérigos (N2–N5)\ncomercian\n`mycelial_biomass`,\n`spore_antidote`,\n`latent_spore`,\n`concentrated_antidot\ne`; Albañiles y\nVendedor Errante\nofrecen bloques\nmiceliales y\n`truce_pheromone`."
       },
       {
-        "raw": "Cap.9: Las 50 Tablas\nde Botín\nBotín Multi-Pool (50\nTablas) (1/9)\n• Bloques 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
+        "raw": "Cap.9: Las 50 Tablas\nde Botín\nBotín Multi-Pool (51\nTablas) (1/9)\n• Bloques 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (2/9)\n• Bloques 2/4:\n`blocks/hive_altar`,\n`blocks/hyphal_vein`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
+        "raw": "Botín Multi-Pool (51\nTablas) (2/9)\n• Bloques 2/4:\n`blocks/hive_altar`,\n`blocks/hyphal_vein`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (3/9)\n• Bloques 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reinforced_bi\no_barrier`."
+        "raw": "Botín Multi-Pool (51\nTablas) (3/9)\n• Bloques 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reinforced_bi\no_barrier`."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (4/9)\n• Bloques 4/4:\n`blocks/sentinel_node`\n, `blocks/spore_bulb`,\n`blocks/spore_vent`,\n`blocks/symbiotic_nod\ne`,\n`blocks/synaptic_rese\narch_bench`."
+        "raw": "Botín Multi-Pool (51\nTablas) (4/9)\n• Bloques 4/4:\n`blocks/sentinel_node`\n,\n`blocks/sovereign_ne\nxus`,\n`blocks/spore_bulb`,\n`blocks/spore_vent`,\n`blocks/symbiotic_nod\ne`,\n`blocks/synaptic_rese\narch_bench`."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (5/9)\n• Cofres 1/2:\n`chests/outbreak_sea\nled_vault`,\n`chests/surface_hive\n_cache`,\n`chests/surface_hive\n_crypt`,\n`chests/surface_hive\n_gallery`,\n`chests/sanctum_spor\ne_vault`."
+        "raw": "Botín Multi-Pool (51\nTablas) (5/9)\n• Cofres 1/2:\n`chests/outbreak_sea\nled_vault`,\n`chests/surface_hive\n_cache`,\n`chests/surface_hive\n_crypt`,\n`chests/surface_hive\n_gallery`,\n`chests/sanctum_spor\ne_vault`."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (6/9)\n• Cofres 2/2:\n`chests/sanctum_forbi\ndden_lab`,\n`chests/sanctum_ossu\nary_crypt`,\n`chests/citadel_amber\n_chapel`,\n`chests/citadel_crimso\nn_chapel`,\n`chests/citadel_royal\n_crypt`."
+        "raw": "Botín Multi-Pool (51\nTablas) (6/9)\n• Cofres 2/2:\n`chests/sanctum_forbi\ndden_lab`,\n`chests/sanctum_ossu\nary_crypt`,\n`chests/citadel_amber\n_chapel`,\n`chests/citadel_crimso\nn_chapel`,\n`chests/citadel_royal\n_crypt`."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (7/9)\n• Entidades 1/3:\n`entities/acid_spitter`,\n`entities/apex_matriar\nch`,\n`entities/burrower`,\n`entities/chitin_brute`,\n`entities/colony_warde\nn`,\n`entities/goliath_carri\ner`."
+        "raw": "Botín Multi-Pool (51\nTablas) (7/9)\n• Entidades 1/3:\n`entities/acid_spitter`,\n`entities/apex_matriar\nch`,\n`entities/burrower`,\n`entities/chitin_brute`,\n`entities/colony_warde\nn`,\n`entities/goliath_carri\ner`."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (8/9)\n• Entidades 2/3:\n`entities/hive_core`,\n`entities/leech_parasit\ne`,\n`entities/mycelial_chim\nera`,\n`entities/mycelial_stalk\ner`,\n`entities/purifier_dron\ne`,\n`entities/pyro_shroom`\n."
+        "raw": "Botín Multi-Pool (51\nTablas) (8/9)\n• Entidades 2/3:\n`entities/hive_core`,\n`entities/leech_parasit\ne`,\n`entities/mycelial_chim\nera`,\n`entities/mycelial_stalk\ner`,\n`entities/purifier_dron\ne`,\n`entities/pyro_shroom`\n."
       },
       {
-        "raw": "Botín Multi-Pool (50\nTablas) (9/9)\n• Entidades 3/3:\n`entities/spore_archit\nect`,\n`entities/spore_behem\noth`,\n`entities/sporeling`,\n`entities/synapse_wea\nver`,\n`entities/synaptic_mimi\nc` (escala con\nSaqueo/Rango/Cepa).\n• Aldea / Héroe:"
+        "raw": "Botín Multi-Pool (51\nTablas) (9/9)\n• Entidades 3/3:\n`entities/spore_archit\nect`,\n`entities/spore_behem\noth`,\n`entities/sporeling`,\n`entities/synapse_wea\nver`,\n`entities/synaptic_mimi\nc` (escala con\nSaqueo/Rango/Cepa).\n• Aldea / Héroe:"
       },
       {
         "raw": "`gameplay/hero_of_th\ne_village/cleric_myceli\nal_gift` (regalo de\nClérigo al defender\naldeas)."

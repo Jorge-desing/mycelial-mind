@@ -15426,5 +15426,341 @@
         "detail_tags": []
       }
     ]
+  },
+  "colony_symbiont": {
+    "class_name": "ColonySymbiontModel",
+    "tex_size": [
+      256,
+      256
+    ],
+    "palettes": {
+      "skin": "abyssal_indigo",
+      "armor": "venom_emerald",
+      "bone": "chitin_bone",
+      "spore_sac": "mycelial_violet",
+      "glow_eye": "warm_ivory",
+      "glow_core": "spore_chartreuse"
+    },
+    "metrics": {
+      "cube_count": 22,
+      "base_cube_count": 22,
+      "mutated_cube_count": 0,
+      "elite_cube_count": 0,
+      "phase2_cube_count": 0,
+      "phase3_cube_count": 0,
+      "emissive_count": 8,
+      "base_height_px": 31.5,
+      "base_width_px": 13.0,
+      "base_depth_px": 11.5,
+      "full_height_px": 31.5,
+      "atlas": [
+        256,
+        256
+      ],
+      "atlas_usage": {
+        "used_width": 250.0,
+        "used_height": 21.0,
+        "height_fraction": 0.082,
+        "area_fraction": 0.037
+      }
+    },
+    "cubes": [
+      {
+        "name": "torso",
+        "u": 26,
+        "v": 0,
+        "w": 7,
+        "h": 10,
+        "d": 4,
+        "role": "armor",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": [
+          "chitin_plates"
+        ]
+      },
+      {
+        "name": "symbiont_sternum",
+        "u": 0,
+        "v": 16,
+        "w": 4,
+        "h": 4,
+        "d": 1,
+        "role": "glow_core",
+        "emissive": true,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": [
+          "neural_veins"
+        ]
+      },
+      {
+        "name": "symbiont_collar",
+        "u": 173,
+        "v": 0,
+        "w": 5,
+        "h": 2,
+        "d": 4,
+        "role": "bone",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "head",
+        "u": 49,
+        "v": 0,
+        "w": 6,
+        "h": 6,
+        "d": 6,
+        "role": "skin",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": "three_eyes",
+        "detail_tags": [
+          "neural_veins"
+        ]
+      },
+      {
+        "name": "visor_brow",
+        "u": 36,
+        "v": 16,
+        "w": 6,
+        "h": 2,
+        "d": 1,
+        "role": "glow_eye",
+        "emissive": true,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "antenna_crest",
+        "u": 11,
+        "v": 16,
+        "w": 2,
+        "h": 3,
+        "d": 2,
+        "role": "glow_core",
+        "emissive": true,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": [
+          "crystal_facets"
+        ]
+      },
+      {
+        "name": "pack_frame",
+        "u": 113,
+        "v": 0,
+        "w": 6,
+        "h": 7,
+        "d": 3,
+        "role": "bone",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": [
+          "chitin_plates"
+        ]
+      },
+      {
+        "name": "pack_core",
+        "u": 240,
+        "v": 0,
+        "w": 4,
+        "h": 4,
+        "d": 1,
+        "role": "glow_core",
+        "emissive": true,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "arm_r",
+        "u": 87,
+        "v": 0,
+        "w": 3,
+        "h": 9,
+        "d": 3,
+        "role": "armor",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "scythe_haft",
+        "u": 205,
+        "v": 0,
+        "w": 1,
+        "h": 1,
+        "d": 5,
+        "role": "bone",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "scythe_blade",
+        "u": 29,
+        "v": 16,
+        "w": 1,
+        "h": 3,
+        "d": 2,
+        "role": "glow_core",
+        "emissive": true,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "pick_haft",
+        "u": 192,
+        "v": 0,
+        "w": 1,
+        "h": 1,
+        "d": 5,
+        "role": "bone",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "pick_head",
+        "u": 166,
+        "v": 0,
+        "w": 1,
+        "h": 5,
+        "d": 2,
+        "role": "glow_eye",
+        "emissive": true,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "hammer_haft",
+        "u": 218,
+        "v": 0,
+        "w": 1,
+        "h": 1,
+        "d": 4,
+        "role": "bone",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "hammer_head",
+        "u": 229,
+        "v": 0,
+        "w": 3,
+        "h": 3,
+        "d": 2,
+        "role": "glow_core",
+        "emissive": true,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "arm_l",
+        "u": 74,
+        "v": 0,
+        "w": 3,
+        "h": 9,
+        "d": 3,
+        "role": "armor",
+        "emissive": false,
+        "mirror": true,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "shield_plate_s",
+        "u": 100,
+        "v": 0,
+        "w": 1,
+        "h": 6,
+        "d": 5,
+        "role": "bone",
+        "emissive": false,
+        "mirror": true,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "shield_boss_s",
+        "u": 20,
+        "v": 16,
+        "w": 1,
+        "h": 2,
+        "d": 3,
+        "role": "glow_eye",
+        "emissive": true,
+        "mirror": true,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "right_leg",
+        "u": 13,
+        "v": 0,
+        "w": 3,
+        "h": 12,
+        "d": 3,
+        "role": "armor",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "right_knee",
+        "u": 149,
+        "v": 0,
+        "w": 4,
+        "h": 3,
+        "d": 4,
+        "role": "bone",
+        "emissive": false,
+        "mirror": false,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "left_leg",
+        "u": 0,
+        "v": 0,
+        "w": 3,
+        "h": 12,
+        "d": 3,
+        "role": "armor",
+        "emissive": false,
+        "mirror": true,
+        "eye_pattern": null,
+        "detail_tags": []
+      },
+      {
+        "name": "left_knee",
+        "u": 132,
+        "v": 0,
+        "w": 4,
+        "h": 3,
+        "d": 4,
+        "role": "bone",
+        "emissive": false,
+        "mirror": true,
+        "eye_pattern": null,
+        "detail_tags": []
+      }
+    ]
   }
 }

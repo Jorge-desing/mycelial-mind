@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `61` entradas y `223` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `61` entradas y `230` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -34,8 +34,8 @@
   - [Guardián y Behemot de Esporas](#cap5-bestiario_elite_campeon) — _colony_warden (110 HP) y spore_behemoth (200 HP)_
   - [Jefe Overworld: Núcleo Colmena](#cap5-bestiario_jefe_hive_core) — _hive_core (350 HP) — 3 Fases y 3 Anclas Centinela_
   - [Jefe Final: Matriarca Suprema](#cap5-bestiario_jefe_matriarca) — _apex_matriarch (600 HP) en el Micelio Profundo_
-  - [Aliados Bioforjados: Dron y Quimera](#cap5-bestiario_aliados_quimera) — _purifier_drone (60 HP) y mycelial_chimera (matriz genética 5x5)_
-  - [Proyectiles (3) y Spawn Eggs (17)](#cap5-proyectiles_y_huevos) — _acid_spit, neutralizing_spore, purifier_grenade y los 17 huevos_
+  - [Aliados Bioforjados: Dron, Quimera y Colonia](#cap5-bestiario_aliados_quimera) — _purifier_drone, mycelial_chimera y colony_symbiont (Colonia Soberana)_
+  - [Proyectiles (3) y Spawn Eggs (18)](#cap5-proyectiles_y_huevos) — _acid_spit, neutralizing_spore, purifier_grenade y los 18 huevos_
 - **Capítulo 6 — Red Sináptica y Nodos** (`red_sinaptica`): 4 tipos de nodo, Injerto, Viaje Micorrizal 96m y Acústica
   - [Los 4 Nodos Sinápticos](#cap6-nodos_y_malla_sinaptica) — _SynapticNodeType: RELAY, INCUBATOR, SENTINEL y SYMBIOTIC_
   - [Injerto y Viaje Micorrizal](#cap6-injerto_y_viaje_micorrizal) — _Reprogramación nodal y salto rápido a 96m con Quimeras y Drones_
@@ -50,8 +50,8 @@
   - [Las 4 Reliquias Endgame](#cap8-reliquias_endgame) — _TideBeacon, SynapticSuppressor, RiftCatalyst y OvermindCrown_
   - [Defensa del Bastión y Torretas](#cap8-bastion_defensivo) — _Pilón (monument_focus), Torreta (3 tiers), Dron y Bio-Barrera_
 - **Capítulo 9 — Economía, Recetas y Botín** (`economia_datos`): 24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines
-  - [Catálogo: 24 Bloques y 53 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
-  - [Recetario Total (37 Datapack)](#cap9-recetas_36_datapack) — _29 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras_
+  - [Catálogo: 25 Bloques y 56 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
+  - [Recetario Total (39 Datapack)](#cap9-recetas_36_datapack) — _31 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras_
   - [Alambique, Compostaje y Comercio](#cap9-vanilla_brew_compost_trades) — _Poción Awkward, 5 compostables NeoForge y ofertas Clérigo/Albañil_
   - [Las 50 Tablas de Botín](#cap9-botin_48_tablas) — _22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores_
 - **Capítulo 10 — Mundo, Estructuras y Dimensión** (`mundo_dimension`): Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis
@@ -63,7 +63,7 @@
 - **Capítulo 11 — Secretos, Logros y Compat** (`secretos_logros`): 8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat
   - [Los 8 Secretos: Pistas de Campo](#cap11-secretos_pistas_seguras) — _Indicios de investigación experimental y ecológica sin spoilers_
   - [Los 8 Secretos: Revelación Exacta](#cap11-secretos_revelaciones_spoiler) — _[SPOILER] Fórmulas y disparadores exactos en código_
-  - [Los 30 Logros (`advancement`)](#cap11-logros_30_advancements) — _25 logros de campaña y 5 desbloqueos automáticos de recetas_
+  - [Los 32 Logros (`advancement`)](#cap11-logros_30_advancements) — _27 logros de campaña y 5 desbloqueos automáticos de recetas_
   - [Redstone (7) y Ecosistema de Mods](#cap11-redstone_y_ecosistema_mods) — _MycelialRedstoneTelemetry + SBL, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon_
   - [Engrama I: Señal de Brote](#cap11-engram_outbreak_signal) — _Registro inicial del elemento field_engram (engram_id)_
   - [Engrama II: Floración Sináptica](#cap11-engram_synaptic_bloom) — _Topología temprana de nodos y pilones_
@@ -75,9 +75,9 @@
   - [Engrama VIII: Linaje Primordial](#cap11-engram_primordial_lineage) — _Extracción genética de variantes primordiales_
   - [Engrama IX: Réquiem Matriarcal](#cap11-engram_matriarch_requiem) — _Remisión dimensional y protocolo de enclave_
   - [Engrama X: Ciclo de la Supramente](#cap11-engram_overmind_cycle) — _Maestría post-Matriarca con mutadores activos_
-- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify
+- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 186 Sonidos, LabPBR, 49 Configs, Red v22, /mycelial y 23 Verify
   - [Configuraciones (13 Cliente / 43 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
-  - [Red v21, `/mycelial` y Verify](#cap12-comandos_red_y_verificacion) — _Payloads v21, /mycelial cycle, field_engram y verify cycles_
+  - [Red v22, `/mycelial` y Verify](#cap12-comandos_red_y_verificacion) — _Payloads v22, /mycelial colony, field_engram y 23 verify_
 
 ---
 
@@ -617,10 +617,10 @@ Campeón de Marea y `MatriarchCitadel`. Suelta `tide_beacon`.
 • **Recompensas:** `overmind_essence`, `hive_heart`, `quorum_seal`, `chimera_ovum`, `echo_shard` y activa **20 min** de Remisión global.
 
 <a id="cap5-bestiario_aliados_quimera"></a>
-### 9. Aliados Bioforjados: Dron y Quimera
+### 9. Aliados Bioforjados: Dron, Quimera y Colonia
 
 - **ID de Entrada:** `bestiario/bestiario_aliados_quimera` | **Ícono:** `mycelialmind:chimera_ovum` | **Unlock:** `act_2`
-- **Resumen:** purifier_drone (60 HP) y mycelial_chimera (matriz genética 5x5)
+- **Resumen:** purifier_drone, mycelial_chimera y colony_symbiont (Colonia Soberana)
 
 #### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.1] Dron Purificador
 
@@ -636,23 +636,30 @@ Campeón de Marea y `MatriarchCitadel`. Suelta `tide_beacon`.
 **52/68 HP | 5.5/8.5 Dmg | 4/8 Arm**
 De `chimera_ovum` en `symbiotic_node` (>=35%). Montura `CommandMode` (`FOLLOW`, `PATROL`, `WAIT`).
 
-#### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.3] Matriz Genética 5×5 de la Quimera (1/3)
+#### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.3] Simbionte de Colonia
+
+> **[Modelo 3D Entidad]** `mycelialmind:colony_symbiont` (Simbionte de Colonia, escala `0.82`)
+
+**32 HP | 4 Arm | 5 Castas**
+De `sovereign_nexus`: `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT`, `SENTINEL`.
+
+#### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.4] Matriz Genética 5×5 de la Quimera (1/3)
 
 • **Chasis (`ChassisGene`, +Base):** `MELEE_THORNS` (**8.5** daño), `PROJECTILE_DEFLECT` (**0.35** vel.), `FIRE_RESISTANT` (inmune fuego), `BLAST_SHIELDED` (**68 HP**, **8.0 Arm**), `MAGIC_CARAPACE` (cura **1 HP/100t**).
 
-#### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.4] Matriz Genética 5×5 de la Quimera (2/3)
+#### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.5] Matriz Genética 5×5 de la Quimera (2/3)
 
 • **Mutación Activa (`140t` / `160t` montada):** `MELEE_THORNS` (salto + Veneno), `PROJECTILE_DEFLECT` (doble espora `16m`), `FIRE_RESISTANT` (aura ígnea + Res. jinete), `BLAST_SHIELDED` (onda empujón), `MAGIC_CARAPACE` (Absorción a jinete).
 
-#### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.5] Matriz Genética 5×5 de la Quimera (3/3)
+#### [Libro: Cap.5 / bestiario_aliados_quimera / Pág.6] Matriz Genética 5×5 de la Quimera (3/3)
 
 • **Lluvia Ácida (Homeostasis):** con `FIRE_RESISTANT` y `MAGIC_CARAPACE` regenera **+0.8F**; con uno de ambos es inmune (**0.0F**); sin ellos sufre **-0.75F**.
 
 <a id="cap5-proyectiles_y_huevos"></a>
-### 10. Proyectiles (3) y Spawn Eggs (17)
+### 10. Proyectiles (3) y Spawn Eggs (18)
 
 - **ID de Entrada:** `bestiario/proyectiles_y_huevos` | **Ícono:** `mycelialmind:hive_core_spawn_egg` | **Unlock:** `always`
-- **Resumen:** acid_spit, neutralizing_spore, purifier_grenade y los 17 huevos
+- **Resumen:** acid_spit, neutralizing_spore, purifier_grenade y los 18 huevos
 
 #### [Libro: Cap.5 / proyectiles_y_huevos / Pág.1] Proyectiles y Huevos Generadores (1/5)
 
@@ -672,7 +679,7 @@ De `chimera_ovum` en `symbiotic_node` (>=35%). Montura `CommandMode` (`FOLLOW`, 
 
 #### [Libro: Cap.5 / proyectiles_y_huevos / Pág.5] Proyectiles y Huevos Generadores (5/5)
 
-• **Huevos 4/4:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, `purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`.
+• **Huevos 4/4:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, `purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`, `colony_symbiont_spawn_egg`.
 
 ---
 
@@ -897,7 +904,7 @@ Defensa `[2, 5, 6, 2]` (Cuerpo **9**), Encant. **14**, Dureza **1.0F**, repara c
 _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recomendada: `always` | Ícono: `mycelialmind:chitin_plate`
 
 <a id="cap9-catalogo_bloques_items"></a>
-### 1. Catálogo: 24 Bloques y 53 Ítems
+### 1. Catálogo: 25 Bloques y 56 Ítems
 
 - **ID de Entrada:** `economia_datos/catalogo_bloques_items` | **Ícono:** `mycelialmind:mycelial_biomass` | **Unlock:** `always`
 - **Resumen:** Inventario íntegro de flora, bloques e ítems registrados
@@ -929,11 +936,11 @@ _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recome
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.7] Los 24 Bloques (`ModBlocks`) (3/3)
 
-• **Arquitectura y Dimensión (8):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`.
+• **Arquitectura y Dimensión (9):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`, `sovereign_nexus`.
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.8] Ítems y Armadura (`ModItems`) (1/5)
 
-• **Instrumentos y Armas (10):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`.
+• **Instrumentos y Armas (11):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`, `sovereign_command_staff` (`staff_mode`).
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.9] Ítems y Armadura (`ModItems`) (2/5)
 
@@ -945,17 +952,29 @@ _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recome
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.11] Ítems y Armadura (`ModItems`) (4/5)
 
-• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **17** `*_spawn_egg` en Cap.5).
+• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **18** `*_spawn_egg` en Cap.5).
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.12] Ítems y Armadura (`ModItems`) (5/5)
 
 • **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.
 
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.13] Colonia Soberana Post-Matriarca (1/3)
+
+• **Ancla y Puestos (`SovereignNexusBlock` / `SovereignNexusBlockEntity`):** tras derrotar a la Matriarca, el `sovereign_nexus` acepta `mycelial_biomass` (mano o tolvas) e integra hasta **4** `symbiotic_node` cercanos (**+8m** radio cada uno).
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Colonia Soberana Post-Matriarca (2/3)
+
+• **Niveles y Mando (`SovereignColonyDirector`):** Nivel **1–3** (**4/8/12** simbiontes, radio **24/36/48m**). Usa `sovereign_command_staff` (`staff_mode`) para marcar cofres `INPUT`/`OUTPUT` y zonas de trabajo; desbloquea rasgos `SovereignTrait` y rangos.
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Colonia Soberana Post-Matriarca (3/3)
+
+• **Castas y Sondeos Rivales:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` y `SENTINEL` operan `ColonyOrderBoard` por prioridad/reserva con descanso y humor (`SymbiontTemperament`). Repeler sondeos de la Colmena rival otorga XP de Dominio y moral.
+
 <a id="cap9-recetas_36_datapack"></a>
-### 2. Recetario Total (37 Datapack)
+### 2. Recetario Total (39 Datapack)
 
 - **ID de Entrada:** `economia_datos/recetas_36_datapack` | **Ícono:** `mycelialmind:chitin_plate` | **Unlock:** `always`
-- **Resumen:** 29 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras
+- **Resumen:** 31 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.1] Bio-Escáner y Bio-Extractor
 
@@ -1099,6 +1118,13 @@ Calcina `antibody_cyst` al doble de velocidad (`100t`, `0.2 XP`) -> `chitin_plat
 
 1 `chitin_plate` se talla en **2** `bio_chitin_lattice` para galerías y ventanales.
 
+#### [Libro: Cap.9 / recetas_36_datapack / Pág.22] Nexo Soberano y Báculo de Mando
+
+> **[Receta 1]** `[crafting_shaped] OCO/HSN/CPC (C=chitin_plate, H=hive_heart, N=neural_echo_core, O=overmind_essence, P=purification_pylon, S=symbiotic_node) -> 1x sovereign_nexus`
+> **[Receta 2]** `[crafting_shaped]  OG/ NO/C   (C=chitin_plate, G=synaptic_graft, N=neural_echo_core, O=overmind_essence) -> 1x sovereign_command_staff`
+
+Ancla endgame post-Matriarca (`sovereign_nexus`) y herramienta de marcaje táctico (`sovereign_command_staff`).
+
 <a id="cap9-vanilla_brew_compost_trades"></a>
 ### 3. Alambique, Compostaje y Comercio
 
@@ -1123,39 +1149,39 @@ Calcina `antibody_cyst` al doble de velocidad (`100t`, `0.2 XP`) -> `chitin_plat
 - **ID de Entrada:** `economia_datos/botin_48_tablas` | **Ícono:** `mycelialmind:hive_heart` | **Unlock:** `always`
 - **Resumen:** 22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.1] Botín Multi-Pool (50 Tablas) (1/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.1] Botín Multi-Pool (51 Tablas) (1/9)
 
 • **Bloques 1/4:** `blocks/antibody_cyst`, `blocks/bio_chitin_lattice`, `blocks/bioluminescent_mycelial_cap`, `blocks/chitin_pillar`, `blocks/creeping_mycelium`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.2] Botín Multi-Pool (50 Tablas) (2/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.2] Botín Multi-Pool (51 Tablas) (2/9)
 
 • **Bloques 2/4:** `blocks/hive_altar`, `blocks/hyphal_vein`, `blocks/incubator_node`, `blocks/luminescent_amber_vein`, `blocks/matriarch_altar`, `blocks/mycelial_arch_brick`, `blocks/mycelial_node`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (50 Tablas) (3/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (51 Tablas) (3/9)
 
 • **Bloques 3/4:** `blocks/mycelial_stone`, `blocks/mycelial_tendrils`, `blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reinforced_bio_barrier`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.4] Botín Multi-Pool (50 Tablas) (4/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.4] Botín Multi-Pool (51 Tablas) (4/9)
 
-• **Bloques 4/4:** `blocks/sentinel_node`, `blocks/spore_bulb`, `blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.
+• **Bloques 4/4:** `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, `blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.5] Botín Multi-Pool (50 Tablas) (5/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.5] Botín Multi-Pool (51 Tablas) (5/9)
 
 • **Cofres 1/2:** `chests/outbreak_sealed_vault`, `chests/surface_hive_cache`, `chests/surface_hive_crypt`, `chests/surface_hive_gallery`, `chests/sanctum_spore_vault`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.6] Botín Multi-Pool (50 Tablas) (6/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.6] Botín Multi-Pool (51 Tablas) (6/9)
 
 • **Cofres 2/2:** `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, `chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.7] Botín Multi-Pool (50 Tablas) (7/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.7] Botín Multi-Pool (51 Tablas) (7/9)
 
 • **Entidades 1/3:** `entities/acid_spitter`, `entities/apex_matriarch`, `entities/burrower`, `entities/chitin_brute`, `entities/colony_warden`, `entities/goliath_carrier`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.8] Botín Multi-Pool (50 Tablas) (8/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.8] Botín Multi-Pool (51 Tablas) (8/9)
 
 • **Entidades 2/3:** `entities/hive_core`, `entities/leech_parasite`, `entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, `entities/pyro_shroom`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.9] Botín Multi-Pool (50 Tablas) (9/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.9] Botín Multi-Pool (51 Tablas) (9/9)
 
 • **Entidades 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, `entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (escala con Saqueo/Rango/Cepa).
 • **Aldea / Héroe:** `gameplay/hero_of_the_village/cleric_mycelial_gift` (regalo de Clérigo al defender aldeas).
@@ -1348,10 +1374,10 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 </details>
 
 <a id="cap11-logros_30_advancements"></a>
-### 3. Los 30 Logros (`advancement`)
+### 3. Los 32 Logros (`advancement`)
 
 - **ID de Entrada:** `secretos_logros/logros_30_advancements` | **Ícono:** `mycelialmind:overmind_crown` | **Unlock:** `always`
-- **Resumen:** 25 logros de campaña y 5 desbloqueos automáticos de recetas
+- **Resumen:** 27 logros de campaña y 5 desbloqueos automáticos de recetas
 
 #### [Libro: Cap.11 / logros_30_advancements / Pág.1] Cadena Completa de Logros (1/4)
 
@@ -1363,7 +1389,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 #### [Libro: Cap.11 / logros_30_advancements / Pág.3] Cadena Completa de Logros (3/4)
 
-• **Endgame y Maestría (9):** `synaptic_mastery`, `tide_breaker`, `counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, `overmind_ascendant`, `apex_matriarch_slayer`, `recovered_garden`, `recovered_route` (`discovery`).
+• **Endgame y Maestría (11):** `synaptic_mastery`, `tide_breaker`, `counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, `overmind_ascendant`, `apex_matriarch_slayer`, `sovereign_nexus`, `sovereign_colony_tier3`, `recovered_garden`, `recovered_route` (`discovery`).
 
 #### [Libro: Cap.11 / logros_30_advancements / Pág.4] Cadena Completa de Logros (4/4)
 
@@ -1523,7 +1549,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 ## Capítulo 12: Técnica, Config y Comandos
 
-_181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
+_186 Sonidos, LabPBR, 49 Configs, Red v22, /mycelial y 23 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
 
 <a id="cap12-configuracion_cliente_servidor"></a>
 ### 1. Configuraciones (13 Cliente / 43 Servidor)
@@ -1589,29 +1615,37 @@ _181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify_ | Puerta recom
 • `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).
 
 <a id="cap12-comandos_red_y_verificacion"></a>
-### 2. Red v21, `/mycelial` y Verify
+### 2. Red v22, `/mycelial` y Verify
 
 - **ID de Entrada:** `tecnica_comandos/comandos_red_y_verificacion` | **Ícono:** `mycelialmind:bio_scanner` | **Unlock:** `admin`
-- **Resumen:** Payloads v21, /mycelial cycle, field_engram y verify cycles
+- **Resumen:** Payloads v22, /mycelial colony, field_engram y 23 verify
 
-#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.1] Comandos Admin, Payloads y Verify (1/5)
+#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.1] Comandos Admin, Payloads y Verify (1/7)
 
-• **Red (`ModNetworking` v21):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, `<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload`, `DiscoverySyncPayload`, `CycleProtocolSyncPayload` y `CycleProtocolActionPayload`.
+• **Red (`ModNetworking` v22):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, `<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload` y `DiscoverySyncPayload`.
 
-#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.2] Comandos Admin, Payloads y Verify (2/5)
+#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.2] Comandos Admin, Payloads y Verify (2/7)
+
+• **Payloads Ciclos y Colonia:** `CycleProtocolSyncPayload`, `CycleProtocolActionPayload`, `SovereignColonySyncPayload` y `SovereignColonyActionPayload`.
+
+#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.3] Comandos Admin, Payloads y Verify (3/7)
 
 • **Engramas y Comandos (`perm 2`):** `field_engram` (`engram_id`), `/mycelial status`, `/mycelial reset`, `/mycelial stimulus <type> <0.1..500>`, `/mycelial habits`, `/mycelial schism <strain>`, `/mycelial diplomacy <strain> <-100..100>`.
 
-#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.3] Comandos Admin, Payloads y Verify (3/5)
+#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.4] Comandos Admin, Payloads y Verify (4/7)
 
-• **Simbiosis, Ciclos, Homeostasis y Auditoría:** `/mycelial symbiosis <status|clear|grant <mutagen>>`, `/mycelial cycle <status|start|abort|reset>`, `/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.
+• **Colonia y Simbiosis:** `/mycelial colony <status|incubate|upgrade|raid>`, `/mycelial symbiosis <status|clear|grant <mutagen>>`.
 
-#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.4] Comandos Admin, Payloads y Verify (4/5)
+#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.5] Comandos Admin, Payloads y Verify (5/7)
+
+• **Ciclos, Homeostasis y Mundo:** `/mycelial cycle <status|start|abort|reset>`, `/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.
+
+#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.6] Comandos Admin, Payloads y Verify (6/7)
 
 • **`/mycelial verify <escenario|worldgen|all>` (1–11):** `projectile_adaptation`, `pylon_containment`, `boss_encounter`, `tier2_synergy`, `synaptic_network`, `symbiosis`, `units`, `expansion`, `tide`, `counteroffensive`, `arsenal`.
 
-#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.5] Comandos Admin, Payloads y Verify (5/5)
+#### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.7] Comandos Admin, Payloads y Verify (7/7)
 
-• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, `tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`, `cycles`.
+• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, `tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`, `cycles`, `colony`.
 
 ---

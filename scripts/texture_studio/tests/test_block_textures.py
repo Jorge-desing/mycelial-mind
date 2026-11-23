@@ -22,7 +22,7 @@ BLOCK_DIR = os.path.join(
 ANIMATED = {
     "creeping_mycelium_top", "spore_vent_top", "purification_pylon_side", "mycelial_node",
     "incubator_node", "sentinel_node", "symbiotic_node", "mycelial_rift",
-    "luminescent_amber_vein", "antibody_cyst",
+    "luminescent_amber_vein", "antibody_cyst", "sovereign_nexus_top",
 }
 CUTOUT = {
     "bio_chitin_lattice", "bioluminescent_mycelial_cap", "mycelial_tendrils", "spore_bulb",
@@ -37,6 +37,7 @@ REQUIRED = {
     "matriarch_altar_top", "matriarch_altar_side", "antibody_cyst",
     "antibody_cyst_withered", "ephemeral_chitin", "mycelial_tendrils", "spore_bulb",
     "hyphal_vein_dot", "hyphal_vein_line", "hyphal_vein_climb",
+    "sovereign_nexus_top", "sovereign_nexus_side", "sovereign_nexus_bottom",
 }
 
 

@@ -52,8 +52,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Bastion & Flora (8):** `reinforced_bio_barrier`, `synaptic_research_bench`, `hive_altar`, `matriarch_altar`, `bioluminescent_mycelial_cap`, `spore_bulb`, `mycelial_tendrils`, `antibody_cyst`.",
                 ),
                 (
-                    "• **Arquitectura y Dimensión (8):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`.",
-                    "• **Architecture & Rift (8):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`.",
+                    "• **Arquitectura y Dimensión (9):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`, `sovereign_nexus`.",
+                    "• **Architecture & Colony (9):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`, `sovereign_nexus`.",
                 ),
             ],
         ),
@@ -63,8 +63,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             "Items & Armor (`ModItems`)",
             [
                 (
-                    "• **Instrumentos y Armas (10):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`.",
-                    "• **Tools & Weapons (10):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`.",
+                    "• **Instrumentos y Armas (11):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`, `sovereign_command_staff` (`staff_mode`).",
+                    "• **Tools & Weapons (11):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`, `sovereign_command_staff` (`staff_mode`).",
                 ),
                 (
                     "• **Armadura y Sueros (10):** `chitin_helmet`, `chitin_chestplate`, `chitin_leggings`, `chitin_boots`, `spore_antidote`, `concentrated_antidote`, `genetic_sample`, `symbiotic_mutagen`, `counter_serum`, `tide_beacon`.",
@@ -75,8 +75,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Diplomacy & Cognition (10):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`, `field_engram`.",
                 ),
                 (
-                    "• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **17** `*_spawn_egg` en Cap.5).",
-                    "• **Deception & Reagents (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **17** `*_spawn_egg` in Ch.5).",
+                    "• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **18** `*_spawn_egg` en Cap.5).",
+                    "• **Deception & Reagents (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **18** `*_spawn_egg` in Ch.5).",
                 ),
                 (
                     "• **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.",
@@ -84,9 +84,28 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 ),
             ],
         ),
+        *chunk_paired_blocks(
+            "sovereign_colony_guide",
+            "Colonia Soberana Post-Matriarca",
+            "Post-Matriarch Sovereign Hive Colony",
+            [
+                (
+                    "• **Ancla y Puestos (`SovereignNexusBlock` / `SovereignNexusBlockEntity`):** tras derrotar a la Matriarca, el `sovereign_nexus` acepta `mycelial_biomass` (mano o tolvas) e integra hasta **4** `symbiotic_node` cercanos (**+8m** radio cada uno).",
+                    "• **Anchor & Outposts (`SovereignNexusBlock` / `SovereignNexusBlockEntity`):** post-Matriarch endgame hub accepting `mycelial_biomass` (manual or hopper) and linking up to **4** nearby `symbiotic_node` outposts (**+8m** radius each).",
+                ),
+                (
+                    "• **Niveles y Mando (`SovereignColonyDirector`):** Nivel **1–3** (**4/8/12** simbiontes, radio **24/36/48m**). Usa `sovereign_command_staff` (`staff_mode`) para marcar cofres `INPUT`/`OUTPUT` y zonas de trabajo; desbloquea rasgos `SovereignTrait` y rangos.",
+                    "• **Tiers & Control (`SovereignColonyDirector`):** Tiers **1–3** (**4/8/12** cap, **24/36/48m** radius). Use `sovereign_command_staff` (`staff_mode`) to tag `INPUT`/`OUTPUT` chests & work zones, unlocking global `SovereignTrait` buffs and ranks.",
+                ),
+                (
+                    "• **Castas y Sondeos Rivales:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` y `SENTINEL` operan `ColonyOrderBoard` por prioridad/reserva con descanso y humor (`SymbiontTemperament`). Repeler sondeos de la Colmena rival otorga XP de Dominio y moral.",
+                    "• **Castes & Rival Probes:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` & `SENTINEL` claim `ColonyOrderBoard` tasks via priority/TTL locks while managing rest & `SymbiontTemperament`. Repelling rival Hive probes awards Domain XP & morale.",
+                ),
+            ],
+        ),
     )
 
-    # All 36 datapack recipes rendered as native recipe widgets paired strictly by identical recipe type!
+    # All 39 datapack recipes rendered as native recipe widgets paired strictly by identical recipe type!
     ch9_recipe_pages = (
         recipe_page(
             "rec_craft_1",
@@ -304,13 +323,24 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             "1 `chitin_plate` se talla en **2** `bio_chitin_lattice` para galerías y ventanales.",
             "1 `chitin_plate` cuts into **2** `bio_chitin_lattice` panels.",
         ),
+        recipe_page(
+            "rec_colony_1",
+            "mycelialmind:sovereign_nexus",
+            "Nexo Soberano y Báculo de Mando",
+            "Sovereign Nexus & Command Staff",
+            "Ancla endgame post-Matriarca (`sovereign_nexus`) y herramienta de marcaje táctico (`sovereign_command_staff`).",
+            "Post-Matriarch endgame colony core (`sovereign_nexus`) and tactical marking tool (`sovereign_command_staff`).",
+            recipe_id_2="mycelialmind:sovereign_command_staff",
+            title2_es="Báculo de Mando Soberano",
+            title2_en="Sovereign Command Staff",
+        ),
     )
 
     ch9_entries = (
         CodexEntry(
             id="catalogo_bloques_items",
             order=1,
-            title=lt("Catálogo: 24 Bloques y 53 Ítems", "Catalog: 24 Blocks & 53 Items"),
+            title=lt("Catálogo: 25 Bloques y 56 Ítems", "Catalog: 25 Blocks & 56 Items"),
             subtitle=lt(
                 "Inventario íntegro de flora, bloques e ítems registrados",
                 "Complete registry inventory of flora, blocks & items",
@@ -381,16 +411,18 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:synaptic_core",
                 "mycelialmind:hive_heart",
                 "mycelialmind:mycelial_codex",
+                "mycelialmind:sovereign_nexus",
+                "mycelialmind:sovereign_command_staff",
             ),
             pages=ch9_blocks_items_pages,
         ),
         CodexEntry(
             id="recetas_36_datapack",
             order=2,
-            title=lt("Recetario Total (37 Datapack)", "Complete Recipe Book (37 Datapack)"),
+            title=lt("Recetario Total (39 Datapack)", "Complete Recipe Book (39 Datapack)"),
             subtitle=lt(
-                "29 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras",
-                "29 Crafting, 3 Smelting, 1 Smoking, 1 Blasting & 3 Stonecutting",
+                "31 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras",
+                "31 Crafting, 3 Smelting, 1 Smoking, 1 Blasting & 3 Stonecutting",
             ),
             icon_item="mycelialmind:chitin_plate",
             x=grid_xy(1, 3)[0],
@@ -425,6 +457,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:smelt_creeping_mycelium_to_stone",
                 "mycelialmind:smelt_cyst_to_chitin_plate",
                 "mycelialmind:smoke_cap_to_latent_spore",
+                "mycelialmind:sovereign_command_staff",
+                "mycelialmind:sovereign_nexus",
                 "mycelialmind:spore_antidote",
                 "mycelialmind:stonecut_arch_brick_to_chitin_pillar",
                 "mycelialmind:stonecut_chitin_plate_to_lattice",
@@ -521,6 +555,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "blocks/purification_turret",
                 "blocks/reinforced_bio_barrier",
                 "blocks/sentinel_node",
+                "blocks/sovereign_nexus",
                 "blocks/spore_bulb",
                 "blocks/spore_vent",
                 "blocks/symbiotic_node",
@@ -556,8 +591,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             pages=tuple(
                 chunk_paired_blocks(
                     "loot_tables",
-                    "Botín Multi-Pool (50 Tablas)",
-                    "Multi-Pool Loot (50 Tables)",
+                    "Botín Multi-Pool (51 Tablas)",
+                    "Multi-Pool Loot (51 Tables)",
                     [
                         (
                             "• **Bloques 1/4:** `blocks/antibody_cyst`, `blocks/bio_chitin_lattice`, "
@@ -578,9 +613,9 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reinforced_bio_barrier`.",
                         ),
                         (
-                            "• **Bloques 4/4:** `blocks/sentinel_node`, `blocks/spore_bulb`, "
+                            "• **Bloques 4/4:** `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, "
                             "`blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.",
-                            "• **Blocks 4/4:** `blocks/sentinel_node`, `blocks/spore_bulb`, "
+                            "• **Blocks 4/4:** `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, "
                             "`blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.",
                         ),
                         (
@@ -1056,10 +1091,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="logros_30_advancements",
             order=3,
-            title=lt("Los 30 Logros (`advancement`)", "All 30 Advancements"),
+            title=lt("Los 32 Logros (`advancement`)", "All 32 Advancements"),
             subtitle=lt(
-                "25 logros de campaña y 5 desbloqueos automáticos de recetas",
-                "25 progression advancements & 5 recipe unlocks",
+                "27 logros de campaña y 5 desbloqueos automáticos de recetas",
+                "27 progression advancements & 5 recipe unlocks",
             ),
             icon_item="mycelialmind:overmind_crown",
             x=grid_xy(2, 3)[0],
@@ -1092,6 +1127,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "immune_homeostasis",
                 "overmind_ascendant",
                 "apex_matriarch_slayer",
+                "sovereign_nexus",
+                "sovereign_colony_tier3",
                 "recovered_garden",
                 "recovered_route",
                 "recipes/unlock_biomass_recipes",
@@ -1123,12 +1160,14 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`chemical_diplomat`, `architect_bane`, `chimera_bioforge`, `hive_core_slayer`.",
                         ),
                         (
-                            "• **Endgame y Maestría (9):** `synaptic_mastery`, `tide_breaker`, "
+                            "• **Endgame y Maestría (11):** `synaptic_mastery`, `tide_breaker`, "
                             "`counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, "
-                            "`overmind_ascendant`, `apex_matriarch_slayer`, `recovered_garden`, `recovered_route` (`discovery`).",
-                            "• **Endgame & Mastery (9):** `synaptic_mastery`, `tide_breaker`, "
+                            "`overmind_ascendant`, `apex_matriarch_slayer`, `sovereign_nexus`, "
+                            "`sovereign_colony_tier3`, `recovered_garden`, `recovered_route` (`discovery`).",
+                            "• **Endgame & Mastery (11):** `synaptic_mastery`, `tide_breaker`, "
                             "`counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, "
-                            "`overmind_ascendant`, `apex_matriarch_slayer`, `recovered_garden`, `recovered_route` (`discovery`).",
+                            "`overmind_ascendant`, `apex_matriarch_slayer`, `sovereign_nexus`, "
+                            "`sovereign_colony_tier3`, `recovered_garden`, `recovered_route` (`discovery`).",
                         ),
                         (
                             "• **Desbloqueos de Receta (5):** `recipes/unlock_biomass_recipes`, "
@@ -1599,13 +1638,15 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         "volatile_engram_pulse", "schism_injector_sting", "truce_pheromone_spray",
         "quorum_seal_pact", "chimera_ovum_hatch", "purifier_drone_deploy",
         "tide_beacon_activate", "rift_catalyst_ignite", "overmind_crown_surge",
+        "sovereign_nexus_pulse", "colony_symbiont_ambient", "colony_symbiont_work",
+        "colony_symbiont_promote", "command_staff_mark",
     ]
     sound_blocks = [
         (
-            "• **Estudio Visual y Audio:** 17 `Model` multi-articulados (UV manifests), texturas LabPBR "
-            "`_n`/`_s`, `ClientSoundscapeDirector` y **181 eventos `ModSounds`** (**489** `.ogg` mono `44.1kHz`).",
-            "• **Visual & Audio Studio:** 17 articulated 3D models (UV manifests), LabPBR `_n`/`_s` "
-            "maps, `ClientSoundscapeDirector`, and **181 `ModSounds`** (**489** mono `44.1kHz` `.ogg`).",
+            "• **Estudio Visual y Audio:** 18 `Model` multi-articulados (UV manifests), texturas LabPBR "
+            "`_n`/`_s`, `ClientSoundscapeDirector` y **186 eventos `ModSounds`** (**501** `.ogg` mono `44.1kHz`).",
+            "• **Visual & Audio Studio:** 18 articulated 3D models (UV manifests), LabPBR `_n`/`_s` "
+            "maps, `ClientSoundscapeDirector`, and **186 `ModSounds`** (**501** mono `44.1kHz` `.ogg`).",
         ),
         (
             "• **Dinámica Vocal:** tono modulable (`0.45–1.85`) según Rango (`BASE/MUTATED/ELITE`), Cepa "
@@ -1693,10 +1734,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="comandos_red_y_verificacion",
             order=2,
-            title=lt("Red v21, `/mycelial` y Verify", "Net v21, `/mycelial` & Verify"),
+            title=lt("Red v22, `/mycelial` y Verify", "Net v22, `/mycelial` & Verify"),
             subtitle=lt(
-                "Payloads v21, /mycelial cycle, field_engram y verify cycles",
-                "v21 Payloads, /mycelial cycle, field_engram & cycles verify",
+                "Payloads v22, /mycelial colony, field_engram y 23 verify",
+                "v22 Payloads, /mycelial colony, field_engram & 23 verify",
             ),
             icon_item="mycelialmind:bio_scanner",
             x=grid_xy(1, 2)[0],
@@ -1711,6 +1752,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "DiscoverySyncPayload",
                 "CycleProtocolSyncPayload",
                 "CycleProtocolActionPayload",
+                "SovereignColonySyncPayload",
+                "SovereignColonyActionPayload",
                 "MycelialCommands",
                 "projectile_adaptation",
                 "pylon_containment",
@@ -1735,6 +1778,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "polish",
                 "dimension_progression",
                 "cycles",
+                "colony",
             ),
             pages=tuple(
                 chunk_paired_blocks(
@@ -1743,12 +1787,16 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "Admin Commands, Payloads & Verify",
                     [
                         (
-                            "• **Red (`ModNetworking` v21):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, "
-                            "`<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload`, "
-                            "`DiscoverySyncPayload`, `CycleProtocolSyncPayload` y `CycleProtocolActionPayload`.",
-                            "• **Networking (`ModNetworking` v21):** `HiveSyncPayload` (`<=64` nodes, `<=32` "
-                            "pylons, `<=64` inflamed chunks), `SymbiosisSyncPayload`, `DiplomacySyncPayload`, "
-                            "`DiscoverySyncPayload`, `CycleProtocolSyncPayload` & `CycleProtocolActionPayload`.",
+                            "• **Red (`ModNetworking` v22):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, "
+                            "`<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload` y `DiscoverySyncPayload`.",
+                            "• **Networking (`ModNetworking` v22):** `HiveSyncPayload` (`<=64` nodes, `<=32` "
+                            "pylons, `<=64` inflamed chunks), `SymbiosisSyncPayload`, `DiplomacySyncPayload` & `DiscoverySyncPayload`.",
+                        ),
+                        (
+                            "• **Payloads Ciclos y Colonia:** `CycleProtocolSyncPayload`, `CycleProtocolActionPayload`, "
+                            "`SovereignColonySyncPayload` y `SovereignColonyActionPayload`.",
+                            "• **Cycle & Colony Payloads:** `CycleProtocolSyncPayload`, `CycleProtocolActionPayload`, "
+                            "`SovereignColonySyncPayload` & `SovereignColonyActionPayload`.",
                         ),
                         (
                             "• **Engramas y Comandos (`perm 2`):** `field_engram` (`engram_id`), "
@@ -1759,12 +1807,16 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`/mycelial habits`, `/mycelial schism <strain>`, `/mycelial diplomacy <strain> <-100..100>`.",
                         ),
                         (
-                            "• **Simbiosis, Ciclos, Homeostasis y Auditoría:** `/mycelial symbiosis <status|clear|grant "
-                            "<mutagen>>`, `/mycelial cycle <status|start|abort|reset>`, `/mycelial homeostasis "
-                            "<status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
-                            "• **Symbiosis, Cycles, Homeostasis & Audit:** `/mycelial symbiosis <status|clear|grant "
-                            "<mutagen>>`, `/mycelial cycle <status|start|abort|reset>`, `/mycelial homeostasis "
-                            "<status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
+                            "• **Colonia y Simbiosis:** `/mycelial colony <status|incubate|upgrade|raid>`, "
+                            "`/mycelial symbiosis <status|clear|grant <mutagen>>`.",
+                            "• **Colony & Symbiosis:** `/mycelial colony <status|incubate|upgrade|raid>`, "
+                            "`/mycelial symbiosis <status|clear|grant <mutagen>>`.",
+                        ),
+                        (
+                            "• **Ciclos, Homeostasis y Mundo:** `/mycelial cycle <status|start|abort|reset>`, "
+                            "`/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
+                            "• **Cycles, Homeostasis & World:** `/mycelial cycle <status|start|abort|reset>`, "
+                            "`/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
                         ),
                         (
                             "• **`/mycelial verify <escenario|worldgen|all>` (1–11):** `projectile_adaptation`, "
@@ -1777,10 +1829,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                         (
                             "• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
                             "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, "
-                            "`dimension_progression`, `cycles`.",
+                            "`dimension_progression`, `cycles`, `colony`.",
                             "• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
                             "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, "
-                            "`dimension_progression`, `cycles`.",
+                            "`dimension_progression`, `cycles`, `colony`.",
                         ),
                     ],
                 )
@@ -1792,8 +1844,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         number=12,
         title=lt("Técnica, Config y Comandos", "Tech, Configs & Commands"),
         subtitle=lt(
-            "181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify",
-            "181 Sounds, LabPBR, 49 Configs, Net v14, /mycelial & 22 Verify",
+            "186 Sonidos, LabPBR, 49 Configs, Red v22, /mycelial y 23 Verify",
+            "186 Sounds, LabPBR, 49 Configs, Net v22, /mycelial & 23 Verify",
         ),
         icon_item="mycelialmind:bio_scanner",
         entries=ch12_entries,

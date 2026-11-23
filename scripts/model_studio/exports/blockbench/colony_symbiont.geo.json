@@ -1,0 +1,590 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.mycelialmind.colony_symbiont",
+        "texture_width": 256,
+        "texture_height": 256,
+        "visible_bounds_width": 3,
+        "visible_bounds_height": 3,
+        "visible_bounds_offset": [
+          0,
+          1.25,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "body",
+          "pivot": [
+            0.0,
+            12.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -3.5,
+                12.0,
+                -2.0
+              ],
+              "size": [
+                7,
+                10,
+                4
+              ],
+              "uv": [
+                26,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -2.0,
+                16.0,
+                -2.5
+              ],
+              "size": [
+                4,
+                4,
+                1
+              ],
+              "uv": [
+                0,
+                16
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -2.5,
+                21.0,
+                -2.0
+              ],
+              "size": [
+                5,
+                2,
+                4
+              ],
+              "uv": [
+                173,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "pivot": [
+            0.0,
+            22.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -3.0,
+                22.5,
+                -3.0
+              ],
+              "size": [
+                6,
+                6,
+                6
+              ],
+              "uv": [
+                49,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -3.0,
+                25.5,
+                -3.5
+              ],
+              "size": [
+                6,
+                2,
+                1
+              ],
+              "uv": [
+                36,
+                16
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -1.0,
+                28.5,
+                -1.0
+              ],
+              "size": [
+                2,
+                3,
+                2
+              ],
+              "uv": [
+                11,
+                16
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            }
+          ],
+          "parent": "body"
+        },
+        {
+          "name": "caste_courier_pack",
+          "pivot": [
+            0.0,
+            17.5,
+            2.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -3.0,
+                14.5,
+                2.0
+              ],
+              "size": [
+                6,
+                7,
+                3
+              ],
+              "uv": [
+                113,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -2.0,
+                16.5,
+                4.5
+              ],
+              "size": [
+                4,
+                4,
+                1
+              ],
+              "uv": [
+                240,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            }
+          ],
+          "parent": "body"
+        },
+        {
+          "name": "arm_r",
+          "pivot": [
+            -4.5,
+            20.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -6.0,
+                12.5,
+                -1.5
+              ],
+              "size": [
+                3,
+                9,
+                3
+              ],
+              "uv": [
+                87,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            }
+          ],
+          "parent": "body"
+        },
+        {
+          "name": "caste_harvester_scythe",
+          "pivot": [
+            -4.5,
+            13.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -5.0,
+                12.5,
+                -4.0
+              ],
+              "size": [
+                1,
+                1,
+                5
+              ],
+              "uv": [
+                205,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -5.0,
+                10.5,
+                -6.0
+              ],
+              "size": [
+                1,
+                3,
+                2
+              ],
+              "uv": [
+                29,
+                16
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            }
+          ],
+          "parent": "arm_r"
+        },
+        {
+          "name": "caste_excavator_pick",
+          "pivot": [
+            -4.5,
+            13.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -5.0,
+                12.5,
+                -4.0
+              ],
+              "size": [
+                1,
+                1,
+                5
+              ],
+              "uv": [
+                192,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -5.0,
+                10.5,
+                -5.0
+              ],
+              "size": [
+                1,
+                5,
+                2
+              ],
+              "uv": [
+                166,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            }
+          ],
+          "parent": "arm_r"
+        },
+        {
+          "name": "caste_architect_hammer",
+          "pivot": [
+            -4.5,
+            13.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -5.0,
+                12.5,
+                -3.5
+              ],
+              "size": [
+                1,
+                1,
+                4
+              ],
+              "uv": [
+                218,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -6.0,
+                12.0,
+                -5.0
+              ],
+              "size": [
+                3,
+                3,
+                2
+              ],
+              "uv": [
+                229,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            }
+          ],
+          "parent": "arm_r"
+        },
+        {
+          "name": "arm_l",
+          "pivot": [
+            4.5,
+            20.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                3.0,
+                12.5,
+                -1.5
+              ],
+              "size": [
+                3,
+                9,
+                3
+              ],
+              "uv": [
+                74,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": true
+            }
+          ],
+          "parent": "body"
+        },
+        {
+          "name": "caste_sentinel_shield",
+          "pivot": [
+            6.0,
+            16.5,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                5.5,
+                13.5,
+                -2.5
+              ],
+              "size": [
+                1,
+                6,
+                5
+              ],
+              "uv": [
+                100,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": true
+            },
+            {
+              "origin": [
+                6.0,
+                15.5,
+                -1.5
+              ],
+              "size": [
+                1,
+                2,
+                3
+              ],
+              "uv": [
+                20,
+                16
+              ],
+              "inflate": 0.0,
+              "mirror": true
+            }
+          ],
+          "parent": "arm_l"
+        },
+        {
+          "name": "right_leg",
+          "pivot": [
+            -1.8,
+            12.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -3.3,
+                0.0,
+                -1.5
+              ],
+              "size": [
+                3,
+                12,
+                3
+              ],
+              "uv": [
+                13,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": false
+            },
+            {
+              "origin": [
+                -3.8,
+                4.8,
+                -2.0
+              ],
+              "size": [
+                4,
+                3,
+                4
+              ],
+              "uv": [
+                149,
+                0
+              ],
+              "inflate": 0.1,
+              "mirror": false
+            }
+          ]
+        },
+        {
+          "name": "left_leg",
+          "pivot": [
+            1.8,
+            12.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                0.3,
+                0.0,
+                -1.5
+              ],
+              "size": [
+                3,
+                12,
+                3
+              ],
+              "uv": [
+                0,
+                0
+              ],
+              "inflate": 0.0,
+              "mirror": true
+            },
+            {
+              "origin": [
+                -0.2,
+                4.8,
+                -2.0
+              ],
+              "size": [
+                4,
+                3,
+                4
+              ],
+              "uv": [
+                132,
+                0
+              ],
+              "inflate": 0.1,
+              "mirror": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

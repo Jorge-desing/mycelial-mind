@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "mycelialmind:block/sovereign_nexus_top",
+    "side": "mycelialmind:block/sovereign_nexus_side",
+    "bottom": "mycelialmind:block/sovereign_nexus_bottom"
+  }
+}

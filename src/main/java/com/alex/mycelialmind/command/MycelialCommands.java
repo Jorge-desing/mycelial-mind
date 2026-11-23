@@ -164,6 +164,8 @@ public final class MycelialCommands {
                                 .executes(ctx -> verifyDimensionProgression(ctx.getSource())))
                         .then(Commands.literal("cycles")
                                 .executes(ctx -> verifyCycles(ctx.getSource())))
+                        .then(Commands.literal("colony")
+                                .executes(ctx -> verifyColony(ctx.getSource())))
                         .then(Commands.literal("worldgen")
                                 .executes(ctx -> runWorldgenAudit(ctx.getSource(), 6, 64)))
                         .then(Commands.literal("all")
@@ -226,7 +228,26 @@ public final class MycelialCommands {
                 .then(Commands.literal("habits")
                         .executes(ctx -> reportHabits(ctx.getSource())))
                 .then(Commands.literal("routes")
-                        .executes(ctx -> reportRoutesAndArchitecture(ctx.getSource()))));
+                        .executes(ctx -> reportRoutesAndArchitecture(ctx.getSource())))
+                .then(Commands.literal("colony")
+                        .then(Commands.literal("status")
+                                .executes(ctx -> reportColonyStatus(ctx.getSource())))
+                        .then(Commands.literal("spawn")
+                                .then(Commands.argument("caste", StringArgumentType.word())
+                                        .executes(ctx -> spawnColonySymbiontCmd(
+                                                ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "caste")))))
+                        .then(Commands.literal("upgrade")
+                                .executes(ctx -> upgradeColonyCmd(ctx.getSource())))
+                        .then(Commands.literal("biomass")
+                                .then(Commands.argument("amount", IntegerArgumentType.integer(1, 512))
+                                        .executes(ctx -> addColonyBiomassCmd(
+                                                ctx.getSource(),
+                                                IntegerArgumentType.getInteger(ctx, "amount")))))
+                        .then(Commands.literal("raid")
+                                .executes(ctx -> triggerColonyRaidCmd(ctx.getSource())))
+                        .then(Commands.literal("reset")
+                                .executes(ctx -> resetColonyCmd(ctx.getSource())))));
     }
 
     private static int reportStatus(CommandSourceStack source) {
@@ -319,8 +340,9 @@ public final class MycelialCommands {
         int r20 = verifyPolish(source);
         int r21 = verifyDimensionProgression(source);
         int r22 = verifyCycles(source);
-        if (r1 == 1 && r2 == 1 && r3 == 1 && r4 == 1 && r5 == 1 && r6 == 1 && r7 == 1 && r8 == 1 && r9 == 1 && r10 == 1 && r11 == 1 && r12 == 1 && r13 == 1 && r14 == 1 && r15 == 1 && r16 == 1 && r17 == 1 && r18 == 1 && r19 == 1 && r20 == 1 && r21 == 1 && r22 == 1) {
-            source.sendSuccess(() -> Component.literal("[Mycelial Verify] ALL 22 automated scenario checks PASSED.")
+        int r23 = verifyColony(source);
+        if (r1 == 1 && r2 == 1 && r3 == 1 && r4 == 1 && r5 == 1 && r6 == 1 && r7 == 1 && r8 == 1 && r9 == 1 && r10 == 1 && r11 == 1 && r12 == 1 && r13 == 1 && r14 == 1 && r15 == 1 && r16 == 1 && r17 == 1 && r18 == 1 && r19 == 1 && r20 == 1 && r21 == 1 && r22 == 1 && r23 == 1) {
+            source.sendSuccess(() -> Component.literal("[Mycelial Verify] ALL 23 automated scenario checks PASSED.")
                     .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD), true);
             return 1;
         }
@@ -347,6 +369,7 @@ public final class MycelialCommands {
         appendFailedScenario(failedScenarios, "polish", r20);
         appendFailedScenario(failedScenarios, "dimension_progression", r21);
         appendFailedScenario(failedScenarios, "cycles", r22);
+        appendFailedScenario(failedScenarios, "colony", r23);
         source.sendFailure(Component.literal("[Mycelial Verify] Failed scenarios: " + failedScenarios + "."));
         return 0;
     }
@@ -1365,7 +1388,7 @@ public final class MycelialCommands {
     private static int verifyPolish(CommandSourceStack source) {
         ServerLevel level = source.getLevel();
         var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-        boolean soundsOk = soundEntries.size() == 181;
+        boolean soundsOk = soundEntries.size() == 186;
         if (soundsOk) {
             for (var holder : soundEntries) {
                 SoundEvent evt = holder.get();
@@ -1981,6 +2004,160 @@ public final class MycelialCommands {
             com.alex.mycelialmind.hive.HiveCycleDirector.syncHiveModifiersAcrossDimensions(overworld);
             com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToAll(overworld);
             syncAllPlayers(overworld);
+        }
+    }
+
+    private static int reportColonyStatus(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        BlockPos origin = BlockPos.containing(source.getPosition());
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        var nearest = saved.findNearestColony(origin, null, 256.0D);
+        if (nearest == null) {
+            source.sendSuccess(() -> Component.literal("[Colony] No Sovereign Colony found within 256 blocks. Total in dim: "
+                    + saved.getAllColonies().size()).withStyle(ChatFormatting.YELLOW), false);
+            return 1;
+        }
+        source.sendSuccess(() -> Component.literal(String.format(
+                "[Colony] Nexus=%s | Tier=%d | Radius=%dm | Pop=%d/%d | Biomass=%d | Morale=%.0f%% | DomainXP=%d | Traits=0x%X | Outposts=%d | Orders=%d",
+                nearest.getNexusPos().toShortString(),
+                nearest.getTier(),
+                nearest.getEffectiveRadius(),
+                nearest.getRoster().size(),
+                nearest.getPopulationCap(),
+                nearest.getBiomassStored(),
+                nearest.getColonyMorale(),
+                nearest.getDomainXp(),
+                nearest.getUnlockedTraitMask(),
+                nearest.getLinkedOutposts().size(),
+                nearest.getOrderBoard().size()
+        )).withStyle(ChatFormatting.GREEN), false);
+        return 1;
+    }
+
+    private static int spawnColonySymbiontCmd(CommandSourceStack source, String rawCaste) {
+        var caste = com.alex.mycelialmind.colony.SymbiontCaste.byId(rawCaste);
+        if (caste == null) {
+            source.sendFailure(Component.literal("[Colony] Unknown caste: " + rawCaste
+                    + ". Valid: harvester, excavator, courier, architect, sentinel"));
+            return 0;
+        }
+        ServerLevel level = source.getLevel();
+        BlockPos origin = BlockPos.containing(source.getPosition());
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        var nearest = saved.findNearestColony(origin, null, 256.0D);
+        if (nearest == null || !(level.getBlockEntity(nearest.getNexusPos()) instanceof com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity nexus)) {
+            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
+            return 0;
+        }
+        ServerPlayer player = source.getEntity() instanceof ServerPlayer sp ? sp : null;
+        var worker = nexus.incubateSymbiont(level, player, caste, true);
+        if (worker == null) {
+            source.sendFailure(Component.literal("[Colony] Failed to incubate Colony Symbiont."));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("[Colony] Incubated " + caste.id()
+                + " Symbiont (" + worker.getTemperament().id() + ") at " + worker.blockPosition().toShortString())
+                .withStyle(ChatFormatting.GREEN), true);
+        return 1;
+    }
+
+    private static int upgradeColonyCmd(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        BlockPos origin = BlockPos.containing(source.getPosition());
+        var nearest = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).findNearestColony(origin, null, 256.0D);
+        if (nearest == null || !(level.getBlockEntity(nearest.getNexusPos()) instanceof com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity nexus)) {
+            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
+            return 0;
+        }
+        if (!nexus.upgradeTier(level, null, true)) {
+            source.sendFailure(Component.literal("[Colony] Colony is already at Max Tier (T3)."));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("[Colony] Upgraded Sovereign Colony to Tier " + nearest.getTier()
+                + " (Radius=" + nearest.getEffectiveRadius() + "m, Cap=" + nearest.getPopulationCap() + ").")
+                .withStyle(ChatFormatting.AQUA), true);
+        return 1;
+    }
+
+    private static int addColonyBiomassCmd(CommandSourceStack source, int amount) {
+        ServerLevel level = source.getLevel();
+        BlockPos origin = BlockPos.containing(source.getPosition());
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        var nearest = saved.findNearestColony(origin, null, 256.0D);
+        if (nearest == null) {
+            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
+            return 0;
+        }
+        int added = nearest.addBiomass(amount);
+        saved.setDirty();
+        source.sendSuccess(() -> Component.literal("[Colony] Added " + added + " biomass (Total=" + nearest.getBiomassStored() + ").")
+                .withStyle(ChatFormatting.GREEN), true);
+        return 1;
+    }
+
+    private static int triggerColonyRaidCmd(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        BlockPos origin = BlockPos.containing(source.getPosition());
+        var nearest = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).findNearestColony(origin, null, 256.0D);
+        if (nearest == null) {
+            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
+            return 0;
+        }
+        int spawned = com.alex.mycelialmind.colony.SovereignColonyDirector.triggerRivalRaid(level, nearest, 0);
+        source.sendSuccess(() -> Component.literal("[Colony] Dispatched Rival Hive probe (" + spawned + " hostiles).")
+                .withStyle(ChatFormatting.RED), true);
+        return 1;
+    }
+
+    private static int resetColonyCmd(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).resetAll();
+        source.sendSuccess(() -> Component.literal("[Colony] Reset all Sovereign Colony data in this dimension.")
+                .withStyle(ChatFormatting.GREEN), true);
+        return 1;
+    }
+
+    private static int verifyColony(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        BlockPos origin = BlockPos.containing(source.getPosition()).above(4);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag colonySnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockState prevNexusState = level.getBlockState(origin);
+        com.alex.mycelialmind.entity.ColonySymbiontEntity worker = null;
+        try {
+            saved.resetAll();
+            level.setBlockAndUpdate(origin, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            if (!(level.getBlockEntity(origin) instanceof com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity nexus)) {
+                source.sendFailure(Component.literal("[Verify:Colony] FAIL: SovereignNexusBlockEntity missing."));
+                return 0;
+            }
+            var colony = nexus.getOrCreateColony(level);
+            colony.addBiomass(64);
+            colony.addDomainXp(160);
+            if (!nexus.upgradeTier(level, null, false) || colony.getTier() != 2) {
+                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Tier 2 upgrade check failed."));
+                return 0;
+            }
+            worker = nexus.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, true);
+            if (worker == null || colony.getRoster().size() != 1) {
+                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Symbiont incubation/roster check failed."));
+                return 0;
+            }
+            worker.setCaste(com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL);
+            if (worker.getCaste() != com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL) {
+                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Symbiont caste switch failed."));
+                return 0;
+            }
+            source.sendSuccess(() -> Component.literal("[Verify:Colony] PASS (Tier=" + colony.getTier()
+                    + ", Radius=" + colony.getEffectiveRadius() + ", TraitMask=0x"
+                    + Integer.toHexString(colony.getUnlockedTraitMask()) + ")").withStyle(ChatFormatting.GREEN), false);
+            return 1;
+        } finally {
+            if (worker != null) {
+                worker.discard();
+            }
+            level.setBlockAndUpdate(origin, prevNexusState);
+            saved.restoreFromSnapshot(colonySnapshot, level.registryAccess());
         }
     }
 }

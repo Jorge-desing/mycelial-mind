@@ -375,6 +375,20 @@ public class PurificationZoneTracker extends SavedData {
         return out;
     }
 
+    public synchronized List<BlockPos> getNearbySymbioticOutposts(BlockPos origin, int maxRange) {
+        List<BlockPos> out = new ArrayList<>();
+        double maxSq = (double) maxRange * maxRange;
+        for (BlockPos pos : nodePositions) {
+            if (!pos.equals(origin)
+                    && getNodeType(pos) == SynapticNodeType.SYMBIOTIC
+                    && pos.distSqr(origin) <= maxSq) {
+                out.add(pos);
+            }
+        }
+        out.sort((a, b) -> Double.compare(a.distSqr(origin), b.distSqr(origin)));
+        return out;
+    }
+
     public synchronized boolean hasNearbySymbioticNode(BlockPos origin, int radius) {
         double maxSq = (double) radius * radius;
         for (BlockPos pos : nodePositions) {

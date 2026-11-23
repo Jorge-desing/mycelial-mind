@@ -202,6 +202,9 @@ ENTITY_SOUNDS: list[SoundSpec] = [
     _s("purifier_drone_hurt", "entity", "hurt", 0.30, 490.0, 14.0, "Purifier Drone damaged", "Dron Purificador dañado", species="purifier_tech", loudness_group="combat", variations=3, attenuation_distance=18, seed_offset=252, volume=0.88),
     _s("purifier_drone_death", "entity", "death", 0.68, 410.0, 10.5, "Purifier Drone powers down", "Dron Purificador se apaga", species="purifier_tech", loudness_group="death", variations=2, attenuation_distance=20, seed_offset=253, volume=0.92),
     _s("purifier_drone_fire", "entity", "tech_chime", 0.28, 840.0, 12.0, "Purifier Drone fires spore", "Dron Purificador dispara espora", species="purifier_tech", loudness_group="combat", variations=3, attenuation_distance=20, seed_offset=254, volume=0.86),
+    _s("colony_symbiont_ambient", "entity", "tech_chime", 0.46, 520.0, 9.0, "Colony Symbiont chirps", "Simbionte de Colonia gorjea", species="bio_relic", loudness_group="ambient", variations=3, attenuation_distance=16, seed_offset=255, volume=0.78),
+    _s("colony_symbiont_work", "entity", "block_functional", 0.42, 460.0, 11.0, "Colony Symbiont tends task", "Simbionte de Colonia trabaja", species="bio_relic", loudness_group="ui_item", variations=3, attenuation_distance=14, seed_offset=256, volume=0.80),
+    _s("colony_symbiont_promote", "entity", "crystal_hum", 0.78, 392.0, 8.0, "Symbiont ascends rank", "Simbionte asciende de rango", species="bio_relic", loudness_group="combat", variations=2, attenuation_distance=24, seed_offset=257, volume=0.92),
 
     # 17. Mycelial Chimera (Ally, colossal_organic)
     _s("mycelial_chimera_growl", "entity", "growl", 0.74, 125.0, 6.2, "Mycelial Chimera growls", "Quimera Micelial gruñe", species="colossal_organic", loudness_group="ambient", variations=3, attenuation_distance=20, seed_offset=261, volume=0.88),
@@ -243,6 +246,7 @@ BLOCK_FUNCTIONAL_SOUNDS: list[SoundSpec] = [
     _s("hive_altar_awaken", "block_functional", "block_functional", 2.75, 74.0, 4.5, "Hive Core awakens", "El Núcleo de la Colmena despierta", species="colossal_organic", loudness_group="boss_cinematic", variations=1, attenuation_distance=56, seed_offset=512, volume=1.0),
     _s("matriarch_altar_awaken", "block_functional", "block_functional", 2.95, 112.0, 4.2, "Apex Matriarch awakens", "La Matriarca Suprema despierta", species="synaptic_eldritch", loudness_group="boss_cinematic", variations=1, attenuation_distance=60, seed_offset=513, volume=1.0),
     _s("synaptic_bench_synthesize", "block_functional", "block_functional", 0.68, 570.0, 8.5, "Synaptic synthesis completes", "Síntesis sináptica completada", species="purifier_tech", loudness_group="ui_item", variations=2, attenuation_distance=14, seed_offset=514, volume=0.88),
+    _s("sovereign_nexus_pulse", "block_functional", "block_functional", 0.64, 440.0, 7.5, "Sovereign Nexus resonates", "Nexo Soberano resuena", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=515, volume=0.88),
 ]
 
 ITEM_PROJECTILE_SOUNDS: list[SoundSpec] = [
@@ -272,6 +276,7 @@ ITEM_PROJECTILE_SOUNDS: list[SoundSpec] = [
     _s("tide_beacon_activate", "item", "portal_ignite", 0.78, 285.0, 7.0, "Tide Beacon surges", "Faro de Marea se activa", species="bio_relic", loudness_group="combat", variations=2, attenuation_distance=32, seed_offset=624, volume=0.95),
     _s("rift_catalyst_ignite", "item", "portal_ignite", 1.05, 200.0, 5.5, "Synaptic Rift tears open", "Grieta Sináptica desgarrada", species="synaptic_eldritch", loudness_group="boss_cinematic", variations=1, attenuation_distance=44, seed_offset=625, volume=0.98),
     _s("overmind_crown_surge", "item", "explosion_purge", 0.96, 175.0, 6.5, "Overmind Crown surges", "Corona de la Supramente pulsa", species="synaptic_eldritch", loudness_group="boss_cinematic", variations=1, attenuation_distance=46, seed_offset=626, volume=0.98),
+    _s("command_staff_mark", "item", "tech_chime", 0.44, 740.0, 10.0, "Command Staff marks waypoint", "Báculo de Mando marca baliza", species="purifier_tech", loudness_group="ui_item", variations=2, attenuation_distance=16, seed_offset=627, volume=0.88),
 ]
 
 SYSTEM_HIVE_SOUNDS: list[SoundSpec] = [

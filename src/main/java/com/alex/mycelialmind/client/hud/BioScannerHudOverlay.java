@@ -216,13 +216,14 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         boolean compact = MycelialClientConfig.shouldUseCombatCompactHud(
                 MycelialClientConfig.isHudContextualCombat(), manualCompact, inActiveCombat);
         boolean cycleActive = com.alex.mycelialmind.network.ClientCycleCache.isCycleActive();
+        boolean colonyActive = com.alex.mycelialmind.network.ClientColonyCache.hasColony();
         int unreadCodex = combatFocus ? 0 : com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.getTotalUnreadCount();
         boolean showGoalLine = !combatFocus;
 
         int width = compact ? 186 : 204;
         int squadLine = squadStatus != SynapticCommandSystem.SquadTacticalStatus.NONE ? 1 : 0;
         int homeoLines = (inDeepMycelium ? 1 : 0) + (smotheredPylons > 0 ? 1 : 0);
-        int extraHudLines = (cycleActive ? 1 : 0) + (unreadCodex > 0 ? 1 : 0) - (showGoalLine ? 0 : 1);
+        int extraHudLines = (cycleActive ? 1 : 0) + (colonyActive ? 1 : 0) + (unreadCodex > 0 ? 1 : 0) - (showGoalLine ? 0 : 1);
         int height;
         if (compact) {
             int compactExtra = (infectionLevel > 0 ? 1 : 0) + squadLine + homeoLines + extraEffectLines + extraHudLines;
@@ -286,6 +287,16 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
                         x + 6, lineY, 0xFFFF4D8D, true);
                 lineY += 10;
             }
+            if (colonyActive) {
+                graphics.drawString(font, Component.translatable("hud.mycelialmind.colony_compact",
+                                com.alex.mycelialmind.network.ClientColonyCache.getTier(),
+                                com.alex.mycelialmind.network.ClientColonyCache.getWorkers().size(),
+                                com.alex.mycelialmind.network.ClientColonyCache.getPopCap(),
+                                com.alex.mycelialmind.network.ClientColonyCache.getBiomass(),
+                                com.alex.mycelialmind.network.ClientColonyCache.getMoralePct()),
+                        x + 6, lineY, 0xFF4AD66D, true);
+                lineY += 10;
+            }
             if (unreadCodex > 0) {
                 graphics.drawString(font, Component.translatable("hud.mycelialmind.codex_unread", unreadCodex),
                         x + 6, lineY, 0xFFB5E48C, true);
@@ -345,6 +356,16 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
                             com.alex.mycelialmind.hive.HiveCycleMutator.countActive(
                                     com.alex.mycelialmind.network.ClientCycleCache.getActiveMutatorMask())),
                     x + 6, lineY, 0xFFFF4D8D, true);
+            lineY += 10;
+        }
+        if (colonyActive) {
+            graphics.drawString(font, Component.translatable("hud.mycelialmind.colony_compact",
+                            com.alex.mycelialmind.network.ClientColonyCache.getTier(),
+                            com.alex.mycelialmind.network.ClientColonyCache.getWorkers().size(),
+                            com.alex.mycelialmind.network.ClientColonyCache.getPopCap(),
+                            com.alex.mycelialmind.network.ClientColonyCache.getBiomass(),
+                            com.alex.mycelialmind.network.ClientColonyCache.getMoralePct()),
+                    x + 6, lineY, 0xFF4AD66D, true);
             lineY += 10;
         }
         if (unreadCodex > 0) {

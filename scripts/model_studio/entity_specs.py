@@ -25,6 +25,7 @@ ATLAS_BY_MODEL: Dict[str, Tuple[int, int]] = {
     "apex_matriarch": (512, 512),
     "synaptic_mimic": (256, 256),
     "mycelial_chimera": (256, 256),
+    "colony_symbiont": (256, 256),
 }
 
 # Runtime contract mirrored in ClientSetup.java (shadow, renderScale) and ModEntities.java (hitbox).
@@ -53,7 +54,7 @@ RANK_MODELS: Tuple[str, ...] = (
     "spore_behemoth",
 )
 
-NO_RANK_MODELS: Tuple[str, ...] = ("purifier_drone", "hive_core", "apex_matriarch")
+NO_RANK_MODELS: Tuple[str, ...] = ("purifier_drone", "hive_core", "apex_matriarch", "colony_symbiont")
 
 # Minimum cube budgets. Base budgets only apply to the units whose silhouette grows.
 BUDGETS: Dict[str, Dict[str, float]] = {
@@ -105,6 +106,7 @@ SIGNATURE_PARTS: Dict[str, Tuple[str, ...]] = {
     "hive_core": ("crown_chandelier", "phase2_crystal_wing_r", "phase2_bastion_ring"),
     "apex_matriarch": ("sternum_reliquary", "p2_bastion_ring", "p3_halo"),
     "purifier_drone": ("sensor_mast", "landing_skid_r"),
+    "colony_symbiont": ("caste_courier_pack", "caste_sentinel_shield", "antenna_crest"),
 }
 
 

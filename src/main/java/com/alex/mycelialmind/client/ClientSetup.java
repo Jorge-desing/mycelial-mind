@@ -11,6 +11,7 @@ import com.alex.mycelialmind.client.model.AcidSpitterModel;
 import com.alex.mycelialmind.client.model.ApexMatriarchModel;
 import com.alex.mycelialmind.client.model.BurrowerModel;
 import com.alex.mycelialmind.client.model.ChitinBruteModel;
+import com.alex.mycelialmind.client.model.ColonySymbiontModel;
 import com.alex.mycelialmind.client.model.ColonyWardenModel;
 import com.alex.mycelialmind.client.model.GoliathCarrierModel;
 import com.alex.mycelialmind.client.model.HiveCoreModel;
@@ -228,6 +229,7 @@ public final class ClientSetup {
         event.registerLayerDefinition(SporeBehemothModel.LAYER_LOCATION, SporeBehemothModel::createBodyLayer);
         event.registerLayerDefinition(PurifierDroneModel.LAYER_LOCATION, PurifierDroneModel::createBodyLayer);
         event.registerLayerDefinition(MycelialChimeraModel.LAYER_LOCATION, MycelialChimeraModel::createBodyLayer);
+        event.registerLayerDefinition(ColonySymbiontModel.LAYER_LOCATION, ColonySymbiontModel::createBodyLayer);
         event.registerLayerDefinition(HiveCoreModel.LAYER_LOCATION, HiveCoreModel::createBodyLayer);
         event.registerLayerDefinition(ApexMatriarchModel.LAYER_LOCATION, ApexMatriarchModel::createBodyLayer);
         event.registerLayerDefinition(MonumentRenderParts.CRYSTAL_LAYER, MonumentRenderParts::createCrystalLayer);
@@ -266,6 +268,8 @@ public final class ClientSetup {
                 ctx -> buildMobRenderer(ctx, new PurifierDroneModel<>(ctx.bakeLayer(PurifierDroneModel.LAYER_LOCATION)), 0.40F, "purifier_drone", false, 1.0F));
         event.registerEntityRenderer(ModEntities.MYCELIAL_CHIMERA.get(),
                 ctx -> buildMobRenderer(ctx, new MycelialChimeraModel<>(ctx.bakeLayer(MycelialChimeraModel.LAYER_LOCATION)), 0.75F, "mycelial_chimera", true, 1.0F));
+        event.registerEntityRenderer(ModEntities.COLONY_SYMBIONT.get(),
+                ctx -> buildMobRenderer(ctx, new ColonySymbiontModel<>(ctx.bakeLayer(ColonySymbiontModel.LAYER_LOCATION)), 0.48F, "colony_symbiont", false, 1.0F));
         event.registerEntityRenderer(ModEntities.HIVE_CORE.get(),
                 ctx -> buildMobRenderer(ctx, new HiveCoreModel<>(ctx.bakeLayer(HiveCoreModel.LAYER_LOCATION)), 1.85F, "hive_core", false, 1.70F));
         event.registerEntityRenderer(ModEntities.APEX_MATRIARCH.get(),

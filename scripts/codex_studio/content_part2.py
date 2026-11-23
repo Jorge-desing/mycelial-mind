@@ -366,10 +366,10 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="bestiario_aliados_quimera",
             order=9,
-            title=lt("Aliados Bioforjados: Dron y Quimera", "Allies: Purifier Drone & Chimera"),
+            title=lt("Aliados Bioforjados: Dron, Quimera y Colonia", "Allies: Drone, Chimera & Colony"),
             subtitle=lt(
-                "purifier_drone (60 HP) y mycelial_chimera (matriz genética 5x5)",
-                "purifier_drone (60 HP) & mycelial_chimera (5x5 gene matrix)",
+                "purifier_drone, mycelial_chimera y colony_symbiont (Colonia Soberana)",
+                "purifier_drone, mycelial_chimera & colony_symbiont (Sovereign Colony)",
             ),
             icon_item="mycelialmind:chimera_ovum",
             x=grid_xy(8, 4)[0],
@@ -379,6 +379,7 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
             registry_refs=(
                 "mycelialmind:purifier_drone",
                 "mycelialmind:mycelial_chimera",
+                "mycelialmind:colony_symbiont",
                 "CommandMode",
                 "FOLLOW",
                 "PATROL",
@@ -402,6 +403,15 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
                     "**52/68 HP | 5.5/8.5 Dmg | 4/8 Arm**\nDe `chimera_ovum` en `symbiotic_node` (>=35%). Montura `CommandMode` (`FOLLOW`, `PATROL`, `WAIT`).",
                     "**52/68 HP | 5.5/8.5 Dmg | 4/8 Arm**\nHatched from `chimera_ovum` on `symbiotic_node` (>=35%). Rideable `CommandMode` (`FOLLOW`, `PATROL`, `WAIT`).",
                     scale=0.68,
+                ),
+                entity_page(
+                    "ent_colony_symbiont",
+                    "mycelialmind:colony_symbiont",
+                    "Simbionte de Colonia",
+                    "Colony Symbiont",
+                    "**32 HP | 4 Arm | 5 Castas**\nDe `sovereign_nexus`: `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT`, `SENTINEL`.",
+                    "**32 HP | 4 Arm | 5 Castes**\nFrom `sovereign_nexus`: `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT`, `SENTINEL`.",
+                    scale=0.82,
                 ),
                 *chunk_paired_blocks(
                     "chimera_matrix",
@@ -437,10 +447,10 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="proyectiles_y_huevos",
             order=10,
-            title=lt("Proyectiles (3) y Spawn Eggs (17)", "Projectiles (3) & Spawn Eggs (17)"),
+            title=lt("Proyectiles (3) y Spawn Eggs (18)", "Projectiles (3) & Spawn Eggs (18)"),
             subtitle=lt(
-                "acid_spit, neutralizing_spore, purifier_grenade y los 17 huevos",
-                "acid_spit, neutralizing_spore, purifier_grenade & 17 spawn eggs",
+                "acid_spit, neutralizing_spore, purifier_grenade y los 18 huevos",
+                "acid_spit, neutralizing_spore, purifier_grenade & 18 spawn eggs",
             ),
             icon_item="mycelialmind:hive_core_spawn_egg",
             x=grid_xy(9, 4)[0],
@@ -464,6 +474,7 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
                 "mycelialmind:spore_architect_spawn_egg",
                 "mycelialmind:synaptic_mimic_spawn_egg",
                 "mycelialmind:mycelial_chimera_spawn_egg",
+                "mycelialmind:colony_symbiont_spawn_egg",
                 "mycelialmind:spore_behemoth_spawn_egg",
                 "mycelialmind:purifier_drone_spawn_egg",
                 "mycelialmind:hive_core_spawn_egg",
@@ -503,9 +514,9 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
                         ),
                         (
                             "• **Huevos 4/4:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, "
-                            "`purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`.",
+                            "`purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`, `colony_symbiont_spawn_egg`.",
                             "• **Eggs 4/4:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, "
-                            "`purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`.",
+                            "`purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`, `colony_symbiont_spawn_egg`.",
                         ),
                     ],
                 )

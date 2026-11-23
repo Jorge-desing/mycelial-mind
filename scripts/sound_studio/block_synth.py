@@ -38,6 +38,7 @@ BLOCK_FUNCTIONAL_IDS: frozenset[str] = frozenset(
         "hive_altar_awaken",
         "matriarch_altar_awaken",
         "synaptic_bench_synthesize",
+        "sovereign_nexus_pulse",
     }
 )
 
@@ -735,5 +736,24 @@ def synthesize_block_functional(
             + _sos_bandpass(white[ping_s:], 3000.0, 7500.0) * exp_decay(pt, 0.010) * 0.25
         )
         return _cavern_reverb(_sos_highpass(wave, 110.0), rng, wet=0.08, rt60=0.22, lp_hz=6800.0)
+
+    if sound_id == "sovereign_nexus_pulse":
+        # Royal sovereign beacon chime: staggered crown harmonic bell + mycelial sub-thrum + swept iris shimmer
+        shift = int(rng.uniform(0.01, 0.10) * n)
+        rt = t[shift:] - t[shift]
+        root = base_freq * rng.uniform(0.92, 1.08)
+        wave = np.zeros(n, dtype=np.float64)
+        bell = _modal_bank(
+            rt,
+            root,
+            (0.5, 1.0, rng.uniform(1.48, 1.52), 2.0, rng.uniform(2.96, 3.04)),
+            (0.28, 0.24, 0.18, 0.12, 0.08),
+            (0.45, 0.85, 0.62, 0.42, 0.24),
+            rng,
+        )
+        sub = np.sin(2.0 * np.pi * (root * 0.25) * rt + rng.uniform(0, 6.28)) * exp_decay(rt, duration * 0.42) * 0.48
+        shimmer = _swept_resonant_filter(pink[shift:], 360.0 if rng.random() > 0.5 else 2400.0, 2400.0 if rng.random() > 0.5 else 360.0, q=2.8) * exp_decay(rt, duration * 0.36) * 0.42
+        wave[shift:] = bell + sub + shimmer
+        return _cavern_reverb(np.tanh(wave * 1.15), rng, wet=0.22, rt60=0.52, lp_hz=5600.0)
 
     raise ValueError(f"Unknown functional block sound_id: {sound_id}")

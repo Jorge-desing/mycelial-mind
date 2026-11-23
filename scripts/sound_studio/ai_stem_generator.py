@@ -363,7 +363,15 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_hi_hz=8800.0,
         mix_weight=0.14,
         attack_guard_ms=26.0,
-        sound_ids=("purifier_drone_hum", "purifier_drone_hurt", "purifier_drone_death", "purifier_drone_fire"),
+        sound_ids=(
+            "purifier_drone_hum",
+            "purifier_drone_hurt",
+            "purifier_drone_death",
+            "purifier_drone_fire",
+            "colony_symbiont_ambient",
+            "colony_symbiont_work",
+            "colony_symbiont_promote",
+        ),
     ),
     StemArchetype(
         stem_id="anatomical_chitin_footsteps",
@@ -490,7 +498,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_hi_hz=7600.0,
         mix_weight=0.22,
         attack_guard_ms=24.0,
-        sound_ids=("synaptic_node_mature", "symbiotic_node_charge", "symbiotic_node_teleport"),
+        sound_ids=("synaptic_node_mature", "symbiotic_node_charge", "symbiotic_node_teleport", "sovereign_nexus_pulse"),
     ),
     StemArchetype(
         stem_id="func_mycelial_rift_portal",
@@ -514,7 +522,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_hi_hz=9600.0,
         mix_weight=0.14,
         attack_guard_ms=26.0,
-        sound_ids=("bio_scanner_ping", "bio_scanner_thermal_pulse", "spore_antidote_cure", "neural_decoy_deploy", "purifier_drone_deploy"),
+        sound_ids=("bio_scanner_ping", "bio_scanner_thermal_pulse", "spore_antidote_cure", "neural_decoy_deploy", "purifier_drone_deploy", "command_staff_mark"),
     ),
     StemArchetype(
         stem_id="item_symbiotic_melee_blades",

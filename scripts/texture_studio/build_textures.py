@@ -319,7 +319,7 @@ def build_contact_sheet() -> str:
 
 ITEM_ANIMATED = {
     "bio_scanner", "mycelial_codex", "enzyme_lance", "neutralizing_spore_launcher", "symbiotic_blade",
-    "spore_antidote", "purifier_grenade", "hive_heart", "synaptic_suppressor",
+    "spore_antidote", "purifier_grenade", "hive_heart", "synaptic_suppressor", "sovereign_command_staff",
 }
 ITEM_MINIMUM = {
     "bio_scanner", "mycelial_codex", "enzyme_lance", "neutralizing_spore_launcher",
@@ -331,6 +331,7 @@ ITEM_MINIMUM = {
     "overmind_crown", "purifier_drone_core", "synaptic_suppressor", "neural_echo_core",
     "synaptic_graft", "neural_echo_decoy", "schism_injector", "truce_pheromone",
     "quorum_seal", "chimera_ovum", "volatile_engram", "false_engram_injector",
+    "sovereign_command_staff",
 }
 
 
@@ -363,7 +364,7 @@ def _item_icon_arrays(check_pbr: bool = False) -> tuple[list[str], dict[str, np.
 BLOCK_ANIMATED = {
     "creeping_mycelium_top", "spore_vent_top", "purification_pylon_side", "mycelial_node",
     "incubator_node", "sentinel_node", "symbiotic_node", "mycelial_rift",
-    "luminescent_amber_vein", "antibody_cyst",
+    "luminescent_amber_vein", "antibody_cyst", "sovereign_nexus_top",
 }
 BLOCK_CUTOUT = {
     "bio_chitin_lattice", "bioluminescent_mycelial_cap", "mycelial_tendrils", "spore_bulb",

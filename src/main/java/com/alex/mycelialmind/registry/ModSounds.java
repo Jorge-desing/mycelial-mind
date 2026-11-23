@@ -369,6 +369,13 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> RIFT_CATALYST_IGNITE = register("rift_catalyst_ignite");
     public static final DeferredHolder<SoundEvent, SoundEvent> OVERMIND_CROWN_SURGE = register("overmind_crown_surge");
 
+    // Sovereign Colony (Endgame Hive Colony — 5)
+    public static final DeferredHolder<SoundEvent, SoundEvent> SOVEREIGN_NEXUS_PULSE = register("sovereign_nexus_pulse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_SYMBIONT_AMBIENT = register("colony_symbiont_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_SYMBIONT_WORK = register("colony_symbiont_work");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_SYMBIONT_PROMOTE = register("colony_symbiont_promote");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COMMAND_STAFF_MARK = register("command_staff_mark");
+
     // =========================================================================
     // 7 DeferredSoundType Surface Families
     // =========================================================================

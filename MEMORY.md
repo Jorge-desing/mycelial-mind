@@ -3741,3 +3741,115 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - GameTests (`gradlew runGameTestServer -PisolatedGameTests=true`): **`170/170`** PASS en `5.193s` (incluyendo `fieldEngramAbsorptionPersistsAndSyncs`, `hiveCycleMutatorsScaleBossAndCompleteWithRecord` y `progressiongatingblocksfreeshortcuts`).
   - Servidor headless `gradlew runSmokeServer` + `scripts/rcon_verify.py`: **`ALL 22 automated scenario checks PASSED`** (`[Verify:Cycles] PASS (ScaledHP=750.0, Score=2398, Grade=S)`).
   - CodeMode `validate_skills`: **`8/8`** PASS.
+
+## 2026-11-22 — Intento de recarga del jardín a medias
+- Compilación restablecida tras cambios concurrentes; el mundo aislado `visual_smoke_1795391540723` existe. Al abrirlo, Minecraft mostró el aviso de mundo experimental antes de cargar; se canceló y la prueba no llegó a verificar el jardín. El proceso terminó con fallo por la devolución de cancelación del arnés.
+- La recarga de progreso 2/3 sigue sin verificar. El aviso corresponde al mundo de prueba aislado; no se han modificado mundos personales. El objetivo integral permanece activo.
+## 2026-11-22 — Recarga real de jardín con dos focos
+- El mundo desechable generado por `runVisualSmoke -PexpeditionVisualSmoke=true` registra el aviso experimental en sus propios datos para permitir recargas automatizadas. La escena guarda un jardín con dos focos; al reabrirlo comprueba el nodo, ambas flores y la paleta, y enlaza el tercero.
+- La creación del mundo y su recarga separada terminaron correctamente; el log confirma `two-focus garden restored and completed after restart` y restauración de enclaves y victoria. validate_skills pasó 8/8. No se ha verificado reinicio durante un pulso, reconexión con dos clientes ni estudio humano.
+## 2026-11-22 — Reinicio real durante un pulso
+- La escena aislada guarda un jardín con dos focos; la primera recarga lo restaura, lo completa y prepara una ruta con tres atacantes reales pendientes. La segunda recarga (`-PexpeditionReloadPulse=true`) verifica el pulso y los tres UUID/entidades, los resuelve y comprueba que se acredita exactamente un pulso.
+- Las tres ejecuciones separadas terminaron correctamente; el log confirmó `restored and resolved 3 real pulse attackers` y `restored pulse completed exactly once`. validate_skills pasó 8/8. La resolución es automática y no prueba reconexión cooperativa ni combate jugado; sigue pendiente la aceptación con jugadores.
+## 2026-11-22 — Jardines cooperativos y reconexión de cliente
+- Dos clientes MC Pilot reales con cuentas separadas y NeoForge 21.1.235 se conectaron a un servidor empaquetado aislado de la misma versión. En un jardín, dos solicitudes paralelas al mismo foco resultaron en una acción y una respuesta PASS; el progreso llegó a 1/3, 2/3 y 3/3 y ambos clientes recibieron el anuncio. Se comprobó el consumo de un Injerto.
+- En un segundo jardín, tras dos enlaces, se desconectó y reconectó el cliente B mientras A permanecía conectado; B enlazó el tercer foco y ambos recibieron la finalización. El tick exacto de las solicitudes paralelas no se instrumentó. Evidencia: `artifacts/diagnostics/expedition-coop-evidence/results.md` y logs. Los dos clientes y el servidor cerraron tras guardar; puertos libres. validate_skills 8/8.
+- El servidor dev 21.1.176 rechazó la conexión de clientes 21.1.235 por el registro de SmartBrainLib, por lo que se usó el servidor empaquetado 21.1.235. Persisten pruebas de ruta cooperativa, destinos personales, presentación, combate jugado y estudio de cinco personas.
+## 2026-11-22 — Ruta cooperativa con Pilón reconstruido
+- Dos clientes reales en el servidor aislado marcaron una ruta y enviaron solicitudes paralelas al primer pulso (un solo inicio observado). El segundo pulso se interrumpió al retirar el Pilón; ambos recibieron el aviso y el otro cliente lo reinició al reconstruirlo. Tras el tercero, el nodo quedó como piedra micelial y ambos recibieron el anuncio de ruta recuperada.
+- El Pilón y los enemigos se controlaron con comandos; la prueba no evalúa dificultad ni prueba mismo tick. Logs y límites añadidos a `artifacts/diagnostics/expedition-coop-evidence/results.md`. Ambos clientes y el servidor cerraron tras guardar; validate_skills pasó 8/8. Pendientes destinos personales, presentación dinámica y estudio con jugadores.
+## 2026-11-22 — Destinos personales cooperativos
+- En dos clientes reales, A fijó desde el Códice el jardín (0,101,4) y B la ruta (4,101,4). Las capturas del HUD confirmaron destinos distintos y que la selección de B no cambió la de A. Ambos clientes se desconectaron y reconectaron al mismo servidor; las capturas posteriores conservan sus coordenadas independientes.
+- Evidencia y alcance en `artifacts/diagnostics/expedition-coop-evidence/results.md` y `pin-*-reconnect.png`. El servidor no se reinició durante esta prueba. Clientes y servidor cerraron tras guardar; validate_skills pasó 8/8. Quedan presentación dinámica y aceptación jugada con cinco personas.
+## 2026-11-22 — Radar dinámico de ruta en cliente real
+- En un cliente real dentro de deep_mycelium, con el Códice abierto, la ruta recuperada cambió de cuadrado azul y tooltip protegido a cruz roja y tooltip desprotegido al retirar el Pilón; al reconstruirlo volvió a azul y protegido tras la sincronización.
+- Capturas `radar-protected.png`, `radar-unprotected.png` y `radar-restored.png` y alcance en `artifacts/diagnostics/expedition-coop-evidence/results.md`. El Pilón se controló por comandos y la interfaz se comprobó en inglés. Cliente y servidor cerraron guardando; validate_skills pasó 8/8. Quedan presentación bilingüe/complementos y aceptación jugada con cinco personas.
+## 2026-11-22 — Consulta de recetas y Jade en cliente real
+- La categoría de síntesis de JEI desbordaba la nota de reproducción de flores. Se amplió su altura y se dividió la nota en líneas; se aplicó el mismo ajuste a EMI. Clientes reales con JEI y EMI por separado mostraron flor ámbar + biomasa → dos flores y el texto dentro del panel. Jade identificó una flor recuperada madura como lista para cosechar.
+- Capturas y límites en `artifacts/diagnostics/expedition-coop-evidence/results.md`. `test runGameTestServer -PisolatedGameTests=true` pasó con 170/170 GameTests y JUnit; validate_skills 8/8. La presentación se inspeccionó en inglés, sin probar todas las paletas o la interfaz española. El servidor y cliente aislados cerraron tras guardar; siguen pendientes la aceptación humana y demás verificaciones integrales.
+## 2026-11-22 — Presentación española de expediciones
+- En cliente real aislado con idioma es_es, EMI mostró la receta ámbar con nota dentro del panel y Jade mostró la flor recuperada rebrotando. Capturas `emi-bloom-es.png`, `jade-bloom-es.png` y `radar-es.png` en `artifacts/diagnostics/expedition-coop-evidence/`.
+- El radar mostró la indicación de expedición inactiva demasiado reducida; se acortó en ambos idiomas para remitir a la Guía. La paridad de claves es 1843/1843. El texto abreviado aún no se ha capturado tras el cambio. Cliente y servidor aislados cerraron guardando. Falta la aceptación humana y otras verificaciones integrales.
+## 2026-11-22 — Pausa de la defensa al salir del enclave
+- El pulso guarda la pausa con sus UUID pendientes. Los atacantes sincronizan su IA al cargar, incluso si la reanudación ocurrió con su chunk descargado. Los espectadores y jugadores muertos no mantienen el pulso activo.
+- La compilación y PostMatriarchExpeditionRulesTest pasaron. En la pasada anterior del conjunto, 169 de 170 GameTests pasaron; el registro de sonido tenía cinco eventos de colonia más que el catálogo. Falta comprobar la pausa en cliente real y realizar la prueba con cinco jugadores.
+
+## 2026-11-22 — Pausa y reanudación verificadas en cliente
+- VisualSmokeClient ahora aleja y devuelve al jugador tras reiniciar con un pulso activo, comprueba la IA de los atacantes a ambos lados de la pausa y verifica que se acredite un solo pulso.
+- Las tres ejecuciones del cliente aislado pasaron. En visual_smoke_1795410347574 se restauraron tres atacantes reales, se pausaron y reanudaron y el pulso se acreditó una sola vez. Registro: artifacts/diagnostics/expedition-pause-reload.log. El arnés resolvió los atacantes de forma automática. Sigue pendiente medir las interacciones en el mismo tick y la aceptación humana.
+
+## 2026-11-22 — Dos escaneos del Pilón en el mismo tick
+- El escenario aislado ejecutó el manejador del Bioescáner con dos jugadores de servidor (el segundo simulado) en el tick 206. El segundo mantuvo el pulso activo y la lista original de tres atacantes. La ruta se recuperó tras tres pulsos y Gradle terminó con éxito.
+- Registro: artifacts/diagnostics/expedition-same-tick.log. Falta instrumentar el caso del último foco del jardín y realizar la aceptación humana.
+
+## 2026-11-22 — Último foco escaneado dos veces en el mismo tick
+- Tras recargar el jardín con dos focos, el escenario ejecutó dos usos del Bioescáner sobre el tercero en el tick 783, con un jugador conectado y otro simulado en servidor. Se registró un solo enclave y el tercer foco quedó como flor recuperada. Gradle terminó con éxito. Registro: artifacts/diagnostics/expedition-garden-same-tick.log. Queda la aceptación humana y la instrumentación con dos clientes.
+
+## 2026-11-22 — Preparación de la prueba de juego
+- Revisada la evidencia de dos clientes: las solicitudes fueron paralelas y no se midió su tick exacto. Se añadió docs/expediciones-prueba-de-juego.md con el guion, hoja de cinco jugadores y criterio 3/5. Todavía no hay observaciones humanas.
+
+## 2026-11-22 — Traza de escaneos para servidor dedicado
+- BioScannerItem registra tick del servidor, jugador, posición y resultado en Micelio Profundo si se inicia Java con -Dmycelialmind.traceExpeditionScans=true. El contador es del servidor, no la hora del mundo. compileJava pasó. Pendiente capturar dos clientes en el mismo tick y la aceptación humana.
+
+## 2026-11-22 — Servidor dedicado para la traza de expediciones
+- Gradle jar pasó. Se instaló el JAR instrumentado en artifacts/diagnostics/expedition-trace-server, copia aislada del servidor NeoForge 21.1.235 sin copiar el mundo anterior. Arranque con traceExpeditionScans y sesión 54117. Falta conectar los dos clientes y capturar sus escaneos.
+- El servidor llegó a Done y se cerró mediante RCON. La copia aislada se configuró para escuchar solo en loopback en el siguiente arranque.
+
+## 2026-11-22 — Perfiles cooperativos preparados para la traza
+- Se localizaron los dos perfiles MC Pilot aislados y se instaló en ambos el mismo JAR del servidor dedicado. Sus JAR previos se conservan fuera de mods. Falta arrancar ambos y ejecutar el escenario.
+
+## 2026-11-22 — Dos clientes conectados al servidor instrumentado
+- Sesión del servidor 74332. El registro confirma que ExpeditionA y ExpeditionB entraron en el servidor dedicado. Ambos fueron trasladados al Micelio Profundo y equipados con el Bioescáner. Se prepararon nodo y Pilón mediante consola. Procesos de los clientes 7316 y 18352. Se conservaron activos para ejecutar el escaneo cooperativo.
+
+## 2026-11-22 — Dos clientes escanearon el Pilón en el mismo tick
+- En NeoForge dedicado, ExpeditionB y ExpeditionA escanearon (0,101,3) en el tick real 2843. La traza confirma ambas interacciones. Copia en artifacts/diagnostics/expedition-coop-evidence/trace-server.log. Queda validar el último foco con los dos clientes y ejecutar el estudio de cinco jugadores.
+
+## 2026-11-22 — Dos clientes completaron un solo jardín en el mismo tick
+- Ambos clientes enlazaron dos focos y escanearon el tercero (5,101,2) en el tick de servidor 4567. B gestionó el enlace y A ya encontró el jardín terminado. Un anuncio de finalización en cada cliente. La ruta anterior también se recuperó tras tres pulsos; los atacantes se resolvieron por consola. El servidor se cerró guardando. Evidencia en trace-server.log y trace-client-a/b.log. Falta la aceptación con cinco jugadores y dos sesiones.
+
+## 2026-11-22 — Cierre verificado de la prueba cooperativa
+- Se contrastaron las trazas del servidor y ambos clientes, incluido un anuncio por cliente al recuperar el jardín. El servidor guardó todas las dimensiones y los cuatro puertos de prueba quedaron sin listeners. Consolidado en expediente results.md. La prueba humana requiere cinco participantes y sus partidas avanzadas.
+
+## 2026-11-22 — Verificación de las seis paletas en el banco
+- Se amplió el GameTest existente de recetas para exigir dos flores de la misma paleta por una flor y una biomasa en las seis variantes. Esa comprobación pasó en el servidor aislado. Resultado total 167/170: fallaron dos casos de vetas hifales y la comprobación del registro de audio de colonia. Registro: artifacts/diagnostics/expedition-bloom-gametest.log.
+
+## 2026-11-22 — Aviso de flora insuficiente
+- Al escanear un nodo de jardín injertado, el servidor comprueba los focos aptos de terreno cargado en radio 24 y avisa cuántos faltan, en español e inglés. Excluye focos enlazados y plantas sin soporte para la flor recuperada. JSON válidos y compileJava correcto. Pendiente observar el aviso en juego y realizar la aceptación humana.
+
+## 2026-11-22 — Aviso de flora insuficiente observado en cliente
+- runVisualSmoke pasó. El escenario aislado dejó dos focos enlazados y retiró la flora restante. El chat del cliente recibió Found 0 of 1 suitable flora within 24 blocks. El mismo escenario confirmó que un Pilón rodeado de piedra no inició ni acreditó un pulso. Registro: artifacts/diagnostics/expedition-flora-shortfall.log. Queda la aceptación humana.
+
+## 2026-11-22 — Límite de cuatro nodos verificado en una expedición
+- El escenario integrado llenó el límite dimensional y usó un Injerto sobre el destino de jardín. Resultado FAIL, nodo hostil intacto e injerto conservado. Al liberar espacio se injertó el nodo y se enlazaron dos focos. runVisualSmoke pasó. Registro: artifacts/diagnostics/expedition-graft-cap.log. La prueba humana sigue pendiente.
+
+## 2026-11-22 — Consejo táctico condicionado al rasgo activo
+- El registro de juego decía que Explosión no estaba activa y acto seguido describía su mitigación como presente. El Bioescáner ahora muestra el consejo del rasgo dominante solo cuando está activo. Compilación y JSON correctos. La flor no se desprende al quitar su soporte tras colocarla; se conserva el comportamiento ornamental existente.
+
+## 2026-11-22 — Señales al defender o interrumpir un pulso
+- Un pulso acreditado emite el sonido subtitulado del Pilón y cruces de purificación. Una interrupción emite fragmentos de desincronización en el Pilón y mantiene el mensaje de reparación. compileJava pasó. Falta comprobar la presentación en cliente y realizar las sesiones humanas.
+
+## 2026-11-22 — Verificación de recepción de sonido iniciada
+- El arnés observa el evento cliente del Pilón. La primera ejecución falló porque SoundInstance aún no permite consultar el tono en PlaySoundEvent. Se corrigió para mirar el ID del sonido. El reintento 85605 llegó a cargar recursos, con advertencias de archivos abiertos por el cliente anterior; se cerró el proceso anterior verificado. Aún no hay evidencia de recepción del sonido actualizado.
+
+## 2026-11-22 — Cliente recibió el sonido de pulso defendido
+- Se cerró el cliente de un intento anterior identificado por su argfile y se lanzó un escenario limpio. El evento cliente del Pilón se registró tras resolver el primer pulso. La ruta se recuperó tras tres pulsos. Registro: artifacts/diagnostics/expedition-pulse-signals-clean.log. La prueba observa recepción del evento, no la percepción de audio o partículas por una persona.
+
+## 2026-11-22 — Paquete local para la aceptación humana
+- Gradle jar pasó con el código actual. Se fijaron el JAR del mod, SmartBrainLib y el guion en artifacts/diagnostics/expedition-playtest-package con SHA256SUMS.txt. No se publicaron ni distribuyeron. Falta disponibilidad de cinco participantes con partidas avanzadas.
+
+## 2026-11-22 — Instrucciones de instalación de la prueba humana
+- Se inspeccionaron los metadatos internos de ambos JAR y se añadió al guion la instalación de Minecraft 1.21.1, NeoForge 21.1.235 y SmartBrainLib 1.16.11. Se sincronizó el guion con el paquete. Aún no hay participantes confirmados ni observaciones de sesiones.
+
+## [2026-11-22 22:34] — Colonia Soberana Post-Matriarca (`Sovereign Hive Colony`) y Simbiontes Polimórficos
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Diseñada e implementada de forma *clean-room* una colonia endgame post-Matriarca propiedad del jugador tras analizar por REA (`open_binary`/`inspect_artifact`/`close_binary`) y `javap -p` los mods de IA `MCA Reborn` (`minecraft-comes-alive-7.7.1-beta.6+1.20.1-universal.jar`), `MineColonies` (`minecolonies-1.18.2-1.1.29-BETA.jar`) y `Villager Workers` (`workers-1.20.1-2.1.0.jar`); confirmado `ByteBuddies` no disponible en Modrinth (`[]`).
+  - **Arquitectura Clean-Room (`colony/`, `entity/ai/colony/`):** Cola priorizada `ColonyOrderBoard` con deduplicación espacial y reservas exclusivas con TTL (`DEFAULT_LEASE_TICKS = 200L`); cadena productor → mensajero (`COURIER`) → almacenamiento; estado biológico interno (`nutrition`, `fatigue`, `morale`, `SymbiontTemperament` de 5 rasgos) con alimentación/descanso en Nexo o puestos `SymbioticNodeBlock`; 5 castas polimórficas (`HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT`, `SENTINEL`) y 3 rangos (`NOVICE -> ADEPT -> SOVEREIGN`) en `ColonySymbiontEntity`; XP de Dominio y 5 rasgos globales `SovereignTrait` en Tiers 1–3 (tope `4/8/12`, radio base `24/36/48m` + `+8m` por hasta 4 puestos vinculados); coordinación con Quimeras y Drones más sondeos de Colmena rival (`SovereignColonyDirector`).
+  - **Bloques, Ítems, Red, UI y Datos:** `SovereignNexusBlock` / `SovereignNexusBlockEntity` (`Capabilities.ItemHandler.BLOCK` para tolvas), `SovereignCommandStaffItem` (`ModDataComponents.STAFF_MODE` para `INPUT`/`OUTPUT` y zonas), `SovereignNexusScreen`, línea compacta en `BioScannerHudOverlay`, `ModNetworking` v`"22"` (`SovereignColonySyncPayload` / `SovereignColonyActionPayload`), recetas, loot table, advancements y paridad EN/ES (`1932/1932` claves).
+  - **Estudios de Activos y Códice:** `ColonySymbiontModel` (`256x256`, 18 EntityModels), texturas y LabPBR (`sovereign_nexus_{top,side,bottom}`, `sovereign_command_staff`, piel y firma `_sig_colony_symbiont`, 37 bloques / 38 iconos / 18 entidades), audio (`186` eventos / `501` `.ogg` mono `44100 Hz`, `worst_corr=0.5069`) y Códice (`12` capítulos / `61` entradas / `230` páginas).
+  - **Skills revisadas:** Actualizadas `mycelial-ai-hive`, `mycelial-model-studio`, `mycelial-texture-studio` y `mycelial-sound-studio`; las restantes (`mycelial-codemode`, `mycelial-diagnostics`, `mycelial-particle-studio`, `neoforge-gametest`) no requirieron cambios. `validate_skills`: `8/8` OK.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/colony/*`, `entity/ColonySymbiontEntity.java`, `entity/ai/colony/*`, `block/SovereignNexusBlock.java`, `block/entity/SovereignNexusBlockEntity.java`, `item/SovereignCommandStaffItem.java`, `client/model/ColonySymbiontModel.java`, `client/screen/SovereignNexusScreen.java`, `network/SovereignColony{Sync,Action}Payload.java`, `network/ClientColonyCache.java`, `src/test/java/com/alex/mycelialmind/SovereignColonyUnitTest.java`, `test/MycelialGameTests.java`, `command/MycelialCommands.java`, `scripts/{model,texture,sound,codex}_studio/*`, `.agents/skills/*`.
+- **Estado / Verificación:**
+  - Studio suites & `audit_mod_assets`: `model_studio` (`25/25`), `texture_studio` (`39/39`), `sound_studio` (`17/17`), `codex_studio` (`5/5`) y `audit_mod_assets` (`ok=true`) PASS.
+  - JUnit (`gradlew test --no-daemon`): **`74/74`** PASS en `9` suites (incluye `SovereignColonyUnitTest`).
+  - GameTests aislados (`gradlew runGameTestServer -PisolatedGameTests=true --no-daemon`): **`175/175`** PASS en `7.494s` (incluye 5 pruebas en batch `colony_integration`).
+  - Smoke RCON vía CodeMode (`start_smoke_server` -> `run_rcon_verify_suite` -> `stop_smoke_server`): **`ALL 23 automated scenario checks PASSED`** (`[Verify:Colony] PASS (Tier=2, Radius=36, TraitMask=0x1)`).

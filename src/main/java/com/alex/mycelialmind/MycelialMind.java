@@ -1,5 +1,6 @@
 package com.alex.mycelialmind;
 
+import com.alex.mycelialmind.colony.SovereignColonyDirector;
 import com.alex.mycelialmind.command.MycelialCommands;
 import com.alex.mycelialmind.compat.vanilla.MycelialVanillaIntegration;
 import com.alex.mycelialmind.config.MycelialClientConfig;
@@ -82,6 +83,7 @@ public class MycelialMind {
         NeoForge.EVENT_BUS.register(MycorrhizalAcousticTracker.class);
         NeoForge.EVENT_BUS.register(PostMatriarchExpeditionDirector.class);
         NeoForge.EVENT_BUS.register(DimensionalHomeostasisDirector.class);
+        NeoForge.EVENT_BUS.register(SovereignColonyDirector.class);
         NeoForge.EVENT_BUS.register(MycelialCommands.class);
         NeoForge.EVENT_BUS.addListener(com.alex.mycelialmind.data.CodexReloadListener::onAddReloadListeners);
         LOGGER.info("Mycelial Mind initialized.");

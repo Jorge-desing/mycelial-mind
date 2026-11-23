@@ -17,6 +17,7 @@ import com.alex.mycelialmind.block.PurificationTurretBlock;
 import com.alex.mycelialmind.block.ReinforcedBioBarrierBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
+import com.alex.mycelialmind.block.SovereignNexusBlock;
 import com.alex.mycelialmind.block.SporeBulbBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
@@ -92,6 +93,15 @@ public final class ModBlocks {
                     .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
                     .noOcclusion()
                     .lightLevel(s -> 10)));
+
+    public static final DeferredBlock<Block> SOVEREIGN_NEXUS = registerBlock("sovereign_nexus",
+            () -> new SovereignNexusBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
+                    .strength(6.5F, 36.0F)
+                    .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
+                    .noOcclusion()
+                    .lightLevel(s -> 12)
+                    .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> PURIFICATION_PYLON = registerBlock("purification_pylon",
             () -> new PurificationPylonBlock(BlockBehaviour.Properties.of()

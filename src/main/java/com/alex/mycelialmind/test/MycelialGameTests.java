@@ -4975,7 +4975,7 @@ public final class MycelialGameTests {
 
         try {
             var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-            boolean soundsOk = soundEntries.size() == 181;
+            boolean soundsOk = soundEntries.size() == 186;
             if (soundsOk) {
                 for (var holder : soundEntries) {
                     SoundEvent evt = holder.get();
@@ -5175,10 +5175,11 @@ public final class MycelialGameTests {
             boolean syncOk = Math.abs(ClientHiveCache.getTraitActivationThreshold() - 42.5) < 0.01
                     && Math.abs(ClientHiveCache.getTier2ActivationThreshold() - 165.0) < 0.01;
 
-            // 2. All 4 shared SynapticBenchRecipeDefinitions descriptors match actual bench outputs
+            // Compare the shared recipe descriptors with actual bench outputs.
             level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
             var recipes = SynapticBenchRecipeDefinitions.allRecipes();
             int matchedRecipes = 0;
+            int matchedBloomPalettes = 0;
             if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
                 for (var desc : recipes) {
                     bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, desc.sampleInputs().get(0).copy());
@@ -5188,6 +5189,10 @@ public final class MycelialGameTests {
                     ItemStack result = bench.computeSynthesisResult();
                     if (!result.isEmpty() && result.is(desc.output().getItem())) {
                         matchedRecipes++;
+                        if (desc.id().startsWith("reclaimed_bloom_") && result.getCount() == 2
+                                && result.is(desc.sampleInputs().getFirst().getItem())) {
+                            matchedBloomPalettes++;
+                        }
                     }
                 }
             }
@@ -5213,10 +5218,10 @@ public final class MycelialGameTests {
                     && !MycelialText.chimeraMode(MycelialChimeraEntity.CommandMode.PATROL).getString().isEmpty()
                     && !MycelialText.cardinalDirection(10, -10).getString().isEmpty();
 
-            if (!syncOk || matchedRecipes != recipes.size() || !lootOk || !textOk) {
+            if (!syncOk || matchedRecipes != recipes.size() || matchedBloomPalettes != 6 || !lootOk || !textOk) {
                 helper.fail(String.format(
-                        "Phase-4 polish check failed: syncOk=%s recipes=%d/%d lootOk=%s textOk=%s",
-                        syncOk, matchedRecipes, recipes.size(), lootOk, textOk));
+                        "Phase-4 polish check failed: syncOk=%s recipes=%d/%d bloomPalettes=%d/6 lootOk=%s textOk=%s",
+                        syncOk, matchedRecipes, recipes.size(), matchedBloomPalettes, lootOk, textOk));
                 return;
             }
             helper.succeed();
@@ -8403,6 +8408,254 @@ public final class MycelialGameTests {
             owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
             cycles.restoreFromSnapshot(cyclesSnapshot, overworld.registryAccess());
             com.alex.mycelialmind.hive.HiveCycleDirector.syncHiveModifiersAcrossDimensions(overworld);
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_integration")
+    public static void sovereignNexusUpgradeAndOutpostLinkingTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        BlockPos outpostPos = helper.absolutePos(new BlockPos(7, 2, 4));
+        try {
+            owHive.resetAll();
+            saved.resetAll();
+            helper.assertFalse(com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level),
+                    "Sovereign Nexus must stay locked before Apex Matriarch defeat.");
+
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+            helper.assertTrue(com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level),
+                    "Defeating Apex Matriarch must unlock Sovereign Nexus.");
+
+            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            level.setBlockAndUpdate(outpostPos, com.alex.mycelialmind.registry.ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            PurificationZoneTracker.get(level).addNode(outpostPos, SynapticNodeType.SYMBIOTIC);
+
+            var be = level.getBlockEntity(nexusPos);
+            helper.assertTrue(be instanceof com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity,
+                    "Sovereign Nexus BlockEntity must exist at placed block.");
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) be;
+            com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.serverTick(
+                    level, nexusPos, level.getBlockState(nexusPos), nexusBe);
+
+            var colony = nexusBe.getOrCreateColony(level);
+            helper.assertTrue(colony.getLinkedOutposts().size() == 1,
+                    "Sovereign Nexus serverTick must link nearby Symbiotic Node outpost.");
+            helper.assertTrue(colony.getEffectiveRadius() == 32,
+                    "Tier 1 colony with 1 linked outpost must have radius 32 (got " + colony.getEffectiveRadius() + ").");
+
+            colony.addBiomass(32);
+            colony.addDomainXp(150);
+            helper.assertTrue(nexusBe.upgradeTier(level, null, false),
+                    "Colony upgrade Tier 1 -> Tier 2 must succeed with sufficient biomass and Domain XP.");
+            helper.assertTrue(colony.getTier() == 2 && colony.getPopulationCap() == 8 && colony.getEffectiveRadius() == 44,
+                    "Tier 2 colony with 1 outpost must reach popCap 8 and radius 44 (got " + colony.getEffectiveRadius() + ").");
+
+            helper.succeed();
+        } finally {
+            PurificationZoneTracker.get(level).removeNode(outpostPos);
+            level.removeBlock(outpostPos, false);
+            level.removeBlock(nexusPos, false);
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_integration")
+    public static void colonySymbiontIncubationCasteSwitchAndStandbyTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        com.alex.mycelialmind.entity.ColonySymbiontEntity worker = null;
+        try {
+            owHive.resetAll();
+            saved.resetAll();
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            var colony = nexusBe.getOrCreateColony(level);
+            colony.addBiomass(24);
+
+            worker = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, false);
+            helper.assertTrue(worker != null && worker.isAlive(), "Colony Symbiont incubation must spawn live entity.");
+            helper.assertTrue(worker.getCaste() == com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER,
+                    "Incubated worker must have requested HARVESTER caste.");
+            helper.assertTrue(colony.getRoster().size() == 1, "Worker must be registered in colony roster.");
+
+            helper.assertTrue(nexusBe.setWorkerCaste(level, worker.getUUID(), com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL),
+                    "Caste switch to SENTINEL must succeed.");
+            helper.assertTrue(worker.getCaste() == com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL
+                            && worker.getMaxHealth() >= 38.0F,
+                    "SENTINEL caste must apply sentinel health scaling.");
+
+            helper.assertTrue(nexusBe.toggleWorkerStandby(level, worker.getUUID()) && worker.isStandby(),
+                    "Toggling worker standby must place worker in standby state.");
+            helper.assertTrue(nexusBe.recallAllWorkers(level) == 1,
+                    "Recalling all workers must return 1 recalled symbiont.");
+
+            helper.succeed();
+        } finally {
+            if (worker != null) {
+                worker.discard();
+            }
+            level.removeBlock(nexusPos, false);
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_integration")
+    public static void sovereignNexusHopperBiomassInsertionTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        try {
+            saved.resetAll();
+            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            var colony = nexusBe.getOrCreateColony(level);
+            int initialBiomass = colony.getBiomassStored();
+
+            var handler = level.getCapability(Capabilities.ItemHandler.BLOCK, nexusPos, net.minecraft.core.Direction.UP);
+            helper.assertTrue(handler != null, "Sovereign Nexus must expose Capabilities.ItemHandler.BLOCK.");
+
+            ItemStack nonBiomass = handler.insertItem(0, new ItemStack(net.minecraft.world.item.Items.DIRT, 3), false);
+            helper.assertTrue(nonBiomass.getCount() == 3, "Sovereign Nexus handler must reject non-biomass items.");
+
+            ItemStack simRem = handler.insertItem(0,
+                    new ItemStack(com.alex.mycelialmind.registry.ModItems.MYCELIAL_BIOMASS.get(), 10), true);
+            helper.assertTrue(simRem.isEmpty() && colony.getBiomassStored() == initialBiomass,
+                    "Simulated biomass insertion must not mutate stored biomass.");
+
+            ItemStack rem = handler.insertItem(0,
+                    new ItemStack(com.alex.mycelialmind.registry.ModItems.MYCELIAL_BIOMASS.get(), 10), false);
+            helper.assertTrue(rem.isEmpty() && colony.getBiomassStored() == initialBiomass + 10,
+                    "Real hopper insertion must add 10 biomass into colony reserve.");
+
+            helper.succeed();
+        } finally {
+            level.removeBlock(nexusPos, false);
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_integration")
+    public static void sovereignRivalRaidDefenseAwardsXpAndMoraleTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        com.alex.mycelialmind.entity.ColonySymbiontEntity w1 = null;
+        com.alex.mycelialmind.entity.ColonySymbiontEntity w2 = null;
+        try {
+            owHive.resetAll();
+            saved.resetAll();
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            var colony = nexusBe.getOrCreateColony(level);
+            w1 = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, true);
+            w2 = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL, true);
+            helper.assertTrue(w1 != null && w2 != null, "Workers must spawn for raid test.");
+
+            int xpBefore = colony.getDomainXp();
+            int spawned = com.alex.mycelialmind.colony.SovereignColonyDirector.triggerRivalRaid(level, colony, 0);
+            helper.assertTrue(spawned >= 3 && colony.getActiveRaidRemaining() == spawned,
+                    "Rival Hive probe raid must spawn >= 3 raiders and track remaining count.");
+
+            List<MycelialMob> raiders = level.getEntitiesOfClass(
+                    MycelialMob.class,
+                    new AABB(nexusPos).inflate(48.0D),
+                    m -> m.getPersistentData().hasUUID("MycelialRivalColonyTarget"));
+            helper.assertTrue(raiders.size() == spawned, "Must locate all spawned rival raiders.");
+            for (MycelialMob raider : raiders) {
+                raider.kill();
+            }
+
+            helper.assertTrue(colony.getActiveRaidRemaining() == 0,
+                    "Killing all raiders must clear activeRaidRemaining.");
+            helper.assertTrue(colony.getRecentRaidVictories() == 1 && colony.getDomainXp() > xpBefore,
+                    "Clearing rival probe raid must record raid victory and award Domain XP.");
+
+            helper.succeed();
+        } finally {
+            if (w1 != null) {
+                w1.discard();
+            }
+            if (w2 != null) {
+                w2.discard();
+            }
+            level.getEntitiesOfClass(
+                    MycelialMob.class,
+                    new AABB(nexusPos).inflate(48.0D),
+                    m -> m.getPersistentData().hasUUID("MycelialRivalColonyTarget")
+            ).forEach(net.minecraft.world.entity.Entity::discard);
+            level.getEntitiesOfClass(
+                    net.minecraft.world.entity.item.ItemEntity.class,
+                    new AABB(nexusPos).inflate(48.0D)
+            ).forEach(net.minecraft.world.entity.Entity::discard);
+            level.removeBlock(nexusPos, false);
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_integration")
+    public static void sovereignColonySyncPayloadCodecRoundTripTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        com.alex.mycelialmind.entity.ColonySymbiontEntity worker = null;
+        try {
+            owHive.resetAll();
+            saved.resetAll();
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            var colony = nexusBe.getOrCreateColony(level);
+            colony.addDomainXp(200);
+            colony.toggleInputChest(nexusPos.east());
+            worker = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.COURIER, true);
+            helper.assertTrue(worker != null, "Worker must spawn for payload test.");
+
+            var payload = com.alex.mycelialmind.network.SovereignColonySyncPayload.forNexus(level, nexusPos, true);
+            var buf = io.netty.buffer.Unpooled.buffer();
+            com.alex.mycelialmind.network.SovereignColonySyncPayload.STREAM_CODEC.encode(buf, payload);
+            var decoded = com.alex.mycelialmind.network.SovereignColonySyncPayload.STREAM_CODEC.decode(buf);
+
+            helper.assertTrue(decoded.equals(payload)
+                            && decoded.hasColony()
+                            && decoded.unlocked()
+                            && decoded.openScreen()
+                            && decoded.inputChests() == 1
+                            && decoded.workers().size() == 1
+                            && decoded.workers().get(0).caste() == com.alex.mycelialmind.colony.SymbiontCaste.COURIER,
+                    "SovereignColonySyncPayload must round-trip all colony and roster fields intact.");
+
+            helper.succeed();
+        } finally {
+            if (worker != null) {
+                worker.discard();
+            }
+            level.removeBlock(nexusPos, false);
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
         }
     }
 }

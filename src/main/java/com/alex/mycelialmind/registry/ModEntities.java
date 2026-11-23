@@ -5,6 +5,7 @@ import com.alex.mycelialmind.entity.AcidSpitterEntity;
 import com.alex.mycelialmind.entity.ApexMatriarchEntity;
 import com.alex.mycelialmind.entity.BurrowerEntity;
 import com.alex.mycelialmind.entity.ChitinBruteEntity;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.ColonyWardenEntity;
 import com.alex.mycelialmind.entity.GoliathCarrierEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
@@ -101,6 +102,10 @@ public final class ModEntities {
             ENTITY_TYPES.register("mycelial_chimera", () -> EntityType.Builder.of(MycelialChimeraEntity::new, MobCategory.CREATURE)
                     .sized(1.25F, 1.55F).build("mycelial_chimera"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<ColonySymbiontEntity>> COLONY_SYMBIONT =
+            ENTITY_TYPES.register("colony_symbiont", () -> EntityType.Builder.of(ColonySymbiontEntity::new, MobCategory.CREATURE)
+                    .sized(0.75F, 1.55F).build("colony_symbiont"));
+
     public static final DeferredHolder<EntityType<?>, EntityType<HiveCoreBossEntity>> HIVE_CORE =
             ENTITY_TYPES.register("hive_core", () -> EntityType.Builder.of(HiveCoreBossEntity::new, MobCategory.MONSTER)
                     .sized(3.0F, 4.5F).fireImmune().build("hive_core"));
@@ -156,6 +161,7 @@ public final class ModEntities {
         event.put(SPORE_BEHEMOTH.get(), SporeBehemothEntity.createAttributes().build());
         event.put(PURIFIER_DRONE.get(), PurifierDroneEntity.createAttributes().build());
         event.put(MYCELIAL_CHIMERA.get(), MycelialChimeraEntity.createAttributes().build());
+        event.put(COLONY_SYMBIONT.get(), ColonySymbiontEntity.createAttributes().build());
         event.put(HIVE_CORE.get(), HiveCoreBossEntity.createAttributes().build());
         event.put(APEX_MATRIARCH.get(), ApexMatriarchEntity.createAttributes().build());
     }

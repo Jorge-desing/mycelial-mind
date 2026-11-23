@@ -178,6 +178,14 @@
       "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page21.title",
       "recipe_id_1": "mycelialmind:stonecut_chitin_plate_to_lattice",
       "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page21.text"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page22.title",
+      "recipe_id_1": "mycelialmind:sovereign_nexus",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page22.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page22.title2",
+      "recipe_id_2": "mycelialmind:sovereign_command_staff"
     }
   ]
 }

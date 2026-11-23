@@ -31,6 +31,11 @@ public final class ModDataComponents {
                     .persistent(Codec.STRING)
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> STAFF_MODE =
+            DATA_COMPONENTS.registerComponentType("staff_mode", builder -> builder
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+
     private ModDataComponents() {
     }
 

@@ -9,7 +9,7 @@
   "sampler_type": "pingpong",
   "sample_rate": 44100,
   "stem_count": 52,
-  "mapped_sound_events": 181,
+  "mapped_sound_events": 186,
   "stems": {
     "acid_spitter_wet_gurgle": {
       "group": "entity",
@@ -382,7 +382,8 @@
       "sound_ids": [
         "synaptic_node_mature",
         "symbiotic_node_charge",
-        "symbiotic_node_teleport"
+        "symbiotic_node_teleport",
+        "sovereign_nexus_pulse"
       ]
     },
     "goliath_carrier_hollow_thud": {
@@ -451,7 +452,8 @@
         "bio_scanner_thermal_pulse",
         "spore_antidote_cure",
         "neural_decoy_deploy",
-        "purifier_drone_deploy"
+        "purifier_drone_deploy",
+        "command_staff_mark"
       ]
     },
     "item_symbiotic_melee_blades": {
@@ -516,7 +518,10 @@
         "purifier_drone_hum",
         "purifier_drone_hurt",
         "purifier_drone_death",
-        "purifier_drone_fire"
+        "purifier_drone_fire",
+        "colony_symbiont_ambient",
+        "colony_symbiont_work",
+        "colony_symbiont_promote"
       ]
     },
     "pyro_shroom_ember_sizzle": {

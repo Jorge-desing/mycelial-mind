@@ -2,6 +2,7 @@ package com.alex.mycelialmind.compat.vanilla;
 
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
@@ -76,6 +77,11 @@ public final class MycelialVanillaIntegration {
                 Capabilities.ItemHandler.BLOCK,
                 ModBlockEntities.SYNAPTIC_NODE.get(),
                 (node, side) -> new SynapticNodeItemHandler(node)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                ModBlockEntities.SOVEREIGN_NEXUS.get(),
+                (nexus, side) -> new SovereignNexusItemHandler(nexus)
         );
     }
 
@@ -373,6 +379,47 @@ public final class MycelialVanillaIntegration {
             int targetSlot = mapSlot(slot);
             return targetSlot != SynapticBenchBlockEntity.SLOT_OUTPUT
                     && SynapticBenchBlockEntity.isValidSlotInput(targetSlot, stack);
+        }
+    }
+
+    private static final class SovereignNexusItemHandler implements IItemHandler {
+        private final SovereignNexusBlockEntity nexus;
+
+        private SovereignNexusItemHandler(SovereignNexusBlockEntity nexus) {
+            this.nexus = nexus;
+        }
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (slot != 0) {
+                return stack;
+            }
+            return nexus.insertBiomassFromAutomation(stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 64;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return slot == 0 && stack.is(ModItems.MYCELIAL_BIOMASS.get());
         }
     }
 }

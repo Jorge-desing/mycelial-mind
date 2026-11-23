@@ -127,9 +127,11 @@ ENTITY_SKINS: Dict[str, EntitySkin] = {
                                  role_overrides=(("skin", "abyssal_indigo"), ("armor", "abyssal_obsidian"), ("bone", "spectral_bone"))),
     "mycelial_chimera": EntitySkin("patchwork", "compound_cluster", "spore_chartreuse", "mycelial_violet", "carapace_amber", motif_variant="suture", lift=0.07, moss_strength=0.50,
                                    role_overrides=(("skin", "volcanic_ember"), ("armor", "basalt_slate"), ("bone", "chitin_bone"), ("spore_sac", "venom_emerald"))),
+    "colony_symbiont": EntitySkin("royal_filigree", "visor_slit", "purification_aqua", "spore_chartreuse", "none", motif_variant="mantle", lift=0.08, metal_roles=("metal",), moss_strength=0.25,
+                                  role_overrides=(("skin", "mycelial_violet"), ("armor", "royal_gold"), ("bone", "chitin_bone"), ("spore_sac", "purification_aqua"), ("metal", "imperial_brass"))),
 }
 
-NO_RANK_ENTITIES = frozenset({"purifier_drone", "hive_core", "apex_matriarch"})
+NO_RANK_ENTITIES = frozenset({"purifier_drone", "hive_core", "apex_matriarch", "colony_symbiont"})
 
 METAL_PALETTES = frozenset({"royal_gold", "imperial_brass", "platinum_tech"})
 
@@ -1543,6 +1545,13 @@ def _sig_drone(ctx, rgba, dark, light, accent):
     _sig_dot(rgba, w // 2, h // 2, accent, 0.85)
 
 
+def _sig_colony_symbiont(ctx, rgba, dark, light, accent):
+    w, h = ctx.rect.w, ctx.rect.h
+    _sig_hline(rgba, h // 4, 1, w - 2, dark, 0.60)
+    _sig_vline(rgba, w // 2, h // 4, h - 2, light, 0.45)
+    _sig_dot(rgba, w // 2, h // 2, accent, 0.85)
+
+
 SIGNATURES = {
     "sporeling": _sig_sporeling,
     "leech_parasite": _sig_leech,
@@ -1561,6 +1570,7 @@ SIGNATURES = {
     "synaptic_mimic": _sig_mimic,
     "mycelial_chimera": _sig_chimera,
     "purifier_drone": _sig_drone,
+    "colony_symbiont": _sig_colony_symbiont,
 }
 
 

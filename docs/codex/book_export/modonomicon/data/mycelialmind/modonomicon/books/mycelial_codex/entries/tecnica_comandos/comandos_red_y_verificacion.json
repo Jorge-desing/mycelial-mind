@@ -55,6 +55,20 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page5.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page6.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page6.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page7.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page7.text"
     }
   ]
 }

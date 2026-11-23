@@ -99,6 +99,10 @@ ENTITY_SYNTH_IDS: frozenset[str] = frozenset(
         "purifier_drone_hurt",
         "purifier_drone_death",
         "purifier_drone_fire",
+        # 13b. Colony Symbiont (3)
+        "colony_symbiont_ambient",
+        "colony_symbiont_work",
+        "colony_symbiont_promote",
         # 14. Mycelial Chimera (5)
         "mycelial_chimera_growl",
         "mycelial_chimera_hurt",
@@ -701,6 +705,46 @@ def synthesize_entity_sound(
         snap[hit_s:] = _modal_bank(rt, bf * rng.uniform(1.65, 2.30), (1.0, 1.85, 3.12), (0.014, 0.009, 0.005), (0.7, 0.45, 0.25), rng) * 0.75
         air = _sos_bandpass(white, 2400.0, 10800.0) * np.pad(np.exp(-rt / 0.032), (hit_s, 0)) * 0.50
         return _cavern_reverb(_sos_highpass(dart + snap + air, 200.0), rng, wet=0.07, rt60=0.18, lp_hz=8500.0)
+
+    # =========================================================================
+    # 13b. COLONY SYMBIONT — Cooperative polymorphic worker & guardian caste
+    # =========================================================================
+    if sound_id.startswith("colony_symbiont_"):
+        action = sound_id.removeprefix("colony_symbiont_")
+        if action == "ambient":
+            # Varied two-syllable harmonic chirp + tactile chitin clicks
+            dir_s = float(rng.choice((-1.0, 1.0)))
+            s1 = int(rng.uniform(0.01, 0.14) * n)
+            rt = t[s1:] - t[s1]
+            f_warble = bf * rng.uniform(0.88, 1.14) * (1.0 + dir_s * 0.32 * np.sin(np.pi * rt / max(0.08, dur)))
+            chirp = np.zeros(n, dtype=np.float64)
+            chirp[s1:] = (
+                np.sin(2.0 * np.pi * np.cumsum(f_warble) / SAMPLE_RATE + rng.uniform(0, 6.28)) * 0.62
+                + _fm_tone(rt, f_warble * 1.5, mf * rng.uniform(0.9, 1.5), 1.2, rng.uniform(0, 6.28)) * 0.42
+            ) * adsr_envelope(len(rt), 0.08, 0.22, 0.52, 0.36)
+            clicks = _chitin_modal_hits(n, rng, bf * rng.uniform(1.8, 2.8), int(rng.integers(2, 4)), 0.018, spread_frac=0.65) * 0.55
+            return _cavern_reverb(_sos_highpass(chirp + clicks, 180.0), rng, wet=0.12, rt60=0.28, lp_hz=6400.0)
+        if action == "work":
+            # Rhythmic 3-tap crystalline/chitin craft cadence + varied resin servo sweep
+            wave = np.zeros(n, dtype=np.float64)
+            for idx, pos in enumerate(_bounce_train(n, rng, 3, start_frac=rng.uniform(0.01, 0.10), end_frac=0.72, accelerate=(rng.random() > 0.5))):
+                slen = min(n - pos, int(SAMPLE_RATE * 0.07))
+                st = np.arange(slen, dtype=np.float64) / SAMPLE_RATE
+                f_tap = bf * rng.uniform(0.95, 1.85) * (1.0 + 0.12 * idx)
+                wave[pos : pos + slen] += _modal_bank(st, f_tap, (1.0, 1.78, 3.10), (0.030, 0.018, 0.010), (0.85, 0.52, 0.28), rng)
+            f_lo = rng.uniform(420.0, 880.0)
+            f_hi = rng.uniform(1800.0, 3600.0)
+            servo = _swept_resonant_filter(pink, f_lo if rng.random() > 0.5 else f_hi, f_hi if rng.random() > 0.5 else f_lo, q=2.6) * adsr_envelope(n, 0.06, 0.22, 0.45, 0.32) * 0.45
+            return _cavern_reverb(_sos_highpass(wave + servo, 160.0), rng, wet=0.10, rt60=0.24, lp_hz=6800.0)
+        # colony_symbiont_promote (ascending ceremonial triadic rank chime + shimmer aura)
+        wave = np.zeros(n, dtype=np.float64)
+        jit0 = rng.uniform(0.01, 0.06)
+        for idx, ratio in enumerate((1.0, 1.25, 1.498, 2.0)):
+            pos = min(n - 64, int((jit0 + idx * rng.uniform(0.11, 0.15)) * n))
+            nt = np.arange(n - pos, dtype=np.float64) / SAMPLE_RATE
+            wave[pos:] += _modal_bank(nt, bf * ratio * rng.uniform(0.97, 1.03), (1.0, 1.50, 2.42), (0.22, 0.16, 0.10), (0.78, 0.50, 0.26), rng) * (0.75 + 0.08 * idx)
+        aura = _swept_resonant_filter(pink, 320.0, 3800.0, q=2.4) * adsr_envelope(n, 0.12, 0.22, 0.55, 0.38) * 0.42
+        return _cavern_reverb(np.tanh((wave + aura) * 1.15), rng, wet=0.24, rt60=0.55, lp_hz=5800.0)
 
     # =========================================================================
     # 14. MYCELIAL CHIMERA — Bio-forged allied apex companion (dual vocal + symbiotic)

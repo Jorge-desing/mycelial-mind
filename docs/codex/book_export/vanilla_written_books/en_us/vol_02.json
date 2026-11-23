@@ -6,7 +6,7 @@
     "biotecnologia",
     "arsenal_defensa"
   ],
-  "page_count": 72,
+  "page_count": 73,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.II"
@@ -85,10 +85,13 @@
         "raw": "`echo_shard` and\nstarts 20-min global\nRemission."
       },
       {
-        "raw": "Cap.5: Allies: Purifier\nDrone & Chimera\nPurifier Drone\nEntity:\nmycelialmind:purifier_d\nrone\n60 HP | 6 Arm | 0.45\nFly\n`purifier_drone_core`:\nfires\n`neutralizing_spore`,\ncleanses mycelium &\npatrols. Leech jams\n80t."
+        "raw": "Cap.5: Allies: Drone,\nChimera & Colony\nPurifier Drone\nEntity:\nmycelialmind:purifier_d\nrone\n60 HP | 6 Arm | 0.45\nFly\n`purifier_drone_core`:\nfires\n`neutralizing_spore`,\ncleanses mycelium &\npatrols. Leech jams\n80t."
       },
       {
         "raw": "Mycelial Chimera\nEntity:\nmycelialmind:mycelial_c\nhimera\n52/68 HP | 5.5/8.5 Dmg\n| 4/8 Arm\nHatched from\n`chimera_ovum` on\n`symbiotic_node`\n(>=35%). Rideable\n`CommandMode`\n(`FOLLOW`, `PATROL`,\n`WAIT`)."
+      },
+      {
+        "raw": "Colony Symbiont\nEntity:\nmycelialmind:colony_sy\nmbiont\n32 HP | 4 Arm | 5\nCastes\nFrom\n`sovereign_nexus`:\n`HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT`,\n`SENTINEL`."
       },
       {
         "raw": "Chimera 5×5 Gene\nMatrix (1/3)\n• Chassis\n(`ChassisGene`):\n`MELEE_THORNS` (8.5\ndmg),\n`PROJECTILE_DEFLECT`\n(0.35 spd),\n`FIRE_RESISTANT` (fire\nimmunity),\n`BLAST_SHIELDED` (68\nHP, 8.0 Arm),\n`MAGIC_CARAPACE` (1\nHP/100t)."
@@ -103,7 +106,7 @@
         "raw": "Chimera 5×5 Gene\nMatrix (3/3)\n• Acid Rain\n(Homeostasis): having\nboth `FIRE_RESISTANT`\n& `MAGIC_CARAPACE`\nheals +0.8F; either\ngrants immunity (0.0F);\nneither takes -0.75F."
       },
       {
-        "raw": "Cap.5: Projectiles (3)\n& Spawn Eggs (17)\nProjectiles & Spawn\nEggs (1/5)\n• 3 Registered\nProjectiles\n(`ModEntities`):\n`acid_spit` (corrosive\nspit jamming turrets\n120t &\n`KINETIC_MIRROR`\nshards),\n`neutralizing_spore`\n(launcher/drone"
+        "raw": "Cap.5: Projectiles (3)\n& Spawn Eggs (18)\nProjectiles & Spawn\nEggs (1/5)\n• 3 Registered\nProjectiles\n(`ModEntities`):\n`acid_spit` (corrosive\nspit jamming turrets\n120t &\n`KINETIC_MIRROR`\nshards),\n`neutralizing_spore`\n(launcher/drone"
       },
       {
         "raw": "ammo), and\n`purifier_grenade`\n(triggers 5s squad\nDesync)."
@@ -118,7 +121,7 @@
         "raw": "Projectiles & Spawn\nEggs (4/5)\n• Eggs 3/4:\n`colony_warden_spawn\n_egg`,\n`spore_architect_spa\nwn_egg`,\n`synaptic_mimic_spawn\n_egg`,\n`spore_behemoth_spa\nwn_egg`."
       },
       {
-        "raw": "Projectiles & Spawn\nEggs (5/5)\n• Eggs 4/4:\n`hive_core_spawn_egg\n`,\n`apex_matriarch_spaw\nn_egg`,\n`purifier_drone_spawn\n_egg`,\n`mycelial_chimera_spa\nwn_egg`."
+        "raw": "Projectiles & Spawn\nEggs (5/5)\n• Eggs 4/4:\n`hive_core_spawn_egg\n`,\n`apex_matriarch_spaw\nn_egg`,\n`purifier_drone_spawn\n_egg`,\n`mycelial_chimera_spa\nwn_egg`,\n`colony_symbiont_spaw\nn_egg`."
       },
       {
         "raw": "Cap.6: The 4 Synaptic\nNode Types\nSynaptic Node\nTypology (1/3)\n• `RELAY`\n(`mycelial_node`): links\nhubs within\n`synapticNodeLinkRadiu\ns` (28m), amplifies\nlocal stimulus x1.5,\nand holds 60/40\nbuffers (`600t`)."

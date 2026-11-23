@@ -4,6 +4,7 @@ import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -52,6 +53,12 @@ public final class ModBlockEntities {
             BLOCK_ENTITIES.register("hyphal_vein", () -> BlockEntityType.Builder.of(
                     HyphalVeinBlockEntity::new,
                     ModBlocks.HYPHAL_VEIN.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SovereignNexusBlockEntity>> SOVEREIGN_NEXUS =
+            BLOCK_ENTITIES.register("sovereign_nexus", () -> BlockEntityType.Builder.of(
+                    SovereignNexusBlockEntity::new,
+                    ModBlocks.SOVEREIGN_NEXUS.get()
             ).build(null));
 
     private ModBlockEntities() {

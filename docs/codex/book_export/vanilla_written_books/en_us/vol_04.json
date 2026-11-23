@@ -4,7 +4,7 @@
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 71,
+  "page_count": 72,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.IV"
@@ -50,7 +50,7 @@
         "raw": "Cap`."
       },
       {
-        "raw": "Cap.11: All 30\nAdvancements\nComplete\nAdvancements Chain\n(1/4)\n• Act I & Bastion (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,"
+        "raw": "Cap.11: All 32\nAdvancements\nComplete\nAdvancements Chain\n(1/4)\n• Act I & Bastion (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,"
       },
       {
         "raw": "`base_sentinel`."
@@ -62,10 +62,10 @@
         "raw": "`hive_core_slayer`."
       },
       {
-        "raw": "Complete\nAdvancements Chain\n(3/4)\n• Endgame & Mastery\n(9):\n`synaptic_mastery`,\n`tide_breaker`,\n`counteroffensive_ma\nster`,\n`enter_deep_mycelium`,\n`immune_homeostasis`,\n`overmind_ascendant`,\n`apex_matriarch_slaye\nr`,"
+        "raw": "Complete\nAdvancements Chain\n(3/4)\n• Endgame & Mastery\n(11):\n`synaptic_mastery`,\n`tide_breaker`,\n`counteroffensive_ma\nster`,\n`enter_deep_mycelium`,\n`immune_homeostasis`,\n`overmind_ascendant`,\n`apex_matriarch_slaye\nr`, `sovereign_nexus`,"
       },
       {
-        "raw": "`recovered_garden`,\n`recovered_route`\n(`discovery`)."
+        "raw": "`sovereign_colony_tie\nr3`,\n`recovered_garden`,\n`recovered_route`\n(`discovery`)."
       },
       {
         "raw": "Complete\nAdvancements Chain\n(4/4)\n• Recipe Unlocks (5):\n`recipes/unlock_bioma\nss_recipes`,\n`recipes/unlock_chitin\n_recipes`,\n`recipes/unlock_hive_\nheart_recipes`,\n`recipes/unlock_latent\n_spore_recipes`,\n`recipes/unlock_syna\nptic_core_recipes`."
@@ -200,31 +200,34 @@
         "raw": "`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
       },
       {
-        "raw": "Cap.12: Net v21,\n`/mycelial` & Verify\nAdmin Commands,\nPayloads & Verify\n(1/5)\n• Networking\n(`ModNetworking` v21):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+        "raw": "Cap.12: Net v22,\n`/mycelial` & Verify\nAdmin Commands,\nPayloads & Verify\n(1/7)\n• Networking\n(`ModNetworking` v22):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
       },
       {
-        "raw": "`,\n`DiscoverySyncPayloa\nd`,\n`CycleProtocolSyncPa\nyload` &\n`CycleProtocolActionP\nayload`."
+        "raw": "` &\n`DiscoverySyncPayloa\nd`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(2/5)\n• Engrams & Commands\n(`perm 2`):\n`field_engram`\n(`engram_id`),\n`/mycelial status`,\n`/mycelial reset`,\n`/mycelial stimulus\n<type> <0.1..500>`,\n`/mycelial habits`,\n`/mycelial schism\n<strain>`, `/mycelial"
+        "raw": "Admin Commands,\nPayloads & Verify\n(2/7)\n• Cycle & Colony\nPayloads:\n`CycleProtocolSyncPa\nyload`,\n`CycleProtocolActionP\nayload`,\n`SovereignColonySync\nPayload` &\n`SovereignColonyActio\nnPayload`."
+      },
+      {
+        "raw": "Admin Commands,\nPayloads & Verify\n(3/7)\n• Engrams & Commands\n(`perm 2`):\n`field_engram`\n(`engram_id`),\n`/mycelial status`,\n`/mycelial reset`,\n`/mycelial stimulus\n<type> <0.1..500>`,\n`/mycelial habits`,\n`/mycelial schism\n<strain>`, `/mycelial"
       },
       {
         "raw": "diplomacy <strain>\n<-100..100>`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(3/5)\n• Symbiosis, Cycles,\nHomeostasis & Audit:\n`/mycelial symbiosis\n<status|clear|grant\n<mutagen>>`, `/mycelial\ncycle\n<status|start|abort|re\nset>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,"
+        "raw": "Admin Commands,\nPayloads & Verify\n(4/7)\n• Colony & Symbiosis:\n`/mycelial colony\n<status|incubate|upgra\nde|raid>`, `/mycelial\nsymbiosis\n<status|clear|grant\n<mutagen>>`."
       },
       {
-        "raw": "`/mycelial worldgen\naudit [radius] [grid]`."
+        "raw": "Admin Commands,\nPayloads & Verify\n(5/7)\n• Cycles, Homeostasis\n& World: `/mycelial\ncycle\n<status|start|abort|re\nset>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,\n`/mycelial worldgen\naudit [radius] [grid]`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(4/5)\n• `/mycelial verify\n<scenario|worldgen|all\n>` (1–11):\n`projectile_adaptation\n`, `pylon_containment`,\n`boss_encounter`,\n`tier2_synergy`,\n`synaptic_network`,\n`symbiosis`, `units`,\n`expansion`, `tide`,"
+        "raw": "Admin Commands,\nPayloads & Verify\n(6/7)\n• `/mycelial verify\n<scenario|worldgen|all\n>` (1–11):\n`projectile_adaptation\n`, `pylon_containment`,\n`boss_encounter`,\n`tier2_synergy`,\n`synaptic_network`,\n`symbiosis`, `units`,\n`expansion`, `tide`,"
       },
       {
         "raw": "`counteroffensive`,\n`arsenal`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(5/5)\n• `/mycelial verify`\n(12–23): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`."
+        "raw": "Admin Commands,\nPayloads & Verify\n(7/7)\n• `/mycelial verify`\n(12–23): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`, `colony`."
       }
     ]
   }

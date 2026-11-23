@@ -16,6 +16,7 @@ import com.alex.mycelialmind.item.OvermindCrownItem;
 import com.alex.mycelialmind.item.PurifierGrenadeItem;
 import com.alex.mycelialmind.item.ReclaimedBloomItem;
 import com.alex.mycelialmind.item.RiftCatalystItem;
+import com.alex.mycelialmind.item.SovereignCommandStaffItem;
 import com.alex.mycelialmind.item.SporeAntidoteItem;
 import com.alex.mycelialmind.item.SymbioticBladeItem;
 import com.alex.mycelialmind.item.SymbioticMutagenItem;
@@ -234,6 +235,12 @@ public final class ModItems {
 
     public static final DeferredItem<Item> PURIFIER_DRONE_SPAWN_EGG = ITEMS.register("purifier_drone_spawn_egg",
             () -> new DeferredSpawnEggItem(ModEntities.PURIFIER_DRONE, 0x123C42, 0x2AE4CC, new Item.Properties()));
+
+    public static final DeferredItem<Item> SOVEREIGN_COMMAND_STAFF = ITEMS.register("sovereign_command_staff",
+            () -> new SovereignCommandStaffItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+
+    public static final DeferredItem<Item> COLONY_SYMBIONT_SPAWN_EGG = ITEMS.register("colony_symbiont_spawn_egg",
+            () -> new DeferredSpawnEggItem(ModEntities.COLONY_SYMBIONT, 0x1C3A2B, 0x4AD66D, new Item.Properties()));
 
     private ModItems() {
     }
