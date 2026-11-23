@@ -7080,8 +7080,12 @@ public final class MycelialGameTests {
         BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
+        // The elite spawn point is selected dynamically from the completed site's ambush area.
+        int[] spawnSetupTicks = {0};
         runUntilCondition(helper, 30,
-                () -> isSpawnChunkLoaded(level, core2) && areSpawnAreaChunksLoaded(level, core3, 6),
+                () -> ++spawnSetupTicks[0] >= 2
+                        && isSpawnChunkLoaded(level, core2)
+                        && areSpawnAreaChunksLoaded(level, core3, 6),
                 () -> {
             try {
                 hive.resetAll();
