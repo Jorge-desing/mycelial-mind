@@ -3889,3 +3889,9 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - `audit_mod_assets` (CodeMode): **`ok=true`**, **`205`** texturas en `entity/`, `132` `_n` / `132` `_s` / `51` `_emissive`, `18` modelos UV sin faltantes.
   - `run_gradle_task(["compileJava", "test"], no_daemon=True)` + `get_latest_junit_report`: `BUILD SUCCESSFUL in 14s`, **`74/74`** JUnit PASS en `9` suites (`0` fallos/omitidos).
   - `validate_skills` (CodeMode): **`8/8`** OK (`ok=true`).
+
+## [2026-11-23 08:06] — Auditoría GitHub y corrección del PR #4
+- **Tipo:** `VERIFICACIÓN` | `CORRECCIÓN`
+- **Resumen:** Se revisó el estado real de GitHub. `main` (`f48dabb`) tiene el pipeline completo verde: JUnit, build, dry-run de publicación y **175/175 GameTests**. Se identificó que el PR #4 fallaba desde una base antigua (`b2a4447`) con pruebas ya corregidas en `main`; su único cambio es Modonomicon `1.123.0` → `1.123.1`. Se rebasó el cambio sobre `f48dabb` y se actualizó la rama del PR a `8107416`; los tres checks terminaron verdes, incluidos **175/175 GameTests**. El PR permanece abierto, sin fusionar. Los PR #1, #2 y #5 tienen checks verdes en sus revisiones actuales.
+- **Archivos / Símbolos:** `build.gradle` (cambio de dependencia en PR #4); GitHub PR #4; `MEMORY.md`.
+- **Estado / Siguiente paso:** Corrección de CI publicada y verificada. `main` local coincide con `origin/main`; el trabajo local previo de flores quedó intacto.
