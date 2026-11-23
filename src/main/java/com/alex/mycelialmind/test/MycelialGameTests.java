@@ -8057,4 +8057,81 @@ public final class MycelialGameTests {
             tracker.clearAll();
         }
     }
+
+    @GameTest(template = "empty", batch = "general_polish")
+    public static void synapticMimicDeceptionSabotageUnmaskShockAndSymbioticMirrorWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        BlockPos origin = helper.absolutePos(new BlockPos(2, 1, 2));
+        BlockPos turretPos = helper.absolutePos(new BlockPos(4, 1, 2));
+        BlockPos symPos = helper.absolutePos(new BlockPos(2, 1, 5));
+        BlockPos decoyPos = helper.absolutePos(new BlockPos(5, 1, 5));
+        var mimic = helper.spawnWithNoFreeWill(ModEntities.SYNAPTIC_MIMIC.get(), 2, 1, 2);
+        Player mock = helper.makeMockPlayer(GameType.SURVIVAL);
+        mock.setPos(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5);
+        try {
+            hive.resetAll();
+            tracker.clearAll();
+            com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.clearDecoys(level);
+
+            // 1. Diplomatic spoofing protects Mimic unless SYNAPTIC_VISION is active
+            mimic.setMimicPersona(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.MimicPersona.INFILTRATION_SPOOF);
+            mimic.setUnmasked(false);
+            helper.assertTrue(MycelialMob.isFriendlyToPlayer(mimic, mock),
+                    "Covert INFILTRATION_SPOOF Mimic must spoof friendliness to player and turret filters.");
+            mock.addEffect(new MobEffectInstance(ModEffects.SYNAPTIC_VISION, 200, 0));
+            helper.assertFalse(MycelialMob.isFriendlyToPlayer(mimic, mock),
+                    "SYNAPTIC_VISION must pierce Mimic diplomatic spoofing.");
+            mock.removeEffect(ModEffects.SYNAPTIC_VISION);
+
+            // 2. Habit-driven stance & Symbiotic Mutagen parasitism
+            hive.recordHabit(com.alex.mycelialmind.hive.PlayerHabit.HIGH_MOBILITY,
+                    HiveMindSavedData.HABIT_ACTIVATION_THRESHOLD + 5.0);
+            mock.getData(ModAttachments.SYMBIOSIS).equipMutagen(com.alex.mycelialmind.symbiosis.SymbioticMutagen.KINETIC_STRAFE);
+            var stance = mimic.evaluateTargetStance(mock);
+            helper.assertTrue(stance == com.alex.mycelialmind.entity.SynapticMimicEntity.MimicStance.SPORE_MARKSMAN,
+                    "Mimic must counter HIGH_MOBILITY habit with SPORE_MARKSMAN stance.");
+
+            // 3. Tripartite sabotage: jam turret, drain symbiotic node, consume decoy
+            level.setBlockAndUpdate(turretPos, ModBlocks.PURIFICATION_TURRET.get().defaultBlockState());
+            level.setBlockAndUpdate(symPos, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            tracker.addNode(symPos, com.alex.mycelialmind.world.SynapticNodeType.SYMBIOTIC);
+            com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.registerDecoy(level, decoyPos, 200);
+            helper.assertTrue(com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.hasActiveDecoyNear(level, decoyPos, 2),
+                    "Decoy must be active before Mimic sabotage.");
+
+            boolean sabotaged = mimic.tryExecuteNetworkSabotage(level, mock);
+            helper.assertTrue(sabotaged, "Mimic network sabotage must trigger against nearby defenses/nodes/decoys.");
+            var turretBe = level.getBlockEntity(turretPos) instanceof com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity t ? t : null;
+            var symBe = level.getBlockEntity(symPos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity s ? s : null;
+            helper.assertTrue(turretBe != null && turretBe.isJammed(), "Sabotage must jam nearby PurificationTurret.");
+            helper.assertTrue(symBe != null && symBe.getSymbioticStability() < 100, "Sabotage must drain SymbioticNode stability.");
+            helper.assertFalse(com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.hasActiveDecoyNear(level, decoyPos, 2),
+                    "Sabotage must consume/invert nearby NeuralEchoDecoy.");
+
+            // 4. Bio-Scanner Synaptic Shock unmasking: clears deception, unjams turret, triggers Desync & +25% dmg
+            hive.startDeception(StimulusType.FIRE, level.getGameTime());
+            ItemStack scanner = new ItemStack(ModItems.BIO_SCANNER.get());
+            scanner.interactLivingEntity(mock, mimic, net.minecraft.world.InteractionHand.MAIN_HAND);
+
+            helper.assertTrue(mimic.isUnmasked() && mimic.isDesynced() && mimic.getShockTicks() > 0,
+                    "BioScanner interaction must unmask Mimic and inflict Desync + Synaptic Shock.");
+            helper.assertTrue(mimic.wasUnmaskedByCounterplay(), "Counterplay unmask flag must be recorded for loot.");
+            helper.assertFalse(hive.isDeceptionActive(level.getGameTime()),
+                    "Synaptic Shock must clear active Pavlovian deception.");
+            helper.assertFalse(turretBe.isJammed(), "Synaptic Shock must clear jam on nearby PurificationTurret.");
+            helper.assertTrue(mimic.getParasitizedMutagen() == null, "Synaptic Shock/Desync must strip parasitized mutagen.");
+
+            helper.succeed();
+        } finally {
+            com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.clearDecoys(level);
+            tracker.clearAll();
+            hive.resetAll();
+            mock.getData(ModAttachments.SYMBIOSIS).clearMutagens();
+            level.setBlockAndUpdate(turretPos, Blocks.AIR.defaultBlockState());
+            level.setBlockAndUpdate(symPos, Blocks.AIR.defaultBlockState());
+            mimic.discard();
+        }
+    }
 }

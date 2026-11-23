@@ -481,6 +481,7 @@ public final class MycelialLootSystem {
             case "mycelialmind:concentrated_antidote" -> ModItems.CONCENTRATED_ANTIDOTE.get();
             case "mycelialmind:volatile_engram" -> ModItems.VOLATILE_ENGRAM.get();
             case "mycelialmind:neural_echo_core" -> ModItems.NEURAL_ECHO_CORE.get();
+            case "mycelialmind:false_engram_injector" -> ModItems.FALSE_ENGRAM_INJECTOR.get();
             case "mycelialmind:purifier_grenade" -> ModItems.PURIFIER_GRENADE.get();
             case "mycelialmind:chitin_helmet" -> ModItems.CHITIN_HELMET.get();
             case "mycelialmind:chitin_chestplate" -> ModItems.CHITIN_CHESTPLATE.get();
@@ -532,6 +533,19 @@ public final class MycelialLootSystem {
         for (ItemStack drop : drops) {
             if (!drop.isEmpty()) {
                 mob.spawnAtLocation(drop);
+            }
+        }
+        if (mob instanceof com.alex.mycelialmind.entity.SynapticMimicEntity mimic) {
+            String counterId = com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.computeMimicCounterIntelDropId(
+                    mob.getEvolutionRank(),
+                    mimic.wasUnmaskedByCounterplay(),
+                    mob.getRandom().nextFloat()
+            );
+            if (counterId != null) {
+                ItemStack counterDrop = materializeSpec(new AdaptiveDropSpec(counterId, 1, null, null));
+                if (!counterDrop.isEmpty()) {
+                    mob.spawnAtLocation(counterDrop);
+                }
             }
         }
     }

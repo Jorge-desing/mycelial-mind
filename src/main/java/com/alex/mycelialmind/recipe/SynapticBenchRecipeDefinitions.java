@@ -67,7 +67,7 @@ public final class SynapticBenchRecipeDefinitions {
         ItemStack counterOut = new ItemStack(ModItems.COUNTER_SERUM.get());
         counterOut.set(ModDataComponents.TRAIT_ID.get(), AdaptationTrait.MELEE_THORNS.id());
 
-        return List.of(
+        List<SynapticRecipeDescriptor> recipes = new ArrayList<>(List.of(
                 new SynapticRecipeDescriptor(
                         "symbiotic_mutagen",
                         allTypedSamples(),
@@ -100,7 +100,22 @@ public final class SynapticBenchRecipeDefinitions {
                         new ItemStack(ModItems.CHIMERA_OVUM.get()),
                         "recipe.mycelialmind.synaptic.chimera_ovum"
                 )
-        );
+        ));
+        List<ItemStack> blooms = List.of(
+                new ItemStack(ModBlocks.RECLAIMED_BLOOM.get()),
+                new ItemStack(ModItems.RECLAIMED_BLOOM_MELEE.get()),
+                new ItemStack(ModItems.RECLAIMED_BLOOM_PROJECTILE.get()),
+                new ItemStack(ModItems.RECLAIMED_BLOOM_FIRE.get()),
+                new ItemStack(ModItems.RECLAIMED_BLOOM_EXPLOSION.get()),
+                new ItemStack(ModItems.RECLAIMED_BLOOM_MAGIC.get()));
+        String[] ids = {"base", "melee", "projectile", "fire", "explosion", "magic"};
+        for (int i = 0; i < blooms.size(); i++) {
+            ItemStack bloom = blooms.get(i);
+            recipes.add(new SynapticRecipeDescriptor("reclaimed_bloom_" + ids[i], List.of(bloom.copy()),
+                    List.of(new ItemStack(ModItems.MYCELIAL_BIOMASS.get())), List.of(),
+                    bloom.copyWithCount(2), "recipe.mycelialmind.synaptic.reclaimed_bloom"));
+        }
+        return List.copyOf(recipes);
     }
 
     public record CompatInfoEntry(String idPath, ItemLike item, String translationKey) {

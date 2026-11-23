@@ -79,15 +79,15 @@ public final class StructureVisualSmokeClient {
     }
 
     private static final List<ShotSpec> SHOTS = List.of(
-            new ShotSpec("structure_outbreak_and_hive.png", 0.0, 12.5, -13.0, 0.0F, 13.0F, 25,
+            new ShotSpec("structure_outbreak_and_hive.png", 0.0, 12.5, -13.0, 0.0F, 13.0F, 12,
                     new BlockPos(9, 0, 16), new BlockPos(0, -1, 100)),
-            new ShotSpec("structure_hive_sanctum.png", 229.5, 16.5, -10.5, -45.0F, 16.0F, 45,
+            new ShotSpec("structure_hive_sanctum.png", 229.5, 16.5, -10.5, -45.0F, 16.0F, 16,
                     new BlockPos(251, 3, 11), new BlockPos(310, -1, 70)),
-            new ShotSpec("structure_sanctum_interior.png", 251.5, 5.5, 17.5, 180.0F, 14.0F, 25,
+            new ShotSpec("structure_sanctum_interior.png", 251.5, 5.5, 17.5, 180.0F, 14.0F, 10,
                     new BlockPos(251, 3, 11), null),
-            new ShotSpec("structure_matriarch_citadel.png", -224.0, 30.0, 64.0, 166.0F, 12.0F, 45,
+            new ShotSpec("structure_matriarch_citadel.png", -224.0, 30.0, 64.0, 166.0F, 12.0F, 16,
                     new BlockPos(-240, 17, 0), new BlockPos(-260, -1, -50)),
-            new ShotSpec("structure_citadel_interior.png", -239.5, 19.5, 16.0, 180.0F, 6.0F, 25,
+            new ShotSpec("structure_citadel_interior.png", -239.5, 19.5, 16.0, 180.0F, 6.0F, 10,
                     new BlockPos(-240, 17, 0), null)
     );
 
@@ -153,7 +153,7 @@ public final class StructureVisualSmokeClient {
         IntegratedServer server = mc.getSingleplayerServer();
         UUID playerId = mc.player.getUUID();
 
-        if (!structuresBuilt && inWorldTicks >= 15 && server != null) {
+        if (!structuresBuilt && inWorldTicks >= 5 && server != null) {
             structuresBuilt = true;
             mc.options.hideGui = true;
             mc.options.pauseOnLostFocus = false;
@@ -183,7 +183,7 @@ public final class StructureVisualSmokeClient {
 
         if (currentShotIndex >= SHOTS.size()) {
             shotWaitTicks++;
-            if (shotWaitTicks >= 12) {
+            if (shotWaitTicks >= 4) {
                 stopping = true;
                 writeMetadata(mc, false);
                 MycelialMind.LOGGER.info("StructureVisualSmoke COMPLETED ({} structure screenshots captured).", capturedShots.size());
@@ -318,7 +318,7 @@ public final class StructureVisualSmokeClient {
         BlockPos outbreakPos = new BlockPos(-13, y, 16);
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
-                level.setBlockAndUpdate(outbreakPos.below().offset(dx, 0, dz), Blocks.DIRT.defaultBlockState());
+                level.setBlock(outbreakPos.below().offset(dx, 0, dz), Blocks.DIRT.defaultBlockState(), 18);
             }
         }
         outbreakPlaced = ModFeatures.MYCELIAL_OUTBREAK.get().place(new FeaturePlaceContext<>(
@@ -337,7 +337,7 @@ public final class StructureVisualSmokeClient {
         BlockPos hivePos = new BlockPos(9, y, 16);
         for (int dx = -4; dx <= 4; dx++) {
             for (int dz = -4; dz <= 4; dz++) {
-                level.setBlockAndUpdate(hivePos.below().offset(dx, 0, dz), Blocks.DIRT.defaultBlockState());
+                level.setBlock(hivePos.below().offset(dx, 0, dz), Blocks.DIRT.defaultBlockState(), 18);
             }
         }
         hivePlaced = SurfaceHiveFeature.generateHiveAt(level, hivePos, RandomSource.create(0x4D594302L));

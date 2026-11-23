@@ -45,6 +45,12 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.PURIFIER_DRONE_CORE.get());
                         output.accept(ModItems.NEURAL_ECHO_CORE.get());
                         output.accept(ModItems.SYNAPTIC_GRAFT.get());
+                        output.accept(ModBlocks.RECLAIMED_BLOOM.get());
+                        output.accept(ModItems.RECLAIMED_BLOOM_MELEE.get());
+                        output.accept(ModItems.RECLAIMED_BLOOM_PROJECTILE.get());
+                        output.accept(ModItems.RECLAIMED_BLOOM_FIRE.get());
+                        output.accept(ModItems.RECLAIMED_BLOOM_EXPLOSION.get());
+                        output.accept(ModItems.RECLAIMED_BLOOM_MAGIC.get());
                         output.accept(ModItems.NEURAL_ECHO_DECOY.get());
                         output.accept(ModItems.CHIMERA_OVUM.get());
                         output.accept(ModItems.VOLATILE_ENGRAM.get());

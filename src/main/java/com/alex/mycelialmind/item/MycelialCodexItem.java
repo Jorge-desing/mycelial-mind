@@ -3,6 +3,7 @@ package com.alex.mycelialmind.item;
 import com.alex.mycelialmind.client.screen.ClientCodexOpener;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.network.PostMatriarchExpeditionSyncPayload;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -34,6 +35,7 @@ public class MycelialCodexItem extends Item {
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
             DiscoverySyncPayload.syncToPlayer(serverPlayer);
+            PostMatriarchExpeditionSyncPayload.syncToPlayer(serverPlayer);
             serverLevel.playSound(null, player.blockPosition(), ModSounds.BIO_SCANNER_PING.get(),
                     SoundSource.PLAYERS, 0.55F, 1.35F);
         } else if (level.isClientSide()) {

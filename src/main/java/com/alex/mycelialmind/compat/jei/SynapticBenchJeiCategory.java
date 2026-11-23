@@ -64,9 +64,11 @@ public final class SynapticBenchJeiCategory implements IRecipeCategory<SynapticR
         builder.addSlot(RecipeIngredientRole.INPUT, 28, 8)
                 .setStandardSlotBackground()
                 .addItemStacks(recipe.biomassInputs());
-        builder.addSlot(RecipeIngredientRole.INPUT, 50, 8)
-                .setStandardSlotBackground()
-                .addItemStacks(recipe.catalystInputs());
+        if (!recipe.catalystInputs().isEmpty()) {
+            builder.addSlot(RecipeIngredientRole.INPUT, 50, 8)
+                    .setStandardSlotBackground()
+                    .addItemStacks(recipe.catalystInputs());
+        }
         builder.addSlot(RecipeIngredientRole.OUTPUT, 116, 8)
                 .setOutputSlotBackground()
                 .addItemStacks(recipe.outputAlternatives());

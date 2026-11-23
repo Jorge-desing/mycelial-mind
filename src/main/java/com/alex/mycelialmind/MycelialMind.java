@@ -10,6 +10,7 @@ import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveWaveDirector;
 import com.alex.mycelialmind.hive.HyphalSiegeDirector;
 import com.alex.mycelialmind.hive.MycorrhizalAcousticTracker;
+import com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector;
 import com.alex.mycelialmind.network.ModNetworking;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.registry.ModArmorMaterials;
@@ -77,6 +78,7 @@ public class MycelialMind {
         NeoForge.EVENT_BUS.register(HiveWaveDirector.class);
         NeoForge.EVENT_BUS.register(HyphalSiegeDirector.class);
         NeoForge.EVENT_BUS.register(MycorrhizalAcousticTracker.class);
+        NeoForge.EVENT_BUS.register(PostMatriarchExpeditionDirector.class);
         NeoForge.EVENT_BUS.register(DimensionalHomeostasisDirector.class);
         NeoForge.EVENT_BUS.register(MycelialCommands.class);
         NeoForge.EVENT_BUS.addListener(com.alex.mycelialmind.data.CodexReloadListener::onAddReloadListeners);

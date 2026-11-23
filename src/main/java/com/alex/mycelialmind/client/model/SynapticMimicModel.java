@@ -198,6 +198,23 @@ public class SynapticMimicModel<T extends Entity> extends EntityModel<T> {
         this.echoTendrilL.zRot = 0.0F + Mth.cos(ageInTicks * 0.10F + 1.4F) * 0.15F * 1.0F - jiggle * 0.20F;
         this.rightLeg.xRot = 0.0F + Mth.cos(limbSwing * 0.6662F) * 1.1F * limbSwingAmount * 1.0F;
         this.leftLeg.xRot = 0.0F + Mth.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.1F * limbSwingAmount * 1.0F;
+        if (entity instanceof com.alex.mycelialmind.entity.SynapticMimicEntity mimic) {
+            if (!mimic.isUnmasked()) {
+                this.head.xRot += 0.14F;
+                this.eliteEchoHalo.visible = false;
+            }
+            switch (mimic.getMimicStance()) {
+                case BLADE_DANCER -> this.armR.xRot -= 0.42F;
+                case SPORE_MARKSMAN -> {
+                    this.armR.xRot -= 0.65F;
+                    this.armL.xRot -= 0.35F;
+                }
+                case AEGIS_MIRROR -> {
+                    this.armL.xRot -= 0.75F;
+                    this.armL.yRot = 0.52F;
+                }
+            }
+        }
     }
 
     private static float damperExact(float x, float goal, float halflife, float dt) {

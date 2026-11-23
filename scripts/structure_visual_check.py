@@ -258,7 +258,11 @@ def validate_structure_shots(
 
             compared_any = True
             ssim, phash_dist = compare_images(base_path, src)
-            lpips_val = compute_lpips(base_path, src)
+            lpips_val = (
+                None
+                if (ssim >= 0.995 and phash_dist <= max_hamming)
+                else compute_lpips(base_path, src)
+            )
             info["ssim"] = round(ssim, 4)
             info["phash_hamming"] = int(phash_dist)
             info["lpips"] = round(lpips_val, 4) if lpips_val is not None else None

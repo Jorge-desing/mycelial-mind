@@ -308,9 +308,12 @@ public class ApexMatriarchEntity extends MycelialMob {
                 if (sp.level() instanceof ServerLevel spLevel) {
                     PacketDistributor.sendToPlayer(sp, HiveSyncPayload.forPlayer(spLevel, sp));
                     com.alex.mycelialmind.network.DiscoverySyncPayload.syncToPlayer(sp);
+                    com.alex.mycelialmind.network.PostMatriarchExpeditionSyncPayload.syncToPlayer(sp);
                 }
                 sp.sendSystemMessage(Component.translatable("message.mycelialmind.matriarch_defeated_remission")
                         .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+                sp.sendSystemMessage(Component.translatable("message.mycelialmind.expedition_unlocked")
+                        .withStyle(ChatFormatting.GOLD));
             }
         }
     }

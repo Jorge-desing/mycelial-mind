@@ -57,11 +57,7 @@ public class SynapticBenchMenu extends AbstractContainerMenu {
             public void onTake(Player player, ItemStack stack) {
                 var details = blockEntity.computeSynthesisDetails();
                 ItemStack inputSample = blockEntity.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE).copy();
-                if (blockEntity.isOutputInputsConsumed()) {
-                    blockEntity.refreshOutputSlot();
-                } else {
-                    blockEntity.consumeInputsForSynthesis();
-                }
+                blockEntity.finishManualOutputTake();
                 if (blockEntity.getLevel() != null && !blockEntity.getLevel().isClientSide()) {
                     blockEntity.getLevel().playSound(null, blockEntity.getBlockPos(),
                             ModSounds.SYNAPTIC_BENCH_SYNTHESIZE.get(), SoundSource.BLOCKS, 0.85F, 1.0F);

@@ -86,12 +86,19 @@ neoForge {
 
         visualSmoke {
             client()
-            if (providers.gradleProperty('particleVisualSmoke').getOrElse('false') == 'true') {
+            if (providers.gradleProperty('expeditionVisualSmoke').getOrElse('false') == 'true') {
+                gameDirectory = project.file('artifacts/diagnostics/expedition-visual-client')
+            } else if (providers.gradleProperty('particleVisualSmoke').getOrElse('false') == 'true') {
                 gameDirectory = project.file('artifacts/diagnostics/particle-visual-client')
             }
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             systemProperty 'mycelialmind.visualSmoke', 'true'
             systemProperty 'mycelialmind.particleVisualSmoke', providers.gradleProperty('particleVisualSmoke').getOrElse('false')
+            systemProperty 'mycelialmind.expeditionVisualSmoke', providers.gradleProperty('expeditionVisualSmoke').getOrElse('false')
+            systemProperty 'mycelialmind.expeditionKeepSmokeEntities', providers.gradleProperty('expeditionKeepSmokeEntities').getOrElse('false')
+            systemProperty 'mycelialmind.expeditionHoldTicks', providers.gradleProperty('expeditionHoldTicks').getOrElse('0')
+            systemProperty 'mycelialmind.expeditionForceFailure', providers.gradleProperty('expeditionForceFailure').getOrElse('false')
+            systemProperty 'mycelialmind.expeditionReloadWorld', providers.gradleProperty('expeditionReloadWorld').getOrElse('')
             jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
             logLevel = org.slf4j.event.Level.INFO
         }
@@ -169,6 +176,9 @@ neoForge {
         // The gametest system is also enabled by default for other run configs under the /test command.
         gameTestServer {
             type = "gameTestServer"
+            if (providers.gradleProperty('isolatedGameTests').getOrElse('false') == 'true') {
+                gameDirectory = project.file('artifacts/diagnostics/isolated-gametest-server')
+            }
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             jvmArguments.addAll '-XX:TieredStopAtLevel=1', '-Xms512m', '-Xmx2G', '-XX:+UseParallelGC'
             logLevel = org.slf4j.event.Level.INFO

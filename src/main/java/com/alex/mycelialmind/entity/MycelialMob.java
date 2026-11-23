@@ -19,6 +19,7 @@ import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.ModDimensions;
 import com.alex.mycelialmind.world.MycelialLootSystem;
@@ -373,6 +374,11 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
     public static boolean isFriendlyToPlayer(MycelialMob mob, @Nullable Player player) {
         if (mob.isAlliedEscort()) {
             return player == null || player.getUUID().equals(mob.getAlliedOwnerUuid());
+        }
+        if (mob instanceof SynapticMimicEntity mimic
+                && mimic.isSpoofingAllianceFor(player)
+                && (player == null || !player.hasEffect(ModEffects.SYNAPTIC_VISION))) {
+            return true;
         }
         if (player == null || mob.isBossMob()) {
             return false;
@@ -969,6 +975,9 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
 
     @Override
     public void remove(RemovalReason reason) {
+        if (reason.shouldDestroy() && this.level() instanceof ServerLevel serverLevel) {
+            com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onAttackerRemoved(serverLevel, getUUID());
+        }
         if (reason.shouldDestroy() && this.alliedOwnerUuid != null && this.level() instanceof ServerLevel serverLevel) {
             AlliedEscortSavedData.get(serverLevel.getServer()).unregister(this.getUUID());
         }

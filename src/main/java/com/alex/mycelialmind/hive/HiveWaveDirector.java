@@ -425,7 +425,7 @@ public final class HiveWaveDirector {
         return spawned > 0;
     }
 
-    private static void prepareWaveMob(
+    static void prepareWaveMob(
             MycelialMob mob,
             HiveMindSavedData hive,
             RandomSource random,

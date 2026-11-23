@@ -55,6 +55,11 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
     private int lastObservationCode = 0;
     private String lastObservationDimension = "";
     private int pinnedExpeditionGoal = 0;
+    private BlockPos pinnedEnclave;
+
+    public BlockPos getPinnedEnclave() { return pinnedEnclave; }
+
+    public void setPinnedEnclave(BlockPos pos) { pinnedEnclave = pos == null ? null : pos.immutable(); }
     private int researchStageMask = 0;
     private int recordedThreatPermille = 0;
     private int lastThreatDropPermille = 0;
@@ -401,6 +406,7 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
             tag.putString(TAG_LAST_OBS_DIM, lastObservationDimension);
         }
         tag.putInt(TAG_PINNED_GOAL, pinnedExpeditionGoal);
+        if (pinnedEnclave != null) tag.putLong("PinnedEnclave", pinnedEnclave.asLong());
         tag.putInt(TAG_RESEARCH_STAGE, researchStageMask);
         tag.putInt(TAG_RECORDED_THREAT, recordedThreatPermille);
         tag.putInt(TAG_LAST_THREAT_DROP, lastThreatDropPermille);
@@ -419,6 +425,8 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
         lastObservationCode = ProgressionGoalEngine.CreatureObservation.byId(nbt.getInt(TAG_LAST_OBSERVATION)).id();
         lastObservationDimension = nbt.contains(TAG_LAST_OBS_DIM) ? nbt.getString(TAG_LAST_OBS_DIM) : "";
         pinnedExpeditionGoal = ProgressionGoalEngine.ExpeditionGoal.byId(nbt.getInt(TAG_PINNED_GOAL)).id();
+        pinnedEnclave = nbt.contains("PinnedEnclave", net.minecraft.nbt.Tag.TAG_LONG)
+                ? BlockPos.of(nbt.getLong("PinnedEnclave")) : null;
         researchStageMask = Math.max(0, nbt.getInt(TAG_RESEARCH_STAGE));
         recordedThreatPermille = Math.max(0, Math.min(100_000, nbt.getInt(TAG_RECORDED_THREAT)));
         lastThreatDropPermille = Math.max(0, Math.min(100_000, nbt.getInt(TAG_LAST_THREAT_DROP)));

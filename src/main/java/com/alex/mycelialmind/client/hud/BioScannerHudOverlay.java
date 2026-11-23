@@ -2,12 +2,14 @@ package com.alex.mycelialmind.client.hud;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.config.MycelialClientConfig;
+import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.ClientDiscoveryCache;
+import com.alex.mycelialmind.network.ClientExpeditionCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.network.ClientSymbiosisCache;
 import com.alex.mycelialmind.registry.ModEffects;
@@ -142,6 +144,19 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             return;
         }
 
+        BlockPos destination = ClientExpeditionCache.getDirectory().pinned();
+        if (destination != null) {
+            Component destinationText = inDeepMycelium
+                    ? Component.translatable("hud.mycelialmind.enclave_destination", destination.getX(), destination.getY(),
+                            destination.getZ(), (int) Math.sqrt(destination.distSqr(player.blockPosition())))
+                    : Component.translatable("hud.mycelialmind.enclave_other_dimension", destination.getX(), destination.getY(), destination.getZ());
+            int destinationWidth = mc.font.width(destinationText) + 10;
+            int destinationX = Math.max(4, sw - destinationWidth - 8);
+            int destinationY = thermalVision != null ? 24 : 8;
+            graphics.fill(destinationX, destinationY, destinationX + destinationWidth, destinationY + 12, 0xBB05262E);
+            graphics.drawString(mc.font, destinationText, destinationX + 5, destinationY + 2, 0xFF72EFDD, true);
+        }
+
         double threat = ClientHiveCache.getThreatLevel();
         Set<AdaptationTrait> traits = ClientHiveCache.getActiveTraits();
         Set<AdaptationTrait> tier2 = ClientHiveCache.getTier2Traits();
@@ -158,7 +173,16 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         MobEffectInstance sporeRotEffect = player.getEffect(ModEffects.SPORE_ROT);
         MobEffectInstance insightEffect = player.getEffect(ModEffects.SYNAPTIC_INSIGHT);
         boolean deceptionActive = ClientHiveCache.getFalseStimulus() != null && ClientHiveCache.getDeceptionSecondsRemaining() > 0;
-        int extraEffectLines = (sporeRotEffect != null ? 1 : 0) + (insightEffect != null ? 1 : 0) + (deceptionActive ? 1 : 0);
+        boolean mimicPresent = mc.level != null && !mc.level.getEntitiesOfClass(
+                SynapticMimicEntity.class,
+                player.getBoundingBox().inflate(24.0D),
+                m -> m.isAlive() && m.isInformationWarfareActive()
+        ).isEmpty();
+        boolean mimicExposed = thermalVision != null;
+        int extraEffectLines = (sporeRotEffect != null ? 1 : 0)
+                + (insightEffect != null ? 1 : 0)
+                + (deceptionActive ? 1 : 0)
+                + (mimicPresent ? 1 : 0);
         Font font = mc.font;
 
         boolean compact = MycelialClientConfig.isHudCompact();
@@ -219,7 +243,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             drawNearestNodeLine(graphics, font, player, nearestNode, links, x + 6, lineY + 1);
             lineY += 11;
             lineY = drawStatusTailLines(graphics, font, infectionLevel, sporeRotEffect, insightEffect, deceptionActive,
-                    squadStatus, squadSec, inDeepMycelium, homeoStress, homeoStage, smotheredPylons, x + 6, lineY);
+                    mimicPresent, mimicExposed, squadStatus, squadSec, inDeepMycelium, homeoStress, homeoStage, smotheredPylons, x + 6, lineY);
             drawGoalTrackerLine(graphics, font, x + 6, lineY, width - 12);
             return;
         }
@@ -265,7 +289,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             lineY += 10;
         }
         lineY = drawStatusTailLines(graphics, font, infectionLevel, sporeRotEffect, insightEffect, deceptionActive,
-                squadStatus, squadSec, inDeepMycelium, homeoStress, homeoStage, smotheredPylons, x + 6, lineY);
+                mimicPresent, mimicExposed, squadStatus, squadSec, inDeepMycelium, homeoStress, homeoStage, smotheredPylons, x + 6, lineY);
         drawGoalTrackerLine(graphics, font, x + 6, lineY, width - 12);
     }
 
@@ -292,6 +316,8 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             MobEffectInstance sporeRotEffect,
             MobEffectInstance insightEffect,
             boolean deceptionActive,
+            boolean mimicPresent,
+            boolean mimicExposed,
             SynapticCommandSystem.SquadTacticalStatus squadStatus,
             int squadSec,
             boolean inDeepMycelium,
@@ -323,6 +349,12 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
                             MycelialText.stimulus(ClientHiveCache.getFalseStimulus()),
                             ClientHiveCache.getDeceptionSecondsRemaining()),
                     x, lineY, 0xFF38B000, true);
+            lineY += 10;
+        }
+        if (mimicPresent) {
+            graphics.drawString(font, Component.translatable(
+                            mimicExposed ? "hud.mycelialmind.mimic_exposed" : "hud.mycelialmind.mimic_interference"),
+                    x, lineY, mimicExposed ? 0xFF72EFDD : 0xFFFF66CC, true);
             lineY += 10;
         }
         if (squadStatus != SynapticCommandSystem.SquadTacticalStatus.NONE) {

@@ -66,6 +66,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
+            com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(serverLevel, pos);
             com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(serverLevel, pos, false);
             PurificationZoneTracker.get(serverLevel).removePylon(pos);
         }
@@ -97,6 +98,9 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         boolean wasSmothered = tracker.isPylonSmothered(pos);
         boolean smothered = AntibodyCystBlock.countAdjacentCysts(level, pos) >= DimensionalHomeostasisEngine.SMOTHER_FACE_THRESHOLD;
         tracker.setPylonSmothered(pos, smothered);
+        if (smothered && !wasSmothered) {
+            com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
+        }
         int tier = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus) ? focus.getTier() : 1;
         if (tracker.getPylonTier(pos) != tier) {
             tracker.setPylonTier(pos, tier);

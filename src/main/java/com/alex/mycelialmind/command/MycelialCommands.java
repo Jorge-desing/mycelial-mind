@@ -747,10 +747,15 @@ public final class MycelialCommands {
                 .byKey(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
                         com.alex.mycelialmind.MycelialMind.MODID, "neural_echo_decoy"))
                 .isPresent();
-        boolean ok = mimic != null && graftRecipeOk && decoyRecipeOk;
+        boolean mimicPersonaOk = false;
         if (mimic != null) {
+            mimic.setMimicPersona(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.MimicPersona.INFILTRATION_SPOOF);
+            mimicPersonaOk = mimic.isSpoofingAlliance();
+            mimic.unmaskWithSynapticShock(level, null);
+            mimicPersonaOk = mimicPersonaOk && mimic.isUnmasked() && mimic.isDesynced() && mimic.getShockTicks() > 0;
             mimic.discard();
         }
+        boolean ok = mimicPersonaOk && graftRecipeOk && decoyRecipeOk;
         if (!ok) {
             source.sendFailure(Component.literal("[Verify:Mycorrhizal] FAIL: SynapticMimic or v1.2.0 recipes missing."));
             return 0;

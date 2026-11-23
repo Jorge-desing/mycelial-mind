@@ -4,6 +4,7 @@ import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.AntibodyCystBlock;
 import com.alex.mycelialmind.block.HyphalVeinBlock;
+import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.client.model.HyphalVeinDynamicModel;
 import com.alex.mycelialmind.client.model.AcidSpitterModel;
@@ -39,6 +40,7 @@ import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.ClientDiplomacyCache;
 import com.alex.mycelialmind.network.ClientDiscoveryCache;
+import com.alex.mycelialmind.network.ClientExpeditionCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.network.ClientSymbiosisCache;
 import com.alex.mycelialmind.registry.ModBlockEntities;
@@ -157,6 +159,42 @@ public final class ClientSetup {
                 },
                 ModBlocks.HYPHAL_VEIN.get()
         );
+        event.register(
+                (state, level, pos, tintIndex) -> tintIndex == 0
+                        ? ReclaimedBloomBlock.colorForPalette(state.getValue(ReclaimedBloomBlock.PALETTE))
+                        : 0xFFFFFFFF,
+                ModBlocks.RECLAIMED_BLOOM.get()
+        );
+    }
+
+    @SubscribeEvent
+    public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register((stack, tintIndex) -> {
+            if (tintIndex != 0) {
+                return 0xFFFFFFFF;
+            }
+            if (stack.is(ModItems.RECLAIMED_BLOOM_MELEE.get())) {
+                return ReclaimedBloomBlock.colorForPalette(1);
+            }
+            if (stack.is(ModItems.RECLAIMED_BLOOM_PROJECTILE.get())) {
+                return ReclaimedBloomBlock.colorForPalette(2);
+            }
+            if (stack.is(ModItems.RECLAIMED_BLOOM_FIRE.get())) {
+                return ReclaimedBloomBlock.colorForPalette(3);
+            }
+            if (stack.is(ModItems.RECLAIMED_BLOOM_EXPLOSION.get())) {
+                return ReclaimedBloomBlock.colorForPalette(4);
+            }
+            if (stack.is(ModItems.RECLAIMED_BLOOM_MAGIC.get())) {
+                return ReclaimedBloomBlock.colorForPalette(5);
+            }
+            return ReclaimedBloomBlock.colorForPalette(0);
+        }, ModBlocks.RECLAIMED_BLOOM.get(),
+                ModItems.RECLAIMED_BLOOM_MELEE.get(),
+                ModItems.RECLAIMED_BLOOM_PROJECTILE.get(),
+                ModItems.RECLAIMED_BLOOM_FIRE.get(),
+                ModItems.RECLAIMED_BLOOM_EXPLOSION.get(),
+                ModItems.RECLAIMED_BLOOM_MAGIC.get());
     }
 
     @SubscribeEvent
@@ -393,6 +431,8 @@ public final class ClientSetup {
         private static final List<BlockPos> CACHED_THERMAL_VAULTS = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_VEINS = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_BLIND_SPOTS = new ArrayList<>();
+        private static final List<BlockPos> CACHED_GARDEN_FLORA = new ArrayList<>();
+        private static int gardenScanTick;
         private static int cystScanTick = 0;
         private static boolean clientSessionActive = false;
 
@@ -472,6 +512,7 @@ public final class ClientSetup {
                     ClientSymbiosisCache.clear();
                     ClientDiplomacyCache.clear();
                     ClientDiscoveryCache.clear();
+                    ClientExpeditionCache.clear();
                     ClientSoundscapeDirector.resetSession();
                     CACHED_THERMAL_CYSTS.clear();
                     CACHED_THERMAL_TURRETS.clear();
@@ -533,6 +574,27 @@ public final class ClientSetup {
             }
 
             if (mc.player.hasEffect(ModEffects.SYNAPTIC_VISION)) {
+                if (++gardenScanTick >= 40) {
+                    gardenScanTick = 0;
+                    CACHED_GARDEN_FLORA.clear();
+                    BlockPos garden = ClientExpeditionCache.getActivePos();
+                    if (garden != null && ClientExpeditionCache.getOutcomeId() == 2
+                            && mc.level.dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL)
+                            && mc.level.hasChunkAt(garden)
+                            && mc.level.getBlockState(garden).is(ModBlocks.SYMBIOTIC_NODE.get())
+                            && garden.distSqr(mc.player.blockPosition()) <= 48 * 48) {
+                        for (BlockPos p : BlockPos.betweenClosed(garden.offset(-24, -24, -24), garden.offset(24, 24, 24))) {
+                            if (p.distSqr(garden) > 24 * 24 || !mc.level.hasChunkAt(p)) continue;
+                            var state = mc.level.getBlockState(p);
+                            if ((state.is(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get())
+                                    || state.is(ModBlocks.SPORE_BULB.get())
+                                    || state.is(ModBlocks.MYCELIAL_TENDRILS.get()))
+                                    && ModBlocks.RECLAIMED_BLOOM.get().defaultBlockState().canSurvive(mc.level, p)) {
+                                CACHED_GARDEN_FLORA.add(p.immutable());
+                            }
+                        }
+                    }
+                }
                 if (++cystScanTick >= 10) {
                     cystScanTick = 0;
                     CACHED_THERMAL_CYSTS.clear();
@@ -571,12 +633,14 @@ public final class ClientSetup {
                     || !CACHED_THERMAL_TURRETS.isEmpty()
                     || !CACHED_THERMAL_VAULTS.isEmpty()
                     || !CACHED_THERMAL_VEINS.isEmpty()
-                    || !CACHED_THERMAL_BLIND_SPOTS.isEmpty()) {
+                    || !CACHED_THERMAL_BLIND_SPOTS.isEmpty()
+                    || !CACHED_GARDEN_FLORA.isEmpty()) {
                 CACHED_THERMAL_CYSTS.clear();
                 CACHED_THERMAL_TURRETS.clear();
                 CACHED_THERMAL_VAULTS.clear();
                 CACHED_THERMAL_VEINS.clear();
                 CACHED_THERMAL_BLIND_SPOTS.clear();
+                CACHED_GARDEN_FLORA.clear();
                 cystScanTick = 0;
             }
         }
@@ -603,7 +667,14 @@ public final class ClientSetup {
             AABB scanBox = mc.player.getBoundingBox().inflate(32.0D);
             for (Entity entity : mc.level.getEntities(mc.player, scanBox, e -> e.isAlive())) {
                 if (entity instanceof MycelialMob mob) {
-                    if (mob.isPrimordialVariant()) {
+                    if (mob instanceof com.alex.mycelialmind.entity.SynapticMimicEntity mimic) {
+                        LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.11D),
+                                0.95F, 0.18F * pulse, 1.0F, 0.98F);
+                        if (!mimic.isUnmasked()) {
+                            LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.15D),
+                                    1.0F, 0.55F, 0.95F, 0.90F);
+                        }
+                    } else if (mob.isPrimordialVariant()) {
                         LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.12D),
                                 0.72F, 1.0F, 0.22F * pulse, 0.98F);
                     } else if (mob.getCommandRole() == SynapticCommandSystem.CommandRole.LEADER && !mob.isDesynced()) {
@@ -697,6 +768,11 @@ public final class ClientSetup {
             for (BlockPos blindPos : CACHED_THERMAL_BLIND_SPOTS) {
                 LevelRenderer.renderLineBox(poseStack, lineConsumer, new AABB(blindPos).inflate(0.06D),
                         1.0F, 0.18F, 0.72F * pulse, 0.96F);
+            }
+
+            for (BlockPos flora : CACHED_GARDEN_FLORA) {
+                LevelRenderer.renderLineBox(poseStack, lineConsumer, new AABB(flora).inflate(0.05D),
+                        0.35F, 1.0F, 0.35F, 0.95F);
             }
 
             poseStack.popPose();

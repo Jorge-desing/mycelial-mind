@@ -1969,4 +1969,66 @@ class HiveAlgorithmsUnitTest {
         assertEquals("hud.mycelialmind.research.step.sample_ready_missing_biomass",
                 com.alex.mycelialmind.hive.ProgressionGoalEngine.ResearchNextStep.SAMPLE_READY_MISSING_BIOMASS.hudTranslationKey());
     }
+
+    @Test
+    void synapticMimicArchitecturePersonaStanceMutagenAndSabotageRulesHold() {
+        var unmasked = com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.evaluatePersona(
+                true, false, true, true, true);
+        assertEquals(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.MimicPersona.UNMASKED_DUELIST, unmasked);
+        assertFalse(unmasked.isCovert());
+
+        var desynced = com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.evaluatePersona(
+                false, true, true, false, false);
+        assertEquals(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.MimicPersona.UNMASKED_DUELIST, desynced);
+
+        var saboteur = com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.evaluatePersona(
+                false, false, true, true, false);
+        assertEquals(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.MimicPersona.NETWORK_SABOTEUR, saboteur);
+
+        var spoof = com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.evaluatePersona(
+                false, false, false, true, true);
+        assertEquals(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.MimicPersona.INFILTRATION_SPOOF, spoof);
+        assertTrue(spoof.isCovert());
+
+        var lure = com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.evaluatePersona(
+                false, false, false, false, true);
+        assertEquals(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.MimicPersona.ECHO_LURE, lure);
+        assertTrue(lure.isCovert());
+
+        // Habit counter-stance selection when gear is neutral
+        assertEquals(com.alex.mycelialmind.entity.SynapticMimicEntity.MimicStance.SPORE_MARKSMAN,
+                com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.evaluateCombatStance(
+                        false, false, 0, null, java.util.Set.of(com.alex.mycelialmind.hive.PlayerHabit.HIGH_MOBILITY)));
+        assertEquals(com.alex.mycelialmind.entity.SynapticMimicEntity.MimicStance.AEGIS_MIRROR,
+                com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.evaluateCombatStance(
+                        false, false, 0, null, java.util.Set.of(com.alex.mycelialmind.hive.PlayerHabit.SHADOW_INFILTRATOR)));
+
+        // Parasitized SymbioticMutagen mirror selection & clearing on Desync
+        assertEquals(com.alex.mycelialmind.symbiosis.SymbioticMutagen.KINETIC_STRAFE,
+                com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.selectParasitizedMutagen(
+                        java.util.Set.of(
+                                com.alex.mycelialmind.symbiosis.SymbioticMutagen.CHITIN_THORNS,
+                                com.alex.mycelialmind.symbiosis.SymbioticMutagen.KINETIC_STRAFE),
+                        com.alex.mycelialmind.entity.SynapticMimicEntity.MimicStance.SPORE_MARKSMAN,
+                        false));
+        assertNull(com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.selectParasitizedMutagen(
+                java.util.Set.of(com.alex.mycelialmind.symbiosis.SymbioticMutagen.CHITIN_THORNS),
+                com.alex.mycelialmind.entity.SynapticMimicEntity.MimicStance.BLADE_DANCER,
+                true));
+
+        // Deceptive false stimulus avoids repeating actual dominant
+        assertNotEquals(com.alex.mycelialmind.hive.StimulusType.PROJECTILE,
+                com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.selectDeceptiveFalseStimulus(
+                        com.alex.mycelialmind.entity.SynapticMimicEntity.MimicStance.SPORE_MARKSMAN,
+                        com.alex.mycelialmind.hive.StimulusType.PROJECTILE));
+
+        assertEquals(85, com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.computeSymbioticStabilityDrain(100,
+                com.alex.mycelialmind.hive.EvolutionRank.BASE));
+        assertEquals(75, com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.computeSymbioticStabilityDrain(100,
+                com.alex.mycelialmind.hive.EvolutionRank.ELITE));
+        assertEquals(1.25F, com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.computeUnmaskShockDamageMultiplier(true, true), 1.0E-4F);
+        assertEquals("mycelialmind:false_engram_injector",
+                com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.computeMimicCounterIntelDropId(
+                        com.alex.mycelialmind.hive.EvolutionRank.ELITE, true, 0.10F));
+    }
 }

@@ -11,16 +11,19 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine;
 import com.alex.mycelialmind.hive.HyphalSiegeDirector;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
+import com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.network.PostMatriarchExpeditionSyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
@@ -87,6 +90,10 @@ public class BioScannerItem extends Item {
         }
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             PlayerDiscoveryData.unlockMilestone(serverPlayer, ProgressionGoalEngine.MILESTONE_BIO_SCANNER);
+            if (PostMatriarchExpeditionDirector.handleScannerUseOn(
+                    serverPlayer, (ServerLevel) level, pos, player.isShiftKeyDown())) {
+                return InteractionResult.sidedSuccess(false);
+            }
         }
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof PurificationTurretBlockEntity turret) {
@@ -320,6 +327,20 @@ public class BioScannerItem extends Item {
         }
         if (target instanceof MycelialMob mob) {
             if (player.level() instanceof ServerLevel serverLevel) {
+                if (mob instanceof SynapticMimicEntity mimic) {
+                    if (!mimic.isUnmasked()) {
+                        mimic.unmaskWithSynapticShock(serverLevel, player);
+                    }
+                    Component mutagenComp = mimic.getParasitizedMutagen() != null
+                            ? MycelialText.mutagen(mimic.getParasitizedMutagen())
+                            : Component.translatable("message.mycelialmind.none");
+                    player.sendSystemMessage(Component.translatable(
+                            "message.mycelialmind.scanner_mimic_inspect",
+                            Component.translatable(mimic.getMimicPersona().translationKey()),
+                            Component.translatable(mimic.getMimicStance().translationKey()),
+                            mutagenComp
+                    ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                }
                 Component tactical = formatMobTacticalStatus(mob);
                 player.sendSystemMessage(Component.translatable(
                         "message.mycelialmind.scanner_mob_inspect",
@@ -432,6 +453,7 @@ public class BioScannerItem extends Item {
         if (!player.isShiftKeyDown()) {
             if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
                 PacketDistributor.sendToPlayer(serverPlayer, HiveSyncPayload.forPlayer(serverLevel, serverPlayer));
+                PostMatriarchExpeditionSyncPayload.syncToPlayer(serverPlayer);
             } else if (level.isClientSide()) {
                 ClientCodexOpener.openBioCodex();
             }
@@ -544,6 +566,24 @@ public class BioScannerItem extends Item {
         ).withStyle(ChatFormatting.AQUA), true);
 
         BlockPos origin = player.blockPosition();
+        for (SynapticMimicEntity mimic : level.getEntitiesOfClass(
+                SynapticMimicEntity.class,
+                new net.minecraft.world.phys.AABB(origin).inflate(16.0D),
+                m -> m.isAlive() && !m.isUnmasked()
+        )) {
+            mimic.unmaskWithSynapticShock(level, player);
+        }
+        if (level.dimension().equals(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL)) {
+            var expedition = com.alex.mycelialmind.hive.PostMatriarchExpeditionData.get(level);
+            BlockPos garden = expedition.getActivePos();
+            if (garden != null && expedition.getActiveOutcome()
+                    == com.alex.mycelialmind.hive.PostMatriarchExpeditionData.Outcome.GARDEN
+                    && level.isLoaded(garden) && level.getBlockState(garden).is(ModBlocks.SYMBIOTIC_NODE.get())
+                    && garden.distSqr(origin) <= 48 * 48) {
+                player.sendSystemMessage(Component.translatable("message.mycelialmind.expedition_flora_vision")
+                        .withStyle(ChatFormatting.GREEN));
+            }
+        }
         BlockPos vaultChest = findNearbySealedVaultChest(level, origin, 16, 12);
         if (vaultChest != null) {
             int dist = (int) Math.round(Math.sqrt(vaultChest.distSqr(origin)));

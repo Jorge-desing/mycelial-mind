@@ -12,6 +12,7 @@ import com.alex.mycelialmind.block.MycelialNodeBlock;
 import com.alex.mycelialmind.block.MycelialRiftBlock;
 import com.alex.mycelialmind.block.MycelialTendrilsBlock;
 import com.alex.mycelialmind.block.PurificationPylonBlock;
+import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
 import com.alex.mycelialmind.block.SporeBulbBlock;
@@ -27,13 +28,19 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
+import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.ClientDiscoveryCache;
+import com.alex.mycelialmind.network.ClientExpeditionCache;
+import com.alex.mycelialmind.registry.ModEffects;
+import com.alex.mycelialmind.world.ModDimensions;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.alex.mycelialmind.world.SynapticNodeType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -80,6 +87,7 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(BlockProvider.INSTANCE, MycelialTendrilsBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, SporeBulbBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, HyphalVeinBlock.class);
+        registration.registerBlockComponent(BlockProvider.INSTANCE, ReclaimedBloomBlock.class);
     }
 
     public enum EntityProvider implements IEntityComponentProvider {
@@ -88,6 +96,18 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         @Override
         public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
             if (accessor.getEntity() instanceof MycelialMob mob) {
+                if (mob instanceof SynapticMimicEntity mimic) {
+                    Minecraft mc = Minecraft.getInstance();
+                    boolean hasVision = mc.player != null && mc.player.hasEffect(ModEffects.SYNAPTIC_VISION);
+                    if (mimic.isSpoofingAlliance() && !hasVision) {
+                        tooltip.add(Component.translatable("jade.mycelialmind.rank",
+                                MycelialText.rank(EvolutionRank.BASE)));
+                        tooltip.add(Component.translatable("jade.mycelialmind.strain",
+                                MycelialText.strain(mimic.getSpoofedStrain())));
+                        tooltip.add(Component.translatable("jade.mycelialmind.allied_escort"));
+                        return;
+                    }
+                }
                 tooltip.add(Component.translatable("jade.mycelialmind.rank",
                         MycelialText.rank(mob.getEvolutionRank())));
                 if (mob.getHiveStrain().isSchismStrain()) {
@@ -139,6 +159,15 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 }
                 if (mob.isPrimordialVariant()) {
                     tooltip.add(Component.translatable("jade.mycelialmind.primordial"));
+                }
+                if (mob instanceof SynapticMimicEntity mimic) {
+                    tooltip.add(Component.translatable("jade.mycelialmind.mimic_state",
+                            Component.translatable(mimic.getMimicPersona().translationKey()),
+                            Component.translatable(mimic.getMimicStance().translationKey())));
+                    if (mimic.getParasitizedMutagen() != null) {
+                        tooltip.add(Component.translatable("jade.mycelialmind.mimic_mutagen",
+                                MycelialText.mutagen(mimic.getParasitizedMutagen())));
+                    }
                 }
             } else if (accessor.getEntity() instanceof MycelialChimeraEntity chimera) {
                 tooltip.add(Component.translatable("jade.mycelialmind.rank",
@@ -240,6 +269,9 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                         : "jade.mycelialmind.flora_regrowing"));
             } else if (accessor.getBlock() instanceof SporeBulbBlock) {
                 tooltip.add(Component.translatable("jade.mycelialmind.spore_bulb"));
+            } else if (accessor.getBlock() instanceof ReclaimedBloomBlock) {
+                tooltip.add(Component.translatable(accessor.getBlockState().getValue(ReclaimedBloomBlock.MATURE)
+                        ? "jade.mycelialmind.flora_mature" : "jade.mycelialmind.flora_regrowing"));
             } else if (accessor.getBlock() instanceof HyphalVeinBlock) {
                 boolean charged = accessor.getBlockState().hasProperty(HyphalVeinBlock.CHARGED)
                         && accessor.getBlockState().getValue(HyphalVeinBlock.CHARGED);
@@ -268,6 +300,23 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 tooltip.add(Component.translatable("jade.mycelialmind.matriarch_altar"));
             } else if (accessor.getBlock() instanceof SporeVentBlock) {
                 tooltip.add(Component.translatable("jade.mycelialmind.spore_vent"));
+            }
+            if (accessor.getLevel().dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL)
+                    && ClientExpeditionCache.hasActiveExpedition()) {
+                var pos = accessor.getPosition();
+                if (pos.equals(ClientExpeditionCache.getActivePos())) {
+                    if (ClientExpeditionCache.getOutcomeId() == 2) {
+                        tooltip.add(Component.translatable("jade.mycelialmind.expedition_garden", ClientExpeditionCache.getLinkedFlora(), 3));
+                    } else {
+                        tooltip.add(Component.translatable("jade.mycelialmind.expedition_route", ClientExpeditionCache.getProgress(), 3));
+                    }
+                }
+                if (pos.equals(ClientExpeditionCache.getDefensePylon())) {
+                    tooltip.add(Component.translatable("jade.mycelialmind.expedition_pylon", ClientExpeditionCache.getProgress(), 3));
+                    if (ClientExpeditionCache.isPulseInProgress()) {
+                        tooltip.add(Component.translatable("jade.mycelialmind.expedition_attackers", ClientExpeditionCache.getAttackersRemaining()));
+                    }
+                }
             }
         }
 

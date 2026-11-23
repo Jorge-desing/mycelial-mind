@@ -3,12 +3,14 @@ package com.alex.mycelialmind.network;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.PlayerHabit;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
+import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
@@ -610,6 +612,18 @@ public record HiveSyncPayload(
         List<NodeMarker> nearbyNodes = new ArrayList<>();
         for (Map.Entry<BlockPos, SynapticNodeType> entry : tracker.getNodesWithin(anchor, 128, 48)) {
             nearbyNodes.add(new NodeMarker(entry.getKey(), entry.getValue()));
+        }
+        if (!player.hasEffect(ModEffects.SYNAPTIC_VISION)) {
+            for (SynapticMimicEntity mimic : level.getEntitiesOfClass(
+                    SynapticMimicEntity.class,
+                    player.getBoundingBox().inflate(24.0D),
+                    m -> m.isAlive() && m.isInformationWarfareActive() && !m.isUnmasked()
+            )) {
+                if (nearbyNodes.size() + 2 <= MAX_SYNC_NODES) {
+                    nearbyNodes.add(new NodeMarker(mimic.blockPosition().offset(5, 0, -4), SynapticNodeType.INCUBATOR));
+                    nearbyNodes.add(new NodeMarker(mimic.blockPosition().offset(-4, 0, 5), SynapticNodeType.SENTINEL));
+                }
+            }
         }
         List<BlockPos> nearbyPylons = tracker.getPylonsWithin(anchor, 128, 24);
         long now = level.getGameTime();

@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "mature=true,palette=0": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=false,palette=0": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=true,palette=1": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=false,palette=1": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=true,palette=2": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=false,palette=2": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=true,palette=3": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=false,palette=3": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=true,palette=4": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=false,palette=4": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=true,palette=5": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    },
+    "mature=false,palette=5": {
+      "model": "mycelialmind:block/reclaimed_bloom"
+    }
+  }
+}

@@ -128,7 +128,8 @@ public class SynapticBenchScreen extends AbstractContainerScreen<SynapticBenchMe
                     Component.translatable("tooltip.mycelialmind.bench.formulas.r1").withStyle(ChatFormatting.LIGHT_PURPLE),
                     Component.translatable("tooltip.mycelialmind.bench.formulas.r2").withStyle(ChatFormatting.YELLOW),
                     Component.translatable("tooltip.mycelialmind.bench.formulas.r3").withStyle(ChatFormatting.GREEN),
-                    Component.translatable("tooltip.mycelialmind.bench.formulas.r4").withStyle(ChatFormatting.GOLD)
+                    Component.translatable("tooltip.mycelialmind.bench.formulas.r4").withStyle(ChatFormatting.GOLD),
+                    Component.translatable("tooltip.mycelialmind.bench.formulas.bloom").withStyle(ChatFormatting.GREEN)
             );
             graphics.renderTooltip(this.font, lines, Optional.empty(), mouseX, mouseY);
         } else {

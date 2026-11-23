@@ -276,6 +276,25 @@ def emit_java_model(model: ModelDef) -> str:
         elif role == "leech_wave":
             anim_lines.append(f"        this.{var}.yRot = Mth.sin(ageInTicks * 0.18F + limbSwing * 0.7F + {ph}) * 0.22F * {amp};")
 
+    if model.registry_id == "synaptic_mimic":
+        anim_lines.append("        if (entity instanceof com.alex.mycelialmind.entity.SynapticMimicEntity mimic) {")
+        anim_lines.append("            if (!mimic.isUnmasked()) {")
+        anim_lines.append("                this.head.xRot += 0.14F;")
+        anim_lines.append("                this.eliteEchoHalo.visible = false;")
+        anim_lines.append("            }")
+        anim_lines.append("            switch (mimic.getMimicStance()) {")
+        anim_lines.append("                case BLADE_DANCER -> this.armR.xRot -= 0.42F;")
+        anim_lines.append("                case SPORE_MARKSMAN -> {")
+        anim_lines.append("                    this.armR.xRot -= 0.65F;")
+        anim_lines.append("                    this.armL.xRot -= 0.35F;")
+        anim_lines.append("                }")
+        anim_lines.append("                case AEGIS_MIRROR -> {")
+        anim_lines.append("                    this.armL.xRot -= 0.75F;")
+        anim_lines.append("                    this.armL.yRot = 0.52F;")
+        anim_lines.append("                }")
+        anim_lines.append("            }")
+        anim_lines.append("        }")
+
     spring_import = "import java.util.Map;\nimport java.util.WeakHashMap;\n" if uses_spring else ""
     spring_field = "    private final Map<Entity, float[]> springState = new WeakHashMap<>();\n" if uses_spring else ""
     combat_field = "    private final CombatPoseTransition<Entity> combatPose = new CombatPoseTransition<>();\n" if uses_aggro else ""

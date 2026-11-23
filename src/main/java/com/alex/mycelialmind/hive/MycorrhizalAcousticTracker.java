@@ -107,6 +107,29 @@ public final class MycorrhizalAcousticTracker {
         return best;
     }
 
+    public static boolean consumeNearestDecoy(ServerLevel level, BlockPos origin, int radius) {
+        List<DecoyEntry> entries = ACTIVE_DECOYS.get(level);
+        if (entries == null || entries.isEmpty()) {
+            return false;
+        }
+        long now = level.getGameTime();
+        double bestDistSq = (double) radius * radius;
+        DecoyEntry best = null;
+        for (DecoyEntry entry : entries) {
+            if (entry.expiresAtTick() > now) {
+                double distSq = entry.pos().distSqr(origin);
+                if (distSq <= bestDistSq) {
+                    bestDistSq = distSq;
+                    best = entry;
+                }
+            }
+        }
+        if (best != null && entries.remove(best)) {
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isPlayerSilenced(ServerLevel level, Player player) {
         if (player.isCreative() || player.isSpectator() || player.isCrouching() || player.isShiftKeyDown()) {
             return true;

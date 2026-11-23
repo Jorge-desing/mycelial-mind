@@ -251,6 +251,7 @@ public class AntibodyCystBlock extends Block {
             if (wasSmothered != nowSmothered) {
                 tracker.setPylonSmothered(neighbor, nowSmothered);
                 if (nowSmothered) {
+                    com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, neighbor);
                     level.playSound(null, neighbor, ModSounds.CORROSIVE_JAM.get(), SoundSource.BLOCKS, 1.0F, 0.85F);
                     notifyNearby(level, neighbor, "message.mycelialmind.pylon_smothered", ChatFormatting.RED);
                 } else {

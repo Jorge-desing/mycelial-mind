@@ -14,6 +14,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -63,6 +64,12 @@ public class SynapticGraftItem extends Item {
                             .withStyle(ChatFormatting.RED),
                     true
             );
+            return InteractionResult.FAIL;
+        }
+
+        if (player instanceof ServerPlayer serverPlayer
+                && !com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.beforeNodeGrafted(
+                        serverPlayer, serverLevel, pos)) {
             return InteractionResult.FAIL;
         }
 

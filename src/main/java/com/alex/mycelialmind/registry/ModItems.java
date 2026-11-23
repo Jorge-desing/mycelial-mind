@@ -14,6 +14,7 @@ import com.alex.mycelialmind.item.NeuralEchoDecoyItem;
 import com.alex.mycelialmind.item.NeutralizingSporeLauncherItem;
 import com.alex.mycelialmind.item.OvermindCrownItem;
 import com.alex.mycelialmind.item.PurifierGrenadeItem;
+import com.alex.mycelialmind.item.ReclaimedBloomItem;
 import com.alex.mycelialmind.item.RiftCatalystItem;
 import com.alex.mycelialmind.item.SporeAntidoteItem;
 import com.alex.mycelialmind.item.SymbioticBladeItem;
@@ -121,6 +122,17 @@ public final class ModItems {
 
     public static final DeferredItem<Item> SYNAPTIC_GRAFT = ITEMS.register("synaptic_graft",
             () -> new SynapticGraftItem(new Item.Properties().stacksTo(8).rarity(Rarity.RARE)));
+
+    public static final DeferredItem<Item> RECLAIMED_BLOOM_MELEE = ITEMS.register("reclaimed_bloom_melee",
+            () -> new ReclaimedBloomItem(ModBlocks.RECLAIMED_BLOOM.get(), 1, new Item.Properties()));
+    public static final DeferredItem<Item> RECLAIMED_BLOOM_PROJECTILE = ITEMS.register("reclaimed_bloom_projectile",
+            () -> new ReclaimedBloomItem(ModBlocks.RECLAIMED_BLOOM.get(), 2, new Item.Properties()));
+    public static final DeferredItem<Item> RECLAIMED_BLOOM_FIRE = ITEMS.register("reclaimed_bloom_fire",
+            () -> new ReclaimedBloomItem(ModBlocks.RECLAIMED_BLOOM.get(), 3, new Item.Properties()));
+    public static final DeferredItem<Item> RECLAIMED_BLOOM_EXPLOSION = ITEMS.register("reclaimed_bloom_explosion",
+            () -> new ReclaimedBloomItem(ModBlocks.RECLAIMED_BLOOM.get(), 4, new Item.Properties()));
+    public static final DeferredItem<Item> RECLAIMED_BLOOM_MAGIC = ITEMS.register("reclaimed_bloom_magic",
+            () -> new ReclaimedBloomItem(ModBlocks.RECLAIMED_BLOOM.get(), 5, new Item.Properties()));
 
     public static final DeferredItem<Item> NEURAL_ECHO_DECOY = ITEMS.register("neural_echo_decoy",
             () -> new NeuralEchoDecoyItem(new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON)));

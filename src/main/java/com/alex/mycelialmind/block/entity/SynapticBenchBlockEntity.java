@@ -6,6 +6,8 @@ import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.item.GeneticSampleItem;
+import com.alex.mycelialmind.item.ReclaimedBloomItem;
+import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.menu.SynapticBenchMenu;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModDataComponents;
@@ -54,6 +56,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
 
     private int labTier = 1;
     private boolean outputInputsConsumed = false;
+    private boolean consumingInputs = false;
 
     private final ItemStackHandler inventory = new ItemStackHandler(4) {
         @Override
@@ -64,9 +67,8 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-            if (slot != SLOT_OUTPUT) {
-                outputInputsConsumed = false;
-                refreshOutputSlot();
+            if (slot != SLOT_OUTPUT && !consumingInputs) {
+                if (!outputInputsConsumed) refreshOutputSlot();
             }
             if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -80,7 +82,8 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         }
         return switch (slot) {
             case SLOT_SAMPLE -> stack.is(ModItems.GENETIC_SAMPLE.get())
-                    || stack.is(ModItems.SPORE_ANTIDOTE.get());
+                    || stack.is(ModItems.SPORE_ANTIDOTE.get())
+                    || isReclaimedBloom(stack);
             case SLOT_BIOMASS -> stack.is(ModItems.MYCELIAL_BIOMASS.get())
                     || stack.is(ModItems.LATENT_SPORE.get());
             case SLOT_CATALYST -> stack.is(ModItems.SYNAPTIC_CORE.get())
@@ -89,6 +92,11 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                     || stack.is(ModItems.NEURAL_ECHO_CORE.get());
             default -> false;
         };
+    }
+
+    private static boolean isReclaimedBloom(ItemStack stack) {
+        return stack.is(ModBlocks.RECLAIMED_BLOOM.get().asItem())
+                || stack.getItem() instanceof ReclaimedBloomItem;
     }
 
     public SynapticBenchBlockEntity(BlockPos pos, BlockState state) {
@@ -151,6 +159,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
     }
 
     public void refreshOutputSlot() {
+        if (outputInputsConsumed && !inventory.getStackInSlot(SLOT_OUTPUT).isEmpty()) return;
         ItemStack result = computeSynthesisResult();
         inventory.setStackInSlot(SLOT_OUTPUT, result);
     }
@@ -171,6 +180,11 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         ItemStack s0 = inventory.getStackInSlot(SLOT_SAMPLE);
         ItemStack s1 = inventory.getStackInSlot(SLOT_BIOMASS);
         ItemStack s2 = inventory.getStackInSlot(SLOT_CATALYST);
+
+        if (isReclaimedBloom(s0) && s1.is(ModItems.MYCELIAL_BIOMASS.get()) && s2.isEmpty()) {
+            ItemStack output = s0.copyWithCount(2);
+            return new SynthesisResult(output, -1, null);
+        }
 
         // Recipe A: GeneticSample (typed) + MycelialBiomass + SynapticCore -> SymbioticMutagen
         if (s0.is(ModItems.GENETIC_SAMPLE.get())
@@ -266,8 +280,18 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         refreshOutputSlot();
     }
 
+    public void finishManualOutputTake() {
+        if (!outputInputsConsumed) consumeInputIngredientsOnly();
+        outputInputsConsumed = !inventory.getStackInSlot(SLOT_OUTPUT).isEmpty();
+        if (!outputInputsConsumed) refreshOutputSlot();
+        setChanged();
+    }
+
     private void consumeInputIngredientsOnly() {
-        float preserveBiomassChance = labTier >= 3 ? 0.50F : (labTier == 2 ? 0.25F : 0.0F);
+        boolean reproducingBloom = isReclaimedBloom(inventory.getStackInSlot(SLOT_SAMPLE));
+        float preserveBiomassChance = reproducingBloom ? 0.0F : (labTier >= 3 ? 0.50F : (labTier == 2 ? 0.25F : 0.0F));
+        consumingInputs = true;
+        try {
         for (int i = 0; i < SLOT_OUTPUT; i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (!stack.isEmpty()) {
@@ -282,6 +306,9 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 inventory.setStackInSlot(i, stack);
             }
         }
+        } finally {
+            consumingInputs = false;
+        }
     }
 
     public ItemStack extractOutputForAutomation(int amount, boolean simulate) {
@@ -295,6 +322,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         if (!outputInputsConsumed) {
             consumeInputIngredientsOnly();
             outputInputsConsumed = true;
+            setChanged();
         }
         ItemStack extracted = inventory.extractItem(SLOT_OUTPUT, amount, false);
         if (inventory.getStackInSlot(SLOT_OUTPUT).isEmpty()) {
@@ -318,6 +346,10 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 Containers.dropItemStack(this.level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack);
             }
         }
+        if (outputInputsConsumed) {
+            ItemStack output = inventory.extractItem(SLOT_OUTPUT, inventory.getStackInSlot(SLOT_OUTPUT).getCount(), false);
+            if (!output.isEmpty()) Containers.dropItemStack(this.level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), output);
+        }
     }
 
     @Override
@@ -335,6 +367,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Inventory", inventory.serializeNBT(registries));
+        tag.putBoolean("OutputInputsConsumed", outputInputsConsumed);
         if (labTier > 1) {
             tag.putInt(TAG_LAB_TIER, labTier);
         }
@@ -344,9 +377,11 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         this.labTier = tag.contains(TAG_LAB_TIER) ? Math.max(1, Math.min(3, tag.getInt(TAG_LAB_TIER))) : 1;
+        outputInputsConsumed = tag.getBoolean("OutputInputsConsumed");
         if (tag.contains("Inventory")) {
             inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
         }
+        if (inventory.getStackInSlot(SLOT_OUTPUT).isEmpty()) outputInputsConsumed = false;
         refreshOutputSlot();
     }
 

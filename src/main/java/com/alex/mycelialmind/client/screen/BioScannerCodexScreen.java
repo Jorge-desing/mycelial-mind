@@ -11,17 +11,25 @@ import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.network.ClientDiplomacyCache;
 import com.alex.mycelialmind.network.ClientDiscoveryCache;
+import com.alex.mycelialmind.network.ClientExpeditionCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.network.ClientSymbiosisCache;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.network.PinExpeditionGoalPayload;
+import com.alex.mycelialmind.network.PostMatriarchExpeditionSyncPayload;
+import com.alex.mycelialmind.network.EnclaveDirectoryRequestPayload;
+import com.alex.mycelialmind.network.EnclaveDirectoryPayload;
+import com.alex.mycelialmind.network.EnclaveActionPayload;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.SynapticNodeType;
+import com.alex.mycelialmind.world.ModDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -48,6 +56,15 @@ public class BioScannerCodexScreen extends Screen {
     private Button guidePageButton;
     private Button pinAdvantageButton;
     private Button pinReclaimButton;
+    private Button directoryButton;
+    private Button directoryPageButton;
+    private boolean directoryOpen;
+    private BlockPos selectedEnclave;
+    private EditBox enclaveName;
+    private Button enclavePinButton;
+    private Button enclaveRenameButton;
+    private Button abandonButton;
+    private boolean abandonConfirmation;
 
     public BioScannerCodexScreen() {
         super(Component.translatable("screen.mycelialmind.bio_codex"));
@@ -69,6 +86,39 @@ public class BioScannerCodexScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("codex.mycelialmind.tab.guide"), btn -> setActiveTab(4))
                 .bounds(left + 246, top + 22, 58, 18).build());
 
+        directoryButton = this.addRenderableWidget(Button.builder(Component.translatable("codex.mycelialmind.expedition.directory"), btn -> {
+            directoryOpen = !directoryOpen;
+            if (directoryOpen) EnclaveDirectoryRequestPayload.request(0);
+            updateResearchButtonsVisibility();
+        }).bounds(left + 76, top + PANEL_H - 22, 100, 16).build());
+        directoryPageButton = this.addRenderableWidget(Button.builder(Component.translatable("codex.mycelialmind.expedition.next_page"), btn -> {
+            var page = ClientExpeditionCache.getDirectory();
+            int pages = Math.max(1, (page.total() + EnclaveDirectoryPayload.PAGE_SIZE - 1) / EnclaveDirectoryPayload.PAGE_SIZE);
+            selectedEnclave = null;
+            EnclaveDirectoryRequestPayload.request((page.page() + 1) % pages);
+        }).bounds(left + 182, top + PANEL_H - 22, 120, 16).build());
+        abandonButton = this.addRenderableWidget(Button.builder(Component.translatable("codex.mycelialmind.expedition.abandon"), btn -> {
+            BlockPos target = ClientExpeditionCache.getActivePos();
+            if (target == null) return;
+            if (!abandonConfirmation) {
+                abandonConfirmation = true;
+                btn.setMessage(Component.translatable("codex.mycelialmind.expedition.abandon_confirm"));
+            } else {
+                EnclaveActionPayload.send(EnclaveActionPayload.ABANDON, target, "", 0);
+                abandonConfirmation = false;
+                btn.setMessage(Component.translatable("codex.mycelialmind.expedition.abandon"));
+            }
+        }).bounds(left + 182, top + PANEL_H - 22, 120, 16).build());
+        enclaveName = this.addRenderableWidget(new EditBox(font, left + 12, top + 171, 140, 16,
+                Component.translatable("codex.mycelialmind.expedition.name")));
+        enclaveName.setMaxLength(32);
+        enclavePinButton = this.addRenderableWidget(Button.builder(Component.translatable("codex.mycelialmind.expedition.pin"), btn -> {
+            if (selectedEnclave != null) EnclaveActionPayload.send(EnclaveActionPayload.PIN, selectedEnclave, "", ClientExpeditionCache.getDirectory().page());
+        }).bounds(left + 157, top + 171, 64, 16).build());
+        enclaveRenameButton = this.addRenderableWidget(Button.builder(Component.translatable("codex.mycelialmind.expedition.rename"), btn -> {
+            if (selectedEnclave != null) EnclaveActionPayload.send(EnclaveActionPayload.RENAME, selectedEnclave, enclaveName.getValue(), ClientExpeditionCache.getDirectory().page());
+        }).bounds(left + 225, top + 171, 75, 16).build());
+
         this.pinAdvantageButton = this.addRenderableWidget(Button.builder(
                 pinButtonLabel(ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE),
                 btn -> toggleExpeditionGoal(ProgressionGoalEngine.ExpeditionGoal.USE_TO_ADVANTAGE))
@@ -81,7 +131,7 @@ public class BioScannerCodexScreen extends Screen {
         this.guidePageButton = this.addRenderableWidget(Button.builder(
                 guidePageLabel(),
                 btn -> {
-                    this.guidePage = (this.guidePage + 1) % 4;
+                    this.guidePage = (this.guidePage + 1) % 5;
                     btn.setMessage(guidePageLabel());
                     updateResearchButtonsVisibility();
                 })
@@ -114,6 +164,19 @@ public class BioScannerCodexScreen extends Screen {
 
     private void updateResearchButtonsVisibility() {
         boolean isGuide = this.activeTab == 4;
+        if (directoryButton != null) {
+            directoryButton.visible = this.activeTab == 2;
+            directoryButton.setMessage(Component.translatable(directoryOpen
+                    ? "codex.mycelialmind.expedition.radar_button" : "codex.mycelialmind.expedition.directory"));
+        }
+        if (directoryPageButton != null) directoryPageButton.visible = this.activeTab == 2 && directoryOpen;
+        if (abandonButton != null) {
+            abandonButton.visible = this.activeTab == 2 && !directoryOpen && ClientExpeditionCache.hasActiveExpedition();
+        }
+        boolean showDirectory = this.activeTab == 2 && directoryOpen;
+        if (enclaveName != null) enclaveName.visible = showDirectory;
+        if (enclavePinButton != null) enclavePinButton.visible = showDirectory;
+        if (enclaveRenameButton != null) enclaveRenameButton.visible = showDirectory;
         if (this.guidePageButton != null) {
             this.guidePageButton.visible = isGuide;
         }
@@ -170,12 +233,48 @@ public class BioScannerCodexScreen extends Screen {
         } else if (activeTab == 1) {
             renderEvolutionsTab(graphics, left + 12, y);
         } else if (activeTab == 2) {
-            renderTerritoryTab(graphics, left + 12, y, mouseX, mouseY);
+            if (directoryOpen) renderEnclaveDirectory(graphics, left + 12, y);
+            else renderTerritoryTab(graphics, left + 12, y, mouseX, mouseY);
         } else if (activeTab == 3) {
             renderDiplomacyTab(graphics, left + 12, y);
         } else {
             renderFieldGuideTab(graphics, left + 12, y);
         }
+    }
+
+    private void renderEnclaveDirectory(GuiGraphics graphics, int x, int y) {
+        EnclaveDirectoryPayload page = ClientExpeditionCache.getDirectory();
+        int pages = Math.max(1, (page.total() + EnclaveDirectoryPayload.PAGE_SIZE - 1) / EnclaveDirectoryPayload.PAGE_SIZE);
+        graphics.drawString(font, Component.translatable("codex.mycelialmind.expedition.directory_title",
+                page.page() + 1, pages, page.total()), x, y, 0xFF72EFDD, true);
+        int row = 0;
+        for (var entry : page.entries()) {
+            Component name = entry.name().isBlank() ? outcomeComponent(entry.outcome()) : Component.literal(entry.name());
+            Component line = Component.translatable("codex.mycelialmind.expedition.directory_row", name,
+                    entry.pos().getX(), entry.pos().getY(), entry.pos().getZ());
+            int rowY = y + 16 + row * 17;
+            if (entry.pos().equals(selectedEnclave)) graphics.fill(x - 2, rowY - 2, x + 287, rowY + 12, 0xAA39524E);
+            drawScaledText(graphics, line, x, rowY, 285, 0xFFE6C2FF);
+            row++;
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (activeTab == 2 && directoryOpen && button == 0) {
+            int left = (width - PANEL_W) / 2;
+            int top = (height - PANEL_H) / 2;
+            int row = (int) Math.floor((mouseY - (top + 48 + 16)) / 17.0);
+            var entries = ClientExpeditionCache.getDirectory().entries();
+            if (mouseX >= left + 10 && mouseX < left + 300 && row >= 0 && row < entries.size()
+                    && mouseY < top + 48 + 16 + row * 17 + 13) {
+                var entry = entries.get(row);
+                selectedEnclave = entry.pos();
+                enclaveName.setValue(entry.name());
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     private void renderTelemetryTab(GuiGraphics graphics, int x, int y) {
@@ -442,6 +541,51 @@ public class BioScannerCodexScreen extends Screen {
             }
         }
 
+        Minecraft mc = Minecraft.getInstance();
+        boolean viewingDeepMycelium = mc.level != null && mc.level.dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL);
+        if (viewingDeepMycelium) {
+            for (PostMatriarchExpeditionSyncPayload.Marker marker : ClientExpeditionCache.getEnclaves()) {
+                int mx = cx + (int) Math.round((marker.pos().getX() - anchor.getX()) * scale);
+                int my = cy + (int) Math.round((marker.pos().getZ() - anchor.getZ()) * scale);
+                if (!inBox(mx, my, x, y, radarSize)) {
+                    continue;
+                }
+                if (marker.outcomeId() == 1 && marker.protectedZone()) {
+                    graphics.fill(mx - 3, my - 3, mx + 4, my + 4, 0xFF4CC9F0);
+                    graphics.renderOutline(mx - 4, my - 4, 9, 9, 0xFFFFFFFF);
+                } else if (marker.outcomeId() == 1) {
+                    graphics.fill(mx - 4, my - 1, mx + 5, my + 2, 0xFFFF6B6B);
+                    graphics.fill(mx - 1, my - 4, mx + 2, my + 5, 0xFFFF6B6B);
+                } else {
+                    int color = ReclaimedBloomBlock.colorForPalette(marker.palette());
+                    graphics.fill(mx - 1, my - 4, mx + 2, my + 5, color);
+                    graphics.fill(mx - 4, my - 1, mx + 5, my + 2, color);
+                    graphics.fill(mx - 1, my - 1, mx + 2, my + 2, 0xFFFFFFFF);
+                }
+                if (Math.abs(mouseX - mx) <= 5 && Math.abs(mouseY - my) <= 5) {
+                    hoveredTooltip = marker.outcomeId() == 1
+                            ? Component.translatable(marker.protectedZone()
+                                    ? "codex.mycelialmind.expedition.marker.route_protected"
+                                    : "codex.mycelialmind.expedition.marker.route_unprotected")
+                            : Component.translatable("codex.mycelialmind.expedition.marker.garden",
+                                    paletteComponent(marker.palette()));
+                }
+            }
+            BlockPos activePos = ClientExpeditionCache.getActivePos();
+            if (activePos != null) {
+                int ax = cx + (int) Math.round((activePos.getX() - anchor.getX()) * scale);
+                int ay = cy + (int) Math.round((activePos.getZ() - anchor.getZ()) * scale);
+                if (inBox(ax, ay, x, y, radarSize)) {
+                    graphics.renderOutline(ax - 5, ay - 5, 11, 11, 0xFFFFD166);
+                    if (Math.abs(mouseX - ax) <= 6 && Math.abs(mouseY - ay) <= 6) {
+                        hoveredTooltip = Component.translatable("codex.mycelialmind.expedition.active",
+                                outcomeComponent(ClientExpeditionCache.getOutcomeId()),
+                                activePos.getX(), activePos.getY(), activePos.getZ());
+                    }
+                }
+            }
+        }
+
         graphics.fill(cx - 2, cy, cx + 3, cy + 1, 0xFFFFFFFF);
         graphics.fill(cx, cy - 2, cx + 1, cy + 3, 0xFFFFFFFF);
         graphics.disableScissor();
@@ -460,25 +604,75 @@ public class BioScannerCodexScreen extends Screen {
         graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.zone", zoneLabel),
                 rx, y + 50, ClientHiveCache.isInProtectedZone() ? 0xFF4CC9F0 : 0xFFFF4D8D, true);
 
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend"), rx, y + 68, 0xFFFFE599, true);
-        graphics.fill(rx, y + 81, rx + 5, y + 86, 0xFFB5179E);
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend.relay"), rx + 9, y + 80, 0xFFE6C2FF, true);
-        graphics.fill(rx, y + 91, rx + 5, y + 96, 0xFFFF4D8D);
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend.incubator"), rx + 9, y + 90, 0xFFE6C2FF, true);
-        graphics.fill(rx, y + 101, rx + 5, y + 106, 0xFFFFB703);
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend.sentinel"), rx + 9, y + 100, 0xFFE6C2FF, true);
-        graphics.fill(rx, y + 111, rx + 5, y + 116, 0xFF4CC9F0);
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend.pylon"), rx + 9, y + 110, 0xFFE6C2FF, true);
-        graphics.fill(rx, y + 121, rx + 5, y + 126, 0xFF38B000);
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend.symbiotic"), rx + 9, y + 120, 0xFFE6C2FF, true);
-        graphics.fill(rx, y + 131, rx + 5, y + 136, 0xAAFF3366);
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend.inflamed"), rx + 9, y + 130, 0xFFFF758F, true);
-        graphics.fill(rx, y + 141, rx + 5, y + 146, 0xFFFF3366);
-        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend.smothered"), rx + 9, y + 140, 0xFFFF4D8D, true);
+        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.territory.legend"), rx, y + 61, 0xFFFFE599, true);
+        String[] legendKeys = {"relay", "incubator", "sentinel", "pylon", "symbiotic", "inflamed", "smothered"};
+        int[] legendColors = {0xFFB5179E, 0xFFFF4D8D, 0xFFFFB703, 0xFF4CC9F0, 0xFF38B000, 0xAAFF3366, 0xFFFF3366};
+        for (int i = 0; i < legendKeys.length; i++) {
+            int lx = rx + (i / 4) * 75;
+            int ly = y + 72 + (i % 4) * 9;
+            graphics.fill(lx, ly + 2, lx + 5, ly + 7, legendColors[i]);
+            drawScaledText(graphics, Component.translatable("codex.mycelialmind.territory.legend." + legendKeys[i]),
+                    lx + 8, ly, 65, 0xFFE6C2FF);
+        }
+
+        graphics.drawString(this.font, Component.translatable("codex.mycelialmind.expedition.header"),
+                rx, y + 110, 0xFFFFD166, true);
+        if (!ClientExpeditionCache.isUnlocked()) {
+            drawScaledText(graphics, Component.translatable("codex.mycelialmind.expedition.locked"),
+                    rx, y + 120, 150, 0xFFADB5BD);
+        } else if (!ClientExpeditionCache.hasActiveExpedition()) {
+            drawScaledText(graphics, Component.translatable("codex.mycelialmind.expedition.idle"),
+                    rx, y + 120, 150, 0xFFADB5BD);
+        } else {
+            BlockPos expeditionPos = ClientExpeditionCache.getActivePos();
+            drawScaledText(graphics, Component.translatable("codex.mycelialmind.expedition.active",
+                    outcomeComponent(ClientExpeditionCache.getOutcomeId()),
+                    expeditionPos.getX(), expeditionPos.getY(), expeditionPos.getZ()),
+                    rx, y + 120, 150, 0xFFE6C2FF);
+            Component progress = ClientExpeditionCache.getOutcomeId() == 1
+                    ? Component.translatable("codex.mycelialmind.expedition.route_progress",
+                            ClientExpeditionCache.getProgress(), 3)
+                    : Component.translatable("codex.mycelialmind.expedition.garden_progress",
+                            ClientExpeditionCache.getLinkedFlora(), 3,
+                            paletteComponent(ClientExpeditionCache.getPalette()));
+            drawScaledText(graphics, progress, rx, y + 130, 150, 0xFF9DE0AD);
+        }
+        if (ClientExpeditionCache.hasActiveExpedition()) {
+            int flags = ClientExpeditionCache.getSiteFlags();
+            var conditions = Component.empty();
+            if ((flags & PostMatriarchExpeditionSyncPayload.TIDE) != 0) conditions.append(Component.translatable("codex.mycelialmind.expedition.condition.tide"));
+            if ((flags & PostMatriarchExpeditionSyncPayload.ACID) != 0) conditions.append(Component.translatable("codex.mycelialmind.expedition.condition.acid"));
+            if ((flags & PostMatriarchExpeditionSyncPayload.PYLON_SMOTHERED) != 0) conditions.append(Component.translatable("codex.mycelialmind.expedition.condition.smothered"));
+            if ((flags & PostMatriarchExpeditionSyncPayload.PYLON_MISSING) != 0) conditions.append(Component.translatable("codex.mycelialmind.expedition.condition.missing"));
+            if ((flags & PostMatriarchExpeditionSyncPayload.SITE_UNLOADED) != 0) conditions.append(Component.translatable("codex.mycelialmind.expedition.condition.unloaded"));
+            drawScaledText(graphics, Component.translatable("codex.mycelialmind.expedition.site_conditions",
+                    ClientExpeditionCache.getSiteStress(), conditions), rx, y + 140, 150, 0xFFFFD166);
+        } else {
+            drawScaledText(graphics, Component.translatable("codex.mycelialmind.expedition.completed_count",
+                    ClientExpeditionCache.getEnclaves().size()), rx, y + 140, 150, 0xFF72EFDD);
+        }
 
         if (hoveredTooltip != null) {
             graphics.renderTooltip(this.font, hoveredTooltip, mouseX, mouseY);
         }
+    }
+
+    private static Component outcomeComponent(int outcomeId) {
+        return Component.translatable(outcomeId == 2
+                ? "codex.mycelialmind.expedition.outcome.garden"
+                : "codex.mycelialmind.expedition.outcome.route");
+    }
+
+    private static Component paletteComponent(int palette) {
+        String suffix = switch (palette) {
+            case 1 -> "melee";
+            case 2 -> "projectile";
+            case 3 -> "fire";
+            case 4 -> "explosion";
+            case 5 -> "magic";
+            default -> "base";
+        };
+        return Component.translatable("codex.mycelialmind.expedition.palette." + suffix);
     }
 
     private static boolean inBox(int px, int py, int x, int y, int size) {
@@ -585,6 +779,14 @@ public class BioScannerCodexScreen extends Screen {
     }
 
     private void renderFieldGuideTab(GuiGraphics graphics, int x, int y) {
+        if (guidePage == 4) {
+            graphics.drawString(font, Component.translatable("codex.mycelialmind.expedition.guide.title"), x, y, 0xFFFFD166, true);
+            for (int i = 1; i <= 8; i++) {
+                drawScaledText(graphics, Component.translatable("codex.mycelialmind.expedition.guide." + i),
+                        x, y + 15 + (i - 1) * 15, 285, 0xFFE6C2FF);
+            }
+            return;
+        }
         if (guidePage == 0) {
             renderOngoingResearchPage(graphics, x, y);
             return;

@@ -15,6 +15,7 @@ import com.alex.mycelialmind.block.MycelialTendrilsBlock;
 import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
 import com.alex.mycelialmind.block.ReinforcedBioBarrierBlock;
+import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
 import com.alex.mycelialmind.block.SporeBulbBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
@@ -143,6 +144,15 @@ public final class ModBlocks {
                     .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
                     .lightLevel(s -> s.getValue(BioluminescentMycelialCapBlock.MATURE) ? 10 : 5)));
 
+    public static final DeferredBlock<ReclaimedBloomBlock> RECLAIMED_BLOOM = registerBlock("reclaimed_bloom",
+            () -> new ReclaimedBloomBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
+                    .noCollission()
+                    .noOcclusion()
+                    .instabreak()
+                    .noLootTable()
+                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)));
+
     public static final DeferredBlock<Block> SPORE_BULB = registerBlock("spore_bulb",
             () -> new SporeBulbBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_MAGENTA)
@@ -253,7 +263,10 @@ public final class ModBlocks {
     }
 
     private static <T extends Block> DeferredItem<BlockItem> registerBlockItem(String name, DeferredBlock<T> block) {
-        return ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
+        return ModItems.ITEMS.register(name, () -> name.equals("reclaimed_bloom")
+                ? new com.alex.mycelialmind.item.ReclaimedBloomItem(
+                        (ReclaimedBloomBlock) block.get(), 0, new Item.Properties())
+                : new BlockItem(block.get(), new Item.Properties()));
     }
 
     public static void register(IEventBus modEventBus) {
