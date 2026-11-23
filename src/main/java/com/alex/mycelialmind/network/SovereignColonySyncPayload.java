@@ -5,6 +5,7 @@ import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.client.screen.ClientColonyOpener;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
 import com.alex.mycelialmind.colony.SymbiontCaste;
 import com.alex.mycelialmind.colony.SymbiontRank;
 import com.alex.mycelialmind.colony.SymbiontTemperament;
@@ -46,6 +47,12 @@ public record SovereignColonySyncPayload(
         int activeOrders,
         int activeRaidRemaining,
         List<WorkerSnapshot> workers,
+        List<ClientColonyCache.SiteMemorySnapshot> siteMemories,
+        boolean memoryTransferActive,
+        BlockPos memoryTransferSource,
+        BlockPos memoryTransferTarget,
+        int memoryTransferHabit,
+        boolean memoryTransferInTransit,
         boolean openScreen
 ) implements CustomPacketPayload {
     public static final Type<SovereignColonySyncPayload> TYPE =
@@ -84,11 +91,31 @@ public record SovereignColonySyncPayload(
                 int xp = ByteBufCodecs.VAR_INT.decode(buf);
                 workers.add(new WorkerSnapshot(id, caste, rank, temp, nut, fat, mor, standby, xp));
             }
+            int memoryCount = Math.max(0, Math.min(5, ByteBufCodecs.VAR_INT.decode(buf)));
+            List<ClientColonyCache.SiteMemorySnapshot> memories = new ArrayList<>(memoryCount);
+            for (int i = 0; i < memoryCount; i++) {
+                BlockPos sitePos = BlockPos.of(buf.readLong());
+                int learnedHabit = ByteBufCodecs.VAR_INT.decode(buf);
+                int trialHabit = ByteBufCodecs.VAR_INT.decode(buf);
+                int incidents = ByteBufCodecs.VAR_INT.decode(buf);
+                int successes = ByteBufCodecs.VAR_INT.decode(buf);
+                int failures = ByteBufCodecs.VAR_INT.decode(buf);
+                int incidentCode = ByteBufCodecs.VAR_INT.decode(buf);
+                int outcomeCode = ByteBufCodecs.VAR_INT.decode(buf);
+                memories.add(new ClientColonyCache.SiteMemorySnapshot(sitePos, learnedHabit, trialHabit,
+                        incidents, successes, failures, incidentCode, outcomeCode));
+            }
+            boolean transferActive = ByteBufCodecs.BOOL.decode(buf);
+            BlockPos transferSource = BlockPos.of(buf.readLong());
+            BlockPos transferTarget = BlockPos.of(buf.readLong());
+            int transferHabit = ByteBufCodecs.VAR_INT.decode(buf);
+            boolean transferInTransit = ByteBufCodecs.BOOL.decode(buf);
             boolean openScreen = ByteBufCodecs.BOOL.decode(buf);
             return new SovereignColonySyncPayload(
                     hasColony, unlocked, nexusPos, tier, radius, popCap, biomass, domainXp,
                     traitMask, moralePct, linkedOutposts, inputChests, outputChests,
-                    workZones, activeOrders, activeRaidRemaining, workers, openScreen
+                    workZones, activeOrders, activeRaidRemaining, workers, memories,
+                    transferActive, transferSource, transferTarget, transferHabit, transferInTransit, openScreen
             );
         }
 
@@ -126,6 +153,26 @@ public record SovereignColonySyncPayload(
                 ByteBufCodecs.BOOL.encode(buf, w.standby());
                 ByteBufCodecs.VAR_INT.encode(buf, w.xp());
             }
+            List<ClientColonyCache.SiteMemorySnapshot> memories = payload.siteMemories() != null
+                    ? payload.siteMemories() : List.of();
+            int memoryCount = Math.min(5, memories.size());
+            ByteBufCodecs.VAR_INT.encode(buf, memoryCount);
+            for (int i = 0; i < memoryCount; i++) {
+                ClientColonyCache.SiteMemorySnapshot memory = memories.get(i);
+                buf.writeLong(memory.sitePos().asLong());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.learnedHabit());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.trialHabit());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.incidentCount());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.successfulTrials());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.failedTrials());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.lastIncidentCode());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.lastOutcomeCode());
+            }
+            ByteBufCodecs.BOOL.encode(buf, payload.memoryTransferActive());
+            buf.writeLong(payload.memoryTransferSource().asLong());
+            buf.writeLong(payload.memoryTransferTarget().asLong());
+            ByteBufCodecs.VAR_INT.encode(buf, payload.memoryTransferHabit());
+            ByteBufCodecs.BOOL.encode(buf, payload.memoryTransferInTransit());
             ByteBufCodecs.BOOL.encode(buf, payload.openScreen());
         }
     };
@@ -137,7 +184,8 @@ public record SovereignColonySyncPayload(
         if (colony == null) {
             return new SovereignColonySyncPayload(
                     false, unlocked, BlockPos.ZERO, 1, 24, 4, 0, 0, 0, 70,
-                    0, 0, 0, 0, 0, 0, List.of(), openScreen
+                    0, 0, 0, 0, 0, 0, List.of(), List.of(), false,
+                    BlockPos.ZERO, BlockPos.ZERO, ColonySiteHabit.NONE.ordinal(), false, openScreen
             );
         }
         List<WorkerSnapshot> roster = new ArrayList<>();
@@ -154,6 +202,14 @@ public record SovereignColonySyncPayload(
                     e.xp()
             ));
         }
+        List<ClientColonyCache.SiteMemorySnapshot> memories = new ArrayList<>();
+        for (SovereignColonyData.SiteMemorySnapshot memory : colony.getSiteMemorySnapshots()) {
+            memories.add(new ClientColonyCache.SiteMemorySnapshot(
+                    memory.sitePos(), memory.learnedHabit().ordinal(), memory.trialHabit().ordinal(),
+                    memory.incidentCount(), memory.successfulTrials(), memory.failedTrials(),
+                    memory.lastIncidentCode(), memory.lastOutcomeCode()));
+        }
+        SovereignColonyData.MemoryTransferSnapshot transfer = colony.getMemoryTransferSnapshot();
         return new SovereignColonySyncPayload(
                 true,
                 unlocked,
@@ -172,6 +228,12 @@ public record SovereignColonySyncPayload(
                 colony.getOrderBoard().size(),
                 colony.getActiveRaidRemaining(),
                 roster,
+                memories,
+                transfer != null,
+                transfer != null ? transfer.sourcePos() : BlockPos.ZERO,
+                transfer != null ? transfer.targetPos() : BlockPos.ZERO,
+                transfer != null ? transfer.habit().ordinal() : ColonySiteHabit.NONE.ordinal(),
+                transfer != null && transfer.inTransit(),
                 openScreen
         );
     }

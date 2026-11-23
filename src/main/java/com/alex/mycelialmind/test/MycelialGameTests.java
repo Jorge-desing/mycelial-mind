@@ -100,6 +100,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -8635,6 +8636,19 @@ public final class MycelialGameTests {
             var colony = nexusBe.getOrCreateColony(level);
             colony.addDomainXp(200);
             colony.toggleInputChest(nexusPos.east());
+            BlockPos memoryOutpost = nexusPos.offset(3, 0, 0);
+            colony.replaceLinkedOutposts(List.of(memoryOutpost));
+            var memory = colony.getSiteMemory(nexusPos);
+            helper.assertTrue(memory != null
+                            && !memory.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER,
+                            1, level.getGameTime())
+                            && memory.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER,
+                            1, level.getGameTime() + 1L)
+                            && !memory.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, 1)
+                            && memory.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, 1),
+                    "A local site must learn an escorted courier routine after repeated evidence and two successful trials.");
+            helper.assertTrue(colony.startMemoryTransfer(nexusPos, memoryOutpost, level.getGameTime()),
+                    "A learned site memory must be teachable to another linked outpost.");
             worker = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.COURIER, true);
             helper.assertTrue(worker != null, "Worker must spawn for payload test.");
 
@@ -8649,8 +8663,14 @@ public final class MycelialGameTests {
                             && decoded.openScreen()
                             && decoded.inputChests() == 1
                             && decoded.workers().size() == 1
-                            && decoded.workers().get(0).caste() == com.alex.mycelialmind.colony.SymbiontCaste.COURIER,
-                    "SovereignColonySyncPayload must round-trip all colony and roster fields intact.");
+                            && decoded.workers().get(0).caste() == com.alex.mycelialmind.colony.SymbiontCaste.COURIER
+                            && decoded.siteMemories().size() == 2
+                            && decoded.siteMemories().get(0).learnedHabit()
+                            == com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER.ordinal()
+                            && decoded.memoryTransferActive()
+                            && decoded.memoryTransferSource().equals(nexusPos)
+                            && decoded.memoryTransferTarget().equals(memoryOutpost),
+                    "SovereignColonySyncPayload must round-trip colony, local memories, teaching route, and roster fields.");
 
             helper.succeed();
         } finally {
@@ -8659,6 +8679,61 @@ public final class MycelialGameTests {
             }
             level.removeBlock(nexusPos, false);
             owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_integration")
+    public static void sovereignColonySiteMemoryTransferPersistenceTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        BlockPos outpostPos = helper.absolutePos(new BlockPos(9, 2, 4));
+        try {
+            saved.resetAll();
+            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            level.setBlockAndUpdate(outpostPos, com.alex.mycelialmind.registry.ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            var colony = saved.getOrCreateColony(nexusPos, UUID.randomUUID(), "Memory Tester");
+            colony.replaceLinkedOutposts(List.of(outpostPos));
+
+            var source = colony.getSiteMemory(nexusPos);
+            helper.assertTrue(source != null
+                            && !source.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN,
+                            2, level.getGameTime())
+                            && source.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN,
+                            2, level.getGameTime() + 1L)
+                            && !source.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2)
+                            && source.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2),
+                    "Nexus local history must mature only after two incidents and two successful trials.");
+            helper.assertTrue(colony.startMemoryTransfer(nexusPos, outpostPos, level.getGameTime()),
+                    "Owner-selected site-to-site teaching must create a pending courier transfer.");
+
+            var restored = com.alex.mycelialmind.colony.SovereignColonySavedData.load(
+                    saved.save(new CompoundTag(), level.registryAccess()), level.registryAccess());
+            var restoredColony = restored.getByNexus(nexusPos);
+            helper.assertTrue(restoredColony != null
+                            && restoredColony.getSiteMemory(nexusPos).learnedHabit()
+                            == com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN
+                            && restoredColony.getMemoryTransferSnapshot() != null,
+                    "Learned site memories and pending teaching routes must persist through SavedData reload.");
+
+            UUID courier = UUID.randomUUID();
+            helper.assertTrue(restoredColony.claimMemoryTransfer(courier, level.getGameTime() + 2L),
+                    "A courier must be able to claim a persisted teaching trip.");
+            restoredColony.markMemoryTransferCollected(courier, level.getGameTime() + 3L);
+            helper.assertTrue(restoredColony.deliverMemoryTransfer(courier, level.getGameTime() + 4L),
+                    "The destination must receive a local trial when the courier delivers the memory.");
+            var destination = restoredColony.getSiteMemory(outpostPos);
+            helper.assertTrue(destination != null
+                            && destination.trialHabit() == com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN
+                            && destination.successfulTrials() == 0,
+                    "A taught site must test the behavior locally before learning it.");
+
+            helper.succeed();
+        } finally {
+            level.removeBlock(outpostPos, false);
+            level.removeBlock(nexusPos, false);
             saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
         }
     }

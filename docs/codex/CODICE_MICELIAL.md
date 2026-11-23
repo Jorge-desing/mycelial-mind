@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `61` entradas y `230` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `61` entradas y `233` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -75,7 +75,7 @@
   - [Engrama VIII: Linaje Primordial](#cap11-engram_primordial_lineage) — _Extracción genética de variantes primordiales_
   - [Engrama IX: Réquiem Matriarcal](#cap11-engram_matriarch_requiem) — _Remisión dimensional y protocolo de enclave_
   - [Engrama X: Ciclo de la Supramente](#cap11-engram_overmind_cycle) — _Maestría post-Matriarca con mutadores activos_
-- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 186 Sonidos, LabPBR, 49 Configs, Red v22, /mycelial y 23 Verify
+- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 186 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify
   - [Configuraciones (13 Cliente / 43 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
   - [Red v22, `/mycelial` y Verify](#cap12-comandos_red_y_verificacion) — _Payloads v22, /mycelial colony, field_engram y 23 verify_
 
@@ -958,17 +958,30 @@ _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recome
 
 • **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.13] Colonia Soberana Post-Matriarca (1/3)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.13] Colonia Soberana Post-Matriarca (1/6)
 
 • **Ancla y Puestos (`SovereignNexusBlock` / `SovereignNexusBlockEntity`):** tras derrotar a la Matriarca, el `sovereign_nexus` acepta `mycelial_biomass` (mano o tolvas) e integra hasta **4** `symbiotic_node` cercanos (**+8m** radio cada uno).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Colonia Soberana Post-Matriarca (2/3)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Colonia Soberana Post-Matriarca (2/6)
 
 • **Niveles y Mando (`SovereignColonyDirector`):** Nivel **1–3** (**4/8/12** simbiontes, radio **24/36/48m**). Usa `sovereign_command_staff` (`staff_mode`) para marcar cofres `INPUT`/`OUTPUT` y zonas de trabajo; desbloquea rasgos `SovereignTrait` y rangos.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Colonia Soberana Post-Matriarca (3/3)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Colonia Soberana Post-Matriarca (3/6)
 
 • **Castas y Sondeos Rivales:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` y `SENTINEL` operan `ColonyOrderBoard` por prioridad/reserva con descanso y humor (`SymbiontTemperament`). Repeler sondeos de la Colmena rival otorga XP de Dominio y moral.
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.16] Colonia Soberana Post-Matriarca (4/6)
+
+• **Memoria Territorial:** cada Nexo o puesto aprende de incidentes locales. Dos incidentes parecidos abren un ensayo; dos resultados favorables consolidan la conducta.
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.17] Colonia Soberana Post-Matriarca (5/6)
+
+• **Hábitos:** los puestos pueden aprender escoltas para mensajeros, descanso antes del regreso o recolección por turnos. El primer recuerdo se aprende solo; puedes adoptar un segundo ensayo en `Memoria`.
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.18] Colonia Soberana Post-Matriarca (6/6)
+
+• **Enseñanza:** en `Memoria`, elige el puesto de origen y el destino. Un mensajero lleva el recuerdo aprendido; el destino lo prueba con sus propios trabajos.
+• **Bioescáner:** úsalo sobre un `symbiotic_node` para leer incidentes y ensayos. Olvidar borra el historial local del puesto.
 
 <a id="cap9-recetas_36_datapack"></a>
 ### 2. Recetario Total (39 Datapack)
@@ -1549,7 +1562,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 ## Capítulo 12: Técnica, Config y Comandos
 
-_186 Sonidos, LabPBR, 49 Configs, Red v22, /mycelial y 23 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
+_186 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
 
 <a id="cap12-configuracion_cliente_servidor"></a>
 ### 1. Configuraciones (13 Cliente / 43 Servidor)
@@ -1622,7 +1635,7 @@ _186 Sonidos, LabPBR, 49 Configs, Red v22, /mycelial y 23 Verify_ | Puerta recom
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.1] Comandos Admin, Payloads y Verify (1/7)
 
-• **Red (`ModNetworking` v22):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, `<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload` y `DiscoverySyncPayload`.
+• **Red (`ModNetworking` v23):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, `<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload` y `DiscoverySyncPayload`.
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.2] Comandos Admin, Payloads y Verify (2/7)
 

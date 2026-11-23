@@ -2,6 +2,9 @@ package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
+import com.alex.mycelialmind.colony.ColonySiteMemory;
+import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.colony.SymbiontCaste;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
@@ -23,7 +26,9 @@ public record SovereignColonyActionPayload(
         int action,
         BlockPos nexusPos,
         int param,
-        UUID targetWorkerId
+        UUID targetWorkerId,
+        BlockPos sourceSitePos,
+        BlockPos targetSitePos
 ) implements CustomPacketPayload {
     public static final int ACTION_INCUBATE = 1;
     public static final int ACTION_UPGRADE_TIER = 2;
@@ -31,6 +36,10 @@ public record SovereignColonyActionPayload(
     public static final int ACTION_CYCLE_WORKER_CASTE = 4;
     public static final int ACTION_TOGGLE_WORKER_STANDBY = 5;
     public static final int ACTION_REQUEST_SYNC = 6;
+    public static final int ACTION_ADOPT_SITE_MEMORY = 7;
+    public static final int ACTION_FORGET_SITE_MEMORY = 8;
+    public static final int ACTION_TEACH_SITE_MEMORY = 9;
+    public static final int ACTION_CANCEL_MEMORY_TRANSFER = 10;
 
     private static final UUID ZERO_UUID = new UUID(0L, 0L);
 
@@ -44,7 +53,9 @@ public record SovereignColonyActionPayload(
             BlockPos pos = BlockPos.of(buf.readLong());
             int param = ByteBufCodecs.VAR_INT.decode(buf);
             UUID workerId = new UUID(buf.readLong(), buf.readLong());
-            return new SovereignColonyActionPayload(action, pos, param, workerId);
+            BlockPos sourceSite = BlockPos.of(buf.readLong());
+            BlockPos targetSite = BlockPos.of(buf.readLong());
+            return new SovereignColonyActionPayload(action, pos, param, workerId, sourceSite, targetSite);
         }
 
         @Override
@@ -55,6 +66,8 @@ public record SovereignColonyActionPayload(
             UUID id = payload.targetWorkerId() != null ? payload.targetWorkerId() : ZERO_UUID;
             buf.writeLong(id.getMostSignificantBits());
             buf.writeLong(id.getLeastSignificantBits());
+            buf.writeLong(payload.sourceSitePos().asLong());
+            buf.writeLong(payload.targetSitePos().asLong());
         }
     };
 
@@ -63,7 +76,20 @@ public record SovereignColonyActionPayload(
                 action,
                 nexusPos != null ? nexusPos : BlockPos.ZERO,
                 param,
-                workerId != null ? workerId : ZERO_UUID
+                workerId != null ? workerId : ZERO_UUID,
+                BlockPos.ZERO,
+                BlockPos.ZERO
+        ));
+    }
+
+    public static void sendMemoryAction(int action, BlockPos nexusPos, BlockPos sourceSitePos, BlockPos targetSitePos) {
+        PacketDistributor.sendToServer(new SovereignColonyActionPayload(
+                action,
+                nexusPos != null ? nexusPos : BlockPos.ZERO,
+                0,
+                ZERO_UUID,
+                sourceSitePos != null ? sourceSitePos : BlockPos.ZERO,
+                targetSitePos != null ? targetSitePos : BlockPos.ZERO
         ));
     }
 
@@ -80,6 +106,7 @@ public record SovereignColonyActionPayload(
             if (!(level.getBlockEntity(nexusPos) instanceof SovereignNexusBlockEntity nexus)) {
                 return;
             }
+            SovereignColonyData colony = nexus.getOrCreateColony(level);
             switch (payload.action()) {
                 case ACTION_INCUBATE -> nexus.incubateSymbiont(level, player, SymbiontCaste.fromIndex(payload.param()), false);
                 case ACTION_UPGRADE_TIER -> nexus.upgradeTier(level, player, false);
@@ -92,10 +119,44 @@ public record SovereignColonyActionPayload(
                 case ACTION_TOGGLE_WORKER_STANDBY -> nexus.toggleWorkerStandby(level, payload.targetWorkerId());
                 case ACTION_REQUEST_SYNC -> {
                 }
+                case ACTION_ADOPT_SITE_MEMORY -> {
+                    if (player.getUUID().equals(colony.getOwnerId())) {
+                        ColonySiteMemory memory = colony.getSiteMemory(payload.sourceSitePos());
+                        if (memory != null && memory.adoptTrialHabit()) {
+                            SovereignColonySavedData.get(level).setDirty();
+                        }
+                    }
+                }
+                case ACTION_FORGET_SITE_MEMORY -> {
+                    if (player.getUUID().equals(colony.getOwnerId())) {
+                        ColonySiteMemory memory = colony.getSiteMemory(payload.sourceSitePos());
+                        if (memory != null) {
+                            memory.forget();
+                            SovereignColonyData.MemoryTransferSnapshot transfer = colony.getMemoryTransferSnapshot();
+                            if (transfer != null && (transfer.sourcePos().equals(payload.sourceSitePos())
+                                    || transfer.targetPos().equals(payload.sourceSitePos()))) {
+                                colony.cancelMemoryTransfer();
+                            }
+                            SovereignColonySavedData.get(level).setDirty();
+                        }
+                    }
+                }
+                case ACTION_TEACH_SITE_MEMORY -> {
+                    if (player.getUUID().equals(colony.getOwnerId())
+                            && colony.startMemoryTransfer(payload.sourceSitePos(), payload.targetSitePos(), level.getGameTime())) {
+                        SovereignColonySavedData.get(level).setDirty();
+                    }
+                }
+                case ACTION_CANCEL_MEMORY_TRANSFER -> {
+                    if (player.getUUID().equals(colony.getOwnerId()) && colony.getMemoryTransferSnapshot() != null) {
+                        colony.cancelMemoryTransfer();
+                        SovereignColonySavedData.get(level).setDirty();
+                    }
+                }
                 default -> {
                 }
             }
-            nexus.syncLiveWorkers(level, nexus.getOrCreateColony(level));
+            nexus.syncLiveWorkers(level, colony);
             SovereignColonySyncPayload.syncToPlayer(player, nexusPos, false);
         });
     }

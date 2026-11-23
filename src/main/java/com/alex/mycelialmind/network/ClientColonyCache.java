@@ -14,6 +14,18 @@ import java.util.UUID;
  * Client-side synchronized snapshot of the player's Sovereign Hive Colony.
  */
 public final class ClientColonyCache {
+    public record SiteMemorySnapshot(
+            BlockPos sitePos,
+            int learnedHabit,
+            int trialHabit,
+            int incidentCount,
+            int successfulTrials,
+            int failedTrials,
+            int lastIncidentCode,
+            int lastOutcomeCode
+    ) {
+    }
+
     public record WorkerSnapshot(
             UUID workerId,
             SymbiontCaste caste,
@@ -45,6 +57,12 @@ public final class ClientColonyCache {
     private static int activeOrders = 0;
     private static int activeRaidRemaining = 0;
     private static List<WorkerSnapshot> workers = List.of();
+    private static List<SiteMemorySnapshot> siteMemories = List.of();
+    private static boolean memoryTransferActive;
+    private static BlockPos memoryTransferSource = BlockPos.ZERO;
+    private static BlockPos memoryTransferTarget = BlockPos.ZERO;
+    private static int memoryTransferHabit;
+    private static boolean memoryTransferInTransit;
 
     private ClientColonyCache() {
     }
@@ -67,6 +85,12 @@ public final class ClientColonyCache {
         activeOrders = payload.activeOrders();
         activeRaidRemaining = payload.activeRaidRemaining();
         workers = List.copyOf(payload.workers());
+        siteMemories = List.copyOf(payload.siteMemories());
+        memoryTransferActive = payload.memoryTransferActive();
+        memoryTransferSource = payload.memoryTransferSource();
+        memoryTransferTarget = payload.memoryTransferTarget();
+        memoryTransferHabit = payload.memoryTransferHabit();
+        memoryTransferInTransit = payload.memoryTransferInTransit();
     }
 
     public static void reset() {
@@ -87,6 +111,12 @@ public final class ClientColonyCache {
         activeOrders = 0;
         activeRaidRemaining = 0;
         workers = List.of();
+        siteMemories = List.of();
+        memoryTransferActive = false;
+        memoryTransferSource = BlockPos.ZERO;
+        memoryTransferTarget = BlockPos.ZERO;
+        memoryTransferHabit = 0;
+        memoryTransferInTransit = false;
     }
 
     public static boolean hasColony() {
@@ -156,5 +186,39 @@ public final class ClientColonyCache {
 
     public static List<WorkerSnapshot> getWorkers() {
         return Collections.unmodifiableList(workers);
+    }
+
+    public static List<SiteMemorySnapshot> getSiteMemories() {
+        return Collections.unmodifiableList(siteMemories);
+    }
+
+    @Nullable
+    public static SiteMemorySnapshot getSiteMemory(BlockPos pos) {
+        for (SiteMemorySnapshot memory : siteMemories) {
+            if (memory.sitePos().equals(pos)) {
+                return memory;
+            }
+        }
+        return null;
+    }
+
+    public static boolean hasMemoryTransfer() {
+        return memoryTransferActive;
+    }
+
+    public static BlockPos getMemoryTransferSource() {
+        return memoryTransferSource;
+    }
+
+    public static BlockPos getMemoryTransferTarget() {
+        return memoryTransferTarget;
+    }
+
+    public static int getMemoryTransferHabit() {
+        return memoryTransferHabit;
+    }
+
+    public static boolean isMemoryTransferInTransit() {
+        return memoryTransferInTransit;
     }
 }

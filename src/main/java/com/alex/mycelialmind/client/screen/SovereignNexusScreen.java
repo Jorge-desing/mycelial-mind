@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.client.screen;
 
 import com.alex.mycelialmind.colony.SovereignColonyEngine;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
 import com.alex.mycelialmind.colony.SovereignTrait;
 import com.alex.mycelialmind.colony.SymbiontCaste;
 import com.alex.mycelialmind.network.ClientColonyCache;
@@ -29,6 +30,10 @@ public class SovereignNexusScreen extends Screen {
 
     private SymbiontCaste selectedCaste = SymbiontCaste.HARVESTER;
     private int rosterOffset = 0;
+    private int memorySiteIndex;
+    private int memorySourceIndex;
+    private int memoryTargetIndex = 1;
+    private boolean memoryPage;
 
     private Button casteSelectButton;
     private Button incubateButton;
@@ -48,6 +53,12 @@ public class SovereignNexusScreen extends Screen {
         int left = (this.width - PANEL_W) / 2;
         int top = (this.height - PANEL_H) / 2;
         BlockPos nexusPos = ClientColonyCache.getNexusPos();
+
+        addPageTabs(left, top);
+        if (memoryPage) {
+            rebuildMemoryWidgets(left, top, nexusPos);
+            return;
+        }
 
         // Top action bar (y = top + 76)
         int btnY = top + 76;
@@ -173,10 +184,127 @@ public class SovereignNexusScreen extends Screen {
         ).bounds(left + PANEL_W - 84, botY, 74, 18).build());
     }
 
+    private void addPageTabs(int left, int top) {
+        Button overview = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.tab_overview"), button -> {
+                    memoryPage = false;
+                    playClick(1.0F);
+                    rebuildColonyWidgets();
+                }).bounds(left + 4, top + 3, 78, 16).build());
+        overview.active = memoryPage;
+        Button memories = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.tab_memory"), button -> {
+                    memoryPage = true;
+                    playClick(1.18F);
+                    rebuildColonyWidgets();
+                }).bounds(left + PANEL_W - 82, top + 3, 78, 16).build());
+        memories.active = !memoryPage;
+    }
+
+    private void rebuildMemoryWidgets(int left, int top, BlockPos nexusPos) {
+        List<ClientColonyCache.SiteMemorySnapshot> sites = ClientColonyCache.getSiteMemories();
+        if (sites.isEmpty()) {
+            this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
+                    .bounds(left + PANEL_W - 84, top + PANEL_H - 25, 74, 18).build());
+            return;
+        }
+        memorySiteIndex = Math.floorMod(memorySiteIndex, sites.size());
+        memorySourceIndex = Math.floorMod(memorySourceIndex, sites.size());
+        memoryTargetIndex = Math.floorMod(memoryTargetIndex, sites.size());
+        ClientColonyCache.SiteMemorySnapshot selected = sites.get(memorySiteIndex);
+        BlockPos selectedPos = selected.sitePos();
+
+        this.addRenderableWidget(Button.builder(Component.literal("<"), button -> {
+            memorySiteIndex = Math.floorMod(memorySiteIndex - 1, sites.size());
+            rebuildColonyWidgets();
+        }).bounds(left + 10, top + 22, 22, 18).build());
+        this.addRenderableWidget(Button.builder(Component.literal(">"), button -> {
+            memorySiteIndex = (memorySiteIndex + 1) % sites.size();
+            rebuildColonyWidgets();
+        }).bounds(left + PANEL_W - 32, top + 22, 22, 18).build());
+
+        ColonySiteHabit learned = ColonySiteHabit.fromIndex(selected.learnedHabit());
+        ColonySiteHabit trial = ColonySiteHabit.fromIndex(selected.trialHabit());
+        boolean hasHistory = learned != ColonySiteHabit.NONE || trial != ColonySiteHabit.NONE
+                || selected.incidentCount() > 0;
+        Button adopt = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.memory_adopt"), button -> {
+                    if (nexusPos != null) {
+                        SovereignColonyActionPayload.sendMemoryAction(
+                                SovereignColonyActionPayload.ACTION_ADOPT_SITE_MEMORY, nexusPos, selectedPos, null);
+                        playClick(1.25F);
+                    }
+                }).bounds(left + 10, top + 108, 170, 18).build());
+        adopt.active = nexusPos != null && trial != ColonySiteHabit.NONE && selected.successfulTrials() >= 2;
+
+        Button forget = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.memory_forget"), button -> {
+                    if (nexusPos != null) {
+                        SovereignColonyActionPayload.sendMemoryAction(
+                                SovereignColonyActionPayload.ACTION_FORGET_SITE_MEMORY, nexusPos, selectedPos, null);
+                        playClick(0.82F);
+                    }
+                }).bounds(left + 188, top + 108, 170, 18).build());
+        forget.active = nexusPos != null && hasHistory;
+
+        this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.memory_source",
+                        getSiteName(sites.get(memorySourceIndex).sitePos(), nexusPos)), button -> {
+                    memorySourceIndex = (memorySourceIndex + 1) % sites.size();
+                    rebuildColonyWidgets();
+                }).bounds(left + 10, top + 135, 168, 20).build());
+        this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.memory_target",
+                        getSiteName(sites.get(memoryTargetIndex).sitePos(), nexusPos)), button -> {
+                    memoryTargetIndex = (memoryTargetIndex + 1) % sites.size();
+                    rebuildColonyWidgets();
+                }).bounds(left + 188, top + 135, 170, 20).build());
+
+        ClientColonyCache.SiteMemorySnapshot sourceMemory = sites.get(memorySourceIndex);
+        ClientColonyCache.SiteMemorySnapshot targetMemory = sites.get(memoryTargetIndex);
+        boolean canTeach = nexusPos != null && !ClientColonyCache.hasMemoryTransfer()
+                && memorySourceIndex != memoryTargetIndex
+                && sourceMemory.learnedHabit() != ColonySiteHabit.NONE.ordinal()
+                && targetMemory.trialHabit() == ColonySiteHabit.NONE.ordinal();
+        Button teach = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.memory_teach"), button -> {
+                    if (nexusPos != null) {
+                        SovereignColonyActionPayload.sendMemoryAction(
+                                SovereignColonyActionPayload.ACTION_TEACH_SITE_MEMORY, nexusPos,
+                                sites.get(memorySourceIndex).sitePos(), sites.get(memoryTargetIndex).sitePos());
+                        playClick(1.38F);
+                    }
+                }).bounds(left + 10, top + 163, 170, 18).build());
+        teach.active = canTeach;
+
+        Button cancel = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.memory_cancel_transfer"), button -> {
+                    if (nexusPos != null) {
+                        SovereignColonyActionPayload.sendMemoryAction(
+                                SovereignColonyActionPayload.ACTION_CANCEL_MEMORY_TRANSFER, nexusPos, null, null);
+                        playClick(0.9F);
+                    }
+                }).bounds(left + 188, top + 163, 170, 18).build());
+        cancel.active = nexusPos != null && ClientColonyCache.hasMemoryTransfer();
+
+        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
+                .bounds(left + PANEL_W - 84, top + PANEL_H - 25, 74, 18).build());
+    }
+
+    private Component getSiteName(BlockPos sitePos, BlockPos nexusPos) {
+        if (nexusPos != null && sitePos.equals(nexusPos)) {
+            return Component.translatable("gui.mycelialmind.colony.memory_nexus");
+        }
+        return Component.translatable("gui.mycelialmind.colony.memory_outpost",
+                sitePos.getX(), sitePos.getY(), sitePos.getZ());
+    }
+
     private int lastWorkerCount = -1;
     private int lastBiomass = -1;
     private int lastTier = -1;
     private int lastTraitMask = -1;
+    private int lastMemoryHash;
+    private boolean lastTransferActive;
 
     @Override
     public void tick() {
@@ -184,11 +312,15 @@ public class SovereignNexusScreen extends Screen {
         if (lastWorkerCount != ClientColonyCache.getWorkers().size()
                 || lastBiomass != ClientColonyCache.getBiomass()
                 || lastTier != ClientColonyCache.getTier()
-                || lastTraitMask != ClientColonyCache.getTraitMask()) {
+                || lastTraitMask != ClientColonyCache.getTraitMask()
+                || lastMemoryHash != ClientColonyCache.getSiteMemories().hashCode()
+                || lastTransferActive != ClientColonyCache.hasMemoryTransfer()) {
             lastWorkerCount = ClientColonyCache.getWorkers().size();
             lastBiomass = ClientColonyCache.getBiomass();
             lastTier = ClientColonyCache.getTier();
             lastTraitMask = ClientColonyCache.getTraitMask();
+            lastMemoryHash = ClientColonyCache.getSiteMemories().hashCode();
+            lastTransferActive = ClientColonyCache.hasMemoryTransfer();
             rebuildColonyWidgets();
         }
     }
@@ -199,6 +331,8 @@ public class SovereignNexusScreen extends Screen {
         lastBiomass = ClientColonyCache.getBiomass();
         lastTier = ClientColonyCache.getTier();
         lastTraitMask = ClientColonyCache.getTraitMask();
+        lastMemoryHash = ClientColonyCache.getSiteMemories().hashCode();
+        lastTransferActive = ClientColonyCache.hasMemoryTransfer();
         rebuildColonyWidgets();
     }
 
@@ -213,6 +347,12 @@ public class SovereignNexusScreen extends Screen {
         graphics.fill(left + 1, top + 1, left + PANEL_W - 1, top + 22, 0xFF142E25);
 
         graphics.drawCenteredString(this.font, this.title, left + PANEL_W / 2, top + 7, 0xFF9BF6B0);
+
+        if (memoryPage) {
+            renderMemoryPage(graphics, left, top);
+            super.render(graphics, mouseX, mouseY, partialTick);
+            return;
+        }
 
         List<WorkerSnapshot> workers = ClientColonyCache.getWorkers();
         Component summary = Component.translatable("gui.mycelialmind.colony.summary",
@@ -282,6 +422,74 @@ public class SovereignNexusScreen extends Screen {
         }
 
         super.render(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderMemoryPage(GuiGraphics graphics, int left, int top) {
+        List<ClientColonyCache.SiteMemorySnapshot> sites = ClientColonyCache.getSiteMemories();
+        if (sites.isEmpty()) {
+            graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.memory_no_sites"),
+                    left + 10, top + 34, 0xFFD8F3DC, false);
+            return;
+        }
+        memorySiteIndex = Math.floorMod(memorySiteIndex, sites.size());
+        memorySourceIndex = Math.floorMod(memorySourceIndex, sites.size());
+        memoryTargetIndex = Math.floorMod(memoryTargetIndex, sites.size());
+        BlockPos nexusPos = ClientColonyCache.getNexusPos();
+        ClientColonyCache.SiteMemorySnapshot memory = sites.get(memorySiteIndex);
+        ColonySiteHabit learned = ColonySiteHabit.fromIndex(memory.learnedHabit());
+        ColonySiteHabit trial = ColonySiteHabit.fromIndex(memory.trialHabit());
+
+        graphics.drawCenteredString(this.font,
+                Component.translatable("gui.mycelialmind.colony.memory_site", memorySiteIndex + 1, sites.size(),
+                        getSiteName(memory.sitePos(), nexusPos)),
+                left + PANEL_W / 2, top + 34, 0xFF9BF6B0);
+        graphics.drawString(this.font,
+                Component.translatable("gui.mycelialmind.colony.memory_learned",
+                        Component.translatable(learned.translationKey())),
+                left + 10, top + 56, 0xFFE9ECEF, false);
+        graphics.drawString(this.font,
+                Component.translatable("gui.mycelialmind.colony.memory_trial",
+                        Component.translatable(trial.translationKey()), memory.successfulTrials(), 2),
+                left + 10, top + 72, trial == ColonySiteHabit.NONE ? 0xFFADB5BD : 0xFFFFD166, false);
+        graphics.drawString(this.font,
+                Component.translatable("gui.mycelialmind.colony.memory_incident",
+                        memory.incidentCount(), Component.translatable(incidentTranslationKey(memory.lastIncidentCode()))),
+                left + 10, top + 88, 0xFF72EFDD, false);
+        graphics.drawString(this.font,
+                Component.translatable("gui.mycelialmind.colony.memory_outcome",
+                        Component.translatable(outcomeTranslationKey(memory.lastOutcomeCode())), memory.failedTrials()),
+                left + 10, top + 104, 0xFFD8F3DC, false);
+
+        if (ClientColonyCache.hasMemoryTransfer()) {
+            Component transfer = Component.translatable("gui.mycelialmind.colony.memory_transfer_status",
+                    Component.translatable(ColonySiteHabit.fromIndex(ClientColonyCache.getMemoryTransferHabit()).translationKey()),
+                    getSiteName(ClientColonyCache.getMemoryTransferSource(), nexusPos),
+                    getSiteName(ClientColonyCache.getMemoryTransferTarget(), nexusPos),
+                    Component.translatable(ClientColonyCache.isMemoryTransferInTransit()
+                            ? "gui.mycelialmind.colony.memory_carried"
+                            : "gui.mycelialmind.colony.memory_not_carried"));
+            String trimmed = this.font.plainSubstrByWidth(transfer.getString(), PANEL_W - 20);
+            graphics.drawString(this.font, trimmed, left + 10, top + 193, 0xFF72EFDD, false);
+        } else {
+            graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.memory_idle"),
+                    left + 10, top + 193, 0xFFADB5BD, false);
+        }
+    }
+
+    private static String incidentTranslationKey(int incidentCode) {
+        return switch (incidentCode) {
+            case 1 -> "gui.mycelialmind.colony.memory_incident_courier";
+            case 2 -> "gui.mycelialmind.colony.memory_incident_fatigue";
+            case 3 -> "gui.mycelialmind.colony.memory_incident_contention";
+            case 4 -> "gui.mycelialmind.colony.memory_incident_taught";
+            default -> "gui.mycelialmind.colony.memory_incident_none";
+        };
+    }
+
+    private static String outcomeTranslationKey(int outcomeCode) {
+        return outcomeCode == 0
+                ? "gui.mycelialmind.colony.memory_outcome_none"
+                : "gui.mycelialmind.colony.memory_outcome_recorded";
     }
 
     private static void playClick(float pitch) {

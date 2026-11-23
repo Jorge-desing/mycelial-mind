@@ -1,6 +1,8 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.colony.ColonyOrder;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
+import com.alex.mycelialmind.colony.ColonySiteMemory;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonyEngine;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
@@ -105,6 +107,9 @@ public class ColonySymbiontEntity extends PathfinderMob {
     private long lastWorkTick = 0L;
     private long lastRestTick = 0L;
     private boolean resting = false;
+    private boolean damagedDuringCourierTrip;
+    @Nullable
+    private BlockPos pendingEarlyRestSite;
 
     private final ItemStackHandler pouch = new ItemStackHandler(POUCH_SLOTS);
 
@@ -256,6 +261,30 @@ public class ColonySymbiontEntity extends PathfinderMob {
 
     public void setResting(boolean resting) {
         this.resting = resting;
+    }
+
+    public void markEarlyRestAt(BlockPos sitePos) {
+        this.pendingEarlyRestSite = sitePos.immutable();
+    }
+
+    public boolean takeCourierDamageForMemory() {
+        boolean damaged = damagedDuringCourierTrip;
+        damagedDuringCourierTrip = false;
+        return damaged;
+    }
+
+    public void clearCourierDamageForMemory() {
+        damagedDuringCourierTrip = false;
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean hurt = super.hurt(source, amount);
+        if (hurt && !this.level().isClientSide() && getCaste() == SymbiontCaste.COURIER
+                && getTaskState().startsWith("courier_")) {
+            damagedDuringCourierTrip = true;
+        }
+        return hurt;
     }
 
     public int getWorkerXp() {
@@ -432,6 +461,19 @@ public class ColonySymbiontEntity extends PathfinderMob {
         }
 
         if (colony != null) {
+            if (pendingEarlyRestSite != null) {
+                ColonySiteMemory memory = colony.getSiteMemory(pendingEarlyRestSite);
+                if (memory != null) {
+                    boolean learned = memory.recordTrialSuccess(ColonySiteHabit.REST_BEFORE_RETURN, 2);
+                    if (learned) {
+                        level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                                pendingEarlyRestSite.getX() + 0.5D, pendingEarlyRestSite.getY() + 1.0D,
+                                pendingEarlyRestSite.getZ() + 0.5D, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                    }
+                    SovereignColonySavedData.get(level).setDirty();
+                }
+                pendingEarlyRestSite = null;
+            }
             int domainGain = (int) Math.round(SovereignColonyEngine.computeOrderDomainXp(orderType, temp, colony.getTier()));
             colony.addDomainXp(domainGain);
             SovereignColonySavedData.get(level).setDirty();
@@ -556,6 +598,9 @@ public class ColonySymbiontEntity extends PathfinderMob {
             }
             SovereignColonyData colony = getColonyData(serverLevel);
             if (colony != null) {
+                if (damagedDuringCourierTrip) {
+                    recordCourierDamageObservation(serverLevel, colony);
+                }
                 colony.recordWorkerLoss();
                 colony.removeWorker(this.getUUID());
                 colony.recalculateMorale();
@@ -563,6 +608,21 @@ public class ColonySymbiontEntity extends PathfinderMob {
             }
         }
         super.die(source);
+    }
+
+    private void recordCourierDamageObservation(ServerLevel level, SovereignColonyData colony) {
+        BlockPos site = colony.findNearestMemorySite(this.blockPosition(), 16.0D);
+        if (site == null) {
+            return;
+        }
+        ColonySiteMemory memory = colony.getSiteMemory(site);
+        if (memory != null && memory.recordIncident(ColonySiteHabit.ESCORTED_COURIER, 1, level.getGameTime())) {
+            level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                    site.getX() + 0.5D, site.getY() + 1.0D, site.getZ() + 0.5D,
+                    1, 0.0D, 0.0D, 0.0D, 0.0D);
+        }
+        SovereignColonySavedData.get(level).setDirty();
+        damagedDuringCourierTrip = false;
     }
 
     @Override

@@ -49,6 +49,43 @@ public final class SovereignColonyData {
     ) {
     }
 
+    public record SiteMemorySnapshot(
+            BlockPos sitePos,
+            ColonySiteHabit learnedHabit,
+            ColonySiteHabit trialHabit,
+            int incidentCount,
+            int successfulTrials,
+            int failedTrials,
+            int lastIncidentCode,
+            int lastOutcomeCode
+    ) {
+    }
+
+    public record MemoryTransferSnapshot(
+            BlockPos sourcePos,
+            BlockPos targetPos,
+            ColonySiteHabit habit,
+            boolean inTransit
+    ) {
+    }
+
+    private static final class MemoryTransfer {
+        private final BlockPos sourcePos;
+        private final BlockPos targetPos;
+        private final ColonySiteHabit habit;
+        @Nullable
+        private UUID courierId;
+        private boolean collected;
+        private long lastProgressTick;
+
+        private MemoryTransfer(BlockPos sourcePos, BlockPos targetPos, ColonySiteHabit habit, long gameTime) {
+            this.sourcePos = sourcePos.immutable();
+            this.targetPos = targetPos.immutable();
+            this.habit = habit;
+            this.lastProgressTick = gameTime;
+        }
+    }
+
     private final UUID colonyId;
     private UUID ownerId;
     private String ownerName;
@@ -70,6 +107,9 @@ public final class SovereignColonyData {
     private final EnumMap<WorkZoneType, LinkedHashSet<BlockPos>> workZones = new EnumMap<>(WorkZoneType.class);
     private final Map<UUID, WorkerRosterEntry> roster = new LinkedHashMap<>();
     private final ColonyOrderBoard orderBoard = new ColonyOrderBoard();
+    private final Map<BlockPos, ColonySiteMemory> siteMemories = new LinkedHashMap<>();
+    @Nullable
+    private MemoryTransfer memoryTransfer;
 
     public SovereignColonyData(UUID colonyId, UUID ownerId, String ownerName, BlockPos nexusPos) {
         this.colonyId = colonyId;
@@ -247,6 +287,190 @@ public final class SovereignColonyData {
             }
             this.linkedOutposts.add(pos.immutable());
         }
+        if (memoryTransfer != null
+                && (!isMemorySite(memoryTransfer.sourcePos) || !isMemorySite(memoryTransfer.targetPos))) {
+            memoryTransfer = null;
+        }
+    }
+
+    private boolean isMemorySite(BlockPos pos) {
+        return nexusPos.equals(pos) || linkedOutposts.contains(pos);
+    }
+
+    public List<BlockPos> getMemorySitePositions() {
+        List<BlockPos> sites = new ArrayList<>(1 + linkedOutposts.size());
+        sites.add(nexusPos);
+        for (BlockPos outpost : linkedOutposts) {
+            if (!outpost.equals(nexusPos)) {
+                sites.add(outpost);
+            }
+        }
+        return List.copyOf(sites);
+    }
+
+    public List<SiteMemorySnapshot> getSiteMemorySnapshots() {
+        List<SiteMemorySnapshot> snapshots = new ArrayList<>();
+        for (BlockPos site : getMemorySitePositions()) {
+            ColonySiteMemory memory = siteMemories.get(site);
+            if (memory == null) {
+                snapshots.add(new SiteMemorySnapshot(site, ColonySiteHabit.NONE, ColonySiteHabit.NONE,
+                        0, 0, 0, 0, 0));
+            } else {
+                snapshots.add(new SiteMemorySnapshot(site, memory.learnedHabit(), memory.trialHabit(),
+                        memory.incidentCount(), memory.successfulTrials(), memory.failedTrials(),
+                        memory.lastIncidentCode(), memory.lastOutcomeCode()));
+            }
+        }
+        return List.copyOf(snapshots);
+    }
+
+    @Nullable
+    public BlockPos findNearestMemorySite(BlockPos pos, double maxDistance) {
+        BlockPos nearest = null;
+        double bestDistance = maxDistance * maxDistance;
+        for (BlockPos site : getMemorySitePositions()) {
+            double distance = site.distSqr(pos);
+            if (distance <= bestDistance) {
+                nearest = site;
+                bestDistance = distance;
+            }
+        }
+        return nearest;
+    }
+
+    @Nullable
+    public ColonySiteMemory getSiteMemory(BlockPos sitePos) {
+        BlockPos site = sitePos.immutable();
+        if (!site.equals(nexusPos) && !linkedOutposts.contains(site)) {
+            return null;
+        }
+        return siteMemories.computeIfAbsent(site, ignored -> new ColonySiteMemory());
+    }
+
+    public boolean usesSiteHabit(BlockPos sitePos, ColonySiteHabit habit) {
+        ColonySiteMemory memory = getSiteMemory(sitePos);
+        return memory != null && memory.usesHabit(habit);
+    }
+
+    public boolean startMemoryTransfer(BlockPos sourcePos, BlockPos targetPos, long gameTime) {
+        BlockPos source = sourcePos.immutable();
+        BlockPos target = targetPos.immutable();
+        ColonySiteMemory sourceMemory = getSiteMemory(source);
+        ColonySiteMemory targetMemory = getSiteMemory(target);
+        if (sourceMemory == null || targetMemory == null || source.equals(target)
+                || memoryTransfer != null || sourceMemory.learnedHabit() == ColonySiteHabit.NONE
+                || targetMemory.trialHabit() != ColonySiteHabit.NONE) {
+            return false;
+        }
+        if (targetMemory.learnedHabit() == sourceMemory.learnedHabit()) {
+            return false;
+        }
+        memoryTransfer = new MemoryTransfer(source, target, sourceMemory.learnedHabit(), gameTime);
+        return true;
+    }
+
+    @Nullable
+    public MemoryTransferSnapshot getMemoryTransferSnapshot() {
+        if (memoryTransfer == null) {
+            return null;
+        }
+        return new MemoryTransferSnapshot(memoryTransfer.sourcePos, memoryTransfer.targetPos,
+                memoryTransfer.habit, memoryTransfer.collected);
+    }
+
+    public boolean claimMemoryTransfer(UUID courierId, long gameTime) {
+        if (memoryTransfer == null) {
+            return false;
+        }
+        if (memoryTransfer.courierId != null && !memoryTransfer.courierId.equals(courierId)) {
+            if (gameTime - memoryTransfer.lastProgressTick < 600L) {
+                return false;
+            }
+            memoryTransfer.courierId = null;
+            memoryTransfer.collected = false;
+        }
+        memoryTransfer.courierId = courierId;
+        memoryTransfer.lastProgressTick = gameTime;
+        return true;
+    }
+
+    public boolean isMemoryTransferAssignedTo(UUID courierId) {
+        return memoryTransfer != null && courierId.equals(memoryTransfer.courierId);
+    }
+
+    @Nullable
+    public MemoryTransferSnapshot getMemoryTransferFor(UUID courierId) {
+        return isMemoryTransferAssignedTo(courierId) ? getMemoryTransferSnapshot() : null;
+    }
+
+    public void touchMemoryTransfer(UUID courierId, long gameTime) {
+        if (isMemoryTransferAssignedTo(courierId)) {
+            memoryTransfer.lastProgressTick = gameTime;
+        }
+    }
+
+    public void markMemoryTransferCollected(UUID courierId, long gameTime) {
+        if (isMemoryTransferAssignedTo(courierId)) {
+            memoryTransfer.collected = true;
+            memoryTransfer.lastProgressTick = gameTime;
+        }
+    }
+
+    public boolean deliverMemoryTransfer(UUID courierId, long gameTime) {
+        if (!isMemoryTransferAssignedTo(courierId) || !memoryTransfer.collected
+                || gameTime - memoryTransfer.lastProgressTick >= 600L) {
+            return false;
+        }
+        ColonySiteMemory destination = getSiteMemory(memoryTransfer.targetPos);
+        boolean delivered = destination != null && destination.receiveTransferredHabit(memoryTransfer.habit);
+        memoryTransfer = null;
+        return delivered;
+    }
+
+    public void releaseMemoryTransferCourier(UUID courierId) {
+        if (isMemoryTransferAssignedTo(courierId)) {
+            memoryTransfer.courierId = null;
+            memoryTransfer.collected = false;
+            memoryTransfer.lastProgressTick = 0L;
+        }
+    }
+
+    public void cancelMemoryTransfer() {
+        memoryTransfer = null;
+    }
+
+    @Nullable
+    public BlockPos findEscortSiteForSentinel(UUID sentinelId, long gameTime) {
+        for (Map.Entry<BlockPos, ColonySiteMemory> entry : siteMemories.entrySet()) {
+            if (sentinelId.equals(entry.getValue().escortSentinel(gameTime))) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public BlockPos claimNearestEscortForSentinel(BlockPos sentinelPos, UUID sentinelId, long gameTime,
+                                                   double maxDistance) {
+        BlockPos nearest = null;
+        double nearestDistance = maxDistance * maxDistance;
+        for (BlockPos site : getMemorySitePositions()) {
+            ColonySiteMemory memory = siteMemories.get(site);
+            if (memory == null || !memory.hasEscortRequest(gameTime)) {
+                continue;
+            }
+            double distance = site.distSqr(sentinelPos);
+            if (distance <= nearestDistance && memory.tryClaimEscortSentinel(sentinelId, gameTime)) {
+                nearest = site;
+                nearestDistance = distance;
+            }
+        }
+        return nearest;
+    }
+
+    @Nullable
+    public ColonySiteMemory getExistingSiteMemory(BlockPos sitePos) {
+        return siteMemories.get(sitePos);
     }
 
     public Set<BlockPos> getInputChests() {
@@ -411,6 +635,26 @@ public final class SovereignColonyData {
             rosterTag.add(w);
         }
         tag.put("Roster", rosterTag);
+
+        ListTag memoriesTag = new ListTag();
+        for (Map.Entry<BlockPos, ColonySiteMemory> entry : siteMemories.entrySet()) {
+            CompoundTag memoryTag = entry.getValue().save();
+            memoryTag.putLong("SitePos", entry.getKey().asLong());
+            memoriesTag.add(memoryTag);
+        }
+        tag.put("SiteMemories", memoriesTag);
+        if (memoryTransfer != null) {
+            CompoundTag transferTag = new CompoundTag();
+            transferTag.putLong("SourcePos", memoryTransfer.sourcePos.asLong());
+            transferTag.putLong("TargetPos", memoryTransfer.targetPos.asLong());
+            transferTag.putInt("Habit", memoryTransfer.habit.ordinal());
+            transferTag.putBoolean("Collected", memoryTransfer.collected);
+            transferTag.putLong("LastProgressTick", memoryTransfer.lastProgressTick);
+            if (memoryTransfer.courierId != null) {
+                transferTag.putUUID("Courier", memoryTransfer.courierId);
+            }
+            tag.put("MemoryTransfer", transferTag);
+        }
         return tag;
     }
 
@@ -459,6 +703,24 @@ public final class SovereignColonyData {
                     w.getBoolean("Standby"),
                     w.getInt("Xp")
             ));
+        }
+        ListTag memoriesTag = tag.getList("SiteMemories", Tag.TAG_COMPOUND);
+        for (int i = 0; i < memoriesTag.size(); i++) {
+            CompoundTag memoryTag = memoriesTag.getCompound(i);
+            data.siteMemories.put(BlockPos.of(memoryTag.getLong("SitePos")), ColonySiteMemory.load(memoryTag));
+        }
+        if (tag.contains("MemoryTransfer", Tag.TAG_COMPOUND)) {
+            CompoundTag transferTag = tag.getCompound("MemoryTransfer");
+            BlockPos source = BlockPos.of(transferTag.getLong("SourcePos"));
+            BlockPos target = BlockPos.of(transferTag.getLong("TargetPos"));
+            ColonySiteHabit habit = ColonySiteHabit.fromIndex(transferTag.getInt("Habit"));
+            if (!source.equals(target) && habit != ColonySiteHabit.NONE) {
+                MemoryTransfer transfer = new MemoryTransfer(source, target, habit,
+                        transferTag.getLong("LastProgressTick"));
+                transfer.collected = transferTag.getBoolean("Collected");
+                transfer.courierId = transferTag.hasUUID("Courier") ? transferTag.getUUID("Courier") : null;
+                data.memoryTransfer = transfer;
+            }
         }
         return data;
     }
