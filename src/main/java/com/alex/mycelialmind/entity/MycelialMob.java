@@ -8,6 +8,8 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
 import com.alex.mycelialmind.entity.ai.HiveAiBlackboard;
 import com.alex.mycelialmind.entity.ai.HiveTacticalTree;
+import com.alex.mycelialmind.entity.ai.ImminentHazardEvadeGoal;
+import com.alex.mycelialmind.entity.ai.TacticalShelterGoal;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveBlackboard;
@@ -16,7 +18,10 @@ import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.HiveStrain;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine;
+import com.alex.mycelialmind.hive.MobEpisodicMemory;
+import com.alex.mycelialmind.hive.MobThreatTable;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
+import com.alex.mycelialmind.hive.TacticalEvasionEngine;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
@@ -142,6 +147,7 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
     private static final String TAG_BASE_ATTACK_DAMAGE = "MycelialBaseAttackDamage";
     private static final String TAG_BASE_XP_REWARD = "MycelialBaseXpReward";
     private static final String TAG_PRIMORDIAL = "MycelialPrimordial";
+    private static final String TAG_EPISODIC_MEMORY = "MycelialEpisodicMemory";
 
     public static final double SURFACE_DAY_SPAWN_THREAT_THRESHOLD = 50.0;
 
@@ -158,6 +164,10 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
     @Nullable
     private UUID alliedOwnerUuid = null;
     private final HiveAiBlackboard aiBlackboard = new HiveAiBlackboard();
+    private final MobThreatTable threatTable = new MobThreatTable();
+    private final MobEpisodicMemory episodicMemory = new MobEpisodicMemory();
+    private int nextTacticalTreeTick = 0;
+    private int lastDesyncTicks = 0;
     @Nullable
     private BehaviorTree<HiveAiBlackboard> tacticalTree;
 
@@ -169,12 +179,26 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
                 this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(
                         this, MycelialMob.class, 10, true, false, this::isRivalStrainTarget));
             }
+            if (!(this instanceof MycelialBossMob) && !isBossMob() && !(this instanceof AcidSpitterEntity)) {
+                this.goalSelector.addGoal(1, new ImminentHazardEvadeGoal(this));
+                if (TacticalShelterGoal.isEligibleMob(this)) {
+                    this.goalSelector.addGoal(2, new TacticalShelterGoal(this));
+                }
+            }
             captureBaseStats();
         }
     }
 
     public HiveAiBlackboard getAiBlackboard() {
         return aiBlackboard;
+    }
+
+    public MobThreatTable getThreatTable() {
+        return threatTable;
+    }
+
+    public MobEpisodicMemory getEpisodicMemory() {
+        return episodicMemory;
     }
 
     public HiveAiBlackboard.TacticalIntent getTacticalIntent() {
@@ -413,6 +437,24 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
             }
         }
         return super.canAttack(target);
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean hurt = super.hurt(source, amount);
+        if (hurt && this.level() instanceof ServerLevel serverLevel
+                && source.getEntity() instanceof LivingEntity attacker
+                && attacker != this
+                && this.canAttack(attacker)
+                && !(attacker instanceof Player player && isFriendlyToPlayer(this, player))) {
+            float healthRatio = attacker.getHealth() / Math.max(1.0F, attacker.getMaxHealth());
+            long now = serverLevel.getGameTime();
+            this.threatTable.recordDamage(attacker.getUUID(), amount, this.distanceToSqr(attacker), healthRatio, now);
+            if (amount >= this.getMaxHealth() * 0.25F || this.getHealth() <= this.getMaxHealth() * 0.35F) {
+                this.episodicMemory.remember(MobEpisodicMemory.grudgeKey(attacker.getUUID()), now);
+            }
+        }
+        return hurt;
     }
 
     public EvolutionRank getEvolutionRank() {
@@ -857,6 +899,7 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
         if (this.alliedOwnerUuid != null) {
             tag.putUUID(TAG_ALLIED_OWNER, this.alliedOwnerUuid);
         }
+        this.episodicMemory.writeToNbt(tag, TAG_EPISODIC_MEMORY);
     }
 
     @Override
@@ -927,6 +970,7 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
             this.escortExpiryTick = -1L;
         }
         this.alliedOwnerUuid = tag.hasUUID(TAG_ALLIED_OWNER) ? tag.getUUID(TAG_ALLIED_OWNER) : null;
+        this.episodicMemory.readFromNbt(tag, TAG_EPISODIC_MEMORY);
         if (isAlliedEscortActive() && this.level() instanceof ServerLevel serverLevel) {
             AlliedEscortSavedData.get(serverLevel.getServer())
                     .register(this.getUUID(), this.alliedOwnerUuid, this.escortExpiryTick);
@@ -1095,12 +1139,70 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
         }
         if (this.level() instanceof ServerLevel serverLevel) {
             tickTacticalCommandState(serverLevel);
-        }
-        if (this.tacticalTree != null && ((this.tickCount + this.getId()) & 3) == 0) {
-            this.aiBlackboard.populateFromMob(this, this.getTarget());
-            this.tacticalTree.step();
+            int currentDesync = getDesyncTicks();
+            if (this.lastDesyncTicks > 0 && currentDesync == 0) {
+                this.episodicMemory.remember(MobEpisodicMemory.KEY_SURVIVED_DESYNC, serverLevel.getGameTime());
+            }
+            this.lastDesyncTicks = currentDesync;
+
+            if (this.tickCount % 20 == 0 && !(this instanceof MycelialBossMob) && !isBossMob()
+                    && PurificationZoneTracker.get(serverLevel).isProtected(this.blockPosition())) {
+                this.episodicMemory.remember(MobEpisodicMemory.KEY_TRAUMA_PYLON, serverLevel.getGameTime());
+            }
+
+            if (((this.tickCount + this.getId()) % 10) == 0
+                    && !(this instanceof MycelialBossMob) && !isBossMob()
+                    && !isDesynced() && !isAlliedEscort()
+                    && !(this instanceof AcidSpitterEntity)) {
+                resolveThreatTableTarget(serverLevel);
+            }
+
+            boolean hasTarget = this.getTarget() != null && this.getTarget().isAlive();
+            boolean nearPlayer = serverLevel.getNearestPlayer(this, 24.0D) != null;
+            boolean inAlarmOrFrenzy = isFrenzyActive()
+                    || HiveBlackboard.getNearestActiveAlarm(serverLevel, this.blockPosition()) != null;
+            if ((hasTarget || inAlarmOrFrenzy) && this.nextTacticalTreeTick > this.tickCount + 4) {
+                this.nextTacticalTreeTick = this.tickCount + 4;
+            }
+            if (this.tacticalTree != null && this.tickCount >= this.nextTacticalTreeTick) {
+                this.aiBlackboard.populateFromMob(this, this.getTarget());
+                this.tacticalTree.step();
+                int interval = TacticalEvasionEngine.computeAdaptiveAiInterval(hasTarget, nearPlayer, inAlarmOrFrenzy);
+                this.nextTacticalTreeTick = this.tickCount + interval;
+            }
         }
         tickBrain(this);
+    }
+
+    public void resolveThreatTableTarget(ServerLevel serverLevel) {
+        if (this instanceof MycelialBossMob || isBossMob() || isDesynced() || isAlliedEscort()
+                || this instanceof AcidSpitterEntity) {
+            return;
+        }
+        LivingEntity currentTarget = this.getTarget();
+        long now = serverLevel.getGameTime();
+        if (currentTarget != null && currentTarget.isAlive() && this.canAttack(currentTarget)) {
+            float ratio = currentTarget.getHealth() / Math.max(1.0F, currentTarget.getMaxHealth());
+            this.threatTable.recordProximity(currentTarget.getUUID(), this.distanceToSqr(currentTarget), ratio, now);
+        }
+        if (this.threatTable.size() == 0) {
+            return;
+        }
+        UUID currentId = currentTarget != null ? currentTarget.getUUID() : null;
+        UUID bestId = this.threatTable.selectHighestThreat(
+                currentId,
+                now,
+                id -> serverLevel.getEntity(id) instanceof LivingEntity living
+                        && living.isAlive()
+                        && this.canAttack(living)
+                        && !(living instanceof Player player && isFriendlyToPlayer(this, player))
+                        && this.distanceToSqr(living) <= 32.0D * 32.0D,
+                id -> this.episodicMemory.hasMemory(MobEpisodicMemory.grudgeKey(id))
+        );
+        if (bestId != null && !bestId.equals(currentId)
+                && serverLevel.getEntity(bestId) instanceof LivingEntity nextTarget) {
+            this.setTarget(nextTarget);
+        }
     }
 
     private void tickTacticalCommandState(ServerLevel serverLevel) {

@@ -3686,3 +3686,28 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Resumen:** Se reforzó y formalizó en las reglas permanentes del proyecto y para todos los agentes la obligación de hacer `git commit` y `git push` siempre después de cada sesión o al realizar cambios significativos entre pasadas (verificando `git status` para incluir únicamente archivos propios de la tarea). Se revisó la pertinencia de las skills en `.agents/skills/` y no requerían cambios al tratarse de una regla transversal de flujo Git.
 - **Archivos / Símbolos:** `.agents/rules/git-auto-commit.md`, `AGENTS.md` (sección 8), `GEMINI.md`, `MEMORY.md`.
 - **Estado / Siguiente paso:** Regla activa en las tres rutas de descubrimiento del proyecto (`AGENTS.md`, `GEMINI.md`, `.agents/rules/git-auto-commit.md`). Pendiente `git commit` y `git push` de estos archivos.
+
+
+## [2026-11-22 19:22] — Capacidades cognitivas clean-room de IA para mobs (informadas vía REA)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:**
+  1. **Análisis REA sobre artefactos de referencia (`scratch/ai_mods/`):** Inspeccionados con el servidor MCP **REA** (`open_binary` → `inspect_artifact(summary)` → `close_binary`) y `javap` los JARs de **MCA Reborn** (`mca-neoforge-7.7.36-beta.3+1.21.1.jar`, `ev_f7a47980468f3d6b23ebdfa96e27710ceee96d5a3a60c5a500e480e1ecdeb802`), **MineColonies** (`minecolonies-1.18.2-1.1.29-BETA.jar`, `ev_5e0aa2f0469e885ec7a5e3feb51cf9057b6aca38b301c1be1937a79a0c8615da`) y **Villager Workers** (`workers-1.20.1-2.1.0.jar`, `ev_65f9d3a4415c851064f7aaa80a1e40bd06b757e37ea6e1f5179f8def2683df1f`), derivando patrones conductuales *clean-room* (sin copia de código). *(Nota: ByteBuddies es exclusivo de CurseForge y no estuvo disponible en Modrinth).*
+  2. **Motores puros en `hive/`:**
+     - `MobThreatTable`: tabla de amenaza multi-objetivo acotada (`MAX_ENTRIES = 12`, expiración `400t`, decaimiento tras `160t`, histéresis de objetivo actual `1.15x`, multiplicador de rencor `1.25x`, proximidad y vulnerabilidad).
+     - `MobEpisodicMemory`: memoria episódica por criatura persistida en NBT (`MycelialEpisodicMemory`, `MAX_ENTRIES = 16`, expulsión del más antiguo) con claves `trauma:grenade`, `trauma:pylon`, `event:survived_desync` y `grudge:<uuid>`.
+     - `TacticalEvasionEngine`: bandas duales de histéresis (`NONE` / `STANDARD` / `EMERGENCY` con extensión por trauma), vector de evasión ante amenazas inminentes con sesgo seguro hacia nodos aliados y cadencia adaptativa de `HiveTacticalTree` (`4` / `10` / `20` ticks).
+  3. **Alarmas tácticas, Goals e integración (`HiveBlackboard`, `entity/ai/`, `MycelialMob`, `BioScannerItem`):**
+     - `HiveBlackboard.broadcastTacticalAlarm` / `getNearestActiveAlarm` (limpiado en `onLevelUnload`) disparado al detonar `PurifierGrenadeProjectile` (`18m`, `100t`, además registra `trauma:grenade` en sobrevivientes) y al romper nodos sinápticos en `DamageTelemetryTracker` (`22m`, `100t`).
+     - `ImminentHazardEvadeGoal` (granadas purificadoras, TNT cebado y Creepers iniciados; radio `6.5m` o `8.5m` con trauma), `TacticalShelterGoal` (`SporeArchitect`, `SynapseWeaver`, `Sporeling`, máx. `100t` con `240t` de enfriamiento) y mejora de `KitingRetreatGoal` con bandas duales y peso reforzado anti-Pilón (`1.05`) ante `trauma:pylon`.
+     - `MycelialMob`: alimenta `threatTable` y rencores en `hurt(...)`, persiste `episodicMemory` en NBT, arbitra objetivos cada `10t` (`resolveThreatTableTarget`, excluyendo jefes y `AcidSpitterEntity`), registra recuperación de `Desync` y exposición a Pilones, aplica cadencia adaptativa en `customServerAiStep()` con despertar inmediato ante objetivo/alarma, y expone `status.mycelialmind.mob_cognition` en `BioScannerItem` (`en_us`/`es_es`).
+  4. **Skills revisadas y actualizadas:** Actualizada `.agents/skills/mycelial-ai-hive/SKILL.md`; revisadas las 7 skills restantes del proyecto sin cambios necesarios (`8/8` validadas con CodeMode `validate_skills`).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/hive/{MobThreatTable,MobEpisodicMemory,TacticalEvasionEngine,HiveBlackboard,DamageTelemetryTracker}.java`
+  - `src/main/java/com/alex/mycelialmind/entity/ai/{ImminentHazardEvadeGoal,TacticalShelterGoal,KitingRetreatGoal}.java`
+  - `src/main/java/com/alex/mycelialmind/entity/MycelialMob.java`, `entity/projectile/PurifierGrenadeProjectile.java`, `item/BioScannerItem.java`
+  - `src/main/resources/assets/mycelialmind/lang/{en_us,es_es}.json` (`status.mycelialmind.mob_cognition`)
+  - `src/test/java/com/alex/mycelialmind/CleanRoomAiCapabilitiesUnitTest.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`cleanRoomAiThreatTableEpisodicMemoryHazardEvadeAndShelterWork`)
+  - `.agents/skills/mycelial-ai-hive/SKILL.md`
+- **Estado / Verificación:**
+  - Verificación ejecutada en `git worktree` aislado desde `HEAD` (`1b86719`) con los 15 archivos de la tarea (debido a ediciones WIP concurrentes de `CycleProtocol`/`FieldEngram` presentes en el árbol principal): **`66/66`** JUnit PASS (`7` suites, incluida `CleanRoomAiCapabilitiesUnitTest` `4/4`) y **`168/168`** `@GameTest`s PASS en `5.644 s` (`BUILD SUCCESSFUL`).
+  - CodeMode `validate_skills`: **`8/8`** PASS; paridad EN/ES verificada (`1694/1694`, `missing_in_es: []`, `missing_in_en: []`).

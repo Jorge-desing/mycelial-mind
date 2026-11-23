@@ -522,6 +522,7 @@ public final class DamageTelemetryTracker {
             PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
             tracker.alertNearbyNodes(serverLevel, pos, 240);
             HiveBlackboard.reportNodeLoss(serverLevel, pos);
+            HiveBlackboard.broadcastTacticalAlarm(serverLevel, pos, 22.0D, 100);
             double threatBefore = hive.getThreatLevel();
             hive.applyNodeDestructionBleed(
                     MycelialConfig.NODE_DESTRUCTION_STIMULUS_BLEED.get(),

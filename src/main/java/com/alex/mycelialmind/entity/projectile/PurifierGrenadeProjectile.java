@@ -5,6 +5,7 @@ import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.HiveBlackboard;
+import com.alex.mycelialmind.hive.MobEpisodicMemory;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEntities;
@@ -79,7 +80,11 @@ public class PurifierGrenadeProjectile extends ThrowableProjectile {
                 mob.clearAdaptations();
                 mob.triggerDesync(SynapticCommandSystem.DESYNC_DURATION_TICKS);
                 mob.hurt(this.damageSources().indirectMagic(this, this.getOwner()), 10.0F);
+                if (mob.isAlive()) {
+                    mob.getEpisodicMemory().remember(MobEpisodicMemory.KEY_TRAUMA_GRENADE, serverLevel.getGameTime());
+                }
             }
+            HiveBlackboard.broadcastTacticalAlarm(serverLevel, center, 18.0D, 100);
             for (PurifierDroneEntity drone : serverLevel.getEntitiesOfClass(PurifierDroneEntity.class, area)) {
                 if (drone.distanceToSqr(center.getX() + 0.5D, center.getY() + 0.5D, center.getZ() + 0.5D) <= 16.0D) {
                     drone.clearJam();

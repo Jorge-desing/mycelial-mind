@@ -350,6 +350,13 @@ public class BioScannerItem extends Item {
                         String.format("%.0f/%.0f", mob.getHealth(), mob.getMaxHealth()),
                         tactical
                 ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                if (mob.getThreatTable().size() > 0 || mob.getEpisodicMemory().size() > 0) {
+                    player.sendSystemMessage(Component.translatable(
+                            "status.mycelialmind.mob_cognition",
+                            mob.getThreatTable().size(),
+                            mob.getEpisodicMemory().size()
+                    ).withStyle(ChatFormatting.AQUA));
+                }
 
                 HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
                 StimulusType dominantStimulus = null;

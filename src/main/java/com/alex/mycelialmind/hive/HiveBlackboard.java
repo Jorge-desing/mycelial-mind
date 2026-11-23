@@ -30,11 +30,15 @@ public final class HiveBlackboard {
     private static final Map<ServerLevel, DirectorStressState> DIRECTOR_STRESS = new ConcurrentHashMap<>();
     private static final Map<ServerLevel, List<TargetReport>> RECENT_CASUALTIES = new ConcurrentHashMap<>();
     private static final Map<ServerLevel, List<CarrionSite>> RECENT_CARRION = new ConcurrentHashMap<>();
+    private static final Map<ServerLevel, List<TacticalAlarm>> TACTICAL_ALARMS = new ConcurrentHashMap<>();
 
     public enum PacingPhase {
         BUILD_UP,
         PEAK,
         RELAXATION
+    }
+
+    public record TacticalAlarm(BlockPos origin, double radiusSqr, long expiresAtTick) {
     }
 
     public record CarrionSite(Vec3 pos, long expiresAtTick) {
@@ -316,6 +320,47 @@ public final class HiveBlackboard {
         return removed;
     }
 
+    public static void broadcastTacticalAlarm(ServerLevel level, BlockPos origin, double radius, int durationTicks) {
+        if (level == null || origin == null || radius <= 0.0D || durationTicks <= 0) {
+            return;
+        }
+        long now = level.getGameTime();
+        List<TacticalAlarm> list = TACTICAL_ALARMS.computeIfAbsent(level,
+                ignored -> Collections.synchronizedList(new ArrayList<>()));
+        synchronized (list) {
+            list.removeIf(alarm -> now >= alarm.expiresAtTick());
+            while (list.size() >= 8) {
+                list.remove(0);
+            }
+            list.add(new TacticalAlarm(origin.immutable(), radius * radius, now + durationTicks));
+        }
+    }
+
+    @Nullable
+    public static TacticalAlarm getNearestActiveAlarm(ServerLevel level, BlockPos mobPos) {
+        if (level == null || mobPos == null) {
+            return null;
+        }
+        List<TacticalAlarm> list = TACTICAL_ALARMS.get(level);
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        long now = level.getGameTime();
+        TacticalAlarm best = null;
+        double bestDistSq = Double.MAX_VALUE;
+        synchronized (list) {
+            list.removeIf(alarm -> now >= alarm.expiresAtTick());
+            for (TacticalAlarm alarm : list) {
+                double distSq = alarm.origin().distSqr(mobPos);
+                if (distSq <= alarm.radiusSqr() && distSq < bestDistSq) {
+                    bestDistSq = distSq;
+                    best = alarm;
+                }
+            }
+        }
+        return best;
+    }
+
     public static void clear(ServerLevel level) {
         RECENT_TARGETS.remove(level);
         STRATEGIC_STATES.remove(level);
@@ -323,6 +368,7 @@ public final class HiveBlackboard {
         DIRECTOR_STRESS.remove(level);
         RECENT_CASUALTIES.remove(level);
         RECENT_CARRION.remove(level);
+        TACTICAL_ALARMS.remove(level);
     }
 
     @SubscribeEvent

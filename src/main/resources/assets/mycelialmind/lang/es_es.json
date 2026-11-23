@@ -1691,5 +1691,6 @@
   "subtitles.mycelialmind.synaptic_pulse": "Pulso de la red sináptica",
   "subtitles.mycelialmind.tide_beacon_activate": "Faro de Marea se activa",
   "subtitles.mycelialmind.truce_pheromone_spray": "Feromona de tregua dispersada",
-  "subtitles.mycelialmind.volatile_engram_pulse": "Engrama de memoria descarga"
+  "subtitles.mycelialmind.volatile_engram_pulse": "Engrama de memoria descarga",
+  "status.mycelialmind.mob_cognition": "Cognición: %d amenazas rastreadas | %d memorias episódicas"
 }

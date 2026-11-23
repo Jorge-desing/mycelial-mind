@@ -8197,4 +8197,65 @@ public final class MycelialGameTests {
             behemoth.discard();
         }
     }
+
+    @GameTest(template = "empty", batch = "algorithm_integration")
+    public static void cleanRoomAiThreatTableEpisodicMemoryHazardEvadeAndShelterWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        HiveBlackboard.clear(level);
+        var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 4, 1, 4);
+        var restoredBrute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 5, 1, 4);
+        var architect = helper.spawnWithNoFreeWill(ModEntities.SPORE_ARCHITECT.get(), 6, 1, 4);
+        var targetA = helper.spawnWithNoFreeWill(net.minecraft.world.entity.EntityType.IRON_GOLEM, 2, 1, 4);
+        var targetB = helper.spawnWithNoFreeWill(net.minecraft.world.entity.EntityType.IRON_GOLEM, 8, 1, 4);
+        var grenade = new PurifierGrenadeProjectile(level, targetA);
+        try {
+            // 1. Multi-attacker threat ranking + grudge memory in MycelialMob.hurt(...)
+            brute.invulnerableTime = 0;
+            brute.hurt(level.damageSources().mobAttack(targetA), 2.0F);
+            brute.invulnerableTime = 0;
+            brute.hurt(level.damageSources().mobAttack(targetB), 14.0F);
+            brute.resolveThreatTableTarget(level);
+            helper.assertTrue(brute.getTarget() == targetB,
+                    "MobThreatTable must prioritize higher-threat attacker B over light attacker A.");
+            String grudgeKey = com.alex.mycelialmind.hive.MobEpisodicMemory.grudgeKey(targetB.getUUID());
+            helper.assertTrue(brute.getEpisodicMemory().hasMemory(grudgeKey),
+                    "Heavy hit must record personal grudge in MobEpisodicMemory.");
+
+            // 2. Episodic memory NBT round-trip
+            brute.getEpisodicMemory().remember(com.alex.mycelialmind.hive.MobEpisodicMemory.KEY_TRAUMA_GRENADE,
+                    level.getGameTime());
+            net.minecraft.nbt.CompoundTag saved = new net.minecraft.nbt.CompoundTag();
+            brute.addAdditionalSaveData(saved);
+            restoredBrute.readAdditionalSaveData(saved);
+            helper.assertTrue(restoredBrute.getEpisodicMemory().hasMemory(
+                    com.alex.mycelialmind.hive.MobEpisodicMemory.KEY_TRAUMA_GRENADE),
+                    "Episodic grenade trauma must persist across NBT save/load.");
+            helper.assertTrue(restoredBrute.getEpisodicMemory().hasMemory(grudgeKey),
+                    "Episodic grudge must persist across NBT save/load.");
+
+            // 3. Imminent hazard evasion goal activates on nearby PurifierGrenadeProjectile
+            BlockPos brutePos = brute.blockPosition();
+            grenade.setPos(brutePos.getX() + 2.0D, brutePos.getY() + 0.5D, brutePos.getZ() + 0.5D);
+            level.addFreshEntity(grenade);
+            var evadeGoal = new com.alex.mycelialmind.entity.ai.ImminentHazardEvadeGoal(brute);
+            helper.assertTrue(evadeGoal.canUse(),
+                    "ImminentHazardEvadeGoal must activate for nearby PurifierGrenadeProjectile.");
+
+            // 4. Event-driven tactical alarm triggers TacticalShelterGoal on SporeArchitectEntity
+            HiveBlackboard.broadcastTacticalAlarm(level, architect.blockPosition().offset(2, 0, 0), 20.0D, 100);
+            var shelterGoal = new com.alex.mycelialmind.entity.ai.TacticalShelterGoal(architect);
+            helper.assertTrue(shelterGoal.canUse(),
+                    "TacticalShelterGoal must activate on SporeArchitectEntity when TacticalAlarm is broadcast.");
+
+            helper.succeed();
+        } finally {
+            HiveBlackboard.clear(level);
+            grenade.discard();
+            targetA.discard();
+            targetB.discard();
+            architect.discard();
+            restoredBrute.discard();
+            brute.discard();
+        }
+    }
 }
