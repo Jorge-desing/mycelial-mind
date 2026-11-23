@@ -3958,3 +3958,7 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Ciudadela:** El punto de aparición se decide al completar la estructura; se conserva el breve warm-up existente. Un observador de `EntityJoinLevelEvent`, acotado al área inspeccionada y retirado en `finally`, confirma que la Élite y la nube se añadieron al nivel y siguen presentes al comprobar la recompensa.
 - **Caída de vena:** Se mantiene una espera máxima de 30 ticks para que el chunk de origen pueda tickear entidades. Después de quitar el soporte, el observador captura la entidad al entrar al nivel; el plazo funcional separado de 30 ticks espera su desaparición antes de verificar aterrizaje, ausencia de bloque y drops. La limpieza retira observador, ticket, entidades y bloques de arena.
 - **Validación local:** JUnit **77/77** y dos ejecuciones aisladas consecutivas de GameTests **174/174**. `git diff --check` limpio. CI del commit de esta pasada: pendiente de publicación.
+
+## 2026-11-23 — CI de la segunda limpieza de GameTests
+- **Commit verificado:** `be21b015d0a2cfc5eca78bbabc5943c12057454b` en `codex/gametest-stability-fix`.
+- **Resultado:** El workflow `Verify Mycelial Mind` (`45252328615`, `workflow_dispatch` sobre ese SHA) terminó en verde: Gradle con JUnit/build/GameTests y dry-run, verificación de assets y validación de Renovate.
