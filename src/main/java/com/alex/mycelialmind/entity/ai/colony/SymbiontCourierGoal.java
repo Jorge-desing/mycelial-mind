@@ -215,6 +215,9 @@ public class SymbiontCourierGoal extends Goal {
         }
 
         boolean pulled = pullFromContainer(level, targetChest, colony.hasTrait(SovereignTrait.HYPHAL_LOGISTICS) ? 2 : 1);
+        if (pulled && site != null && colony.getInputChests().contains(targetChest)) {
+            worker.rememberCourierChest(level, site, targetChest, true);
+        }
         if (pickupTurnSite != null) {
             ColonySiteMemory memory = colony.getSiteMemory(pickupTurnSite);
             if (memory != null) {
@@ -222,6 +225,9 @@ public class SymbiontCourierGoal extends Goal {
                 if (waitedForPickupTurn) {
                     if (pulled) {
                         boolean learned = memory.recordTrialSuccess(ColonySiteHabit.STAGGERED_PICKUP, 3);
+                        if (memory.usesHabit(ColonySiteHabit.STAGGERED_PICKUP)) {
+                            worker.rememberSuccessfulHabit(level, pickupTurnSite, ColonySiteHabit.STAGGERED_PICKUP);
+                        }
                         if (learned) {
                             emitMemoryPulse(level, pickupTurnSite);
                         }
@@ -318,11 +324,20 @@ public class SymbiontCourierGoal extends Goal {
         if (moved) {
             SovereignColonySavedData.get(level).setDirty();
             worker.recordWorkCompleted(level, ColonyOrder.OrderType.COURIER_DEPOSIT, 7);
+            if (colony.getOutputChests().contains(destPos)) {
+                BlockPos outputSite = colony.findNearestMemorySite(destPos, 16.0D);
+                if (outputSite != null) {
+                    worker.rememberCourierChest(level, outputSite, destPos, false);
+                }
+            }
             if (activeEscortSite != null) {
                 ColonySiteMemory memory = colony.getSiteMemory(activeEscortSite);
                 if (memory != null) {
                     if (escortReady && !damagedDuringCurrentTrip) {
                         boolean learned = memory.recordTrialSuccess(ColonySiteHabit.ESCORTED_COURIER, 1);
+                        if (memory.usesHabit(ColonySiteHabit.ESCORTED_COURIER)) {
+                            worker.rememberSuccessfulHabit(level, activeEscortSite, ColonySiteHabit.ESCORTED_COURIER);
+                        }
                         if (learned) {
                             emitMemoryPulse(level, activeEscortSite);
                         }

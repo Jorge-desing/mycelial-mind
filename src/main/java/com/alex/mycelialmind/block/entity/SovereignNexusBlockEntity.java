@@ -292,6 +292,11 @@ public class SovereignNexusBlockEntity extends BlockEntity {
             SovereignColonyData colony = be.getOrCreateColony(serverLevel);
             List<BlockPos> outposts = PurificationZoneTracker.get(serverLevel)
                     .getNearbySymbioticOutposts(pos, OUTPOST_SCAN_RADIUS);
+            for (BlockPos knownOutpost : colony.getLinkedOutposts()) {
+                if (!serverLevel.isLoaded(knownOutpost) && !outposts.contains(knownOutpost)) {
+                    outposts.add(knownOutpost);
+                }
+            }
             colony.replaceLinkedOutposts(outposts);
             be.syncLiveWorkers(serverLevel, colony);
             colony.recalculateMorale();

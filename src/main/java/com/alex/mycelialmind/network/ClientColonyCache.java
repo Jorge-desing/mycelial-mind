@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.colony.SymbiontCaste;
+import com.alex.mycelialmind.colony.ColonyWitnessMemory;
 import com.alex.mycelialmind.colony.SymbiontRank;
 import com.alex.mycelialmind.colony.SymbiontTemperament;
 import net.minecraft.core.BlockPos;
@@ -39,6 +40,30 @@ public final class ClientColonyCache {
     ) {
     }
 
+    public record ReconstructionWitnessSnapshot(
+            UUID witnessId,
+            int type,
+            BlockPos memoryPos,
+            int status
+    ) {
+    }
+
+    public record ReconstructionSnapshot(
+            BlockPos ruinedSite,
+            BlockPos successorSite,
+            boolean hasSuccessor,
+            long createdTick,
+            int requiredMask,
+            int restoredMask,
+            UUID activeWitness,
+            int activeType,
+            UUID lastFailedWitness,
+            int lastFailedType,
+            int lastFailure,
+            List<ReconstructionWitnessSnapshot> witnesses
+    ) {
+    }
+
     private static boolean hasColony = false;
     private static boolean unlocked = false;
     @Nullable
@@ -63,6 +88,7 @@ public final class ClientColonyCache {
     private static BlockPos memoryTransferTarget = BlockPos.ZERO;
     private static int memoryTransferHabit;
     private static boolean memoryTransferInTransit;
+    private static List<ReconstructionSnapshot> reconstructions = List.of();
 
     private ClientColonyCache() {
     }
@@ -91,6 +117,7 @@ public final class ClientColonyCache {
         memoryTransferTarget = payload.memoryTransferTarget();
         memoryTransferHabit = payload.memoryTransferHabit();
         memoryTransferInTransit = payload.memoryTransferInTransit();
+        reconstructions = List.copyOf(payload.reconstructions());
     }
 
     public static void reset() {
@@ -117,6 +144,7 @@ public final class ClientColonyCache {
         memoryTransferTarget = BlockPos.ZERO;
         memoryTransferHabit = 0;
         memoryTransferInTransit = false;
+        reconstructions = List.of();
     }
 
     public static boolean hasColony() {
@@ -220,5 +248,9 @@ public final class ClientColonyCache {
 
     public static boolean isMemoryTransferInTransit() {
         return memoryTransferInTransit;
+    }
+
+    public static List<ReconstructionSnapshot> getReconstructions() {
+        return Collections.unmodifiableList(reconstructions);
     }
 }

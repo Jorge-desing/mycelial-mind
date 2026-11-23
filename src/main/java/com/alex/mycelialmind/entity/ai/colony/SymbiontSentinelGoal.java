@@ -125,6 +125,10 @@ public class SymbiontSentinelGoal extends Goal {
             if (worker.blockPosition().distSqr(patrolPoint) > 9.0D) {
                 worker.getNavigation().moveTo(patrolPoint.getX() + 0.5D, patrolPoint.getY(), patrolPoint.getZ() + 0.5D, 1.05D);
             } else {
+                BlockPos site = colony.findNearestMemorySite(patrolPoint, 16.0D);
+                if (site != null) {
+                    worker.rememberPatrolPoint(level, site, patrolPoint);
+                }
                 patrolIndex++;
                 scanCooldown = 40;
             }

@@ -2,6 +2,8 @@ package com.alex.mycelialmind.client.screen;
 
 import com.alex.mycelialmind.colony.SovereignColonyEngine;
 import com.alex.mycelialmind.colony.ColonySiteHabit;
+import com.alex.mycelialmind.colony.ColonyReconstructionStatus;
+import com.alex.mycelialmind.colony.ColonyWitnessMemory;
 import com.alex.mycelialmind.colony.SovereignTrait;
 import com.alex.mycelialmind.colony.SymbiontCaste;
 import com.alex.mycelialmind.network.ClientColonyCache;
@@ -25,7 +27,7 @@ import java.util.List;
  */
 public class SovereignNexusScreen extends Screen {
     private static final int PANEL_W = 368;
-    private static final int PANEL_H = 248;
+    private static final int PANEL_H = 360;
     private static final int VISIBLE_WORKERS = 5;
 
     private SymbiontCaste selectedCaste = SymbiontCaste.HARVESTER;
@@ -33,6 +35,9 @@ public class SovereignNexusScreen extends Screen {
     private int memorySiteIndex;
     private int memorySourceIndex;
     private int memoryTargetIndex = 1;
+    private int reconstructionIndex;
+    private int reconstructionSuccessorIndex;
+    private int reconstructionWitnessIndex;
     private boolean memoryPage;
 
     private Button casteSelectButton;
@@ -287,8 +292,144 @@ public class SovereignNexusScreen extends Screen {
                 }).bounds(left + 188, top + 163, 170, 18).build());
         cancel.active = nexusPos != null && ClientColonyCache.hasMemoryTransfer();
 
+        rebuildReconstructionWidgets(left, top, nexusPos);
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
                 .bounds(left + PANEL_W - 84, top + PANEL_H - 25, 74, 18).build());
+    }
+
+    private void rebuildReconstructionWidgets(int left, int top, BlockPos nexusPos) {
+        List<ClientColonyCache.ReconstructionSnapshot> entries = ClientColonyCache.getReconstructions();
+        if (entries.isEmpty()) {
+            return;
+        }
+        reconstructionIndex = Math.floorMod(reconstructionIndex, entries.size());
+        ClientColonyCache.ReconstructionSnapshot entry = entries.get(reconstructionIndex);
+        List<BlockPos> successors = getReconstructionSuccessors(entry);
+        if (successors.isEmpty()) {
+            reconstructionSuccessorIndex = 0;
+        } else {
+            reconstructionSuccessorIndex = Math.floorMod(reconstructionSuccessorIndex, successors.size());
+            if (entry.hasSuccessor()) {
+                int current = successors.indexOf(entry.successorSite());
+                if (current >= 0) {
+                    reconstructionSuccessorIndex = current;
+                }
+            }
+        }
+        List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses = entry.witnesses();
+        if (!witnesses.isEmpty()) {
+            reconstructionWitnessIndex = Math.floorMod(reconstructionWitnessIndex, witnesses.size());
+        } else {
+            reconstructionWitnessIndex = 0;
+        }
+
+        this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.reconstruction.ruin",
+                        reconstructionIndex + 1, entries.size(), formatPos(entry.ruinedSite())), button -> {
+                    reconstructionIndex = (reconstructionIndex + 1) % entries.size();
+                    reconstructionWitnessIndex = 0;
+                    playClick(1.05F);
+                    rebuildColonyWidgets();
+                }).bounds(left + 10, top + 230, 348, 18).build());
+
+        Component successorLabel = entry.hasSuccessor()
+                ? Component.translatable("gui.mycelialmind.colony.reconstruction.successor",
+                formatPos(entry.successorSite()))
+                : Component.translatable("gui.mycelialmind.colony.reconstruction.no_successor");
+        Button successor = this.addRenderableWidget(Button.builder(successorLabel, button -> {
+            if (nexusPos != null && !successors.isEmpty()) {
+                int current = entry.hasSuccessor() ? successors.indexOf(entry.successorSite()) : -1;
+                if (current >= 0) {
+                    reconstructionSuccessorIndex = (current + 1) % successors.size();
+                }
+                BlockPos next = successors.get(reconstructionSuccessorIndex);
+                SovereignColonyActionPayload.sendReconstructionAction(
+                        SovereignColonyActionPayload.ACTION_SET_RECONSTRUCTION_SUCCESSOR,
+                        nexusPos, entry.ruinedSite(), next, null, null);
+                playClick(1.18F);
+            }
+        }).bounds(left + 10, top + 250, 348, 18).build());
+        successor.active = nexusPos != null && !successors.isEmpty() && !isReconstructionClosed(entry);
+
+        Button witness = this.addRenderableWidget(Button.builder(
+                getReconstructionWitnessLabel(entry, witnesses), button -> {
+                    if (!witnesses.isEmpty()) {
+                        reconstructionWitnessIndex = (reconstructionWitnessIndex + 1) % witnesses.size();
+                        playClick(1.12F);
+                        rebuildColonyWidgets();
+                    }
+                }).bounds(left + 10, top + 270, 348, 18).build());
+        witness.active = witnesses.size() > 1;
+
+        ClientColonyCache.ReconstructionWitnessSnapshot selectedWitness = witnesses.isEmpty()
+                ? null : witnesses.get(reconstructionWitnessIndex);
+        Button call = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.reconstruction.call"), button -> {
+                    if (nexusPos != null && selectedWitness != null) {
+                        ColonyWitnessMemory.Type type = ColonyWitnessMemory.Type.fromIndex(selectedWitness.type());
+                        SovereignColonyActionPayload.sendReconstructionAction(
+                                SovereignColonyActionPayload.ACTION_CALL_RECONSTRUCTION_WITNESS,
+                                nexusPos, entry.ruinedSite(), entry.successorSite(), selectedWitness.witnessId(), type);
+                        playClick(1.3F);
+                    }
+                }).bounds(left + 10, top + 290, 170, 18).build());
+        int ready = ColonyReconstructionStatus.READY.ordinal();
+        int noPath = ColonyReconstructionStatus.NO_PATH.ordinal();
+        int habitPresent = ColonyReconstructionStatus.HABIT_ALREADY_PRESENT.ordinal();
+        call.active = nexusPos != null && entry.hasSuccessor() && selectedWitness != null
+                && (selectedWitness.status() == ready || selectedWitness.status() == noPath
+                || selectedWitness.status() == habitPresent);
+
+        Button abandon = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.reconstruction.abandon"), button -> {
+                    if (nexusPos != null) {
+                        SovereignColonyActionPayload.sendReconstructionAction(
+                                SovereignColonyActionPayload.ACTION_ABANDON_RECONSTRUCTION,
+                                nexusPos, entry.ruinedSite(), null, null, null);
+                        playClick(0.8F);
+                    }
+                }).bounds(left + 188, top + 290, 170, 18).build());
+        abandon.active = nexusPos != null;
+    }
+
+    private List<BlockPos> getReconstructionSuccessors(ClientColonyCache.ReconstructionSnapshot entry) {
+        BlockPos nexus = ClientColonyCache.getNexusPos();
+        return ClientColonyCache.getSiteMemories().stream()
+                .map(ClientColonyCache.SiteMemorySnapshot::sitePos)
+                .filter(pos -> !pos.equals(nexus) && !pos.equals(entry.ruinedSite()))
+                .toList();
+    }
+
+    private Component getReconstructionWitnessLabel(
+            ClientColonyCache.ReconstructionSnapshot entry,
+            List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses
+    ) {
+        if (witnesses.isEmpty()) {
+            return Component.translatable("gui.mycelialmind.colony.reconstruction.no_witnesses");
+        }
+        reconstructionWitnessIndex = Math.floorMod(reconstructionWitnessIndex, witnesses.size());
+        ClientColonyCache.ReconstructionWitnessSnapshot witness = witnesses.get(reconstructionWitnessIndex);
+        ColonyWitnessMemory.Type type = ColonyWitnessMemory.Type.fromIndex(witness.type());
+        ColonyReconstructionStatus status = statusFromIndex(witness.status());
+        return Component.translatable("gui.mycelialmind.colony.reconstruction.witness",
+                reconstructionWitnessIndex + 1, witnesses.size(),
+                witness.witnessId().toString().substring(0, 8),
+                Component.translatable(type != null ? type.translationKey()
+                        : "gui.mycelialmind.colony.reconstruction.memory.unknown"),
+                Component.translatable(status.translationKey()));
+    }
+
+    private static ColonyReconstructionStatus statusFromIndex(int index) {
+        ColonyReconstructionStatus[] values = ColonyReconstructionStatus.values();
+        return index >= 0 && index < values.length ? values[index] : ColonyReconstructionStatus.WITNESS_UNAVAILABLE;
+    }
+
+    private static boolean isReconstructionClosed(ClientColonyCache.ReconstructionSnapshot entry) {
+        return (entry.restoredMask() & entry.requiredMask()) == entry.requiredMask();
+    }
+
+    private static String formatPos(BlockPos pos) {
+        return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }
 
     private Component getSiteName(BlockPos sitePos, BlockPos nexusPos) {
@@ -305,6 +446,7 @@ public class SovereignNexusScreen extends Screen {
     private int lastTraitMask = -1;
     private int lastMemoryHash;
     private boolean lastTransferActive;
+    private int lastReconstructionHash;
 
     @Override
     public void tick() {
@@ -314,13 +456,15 @@ public class SovereignNexusScreen extends Screen {
                 || lastTier != ClientColonyCache.getTier()
                 || lastTraitMask != ClientColonyCache.getTraitMask()
                 || lastMemoryHash != ClientColonyCache.getSiteMemories().hashCode()
-                || lastTransferActive != ClientColonyCache.hasMemoryTransfer()) {
+                || lastTransferActive != ClientColonyCache.hasMemoryTransfer()
+                || lastReconstructionHash != ClientColonyCache.getReconstructions().hashCode()) {
             lastWorkerCount = ClientColonyCache.getWorkers().size();
             lastBiomass = ClientColonyCache.getBiomass();
             lastTier = ClientColonyCache.getTier();
             lastTraitMask = ClientColonyCache.getTraitMask();
             lastMemoryHash = ClientColonyCache.getSiteMemories().hashCode();
             lastTransferActive = ClientColonyCache.hasMemoryTransfer();
+            lastReconstructionHash = ClientColonyCache.getReconstructions().hashCode();
             rebuildColonyWidgets();
         }
     }
@@ -333,6 +477,7 @@ public class SovereignNexusScreen extends Screen {
         lastTraitMask = ClientColonyCache.getTraitMask();
         lastMemoryHash = ClientColonyCache.getSiteMemories().hashCode();
         lastTransferActive = ClientColonyCache.hasMemoryTransfer();
+        lastReconstructionHash = ClientColonyCache.getReconstructions().hashCode();
         rebuildColonyWidgets();
     }
 
@@ -459,6 +604,40 @@ public class SovereignNexusScreen extends Screen {
                 Component.translatable("gui.mycelialmind.colony.memory_outcome",
                         Component.translatable(outcomeTranslationKey(memory.lastOutcomeCode())), memory.failedTrials()),
                 left + 10, top + 104, 0xFFD8F3DC, false);
+
+        List<ClientColonyCache.ReconstructionSnapshot> reconstructions = ClientColonyCache.getReconstructions();
+        if (!reconstructions.isEmpty()) {
+            reconstructionIndex = Math.floorMod(reconstructionIndex, reconstructions.size());
+            ClientColonyCache.ReconstructionSnapshot entry = reconstructions.get(reconstructionIndex);
+            graphics.drawString(this.font,
+                    Component.translatable("gui.mycelialmind.colony.reconstruction.title",
+                            reconstructionIndex + 1, reconstructions.size()),
+                    left + 10, top + 215, 0xFFD8B4FE, true);
+            List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses = entry.witnesses();
+            if (!witnesses.isEmpty()) {
+                reconstructionWitnessIndex = Math.floorMod(reconstructionWitnessIndex, witnesses.size());
+                ClientColonyCache.ReconstructionWitnessSnapshot selected = witnesses.get(reconstructionWitnessIndex);
+                ColonyWitnessMemory.Type type = ColonyWitnessMemory.Type.fromIndex(selected.type());
+                String detail = type == null ? "" : switch (type) {
+                    case COURIER_INPUT, COURIER_OUTPUT -> formatPos(selected.memoryPos());
+                    case SENTINEL_PATROL -> "Δ " + formatPos(selected.memoryPos());
+                    default -> Component.translatable(type.habit().translationKey()).getString();
+                };
+                graphics.drawString(this.font, this.font.plainSubstrByWidth(detail, PANEL_W - 20),
+                        left + 10, top + 312, 0xFFE9ECEF, false);
+                graphics.drawString(this.font,
+                        Component.translatable("gui.mycelialmind.colony.reconstruction.reason",
+                                Component.translatable(statusFromIndex(selected.status()).translationKey())),
+                        left + 10, top + 326, 0xFFFFD166, false);
+            } else {
+                graphics.drawString(this.font,
+                        Component.translatable("gui.mycelialmind.colony.reconstruction.no_witnesses"),
+                        left + 10, top + 312, 0xFFFFD166, false);
+            }
+        } else {
+            graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.reconstruction.none"),
+                    left + 10, top + 215, 0xFFADB5BD, false);
+        }
 
         if (ClientColonyCache.hasMemoryTransfer()) {
             Component transfer = Component.translatable("gui.mycelialmind.colony.memory_transfer_status",

@@ -4,6 +4,10 @@ import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.client.screen.ClientColonyOpener;
 import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.ColonyReconstruction;
+import com.alex.mycelialmind.colony.ColonyReconstructionStatus;
+import com.alex.mycelialmind.colony.ColonyWitnessMemory;
+import com.alex.mycelialmind.hive.ColonyReconstructionDirector;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.colony.ColonySiteHabit;
 import com.alex.mycelialmind.colony.SymbiontCaste;
@@ -53,6 +57,7 @@ public record SovereignColonySyncPayload(
         BlockPos memoryTransferTarget,
         int memoryTransferHabit,
         boolean memoryTransferInTransit,
+        List<ClientColonyCache.ReconstructionSnapshot> reconstructions,
         boolean openScreen
 ) implements CustomPacketPayload {
     public static final Type<SovereignColonySyncPayload> TYPE =
@@ -110,12 +115,39 @@ public record SovereignColonySyncPayload(
             BlockPos transferTarget = BlockPos.of(buf.readLong());
             int transferHabit = ByteBufCodecs.VAR_INT.decode(buf);
             boolean transferInTransit = ByteBufCodecs.BOOL.decode(buf);
+            int reconstructionCount = Math.max(0, Math.min(4, ByteBufCodecs.VAR_INT.decode(buf)));
+            List<ClientColonyCache.ReconstructionSnapshot> reconstructions = new ArrayList<>(reconstructionCount);
+            for (int i = 0; i < reconstructionCount; i++) {
+                BlockPos ruined = BlockPos.of(buf.readLong());
+                boolean hasSuccessor = ByteBufCodecs.BOOL.decode(buf);
+                BlockPos successor = BlockPos.of(buf.readLong());
+                long createdTick = buf.readLong();
+                int requiredMask = ByteBufCodecs.VAR_INT.decode(buf);
+                int restoredMask = ByteBufCodecs.VAR_INT.decode(buf);
+                UUID activeWitness = readOptionalUuid(buf);
+                int activeType = ByteBufCodecs.VAR_INT.decode(buf);
+                UUID failedWitness = readOptionalUuid(buf);
+                int failedType = ByteBufCodecs.VAR_INT.decode(buf);
+                int failure = ByteBufCodecs.VAR_INT.decode(buf);
+                int witnessCount = Math.max(0, Math.min(128, ByteBufCodecs.VAR_INT.decode(buf)));
+                List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses = new ArrayList<>(witnessCount);
+                for (int j = 0; j < witnessCount; j++) {
+                    UUID witnessId = new UUID(buf.readLong(), buf.readLong());
+                    int type = ByteBufCodecs.VAR_INT.decode(buf);
+                    BlockPos memoryPos = BlockPos.of(buf.readLong());
+                    int status = ByteBufCodecs.VAR_INT.decode(buf);
+                    witnesses.add(new ClientColonyCache.ReconstructionWitnessSnapshot(witnessId, type, memoryPos, status));
+                }
+                reconstructions.add(new ClientColonyCache.ReconstructionSnapshot(ruined, successor, hasSuccessor,
+                        createdTick, requiredMask, restoredMask, activeWitness, activeType, failedWitness,
+                        failedType, failure, witnesses));
+            }
             boolean openScreen = ByteBufCodecs.BOOL.decode(buf);
             return new SovereignColonySyncPayload(
                     hasColony, unlocked, nexusPos, tier, radius, popCap, biomass, domainXp,
                     traitMask, moralePct, linkedOutposts, inputChests, outputChests,
                     workZones, activeOrders, activeRaidRemaining, workers, memories,
-                    transferActive, transferSource, transferTarget, transferHabit, transferInTransit, openScreen
+                    transferActive, transferSource, transferTarget, transferHabit, transferInTransit, reconstructions, openScreen
             );
         }
 
@@ -173,6 +205,36 @@ public record SovereignColonySyncPayload(
             buf.writeLong(payload.memoryTransferTarget().asLong());
             ByteBufCodecs.VAR_INT.encode(buf, payload.memoryTransferHabit());
             ByteBufCodecs.BOOL.encode(buf, payload.memoryTransferInTransit());
+            List<ClientColonyCache.ReconstructionSnapshot> reconstructions = payload.reconstructions() != null
+                    ? payload.reconstructions() : List.of();
+            int reconstructionCount = Math.min(4, reconstructions.size());
+            ByteBufCodecs.VAR_INT.encode(buf, reconstructionCount);
+            for (int i = 0; i < reconstructionCount; i++) {
+                ClientColonyCache.ReconstructionSnapshot reconstruction = reconstructions.get(i);
+                buf.writeLong(reconstruction.ruinedSite().asLong());
+                ByteBufCodecs.BOOL.encode(buf, reconstruction.hasSuccessor());
+                buf.writeLong(reconstruction.successorSite().asLong());
+                buf.writeLong(reconstruction.createdTick());
+                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.requiredMask());
+                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.restoredMask());
+                writeOptionalUuid(buf, reconstruction.activeWitness());
+                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.activeType());
+                writeOptionalUuid(buf, reconstruction.lastFailedWitness());
+                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.lastFailedType());
+                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.lastFailure());
+                List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses = reconstruction.witnesses() != null
+                        ? reconstruction.witnesses() : List.of();
+                int witnessCount = Math.min(128, witnesses.size());
+                ByteBufCodecs.VAR_INT.encode(buf, witnessCount);
+                for (int j = 0; j < witnessCount; j++) {
+                    ClientColonyCache.ReconstructionWitnessSnapshot witness = witnesses.get(j);
+                    buf.writeLong(witness.witnessId().getMostSignificantBits());
+                    buf.writeLong(witness.witnessId().getLeastSignificantBits());
+                    ByteBufCodecs.VAR_INT.encode(buf, witness.type());
+                    buf.writeLong(witness.memoryPos().asLong());
+                    ByteBufCodecs.VAR_INT.encode(buf, witness.status());
+                }
+            }
             ByteBufCodecs.BOOL.encode(buf, payload.openScreen());
         }
     };
@@ -185,7 +247,7 @@ public record SovereignColonySyncPayload(
             return new SovereignColonySyncPayload(
                     false, unlocked, BlockPos.ZERO, 1, 24, 4, 0, 0, 0, 70,
                     0, 0, 0, 0, 0, 0, List.of(), List.of(), false,
-                    BlockPos.ZERO, BlockPos.ZERO, ColonySiteHabit.NONE.ordinal(), false, openScreen
+                    BlockPos.ZERO, BlockPos.ZERO, ColonySiteHabit.NONE.ordinal(), false, List.of(), openScreen
             );
         }
         List<WorkerSnapshot> roster = new ArrayList<>();
@@ -208,6 +270,25 @@ public record SovereignColonySyncPayload(
                     memory.sitePos(), memory.learnedHabit().ordinal(), memory.trialHabit().ordinal(),
                     memory.incidentCount(), memory.successfulTrials(), memory.failedTrials(),
                     memory.lastIncidentCode(), memory.lastOutcomeCode()));
+        }
+        List<ClientColonyCache.ReconstructionSnapshot> reconstructions = new ArrayList<>();
+        for (ColonyReconstruction entry : colony.getReconstructionEntries()) {
+            List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses = new ArrayList<>();
+            for (ColonyWitnessMemory memory : colony.getWitnessMemories(entry.ruinedSite())) {
+                if (witnesses.size() >= 64) {
+                    break;
+                }
+                ColonyReconstructionStatus status = ColonyReconstructionDirector.getCandidateStatus(
+                        level, colony, entry, memory);
+                witnesses.add(new ClientColonyCache.ReconstructionWitnessSnapshot(
+                        memory.witnessId(), memory.type().ordinal(), memory.memoryPos(), status.ordinal()));
+            }
+            reconstructions.add(new ClientColonyCache.ReconstructionSnapshot(
+                    entry.ruinedSite(), entry.successorSite() != null ? entry.successorSite() : BlockPos.ZERO,
+                    entry.hasSuccessor(), entry.createdTick(), entry.requiredMask(), entry.restoredMask(),
+                    entry.activeWitness(), entry.activeType() != null ? entry.activeType().ordinal() : 0,
+                    entry.lastFailedWitness(), entry.lastFailedType() != null ? entry.lastFailedType().ordinal() : 0,
+                    entry.lastFailure().ordinal(), witnesses));
         }
         SovereignColonyData.MemoryTransferSnapshot transfer = colony.getMemoryTransferSnapshot();
         return new SovereignColonySyncPayload(
@@ -234,8 +315,21 @@ public record SovereignColonySyncPayload(
                 transfer != null ? transfer.targetPos() : BlockPos.ZERO,
                 transfer != null ? transfer.habit().ordinal() : ColonySiteHabit.NONE.ordinal(),
                 transfer != null && transfer.inTransit(),
+                reconstructions,
                 openScreen
         );
+    }
+
+    private static UUID readOptionalUuid(ByteBuf buf) {
+        return ByteBufCodecs.BOOL.decode(buf) ? new UUID(buf.readLong(), buf.readLong()) : null;
+    }
+
+    private static void writeOptionalUuid(ByteBuf buf, @Nullable UUID value) {
+        ByteBufCodecs.BOOL.encode(buf, value != null);
+        if (value != null) {
+            buf.writeLong(value.getMostSignificantBits());
+            buf.writeLong(value.getLeastSignificantBits());
+        }
     }
 
     public static void syncToPlayer(ServerPlayer player, @Nullable BlockPos nexusPos, boolean openScreen) {
