@@ -33,7 +33,9 @@ import com.alex.mycelialmind.client.renderer.block.SynapticBenchRenderer;
 import com.alex.mycelialmind.client.renderer.block.SynapticNodeRenderer;
 import com.alex.mycelialmind.client.screen.ClientCodexOpener;
 import com.alex.mycelialmind.client.screen.SynapticBenchScreen;
+import com.alex.mycelialmind.colony.SymbiontCaste;
 import com.alex.mycelialmind.config.MycelialClientConfig;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -75,7 +77,9 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.EntityModel;
@@ -269,7 +273,7 @@ public final class ClientSetup {
         event.registerEntityRenderer(ModEntities.MYCELIAL_CHIMERA.get(),
                 ctx -> buildMobRenderer(ctx, new MycelialChimeraModel<>(ctx.bakeLayer(MycelialChimeraModel.LAYER_LOCATION)), 0.75F, "mycelial_chimera", true, 1.0F));
         event.registerEntityRenderer(ModEntities.COLONY_SYMBIONT.get(),
-                ctx -> buildMobRenderer(ctx, new ColonySymbiontModel<>(ctx.bakeLayer(ColonySymbiontModel.LAYER_LOCATION)), 0.48F, "colony_symbiont", false, 1.0F));
+                ClientSetup::buildColonySymbiontRenderer);
         event.registerEntityRenderer(ModEntities.HIVE_CORE.get(),
                 ctx -> buildMobRenderer(ctx, new HiveCoreModel<>(ctx.bakeLayer(HiveCoreModel.LAYER_LOCATION)), 1.85F, "hive_core", false, 1.70F));
         event.registerEntityRenderer(ModEntities.APEX_MATRIARCH.get(),
@@ -339,6 +343,70 @@ public final class ClientSetup {
         if (!Boolean.getBoolean("mycelialmind.animationVisualSmoke")
                 || !Boolean.getBoolean("mycelialmind.animationHideEmissive")) {
             renderer.addLayer(new EmissiveOverlayLayer<>(renderer, baseEmis, mutatedEmis, eliteEmis));
+        }
+        return renderer;
+    }
+
+    private static MobRenderer<ColonySymbiontEntity, ColonySymbiontModel<ColonySymbiontEntity>> buildColonySymbiontRenderer(
+            EntityRendererProvider.Context ctx
+    ) {
+        ResourceLocation fallbackTex = entityTex("colony_symbiont");
+        RenderType fallbackEmis = RenderType.eyes(entityEmis("colony_symbiont"));
+        Map<SymbiontCaste, ResourceLocation> casteTextures = new EnumMap<>(SymbiontCaste.class);
+        Map<SymbiontCaste, RenderType> casteEmissives = new EnumMap<>(SymbiontCaste.class);
+        for (SymbiontCaste caste : SymbiontCaste.values()) {
+            String variantId = "colony_symbiont_" + caste.id();
+            casteTextures.put(caste, entityTex(variantId));
+            casteEmissives.put(caste, RenderType.eyes(entityEmis(variantId)));
+        }
+
+        MobRenderer<ColonySymbiontEntity, ColonySymbiontModel<ColonySymbiontEntity>> renderer =
+                new MobRenderer<>(ctx, new ColonySymbiontModel<>(ctx.bakeLayer(ColonySymbiontModel.LAYER_LOCATION)), 0.48F) {
+                    @Override
+                    public ResourceLocation getTextureLocation(ColonySymbiontEntity entity) {
+                        SymbiontCaste caste = entity.getCaste();
+                        return caste != null ? casteTextures.getOrDefault(caste, fallbackTex) : fallbackTex;
+                    }
+
+                    @Override
+                    protected void scale(ColonySymbiontEntity entity, PoseStack poseStack, float partialTickTime) {
+                        float visualScale = entity.getRank().visualScale();
+                        if (visualScale != 1.0F) {
+                            poseStack.scale(visualScale, visualScale, visualScale);
+                        }
+                    }
+                };
+        if (!Boolean.getBoolean("mycelialmind.animationVisualSmoke")
+                || !Boolean.getBoolean("mycelialmind.animationHideEmissive")) {
+            renderer.addLayer(new RenderLayer<>(renderer) {
+                @Override
+                public void render(
+                        PoseStack poseStack,
+                        MultiBufferSource bufferSource,
+                        int packedLight,
+                        ColonySymbiontEntity entity,
+                        float limbSwing,
+                        float limbSwingAmount,
+                        float partialTick,
+                        float ageInTicks,
+                        float netHeadYaw,
+                        float headPitch
+                ) {
+                    if (entity.isInvisible()) {
+                        return;
+                    }
+                    SymbiontCaste caste = entity.getCaste();
+                    RenderType activeType = caste != null ? casteEmissives.getOrDefault(caste, fallbackEmis) : fallbackEmis;
+                    VertexConsumer vertexConsumer = bufferSource.getBuffer(activeType);
+                    this.getParentModel().renderToBuffer(
+                            poseStack,
+                            vertexConsumer,
+                            LightTexture.FULL_BRIGHT,
+                            OverlayTexture.NO_OVERLAY,
+                            -1
+                    );
+                }
+            });
         }
         return renderer;
     }

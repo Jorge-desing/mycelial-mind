@@ -133,6 +133,19 @@ ENTITY_SKINS: Dict[str, EntitySkin] = {
 
 NO_RANK_ENTITIES = frozenset({"purifier_drone", "hive_core", "apex_matriarch", "colony_symbiont"})
 
+COLONY_SYMBIONT_CASTE_SKINS: Dict[str, EntitySkin] = {
+    "harvester": EntitySkin("mossy_carapace", "compound_cluster", "spore_chartreuse", "acid_lime", "none", motif_variant="acid", lift=0.08, moss_strength=0.65,
+                            role_overrides=(("skin", "venom_emerald"), ("armor", "chitin_bone"), ("bone", "warm_ivory"), ("spore_sac", "spore_chartreuse"), ("metal", "imperial_brass"))),
+    "excavator": EntitySkin("segmented_hide", "lens", "ember_orange", "mutant_amber", "none", motif_variant="drill", lift=0.08, edge="hard", metal_roles=("metal", "armor"), moss_strength=0.20,
+                            role_overrides=(("skin", "volcanic_ember"), ("armor", "basalt_slate"), ("bone", "imperial_brass"), ("spore_sac", "ember_orange"), ("metal", "imperial_brass"))),
+    "courier": EntitySkin("tech_plating", "visor_slit", "purification_aqua", "purifier_glow", "none", motif_variant="drone", lift=0.08, metal_roles=("metal",), hyphae=False, moss_strength=0.10,
+                          role_overrides=(("skin", "warm_ivory"), ("armor", "platinum_tech"), ("bone", "spectral_bone"), ("spore_sac", "purification_aqua"), ("metal", "platinum_tech"))),
+    "architect": EntitySkin("neural_weave", "three_eyes", "tide_violet", "mycelial_violet", "none", motif_variant="robe", lift=0.08, metal_roles=("metal",), moss_strength=0.30,
+                            role_overrides=(("skin", "mycelial_violet"), ("armor", "predator_amethyst"), ("bone", "royal_gold"), ("spore_sac", "tide_violet"), ("metal", "royal_gold"))),
+    "sentinel": EntitySkin("royal_filigree", "predator_slit", "elite_crimson", "histamine_rose", "none", motif_variant="mantle", lift=0.08, contrast=1.14, edge="hard", metal_roles=("metal", "armor"), moss_strength=0.15,
+                           role_overrides=(("skin", "abyssal_obsidian"), ("armor", "elite_crimson"), ("bone", "royal_gold"), ("spore_sac", "histamine_rose"), ("metal", "royal_gold"))),
+}
+
 METAL_PALETTES = frozenset({"royal_gold", "imperial_brass", "platinum_tech"})
 
 RANK_TINT = {

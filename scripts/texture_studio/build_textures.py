@@ -23,7 +23,7 @@ from scripts.texture_studio.generators.entities import (
     generate_armor_variants,
     generate_entities,
 )
-from scripts.texture_studio.generators.entity_skins import ENTITY_SKINS, NO_RANK_ENTITIES, box_face_rects
+from scripts.texture_studio.generators.entity_skins import COLONY_SYMBIONT_CASTE_SKINS, ENTITY_SKINS, NO_RANK_ENTITIES, box_face_rects
 from scripts.texture_studio.generators.gui import generate_gui_textures
 from scripts.texture_studio.generators.items import generate_items, generate_mob_effects
 from scripts.texture_studio.palette_oklab import export_gpl, export_hex
@@ -597,6 +597,53 @@ def run_checks(check_pbr: bool = False) -> None:
         entity_summary.append(
             name + ":" + ",".join(f"{key or 'base'}:{value:.3f}" for key, value in rank_emissive.items())
         )
+
+        if name == "colony_symbiont":
+            from scripts.texture_studio.palette_oklab import rgb_to_oklab
+
+            caste_arrays = {}
+            islands = np.zeros((expected_size[1], expected_size[0]), dtype=bool)
+            for cube in spec["cubes"]:
+                for rect in box_face_rects(cube["u"], cube["v"], cube["w"], cube["h"], cube["d"]):
+                    islands[rect.y : rect.y + rect.h, rect.x : rect.x + rect.w] = True
+            for caste_id in COLONY_SYMBIONT_CASTE_SKINS:
+                c_base_path = os.path.join(TEX_ROOT, "entity", f"colony_symbiont_{caste_id}.png")
+                c_emis_path = os.path.join(TEX_ROOT, "entity", f"colony_symbiont_{caste_id}_emissive.png")
+                c_base_im = Image.open(c_base_path).convert("RGBA")
+                c_emis_im = Image.open(c_emis_path).convert("RGBA")
+                assert c_base_im.size == expected_size, f"{c_base_path} expected {expected_size}, got {c_base_im.size}"
+                assert c_emis_im.size == expected_size, f"{c_emis_path} expected {expected_size}, got {c_emis_im.size}"
+                c_base = np.asarray(c_base_im)
+                c_emis = np.asarray(c_emis_im)
+                assert np.all(c_base[..., 3][islands] == 255), f"{c_base_path} has transparent texels inside UV islands"
+                assert not np.any(c_base[..., 3][~islands] > 0), f"{c_base_path} has opaque texels outside UV islands"
+                c_ealpha = c_emis[..., 3]
+                assert not np.any(c_ealpha[~islands] > 0), f"{c_emis_path} has emissive texels outside UV islands"
+                c_emis_px = int(np.count_nonzero(c_ealpha > 8))
+                assert c_emis_px > 0, f"{c_emis_path} has no emissive texels"
+                c_ratio = c_emis_px / max(1, int(np.count_nonzero(islands)))
+                assert c_ratio <= 0.35, f"{c_emis_path} emissive coverage {c_ratio:.3f} exceeds 0.35"
+                if check_pbr:
+                    for suf in ("_n", "_s"):
+                        c_pbr_path = os.path.join(TEX_ROOT, "entity", f"colony_symbiont_{caste_id}{suf}.png")
+                        c_pbr_im = Image.open(c_pbr_path)
+                        assert c_pbr_im.size == expected_size, f"{c_pbr_path} expected {expected_size}, got {c_pbr_im.size}"
+                        c_pbr = np.asarray(c_pbr_im.convert("RGBA"))
+                        if suf == "_n":
+                            assert int(c_pbr[..., 3].min()) >= 16, f"{c_pbr_path} invalid POM alpha"
+                        else:
+                            assert not np.any(c_pbr[..., 1] == 255), f"{c_pbr_path} invalid F0=255"
+                caste_arrays[caste_id] = c_base
+            caste_keys = sorted(caste_arrays)
+            for i in range(len(caste_keys)):
+                for j in range(i + 1, len(caste_keys)):
+                    a = caste_arrays[caste_keys[i]]
+                    b = caste_arrays[caste_keys[j]]
+                    m = a[..., 3] > 0
+                    lab_a = rgb_to_oklab(a[..., :3][m].astype(np.float32) / 255.0)
+                    lab_b = rgb_to_oklab(b[..., :3][m].astype(np.float32) / 255.0)
+                    mean_delta = float(np.linalg.norm(lab_a - lab_b, axis=1).mean())
+                    assert mean_delta > 0.04, f"Castes {caste_keys[i]} vs {caste_keys[j]} delta {mean_delta:.3f} too small"
     print("Entity atlas checks PASSED (" + str(len(entity_summary)) + " species):", "; ".join(entity_summary))
     assert Image.open(os.path.join(TEX_ROOT, "entity", "acid_spit.png")).size == (32, 32)
     for idx in (1, 2):

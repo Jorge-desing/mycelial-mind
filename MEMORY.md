@@ -3877,3 +3877,15 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-22 — Comprobación de generación de flores
 - Las cinco variantes generadas coinciden con sus JSON y sus parents de ítem. La guía refleja 24 modelos de bloques. El cliente visual recibió el sonido y capturó el inventario; el cierre quedó detenido al guardar el mundo integrado.
+
+
+## [2026-11-22 23:02] — Texturas por casta y renderizado para `ColonySymbiontEntity`
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Añadidas 5 pieles procedurales por casta (`colony_symbiont_{harvester,excavator,courier,architect,sentinel}`, con base, `_emissive`, `_n` y `_s` LabPBR en `256x256`) y cableado su renderizador dedicado `buildColonySymbiontRenderer` en `ClientSetup.java` (textura base + capa emisiva `RenderType.eyes(...)` por `SymbiontCaste`, fallback `colony_symbiont` y escala visual `entity.getRank().visualScale()`).
+- **Skills revisadas:** Actualizada `.agents/skills/mycelial-texture-studio/SKILL.md` (`COLONY_SYMBIONT_CASTE_SKINS`, `205` texturas de entidad, umbral Oklab por pares y `ClientSetup.buildColonySymbiontRenderer`); las demás skills no requirieron cambios.
+- **Archivos / Símbolos:** `scripts/texture_studio/generators/entity_skins.py` (`COLONY_SYMBIONT_CASTE_SKINS`), `scripts/texture_studio/generators/entities.py`, `scripts/texture_studio/build_textures.py`, `scripts/texture_studio/tests/test_entity_skins.py` (`test_colony_symbiont_caste_variants_exist_and_are_distinct`), `src/main/java/com/alex/mycelialmind/client/ClientSetup.java` (`buildColonySymbiontRenderer`), `src/main/resources/assets/mycelialmind/textures/entity/colony_symbiont_*`, `.agents/skills/mycelial-texture-studio/SKILL.md`.
+- **Estado / Siguiente paso:**
+  - `run_texture_studio` (`check_only=False, pbr=True, run_tests=True` vía CodeMode): **`40/40`** PASS (`ok=true`).
+  - `audit_mod_assets` (CodeMode): **`ok=true`**, **`205`** texturas en `entity/`, `132` `_n` / `132` `_s` / `51` `_emissive`, `18` modelos UV sin faltantes.
+  - `run_gradle_task(["compileJava", "test"], no_daemon=True)` + `get_latest_junit_report`: `BUILD SUCCESSFUL in 14s`, **`74/74`** JUnit PASS en `9` suites (`0` fallos/omitidos).
+  - `validate_skills` (CodeMode): **`8/8`** OK (`ok=true`).

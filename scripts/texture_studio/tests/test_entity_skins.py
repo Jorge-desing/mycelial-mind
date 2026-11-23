@@ -17,6 +17,7 @@ if REPO_ROOT not in sys.path:
 
 from scripts.texture_studio.generators.entities import generate_entities
 from scripts.texture_studio.generators.entity_skins import (
+    COLONY_SYMBIONT_CASTE_SKINS,
     ENTITY_SKINS,
     EYE_STYLES,
     MOTIFS,
@@ -185,6 +186,48 @@ class TestEntitySkins(unittest.TestCase):
                     os.path.join(second, f"sporeling{suffix}.png"), "rb"
                 ) as fb:
                     self.assertEqual(fa.read(), fb.read(), f"sporeling{suffix} is not deterministic")
+
+    def test_colony_symbiont_caste_variants_exist_and_are_distinct(self):
+        expected_castes = ("harvester", "excavator", "courier", "architect", "sentinel")
+        self.assertEqual(set(COLONY_SYMBIONT_CASTE_SKINS), set(expected_castes))
+        valid_roles = {"skin", "armor", "bone", "spore_sac", "glow_core", "glow_eye", "magma", "metal"}
+        for caste_id, skin in COLONY_SYMBIONT_CASTE_SKINS.items():
+            self.assertIn(skin.motif, MOTIFS, caste_id)
+            self.assertIn(skin.eye, EYE_STYLES, caste_id)
+            self.assertIn(skin.accent, PALETTES, caste_id)
+            self.assertIn(skin.glow, PALETTES, caste_id)
+            for role, palette in skin.role_overrides:
+                self.assertIn(role, valid_roles, caste_id)
+                self.assertIn(palette, PALETTES, caste_id)
+
+        spec = self.manifest["colony_symbiont"]
+        expected = tuple(spec["tex_size"])
+        islands = _island_mask(spec)
+        with tempfile.TemporaryDirectory() as tmp:
+            generate_entities(tmp, pbr_dir=tmp, names={"colony_symbiont"})
+            caste_arrays = {}
+            for caste_id in expected_castes:
+                prefix = f"colony_symbiont_{caste_id}"
+                base = _rgba(os.path.join(tmp, f"{prefix}.png"))
+                emis = _rgba(os.path.join(tmp, f"{prefix}_emissive.png"))
+                normal = _rgba(os.path.join(tmp, f"{prefix}_n.png"))
+                specular = _rgba(os.path.join(tmp, f"{prefix}_s.png"))
+                for arr in (base, emis, normal, specular):
+                    self.assertEqual(arr.shape[:2], (expected[1], expected[0]), prefix)
+                self.assertTrue(np.all(base[..., 3][islands] == 255), prefix)
+                self.assertFalse(np.any(base[..., 3][~islands] > 0), prefix)
+                self.assertFalse(np.any(emis[..., 3][~islands] > 0), prefix)
+                self.assertGreaterEqual(int(normal[..., 3].min()), 16, prefix)
+                self.assertFalse(np.any(specular[..., 1] == 255), prefix)
+                caste_arrays[caste_id] = base
+
+            mask = islands
+            for idx_a, a in enumerate(expected_castes):
+                lab_a = rgb_to_oklab(caste_arrays[a][..., :3][mask].astype(np.float32) / 255.0)
+                for b in expected_castes[idx_a + 1 :]:
+                    lab_b = rgb_to_oklab(caste_arrays[b][..., :3][mask].astype(np.float32) / 255.0)
+                    delta = float(np.linalg.norm(lab_a - lab_b, axis=1).mean())
+                    self.assertGreater(delta, 0.04, f"{a} vs {b} Oklab delta {delta:.3f} too small")
 
 
 if __name__ == "__main__":

@@ -22,6 +22,7 @@ from ..sdf_engine import (
     toroidal_fbm,
 )
 from .entity_skins import (
+    COLONY_SYMBIONT_CASTE_SKINS,
     ENTITY_SKINS,
     NO_RANK_ENTITIES,
     FaceContext,
@@ -219,6 +220,12 @@ def generate_entities(entity_dir: str, pbr_dir: str | None = None, names: set[st
             base, emis, height, metal_mask, sss_mask = _render_entity(spec, skin, rank, seed, reg_id)
             name = f"{reg_id}{RANK_SUFFIX[rank]}"
             _save_entity(entity_dir, name, base, emis, height, metal_mask, sss_mask, pbr_dir)
+
+        if reg_id == "colony_symbiont":
+            for c_idx, (caste_id, caste_skin) in enumerate(COLONY_SYMBIONT_CASTE_SKINS.items()):
+                c_seed = 200 + idx * 30 + 100 + c_idx * 17
+                base, emis, height, metal_mask, sss_mask = _render_entity(spec, caste_skin, "base", c_seed, reg_id)
+                _save_entity(entity_dir, f"colony_symbiont_{caste_id}", base, emis, height, metal_mask, sss_mask, pbr_dir)
 
     if names is None or "acid_spit" in names:
         xx32, yy32 = make_grid(32, 32)
