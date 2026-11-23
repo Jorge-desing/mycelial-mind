@@ -90,8 +90,16 @@ public class BioScannerItem extends Item {
         }
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             PlayerDiscoveryData.unlockMilestone(serverPlayer, ProgressionGoalEngine.MILESTONE_BIO_SCANNER);
-            if (PostMatriarchExpeditionDirector.handleScannerUseOn(
-                    serverPlayer, (ServerLevel) level, pos, player.isShiftKeyDown())) {
+            boolean expeditionHandled = PostMatriarchExpeditionDirector.handleScannerUseOn(
+                    serverPlayer, (ServerLevel) level, pos, player.isShiftKeyDown());
+            if (Boolean.getBoolean("mycelialmind.traceExpeditionScans")
+                    && level.dimension().equals(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL)) {
+                MycelialMind.LOGGER.info(
+                        "Expedition scan: serverTick={} player={} pos={} handled={}",
+                        serverPlayer.serverLevel().getServer().getTickCount(),
+                        serverPlayer.getGameProfile().getName(), pos, expeditionHandled);
+            }
+            if (expeditionHandled) {
                 return InteractionResult.sidedSuccess(false);
             }
         }

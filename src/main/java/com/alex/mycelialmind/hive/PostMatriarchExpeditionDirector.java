@@ -216,13 +216,13 @@ public final class PostMatriarchExpeditionDirector {
             return;
         }
         AdaptationTrait trait = HiveMindSavedData.traitFor(dominant);
-        Component advice = Component.translatable("message.mycelialmind.expedition_advice." + dominant.id());
         if (hive.hasTrait(trait)) {
+            Component advice = Component.translatable("message.mycelialmind.expedition_advice." + dominant.id());
             player.sendSystemMessage(Component.translatable("message.mycelialmind.expedition_adaptation_active",
                     MycelialText.trait(trait), advice).withStyle(ChatFormatting.LIGHT_PURPLE));
         } else {
             player.sendSystemMessage(Component.translatable("message.mycelialmind.expedition_adaptation_learning",
-                    MycelialText.stimulus(dominant), advice).withStyle(ChatFormatting.AQUA));
+                    MycelialText.stimulus(dominant)).withStyle(ChatFormatting.AQUA));
         }
     }
 
@@ -372,6 +372,24 @@ public final class PostMatriarchExpeditionDirector {
         player.sendSystemMessage(Component.translatable("message.mycelialmind.expedition_garden_status",
                 pos.getX(), pos.getY(), pos.getZ(), data.getLinkedFlora().size(),
                 PostMatriarchExpeditionRules.REQUIRED_GARDEN_FOCI).withStyle(ChatFormatting.AQUA));
+        List<BlockPos> linked = data.getLinkedFlora();
+        int needed = PostMatriarchExpeditionRules.REQUIRED_GARDEN_FOCI - linked.size();
+        if (needed <= 0) return;
+        ServerLevel level = player.serverLevel();
+        int found = 0;
+        BlockState bloom = ModBlocks.RECLAIMED_BLOOM.get().defaultBlockState();
+        for (BlockPos candidate : BlockPos.betweenClosed(
+                pos.offset(-MAX_NODE_RANGE, -MAX_NODE_RANGE, -MAX_NODE_RANGE),
+                pos.offset(MAX_NODE_RANGE, MAX_NODE_RANGE, MAX_NODE_RANGE))) {
+            if (pos.distSqr(candidate) <= MAX_NODE_RANGE * MAX_NODE_RANGE
+                    && !level.isOutsideBuildHeight(candidate) && level.isLoaded(candidate)
+                    && isFloraFocus(level.getBlockState(candidate)) && !linked.contains(candidate)
+                    && bloom.canSurvive(level, candidate)) {
+                if (++found >= needed) return;
+            }
+        }
+        player.sendSystemMessage(Component.translatable("message.mycelialmind.expedition_flora_shortfall",
+                found, needed, MAX_NODE_RANGE).withStyle(ChatFormatting.YELLOW));
     }
 
     @SubscribeEvent
@@ -393,8 +411,25 @@ public final class PostMatriarchExpeditionDirector {
         BlockPos nodePos = data.getActivePos();
         if (!level.isLoaded(nodePos) || !isEnemyNode(level.getBlockState(nodePos))) return;
         boolean playerNearby = level.players().stream()
+                .filter(player -> player.isAlive() && !player.isSpectator())
                 .anyMatch(player -> player.distanceToSqr(nodePos.getX() + 0.5, nodePos.getY() + 0.5, nodePos.getZ() + 0.5)
                         <= (double) MAX_NODE_RANGE * MAX_NODE_RANGE);
+        boolean pausedChanged = data.setPulsePaused(data.isPulseInProgress() && !playerNearby);
+        if (pausedChanged) {
+            boolean pause = data.isPulsePaused();
+            for (UUID attacker : data.getPulseAttackers()) {
+                if (level.getEntity(attacker) instanceof MycelialMob mob) mob.setNoAi(pause);
+            }
+            Component notice = Component.translatable("message.mycelialmind.expedition_pulse_resumed")
+                    .withStyle(ChatFormatting.YELLOW);
+            for (ServerPlayer player : level.players()) {
+                if (!pause && player.distanceToSqr(nodePos.getX() + 0.5, nodePos.getY() + 0.5, nodePos.getZ() + 0.5)
+                        <= (double) MAX_NODE_RANGE * MAX_NODE_RANGE) {
+                    player.displayClientMessage(notice, true);
+                }
+            }
+            sync(level);
+        }
         BlockPos pylon = data.getDefensePylon();
         if (pylon == null) pylon = findActivePylon(level, nodePos);
         if (playerNearby && pylon != null && level.isLoaded(pylon) && !isActivePylon(level, pylon)
@@ -410,7 +445,13 @@ public final class PostMatriarchExpeditionDirector {
         }
         if (resolvedEscort) sync(level);
         if (data.isPulseInProgress() && data.getPulseAttackers().isEmpty()) {
-            data.finishPulse(level.getGameTime());
+            if (data.finishPulse(level.getGameTime())) {
+                level.playSound(null, pylon, ModSounds.PURIFICATION_PYLON_PULSE.get(),
+                        SoundSource.BLOCKS, 0.85F, 1.25F);
+                level.sendParticles(ModParticles.PURIFIER_CROSS.get(),
+                        pylon.getX() + 0.5, pylon.getY() + 1.1, pylon.getZ() + 0.5,
+                        16, 0.45, 0.35, 0.45, 0.03);
+            }
             sync(level);
         }
         if (PostMatriarchExpeditionRules.routeIsComplete(data.getPulsesCompleted(), 0)) {
@@ -425,6 +466,9 @@ public final class PostMatriarchExpeditionDirector {
         BlockPos nodePos = data.getActivePos();
         if (!data.isPulseInProgress() || nodePos == null || !pylon.equals(data.getDefensePylon())) return;
         discardRetiredLoadedAttackers(level, data.interruptPulse());
+        level.sendParticles(ModParticles.DESYNC_FRAGMENT.get(),
+                pylon.getX() + 0.5, pylon.getY() + 0.8, pylon.getZ() + 0.5,
+                16, 0.5, 0.4, 0.5, 0.04);
         for (ServerPlayer player : level.players()) {
             if (player.distanceToSqr(nodePos.getX() + 0.5, nodePos.getY() + 0.5, nodePos.getZ() + 0.5)
                     <= (double) MAX_NODE_RANGE * MAX_NODE_RANGE) {
@@ -447,9 +491,14 @@ public final class PostMatriarchExpeditionDirector {
     public static void onAttackerLoad(EntityJoinLevelEvent event) {
         if (event.getEntity() instanceof MycelialMob mob
                 && event.getLevel() instanceof ServerLevel level
-                && level.dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL)
-                && PostMatriarchExpeditionData.get(level).consumeRetiredAttacker(mob.getUUID())) {
-            event.setCanceled(true);
+                && level.dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL)) {
+            PostMatriarchExpeditionData data = PostMatriarchExpeditionData.get(level);
+            if (data.consumeRetiredAttacker(mob.getUUID())) {
+                event.setCanceled(true);
+            } else if (data.getPulseAttackers().contains(mob.getUUID())) {
+                // The entity may have been unloaded when the pulse resumed.
+                mob.setNoAi(data.isPulsePaused());
+            }
         }
     }
 

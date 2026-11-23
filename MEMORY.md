@@ -3853,3 +3853,6 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - JUnit (`gradlew test --no-daemon`): **`74/74`** PASS en `9` suites (incluye `SovereignColonyUnitTest`).
   - GameTests aislados (`gradlew runGameTestServer -PisolatedGameTests=true --no-daemon`): **`175/175`** PASS en `7.494s` (incluye 5 pruebas en batch `colony_integration`).
   - Smoke RCON vía CodeMode (`start_smoke_server` -> `run_rcon_verify_suite` -> `stop_smoke_server`): **`ALL 23 automated scenario checks PASSED`** (`[Verify:Colony] PASS (Tier=2, Radius=36, TraitMask=0x1)`).
+
+## 2026-11-22 — Entrega Git de la integración de expediciones
+- Verificación antes de publicar: gradlew --offline test runGameTestServer -PisolatedGameTests=true terminó con éxito; 175/175 GameTests. Evidencia cooperativa y visual conservada localmente. La observación de cinco jugadores en dos sesiones sigue pendiente.

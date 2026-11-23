@@ -48,7 +48,7 @@ public final class SynapticBenchJeiCategory implements IRecipeCategory<SynapticR
 
     @Override
     public int getHeight() {
-        return 46;
+        return 60;
     }
 
     @Override
@@ -77,8 +77,7 @@ public final class SynapticBenchJeiCategory implements IRecipeCategory<SynapticR
     @Override
     public void draw(SynapticRecipeDescriptor recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         arrow.draw(guiGraphics, 78, 8);
-        guiGraphics.drawString(Minecraft.getInstance().font,
-                Component.translatable(recipe.noteKey()),
-                4, 33, 0xFF3F3F3F, false);
+        guiGraphics.drawWordWrap(Minecraft.getInstance().font,
+                Component.translatable(recipe.noteKey()), 4, 33, 138, 0xFF3F3F3F);
     }
 }

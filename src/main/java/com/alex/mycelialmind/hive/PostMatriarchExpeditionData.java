@@ -79,6 +79,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
     private long lastPulseGameTime;
     private BlockPos defensePylon;
     private boolean pulseInProgress;
+    private boolean pulsePaused;
     private final List<UUID> pulseAttackers = new ArrayList<>();
     private final Set<UUID> retiredAttackers = new HashSet<>();
     private final List<BlockPos> linkedFlora = new ArrayList<>();
@@ -104,6 +105,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
         lastPulseGameTime = 0L;
         defensePylon = null;
         pulseInProgress = false;
+        pulsePaused = false;
         pulseAttackers.clear();
         linkedFlora.clear();
         setDirty();
@@ -138,6 +140,17 @@ public final class PostMatriarchExpeditionData extends SavedData {
         return pulseInProgress;
     }
 
+    public synchronized boolean isPulsePaused() {
+        return pulseInProgress && pulsePaused;
+    }
+
+    public synchronized boolean setPulsePaused(boolean paused) {
+        if (!pulseInProgress || pulsePaused == paused) return false;
+        pulsePaused = paused;
+        setDirty();
+        return true;
+    }
+
     public synchronized List<UUID> getPulseAttackers() {
         return List.copyOf(pulseAttackers);
     }
@@ -151,6 +164,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
         pulseAttackers.clear();
         pulseAttackers.addAll(attackers);
         pulseInProgress = true;
+        pulsePaused = false;
         lastPulseGameTime = Math.max(0L, gameTime);
         setDirty();
         return true;
@@ -161,6 +175,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
             return false;
         }
         pulseInProgress = false;
+        pulsePaused = false;
         pulseAttackers.clear();
         pulsesCompleted++;
         lastPulseGameTime = Math.max(0L, gameTime);
@@ -181,6 +196,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
         List<UUID> attackers = List.copyOf(pulseAttackers);
         retiredAttackers.addAll(pulseAttackers);
         pulseInProgress = false;
+        pulsePaused = false;
         pulseAttackers.clear();
         setDirty();
         return attackers;
@@ -246,6 +262,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
         lastPulseGameTime = 0L;
         defensePylon = null;
         pulseInProgress = false;
+        pulsePaused = false;
         pulseAttackers.clear();
         linkedFlora.clear();
         setDirty();
@@ -305,6 +322,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
         lastPulseGameTime = 0L;
         defensePylon = null;
         pulseInProgress = false;
+        pulsePaused = false;
         pulseAttackers.clear();
         linkedFlora.clear();
         setDirty();
@@ -323,6 +341,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
                 tag.putLong("DefensePylon", defensePylon.asLong());
             }
             tag.putBoolean("PulseInProgress", pulseInProgress);
+            tag.putBoolean("PulsePaused", pulsePaused);
             ListTag attackers = new ListTag();
             for (UUID attacker : pulseAttackers) {
                 CompoundTag entry = new CompoundTag();
@@ -380,6 +399,7 @@ public final class PostMatriarchExpeditionData extends SavedData {
                 data.defensePylon = BlockPos.of(tag.getLong("DefensePylon"));
             }
             data.pulseInProgress = tag.getBoolean("PulseInProgress");
+            data.pulsePaused = data.pulseInProgress && tag.getBoolean("PulsePaused");
             ListTag attackers = tag.getList("PulseAttackers", Tag.TAG_COMPOUND);
             for (int i = 0; i < attackers.size(); i++) {
                 CompoundTag entry = attackers.getCompound(i);

@@ -52,9 +52,21 @@ public final class VisualSmokeClient {
     private static boolean expeditionRequested;
     private static int expeditionTicks;
     private static java.util.UUID expeditionEscortId;
+    private static boolean expeditionPulseSoundReceived;
     private static final java.util.concurrent.atomic.AtomicReference<Throwable> expeditionFailure = new java.util.concurrent.atomic.AtomicReference<>();
 
     private VisualSmokeClient() {
+    }
+
+    @SubscribeEvent
+    public static void onSound(net.neoforged.neoforge.client.event.sound.PlaySoundEvent event) {
+        if (expeditionTicks < 150 || expeditionTicks > 200 || event.getSound() == null) return;
+        var sound = event.getSound();
+        if (!expeditionPulseSoundReceived && sound.getLocation().equals(
+                com.alex.mycelialmind.registry.ModSounds.PURIFICATION_PYLON_PULSE.get().getLocation())) {
+            expeditionPulseSoundReceived = true;
+            MycelialMind.LOGGER.info("Expedition smoke: client received the defended-pulse sound");
+        }
     }
 
     @SubscribeEvent
@@ -97,6 +109,10 @@ public final class VisualSmokeClient {
         mc.options.pauseOnLostFocus = false;
         if (!System.getProperty("mycelialmind.expeditionReloadWorld", "").isBlank()) {
             if (expeditionFailure.get() != null) throw new IllegalStateException("Expedition reload failed", expeditionFailure.get());
+            if (Boolean.getBoolean("mycelialmind.expeditionReloadPulse")) {
+                runExpeditionPulseReload(mc);
+                return;
+            }
             if (!expeditionRequested && mc.getSingleplayerServer() != null) {
                 expeditionRequested = true;
                 expeditionExecute(mc.getSingleplayerServer(), () -> {
@@ -125,11 +141,36 @@ public final class VisualSmokeClient {
                     BlockPos third = new BlockPos(3, 96, 3);
                     level.setBlockAndUpdate(third, ModBlocks.SPORE_BULB.get().defaultBlockState());
                     player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.BIO_SCANNER.get()));
+                    int enclaveCount = data.getEnclaves().size();
+                    long scanTick = level.getGameTime();
                     ModItems.BIO_SCANNER.get().useOn(expeditionUseContext(player, third));
+                    var secondPlayer = net.neoforged.neoforge.common.util.FakePlayerFactory.get(level,
+                            new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "GardenProbe"));
+                    secondPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.BIO_SCANNER.get()));
+                    ModItems.BIO_SCANNER.get().useOn(expeditionUseContext(secondPlayer, third));
+                    if (level.getGameTime() != scanTick || data.getEnclaves().size() != enclaveCount + 1
+                            || !level.getBlockState(third).is(ModBlocks.RECLAIMED_BLOOM.get())) {
+                        throw new IllegalStateException("Expedition reload smoke: final garden focus did not resolve once");
+                    }
+                    MycelialMind.LOGGER.info("Expedition reload smoke: two scans in tick {} completed one garden", scanTick);
                     if (!data.hasCompletedEnclave(pending) || data.hasActiveExpedition()) {
                         throw new IllegalStateException("Expedition reload smoke: restored garden did not complete");
                     }
                     MycelialMind.LOGGER.info("Expedition reload smoke: two-focus garden restored and completed after restart");
+                    if (com.alex.mycelialmind.config.MycelialConfig.SPEC.isLoaded()) {
+                        com.alex.mycelialmind.config.MycelialConfig.HOMEOSTASIS_ENABLED.set(false);
+                    }
+                    BlockPos route = new BlockPos(5, 96, 8);
+                    BlockPos pylon = new BlockPos(4, 96, 8);
+                    level.setBlockAndUpdate(route, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
+                    player.setShiftKeyDown(true);
+                    ModItems.BIO_SCANNER.get().useOn(expeditionUseContext(player, route));
+                    player.setShiftKeyDown(false);
+                    ModItems.BIO_SCANNER.get().useOn(expeditionUseContext(player, pylon));
+                    if (!data.isPulseInProgress() || data.getPulseAttackers().isEmpty()) {
+                        throw new IllegalStateException("Expedition reload smoke: could not prepare active pulse for restart");
+                    }
+                    MycelialMind.LOGGER.info("Expedition reload smoke: prepared {} real attackers for pulse restart", data.getPulseAttackers().size());
                 });
             }
             if (inWorldTicks >= 80) mc.stop();
@@ -571,6 +612,65 @@ public final class VisualSmokeClient {
         }
     }
 
+    private static void runExpeditionPulseReload(Minecraft mc) {
+        IntegratedServer server = mc.getSingleplayerServer();
+        if (server == null) return;
+        if (inWorldTicks >= 40 && !expeditionRequested) {
+            expeditionRequested = true;
+            expeditionExecute(server, () -> {
+                ServerLevel level = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
+                var data = com.alex.mycelialmind.hive.PostMatriarchExpeditionData.get(level);
+                if (!data.isPulseInProgress() || !new BlockPos(5, 96, 8).equals(data.getActivePos())
+                        || data.getPulseAttackers().isEmpty()) {
+                    throw new IllegalStateException("Expedition reload smoke: active pulse was not restored");
+                }
+                var attackers = data.getPulseAttackers();
+                for (var id : attackers) {
+                    var entity = level.getEntity(id);
+                    if (!(entity instanceof MycelialMob)) {
+                        throw new IllegalStateException("Expedition reload smoke: tracked attacker missing after restart: " + id);
+                    }
+                }
+                var player = server.getPlayerList().getPlayers().getFirst();
+                player.setNoGravity(true);
+                player.teleportTo(5.5, 140, 8.5);
+            });
+        }
+        if (inWorldTicks == 85) expeditionExecute(server, () -> {
+            ServerLevel level = server.getPlayerList().getPlayers().getFirst().serverLevel();
+            var data = com.alex.mycelialmind.hive.PostMatriarchExpeditionData.get(level);
+            if (!data.isPulsePaused() || data.getPulsesCompleted() != 0 || data.getPulseAttackers().isEmpty()
+                    || !data.getPulseAttackers().stream().allMatch(id ->
+                            level.getEntity(id) instanceof MycelialMob mob && mob.isNoAi())) {
+                throw new IllegalStateException("Expedition reload smoke: leaving did not pause the tracked attackers");
+            }
+            var player = server.getPlayerList().getPlayers().getFirst();
+            player.teleportTo(5.5, 97, 8.5);
+            player.setNoGravity(false);
+        });
+        if (inWorldTicks == 130) expeditionExecute(server, () -> {
+            ServerLevel level = server.getPlayerList().getPlayers().getFirst().serverLevel();
+            var data = com.alex.mycelialmind.hive.PostMatriarchExpeditionData.get(level);
+            var attackers = data.getPulseAttackers();
+            if (!data.isPulseInProgress() || data.isPulsePaused() || attackers.isEmpty()
+                    || !attackers.stream().allMatch(id ->
+                            level.getEntity(id) instanceof MycelialMob mob && !mob.isNoAi())) {
+                throw new IllegalStateException("Expedition reload smoke: returning did not resume the tracked attackers");
+            }
+            for (var id : attackers) level.getEntity(id).kill();
+            MycelialMind.LOGGER.info("Expedition reload smoke: paused, resumed and resolved {} real pulse attackers", attackers.size());
+        });
+        if (inWorldTicks == 175) expeditionExecute(server, () -> {
+            ServerLevel level = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
+            var data = com.alex.mycelialmind.hive.PostMatriarchExpeditionData.get(level);
+            if (data.isPulseInProgress() || data.getPulsesCompleted() != 1) {
+                throw new IllegalStateException("Expedition reload smoke: restored pulse did not complete exactly once");
+            }
+            MycelialMind.LOGGER.info("Expedition reload smoke: restored pulse completed exactly once");
+        });
+        if (inWorldTicks >= 195) mc.stop();
+    }
+
     private static void runExpeditionScene(Minecraft mc) {
         Throwable failure = expeditionFailure.get();
         if (failure != null) throw new IllegalStateException("Expedition smoke failed on server", failure);
@@ -585,6 +685,9 @@ public final class VisualSmokeClient {
             expeditionExecute(server, () -> {
                 if (Boolean.getBoolean("mycelialmind.expeditionForceFailure")) {
                     throw new IllegalStateException("Forced expedition smoke failure");
+                }
+                if (server.getWorldData() instanceof net.minecraft.world.level.storage.PrimaryLevelData worldData) {
+                    worldData.withConfirmedWarning(true);
                 }
                 ServerLevel level = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
                 var player = server.getPlayerList().getPlayer(playerId);
@@ -710,6 +813,18 @@ public final class VisualSmokeClient {
                     throw new IllegalStateException("Scanner did not start a pulse with real attackers");
                 }
                 MycelialMind.LOGGER.info("Expedition smoke: scanner started a pulse with {} attackers in deep_mycelium", attackers.size());
+                long scanTick = level.getGameTime();
+                var secondPlayer = net.neoforged.neoforge.common.util.FakePlayerFactory.get(level,
+                        new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ExpeditionProbe"));
+                secondPlayer.setPos(player.getX(), player.getY(), player.getZ());
+                boolean handled = com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector
+                        .handleScannerUseOn(secondPlayer, level, pylon, false);
+                if (!handled || level.getGameTime() != scanTick || !data.isPulseInProgress()
+                        || data.getPulsesCompleted() != 0 || !attackers.equals(data.getPulseAttackers())) {
+                    throw new IllegalStateException("Second scanner changed the active pulse in the same server tick");
+                }
+                MycelialMind.LOGGER.info("Expedition smoke: two player scans in tick {} preserved one pulse with {} attackers",
+                        scanTick, attackers.size());
                 mob.setNoAi(true);
                 expeditionEscortId = mob.getUUID();
                 mob.setAlliedEscort(playerId, level.getGameTime() + 1200);
@@ -720,6 +835,9 @@ public final class VisualSmokeClient {
             });
         }
         if (expeditionTicks == 200) {
+            if (!expeditionPulseSoundReceived) {
+                throw new IllegalStateException("Expedition smoke: client did not receive the defended-pulse sound");
+            }
             expeditionExecute(server, () -> {
                 ServerLevel level = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
                 var data = com.alex.mycelialmind.hive.PostMatriarchExpeditionData.get(level);
@@ -871,6 +989,26 @@ public final class VisualSmokeClient {
                 ModItems.BIO_SCANNER.get().useOn(expeditionUseContext(player, pending));
                 player.setShiftKeyDown(false);
                 player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.SYNAPTIC_GRAFT.get()));
+                var tracker = com.alex.mycelialmind.world.PurificationZoneTracker.get(level);
+                var temporaryNodes = new java.util.ArrayList<BlockPos>();
+                int cap = com.alex.mycelialmind.config.MycelialConfig.MAX_SYMBIOTIC_NODES.get();
+                for (int i = tracker.countSymbioticNodes(); i < cap; i++) {
+                    BlockPos extra = pylon.offset(i % 19 - 9, 3 + i / 19, -9);
+                    level.setBlockAndUpdate(extra, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+                    tracker.addNode(extra, com.alex.mycelialmind.world.SynapticNodeType.SYMBIOTIC);
+                    temporaryNodes.add(extra);
+                }
+                try {
+                    var rejected = ModItems.SYNAPTIC_GRAFT.get().useOn(expeditionUseContext(player, pending));
+                    if (rejected != net.minecraft.world.InteractionResult.FAIL
+                            || player.getMainHandItem().getCount() != 1
+                            || !level.getBlockState(pending).is(ModBlocks.MYCELIAL_NODE.get())) {
+                        throw new IllegalStateException("Expedition smoke: graft cap did not preserve the node and item");
+                    }
+                    MycelialMind.LOGGER.info("Expedition smoke: garden graft rejected at the {}-node cap without consuming the graft", cap);
+                } finally {
+                    for (BlockPos extra : temporaryNodes) level.removeBlock(extra, false);
+                }
                 ModItems.SYNAPTIC_GRAFT.get().useOn(expeditionUseContext(player, pending));
                 player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.BIO_SCANNER.get()));
                 for (int x = 1; x <= 2; x++) {
@@ -882,6 +1020,16 @@ public final class VisualSmokeClient {
                     throw new IllegalStateException("Expedition smoke: failed to prepare two-focus garden for reload");
                 }
                 MycelialMind.LOGGER.info("Expedition smoke: prepared two-focus garden for restart");
+                for (BlockPos candidate : BlockPos.betweenClosed(pending.offset(-24, -24, -24),
+                        pending.offset(24, 24, 24))) {
+                    if (candidate.distSqr(pending) > 24 * 24 || !level.isLoaded(candidate)) continue;
+                    var state = level.getBlockState(candidate);
+                    if (state.is(ModBlocks.SPORE_BULB.get()) || state.is(ModBlocks.MYCELIAL_TENDRILS.get())
+                            || state.is(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get())) {
+                        level.removeBlock(candidate, false);
+                    }
+                }
+                ModItems.BIO_SCANNER.get().useOn(expeditionUseContext(player, pending));
             });
         }
         int finishTick = System.getProperty("mycelialmind.expeditionKeepSmokeEntities", "false").equals("false") ? 710 : 215;

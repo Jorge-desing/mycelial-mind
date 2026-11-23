@@ -24,7 +24,7 @@ public final class SynapticBenchEmiRecipe extends BasicEmiRecipe {
                 MycelialEmiPlugin.SYNAPTIC_CATEGORY,
                 ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "/synaptic/" + descriptor.id()),
                 146,
-                46
+                60
         );
         this.descriptor = descriptor;
         this.inputs = new ArrayList<>();
@@ -43,6 +43,9 @@ public final class SynapticBenchEmiRecipe extends BasicEmiRecipe {
         if (this.inputs.size() > 2) widgets.addSlot(this.inputs.get(2), 49, 7);
         widgets.addTexture(EmiTexture.EMPTY_ARROW, 77, 8);
         widgets.addSlot(this.outputs.get(0), 111, 3).large(true).recipeContext(this);
-        widgets.addText(Component.translatable(this.descriptor.noteKey()), 4, 33, 0xFF3F3F3F, false);
+        var lines = net.minecraft.client.Minecraft.getInstance().font.split(Component.translatable(this.descriptor.noteKey()), 138);
+        for (int i = 0; i < lines.size(); i++) {
+            widgets.addText(lines.get(i), 4, 33 + i * 9, 0xFF3F3F3F, false);
+        }
     }
 }
