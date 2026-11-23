@@ -3949,3 +3949,7 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Diagnóstico:** La repetición de CI en `6de9cd9` pasó el brote y mostró que la vena ya había dejado su bloque, pero su `FallingBlockEntity` seguía vivo al agotar 30 ticks. Forzar chunks mantiene el terreno disponible; no activa por sí solo el tick de entidades en el servidor aislado.
 - **Cambio:** El test ancla un jugador simulado junto a la vena antes de retirar el soporte. La observación de la entidad sigue comenzando desde el primer tick y conserva el plazo de 30 ticks y la limpieza.
 - **Verificación:** La ejecución local completa pasó **174/174 GameTests** tras el cambio. Faltan dos pasadas limpias y CI sobre el nuevo commit.
+## 2026-11-23 — Limpieza de jugadores de anclaje de arenas
+- **Diagnóstico:** En la segunda ejecución aislada sobre `b5cab63`, las pruebas objetivo pasaron, pero una aserción de granada falló después en otro batch. Los dos jugadores simulados de anclaje están fuera del volumen normal de `empty.nbt`, por lo que el cierre explícito evita que queden en el mundo entre batches.
+- **Cambio:** Se descartan ambos jugadores en las rutas de éxito y timeout, junto con la limpieza existente de bloques, entidades y chunks.
+- **Verificación:** Tras la limpieza, una ejecución completa pasó **174/174 GameTests**. Faltan las dos ejecuciones aisladas finales, JUnit y CI del nuevo commit.

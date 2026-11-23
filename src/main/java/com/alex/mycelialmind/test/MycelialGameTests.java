@@ -7243,16 +7243,18 @@ public final class MycelialGameTests {
                     }
                 }
             }
+                player.discard();
                 tracker.clearAll();
                 hive.resetAll();
                 releaseArenaChunks(level, forcedChunks);
             }
         },
         () -> {
+            player.discard();
             tracker.clearAll();
             hive.resetAll();
             releaseArenaChunks(level, forcedChunks);
-            helper.fail("Timed out waiting for blind-spot reward and guardian spawn chunks to become entity-ready.");
+            helper.fail("Timed out waiting for blind-spot reward and guardian spawn chunks to load.");
         });
     }
 
@@ -7547,6 +7549,7 @@ public final class MycelialGameTests {
             level.removeBlock(veinPos, false);
             level.removeBlock(landingAir, false);
             level.removeBlock(landingFloor, false);
+            chunkAnchor.discard();
             hive.resetAll();
             releaseArenaChunks(level, forcedChunks);
         };
