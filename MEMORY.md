@@ -3953,3 +3953,8 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Diagnóstico:** En la segunda ejecución aislada sobre `b5cab63`, las pruebas objetivo pasaron, pero una aserción de granada falló después en otro batch. Los dos jugadores simulados de anclaje están fuera del volumen normal de `empty.nbt`, por lo que el cierre explícito evita que queden en el mundo entre batches.
 - **Cambio:** Se descartan ambos jugadores en las rutas de éxito y timeout, junto con la limpieza existente de bloques, entidades y chunks.
 - **Verificación:** Tras la limpieza, una ejecución completa pasó **174/174 GameTests**. Faltan las dos ejecuciones aisladas finales, JUnit y CI del nuevo commit.
+
+## 2026-11-23 — Ajuste final de observación en GameTests
+- **Ciudadela:** El punto de aparición se decide al completar la estructura; se conserva el breve warm-up existente. Un observador de `EntityJoinLevelEvent`, acotado al área inspeccionada y retirado en `finally`, confirma que la Élite y la nube se añadieron al nivel y siguen presentes al comprobar la recompensa.
+- **Caída de vena:** Se mantiene una espera máxima de 30 ticks para que el chunk de origen pueda tickear entidades. Después de quitar el soporte, el observador captura la entidad al entrar al nivel; el plazo funcional separado de 30 ticks espera su desaparición antes de verificar aterrizaje, ausencia de bloque y drops. La limpieza retira observador, ticket, entidades y bloques de arena.
+- **Validación local:** JUnit **77/77** y dos ejecuciones aisladas consecutivas de GameTests **174/174**. `git diff --check` limpio. CI del commit de esta pasada: pendiente de publicación.

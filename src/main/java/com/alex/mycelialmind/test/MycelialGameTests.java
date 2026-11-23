@@ -743,6 +743,61 @@ public final class MycelialGameTests {
         return true;
     }
 
+    private static final class BlindSpotSpawnObserver {
+        private final ServerLevel level;
+        private final AABB area;
+        private com.alex.mycelialmind.entity.MycelialMob elite;
+        private net.minecraft.world.entity.AreaEffectCloud cloud;
+
+        private BlindSpotSpawnObserver(ServerLevel level, AABB area) {
+            this.level = level;
+            this.area = area;
+        }
+
+        @net.neoforged.bus.api.SubscribeEvent
+        public void onEntityJoin(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
+            if (event.getLevel() != level || !area.intersects(event.getEntity().getBoundingBox())) {
+                return;
+            }
+            if (event.getEntity() instanceof com.alex.mycelialmind.entity.MycelialMob mob
+                    && mob.getEvolutionRank() == EvolutionRank.ELITE) {
+                elite = mob;
+            } else if (event.getEntity() instanceof net.minecraft.world.entity.AreaEffectCloud areaEffectCloud) {
+                cloud = areaEffectCloud;
+            }
+        }
+
+        private boolean spawnedElite() {
+            return elite != null && elite.isAddedToLevel() && !elite.isRemoved()
+                    && elite.getEvolutionRank() == EvolutionRank.ELITE;
+        }
+
+        private boolean spawnedCloud() {
+            return cloud != null && cloud.isAddedToLevel() && !cloud.isRemoved();
+        }
+    }
+
+    private static final class HyphalFallingEntityObserver {
+        private final ServerLevel level;
+        private final BlockPos sourcePos;
+        private net.minecraft.world.entity.item.FallingBlockEntity fallingEntity;
+
+        private HyphalFallingEntityObserver(ServerLevel level, BlockPos sourcePos) {
+            this.level = level;
+            this.sourcePos = sourcePos;
+        }
+
+        @net.neoforged.bus.api.SubscribeEvent
+        public void onEntityJoin(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
+            if (event.getLevel() == level
+                    && event.getEntity() instanceof net.minecraft.world.entity.item.FallingBlockEntity falling
+                    && falling.getBlockState().is(ModBlocks.HYPHAL_VEIN.get())
+                    && falling.getStartPos().equals(sourcePos)) {
+                fallingEntity = falling;
+            }
+        }
+    }
+
     private static void runUntilCondition(
             GameTestHelper helper,
             int maxTicks,
@@ -7079,15 +7134,11 @@ public final class MycelialGameTests {
         BlockPos core2 = helper.absolutePos(new BlockPos(20, 120, 20));
         BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.moveTo(core2.getX() + 0.5D, core2.getY() + 1.0D, core2.getZ() + 0.5D, 0.0F, 0.0F);
 
         // The elite spawn point is selected dynamically from the completed site's ambush area.
-        int[] spawnSetupTicks = {0};
-        runUntilCondition(helper, 30,
-                () -> ++spawnSetupTicks[0] >= 2
-                        && isSpawnChunkLoaded(level, core2)
-                        && areSpawnAreaChunksLoaded(level, core3, 6),
-                () -> {
+        helper.startSequence().thenIdle(2).thenExecute(() -> {
+            var spawnObserver = new BlindSpotSpawnObserver(level, new AABB(core3).inflate(8.0D));
+            boolean spawnObserverRegistered = false;
             try {
                 hive.resetAll();
                 tracker.clearAll();
@@ -7192,14 +7243,13 @@ public final class MycelialGameTests {
             // 3. Full completion promotes core to INCUBATOR_NODE + Elite + Spore Cloud
             var site3 = com.alex.mycelialmind.hive.HyphalSiegeDirector.createBlindSpotSiteAt(level, hive, core3);
             int guard = 0;
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(spawnObserver);
+            spawnObserverRegistered = true;
             while (!site3.isCompleted() && guard++ < site3.getTotalSteps() + 10) {
                 com.alex.mycelialmind.hive.HyphalSiegeDirector.advanceBlindSpotGrowthStep(level, hive, site3, true);
             }
-            boolean hasElite = !level.getEntitiesOfClass(com.alex.mycelialmind.entity.MycelialMob.class,
-                    new AABB(core3).inflate(8.0D),
-                    m -> m.getEvolutionRank() == EvolutionRank.ELITE).isEmpty();
-            boolean hasSporeCloud = !level.getEntitiesOfClass(net.minecraft.world.entity.AreaEffectCloud.class,
-                    new AABB(core3).inflate(6.0D)).isEmpty();
+            boolean hasElite = spawnObserver.spawnedElite();
+            boolean hasSporeCloud = spawnObserver.spawnedCloud();
             boolean completedCleanly = site3.isCompleted()
                     && level.getBlockState(core3).is(ModBlocks.INCUBATOR_NODE.get())
                     && hasElite
@@ -7218,6 +7268,9 @@ public final class MycelialGameTests {
             }
             helper.succeed();
         } finally {
+            if (spawnObserverRegistered) {
+                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(spawnObserver);
+            }
             for (var mob : level.getEntitiesOfClass(com.alex.mycelialmind.entity.MycelialMob.class,
                     new AABB(core3).inflate(12.0D))) {
                 mob.discard();
@@ -7248,14 +7301,7 @@ public final class MycelialGameTests {
                 hive.resetAll();
                 releaseArenaChunks(level, forcedChunks);
             }
-        },
-        () -> {
-            player.discard();
-            tracker.clearAll();
-            hive.resetAll();
-            releaseArenaChunks(level, forcedChunks);
-            helper.fail("Timed out waiting for blind-spot reward and guardian spawn chunks to load.");
-        });
+        }).thenSucceed();
     }
 
     @GameTest(template = "empty", batch = "hyphal_route_veins")
@@ -7512,7 +7558,7 @@ public final class MycelialGameTests {
                 });
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 40)
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 90)
     public static void hyphalWallVeinLosesSupportFallsAndDisintegratesOnLanding(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
@@ -7523,8 +7569,13 @@ public final class MycelialGameTests {
         BlockPos veinPos = wallPos.east();
         BlockPos landingFloor = veinPos.below(5);
         BlockPos landingAir = veinPos.below(4);
-        Player chunkAnchor = helper.makeMockPlayer(GameType.SURVIVAL);
-        chunkAnchor.moveTo(veinPos.getX() + 0.5D, veinPos.getY() + 1.0D, veinPos.getZ() + 0.5D, 0.0F, 0.0F);
+        ChunkPos entityTickingChunk = new ChunkPos(veinPos);
+        level.getChunkSource().addRegionTicket(
+                net.minecraft.server.level.TicketType.PLAYER, entityTickingChunk, 2, entityTickingChunk);
+        AABB fallingArea = new AABB(
+                veinPos.getX(), landingFloor.getY(), veinPos.getZ(),
+                veinPos.getX() + 1.0D, veinPos.getY() + 1.0D, veinPos.getZ() + 1.0D)
+                .inflate(3.0D);
 
         for (int dy = 0; dy >= -5; dy--) {
             level.removeBlock(veinPos.offset(0, dy, 0), false);
@@ -7540,8 +7591,8 @@ public final class MycelialGameTests {
             wallBe.syncToClient();
         }
 
-        // Remove the supporting wall block
-        level.removeBlock(wallPos, false);
+        var fallingObserver = new HyphalFallingEntityObserver(level, veinPos);
+        boolean[] fallingObserverRegistered = {false};
 
         final boolean[] sawFallingEntity = {false};
         Runnable cleanup = () -> {
@@ -7549,53 +7600,101 @@ public final class MycelialGameTests {
             level.removeBlock(veinPos, false);
             level.removeBlock(landingAir, false);
             level.removeBlock(landingFloor, false);
-            chunkAnchor.discard();
+            for (var falling : level.getEntitiesOfClass(
+                    net.minecraft.world.entity.item.FallingBlockEntity.class, fallingArea)) {
+                falling.discard();
+            }
+            if (fallingObserver.fallingEntity != null && !fallingObserver.fallingEntity.isRemoved()) {
+                fallingObserver.fallingEntity.discard();
+            }
+            for (var item : level.getEntitiesOfClass(
+                    net.minecraft.world.entity.item.ItemEntity.class, new AABB(landingAir).inflate(3.0D))) {
+                item.discard();
+            }
+            if (fallingObserverRegistered[0]) {
+                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(fallingObserver);
+            }
             hive.resetAll();
+            level.getChunkSource().removeRegionTicket(
+                    net.minecraft.server.level.TicketType.PLAYER, entityTickingChunk, 2, entityTickingChunk);
             releaseArenaChunks(level, forcedChunks);
         };
         runUntilCondition(helper, 30,
+                () -> level.isPositionEntityTicking(veinPos),
                 () -> {
-                    var falling = level.getEntitiesOfClass(
-                            net.minecraft.world.entity.item.FallingBlockEntity.class,
-                            new AABB(veinPos).inflate(3.0D));
-                    if (!falling.isEmpty() && level.getBlockState(veinPos).isAir()) {
-                        sawFallingEntity[0] = true;
-                    }
-                    return sawFallingEntity[0] && falling.isEmpty();
+                    net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(fallingObserver);
+                    fallingObserverRegistered[0] = true;
+                    // Begin the 30-tick behavior window only after the source chunk can tick entities.
+                    level.removeBlock(wallPos, false);
+                    runUntilCondition(helper, 30,
+                            () -> {
+                                if (fallingObserver.fallingEntity != null && level.getBlockState(veinPos).isAir()) {
+                                    sawFallingEntity[0] = true;
+                                }
+                                return sawFallingEntity[0] && fallingObserver.fallingEntity != null
+                                        && fallingObserver.fallingEntity.isRemoved();
+                            },
+                            () -> {
+                                try {
+                                    boolean landedCleanly = level.getBlockState(landingAir).isAir()
+                                            && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
+                                    var remainingDrops = level.getEntitiesOfClass(
+                                            net.minecraft.world.entity.item.ItemEntity.class,
+                                            new AABB(landingAir).inflate(3.0D));
+                                    if (!landedCleanly || !remainingDrops.isEmpty()) {
+                                        helper.fail(String.format(
+                                                "Gravity check failed after the falling vein landed: landedCleanly=%s drops=%d",
+                                                landedCleanly, remainingDrops.size()));
+                                        return;
+                                    }
+                                    helper.succeed();
+                                } finally {
+                                    cleanup.run();
+                                }
+                            },
+                            () -> {
+                                try {
+                                    boolean landedCleanly = level.getBlockState(landingAir).isAir()
+                                            && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
+                                    var remainingDrops = level.getEntitiesOfClass(
+                                            net.minecraft.world.entity.item.ItemEntity.class,
+                                            new AABB(landingAir).inflate(3.0D));
+                                    var stillFalling = level.getEntitiesOfClass(
+                                            net.minecraft.world.entity.item.FallingBlockEntity.class, fallingArea);
+                                    String fallingState = stillFalling.stream()
+                                            .map(entity -> String.format(java.util.Locale.ROOT,
+                                                    "[y=%.2f vy=%.3f age=%d onGround=%s block=%s]",
+                                                    entity.getY(), entity.getDeltaMovement().y, entity.time,
+                                                    entity.onGround(),
+                                                    entity.getBlockState().getBlock().getName().getString()))
+                                            .toList().toString();
+                                    String observedFallingState = fallingObserver.fallingEntity == null
+                                            ? "none"
+                                            : String.format(java.util.Locale.ROOT,
+                                                    "[y=%.2f vy=%.3f age=%d onGround=%s removed=%s]",
+                                                    fallingObserver.fallingEntity.getY(),
+                                                    fallingObserver.fallingEntity.getDeltaMovement().y,
+                                                    fallingObserver.fallingEntity.time,
+                                                    fallingObserver.fallingEntity.onGround(),
+                                                    fallingObserver.fallingEntity.isRemoved());
+                                    helper.fail(String.format(
+                                            "Gravity check timed out: sawFalling=%s observed=%s landedCleanly=%s nearby=%s drops=%d entityTicking=%s entitiesLoaded=%s",
+                                            sawFallingEntity[0], observedFallingState, landedCleanly,
+                                            fallingState, remainingDrops.size(), level.isPositionEntityTicking(veinPos),
+                                            level.areEntitiesLoaded(entityTickingChunk.toLong())));
+                                } finally {
+                                    cleanup.run();
+                                }
+                            });
                 },
                 () -> {
-                    try {
-                        boolean landedCleanly = level.getBlockState(landingAir).isAir()
-                                && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
-                        var remainingDrops = level.getEntitiesOfClass(
-                                net.minecraft.world.entity.item.ItemEntity.class,
-                                new AABB(landingAir).inflate(3.0D));
-                        if (!landedCleanly || !remainingDrops.isEmpty()) {
-                            helper.fail(String.format(
-                                    "Gravity check failed after the falling vein landed: landedCleanly=%s drops=%d",
-                                    landedCleanly, remainingDrops.size()));
-                            return;
-                        }
-                        helper.succeed();
-                    } finally {
-                        cleanup.run();
-                    }
-                },
-                () -> {
-                    try {
-                        boolean landedCleanly = level.getBlockState(landingAir).isAir()
-                                && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
-                        var remainingDrops = level.getEntitiesOfClass(
-                                net.minecraft.world.entity.item.ItemEntity.class,
-                                new AABB(landingAir).inflate(3.0D));
-                        helper.fail(String.format(
-                                "Gravity check timed out: sawFalling=%s landedCleanly=%s stillFalling=%d drops=%d",
-                                sawFallingEntity[0], landedCleanly,
-                                level.getEntitiesOfClass(net.minecraft.world.entity.item.FallingBlockEntity.class,
-                                        new AABB(veinPos).inflate(3.0D)).size(), remainingDrops.size()));
-                    } finally {
-                        cleanup.run();
-                    }
+                    boolean entityTicking = level.isPositionEntityTicking(veinPos);
+                    boolean entitiesLoaded = level.areEntitiesLoaded(entityTickingChunk.toLong());
+                    boolean chunkLoaded = level.isLoaded(veinPos);
+                    cleanup.run();
+                    helper.fail(String.format(
+                            "Timed out preparing the falling vein chunk: entityTicking=%s entitiesLoaded=%s chunkLoaded=%s",
+                            entityTicking, entitiesLoaded, chunkLoaded));
                 });
     }
 
