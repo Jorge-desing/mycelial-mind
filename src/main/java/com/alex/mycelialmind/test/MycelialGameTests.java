@@ -306,12 +306,17 @@ public final class MycelialGameTests {
         }
         var weaver = helper.spawn(ModEntities.SYNAPSE_WEAVER.get(), 2, arenaY + 1, 2);
         var ally = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 14, arenaY + 1, 2);
+        ChunkPos entityTickingChunk = new ChunkPos(weaver.blockPosition());
+        int entityTickingTicketDistance = 2;
+        level.getChunkSource().addRegionTicket(net.minecraft.server.level.TicketType.PLAYER,
+                entityTickingChunk, entityTickingTicketDistance, entityTickingChunk);
         weaver.getBrain().setMemory(ModMemoryTypes.WEAVER_SUPPORT_POS.get(), ally.blockPosition());
         double initial = weaver.distanceToSqr(ally);
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         level.isPositionEntityTicking(helper.absolutePos(new BlockPos(2, arenaY + 1, 2)))
-                                && forced.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
+                                && level.isPositionEntityTicking(ally.blockPosition())
+                                && level.areEntitiesLoaded(entityTickingChunk.toLong()),
                         "Weaver arena chunks must be ready before movement"))
                 .thenWaitUntil(() -> helper.assertTrue(weaver.distanceToSqr(ally) < initial - 20,
                         "Weaver must move toward a separated ally"))
@@ -331,6 +336,9 @@ public final class MycelialGameTests {
                         "Desynced weaver must not apply support"))
                 .thenWaitUntil(() -> helper.assertTrue(ally.hasEffect(MobEffects.REGENERATION),
                         "Weaver must resume support after desync"))
+                .thenExecute(() -> level.getChunkSource().removeRegionTicket(
+                        net.minecraft.server.level.TicketType.PLAYER,
+                        entityTickingChunk, entityTickingTicketDistance, entityTickingChunk))
                 .thenExecute(() -> releaseArenaChunks(level, forced))
                 .thenSucceed();
     }
@@ -8724,10 +8732,6 @@ public final class MycelialGameTests {
         List<ChunkPos> raidArenaChunks = forceArenaChunks(helper, -24, 32, -24, 32);
 
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(
-                        level.isPositionEntityTicking(nexusPos)
-                                && raidArenaChunks.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
-                        "Rival raid arena chunks must be entity-loaded before spawning"))
                 .thenExecute(() -> {
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w1 = null;
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w2 = null;

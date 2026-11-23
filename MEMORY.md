@@ -3962,3 +3962,7 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 ## 2026-11-23 — CI de la segunda limpieza de GameTests
 - **Commit verificado:** `be21b015d0a2cfc5eca78bbabc5943c12057454b` en `codex/gametest-stability-fix`.
 - **Resultado:** El workflow `Verify Mycelial Mind` (`45252328615`, `workflow_dispatch` sobre ese SHA) terminó en verde: Gradle con JUnit/build/GameTests y dry-run, verificación de assets y validación de Renovate.
+## 2026-11-23 — Corrección de gates de chunks y ventana Weaver
+- **Diagnóstico CI:** Dos runs sobre `843999e` mostraron por separado el gate de preparación de incursión exigiendo `areEntitiesLoaded` para toda el área forzada y el timeout al esperar el pulso de soporte Weaver.
+- **Cambio:** La incursión conserva la carga forzada de los chunks donde genera y consulta los raiders, sin el requisito global de entity-loading que impedía iniciar el comportamiento. Weaver mantiene una región PLAYER temporal centrada en la arena; su preparación verifica el tick de ambas entidades y la carga del chunk observado, y retira el ticket al completar. Se preservan el pulso de apoyo, el estado tras desync y la ventana de 65 ticks.
+- **Verificación local:** JUnit **77/77** y dos mundos aislados consecutivos con **174/174 GameTests**. CI tras esta corrección: pendiente.
