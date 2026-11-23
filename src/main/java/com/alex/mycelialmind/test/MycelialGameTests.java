@@ -723,18 +723,19 @@ public final class MycelialGameTests {
         }
     }
 
-    private static boolean isEntityChunkReady(ServerLevel level, BlockPos pos) {
-        return level.areEntitiesLoaded(new ChunkPos(pos).toLong());
+    private static boolean isSpawnChunkLoaded(ServerLevel level, BlockPos pos) {
+        return level.isLoaded(pos);
     }
 
-    private static boolean areEntityChunksReady(ServerLevel level, BlockPos center, int radius) {
+    private static boolean areSpawnAreaChunksLoaded(ServerLevel level, BlockPos center, int radius) {
         int minChunkX = (center.getX() - radius) >> 4;
         int maxChunkX = (center.getX() + radius) >> 4;
         int minChunkZ = (center.getZ() - radius) >> 4;
         int maxChunkZ = (center.getZ() + radius) >> 4;
         for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
             for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
-                if (!level.areEntitiesLoaded(ChunkPos.asLong(chunkX, chunkZ))) {
+                BlockPos chunkProbe = new BlockPos(chunkX << 4, center.getY(), chunkZ << 4);
+                if (!level.isLoaded(chunkProbe)) {
                     return false;
                 }
             }
@@ -3584,7 +3585,7 @@ public final class MycelialGameTests {
                 center.offset(-5, 1, 7),
                 center.offset(5, 1, 7));
         runUntilCondition(helper, 30,
-                () -> guardianSpawnPositions.stream().allMatch(pos -> isEntityChunkReady(level, pos)),
+                () -> guardianSpawnPositions.stream().allMatch(pos -> isSpawnChunkLoaded(level, pos)),
                 () -> {
                     try {
                         var piece = new com.alex.mycelialmind.world.structure.MatriarchCitadelPiece(center);
@@ -6796,7 +6797,7 @@ public final class MycelialGameTests {
 
         ChunkPos routeChunk = new ChunkPos(pathStart);
         runUntilCondition(helper, 30,
-                () -> areEntityChunksReady(level, pathStart, 6),
+                () -> areSpawnAreaChunksLoaded(level, pathStart, 6),
                 () -> {
             try {
                 hive.resetAll();
@@ -7080,7 +7081,7 @@ public final class MycelialGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         runUntilCondition(helper, 30,
-                () -> isEntityChunkReady(level, core2) && areEntityChunksReady(level, core3, 6),
+                () -> isSpawnChunkLoaded(level, core2) && areSpawnAreaChunksLoaded(level, core3, 6),
                 () -> {
             try {
                 hive.resetAll();
