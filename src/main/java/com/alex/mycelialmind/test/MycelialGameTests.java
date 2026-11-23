@@ -7521,6 +7521,8 @@ public final class MycelialGameTests {
         BlockPos veinPos = wallPos.east();
         BlockPos landingFloor = veinPos.below(5);
         BlockPos landingAir = veinPos.below(4);
+        Player chunkAnchor = helper.makeMockPlayer(GameType.SURVIVAL);
+        chunkAnchor.moveTo(veinPos.getX() + 0.5D, veinPos.getY() + 1.0D, veinPos.getZ() + 0.5D, 0.0F, 0.0F);
 
         for (int dy = 0; dy >= -5; dy--) {
             level.removeBlock(veinPos.offset(0, dy, 0), false);

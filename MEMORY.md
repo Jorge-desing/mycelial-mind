@@ -3945,3 +3945,7 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Diagnóstico:** Un mundo recién creado podía completar el brote sin que la Élite ni la nube quedaran visibles para la consulta del test: el jugador simulado permanecía lejos de los tres núcleos.
 - **Cambio:** Se coloca el jugador simulado junto al núcleo central, manteniendo activa la región donde el brote selecciona la aparición dinámica. Se conservan los dos ticks iniciales y el sondeo acotado de chunks cargados.
 - **Verificación:** Una nueva ejecución completa pasó **174/174 GameTests**. Falta repetir dos veces desde worktrees y mundos limpios y confirmar CI.
+## 2026-11-23 — Arena activa para caída de vena hifal
+- **Diagnóstico:** La repetición de CI en `6de9cd9` pasó el brote y mostró que la vena ya había dejado su bloque, pero su `FallingBlockEntity` seguía vivo al agotar 30 ticks. Forzar chunks mantiene el terreno disponible; no activa por sí solo el tick de entidades en el servidor aislado.
+- **Cambio:** El test ancla un jugador simulado junto a la vena antes de retirar el soporte. La observación de la entidad sigue comenzando desde el primer tick y conserva el plazo de 30 ticks y la limpieza.
+- **Verificación:** La ejecución local completa pasó **174/174 GameTests** tras el cambio. Faltan dos pasadas limpias y CI sobre el nuevo commit.
