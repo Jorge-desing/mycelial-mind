@@ -3865,3 +3865,6 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-22 — Refinamiento de la corola y hojas de la flor recuperada
 - Se estrecharon progresivamente los pétalos, se perfiló el pistilo y se escalonaron hojas y cáliz. Se mantuvo un solo modelo compartido entre paletas y estados. Model Studio revisado, 11/11 pruebas y cliente visual correctos. Capturas en artifacts/diagnostics/bloom-refinement-preview.
+
+## 2026-11-22 — Guía propia y rediseño de la corola recuperada
+- Model Studio enlaza reclaimed-bloom.md desde su SKILL. Modelo con cuatro pétalos de alturas alternas, cuatro lóbulos bajos y hojas opuestas levantadas. 11/11 comprobaciones y runVisualSmoke correctos. Capturas en artifacts/diagnostics/bloom-crown-preview.

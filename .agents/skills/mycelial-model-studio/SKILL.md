@@ -8,6 +8,8 @@ description: >-
 
 # Mycelial Model Studio Workflow
 
+Para rediseñar las flores de los jardines de expedición, consulta la [guía de la flor recuperada](reclaimed-bloom.md).
+
 ## 1. Orden Obligatorio de Regeneración (Geometría → Manifiesto → Texturas)
 1. Editar o agregar definiciones de entidades en `scripts/model_studio/model_defs.py`; la anatomía legendaria y las capas de evolución se aplican en `scripts/model_studio/legendary_upgrades.py` (post-proceso sobre el árbol `PartNode`). Los modelos JSON 3D Masterwork de bloques/ítems viven en `scripts/model_studio/block_item_3d.py` (mapeados a los 6 atlas `64x64` en `textures/model_atlas/`).
    - Presupuestos y contrato runtime: `scripts/model_studio/entity_specs.py` (`ATLAS_BY_MODEL`, `RENDER_SPECS`, `BUDGETS`, `PHASE_BUDGETS`, `SIGNATURE_PARTS`) y métricas puras en `scripts/model_studio/metrics.py` (bounds base/condicional, capas MUTATED/ELITE/fases, fingerprint, uso de atlas). `build_models.py --check` falla si un presupuesto o firma no se cumple.

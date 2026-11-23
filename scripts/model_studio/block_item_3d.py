@@ -567,7 +567,7 @@ def build_3d_block_models() -> Dict[str, Dict[str, Any]]:
 
 
 def build_reclaimed_bloom_model() -> Dict[str, Any]:
-    """Keep the rooted silhouette in both harvest states and tint only the flower."""
+    """Build the alternating crown described in the reclaimed bloom studio guide."""
     elements = [
         _tbox((5.5, 0, 5.5), (10.5, 0.75, 10.5), H_OBS),
         _tbox((6.25, 0.75, 6.25), (9.75, 1.5, 9.75), H_VIOLET_SCALE),
@@ -590,13 +590,18 @@ def build_reclaimed_bloom_model() -> Dict[str, Any]:
     for turn in range(4):
         radial_box(7.25, 1.5, 5.25, 8.75, 2.5, 7, H_VIOLET_SCALE, turn)
         radial_box(6.75, 2.5, 4, 9.25, 3.25, 6, H_VIOLET_SCALE, turn)
-        radial_box(7.25, 3.25, 3.5, 8.75, 3.75, 4.75, H_VEIN, turn)
+        if turn % 2 == 0:
+            radial_box(7.25, 3.25, 3.5, 8.75, 4, 4.75, H_VEIN, turn)
     elements.append(_tbox((5.75, 5.5, 5.75), (10.25, 7.25, 10.25), H_VIOLET_SCALE))
     for turn in range(4):
+        # A low shoulder fills each gap without closing the negative space between tips.
+        radial_box(4.5, 5.75, 5.5, 5.75, 7.25, 6.5, H_BONE, turn, tinted=True)
+        radial_box(4, 7.25, 5, 5.75, 8, 6, H_IVORY_SCALE, turn, tinted=True)
         radial_box(6.5, 6.25, 4.75, 9.5, 7.25, 5.75, H_BONE, turn, tinted=True)
-        radial_box(5.75, 7.25, 3.5, 10.25, 8.25, 5.75, H_IVORY_SCALE, turn, tinted=True)
+        radial_box(6, 7.25, 3.5, 10, 8.25, 5.75, H_IVORY_SCALE, turn, tinted=True)
         radial_box(6.25, 8.25, 3, 9.75, 9.25, 4.75, H_IVORY_SCALE, turn, tinted=True)
-        radial_box(7, 9.25, 2.75, 9, 9.75, 3.75, H_IVORY_SCALE, turn, tinted=True)
+        tip_height = 10.5 if turn % 2 == 0 else 9.75
+        radial_box(7, 9.25, 2.75, 9, tip_height, 3.75, H_IVORY_SCALE, turn, tinted=True)
     radial_box(6.5, 7.25, 6.5, 9.5, 8.25, 9.5, H_BONE, 0, tinted=True)
     radial_box(7.25, 8.25, 7.25, 8.75, 9.75, 8.75, H_IVORY_SCALE, 0, tinted=True, shade=False)
     radial_box(6.75, 9.75, 6.75, 9.25, 10.75, 9.25, H_IVORY_SCALE, 0, tinted=True, shade=False)
