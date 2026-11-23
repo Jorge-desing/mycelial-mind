@@ -3187,35 +3187,47 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", batch = "algorithm_integration")
+    @GameTest(template = "empty", batch = "swarm_steering")
     public static void swarmSteeringUtilityCurvesAndFastNoiseDeterminism(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        var m1 = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 3, 1, 3);
-        var m2 = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 3, 1, 4);
-        var steering = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeSteeringOffset(m1, level);
-        if (steering.z >= 0.0D || steering.length() > 2.21D) {
-            helper.fail("Steering separation failed: z=" + steering.z + " len=" + steering.length());
-            return;
+        int arenaY = 180;
+        for (int x = 0; x <= 2; x++) {
+            for (int z = 0; z <= 2; z++) {
+                helper.setBlock(new BlockPos(x, arenaY, z), Blocks.STONE);
+            }
         }
+        var m1 = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 1, arenaY + 1, 1);
+        var m2 = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 1, arenaY + 1, 2);
+        helper.runAfterDelay(2, () -> {
+            try {
+                List<MycelialMob> neighbors = level.getEntitiesOfClass(
+                        MycelialMob.class, m1.getBoundingBox().inflate(5.5D), mob -> mob != m1 && mob.isAlive());
+                helper.assertTrue(neighbors.contains(m2),
+                        "Steering test must find its nearby ally after entity registration");
+                var steering = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeSteeringOffset(m1, level);
+                helper.assertTrue(steering.z < 0.0D && steering.length() <= 2.21D,
+                        "Steering separation failed: z=" + steering.z + " len=" + steering.length());
 
-        float sigLow = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseSigmoid(0.1F, 6.0F, 0.5F);
-        float sigHigh = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseSigmoid(0.9F, 6.0F, 0.5F);
-        float expMid = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseExponential(0.5F, 2.0F);
-        if (!(sigLow < 0.2F && sigHigh > 0.8F && Math.abs(expMid - 0.25F) < 0.01F)) {
-            helper.fail("Utility response curves out of bounds");
-            return;
-        }
+                float sigLow = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseSigmoid(0.1F, 6.0F, 0.5F);
+                float sigHigh = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseSigmoid(0.9F, 6.0F, 0.5F);
+                float expMid = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseExponential(0.5F, 2.0F);
+                helper.assertTrue(sigLow < 0.2F && sigHigh > 0.8F && Math.abs(expMid - 0.25F) < 0.01F,
+                        "Utility response curves out of bounds");
 
-        var c1 = com.alex.mycelialmind.world.MycelialFastNoise.domainWarpedCellular2D(12.5D, -8.25D, 12345L, 0.35D);
-        var c2 = com.alex.mycelialmind.world.MycelialFastNoise.domainWarpedCellular2D(12.5D, -8.25D, 12345L, 0.35D);
-        if (c1.f1() != c2.f1() || c1.edge() != c2.edge() || c1.f1() < 0.0D || c1.f1() > 1.0D || c1.edge() < 0.0D || c1.edge() > 1.0D) {
-            helper.fail("MycelialFastNoise determinism or range check failed");
-            return;
-        }
-
-        m1.discard();
-        m2.discard();
-        helper.succeed();
+                var c1 = com.alex.mycelialmind.world.MycelialFastNoise
+                        .domainWarpedCellular2D(12.5D, -8.25D, 12345L, 0.35D);
+                var c2 = com.alex.mycelialmind.world.MycelialFastNoise
+                        .domainWarpedCellular2D(12.5D, -8.25D, 12345L, 0.35D);
+                helper.assertTrue(c1.f1() == c2.f1() && c1.edge() == c2.edge()
+                                && c1.f1() >= 0.0D && c1.f1() <= 1.0D
+                                && c1.edge() >= 0.0D && c1.edge() <= 1.0D,
+                        "MycelialFastNoise determinism or range check failed");
+                helper.succeed();
+            } finally {
+                m1.discard();
+                m2.discard();
+            }
+        });
     }
 
     @GameTest(template = "empty", batch = "algorithm_integration")
