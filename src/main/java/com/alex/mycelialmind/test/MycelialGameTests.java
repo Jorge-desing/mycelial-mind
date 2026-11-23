@@ -2157,7 +2157,7 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", batch = "defaultBatch")
+    @GameTest(template = "empty", batch = "symbiotic_blade_arc")
     public static void symbioticBladeArcSlashDamagesAndHealsPlayer(GameTestHelper helper) {
         var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         BlockPos pPos = helper.absolutePos(new BlockPos(2, 1, 2));
