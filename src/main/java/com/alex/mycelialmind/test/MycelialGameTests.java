@@ -313,7 +313,6 @@ public final class MycelialGameTests {
                         level.isPositionEntityTicking(helper.absolutePos(new BlockPos(2, arenaY + 1, 2)))
                                 && forced.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
                         "Weaver arena chunks must be ready before movement"))
-                .thenIdle(2)
                 .thenWaitUntil(() -> helper.assertTrue(weaver.distanceToSqr(ally) < initial - 20,
                         "Weaver must move toward a separated ally"))
                 .thenWaitUntil(() -> helper.assertTrue(ally.hasEffect(MobEffects.REGENERATION),
@@ -779,38 +778,6 @@ public final class MycelialGameTests {
             return;
         }
         helper.setBlock(localPylon, Blocks.AIR);
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty")
-    public static void hiveSyncPayloadRoundTrip(GameTestHelper helper) {
-        HiveMindSavedData hive = new HiveMindSavedData();
-        hive.recordStimulus(StimulusType.PROJECTILE, 50.0);
-        BlockPos nodePos = new BlockPos(128, -20, -64);
-        HiveSyncPayload original = new HiveSyncPayload(hive.getThreatLevel(),
-                1 << AdaptationTrait.PROJECTILE_DEFLECT.ordinal(), true, true, nodePos);
-
-        var buf = Unpooled.buffer();
-        HiveSyncPayload.STREAM_CODEC.encode(buf, original);
-        HiveSyncPayload decoded = HiveSyncPayload.STREAM_CODEC.decode(buf);
-
-        if (Math.abs(decoded.threatLevel() - original.threatLevel()) > 0.001) {
-            helper.fail("Threat level mismatch after HiveSyncPayload round-trip.");
-            return;
-        }
-        if (!decoded.decodeTraits().contains(AdaptationTrait.PROJECTILE_DEFLECT)) {
-            helper.fail("Expected PROJECTILE_DEFLECT trait in decoded HiveSyncPayload.");
-            return;
-        }
-        if (!decoded.inProtectedZone()) {
-            helper.fail("Expected inProtectedZone=true after HiveSyncPayload round-trip.");
-            return;
-        }
-        if (!decoded.hasNearestNode() || !nodePos.equals(decoded.nearestNodePos())) {
-            helper.fail("Nearest node BlockPos mismatch after HiveSyncPayload round-trip.");
-            return;
-        }
-
         helper.succeed();
     }
 
@@ -3188,7 +3155,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "swarm_steering")
-    public static void swarmSteeringUtilityCurvesAndFastNoiseDeterminism(GameTestHelper helper) {
+    public static void swarmSteeringSeparatesNearbyAllies(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         int arenaY = 180;
         for (int x = 0; x <= 2; x++) {
@@ -3198,36 +3165,22 @@ public final class MycelialGameTests {
         }
         var m1 = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 1, arenaY + 1, 1);
         var m2 = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 1, arenaY + 1, 2);
-        helper.runAfterDelay(2, () -> {
-            try {
-                List<MycelialMob> neighbors = level.getEntitiesOfClass(
-                        MycelialMob.class, m1.getBoundingBox().inflate(5.5D), mob -> mob != m1 && mob.isAlive());
-                helper.assertTrue(neighbors.contains(m2),
-                        "Steering test must find its nearby ally after entity registration");
-                var steering = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeSteeringOffset(m1, level);
-                helper.assertTrue(steering.z < 0.0D && steering.length() <= 2.21D,
-                        "Steering separation failed: z=" + steering.z + " len=" + steering.length());
-
-                float sigLow = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseSigmoid(0.1F, 6.0F, 0.5F);
-                float sigHigh = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseSigmoid(0.9F, 6.0F, 0.5F);
-                float expMid = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.responseExponential(0.5F, 2.0F);
-                helper.assertTrue(sigLow < 0.2F && sigHigh > 0.8F && Math.abs(expMid - 0.25F) < 0.01F,
-                        "Utility response curves out of bounds");
-
-                var c1 = com.alex.mycelialmind.world.MycelialFastNoise
-                        .domainWarpedCellular2D(12.5D, -8.25D, 12345L, 0.35D);
-                var c2 = com.alex.mycelialmind.world.MycelialFastNoise
-                        .domainWarpedCellular2D(12.5D, -8.25D, 12345L, 0.35D);
-                helper.assertTrue(c1.f1() == c2.f1() && c1.edge() == c2.edge()
-                                && c1.f1() >= 0.0D && c1.f1() <= 1.0D
-                                && c1.edge() >= 0.0D && c1.edge() <= 1.0D,
-                        "MycelialFastNoise determinism or range check failed");
-                helper.succeed();
-            } finally {
-                m1.discard();
-                m2.discard();
-            }
-        });
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(level.getEntitiesOfClass(
+                                MycelialMob.class, m1.getBoundingBox().inflate(5.5D),
+                                mob -> mob == m2 && mob.isAlive()).contains(m2),
+                        "Steering test must find its nearby ally after entity registration"))
+                .thenExecute(() -> {
+                    try {
+                        var steering = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeSteeringOffset(m1, level);
+                        helper.assertTrue(steering.z < 0.0D && steering.length() <= 2.21D,
+                                "Steering separation failed: z=" + steering.z + " len=" + steering.length());
+                    } finally {
+                        m1.discard();
+                        m2.discard();
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = "empty", batch = "algorithm_integration")
@@ -8601,7 +8554,6 @@ public final class MycelialGameTests {
                         level.isPositionEntityTicking(nexusPos)
                                 && raidArenaChunks.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
                         "Rival raid arena chunks must be entity-loaded before spawning"))
-                .thenIdle(2)
                 .thenExecute(() -> {
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w1 = null;
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w2 = null;

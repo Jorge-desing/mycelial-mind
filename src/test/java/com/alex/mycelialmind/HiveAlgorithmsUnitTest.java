@@ -83,6 +83,7 @@ class HiveAlgorithmsUnitTest {
         float mid = HiveUtilityEvaluator.responseSigmoid(0.5F, 6.0F, 0.5F);
         float high = HiveUtilityEvaluator.responseSigmoid(0.9F, 6.0F, 0.5F);
         assertTrue(low < mid && mid < high);
+        assertTrue(low < 0.2F && high > 0.8F);
         assertEquals(0.5F, mid, 0.01F);
 
         assertEquals(0.25F, HiveUtilityEvaluator.responseExponential(0.5F, 2.0F), 0.001F);

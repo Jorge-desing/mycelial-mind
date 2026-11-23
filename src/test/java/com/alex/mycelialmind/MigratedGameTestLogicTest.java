@@ -1,6 +1,7 @@
 package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
+import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
@@ -49,7 +50,7 @@ class MigratedGameTestLogicTest {
         BlockPos nodePos = new BlockPos(20, 64, 15);
         BlockPos pylonPos = new BlockPos(5, 64, 5);
         HiveSyncPayload payload = new HiveSyncPayload(
-                42.0, 1, 0, 0, false, true, nodePos, 2, 0,
+                42.0, 1 << AdaptationTrait.PROJECTILE_DEFLECT.ordinal(), 0, 0, true, true, nodePos, 2, 0,
                 10, 20, 5, 0, 0,
                 3, 1, 24, 28, anchor,
                 List.of(new HiveSyncPayload.NodeMarker(nodePos, SynapticNodeType.INCUBATOR)),
@@ -59,6 +60,11 @@ class MigratedGameTestLogicTest {
         try {
             HiveSyncPayload.STREAM_CODEC.encode(buf, payload);
             HiveSyncPayload decoded = HiveSyncPayload.STREAM_CODEC.decode(buf);
+            assertEquals(payload.threatLevel(), decoded.threatLevel(), 0.001);
+            assertTrue(decoded.decodeTraits().contains(AdaptationTrait.PROJECTILE_DEFLECT));
+            assertTrue(decoded.inProtectedZone());
+            assertTrue(decoded.hasNearestNode());
+            assertEquals(nodePos, decoded.nearestNodePos());
             assertEquals(3, decoded.totalNodes());
             assertEquals(1, decoded.totalPylons());
             assertEquals(1, decoded.nearbyNodes().size());

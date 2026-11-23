@@ -3922,3 +3922,8 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **PR #4:** Abierto y sin fusionar; mergeable, con un único cambio en `build.gradle`: Modonomicon `1.123.0` → `1.123.1`.
 - **Corrección confirmada:** La espera de carga de entidades de todos los chunks de la arena causaba una carrera irrelevante para el test síncrono de brotes. Se quitó el gate; la prueba conserva sus verificaciones funcionales y limpieza.
 - **Entrega:** Código publicado en `origin/main` (`fbc5e74`) y PR actualizado a `5b5fa41`. Se conserva intacto el trabajo local previo del usuario.
+
+## 2026-11-23 — Esperas y cobertura redundante de GameTests
+- Steering espera la deteccion del aliado y comprueba la separacion. Weaver y la incursion rival avanzan al confirmar que su arena esta lista. Se conservan las ventanas que comprueban comportamiento a lo largo del tiempo.
+- El round-trip basico de HiveSync se integra en la prueba JUnit de marcadores territoriales. Las curvas de utilidad y el ruido determinista se comprueban en la suite JUnit existente.
+- Skill neoforge-gametest revisada. CI se ejecuta al publicar.
