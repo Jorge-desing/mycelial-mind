@@ -7,34 +7,34 @@
       "model": "mycelialmind:block/reclaimed_bloom"
     },
     "mature=true,palette=1": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_melee"
     },
     "mature=false,palette=1": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_melee"
     },
     "mature=true,palette=2": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_projectile"
     },
     "mature=false,palette=2": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_projectile"
     },
     "mature=true,palette=3": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_fire"
     },
     "mature=false,palette=3": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_fire"
     },
     "mature=true,palette=4": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_explosion"
     },
     "mature=false,palette=4": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_explosion"
     },
     "mature=true,palette=5": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_magic"
     },
     "mature=false,palette=5": {
-      "model": "mycelialmind:block/reclaimed_bloom"
+      "model": "mycelialmind:block/reclaimed_bloom_magic"
     }
   }
 }

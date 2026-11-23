@@ -761,6 +761,18 @@ public final class VisualSmokeClient {
             });
         }
         if (expeditionTicks == 70) Screenshot.grab(mc.gameDirectory, "expedition_garden_after.png", mc.getMainRenderTarget(), msg -> MycelialMind.LOGGER.info("Expedition smoke: {}", msg.getString()));
+        if (expeditionTicks == 72) {
+            var inventory = mc.player.getInventory();
+            inventory.setItem(0, new ItemStack(ModBlocks.RECLAIMED_BLOOM.get()));
+            inventory.setItem(1, new ItemStack(ModItems.RECLAIMED_BLOOM_MELEE.get()));
+            inventory.setItem(2, new ItemStack(ModItems.RECLAIMED_BLOOM_PROJECTILE.get()));
+            inventory.setItem(3, new ItemStack(ModItems.RECLAIMED_BLOOM_FIRE.get()));
+            inventory.setItem(4, new ItemStack(ModItems.RECLAIMED_BLOOM_EXPLOSION.get()));
+            inventory.setItem(5, new ItemStack(ModItems.RECLAIMED_BLOOM_MAGIC.get()));
+            mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+        }
+        if (expeditionTicks == 78) Screenshot.grab(mc.gameDirectory, "expedition_bloom_inventory.png",
+                mc.getMainRenderTarget(), msg -> MycelialMind.LOGGER.info("Expedition smoke: {}", msg.getString()));
         if (expeditionTicks == 80) mc.setScreen(new com.alex.mycelialmind.client.screen.BioScannerCodexScreen());
         if (expeditionTicks == 83 && mc.screen != null) {
             int left = (mc.screen.width - 312) / 2;

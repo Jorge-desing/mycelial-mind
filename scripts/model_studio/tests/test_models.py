@@ -197,7 +197,7 @@ class TestModelStudio(unittest.TestCase):
 
         blocks = build_3d_block_models()
         items = build_3d_item_models()
-        self.assertEqual(len(blocks), 19)  # Includes chitin_pillar_horizontal and reclaimed_bloom.
+        self.assertEqual(len(blocks), 24)  # Includes chitin_pillar_horizontal and reclaimed_bloom.
         self.assertEqual(len(items), 35)   # 11 masterwork + 4 chitin armor + 17 tactical/biotech/relics + 3 sculpted materials
         atlas_root = os.path.join(REPO_ROOT, "src", "main", "resources", "assets", "mycelialmind", "textures")
         for name, m in list(blocks.items()) + list(items.items()):

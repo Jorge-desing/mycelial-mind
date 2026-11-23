@@ -3868,3 +3868,12 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-22 — Guía propia y rediseño de la corola recuperada
 - Model Studio enlaza reclaimed-bloom.md desde su SKILL. Modelo con cuatro pétalos de alturas alternas, cuatro lóbulos bajos y hojas opuestas levantadas. 11/11 comprobaciones y runVisualSmoke correctos. Capturas en artifacts/diagnostics/bloom-crown-preview.
+
+## 2026-11-22 — Siluetas distintas para las seis flores
+- Cada paleta usa su propio modelo de bloque e ítem; ambas fases de cosecha apuntan al modelo correspondiente. La prueba de 11 modelos y runVisualSmoke pasaron. La captura muestra seis siluetas en el Micelio Profundo. Falta revisar inventario y actualizar la guía propia para describir cada variante.
+
+## 2026-11-22 — Inventario de las seis flores
+- Se actualizó la guía propia con las seis siluetas y el generador emite también los cinco parents de ítem. Una captura del inventario creativo muestra las seis variantes con modelos y colores diferenciados. Las 11 pruebas de Model Studio pasaron. La ejecución visual guardó la captura y llegó al cierre del servidor integrado; Gradle seguía esperando la terminación.
+
+## 2026-11-22 — Comprobación de generación de flores
+- Las cinco variantes generadas coinciden con sus JSON y sus parents de ítem. La guía refleja 24 modelos de bloques. El cliente visual recibió el sonido y capturó el inventario; el cierre quedó detenido al guardar el mundo integrado.
