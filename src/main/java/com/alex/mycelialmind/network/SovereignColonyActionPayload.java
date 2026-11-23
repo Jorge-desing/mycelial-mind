@@ -120,6 +120,9 @@ public record SovereignColonyActionPayload(
         }
         context.enqueueWork(() -> {
             ServerLevel level = player.serverLevel();
+            if (!SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
+                return;
+            }
             BlockPos nexusPos = payload.nexusPos();
             if (!level.isLoaded(nexusPos) || player.blockPosition().distSqr(nexusPos) > 128.0D * 128.0D) {
                 return;

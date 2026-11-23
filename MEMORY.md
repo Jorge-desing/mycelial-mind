@@ -3937,3 +3937,7 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-23 — Revisión del bloqueo post-Matriarca
 - Revisión estática de la rama de integración aaebbb7: la interfaz normal y la incubación comprueban la derrota, pero la creación y ticks del Nexo, la inserción de biomasa, el bastón, el director y el manejador de paquetes no aplican una barrera global; creativo y comandos tienen excepciones explícitas. La receta exige esencia disponible también en el cofre citadel_royal_crypt, por lo que el ingrediente por sí solo no prueba el bloqueo. No se modificó código ni se ejecutaron pruebas de juego.
+
+## 2026-11-23 — Barrera de progresión de colonia
+- El Nexo, biomasa manual y automatizada, incubación incluso con bypass o creativo, mejoras, controles de red y bastón, IA de trabajadores, director, escáner y comandos activos respetan el hito de Matriarca. La reconstrucción consulta la misma regla global que el Nexo. Los datos anteriores se conservan mientras el sistema está bloqueado.
+- El GameTest de tolvas comprueba rechazo sin crear datos, incubación y mejora bloqueadas incluso con bypass y aceptación después del hito. JUnit pasó; dos ejecuciones completas de GameTests pasaron 176/176 antes del último ajuste de sincronización; la ejecución final pasó los tests de colonia pero falló el test intermitente de brote ciego (élite ausente). Falta ampliar cobertura de las rutas de bastón y red para afirmar verificación integral.

@@ -240,7 +240,8 @@ public class ColonySymbiontEntity extends PathfinderMob {
     }
 
     public boolean isStandby() {
-        return this.entityData.get(DATA_STANDBY);
+        return this.entityData.get(DATA_STANDBY) || (this.level() instanceof ServerLevel serverLevel
+                && !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel));
     }
 
     public void setStandby(boolean standby) {
@@ -383,6 +384,9 @@ public class ColonySymbiontEntity extends PathfinderMob {
 
     @Nullable
     public SovereignColonyData getColonyData(ServerLevel level) {
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
+            return null;
+        }
         SovereignColonySavedData saved = SovereignColonySavedData.get(level);
         if (this.nexusPos != null) {
             SovereignColonyData direct = saved.getByNexus(this.nexusPos);
@@ -573,6 +577,9 @@ public class ColonySymbiontEntity extends PathfinderMob {
         if (this.level().isClientSide() || !(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+            return;
+        }
         if (this.tickCount % 100 == 0) {
             float passiveFatigue = (isStandby() || resting) ? -1.5F : 0.4F;
             setFatigue(getFatigue() + passiveFatigue);
@@ -588,6 +595,10 @@ public class ColonySymbiontEntity extends PathfinderMob {
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (this.level() instanceof ServerLevel serverLevel
+                && !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+            return InteractionResult.FAIL;
+        }
         ItemStack stack = player.getItemInHand(hand);
         if (stack.is(ModItems.SOVEREIGN_COMMAND_STAFF.get())) {
             return InteractionResult.PASS;

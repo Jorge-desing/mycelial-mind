@@ -27,7 +27,7 @@ public final class ColonyReconstructionDirector {
     }
 
     public static void recordOutpostDestroyed(ServerLevel level, BlockPos outpostPos) {
-        if (!HiveMindSavedData.get(level).isMatriarchDefeated()) {
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
             return;
         }
         SovereignColonySavedData saved = SovereignColonySavedData.get(level);

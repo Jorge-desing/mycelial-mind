@@ -138,7 +138,8 @@ public class BioScannerItem extends Item {
                         String.format("%.1f", nodeBe.getVolatileTotal()),
                         nodeBe.getSymbioticStability()
                 ).withStyle(ChatFormatting.LIGHT_PURPLE));
-                if (level.getBlockState(pos).is(ModBlocks.SYMBIOTIC_NODE.get())) {
+                if (level.getBlockState(pos).is(ModBlocks.SYMBIOTIC_NODE.get())
+                        && com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
                     SovereignColonyData colony = SovereignColonySavedData.get(serverLevel).findContainingColony(pos);
                     BlockPos memorySite = colony != null ? colony.findNearestMemorySite(pos, 16.0D) : null;
                     if (colony != null && memorySite != null) {

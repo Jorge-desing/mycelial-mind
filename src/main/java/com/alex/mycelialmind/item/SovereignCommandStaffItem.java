@@ -98,6 +98,10 @@ public class SovereignCommandStaffItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (level instanceof ServerLevel serverLevel && !SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+            player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_nexus_locked"), true);
+            return InteractionResultHolder.fail(stack);
+        }
         if (player.isSecondaryUseActive()) {
             if (!level.isClientSide()) {
                 StaffMode next = getMode(stack).next();
@@ -134,6 +138,10 @@ public class SovereignCommandStaffItem extends Item {
         }
         if (level.isClientSide() || !(level instanceof ServerLevel serverLevel)) {
             return InteractionResult.SUCCESS;
+        }
+        if (!SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+            player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_nexus_locked"), true);
+            return InteractionResult.FAIL;
         }
         BlockPos clicked = context.getClickedPos();
         if (serverLevel.getBlockEntity(clicked) instanceof SovereignNexusBlockEntity) {
@@ -204,6 +212,9 @@ public class SovereignCommandStaffItem extends Item {
             return InteractionResult.PASS;
         }
         if (player.level() instanceof ServerLevel serverLevel) {
+            if (!SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+                return InteractionResult.FAIL;
+            }
             SymbiontCaste nextCaste = worker.getCaste().next();
             worker.setCaste(nextCaste);
             serverLevel.sendParticles(ModParticles.BIO_LUME.get(),

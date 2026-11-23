@@ -44,6 +44,9 @@ public final class SovereignColonyDirector {
         if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
+            return;
+        }
         long now = level.getGameTime();
         if (now % 100L != 0L) {
             return;
@@ -111,6 +114,9 @@ public final class SovereignColonyDirector {
     }
 
     public static int triggerRivalRaid(ServerLevel level, SovereignColonyData colony, int activeCycle) {
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
+            return 0;
+        }
         long now = level.getGameTime();
         int count = SovereignColonyEngine.computeRivalRaidSquadSize(colony.getTier(), colony.getRoster().size(), activeCycle);
         BlockPos nexus = colony.getNexusPos();

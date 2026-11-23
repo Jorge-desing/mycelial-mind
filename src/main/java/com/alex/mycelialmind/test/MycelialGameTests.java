@@ -8506,13 +8506,26 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "sovereign_nexus_hopper")
     public static void sovereignNexusHopperBiomassInsertionTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData hive = HiveMindSavedData.get(overworld);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), overworld.registryAccess());
         var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
         CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
         BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
         try {
             saved.resetAll();
+            hive.resetAll();
             level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
             var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            var blocked = nexusBe.insertBiomassFromAutomation(new ItemStack(ModItems.MYCELIAL_BIOMASS.get(), 10), false);
+            helper.assertTrue(blocked.getCount() == 10 && saved.getByNexus(nexusPos) == null,
+                    "Locked Nexus must reject hopper biomass without creating colony data.");
+            helper.assertTrue(nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, true) == null
+                            && !nexusBe.upgradeTier(level, null, true),
+                    "Locked Nexus must reject incubation and upgrades even with bypass flags.");
+            com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.serverTick(level, nexusPos, level.getBlockState(nexusPos), nexusBe);
+            helper.assertTrue(saved.getByNexus(nexusPos) == null, "Locked Nexus tick must not create a colony.");
+            hive.recordMatriarchDefeat(overworld.getGameTime());
             var colony = nexusBe.getOrCreateColony(level);
             int initialBiomass = colony.getBiomassStored();
 
@@ -8536,6 +8549,7 @@ public final class MycelialGameTests {
         } finally {
             level.removeBlock(nexusPos, false);
             saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, overworld.registryAccess());
         }
     }
 
