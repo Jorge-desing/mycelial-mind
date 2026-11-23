@@ -7079,6 +7079,7 @@ public final class MycelialGameTests {
         BlockPos core2 = helper.absolutePos(new BlockPos(20, 120, 20));
         BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.moveTo(core2.getX() + 0.5D, core2.getY() + 1.0D, core2.getZ() + 0.5D, 0.0F, 0.0F);
 
         // The elite spawn point is selected dynamically from the completed site's ambush area.
         int[] spawnSetupTicks = {0};

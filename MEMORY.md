@@ -3941,3 +3941,7 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Diagnóstico:** El primer arranque en un worktree nuevo pasó la preparación de chunks, pero consultó la Élite antes de que la entidad apareciera en el área de emboscada dinámica (`elite=false`, nube presente). Las posiciones candidatas dependen de la búsqueda de aparición al completar el brote.
 - **Cambio:** Se conserva el intervalo inicial de dos ticks del test para que se estabilice el gestor de entidades y, dentro del límite de 30 ticks, se comprueba además que estén cargados el chunk de recompensa y el área candidata de aparición.
 - **Verificación:** Tras el ajuste, una ejecución local completa pasó **174/174 GameTests**. Aún están pendientes las dos ejecuciones aisladas finales y la CI del commit resultante.
+## 2026-11-23 — Activación de entidades de brote en GameTest
+- **Diagnóstico:** Un mundo recién creado podía completar el brote sin que la Élite ni la nube quedaran visibles para la consulta del test: el jugador simulado permanecía lejos de los tres núcleos.
+- **Cambio:** Se coloca el jugador simulado junto al núcleo central, manteniendo activa la región donde el brote selecciona la aparición dinámica. Se conservan los dos ticks iniciales y el sondeo acotado de chunks cargados.
+- **Verificación:** Una nueva ejecución completa pasó **174/174 GameTests**. Falta repetir dos veces desde worktrees y mundos limpios y confirmar CI.
