@@ -293,20 +293,27 @@ public final class MycelialGameTests {
     @GameTest(batch = "weaver_support", template = "empty", timeoutTicks = 360)
     public static void weaverRejoinsAlliesAndResumesAfterDesync(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
+        int arenaY = 180;
         List<ChunkPos> forced = forceArenaChunks(helper, -4, 20, -5, 9);
         for (int x = -4; x <= 19; x++) {
             for (int z = -4; z <= 8; z++) {
-                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+                helper.setBlock(new BlockPos(x, arenaY, z), Blocks.STONE);
                 boolean border = x == -4 || x == 19 || z == -4 || z == 8;
                 for (int y = 1; y <= 4; y++) {
-                    helper.setBlock(new BlockPos(x, y, z), (border && y <= 2) ? Blocks.STONE : Blocks.AIR);
+                    helper.setBlock(new BlockPos(x, arenaY + y, z), (border && y <= 2) ? Blocks.STONE : Blocks.AIR);
                 }
             }
         }
-        var weaver = helper.spawn(ModEntities.SYNAPSE_WEAVER.get(), 2, 1, 2);
-        var ally = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 14, 1, 2);
+        var weaver = helper.spawn(ModEntities.SYNAPSE_WEAVER.get(), 2, arenaY + 1, 2);
+        var ally = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 14, arenaY + 1, 2);
+        weaver.getBrain().setMemory(ModMemoryTypes.WEAVER_SUPPORT_POS.get(), ally.blockPosition());
         double initial = weaver.distanceToSqr(ally);
         helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        level.isPositionEntityTicking(helper.absolutePos(new BlockPos(2, arenaY + 1, 2)))
+                                && forced.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
+                        "Weaver arena chunks must be ready before movement"))
+                .thenIdle(2)
                 .thenWaitUntil(() -> helper.assertTrue(weaver.distanceToSqr(ally) < initial - 20,
                         "Weaver must move toward a separated ally"))
                 .thenWaitUntil(() -> helper.assertTrue(ally.hasEffect(MobEffects.REGENERATION),
@@ -8432,7 +8439,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "colony_integration")
+    @GameTest(template = "empty", batch = "sovereign_nexus_upgrade")
     public static void sovereignNexusUpgradeAndOutpostLinkingTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();
@@ -8486,7 +8493,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "colony_integration")
+    @GameTest(template = "empty", batch = "colony_symbiont_incubation")
     public static void colonySymbiontIncubationCasteSwitchAndStandbyTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();
@@ -8533,7 +8540,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "colony_integration")
+    @GameTest(template = "empty", batch = "sovereign_nexus_hopper")
     public static void sovereignNexusHopperBiomassInsertionTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
@@ -8569,7 +8576,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "colony_integration")
+    @GameTest(template = "empty", batch = "sovereign_rival_raid")
     public static void sovereignRivalRaidDefenseAwardsXpAndMoraleTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();
@@ -8578,62 +8585,77 @@ public final class MycelialGameTests {
         CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
         CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
         BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
-        com.alex.mycelialmind.entity.ColonySymbiontEntity w1 = null;
-        com.alex.mycelialmind.entity.ColonySymbiontEntity w2 = null;
-        try {
-            owHive.resetAll();
-            saved.resetAll();
-            owHive.recordMatriarchDefeat(overworld.getGameTime());
-            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
-            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
-            var colony = nexusBe.getOrCreateColony(level);
-            w1 = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, true);
-            w2 = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL, true);
-            helper.assertTrue(w1 != null && w2 != null, "Workers must spawn for raid test.");
+        List<ChunkPos> raidArenaChunks = forceArenaChunks(helper, -24, 32, -24, 32);
 
-            int xpBefore = colony.getDomainXp();
-            int spawned = com.alex.mycelialmind.colony.SovereignColonyDirector.triggerRivalRaid(level, colony, 0);
-            helper.assertTrue(spawned >= 3 && colony.getActiveRaidRemaining() == spawned,
-                    "Rival Hive probe raid must spawn >= 3 raiders and track remaining count.");
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        level.isPositionEntityTicking(nexusPos)
+                                && raidArenaChunks.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
+                        "Rival raid arena chunks must be entity-loaded before spawning"))
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    com.alex.mycelialmind.entity.ColonySymbiontEntity w1 = null;
+                    com.alex.mycelialmind.entity.ColonySymbiontEntity w2 = null;
+                    try {
+                        owHive.resetAll();
+                        saved.resetAll();
+                        owHive.recordMatriarchDefeat(overworld.getGameTime());
+                        level.setBlockAndUpdate(nexusPos,
+                                com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+                        var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+                        var colony = nexusBe.getOrCreateColony(level);
+                        w1 = nexusBe.incubateSymbiont(level, null,
+                                com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, true);
+                        w2 = nexusBe.incubateSymbiont(level, null,
+                                com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL, true);
+                        helper.assertTrue(w1 != null && w2 != null, "Workers must spawn for raid test.");
 
-            List<MycelialMob> raiders = level.getEntitiesOfClass(
-                    MycelialMob.class,
-                    new AABB(nexusPos).inflate(48.0D),
-                    m -> m.getPersistentData().hasUUID("MycelialRivalColonyTarget"));
-            helper.assertTrue(raiders.size() == spawned, "Must locate all spawned rival raiders.");
-            for (MycelialMob raider : raiders) {
-                raider.kill();
-            }
+                        int xpBefore = colony.getDomainXp();
+                        int spawned = com.alex.mycelialmind.colony.SovereignColonyDirector
+                                .triggerRivalRaid(level, colony, 0);
+                        helper.assertTrue(spawned >= 3 && colony.getActiveRaidRemaining() == spawned,
+                                "Rival Hive probe raid must spawn >= 3 raiders and track remaining count.");
 
-            helper.assertTrue(colony.getActiveRaidRemaining() == 0,
-                    "Killing all raiders must clear activeRaidRemaining.");
-            helper.assertTrue(colony.getRecentRaidVictories() == 1 && colony.getDomainXp() > xpBefore,
-                    "Clearing rival probe raid must record raid victory and award Domain XP.");
+                        List<MycelialMob> raiders = level.getEntitiesOfClass(
+                                MycelialMob.class,
+                                new AABB(nexusPos).inflate(48.0D),
+                                m -> m.getPersistentData().hasUUID("MycelialRivalColonyTarget"));
+                        helper.assertTrue(raiders.size() == spawned,
+                                "Must locate all spawned rival raiders (found " + raiders.size() + " of " + spawned + ").");
+                        for (MycelialMob raider : raiders) {
+                            raider.kill();
+                        }
 
-            helper.succeed();
-        } finally {
-            if (w1 != null) {
-                w1.discard();
-            }
-            if (w2 != null) {
-                w2.discard();
-            }
-            level.getEntitiesOfClass(
-                    MycelialMob.class,
-                    new AABB(nexusPos).inflate(48.0D),
-                    m -> m.getPersistentData().hasUUID("MycelialRivalColonyTarget")
-            ).forEach(net.minecraft.world.entity.Entity::discard);
-            level.getEntitiesOfClass(
-                    net.minecraft.world.entity.item.ItemEntity.class,
-                    new AABB(nexusPos).inflate(48.0D)
-            ).forEach(net.minecraft.world.entity.Entity::discard);
-            level.removeBlock(nexusPos, false);
-            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
-            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
-        }
+                        helper.assertTrue(colony.getActiveRaidRemaining() == 0,
+                                "Killing all raiders must clear activeRaidRemaining.");
+                        helper.assertTrue(colony.getRecentRaidVictories() == 1 && colony.getDomainXp() > xpBefore,
+                                "Clearing rival probe raid must record raid victory and award Domain XP.");
+                    } finally {
+                        if (w1 != null) {
+                            w1.discard();
+                        }
+                        if (w2 != null) {
+                            w2.discard();
+                        }
+                        level.getEntitiesOfClass(
+                                MycelialMob.class,
+                                new AABB(nexusPos).inflate(48.0D),
+                                m -> m.getPersistentData().hasUUID("MycelialRivalColonyTarget")
+                        ).forEach(net.minecraft.world.entity.Entity::discard);
+                        level.getEntitiesOfClass(
+                                net.minecraft.world.entity.item.ItemEntity.class,
+                                new AABB(nexusPos).inflate(48.0D)
+                        ).forEach(net.minecraft.world.entity.Entity::discard);
+                        level.removeBlock(nexusPos, false);
+                        owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+                        saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+                        releaseArenaChunks(level, raidArenaChunks);
+                    }
+                })
+                .thenSucceed();
     }
 
-    @GameTest(template = "empty", batch = "colony_integration")
+    @GameTest(template = "empty", batch = "sovereign_colony_sync")
     public static void sovereignColonySyncPayloadCodecRoundTripTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();
