@@ -723,6 +723,48 @@ public final class MycelialGameTests {
         }
     }
 
+    private static boolean isEntityChunkReady(ServerLevel level, BlockPos pos) {
+        return level.areEntitiesLoaded(new ChunkPos(pos).toLong());
+    }
+
+    private static boolean areEntityChunksReady(ServerLevel level, BlockPos center, int radius) {
+        int minChunkX = (center.getX() - radius) >> 4;
+        int maxChunkX = (center.getX() + radius) >> 4;
+        int minChunkZ = (center.getZ() - radius) >> 4;
+        int maxChunkZ = (center.getZ() + radius) >> 4;
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+                if (!level.areEntitiesLoaded(ChunkPos.asLong(chunkX, chunkZ))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static void runUntilCondition(
+            GameTestHelper helper,
+            int maxTicks,
+            java.util.function.BooleanSupplier condition,
+            Runnable onSatisfied,
+            Runnable onTimeout) {
+        int[] elapsedTicks = {0};
+        Runnable[] poll = new Runnable[1];
+        poll[0] = () -> {
+            elapsedTicks[0]++;
+            if (condition.getAsBoolean()) {
+                onSatisfied.run();
+                return;
+            }
+            if (elapsedTicks[0] >= maxTicks) {
+                onTimeout.run();
+                return;
+            }
+            helper.runAfterDelay(1, () -> poll[0].run());
+        };
+        helper.runAfterDelay(1, () -> poll[0].run());
+    }
+
     private static boolean hasAcidShot(GameTestHelper helper, MycelialMob owner) {
         return !helper.getLevel().getEntitiesOfClass(AcidSpitProjectile.class,
                 owner.getBoundingBox().inflate(20), shot -> shot.getOwner() == owner).isEmpty();
@@ -1001,7 +1043,7 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(batch = "hive_state_sync", template = "empty")
+    @GameTest(batch = "hive_state_sync", template = "empty", timeoutTicks = 40)
     public static void globalHiveAdaptationsPropagateExpireAndResetForLivingMobs(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         HiveMindSavedData hive = HiveMindSavedData.get(level);
@@ -1018,69 +1060,75 @@ public final class MycelialGameTests {
         hive.recordStimulus(StimulusType.FIRE, 210.0, now);
         hive.recordStimulus(StimulusType.EXPLOSION, 70.0, now);
 
-        helper.runAfterDelay(2, () -> {
-            boolean hiveStateApplied = mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
-                    && mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
-                    && mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
-                    && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
-            boolean bossStatePreserved = boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
-                    && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
-                    && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION)
-                    && !boss.hasTrait(AdaptationTrait.FIRE_RESISTANT);
-            if (!hiveStateApplied || !bossStatePreserved) {
-                mob.discard();
-                boss.discard();
-                hive.resetAll();
-                helper.fail("Global hive state did not reach ordinary mobs or overwrote phase-specific boss state: mob="
-                        + hiveStateApplied + " boss=" + bossStatePreserved + ".");
-                return;
-            }
+        long[] suppressionUntil = {0L};
+        Runnable cleanup = () -> {
+            mob.discard();
+            boss.discard();
+            hive.resetAll();
+        };
 
-            hive.suppressHigherAdaptations(level.getGameTime() + 5L, level.getGameTime());
-            helper.runAfterDelay(2, () -> {
-                boolean suppressionApplied = mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
-                        && !mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
-                        && !mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
-                if (!suppressionApplied) {
-                    mob.discard();
-                    boss.discard();
-                    hive.resetAll();
-                    helper.fail("Hive suppression did not remove live mob Tier 2 and synergy state.");
-                    return;
-                }
-
-                helper.runAfterDelay(6, () -> {
-                    boolean suppressionExpired = mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+        runUntilCondition(helper, 2,
+                () -> mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
+                        && mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                        && mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
+                        && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL)
+                        && boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
+                        && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
+                        && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION)
+                        && !boss.hasTrait(AdaptationTrait.FIRE_RESISTANT),
+                () -> {
+                    suppressionUntil[0] = level.getGameTime() + 5L;
+                    hive.suppressHigherAdaptations(suppressionUntil[0], level.getGameTime());
+                    runUntilCondition(helper, 2,
+                            () -> level.getGameTime() < suppressionUntil[0]
+                                    && mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
+                                    && !mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                                    && !mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL),
+                            () -> runUntilCondition(helper, 6,
+                                    () -> level.getGameTime() >= suppressionUntil[0]
+                                            && mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                                            && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL),
+                                    () -> {
+                                        hive.resetAll();
+                                        runUntilCondition(helper, 2,
+                                                () -> !mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
+                                                        && !mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                                                        && !mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
+                                                        && mob.getSynergies().isEmpty()
+                                                        && boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
+                                                        && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
+                                                        && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION),
+                                                () -> {
+                                                    cleanup.run();
+                                                    helper.succeed();
+                                                },
+                                                () -> {
+                                                    cleanup.run();
+                                                    helper.fail("Hive reset left stale live mob state or overwrote phase-specific boss state.");
+                                                });
+                                    },
+                                    () -> {
+                                        cleanup.run();
+                                        helper.fail("Expired hive suppression did not restore live mob Tier 2 and synergy state.");
+                                    }),
+                            () -> {
+                                cleanup.run();
+                                helper.fail("Hive suppression did not remove live mob Tier 2 and synergy state before its deadline.");
+                            });
+                },
+                () -> {
+                    boolean hiveStateApplied = mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
+                            && mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                            && mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
                             && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
-                    if (!suppressionExpired) {
-                        mob.discard();
-                        boss.discard();
-                        hive.resetAll();
-                        helper.fail("Expired hive suppression did not restore live mob Tier 2 and synergy state.");
-                        return;
-                    }
-
-                    hive.resetAll();
-                    helper.runAfterDelay(2, () -> {
-                        boolean resetApplied = !mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
-                                && !mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
-                                && !mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
-                                && mob.getSynergies().isEmpty();
-                        boolean bossStillPreserved = boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
-                                && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
-                                && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION);
-                        mob.discard();
-                        boss.discard();
-                        if (!resetApplied || !bossStillPreserved) {
-                            helper.fail("Hive reset left stale live mob state or overwrote phase-specific boss state: mob="
-                                    + resetApplied + " boss=" + bossStillPreserved + ".");
-                            return;
-                        }
-                        helper.succeed();
-                    });
+                    boolean bossStatePreserved = boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
+                            && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
+                            && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION)
+                            && !boss.hasTrait(AdaptationTrait.FIRE_RESISTANT);
+                    cleanup.run();
+                    helper.fail("Global hive state propagation timed out: mob="
+                            + hiveStateApplied + " boss=" + bossStatePreserved + ".");
                 });
-            });
-        });
     }
 
     @GameTest(batch = "defaultBatch", template = "empty")
@@ -2822,45 +2870,6 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "defaultBatch")
-    public static void hiveMindSavedDataNbtRoundTripAndBoundsClamp(GameTestHelper helper) {
-        ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
-        hive.resetAll();
-
-        hive.recordStimulus(StimulusType.MELEE, 40.0);
-        hive.recordStimulus(StimulusType.FIRE, 40.0);
-        for (int i = 0; i < 30; i++) {
-            hive.recordCombatHotspot(new BlockPos(i * 32, 64, i * 32), 10.0, i, StimulusType.MELEE);
-        }
-        // Guard against NaN / negative stimulus corruption
-        hive.recordStimulus(StimulusType.MAGIC, Double.NaN);
-        hive.recordStimulus(StimulusType.EXPLOSION, -50.0);
-
-        double threatBefore = hive.getThreatLevel();
-        double meleeBefore = hive.getStimulusScore(StimulusType.MELEE);
-        if (Double.isNaN(threatBefore) || threatBefore < 0.0 || threatBefore > 100.0) {
-            helper.fail("Threat level out of [0, 100] or NaN after edge inputs: " + threatBefore);
-            return;
-        }
-        if (hive.getHotspots().size() > 24) {
-            helper.fail("Hotspots exceeded bounded cap of 24: " + hive.getHotspots().size());
-            return;
-        }
-
-        net.minecraft.nbt.CompoundTag tag = hive.save(new net.minecraft.nbt.CompoundTag(), level.registryAccess());
-        HiveMindSavedData reloaded = HiveMindSavedData.load(tag, level.registryAccess());
-        if (Math.abs(reloaded.getThreatLevel() - threatBefore) > 1e-6
-                || Math.abs(reloaded.getStimulusScore(StimulusType.MELEE) - meleeBefore) > 1e-6
-                || reloaded.getHotspots().size() != hive.getHotspots().size()) {
-            helper.fail("HiveMindSavedData NBT round-trip mismatch.");
-            return;
-        }
-        hive.resetAll();
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty", batch = "defaultBatch")
     public static void purificationPylonExactBoundaryAndRemovalUnprotects(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos pylonPos = helper.absolutePos(new BlockPos(2, 1, 2));
@@ -3333,7 +3342,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "algorithm_integration")
+    @GameTest(template = "empty", batch = "algorithm_integration", timeoutTicks = 10)
     public static void mycelialMobStaggeredTacticalTreeAndSwarmOrganicApproach(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         var spitter = helper.spawnWithNoFreeWill(ModEntities.ACID_SPITTER.get(), 2, 1, 2);
@@ -3347,16 +3356,17 @@ public final class MycelialGameTests {
             return;
         }
 
-        // Verify staggered 4-tick cadence on MycelialMob.customServerAiStep updates TacticalIntent
-        helper.runAfterDelay(6, () -> {
-            var intent = spitter.getTacticalIntent();
-            spitter.discard();
-            if (intent == com.alex.mycelialmind.entity.ai.HiveAiBlackboard.TacticalIntent.NONE) {
-                helper.fail("MycelialMob staggered BehaviorTree did not produce active TacticalIntent within 6 ticks");
-            } else {
-                helper.succeed();
-            }
-        });
+        // Verify the staggered AI cadence while finishing as soon as intent appears, up to six ticks.
+        runUntilCondition(helper, 6,
+                () -> spitter.getTacticalIntent() != com.alex.mycelialmind.entity.ai.HiveAiBlackboard.TacticalIntent.NONE,
+                () -> {
+                    spitter.discard();
+                    helper.succeed();
+                },
+                () -> {
+                    spitter.discard();
+                    helper.fail("MycelialMob staggered BehaviorTree did not produce active TacticalIntent within 6 ticks");
+                });
     }
 
     @GameTest(template = "empty", batch = "algorithm_integration")
@@ -3569,9 +3579,13 @@ public final class MycelialGameTests {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forced = forceArenaChunks(helper, 0, 52, 0, 52);
         BlockPos center = helper.absolutePos(new BlockPos(26, 10, 26));
-        helper.startSequence()
-                .thenIdle(1)
-                .thenExecute(() -> {
+        List<BlockPos> guardianSpawnPositions = List.of(
+                center.offset(0, 1, 9),
+                center.offset(-5, 1, 7),
+                center.offset(5, 1, 7));
+        runUntilCondition(helper, 30,
+                () -> guardianSpawnPositions.stream().allMatch(pos -> isEntityChunkReady(level, pos)),
+                () -> {
                     try {
                         var piece = new com.alex.mycelialmind.world.structure.MatriarchCitadelPiece(center);
                         var box = piece.getBoundingBox();
@@ -3601,8 +3615,12 @@ public final class MycelialGameTests {
                     } finally {
                         releaseArenaChunks(level, forced);
                     }
-                })
-                .thenSucceed();
+                    helper.succeed();
+                },
+                () -> {
+                    releaseArenaChunks(level, forced);
+                    helper.fail("Timed out waiting for Matriarch Citadel guardian spawn chunks to become entity-ready.");
+                });
     }
 
     @GameTest(template = "empty", batch = "structures")
@@ -6776,7 +6794,10 @@ public final class MycelialGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(net.minecraft.world.item.Items.BOW));
 
-        helper.runAfterDelay(2, () -> {
+        ChunkPos routeChunk = new ChunkPos(pathStart);
+        runUntilCondition(helper, 30,
+                () -> areEntityChunksReady(level, pathStart, 6),
+                () -> {
             try {
                 hive.resetAll();
                 tracker.clearAll();
@@ -6816,7 +6837,6 @@ public final class MycelialGameTests {
                                 com.alex.mycelialmind.hive.HyphalSiegeDirector.recordPlayerRouteFootstep(level, player));
                     }
                 }
-                ChunkPos routeChunk = new ChunkPos(pathStart);
                 int sproutedVeins = hive.getActiveVeins(routeChunk).size();
                 boolean hasVeinOverlay = false;
                 for (int dx = 0; dx <= 5; dx++) {
@@ -6891,6 +6911,12 @@ public final class MycelialGameTests {
                 hive.resetAll();
                 releaseArenaChunks(level, forcedChunks);
             }
+        },
+        () -> {
+            tracker.clearAll();
+            hive.resetAll();
+            releaseArenaChunks(level, forcedChunks);
+            helper.fail("Timed out waiting for hyphal route ambush spawn chunks to become entity-ready.");
         });
     }
 
@@ -7053,7 +7079,9 @@ public final class MycelialGameTests {
         BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        helper.startSequence().thenIdle(2).thenExecute(() -> {
+        runUntilCondition(helper, 30,
+                () -> isEntityChunkReady(level, core2) && areEntityChunksReady(level, core3, 6),
+                () -> {
             try {
                 hive.resetAll();
                 tracker.clearAll();
@@ -7213,6 +7241,12 @@ public final class MycelialGameTests {
                 hive.resetAll();
                 releaseArenaChunks(level, forcedChunks);
             }
+        },
+        () -> {
+            tracker.clearAll();
+            hive.resetAll();
+            releaseArenaChunks(level, forcedChunks);
+            helper.fail("Timed out waiting for blind-spot reward and guardian spawn chunks to become entity-ready.");
         });
     }
 
@@ -7393,7 +7427,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 200)
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 100)
     public static void hyphalSeveredDownstreamBranchWithersProgressivelyWithin100Ticks(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
@@ -7435,34 +7469,42 @@ public final class MycelialGameTests {
             return;
         }
 
-        // Break intermediate vein v1; downstream v2 and v3 lose nutrients and wither <= ~90 ticks
+        // Break intermediate vein v1; stop observing as soon as both descendants wither, within 90 ticks.
         level.removeBlock(v1, false);
 
-        helper.runAfterDelay(90, () -> {
-            try {
-                boolean rootAlive = level.getBlockState(rootPos).is(ModBlocks.HYPHAL_VEIN.get());
-                boolean downstreamWithered = level.getBlockState(v2).isAir()
-                        && level.getBlockState(v3).isAir();
-                if (!rootAlive || !downstreamWithered) {
-                    helper.fail(String.format(
-                            "Severed branch check failed: rootAlive=%s v2=%s v3=%s",
-                            rootAlive, level.getBlockState(v2), level.getBlockState(v3)));
-                    return;
-                }
-                helper.succeed();
-            } finally {
-                for (int dx = -1; dx <= 5; dx++) {
-                    level.removeBlock(rootPos.offset(dx, 0, 0), false);
-                    level.removeBlock(rootPos.offset(dx, -1, 0), false);
-                }
-                tracker.clearAll();
-                hive.resetAll();
-                releaseArenaChunks(level, forcedChunks);
+        Runnable cleanup = () -> {
+            for (int dx = -1; dx <= 5; dx++) {
+                level.removeBlock(rootPos.offset(dx, 0, 0), false);
+                level.removeBlock(rootPos.offset(dx, -1, 0), false);
             }
-        });
+            tracker.clearAll();
+            hive.resetAll();
+            releaseArenaChunks(level, forcedChunks);
+        };
+        runUntilCondition(helper, 90,
+                () -> level.getBlockState(rootPos).is(ModBlocks.HYPHAL_VEIN.get())
+                        && level.getBlockState(v2).isAir()
+                        && level.getBlockState(v3).isAir(),
+                () -> {
+                    try {
+                        helper.succeed();
+                    } finally {
+                        cleanup.run();
+                    }
+                },
+                () -> {
+                    try {
+                        helper.fail(String.format(
+                                "Severed branch check timed out: rootAlive=%s v2=%s v3=%s",
+                                level.getBlockState(rootPos).is(ModBlocks.HYPHAL_VEIN.get()),
+                                level.getBlockState(v2), level.getBlockState(v3)));
+                    } finally {
+                        cleanup.run();
+                    }
+                });
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 120)
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 40)
     public static void hyphalWallVeinLosesSupportFallsAndDisintegratesOnLanding(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
@@ -7492,36 +7534,58 @@ public final class MycelialGameTests {
         level.removeBlock(wallPos, false);
 
         final boolean[] sawFallingEntity = {false};
-        helper.runAfterDelay(2, () -> {
-            var falling = level.getEntitiesOfClass(
-                    net.minecraft.world.entity.item.FallingBlockEntity.class,
-                    new AABB(veinPos).inflate(3.0D));
-            sawFallingEntity[0] = !falling.isEmpty() && level.getBlockState(veinPos).isAir();
-        });
-
-        helper.runAfterDelay(30, () -> {
-            try {
-                boolean landedCleanly = level.getBlockState(landingAir).isAir()
-                        && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
-                var remainingDrops = level.getEntitiesOfClass(
-                        net.minecraft.world.entity.item.ItemEntity.class,
-                        new AABB(landingAir).inflate(3.0D));
-                if (!sawFallingEntity[0] || !landedCleanly || !remainingDrops.isEmpty()) {
-                    helper.fail(String.format(
-                            "Gravity check failed: sawFalling=%s landedCleanly=%s drops=%d",
-                            sawFallingEntity[0], landedCleanly, remainingDrops.size()));
-                    return;
-                }
-                helper.succeed();
-            } finally {
-                level.removeBlock(wallPos, false);
-                level.removeBlock(veinPos, false);
-                level.removeBlock(landingAir, false);
-                level.removeBlock(landingFloor, false);
-                hive.resetAll();
-                releaseArenaChunks(level, forcedChunks);
-            }
-        });
+        Runnable cleanup = () -> {
+            level.removeBlock(wallPos, false);
+            level.removeBlock(veinPos, false);
+            level.removeBlock(landingAir, false);
+            level.removeBlock(landingFloor, false);
+            hive.resetAll();
+            releaseArenaChunks(level, forcedChunks);
+        };
+        runUntilCondition(helper, 30,
+                () -> {
+                    var falling = level.getEntitiesOfClass(
+                            net.minecraft.world.entity.item.FallingBlockEntity.class,
+                            new AABB(veinPos).inflate(3.0D));
+                    if (!falling.isEmpty() && level.getBlockState(veinPos).isAir()) {
+                        sawFallingEntity[0] = true;
+                    }
+                    return sawFallingEntity[0] && falling.isEmpty();
+                },
+                () -> {
+                    try {
+                        boolean landedCleanly = level.getBlockState(landingAir).isAir()
+                                && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
+                        var remainingDrops = level.getEntitiesOfClass(
+                                net.minecraft.world.entity.item.ItemEntity.class,
+                                new AABB(landingAir).inflate(3.0D));
+                        if (!landedCleanly || !remainingDrops.isEmpty()) {
+                            helper.fail(String.format(
+                                    "Gravity check failed after the falling vein landed: landedCleanly=%s drops=%d",
+                                    landedCleanly, remainingDrops.size()));
+                            return;
+                        }
+                        helper.succeed();
+                    } finally {
+                        cleanup.run();
+                    }
+                },
+                () -> {
+                    try {
+                        boolean landedCleanly = level.getBlockState(landingAir).isAir()
+                                && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
+                        var remainingDrops = level.getEntitiesOfClass(
+                                net.minecraft.world.entity.item.ItemEntity.class,
+                                new AABB(landingAir).inflate(3.0D));
+                        helper.fail(String.format(
+                                "Gravity check timed out: sawFalling=%s landedCleanly=%s stillFalling=%d drops=%d",
+                                sawFallingEntity[0], landedCleanly,
+                                level.getEntitiesOfClass(net.minecraft.world.entity.item.FallingBlockEntity.class,
+                                        new AABB(veinPos).inflate(3.0D)).size(), remainingDrops.size()));
+                    } finally {
+                        cleanup.run();
+                    }
+                });
     }
 
     @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 120)
@@ -8617,7 +8681,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "sovereign_colony_sync")
-    public static void sovereignColonySyncPayloadCodecRoundTripTest(GameTestHelper helper) {
+    public static void sovereignColonySyncPayloadReflectsIncubatedCourierWorker(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();
         HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
@@ -8639,18 +8703,16 @@ public final class MycelialGameTests {
             helper.assertTrue(worker != null, "Worker must spawn for payload test.");
 
             var payload = com.alex.mycelialmind.network.SovereignColonySyncPayload.forNexus(level, nexusPos, true);
-            var buf = io.netty.buffer.Unpooled.buffer();
-            com.alex.mycelialmind.network.SovereignColonySyncPayload.STREAM_CODEC.encode(buf, payload);
-            var decoded = com.alex.mycelialmind.network.SovereignColonySyncPayload.STREAM_CODEC.decode(buf);
-
-            helper.assertTrue(decoded.equals(payload)
-                            && decoded.hasColony()
-                            && decoded.unlocked()
-                            && decoded.openScreen()
-                            && decoded.inputChests() == 1
-                            && decoded.workers().size() == 1
-                            && decoded.workers().get(0).caste() == com.alex.mycelialmind.colony.SymbiontCaste.COURIER,
-                    "SovereignColonySyncPayload must round-trip all colony and roster fields intact.");
+            helper.assertTrue(payload.hasColony()
+                            && payload.unlocked()
+                            && payload.openScreen()
+                            && payload.nexusPos().equals(nexusPos)
+                            && payload.domainXp() == 200
+                            && payload.inputChests() == 1
+                            && payload.workers().size() == 1
+                            && payload.workers().get(0).workerId().equals(worker.getUUID())
+                            && payload.workers().get(0).caste() == com.alex.mycelialmind.colony.SymbiontCaste.COURIER,
+                    "SovereignColonySyncPayload.forNexus must reflect the live colony and its incubated Courier worker.");
 
             helper.succeed();
         } finally {

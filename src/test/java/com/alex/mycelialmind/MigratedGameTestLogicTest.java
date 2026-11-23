@@ -7,7 +7,12 @@ import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.network.PinExpeditionGoalPayload;
+import com.alex.mycelialmind.network.SovereignColonySyncPayload;
 import com.alex.mycelialmind.network.SymbiosisSyncPayload;
+import com.alex.mycelialmind.network.ClientColonyCache.WorkerSnapshot;
+import com.alex.mycelialmind.colony.SymbiontCaste;
+import com.alex.mycelialmind.colony.SymbiontRank;
+import com.alex.mycelialmind.colony.SymbiontTemperament;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import com.alex.mycelialmind.world.WorldgenAuditEngine;
 import io.netty.buffer.ByteBuf;
@@ -17,6 +22,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,6 +79,31 @@ class MigratedGameTestLogicTest {
             assertEquals(pylonPos, decoded.nearbyPylons().get(0));
         } finally {
             buf.release();
+        }
+    }
+
+    @Test
+    void sovereignColonySyncPayloadRoundTripsCourierWorker() {
+        UUID workerId = UUID.randomUUID();
+        WorkerSnapshot worker = new WorkerSnapshot(
+                workerId, SymbiontCaste.COURIER, SymbiontRank.ADEPT,
+                SymbiontTemperament.CURIOUS, 88, 12, 91, false, 145);
+        SovereignColonySyncPayload original = new SovereignColonySyncPayload(
+                true, true, new BlockPos(120, 70, -45),
+                2, 52, 8, 56, 300, 3, 91,
+                2, 1, 1, 1, 2, 0, List.of(worker), true);
+
+        var buffer = Unpooled.buffer();
+        try {
+            SovereignColonySyncPayload.STREAM_CODEC.encode(buffer, original);
+            SovereignColonySyncPayload decoded = SovereignColonySyncPayload.STREAM_CODEC.decode(buffer);
+
+            assertEquals(original, decoded);
+            assertEquals(1, decoded.workers().size());
+            assertEquals(SymbiontCaste.COURIER, decoded.workers().get(0).caste());
+            assertEquals(workerId, decoded.workers().get(0).workerId());
+        } finally {
+            buffer.release();
         }
     }
 

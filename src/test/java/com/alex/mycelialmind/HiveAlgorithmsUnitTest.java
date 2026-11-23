@@ -5,12 +5,16 @@ import com.alex.mycelialmind.entity.ai.HiveAiBlackboard;
 import com.alex.mycelialmind.entity.ai.HiveTacticalTree;
 import com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator;
 import com.alex.mycelialmind.hive.EvolutionRank;
+import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveInfluenceMap;
+import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.util.ParticleEmissionBudget;
 import com.alex.mycelialmind.world.MycelialFastNoise;
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +58,42 @@ class HiveAlgorithmsUnitTest {
         assertEquals(3.0, (double) attemptsAtNewDefault / attemptsAtPreviousChance, 1.0E-9);
     }
 
+    @Test
+    void hiveMindNbtRoundTripsBoundedThreatStimuliAndHotspots() {
+        HiveMindSavedData hive = new HiveMindSavedData();
+        for (int i = 0; i < 30; i++) {
+            hive.recordCombatHotspot(new BlockPos(i * 32, 64, i * 32), 10.0, i, StimulusType.MELEE);
+        }
+        hive.recordStimulus(StimulusType.MAGIC, Double.NaN);
+        hive.recordStimulus(StimulusType.EXPLOSION, -50.0);
+
+        assertEquals(HiveMindSavedData.MAX_HOTSPOTS, hive.getHotspots().size());
+        assertEquals(0.0, hive.getStimulusScore(StimulusType.MAGIC));
+        assertEquals(0.0, hive.getStimulusScore(StimulusType.EXPLOSION));
+
+        CompoundTag source = hive.save(new CompoundTag(), RegistryAccess.EMPTY);
+        source.putDouble("ThreatLevel", 120.0);
+        CompoundTag stimuli = new CompoundTag();
+        stimuli.putDouble(StimulusType.MELEE.id(), 40.0);
+        stimuli.putDouble(StimulusType.FIRE.id(), 40.0);
+        stimuli.putDouble(StimulusType.EXPLOSION.id(), -50.0);
+        source.put("Stimuli", stimuli);
+
+        HiveMindSavedData loaded = HiveMindSavedData.load(source, RegistryAccess.EMPTY);
+        assertTrue(Double.isFinite(loaded.getThreatLevel()));
+        assertEquals(100.0, loaded.getThreatLevel());
+        assertEquals(40.0, loaded.getStimulusScore(StimulusType.MELEE));
+        assertEquals(40.0, loaded.getStimulusScore(StimulusType.FIRE));
+        assertEquals(0.0, loaded.getStimulusScore(StimulusType.EXPLOSION));
+        assertEquals(HiveMindSavedData.MAX_HOTSPOTS, loaded.getHotspots().size());
+
+        CompoundTag saved = loaded.save(new CompoundTag(), RegistryAccess.EMPTY);
+        HiveMindSavedData reloaded = HiveMindSavedData.load(saved, RegistryAccess.EMPTY);
+        assertEquals(loaded.getThreatLevel(), reloaded.getThreatLevel(), 1.0E-6);
+        assertEquals(loaded.getStimulusScore(StimulusType.MELEE), reloaded.getStimulusScore(StimulusType.MELEE), 1.0E-6);
+        assertEquals(loaded.getStimulusScore(StimulusType.FIRE), reloaded.getStimulusScore(StimulusType.FIRE), 1.0E-6);
+        assertEquals(loaded.getHotspots().size(), reloaded.getHotspots().size());
+    }
     @Test
     void influenceMapPropagatesSamplesAndPrunesOnDecay() {
         HiveInfluenceMap map = new HiveInfluenceMap();
