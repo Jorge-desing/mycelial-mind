@@ -3862,3 +3862,6 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-22 — Modelo 3D de las flores recuperadas
 - Se integró en Model Studio la flor de expedición con tallo, sépalos, cuatro pétalos escalonados y núcleo. Las seis paletas tintan la corola y comparten geometría antes y después de cosechar. La validación de 11 pruebas de modelos pasó; se inspeccionaron ambas capturas del cliente aislado en artifacts/diagnostics/bloom-model-preview.
+
+## 2026-11-22 — Refinamiento de la corola y hojas de la flor recuperada
+- Se estrecharon progresivamente los pétalos, se perfiló el pistilo y se escalonaron hojas y cáliz. Se mantuvo un solo modelo compartido entre paletas y estados. Model Studio revisado, 11/11 pruebas y cliente visual correctos. Capturas en artifacts/diagnostics/bloom-refinement-preview.

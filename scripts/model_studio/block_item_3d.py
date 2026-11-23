@@ -569,8 +569,10 @@ def build_3d_block_models() -> Dict[str, Dict[str, Any]]:
 def build_reclaimed_bloom_model() -> Dict[str, Any]:
     """Keep the rooted silhouette in both harvest states and tint only the flower."""
     elements = [
-        _tbox((5.5, 0, 5.5), (10.5, 1.25, 10.5), H_OBS),
-        _tbox((7, 1.25, 7), (9, 5.25, 9), H_VEIN),
+        _tbox((5.5, 0, 5.5), (10.5, 0.75, 10.5), H_OBS),
+        _tbox((6.25, 0.75, 6.25), (9.75, 1.5, 9.75), H_VIOLET_SCALE),
+        _tbox((7, 1.5, 7), (9, 4.75, 9), H_VEIN),
+        _tbox((6.5, 4.75, 6.5), (9.5, 5.5, 9.5), H_VIOLET_SCALE),
     ]
 
     # Turn one sculpted petal around the stem in four quarter turns.
@@ -586,14 +588,18 @@ def build_reclaimed_bloom_model() -> Dict[str, Any]:
         elements.append(element)
 
     for turn in range(4):
-        radial_box(7.25, 1.25, 4.25, 8.75, 2.25, 7, H_VIOLET_SCALE, turn)
-    elements.append(_tbox((5.75, 5.25, 5.75), (10.25, 7.5, 10.25), H_VIOLET_SCALE))
+        radial_box(7.25, 1.5, 5.25, 8.75, 2.5, 7, H_VIOLET_SCALE, turn)
+        radial_box(6.75, 2.5, 4, 9.25, 3.25, 6, H_VIOLET_SCALE, turn)
+        radial_box(7.25, 3.25, 3.5, 8.75, 3.75, 4.75, H_VEIN, turn)
+    elements.append(_tbox((5.75, 5.5, 5.75), (10.25, 7.25, 10.25), H_VIOLET_SCALE))
     for turn in range(4):
-        radial_box(6.25, 6.25, 4.25, 9.75, 7.5, 5.75, H_IVORY_SCALE, turn, tinted=True)
-        radial_box(5.75, 7.5, 3.25, 10.25, 8.75, 5.75, H_IVORY_SCALE, turn, tinted=True)
-        radial_box(6.5, 8.75, 2.75, 9.5, 10.25, 4.25, H_BONE, turn, tinted=True)
-    radial_box(6.25, 7.5, 6.25, 9.75, 9, 9.75, H_IVORY_SCALE, 0, tinted=True, shade=False)
-    radial_box(7, 9, 7, 9, 11, 9, H_IVORY_SCALE, 0, tinted=True, shade=False)
+        radial_box(6.5, 6.25, 4.75, 9.5, 7.25, 5.75, H_BONE, turn, tinted=True)
+        radial_box(5.75, 7.25, 3.5, 10.25, 8.25, 5.75, H_IVORY_SCALE, turn, tinted=True)
+        radial_box(6.25, 8.25, 3, 9.75, 9.25, 4.75, H_IVORY_SCALE, turn, tinted=True)
+        radial_box(7, 9.25, 2.75, 9, 9.75, 3.75, H_IVORY_SCALE, turn, tinted=True)
+    radial_box(6.5, 7.25, 6.5, 9.5, 8.25, 9.5, H_BONE, 0, tinted=True)
+    radial_box(7.25, 8.25, 7.25, 8.75, 9.75, 8.75, H_IVORY_SCALE, 0, tinted=True, shade=False)
+    radial_box(6.75, 9.75, 6.75, 9.25, 10.75, 9.25, H_IVORY_SCALE, 0, tinted=True, shade=False)
     return {
         "parent": "minecraft:block/block",
         "textures": _atlas_textures("atlas_blocks_hive", "mycelialmind:block/spore_bulb"),
