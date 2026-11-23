@@ -632,6 +632,30 @@ public class HiveCoreModel<T extends Entity> extends EntityModel<T> {
         this.shard11.yRot = ageInTicks * 0.12F + 9.9F;
         this.shard12.y = -4.0F + Mth.sin(ageInTicks * 0.16F + 10.8F) * 1.4F * 1.0F + jiggle * 1.2F;
         this.shard12.yRot = ageInTicks * 0.12F + 10.8F;
+        if (entity instanceof com.alex.mycelialmind.entity.MycelialBossMob boss) {
+            float bossProg = boss.getStateProgress();
+            switch (boss.getCombatState()) {
+                case WINDUP -> {
+                    this.ringA.yRot += bossProg * 1.40F;
+                    this.ringB.yRot -= bossProg * 1.40F;
+                    this.crownChandelier.y -= 1.8F * bossProg;
+                }
+                case ACTIVE -> {
+                    this.ringA.yRot += 1.65F;
+                    this.ringB.yRot -= 1.65F;
+                    this.coreBody.xRot += 0.16F;
+                }
+                case STAGGERED -> {
+                    this.coreBody.xRot += 0.38F;
+                    this.crownChandelier.y += 2.2F;
+                }
+                default -> {
+                    if (boss.isCarapaceBroken()) {
+                        this.coreBody.xRot += 0.22F;
+                    }
+                }
+            }
+        }
     }
 
     private static float damperExact(float x, float goal, float halflife, float dt) {

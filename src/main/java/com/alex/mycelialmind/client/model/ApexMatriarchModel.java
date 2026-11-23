@@ -673,6 +673,32 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float ikReach_mLegL4Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 1.5F) * 1.10F * limbSwingAmount + idleFlex_mLegL4Tibia;
         float[] fabrik_mLegL4Tibia = solveFabrikChainAngles(ikReach_mLegL4Tibia, -1.5F + stepLift_mLegL4Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegL4Tibia.zRot = 0.72F + (fabrik_mLegL4Tibia[1] - 1.15F) * 0.38F;
+        if (entity instanceof com.alex.mycelialmind.entity.MycelialBossMob boss) {
+            float bossProg = boss.getStateProgress();
+            switch (boss.getCombatState()) {
+                case WINDUP -> {
+                    this.body.xRot -= 0.18F * bossProg;
+                    this.upperArmR.xRot -= 1.15F * bossProg;
+                    this.upperArmL.xRot -= 1.15F * bossProg;
+                }
+                case ACTIVE -> {
+                    this.body.xRot += 0.24F;
+                    this.upperArmR.xRot += 0.90F;
+                    this.upperArmL.xRot += 0.90F;
+                }
+                case STAGGERED -> {
+                    this.body.xRot += 0.40F;
+                    this.head.xRot += 0.32F;
+                    this.upperArmR.xRot += 0.35F;
+                    this.upperArmL.xRot += 0.35F;
+                }
+                default -> {
+                    if (boss.isCarapaceBroken()) {
+                        this.body.xRot += 0.22F;
+                    }
+                }
+            }
+        }
     }
 
     private static float damperExact(float x, float goal, float halflife, float dt) {

@@ -8134,4 +8134,67 @@ public final class MycelialGameTests {
             mimic.discard();
         }
     }
+
+    @GameTest(template = "empty")
+    public static void bossCombatArchitectureStateMachineCarapaceBreakAndPhasesWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var behemoth = helper.spawnWithNoFreeWill(ModEntities.SPORE_BEHEMOTH.get(), 2, 1, 2);
+        Player mock = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos origin = helper.absolutePos(new BlockPos(2, 1, 2));
+        mock.setPos(origin.getX() + 6.5, origin.getY(), origin.getZ() + 0.5);
+        try {
+            // 1. State machine WINDUP -> ACTIVE -> RECOVERY -> IDLE
+            behemoth.setTarget(mock);
+            behemoth.startAttackWindup(
+                    level,
+                    com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_SLAM,
+                    mock,
+                    1,
+                    false
+            );
+            helper.assertTrue(
+                    behemoth.getCombatState() == com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.WINDUP,
+                    "Boss must enter WINDUP when an attack starts."
+            );
+            boolean sawActive = false;
+            boolean sawRecovery = false;
+            for (int t = 0; t < 70; t++) {
+                behemoth.customServerAiStep();
+                var st = behemoth.getCombatState();
+                if (st == com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.ACTIVE) {
+                    sawActive = true;
+                } else if (st == com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.RECOVERY) {
+                    sawRecovery = true;
+                }
+            }
+            helper.assertTrue(sawActive && sawRecovery, "Boss state machine must progress through WINDUP -> ACTIVE -> RECOVERY.");
+
+            // 2. Physical carapace shatter via ARMORED_CARAPACE part -> STAGGERED + lowered WEAK_POINT
+            behemoth.aiStep();
+            var parts = behemoth.getParts();
+            com.alex.mycelialmind.entity.MycelialBossPart weakPart = (com.alex.mycelialmind.entity.MycelialBossPart) parts[0];
+            com.alex.mycelialmind.entity.MycelialBossPart carapacePart = (com.alex.mycelialmind.entity.MycelialBossPart) parts[1];
+            double weakYBefore = weakPart.getY();
+
+            for (int hit = 0; hit < 8 && !behemoth.isCarapaceBroken(); hit++) {
+                behemoth.invulnerableTime = 0;
+                carapacePart.hurt(level.damageSources().magic(), 12.0F);
+            }
+            helper.assertTrue(behemoth.isCarapaceBroken(), "Sustained hits to ARMORED_CARAPACE must shatter the carapace.");
+            helper.assertTrue(behemoth.isBossStaggered(), "Carapace break must trigger STAGGERED state.");
+            behemoth.aiStep();
+            helper.assertTrue(weakPart.getY() < weakYBefore - 0.5D,
+                    "Shattering carapace must physically lower WEAK_POINT hitbox for melee punishment.");
+
+            // 3. Phase 2 transition at <= 50% HP restores carapace cleanly
+            behemoth.setHealth(behemoth.getMaxHealth() * 0.45F);
+            behemoth.customServerAiStep();
+            helper.assertTrue(behemoth.getBehemothPhase() == 2, "SporeBehemoth must transition to Phase 2 below 50% HP.");
+            helper.assertFalse(behemoth.isCarapaceBroken(), "Phase transition must restore carapace integrity.");
+
+            helper.succeed();
+        } finally {
+            behemoth.discard();
+        }
+    }
 }

@@ -2031,4 +2031,74 @@ class HiveAlgorithmsUnitTest {
                 com.alex.mycelialmind.hive.SynapticMimicArchitectureEngine.computeMimicCounterIntelDropId(
                         com.alex.mycelialmind.hive.EvolutionRank.ELITE, true, 0.10F));
     }
+
+    @Test
+    void bossCombatArchitectureSelectionCombosAndCarapaceMathWork() {
+        var kit = List.of(
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_CHARGE,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_SLAM,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SPORE_RAIN,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_MYCELIAL_SHIELD
+        );
+
+        // Adaptive utility selection: RANGED_KITER + PROJECTILE at 10m favors Seismic Charge gap-closer
+        var pickedRanged = com.alex.mycelialmind.hive.BossCombatArchitectureEngine.selectNextAttack(
+                kit,
+                1,
+                10.0D,
+                java.util.Map.of(),
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.NONE,
+                com.alex.mycelialmind.hive.StimulusType.PROJECTILE,
+                java.util.Set.of(com.alex.mycelialmind.hive.PlayerHabit.HIGH_MOBILITY),
+                false
+        );
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_CHARGE, pickedRanged);
+
+        // Anti-spam penalty shifts selection away from lastAttack when another eligible option exists
+        var pickedAntiSpam = com.alex.mycelialmind.hive.BossCombatArchitectureEngine.selectNextAttack(
+                kit,
+                1,
+                10.0D,
+                java.util.Map.of(),
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_CHARGE,
+                com.alex.mycelialmind.hive.StimulusType.FIRE,
+                java.util.Set.of(),
+                false
+        );
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SPORE_RAIN, pickedAntiSpam);
+
+        // Single-step combo chaining in advanced phases only
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.NONE,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveComboFollowUp(
+                        com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_CHARGE, 1, 5.0D, false));
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_SLAM,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveComboFollowUp(
+                        com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_CHARGE, 2, 5.0D, false));
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.NONE,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveComboFollowUp(
+                        com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SEISMIC_CHARGE, 2, 5.0D, true));
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.HIVE_CORE_SPORE_SHOCKWAVE,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveComboFollowUp(
+                        com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.HIVE_CORE_SYNAPTIC_SWEEP, 3, 6.0D, false));
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.MATRIARCH_SYNAPTIC_STORM,
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveComboFollowUp(
+                        com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.MATRIARCH_ECHO_TELEPORT, 3, 6.0D, false));
+
+        // Carapace intact vs broken damage multipliers
+        assertEquals(7.5F, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.computeBossPartDamageWithCarapace(
+                false, true, false, false, false, 10.0F), 1.0E-4F);
+        assertEquals(10.0F, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.computeBossPartDamageWithCarapace(
+                false, true, true, false, false, 10.0F), 1.0E-4F);
+        assertEquals(13.5F, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.computeBossPartDamageWithCarapace(
+                true, false, false, false, false, 10.0F), 1.0E-4F);
+        assertEquals(15.5F, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.computeBossPartDamageWithCarapace(
+                true, false, true, false, false, 10.0F), 1.0E-4F);
+
+        // Phase thresholds
+        assertEquals(1, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveBehemothPhase(0.55F));
+        assertEquals(2, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveBehemothPhase(0.50F));
+        assertEquals(2, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveHiveCorePhase(0.60F, false));
+        assertEquals(3, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveHiveCorePhase(0.28F, true));
+        assertEquals(3, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveMatriarchPhase(0.20F));
+    }
 }

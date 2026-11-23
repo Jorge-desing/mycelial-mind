@@ -1,14 +1,17 @@
 package com.alex.mycelialmind.entity;
 
-import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.hive.AdaptationTrait;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCarapaceProfile;
 import com.alex.mycelialmind.hive.DamageTelemetryTracker;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEntities;
+import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.core.BlockPos;
@@ -44,25 +47,37 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.PartEntity;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
 /**
- * Final Boss: The Hive Core.
- * Phase 1 (100-65% HP): Synaptic Command — 3-shot acid fan & tactical summons.
- * Phase 2 (65-30% HP): Armored Nexus — spawns 3 Sentinel Node anchors granting invulnerability until destroyed.
- * Phase 3 (<30% HP): Hive Overload — rotating Tier 2 + Synergy mutations & telegraphed spore shockwaves.
+ * Sanctuary Boss: The Hive Core (350 HP, 3 Phases).
+ * Phase 1 (100-65% HP): Synaptic Command — telegraphed Acid Fan, Synaptic Sweep, and Command Pulse summons.
+ * Phase 2 (65-30% HP): Armored Nexus — 3 Sentinel Node anchors grant invulnerability and fire telegraphed Anchor Rays.
+ * Phase 3 (<30% HP): Hive Overload — rotating Tier 2 + Synergy mutations, telegraphed Spore Shockwave,
+ * and Synaptic Sweep -> Spore Shockwave combos.
+ * Shattering its Chitin Bastion staggers the boss and lowers its Synaptic Crown weak point.
  */
-public class HiveCoreBossEntity extends MycelialMob {
+public class HiveCoreBossEntity extends MycelialBossMob {
     private static final EntityDataAccessor<Integer> DATA_BOSS_PHASE =
             SynchedEntityData.defineId(HiveCoreBossEntity.class, EntityDataSerializers.INT);
 
     private static final String TAG_PHASE = "BossPhase";
     private static final String TAG_PHASE2_DONE = "Phase2ShieldBroken";
     private static final String TAG_ANCHORS = "Phase2Anchors";
+
+    private static final List<BossAttackId> ATTACK_KIT = List.of(
+            BossAttackId.HIVE_CORE_ACID_FAN,
+            BossAttackId.HIVE_CORE_SYNAPTIC_SWEEP,
+            BossAttackId.HIVE_CORE_COMMAND_PULSE,
+            BossAttackId.HIVE_CORE_ANCHOR_RAY,
+            BossAttackId.HIVE_CORE_SPORE_SHOCKWAVE
+    );
 
     private final ServerBossEvent bossEvent = new ServerBossEvent(
             Component.translatable("entity.mycelialmind.hive_core"),
@@ -76,8 +91,6 @@ public class HiveCoreBossEntity extends MycelialMob {
 
     private final List<BlockPos> anchorPositions = new ArrayList<>();
     private boolean phase2ShieldBroken = false;
-    private int stunTicks = 0;
-    private int shockwaveChargeTicks = 0;
     private int synergyRotationIndex = 0;
 
     public HiveCoreBossEntity(EntityType<? extends Monster> entityType, Level level) {
@@ -87,6 +100,31 @@ public class HiveCoreBossEntity extends MycelialMob {
         this.carapacePart = new MycelialBossPart(this, "chitin_bastion", MycelialBossPart.PartRole.ARMORED_CARAPACE, 2.0F, 1.8F);
         this.bossParts = new MycelialBossPart[]{this.weakPointPart, this.carapacePart};
         this.setId(ENTITY_COUNTER.getAndAdd(this.bossParts.length + 1) + 1);
+    }
+
+    @Override
+    protected BossCarapaceProfile getCarapaceProfile() {
+        return BossCarapaceProfile.HIVE_CORE;
+    }
+
+    @Override
+    protected List<BossAttackId> getBossAttackKit() {
+        return ATTACK_KIT;
+    }
+
+    @Override
+    public int getActiveBossPhase() {
+        return getBossPhase();
+    }
+
+    @Override
+    public int getMaxBossPhases() {
+        return 3;
+    }
+
+    @Override
+    protected boolean isBossInvulnerableToCarapaceDamage(ServerLevel level) {
+        return isShieldedPhaseTwo();
     }
 
     @Override
@@ -110,7 +148,9 @@ public class HiveCoreBossEntity extends MycelialMob {
     @Override
     public void aiStep() {
         super.aiStep();
-        positionBossPart(this, this.weakPointPart, 0.0D, 3.20D, 0.0D);
+        double weakY = 3.20D + getWeakPointLowerOffset();
+        double weakFwd = isCarapaceBroken() ? 0.35D : 0.0D;
+        positionBossPart(this, this.weakPointPart, weakFwd, weakY, 0.0D);
         positionBossPart(this, this.carapacePart, 0.85D, 0.30D, 0.0D);
     }
 
@@ -163,16 +203,16 @@ public class HiveCoreBossEntity extends MycelialMob {
     @Override
     public void customServerAiStep() {
         super.customServerAiStep();
-        this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
+        this.bossEvent.setProgress(this.getHealth() / Math.max(1.0F, this.getMaxHealth()));
 
         if (!(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        float hpRatio = this.getHealth() / this.getMaxHealth();
+        float hpRatio = this.getHealth() / Math.max(1.0F, this.getMaxHealth());
         int currentPhase = getBossPhase();
 
-        if (currentPhase == 1 && hpRatio <= 0.65F) {
+        if (currentPhase == 1 && BossCombatArchitectureEngine.resolveHiveCorePhase(hpRatio, false) >= 2) {
             enterPhaseTwo(serverLevel);
         } else if (currentPhase == 2) {
             int remaining = countRemainingAnchors(serverLevel);
@@ -189,54 +229,50 @@ public class HiveCoreBossEntity extends MycelialMob {
             } else if (!phase2ShieldBroken) {
                 onPhaseTwoShieldCollapsed(serverLevel);
             }
-            if (hpRatio <= 0.30F && phase2ShieldBroken) {
+            if (BossCombatArchitectureEngine.resolveHiveCorePhase(hpRatio, phase2ShieldBroken) == 3) {
                 enterPhaseThree(serverLevel);
             }
         }
 
-        if (stunTicks > 0) {
-            stunTicks--;
-            return;
+        // Phase 3 rotating HiveSynergy
+        if (getBossPhase() == 3 && this.tickCount % 240 == 0 && !isBossStaggered()) {
+            rotateOverloadSynergy();
+            serverLevel.playSound(null, this.blockPosition(), ModSounds.HIVE_MUTATE_TIER2.get(), SoundSource.HOSTILE, 1.0F, 1.15F);
         }
 
         // Symbiotic node healing (Phase 1 & 3)
-        if (this.tickCount % 20 == 0 && !isShieldedPhaseTwo() && hasNearbySymbioticNode(serverLevel)) {
+        if (this.tickCount % 20 == 0 && !isShieldedPhaseTwo() && !isBossStaggered() && hasNearbySymbioticNode(serverLevel)) {
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 30, 1));
             this.heal(1.0F);
             serverLevel.sendParticles(ModParticles.HIVE_EMBER.get(), this.getX(), this.getY(0.5), this.getZ(),
                     8, 0.8, 0.8, 0.8, 0.02);
         }
 
-        // Phase-specific attacks
-        LivingEntity target = this.getTarget();
-        if (target != null && target.isAlive()) {
-            if (getBossPhase() == 1 && this.tickCount % 90 == 0 && this.distanceToSqr(target) <= 576.0D) {
-                fireAcidFan(target);
-            }
-            if (getBossPhase() == 3) {
-                handlePhaseThreeBehavior(serverLevel, target);
-            }
-        }
+        tickBossCombatStateMachine(serverLevel, this.getTarget(), getBossPhase());
+    }
 
-        // Summon reinforcements
-        if (this.tickCount % 160 == 0 && target != null) {
-            MycelialMob summon = switch (getBossPhase()) {
-                case 3 -> (this.random.nextBoolean() ? ModEntities.ACID_SPITTER.get() : ModEntities.SYNAPSE_WEAVER.get()).create(serverLevel);
-                case 2 -> ModEntities.MYCELIAL_STALKER.get().create(serverLevel);
-                default -> ModEntities.SPORELING.get().create(serverLevel);
-            };
-            if (summon != null) {
-                BlockPos summonPos = MycelialSpawnUtil.findOpenGroundPosition(
-                        serverLevel, summon, this.blockPosition(), 4, 2);
-                if (summonPos != null) {
-                    summon.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(summonPos), MobSpawnType.MOB_SUMMONED, null);
-                    summon.setTarget(target);
-                    if (serverLevel.noCollision(summon)) {
-                        serverLevel.addFreshEntity(summon);
-                    }
-                }
-            }
+    private void updateBossBarAppearance() {
+        if (isCarapaceBroken()) {
+            this.bossEvent.setColor(BossEvent.BossBarColor.YELLOW);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.hive_core.carapace_broken"));
+            return;
         }
+        int phase = getBossPhase();
+        if (phase == 2 && !phase2ShieldBroken) {
+            this.bossEvent.setColor(BossEvent.BossBarColor.BLUE);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.hive_core.phase2"));
+        } else if (phase >= 3) {
+            this.bossEvent.setColor(BossEvent.BossBarColor.RED);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.hive_core.phase3"));
+        } else {
+            this.bossEvent.setColor(BossEvent.BossBarColor.PURPLE);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.hive_core"));
+        }
+    }
+
+    @Override
+    protected void onCarapaceStateChanged(ServerLevel level, boolean broken) {
+        updateBossBarAppearance();
     }
 
     private void enterPhaseTwo(ServerLevel level) {
@@ -261,8 +297,8 @@ public class HiveCoreBossEntity extends MycelialMob {
                 level.destroyBlock(anchorPos, false);
             }
         }
-        this.bossEvent.setColor(BossEvent.BossBarColor.BLUE);
-        this.bossEvent.setName(Component.translatable("entity.mycelialmind.hive_core.phase2"));
+        onBossPhaseTransition(level);
+        updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_PHASE_SHIFT.get(), SoundSource.HOSTILE, 1.65F, 0.92F);
         level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_SHIELD.get(), SoundSource.HOSTILE, 1.40F, 0.92F);
     }
@@ -284,44 +320,153 @@ public class HiveCoreBossEntity extends MycelialMob {
 
     private void onPhaseTwoShieldCollapsed(ServerLevel level) {
         phase2ShieldBroken = true;
-        stunTicks = 60;
-        this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 1));
-        this.bossEvent.setColor(BossEvent.BossBarColor.PURPLE);
-        this.bossEvent.setName(Component.translatable("entity.mycelialmind.hive_core"));
+        enterStaggeredState(level, 60);
+        updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_SHIELD.get(), SoundSource.HOSTILE, 1.60F, 0.65F);
         level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_HURT.get(), SoundSource.HOSTILE, 1.45F, 0.78F);
-        level.sendParticles(ModParticles.CHITIN_SHARD.get(), this.getX(), this.getY(0.5), this.getZ(), 6, 1.0, 1.0, 1.0, 0.05);
-        if (this.getHealth() / this.getMaxHealth() <= 0.30F) {
+        level.sendParticles(ModParticles.CHITIN_SHARD.get(), this.getX(), this.getY(0.5), this.getZ(), 10, 1.0, 1.0, 1.0, 0.06);
+        if (this.getHealth() / Math.max(1.0F, this.getMaxHealth()) <= 0.30F) {
             enterPhaseThree(level);
         }
     }
 
     private void enterPhaseThree(ServerLevel level) {
         setBossPhase(3);
-        this.stunTicks = 0;
-        this.bossEvent.setColor(BossEvent.BossBarColor.RED);
-        this.bossEvent.setName(Component.translatable("entity.mycelialmind.hive_core.phase3"));
+        onBossPhaseTransition(level);
+        updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_PHASE_SHIFT.get(), SoundSource.HOSTILE, 1.80F, 0.78F);
         level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_RESONANCE.get(), SoundSource.HOSTILE, 1.60F, 0.72F);
         rotateOverloadSynergy();
     }
 
-    private void handlePhaseThreeBehavior(ServerLevel level, LivingEntity target) {
-        if (this.tickCount % 240 == 0) {
-            rotateOverloadSynergy();
-            level.playSound(null, this.blockPosition(), ModSounds.HIVE_MUTATE_TIER2.get(), SoundSource.HOSTILE, 1.0F, 1.15F);
-        }
-
-        if (shockwaveChargeTicks > 0) {
-            shockwaveChargeTicks--;
-            level.sendParticles(ModParticles.NECROTIC_MIST.get(), this.getX(), this.getY() + 0.4, this.getZ(),
-                    16, 2.5, 0.3, 2.5, 0.02);
-            if (shockwaveChargeTicks == 0) {
-                detonateSporeShockwave(level);
+    @Override
+    protected void onAttackWindupStart(ServerLevel level, BossAttackId attack, LivingEntity target) {
+        switch (attack) {
+            case HIVE_CORE_ACID_FAN -> level.playSound(null, this.blockPosition(),
+                    ModSounds.HIVE_CORE_RESONANCE.get(), SoundSource.HOSTILE, 1.25F, 1.15F);
+            case HIVE_CORE_SYNAPTIC_SWEEP -> level.playSound(null, this.blockPosition(),
+                    ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.35F, 1.10F);
+            case HIVE_CORE_COMMAND_PULSE -> level.playSound(null, this.blockPosition(),
+                    ModSounds.HIVE_CORE_RESONANCE.get(), SoundSource.HOSTILE, 1.40F, 0.85F);
+            case HIVE_CORE_ANCHOR_RAY -> level.playSound(null, this.blockPosition(),
+                    ModSounds.HIVE_CORE_SHIELD.get(), SoundSource.HOSTILE, 1.35F, 1.35F);
+            case HIVE_CORE_SPORE_SHOCKWAVE -> level.playSound(null, this.blockPosition(),
+                    ModSounds.HIVE_CORE_RESONANCE.get(), SoundSource.HOSTILE, 1.55F, 1.32F);
+            default -> {
             }
-        } else if (this.tickCount % 140 == 0 && this.distanceToSqr(target) <= 100.0D) {
-            shockwaveChargeTicks = 30;
-            level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_RESONANCE.get(), SoundSource.HOSTILE, 1.45F, 1.32F);
+        }
+    }
+
+    @Override
+    protected void onAttackWindupTick(ServerLevel level, BossAttackId attack, int ticksRemaining, int totalTicks, @Nullable LivingEntity target) {
+        if (ticksRemaining % 3 != 0) {
+            return;
+        }
+        Vec3 anchor = target != null && target.isAlive() ? target.position() : this.telegraphAnchor;
+        switch (attack) {
+            case HIVE_CORE_ACID_FAN -> {
+                if (anchor != null) {
+                    spawnGroundLineTelegraph(level, ModParticles.ACID_DROPLET.get(), this.position(), anchor, 7);
+                }
+            }
+            case HIVE_CORE_SYNAPTIC_SWEEP -> {
+                double r = 2.0D + 4.5D * getStateProgress();
+                spawnGroundRingTelegraph(level, ModParticles.SYNAPSE_SPARK.get(), this.position(), r, 14);
+            }
+            case HIVE_CORE_COMMAND_PULSE -> {
+                spawnGroundRingTelegraph(level, ModParticles.HIVE_PULSE.get(), this.position(), 4.2D, 12);
+            }
+            case HIVE_CORE_ANCHOR_RAY -> {
+                if (anchor != null) {
+                    this.telegraphAnchor = anchor;
+                    spawnGroundRingTelegraph(level, ModParticles.SYNAPSE_SPARK.get(), anchor, 2.8D, 12);
+                    for (BlockPos pos : anchorPositions) {
+                        if (level.getBlockState(pos).is(ModBlocks.SENTINEL_NODE.get())) {
+                            spawnGroundLineTelegraph(level, ModParticles.HIVE_PULSE.get(), Vec3.atCenterOf(pos), anchor, 6);
+                        }
+                    }
+                }
+            }
+            case HIVE_CORE_SPORE_SHOCKWAVE -> {
+                double r = 2.5D + 5.2D * getStateProgress();
+                spawnGroundRingTelegraph(level, ModParticles.NECROTIC_MIST.get(), this.position(), r, 18);
+                level.sendParticles(ModParticles.NECROTIC_MIST.get(), this.getX(), this.getY() + 0.5, this.getZ(),
+                        12, 2.2, 0.3, 2.2, 0.02);
+            }
+            default -> {
+            }
+        }
+    }
+
+    @Override
+    protected void onAttackExecute(ServerLevel level, BossAttackId attack, @Nullable LivingEntity target) {
+        switch (attack) {
+            case HIVE_CORE_ACID_FAN -> {
+                if (target != null && target.isAlive()) {
+                    fireAcidFan(target);
+                }
+            }
+            case HIVE_CORE_SYNAPTIC_SWEEP -> executeSynapticSweep(level);
+            case HIVE_CORE_COMMAND_PULSE -> executeCommandPulse(level, target);
+            case HIVE_CORE_ANCHOR_RAY -> executeAnchorRay(level);
+            case HIVE_CORE_SPORE_SHOCKWAVE -> detonateSporeShockwave(level);
+            default -> {
+            }
+        }
+    }
+
+    private void executeSynapticSweep(ServerLevel level) {
+        spawnGroundRingTelegraph(level, ModParticles.HIVE_EMBER.get(), this.position(), 6.5D, 22);
+        level.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.45F, 0.85F);
+        float dmg = getBossPhase() >= 3 ? 9.5F : 7.5F;
+        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.4D),
+                e -> !(e instanceof MycelialMob) && e.isAlive())) {
+            entity.hurt(this.damageSources().mobAttack(this), dmg);
+            Vec3 away = entity.position().subtract(this.position());
+            if (away.lengthSqr() > 0.01D) {
+                Vec3 dir = away.normalize().scale(0.55D);
+                entity.push(dir.x, 0.25D, dir.z);
+            }
+        }
+    }
+
+    private void executeCommandPulse(ServerLevel serverLevel, @Nullable LivingEntity target) {
+        serverLevel.sendParticles(ModParticles.HIVE_PULSE.get(), this.getX(), this.getY(0.6), this.getZ(),
+                4, 1.2, 0.6, 1.2, 0.02);
+        serverLevel.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.30F, 0.78F);
+        if (target == null || !target.isAlive()) {
+            return;
+        }
+        MycelialMob summon = switch (getBossPhase()) {
+            case 3 -> (this.random.nextBoolean() ? ModEntities.ACID_SPITTER.get() : ModEntities.SYNAPSE_WEAVER.get()).create(serverLevel);
+            case 2 -> ModEntities.MYCELIAL_STALKER.get().create(serverLevel);
+            default -> ModEntities.SPORELING.get().create(serverLevel);
+        };
+        if (summon != null) {
+            BlockPos summonPos = MycelialSpawnUtil.findOpenGroundPosition(
+                    serverLevel, summon, this.blockPosition(), 4, 2);
+            if (summonPos != null) {
+                summon.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(summonPos), MobSpawnType.MOB_SUMMONED, null);
+                summon.setTarget(target);
+                if (serverLevel.noCollision(summon)) {
+                    serverLevel.addFreshEntity(summon);
+                }
+            }
+        }
+    }
+
+    private void executeAnchorRay(ServerLevel level) {
+        Vec3 targetPos = this.telegraphAnchor != null ? this.telegraphAnchor : this.position();
+        spawnGroundRingTelegraph(level, ModParticles.HIVE_EMBER.get(), targetPos, 3.0D, 16);
+        level.sendParticles(ModParticles.SYNAPSE_SPARK.get(), targetPos.x, targetPos.y + 0.5, targetPos.z,
+                20, 1.2, 0.5, 1.2, 0.06);
+        level.playSound(null, BlockPos.containing(targetPos), ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.45F, 1.25F);
+        AABB blastBox = new AABB(targetPos.x - 3.0D, targetPos.y - 1.5D, targetPos.z - 3.0D,
+                targetPos.x + 3.0D, targetPos.y + 2.5D, targetPos.z + 3.0D);
+        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, blastBox,
+                e -> !(e instanceof MycelialMob) && e.isAlive())) {
+            entity.hurt(this.damageSources().magic(), 7.5F);
+            entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0));
         }
     }
 
@@ -340,7 +485,7 @@ public class HiveCoreBossEntity extends MycelialMob {
         level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_SHIELD.get(), SoundSource.HOSTILE, 1.20F, 0.58F);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7.2D),
                 e -> !(e instanceof MycelialMob) && e.isAlive())) {
-            entity.hurt(this.damageSources().magic(), 8.0F);
+            entity.hurt(this.damageSources().magic(), 8.5F);
             entity.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 1));
         }
     }
@@ -349,7 +494,9 @@ public class HiveCoreBossEntity extends MycelialMob {
         double dx = target.getX() - this.getX();
         double dy = target.getY(0.4) - this.getY(0.6);
         double dz = target.getZ() - this.getZ();
-        float[] yawOffsets = {-0.18F, 0.0F, 0.18F};
+        float[] yawOffsets = getBossPhase() >= 3
+                ? new float[]{-0.26F, -0.13F, 0.0F, 0.13F, 0.26F}
+                : new float[]{-0.18F, 0.0F, 0.18F};
         for (float offset : yawOffsets) {
             AcidSpitProjectile spit = new AcidSpitProjectile(this.level(), this);
             double cos = Math.cos(offset);
@@ -448,6 +595,7 @@ public class HiveCoreBossEntity extends MycelialMob {
         for (int i = 0; i < list.size(); i++) {
             anchorPositions.add(BlockPos.of(((LongTag) list.get(i)).getAsLong()));
         }
+        updateBossBarAppearance();
     }
 
     @Override

@@ -310,6 +310,32 @@ public class SporeBehemothModel<T extends Entity> extends EntityModel<T> {
         this.eliteSiegeCrown.zRot = 0.45F + Mth.cos(ageInTicks * 0.05F + 0.0F) * 0.15F;
         this.rightLeg.xRot = 0.0F + Mth.cos(limbSwing * 0.6662F) * 1.1F * limbSwingAmount * 1.0F;
         this.leftLeg.xRot = 0.0F + Mth.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.1F * limbSwingAmount * 1.0F;
+        if (entity instanceof com.alex.mycelialmind.entity.MycelialBossMob boss) {
+            float bossProg = boss.getStateProgress();
+            switch (boss.getCombatState()) {
+                case WINDUP -> {
+                    this.torso.xRot -= 0.22F * bossProg;
+                    this.armR.xRot -= 1.05F * bossProg;
+                    this.armL.xRot -= 0.85F * bossProg;
+                }
+                case ACTIVE -> {
+                    this.torso.xRot += 0.28F;
+                    this.armR.xRot += 0.85F;
+                    this.armL.xRot += 0.65F;
+                }
+                case STAGGERED -> {
+                    this.torso.xRot += 0.42F;
+                    this.head.xRot += 0.35F;
+                    this.armR.xRot += 0.32F;
+                    this.armL.xRot += 0.32F;
+                }
+                default -> {
+                    if (boss.isCarapaceBroken()) {
+                        this.torso.xRot += 0.24F;
+                    }
+                }
+            }
+        }
     }
 
     private static float damperExact(float x, float goal, float halflife, float dt) {

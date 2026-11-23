@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -67,9 +68,20 @@ public final class MycelialBossPart extends PartEntity<MycelialMob> {
             boolean isMagic,
             float baseAmount
     ) {
-        return SynapticCommandSystem.computeBossPartDamage(
+        return computePartModifiedDamage(role, false, bypassesArmor, isMagic, baseAmount);
+    }
+
+    public static float computePartModifiedDamage(
+            PartRole role,
+            boolean carapaceBroken,
+            boolean bypassesArmor,
+            boolean isMagic,
+            float baseAmount
+    ) {
+        return BossCombatArchitectureEngine.computeBossPartDamageWithCarapace(
                 role == PartRole.WEAK_POINT,
                 role == PartRole.ARMORED_CARAPACE,
+                carapaceBroken,
                 bypassesArmor,
                 isMagic,
                 baseAmount
@@ -98,8 +110,10 @@ public final class MycelialBossPart extends PartEntity<MycelialMob> {
         if (this.isInvulnerableTo(source)) {
             return false;
         }
+        boolean carapaceBroken = this.parentMob instanceof MycelialBossMob boss && boss.isCarapaceBroken();
         float modified = computePartModifiedDamage(
                 this.role,
+                carapaceBroken,
                 source.is(DamageTypeTags.BYPASSES_ARMOR),
                 source.is(DamageTypeTags.WITCH_RESISTANT_TO),
                 amount

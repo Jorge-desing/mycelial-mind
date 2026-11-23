@@ -2,8 +2,11 @@ package com.alex.mycelialmind.client.hud;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.config.MycelialClientConfig;
+import com.alex.mycelialmind.entity.MycelialBossMob;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
@@ -129,6 +132,8 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             graphics.renderOutline(bx, bannerY, bw, 14, 0xFF4AD66D);
             graphics.drawCenteredString(mc.font, remBanner, sw / 2, bannerY + 3, 0xFF9BF6B0);
         }
+
+        renderNearbyBossTelemetryBar(graphics, mc, player, sw, tideSec > 0, inDeepMycelium && homeoStage != HomeostasisStage.STABLE, remissionSec > 0);
 
         boolean hasScanner = isScannerOrExtractor(player.getMainHandItem())
                 || isScannerOrExtractor(player.getOffhandItem());
@@ -426,6 +431,132 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             graphics.pose().popPose();
         } else {
             graphics.drawString(font, goalLine, x, y, color, true);
+        }
+    }
+
+    private static void renderNearbyBossTelemetryBar(
+            GuiGraphics graphics,
+            Minecraft mc,
+            Player player,
+            int sw,
+            boolean hasTideBanner,
+            boolean hasHomeoBanner,
+            boolean hasRemissionBanner
+    ) {
+        if (mc.level == null) {
+            return;
+        }
+        var bosses = mc.level.getEntitiesOfClass(
+                MycelialBossMob.class,
+                player.getBoundingBox().inflate(48.0D),
+                MycelialBossMob::isAlive
+        );
+        if (bosses.isEmpty()) {
+            return;
+        }
+        MycelialBossMob nearest = null;
+        double bestDistSq = Double.MAX_VALUE;
+        for (MycelialBossMob candidate : bosses) {
+            double d = candidate.distanceToSqr(player);
+            if (d < bestDistSq) {
+                bestDistSq = d;
+                nearest = candidate;
+            }
+        }
+        if (nearest == null) {
+            return;
+        }
+
+        int topBanners = (hasTideBanner ? 1 : 0) + (hasHomeoBanner ? 1 : 0) + (hasRemissionBanner ? 1 : 0);
+        int panelW = 216;
+        int panelH = 38;
+        int panelX = (sw - panelW) / 2;
+        int panelY = 40 + topBanners * 17;
+
+        boolean broken = nearest.isCarapaceBroken();
+        BossCombatState state = nearest.getCombatState();
+        int borderCol = broken
+                ? 0xFFFFD166
+                : (state == BossCombatState.WINDUP ? 0xFFFF595E : 0xFF9D4EDD);
+        graphics.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC140A20);
+        graphics.renderOutline(panelX, panelY, panelW, panelH, borderCol);
+
+        Font font = mc.font;
+        Component header = Component.translatable(
+                "hud.mycelialmind.boss_header",
+                nearest.getDisplayName(),
+                nearest.getActiveBossPhase(),
+                nearest.getMaxBossPhases()
+        );
+        graphics.drawString(font, header, panelX + 5, panelY + 4, 0xFFF3D5FF, true);
+
+        int carapacePct = Math.round(nearest.getCarapaceIntegrityRatio() * 100.0F);
+        Component carapaceLabel = broken
+                ? Component.translatable("hud.mycelialmind.boss_carapace_broken")
+                : Component.translatable("hud.mycelialmind.boss_carapace_intact", carapacePct);
+        int carapaceTextColor = broken ? 0xFFFFD166 : 0xFFF4A261;
+        int labelW = font.width(carapaceLabel);
+        graphics.drawString(font, carapaceLabel, panelX + panelW - labelW - 5, panelY + 4, carapaceTextColor, true);
+
+        // Carapace Integrity Bar
+        int barX = panelX + 5;
+        int barW = panelW - 10;
+        int carapaceBarY = panelY + 15;
+        graphics.fill(barX, carapaceBarY, barX + barW, carapaceBarY + 4, 0xFF2B193D);
+        if (broken) {
+            float brokenRatio = Math.min(1.0F, nearest.getCarapaceBrokenTicksRemaining() / 160.0F);
+            int fillW = Math.round(barW * brokenRatio);
+            graphics.fill(barX, carapaceBarY, barX + fillW, carapaceBarY + 4, 0xFFFFD166);
+        } else {
+            int fillW = Math.round(barW * nearest.getCarapaceIntegrityRatio());
+            graphics.fill(barX, carapaceBarY, barX + fillW, carapaceBarY + 4, 0xFFE07A5F);
+        }
+
+        // Telegraph / Combat State Line + Progress Bar
+        BossAttackId activeAttack = nearest.getActiveAttack();
+        Component attackName = Component.translatable(activeAttack.translationKey());
+        Component stateText;
+        int stateColor;
+        int stateBarColor;
+        float barFill;
+        switch (state) {
+            case WINDUP -> {
+                stateText = Component.translatable("hud.mycelialmind.boss_telegraph_windup", attackName);
+                stateColor = 0xFFFF9F1C;
+                stateBarColor = nearest.getStateProgress() >= 0.72F ? 0xFFFF3366 : 0xFFFF9F1C;
+                barFill = nearest.getStateProgress();
+            }
+            case ACTIVE -> {
+                stateText = Component.translatable("hud.mycelialmind.boss_telegraph_active", attackName);
+                stateColor = 0xFFFF4D6D;
+                stateBarColor = 0xFFFF2A55;
+                barFill = 1.0F;
+            }
+            case STAGGERED -> {
+                stateText = Component.translatable("hud.mycelialmind.boss_telegraph_staggered");
+                stateColor = 0xFF72EFDD;
+                stateBarColor = 0xFF00F5D4;
+                barFill = 1.0F - nearest.getStateProgress();
+            }
+            case RECOVERY -> {
+                stateText = Component.translatable("hud.mycelialmind.boss_telegraph_recovery");
+                stateColor = 0xFFC77DFF;
+                stateBarColor = 0xFF7B2CBF;
+                barFill = 1.0F - nearest.getStateProgress();
+            }
+            default -> {
+                stateText = Component.translatable("hud.mycelialmind.boss_telegraph_idle");
+                stateColor = 0xFFB8A9C9;
+                stateBarColor = 0xFF4A3566;
+                barFill = 0.0F;
+            }
+        }
+        graphics.drawString(font, stateText, barX, panelY + 22, stateColor, true);
+        int stateBarY = panelY + 32;
+        graphics.fill(barX, stateBarY, barX + barW, stateBarY + 3, 0xFF221330);
+        int stateFillW = Math.round(barW * Math.max(0.0F, Math.min(1.0F, barFill)));
+        if (stateFillW > 0) {
+            graphics.fill(barX, stateBarY, barX + stateFillW, stateBarY + 3, stateBarColor);
         }
     }
 }

@@ -1,14 +1,17 @@
 package com.alex.mycelialmind.entity;
 
-import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
+import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCarapaceProfile;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
+import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
@@ -47,24 +50,35 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
 /**
- * Dimensional Apex Boss of the Deep Mycelium: The Apex Matriarch (600 HP).
- * Phase 1 (100-60%): 5-shot infectious acid fan + short tactical teleport.
- * Phase 2 (60-25%): Summons elite Warden/Weaver squads + 2 Sentinel Nodes.
- * Phase 3 (<25%): Overload frenzy with AoE Mycelial Infection pulses & synergies.
+ * Dimensional Apex Boss of the Deep Mycelium: The Apex Matriarch (600 HP, 3 Phases).
+ * Phase 1 (100-60%): Telegraphed 5-shot Spore Barrage + ground-telegraphed Echo Teleport strike.
+ * Phase 2 (60-25%): Summons elite Warden/Weaver squad + 2 Sentinel Nodes + telegraphed Homeostatic Pulse.
+ * Phase 3 (<25%): Synaptic Storm frenzy — AoE infection storms, full traits + synergies,
+ * and Echo Teleport -> Synaptic Storm combos.
+ * Shattering her Thorax Shield staggers her and lowers the Apex Reliquary weak point.
  */
-public class ApexMatriarchEntity extends MycelialMob {
+public class ApexMatriarchEntity extends MycelialBossMob {
     private static final String TAG_PHASE_TWO_SENTINELS = "Phase2Sentinels";
 
     private static final EntityDataAccessor<Integer> DATA_PHASE =
             SynchedEntityData.defineId(ApexMatriarchEntity.class, EntityDataSerializers.INT);
+
+    private static final List<BossAttackId> ATTACK_KIT = List.of(
+            BossAttackId.MATRIARCH_SPORE_BARRAGE,
+            BossAttackId.MATRIARCH_ECHO_TELEPORT,
+            BossAttackId.MATRIARCH_HOMEOSTATIC_PULSE,
+            BossAttackId.MATRIARCH_SYNAPTIC_STORM
+    );
 
     private final ServerBossEvent bossEvent = new ServerBossEvent(
             Component.translatable("entity.mycelialmind.apex_matriarch"),
@@ -89,6 +103,26 @@ public class ApexMatriarchEntity extends MycelialMob {
     }
 
     @Override
+    protected BossCarapaceProfile getCarapaceProfile() {
+        return BossCarapaceProfile.APEX_MATRIARCH;
+    }
+
+    @Override
+    protected List<BossAttackId> getBossAttackKit() {
+        return ATTACK_KIT;
+    }
+
+    @Override
+    public int getActiveBossPhase() {
+        return getMatriarchPhase();
+    }
+
+    @Override
+    public int getMaxBossPhases() {
+        return 3;
+    }
+
+    @Override
     public boolean isMultipartEntity() {
         return true;
     }
@@ -109,7 +143,9 @@ public class ApexMatriarchEntity extends MycelialMob {
     @Override
     public void aiStep() {
         super.aiStep();
-        positionBossPart(this, this.weakPointPart, 0.0D, 4.10D, 0.0D);
+        double weakY = 4.10D + getWeakPointLowerOffset();
+        double weakFwd = isCarapaceBroken() ? 0.45D : 0.0D;
+        positionBossPart(this, this.weakPointPart, weakFwd, weakY, 0.0D);
         positionBossPart(this, this.carapacePart, 0.95D, 0.40D, 0.0D);
     }
 
@@ -140,54 +176,51 @@ public class ApexMatriarchEntity extends MycelialMob {
     @Override
     public void customServerAiStep() {
         super.customServerAiStep();
-        this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
+        this.bossEvent.setProgress(this.getHealth() / Math.max(1.0F, this.getMaxHealth()));
 
         if (!(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        float hpRatio = this.getHealth() / this.getMaxHealth();
-        if (getMatriarchPhase() == 1 && hpRatio <= 0.60F) {
+        float hpRatio = this.getHealth() / Math.max(1.0F, this.getMaxHealth());
+        int resolvedPhase = BossCombatArchitectureEngine.resolveMatriarchPhase(hpRatio);
+        if (getMatriarchPhase() == 1 && resolvedPhase >= 2) {
             enterPhaseTwo(serverLevel);
-        } else if (getMatriarchPhase() == 2 && hpRatio <= 0.25F) {
+        } else if (getMatriarchPhase() == 2 && resolvedPhase == 3) {
             enterPhaseThree(serverLevel);
         }
 
-        LivingEntity target = this.getTarget();
-        if (target == null || !target.isAlive()) {
+        tickBossCombatStateMachine(serverLevel, this.getTarget(), getMatriarchPhase());
+    }
+
+    private void updateBossBarAppearance() {
+        if (isCarapaceBroken()) {
+            this.bossEvent.setColor(BossEvent.BossBarColor.YELLOW);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.apex_matriarch.carapace_broken"));
             return;
         }
-
-        if (this.tickCount % 80 == 0 && this.distanceToSqr(target) <= 784.0D) {
-            fireSporeBarrage(target);
+        int phase = getMatriarchPhase();
+        if (phase >= 3) {
+            this.bossEvent.setColor(BossEvent.BossBarColor.RED);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.apex_matriarch.phase3"));
+        } else if (phase == 2) {
+            this.bossEvent.setColor(BossEvent.BossBarColor.PURPLE);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.apex_matriarch.phase2"));
+        } else {
+            this.bossEvent.setColor(BossEvent.BossBarColor.PINK);
+            this.bossEvent.setName(Component.translatable("entity.mycelialmind.apex_matriarch"));
         }
+    }
 
-        if (getMatriarchPhase() >= 1 && this.tickCount % 140 == 0 && this.distanceToSqr(target) > 144.0D) {
-            double tx = target.getX() + (this.random.nextDouble() - 0.5) * 6.0;
-            double tz = target.getZ() + (this.random.nextDouble() - 0.5) * 6.0;
-            this.teleportTo(tx, target.getY(), tz);
-            serverLevel.sendParticles(ModParticles.TIDE_MOTE.get(), this.getX(), this.getY(0.5), this.getZ(),
-                    20, 0.5, 0.8, 0.5, 0.05);
-            serverLevel.playSound(null, this.blockPosition(), ModSounds.SYMBIOTIC_NODE_TELEPORT.get(), SoundSource.HOSTILE, 1.40F, 0.68F);
-        }
-
-        if (getMatriarchPhase() == 3 && this.tickCount % 100 == 0) {
-            serverLevel.sendParticles(ModParticles.TIDE_MOTE.get(), this.getX(), this.getY(0.5), this.getZ(),
-                    35, 3.5, 0.6, 3.5, 0.05);
-            serverLevel.playSound(null, this.blockPosition(), ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.55F, 0.88F);
-            serverLevel.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.30F, 0.62F);
-            for (LivingEntity victim : serverLevel.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7.6D),
-                    e -> !(e instanceof MycelialMob) && e.isAlive())) {
-                victim.hurt(this.damageSources().magic(), 6.0F);
-                victim.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 160, 1));
-            }
-        }
+    @Override
+    protected void onCarapaceStateChanged(ServerLevel level, boolean broken) {
+        updateBossBarAppearance();
     }
 
     private void enterPhaseTwo(ServerLevel level) {
         setMatriarchPhase(2);
-        this.bossEvent.setColor(BossEvent.BossBarColor.PURPLE);
-        this.bossEvent.setName(Component.translatable("entity.mycelialmind.apex_matriarch.phase2"));
+        onBossPhaseTransition(level);
+        updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_PHASE_SHIFT.get(), SoundSource.HOSTILE, 1.65F, 0.90F);
         level.playSound(null, this.blockPosition(), ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.65F, 1.05F);
         if (DimensionalHomeostasisDirector.isHomeostasisDimension(level)) {
@@ -254,8 +287,8 @@ public class ApexMatriarchEntity extends MycelialMob {
 
     private void enterPhaseThree(ServerLevel level) {
         setMatriarchPhase(3);
-        this.bossEvent.setColor(BossEvent.BossBarColor.RED);
-        this.bossEvent.setName(Component.translatable("entity.mycelialmind.apex_matriarch.phase3"));
+        onBossPhaseTransition(level);
+        updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_PHASE_SHIFT.get(), SoundSource.HOSTILE, 1.85F, 0.72F);
         level.playSound(null, this.blockPosition(), ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.85F, 0.80F);
         if (DimensionalHomeostasisDirector.isHomeostasisDimension(level)) {
@@ -265,6 +298,128 @@ public class ApexMatriarchEntity extends MycelialMob {
         this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2400, 1));
         var traits = EnumSet.allOf(com.alex.mycelialmind.hive.AdaptationTrait.class);
         applyHiveState(traits, traits, EnumSet.of(HiveSynergy.PYROLYTIC_SHELL, HiveSynergy.VENOMOUS_COUNTER));
+    }
+
+    @Override
+    protected void onAttackWindupStart(ServerLevel level, BossAttackId attack, LivingEntity target) {
+        switch (attack) {
+            case MATRIARCH_SPORE_BARRAGE -> level.playSound(null, this.blockPosition(),
+                    ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.35F, 1.15F);
+            case MATRIARCH_ECHO_TELEPORT -> {
+                double tx = target.getX() + (this.random.nextDouble() - 0.5) * 5.0;
+                double tz = target.getZ() + (this.random.nextDouble() - 0.5) * 5.0;
+                this.telegraphAnchor = new Vec3(tx, target.getY(), tz);
+                level.playSound(null, this.blockPosition(),
+                        ModSounds.SYMBIOTIC_NODE_TELEPORT.get(), SoundSource.HOSTILE, 1.30F, 1.25F);
+            }
+            case MATRIARCH_HOMEOSTATIC_PULSE -> level.playSound(null, this.blockPosition(),
+                    ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.45F, 0.85F);
+            case MATRIARCH_SYNAPTIC_STORM -> level.playSound(null, this.blockPosition(),
+                    ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.65F, 0.72F);
+            default -> {
+            }
+        }
+    }
+
+    @Override
+    protected void onAttackWindupTick(ServerLevel level, BossAttackId attack, int ticksRemaining, int totalTicks, @Nullable LivingEntity target) {
+        if (ticksRemaining % 3 != 0) {
+            return;
+        }
+        Vec3 anchor = this.telegraphAnchor != null
+                ? this.telegraphAnchor
+                : (target != null && target.isAlive() ? target.position() : this.position());
+        switch (attack) {
+            case MATRIARCH_SPORE_BARRAGE -> {
+                if (target != null && target.isAlive()) {
+                    spawnGroundLineTelegraph(level, ModParticles.ACID_DROPLET.get(), this.position(), target.position(), 8);
+                }
+            }
+            case MATRIARCH_ECHO_TELEPORT -> {
+                // Clear ground echo ring at the exact destination before teleporting
+                spawnGroundRingTelegraph(level, ModParticles.TIDE_MOTE.get(), anchor, 2.4D, 14);
+                spawnGroundLineTelegraph(level, ModParticles.SYNAPSE_SPARK.get(), this.position(), anchor, 7);
+            }
+            case MATRIARCH_HOMEOSTATIC_PULSE -> {
+                double r = 2.0D + 4.0D * getStateProgress();
+                spawnGroundRingTelegraph(level, ModParticles.NECROTIC_MIST.get(), anchor, r, 16);
+            }
+            case MATRIARCH_SYNAPTIC_STORM -> {
+                double r = 2.5D + 5.8D * getStateProgress();
+                spawnGroundRingTelegraph(level, ModParticles.TIDE_MOTE.get(), this.position(), r, 20);
+                level.sendParticles(ModParticles.SYNAPSE_SPARK.get(), this.getX(), this.getY(0.6), this.getZ(),
+                        12, 1.4, 0.9, 1.4, 0.05);
+            }
+            default -> {
+            }
+        }
+    }
+
+    @Override
+    protected void onAttackExecute(ServerLevel level, BossAttackId attack, @Nullable LivingEntity target) {
+        switch (attack) {
+            case MATRIARCH_SPORE_BARRAGE -> {
+                if (target != null && target.isAlive()) {
+                    fireSporeBarrage(target);
+                }
+            }
+            case MATRIARCH_ECHO_TELEPORT -> executeEchoTeleport(level, target);
+            case MATRIARCH_HOMEOSTATIC_PULSE -> executeHomeostaticPulse(level);
+            case MATRIARCH_SYNAPTIC_STORM -> executeSynapticStorm(level);
+            default -> {
+            }
+        }
+    }
+
+    private void executeEchoTeleport(ServerLevel serverLevel, @Nullable LivingEntity target) {
+        Vec3 dest = this.telegraphAnchor;
+        if (dest == null && target != null && target.isAlive()) {
+            dest = target.position();
+        }
+        if (dest == null) {
+            return;
+        }
+        this.teleportTo(dest.x, dest.y, dest.z);
+        serverLevel.sendParticles(ModParticles.TIDE_MOTE.get(), this.getX(), this.getY(0.5), this.getZ(),
+                24, 0.8, 0.9, 0.8, 0.06);
+        serverLevel.playSound(null, this.blockPosition(), ModSounds.SYMBIOTIC_NODE_TELEPORT.get(), SoundSource.HOSTILE, 1.45F, 0.68F);
+        for (LivingEntity victim : serverLevel.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(3.2D),
+                e -> !(e instanceof MycelialMob) && e.isAlive())) {
+            victim.hurt(this.damageSources().mobAttack(this), 8.0F);
+            victim.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 100, 0));
+        }
+    }
+
+    private void executeHomeostaticPulse(ServerLevel serverLevel) {
+        Vec3 center = this.telegraphAnchor != null ? this.telegraphAnchor : this.position();
+        if (DimensionalHomeostasisDirector.isHomeostasisDimension(serverLevel)) {
+            DimensionalHomeostasisSavedData.get(serverLevel)
+                    .addStress(new ChunkPos(BlockPos.containing(center)), 12.0, serverLevel.getGameTime());
+        }
+        spawnGroundRingTelegraph(serverLevel, ModParticles.NECROTIC_MIST.get(), center, 5.5D, 20);
+        serverLevel.sendParticles(ModParticles.ACID_DROPLET.get(), center.x, center.y + 0.5, center.z,
+                28, 2.5, 0.6, 2.5, 0.06);
+        serverLevel.playSound(null, BlockPos.containing(center), ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.40F, 0.72F);
+        AABB box = new AABB(center.x - 5.5D, center.y - 2.0D, center.z - 5.5D,
+                center.x + 5.5D, center.y + 3.0D, center.z + 5.5D);
+        for (LivingEntity victim : serverLevel.getEntitiesOfClass(LivingEntity.class, box,
+                e -> !(e instanceof MycelialMob) && e.isAlive())) {
+            victim.hurt(this.damageSources().magic(), 7.5F);
+            victim.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 140, 1));
+            victim.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 1));
+        }
+    }
+
+    private void executeSynapticStorm(ServerLevel serverLevel) {
+        serverLevel.sendParticles(ModParticles.TIDE_MOTE.get(), this.getX(), this.getY(0.5), this.getZ(),
+                42, 3.8, 0.7, 3.8, 0.06);
+        serverLevel.playSound(null, this.blockPosition(), ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.55F, 0.88F);
+        serverLevel.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.35F, 0.62F);
+        for (LivingEntity victim : serverLevel.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7.6D),
+                e -> !(e instanceof MycelialMob) && e.isAlive())) {
+            victim.hurt(this.damageSources().magic(), 8.5F);
+            victim.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 160, 1));
+        }
     }
 
     @Override
@@ -357,6 +512,7 @@ public class ApexMatriarchEntity extends MycelialMob {
         for (int i = 0; i < sentinels.size(); i++) {
             phaseTwoSentinelPositions.add(BlockPos.of(((LongTag) sentinels.get(i)).getAsLong()));
         }
+        updateBossBarAppearance();
     }
 
     @Override

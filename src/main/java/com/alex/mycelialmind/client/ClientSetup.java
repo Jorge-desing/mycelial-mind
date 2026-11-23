@@ -674,6 +674,10 @@ public final class ClientSetup {
                             LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.15D),
                                     1.0F, 0.55F, 0.95F, 0.90F);
                         }
+                    } else if (mob instanceof com.alex.mycelialmind.entity.MycelialBossMob bossMob
+                            && bossMob.getCombatState() == com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.WINDUP) {
+                        LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.14D),
+                                1.0F, 0.36F * pulse, 0.08F, 0.98F);
                     } else if (mob.isPrimordialVariant()) {
                         LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.12D),
                                 0.72F, 1.0F, 0.22F * pulse, 0.98F);
@@ -685,14 +689,25 @@ public final class ClientSetup {
                                 1.0F, 0.28F * pulse, 0.16F, 0.92F);
                     }
                     if (mob.isMultipartEntity() && mob.getParts() != null) {
+                        boolean bossCarapaceBroken = mob instanceof com.alex.mycelialmind.entity.MycelialBossMob bossMob && bossMob.isCarapaceBroken();
                         for (net.neoforged.neoforge.entity.PartEntity<?> part : mob.getParts()) {
                             if (part instanceof com.alex.mycelialmind.entity.MycelialBossPart bossPart) {
                                 if (bossPart.getRole() == com.alex.mycelialmind.entity.MycelialBossPart.PartRole.WEAK_POINT) {
-                                    LevelRenderer.renderLineBox(poseStack, lineConsumer, bossPart.getBoundingBox().inflate(0.04D),
-                                            1.0F, 0.20F, 0.90F * pulse, 0.96F);
+                                    if (bossCarapaceBroken) {
+                                        LevelRenderer.renderLineBox(poseStack, lineConsumer, bossPart.getBoundingBox().inflate(0.10D),
+                                                1.0F, 0.85F * pulse, 0.16F, 1.0F);
+                                    } else {
+                                        LevelRenderer.renderLineBox(poseStack, lineConsumer, bossPart.getBoundingBox().inflate(0.04D),
+                                                1.0F, 0.20F, 0.90F * pulse, 0.96F);
+                                    }
                                 } else {
-                                    LevelRenderer.renderLineBox(poseStack, lineConsumer, bossPart.getBoundingBox().inflate(0.02D),
-                                            0.75F, 0.55F, 0.25F, 0.85F);
+                                    if (bossCarapaceBroken) {
+                                        LevelRenderer.renderLineBox(poseStack, lineConsumer, bossPart.getBoundingBox().inflate(0.01D),
+                                                0.55F, 0.35F, 0.25F, 0.35F);
+                                    } else {
+                                        LevelRenderer.renderLineBox(poseStack, lineConsumer, bossPart.getBoundingBox().inflate(0.02D),
+                                                0.75F, 0.55F, 0.25F, 0.85F);
+                                    }
                                 }
                             }
                         }

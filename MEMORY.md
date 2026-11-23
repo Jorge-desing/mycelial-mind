@@ -3654,3 +3654,28 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Estado / Verificación:**
   - CodeMode (`mycelial-mind-dev`): `run_model_studio(check_only=False, run_tests=True)` PASS (`25/25`), `validate_skills` PASS (`8/8`), `audit_mod_assets` PASS (`1667/1667` EN/ES, `593` claves referenciadas, `17/17` modelos UV), `run_gradle_task(["test", "pitest"], offline=True)` PASS (`61/61` JUnit, PITest `1130` mutaciones / `891 KILLED = 78.85%`, 90% line coverage).
   - Fallback PowerShell (por `KeyManagementException` de NeoFormRuntime `:downloadAssets`/`:createMinecraftArtifacts` dentro del proceso MCP `pid 31556`): `.\gradlew.bat runGameTestServer -PisolatedGameTests=true --offline --no-configuration-cache` PASS (`166/166` `@GameTest`s en `5.804 s`) y servidor dedicado `runSmokeServer` + `scripts/rcon_verify.py` PASS (`[Verify:Mycorrhizal] PASS`, `[Mycelial Verify] ALL 21 automated scenario checks PASSED.`, `RCON_RC=0`). Objetivo `/goal` completado.
+
+
+## [2026-11-22 17:50] — Nueva Arquitectura Unificada de Combate para Jefes (`/goal` + `/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:**
+  1. **Motor puro (`BossCombatArchitectureEngine.java`):** Implementados `BossCombatState` (`IDLE`, `WINDUP`, `ACTIVE`, `RECOVERY`, `STAGGERED`), `BossAttackId` (13 ataques telegrafiados repartidos entre los 3 jefes), `BossCarapaceProfile` (`SPORE_BEHEMOTH` `55 HP / 40t / 130t`, `HIVE_CORE` `80 HP / 45t / 145t`, `APEX_MATRIARCH` `110 HP / 50t / 160t`), selector por utilidad `selectNextAttack` (distancia, fase, anti-spam, `StimulusType` dominante y `PlayerHabit`), `resolveComboFollowUp` (combo de 1 paso en fases avanzadas) y `computeBossPartDamageWithCarapace` (`1.55x` weak point expuesto / `1.0x` caparazón roto).
+  2. **Clase base y 3 jefes (`MycelialBossMob.java`, `MycelialBossPart.java`, `SporeBehemothEntity.java`, `HiveCoreBossEntity.java`, `ApexMatriarchEntity.java`):**
+     - Máquina de estados exclusiva sincronizada por `EntityDataAccessor` (sin alterar la versión de red `v20`), ruptura física del `ARMORED_CARAPACE` que dispara `STAGGERED` y baja físicamente el `WEAK_POINT` para castigo melee, regeneración automática o en cambio de fase, y telegrafiado de partículas/sonido en suelo (`spawnGroundRingTelegraph` / `spawnGroundLineTelegraph`).
+     - **Spore Behemoth (2 fases):** `BEHEMOTH_SEISMIC_CHARGE`, `BEHEMOTH_SEISMIC_SLAM`, `BEHEMOTH_SPORE_RAIN` (5-way en F2), `BEHEMOTH_MYCELIAL_SHIELD` y combo F2 Embestida -> Golpe Sísmico.
+     - **Hive Core (3 fases):** `HIVE_CORE_ACID_FAN`, `HIVE_CORE_SYNAPTIC_SWEEP`, `HIVE_CORE_COMMAND_PULSE`, `HIVE_CORE_ANCHOR_RAY` (F2 con anclas `SentinelNode`) y `HIVE_CORE_SPORE_SHOCKWAVE` (combo F3 Barrido -> Onda).
+     - **Apex Matriarch (3 fases):** `MATRIARCH_SPORE_BARRAGE`, `MATRIARCH_ECHO_TELEPORT` (anillo telegrafiado en destino antes de teletransportar), `MATRIARCH_HOMEOSTATIC_PULSE` (F2, añade estrés en `deep_mycelium`) y `MATRIARCH_SYNAPTIC_STORM` (combo F3 Eco -> Tormenta).
+  3. **Cliente, HUD, Visión Térmica y Modelos 3D:** Añadida barra de telemetría de jefes en tiempo real en `BioScannerHudOverlay.java` (fase, integridad/ruptura de caparazón y barra de progreso del ataque telegrafiado), resaltado diferenciado en `SYNAPTIC_VISION` (`ClientSetup.java`), poses de `WINDUP`/`ACTIVE`/`STAGGERED` en `scripts/model_studio/java_emitter.py` (regenerando `SporeBehemothModel`, `HiveCoreModel` y `ApexMatriarchModel`) y 26 claves bilingües nuevas (`en_us.json`/`es_es.json`).
+  4. **Skills revisadas y actualizadas:** Actualizada `.agents/skills/mycelial-ai-hive/SKILL.md`; revisadas las 7 skills restantes del proyecto sin cambios necesarios (`8/8` validadas).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/hive/BossCombatArchitectureEngine.java`
+  - `src/main/java/com/alex/mycelialmind/entity/{MycelialBossMob,MycelialBossPart,SporeBehemothEntity,HiveCoreBossEntity,ApexMatriarchEntity}.java`
+  - `src/main/java/com/alex/mycelialmind/client/{hud/BioScannerHudOverlay,ClientSetup,model/{SporeBehemothModel,HiveCoreModel,ApexMatriarchModel}}.java`
+  - `scripts/model_studio/java_emitter.py`
+  - `src/main/resources/assets/mycelialmind/lang/{en_us,es_es}.json`
+  - `src/test/java/com/alex/mycelialmind/HiveAlgorithmsUnitTest.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`bossCombatArchitectureStateMachineCarapaceBreakAndPhasesWork`)
+  - `.agents/skills/mycelial-ai-hive/SKILL.md`
+- **Estado / Verificación:**
+  - JUnit (`test`): **`62/62`** PASS (`6` suites, `0` fallos).
+  - `@GameTest` (`runGameTestServer -PisolatedGameTests=true`): **`167/167`** PASS en `6.688 s`.
+  - CodeMode (`mycelial-mind-dev`): `run_model_studio` **`ok: true`** (`25/25` tests, incluido `test_boss_aoe_inflate_preserved`), `audit_mod_assets` **`ok: true`**, `validate_skills` **`ok: true`** (`8/8`). Nota: `run_gradle_task` vía MCP falló en `:createMinecraftArtifacts` por `SSLContextImpl$DefaultSSLContext` en el entorno del daemon MCP, por lo que `test` + `runGameTestServer` se ejecutaron directamente con JDK 21. Pendiente playtest visual interactivo en cliente (`runClient`) para inspeccionar las nuevas barras del HUD y poses 3D en vivo.
