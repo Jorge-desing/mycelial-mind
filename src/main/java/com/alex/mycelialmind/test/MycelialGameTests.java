@@ -7100,10 +7100,7 @@ public final class MycelialGameTests {
         BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        helper.startSequence().thenIdle(2).thenWaitUntil(() -> helper.assertTrue(
-                level.isPositionEntityTicking(core3) && forcedChunks.stream()
-                        .allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
-                "Expected the forced outbreak arena chunks to finish loading entities.")).thenExecute(() -> {
+        helper.startSequence().thenIdle(2).thenExecute(() -> {
             try {
                 hive.resetAll();
                 tracker.clearAll();

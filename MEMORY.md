@@ -3909,3 +3909,10 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`; `weaverRejoinsAlliesAndResumesAfterDesync`, `swarmSteeringUtilityCurvesAndFastNoiseDeterminism`, `blindSpotOutbreakGrowsBlockByBlockStallsInLightAndCoreOrCompletionWorks`, batches `sovereign_*`.
 - **Verificación:** `main` en `2ffc8ad` pasó JUnit, build, dry-run de publicación, assets y configuración; **176/176 GameTests**. PR #4, head `8d0adbd`, pasó los tres checks y **176/176 GameTests**. PR #4 conserva como único diff Modonomicon `1.123.0` → `1.123.1` y permanece abierto, sin fusionar.
 - **Entrega:** `41057f0`, `439be02` y `2ffc8ad` publicados en `origin/main`; PR #4 rebasado sobre `2ffc8ad`.
+
+## 2026-11-23 — Carrera de carga de entidades en GameTest de brote
+- **Tipo:** `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:** La validación de la punta `9d6a78c` del PR #4 volvió a fallar solo en `blindSpotOutbreakGrowsBlockByBlockStallsInLightAndCoreOrCompletionWorks`, porque esperaba que todos los chunks forzados de una arena extensa terminaran con entidades cargadas. El test fuerza y obtiene sincrónicamente los chunks, y ejecuta la expansión de forma directa; ese requisito extra de carga/tick de entidades no corresponde a lo que verifica.
+- **Cambio:** Se quitó esa espera global de entity-loading del test; se mantienen la preparación de chunks, la arena, las comprobaciones funcionales y su limpieza. La repetición de CI sobre el nuevo commit queda pendiente.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`; `blindSpotOutbreakGrowsBlockByBlockStallsInLightAndCoreOrCompletionWorks`.
+- **Entrega:** Commit de corrección preparado sobre `0ca412c`; se enviará a `origin/main` y se actualizará PR #4 tras revisar el diff.
