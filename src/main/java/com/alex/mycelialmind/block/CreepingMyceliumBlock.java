@@ -36,7 +36,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 /**
- * Invasive mycelial ground block that slowly spreads to adjacent natural soil/stone
+ * Invasive mycelial ground block that spreads to adjacent natural soil/stone
  * unless blocked by a Purification Pylon.
  */
 public class CreepingMyceliumBlock extends Block {
@@ -96,7 +96,8 @@ public class CreepingMyceliumBlock extends Block {
         if (!MycelialConfig.MYCELIUM_SPREAD_ENABLED.get()) {
             return;
         }
-        if (random.nextDouble() >= MycelialConfig.MYCELIUM_SPREAD_CHANCE.get()) {
+        if (!MyceliumSpreadPolicy.shouldAttempt(
+                random.nextDouble(), MycelialConfig.MYCELIUM_SPREAD_CHANCE.get())) {
             return;
         }
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);

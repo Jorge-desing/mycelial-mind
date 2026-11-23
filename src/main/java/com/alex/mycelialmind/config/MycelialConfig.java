@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.config;
 
+import com.alex.mycelialmind.block.MyceliumSpreadPolicy;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -111,7 +112,7 @@ public final class MycelialConfig {
 
         MYCELIUM_SPREAD_CHANCE = builder
                 .comment("Probability (0.0 to 1.0) per random tick that Creeping Mycelium attempts to spread.")
-                .defineInRange("myceliumSpreadChance", 0.12, 0.0, 1.0);
+                .defineInRange("myceliumSpreadChance", MyceliumSpreadPolicy.DEFAULT_CHANCE, 0.0, 1.0);
 
         PYLON_PURIFICATION_RADIUS = builder
                 .comment("Protection radius (in blocks) of a Purification Pylon.")

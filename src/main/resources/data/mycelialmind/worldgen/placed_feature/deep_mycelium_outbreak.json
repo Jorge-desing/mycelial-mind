@@ -3,10 +3,10 @@
   "placement": [
     {
       "type": "mycelialmind:hive_tier_rarity",
-      "dormant_chance": 16,
-      "awakened_chance": 12,
-      "adaptive_chance": 9,
-      "overmind_chance": 6
+      "dormant_chance": 32,
+      "awakened_chance": 24,
+      "adaptive_chance": 18,
+      "overmind_chance": 12
     },
     {
       "type": "minecraft:in_square"

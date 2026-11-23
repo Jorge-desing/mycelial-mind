@@ -39,10 +39,10 @@ public final class StructureProgressionPolicy {
     public static int outbreakRarityChance(HiveProgressionTier tier) {
         HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
         return switch (safeTier) {
-            case DORMANT -> 14;
-            case AWAKENED -> 10;
-            case ADAPTIVE -> 7;
-            case OVERMIND -> 5;
+            case DORMANT -> 28;
+            case AWAKENED -> 20;
+            case ADAPTIVE -> 14;
+            case OVERMIND -> 10;
         };
     }
 
@@ -53,10 +53,10 @@ public final class StructureProgressionPolicy {
     public static int surfaceOutbreakRarityChance(HiveProgressionTier tier) {
         HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
         return switch (safeTier) {
-            case DORMANT -> 96;
-            case AWAKENED -> 64;
-            case ADAPTIVE -> 44;
-            case OVERMIND -> 28;
+            case DORMANT -> 192;
+            case AWAKENED -> 128;
+            case ADAPTIVE -> 88;
+            case OVERMIND -> 56;
         };
     }
 
@@ -66,10 +66,10 @@ public final class StructureProgressionPolicy {
     public static int deepMyceliumOutbreakRarityChance(HiveProgressionTier tier) {
         HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
         return switch (safeTier) {
-            case DORMANT -> 16;
-            case AWAKENED -> 12;
-            case ADAPTIVE -> 9;
-            case OVERMIND -> 6;
+            case DORMANT -> 32;
+            case AWAKENED -> 24;
+            case ADAPTIVE -> 18;
+            case OVERMIND -> 12;
         };
     }
 

@@ -47,13 +47,15 @@ await call_tool("run_verify_mod", {
 *(Usa `"force_regenerate": True` si necesitas forzar regeneración completa ignorando los stamps SHA-256 en `build/.verify-stamps/`, y `"include_structure_visual_smoke": True` para validar estructuras en paralelo desde `artifacts/diagnostics/structure-visual-client/`.)*
 - **Pruebas unitarias headless (`:test`) y mutación (`pitest`):** `build.gradle` conecta `addModdingDependenciesTo(sourceSets.test)`, `maxParallelForks` (hasta `3` forks) y `-XX:TieredStopAtLevel=1` para ejecutar JUnit 5 (`HiveAlgorithmsUnitTest`, `MigratedGameTestLogicTest`, etc.) sin arrancar `ModLauncher`/`FML` ni `:downloadAssets` (`~0.9s` de suite JUnit, `~13–17s` `--rerun-tasks`); `pitest` usa `threads = availableProcessors() - 1`, `jvmArgs = ['-XX:TieredStopAtLevel=1', '-Xmx512m']` y `withHistory = true`, y los runs `gameTestServer`, `smokeServer`, `visualSmoke`, `animationVisualSmoke`, `structureVisualSmoke`, `hiveLifecycleSmoke` y `data` añaden `-Xms512m -Xmx2G -XX:+UseParallelGC`.
 - **Terreno rápido en `@GameTest`:** usar `homeostasisTestPos(..., slot * 64)` (separación por chunk sin regiones remotas) y `level.setBlock(..., 18)` (`UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE`) al construir o limpiar plataformas amplias de prueba donde no se prueben cascadas de vecinos.
-Fallback por consola únicamente si `mycelial-mind-dev` no está conectado (fijando `JAVA_HOME` en Windows):
+Fallback por consola si `mycelial-mind-dev` no está conectado o si `run_gradle_task` falla antes de iniciar Gradle por un bloqueo del entorno, como acceso denegado al lock del wrapper global. En Windows, fija `JAVA_HOME`; si la caché del repositorio `.gradle-user-home` ya contiene la distribución y dependencias necesarias, úsala en modo offline para dejar intacta la caché global:
 ```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat runGameTestServer
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat test
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat pitest --no-daemon
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\gradlew.bat build
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"; .\scripts\Verify-Mod.ps1 -IncludeServerSmoke
+$env:GRADLE_USER_HOME = (Join-Path (Get-Location) '.gradle-user-home')
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
+.\gradlew.bat runGameTestServer -PisolatedGameTests=true --offline --no-daemon
+.\gradlew.bat test --offline --no-daemon
+.\gradlew.bat pitest --offline --no-daemon
+.\gradlew.bat build --offline --no-daemon
+.\scripts\Verify-Mod.ps1 -IncludeServerSmoke
 ```
 
 ## 3. Smoke Testing Autónomo con MCPMC

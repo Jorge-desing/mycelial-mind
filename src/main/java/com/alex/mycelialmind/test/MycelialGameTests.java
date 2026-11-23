@@ -977,6 +977,27 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty")
+    public static void creepingMyceliumSpreadCanBeDisabled(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos myceliumLocal = new BlockPos(1, 1, 1);
+        BlockPos dirtLocal = new BlockPos(2, 1, 1);
+        boolean previousSetting = MycelialConfig.MYCELIUM_SPREAD_ENABLED.get();
+        try {
+            MycelialConfig.MYCELIUM_SPREAD_ENABLED.set(false);
+            helper.setBlock(myceliumLocal, ModBlocks.CREEPING_MYCELIUM.get());
+            helper.setBlock(dirtLocal, Blocks.DIRT);
+            BlockPos myceliumPos = helper.absolutePos(myceliumLocal);
+            for (int i = 0; i < 25; i++) {
+                level.getBlockState(myceliumPos).randomTick(level, myceliumPos, level.getRandom());
+            }
+            helper.assertBlockPresent(Blocks.DIRT, dirtLocal);
+            helper.succeed();
+        } finally {
+            MycelialConfig.MYCELIUM_SPREAD_ENABLED.set(previousSetting);
+        }
+    }
+
+    @GameTest(template = "empty")
     public static void hiveCoreBossSymbioticShieldAndAdaptation(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos symbioticNodeRel = new BlockPos(2, 1, 1);
