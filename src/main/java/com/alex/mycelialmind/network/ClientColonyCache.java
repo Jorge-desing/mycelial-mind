@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.colony.SymbiontCaste;
+import com.alex.mycelialmind.colony.ColonyWitnessMemory;
 import com.alex.mycelialmind.colony.SymbiontRank;
 import com.alex.mycelialmind.colony.SymbiontTemperament;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,18 @@ import java.util.UUID;
  * Client-side synchronized snapshot of the player's Sovereign Hive Colony.
  */
 public final class ClientColonyCache {
+    public record SiteMemorySnapshot(
+            BlockPos sitePos,
+            int learnedHabit,
+            int trialHabit,
+            int incidentCount,
+            int successfulTrials,
+            int failedTrials,
+            int lastIncidentCode,
+            int lastOutcomeCode
+    ) {
+    }
+
     public record WorkerSnapshot(
             UUID workerId,
             SymbiontCaste caste,
@@ -24,6 +37,30 @@ public final class ClientColonyCache {
             int morale,
             boolean standby,
             int xp
+    ) {
+    }
+
+    public record ReconstructionWitnessSnapshot(
+            UUID witnessId,
+            int type,
+            BlockPos memoryPos,
+            int status
+    ) {
+    }
+
+    public record ReconstructionSnapshot(
+            BlockPos ruinedSite,
+            BlockPos successorSite,
+            boolean hasSuccessor,
+            long createdTick,
+            int requiredMask,
+            int restoredMask,
+            UUID activeWitness,
+            int activeType,
+            UUID lastFailedWitness,
+            int lastFailedType,
+            int lastFailure,
+            List<ReconstructionWitnessSnapshot> witnesses
     ) {
     }
 
@@ -45,6 +82,13 @@ public final class ClientColonyCache {
     private static int activeOrders = 0;
     private static int activeRaidRemaining = 0;
     private static List<WorkerSnapshot> workers = List.of();
+    private static List<SiteMemorySnapshot> siteMemories = List.of();
+    private static boolean memoryTransferActive;
+    private static BlockPos memoryTransferSource = BlockPos.ZERO;
+    private static BlockPos memoryTransferTarget = BlockPos.ZERO;
+    private static int memoryTransferHabit;
+    private static boolean memoryTransferInTransit;
+    private static List<ReconstructionSnapshot> reconstructions = List.of();
 
     private ClientColonyCache() {
     }
@@ -67,6 +111,13 @@ public final class ClientColonyCache {
         activeOrders = payload.activeOrders();
         activeRaidRemaining = payload.activeRaidRemaining();
         workers = List.copyOf(payload.workers());
+        siteMemories = List.copyOf(payload.siteMemories());
+        memoryTransferActive = payload.memoryTransferActive();
+        memoryTransferSource = payload.memoryTransferSource();
+        memoryTransferTarget = payload.memoryTransferTarget();
+        memoryTransferHabit = payload.memoryTransferHabit();
+        memoryTransferInTransit = payload.memoryTransferInTransit();
+        reconstructions = List.copyOf(payload.reconstructions());
     }
 
     public static void reset() {
@@ -87,6 +138,13 @@ public final class ClientColonyCache {
         activeOrders = 0;
         activeRaidRemaining = 0;
         workers = List.of();
+        siteMemories = List.of();
+        memoryTransferActive = false;
+        memoryTransferSource = BlockPos.ZERO;
+        memoryTransferTarget = BlockPos.ZERO;
+        memoryTransferHabit = 0;
+        memoryTransferInTransit = false;
+        reconstructions = List.of();
     }
 
     public static boolean hasColony() {
@@ -156,5 +214,43 @@ public final class ClientColonyCache {
 
     public static List<WorkerSnapshot> getWorkers() {
         return Collections.unmodifiableList(workers);
+    }
+
+    public static List<SiteMemorySnapshot> getSiteMemories() {
+        return Collections.unmodifiableList(siteMemories);
+    }
+
+    @Nullable
+    public static SiteMemorySnapshot getSiteMemory(BlockPos pos) {
+        for (SiteMemorySnapshot memory : siteMemories) {
+            if (memory.sitePos().equals(pos)) {
+                return memory;
+            }
+        }
+        return null;
+    }
+
+    public static boolean hasMemoryTransfer() {
+        return memoryTransferActive;
+    }
+
+    public static BlockPos getMemoryTransferSource() {
+        return memoryTransferSource;
+    }
+
+    public static BlockPos getMemoryTransferTarget() {
+        return memoryTransferTarget;
+    }
+
+    public static int getMemoryTransferHabit() {
+        return memoryTransferHabit;
+    }
+
+    public static boolean isMemoryTransferInTransit() {
+        return memoryTransferInTransit;
+    }
+
+    public static List<ReconstructionSnapshot> getReconstructions() {
+        return Collections.unmodifiableList(reconstructions);
     }
 }

@@ -3927,3 +3927,13 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - Steering espera la deteccion del aliado y comprueba la separacion. Weaver y la incursion rival avanzan al confirmar que su arena esta lista. Se conservan las ventanas que comprueban comportamiento a lo largo del tiempo.
 - El round-trip basico de HiveSync se integra en la prueba JUnit de marcadores territoriales. Las curvas de utilidad y el ruido determinista se comprueban en la suite JUnit existente.
 - Skill neoforge-gametest revisada. CI se ejecuta al publicar.
+
+## 2026-11-23 — Reconstrucción post-Matriarca de puestos de colonia
+
+- Añadió recuerdos persistentes por simbionte para rutas de mensajería, puntos de patrulla y hábitos locales confirmados; al perderse un puesto tras la derrota de la Matriarca, esos recuerdos pasan a una reconstrucción que el jugador dirige desde el Nexo.
+- Cada testigo debe viajar físicamente al puesto sucesor y restaurar solo un recuerdo por vez. Las rutas reutilizan cofres existentes y validan cargado/capacidad/alcance; las patrullas trasladan offsets seguros y transitables; los hábitos evitan duplicados. Unlink temporal no se trata como destrucción.
+- Se añadieron estados de bloqueo visibles, sincronización cliente-servidor, acciones de elegir sucesor/llamar testigo/abandonar, persistencia compatible con mundos anteriores y localización bilingüe.
+- Verificación: `test` pasó, incluyendo 7 casos `ColonyReconstructionTest`; claves de idioma 2001/2001 sin diferencias; `git diff --check` limpio. `runGameTestServer` dio 176/176 en una corrida; dos corridas posteriores fallaron solo `blindspotoutbreakgrowsblockbyblockstallsinlightandcoreorcompletionworks` porque completó el núcleo pero no aparecieron élite/nube (`elite=false`, `cloud=false`), en código de pruebas sin cambios de esta tarea.
+
+## 2026-11-23 — Revisión del bloqueo post-Matriarca
+- Revisión estática de la rama de integración aaebbb7: la interfaz normal y la incubación comprueban la derrota, pero la creación y ticks del Nexo, la inserción de biomasa, el bastón, el director y el manejador de paquetes no aplican una barrera global; creativo y comandos tienen excepciones explícitas. La receta exige esencia disponible también en el cofre citadel_royal_crypt, por lo que el ingrediente por sí solo no prueba el bloqueo. No se modificó código ni se ejecutaron pruebas de juego.

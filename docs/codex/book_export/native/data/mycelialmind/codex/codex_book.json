@@ -2130,6 +2130,30 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 16,
+              "id": "sovereign_colony_guide_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 17,
+              "id": "sovereign_colony_guide_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 18,
+              "id": "sovereign_colony_guide_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.text",
+              "is_spoiler": false
             }
           ]
         },

@@ -1,6 +1,9 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.colony.ColonyOrder;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
+import com.alex.mycelialmind.colony.ColonySiteMemory;
+import com.alex.mycelialmind.colony.ColonyWitnessMemory;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonyEngine;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
@@ -13,6 +16,7 @@ import com.alex.mycelialmind.entity.ai.colony.SymbiontCourierGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontExcavatorGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontHarvesterGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontRestAndFeedGoal;
+import com.alex.mycelialmind.entity.ai.colony.SymbiontMemoryWitnessGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontSentinelGoal;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
@@ -55,7 +59,9 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -96,6 +102,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
     private static final String TAG_POUCH = "Pouch";
     private static final String TAG_LAST_WORK_TICK = "LastWorkTick";
     private static final String TAG_LAST_REST_TICK = "LastRestTick";
+    private static final String TAG_SITE_WITNESSES = "SiteWitnessMemories";
 
     @Nullable
     private UUID ownerUuid;
@@ -105,6 +112,11 @@ public class ColonySymbiontEntity extends PathfinderMob {
     private long lastWorkTick = 0L;
     private long lastRestTick = 0L;
     private boolean resting = false;
+    private boolean damagedDuringCourierTrip;
+    @Nullable
+    private BlockPos pendingEarlyRestSite;
+    private UUID witnessMemoriesSyncedToColony;
+    private final Map<ColonyWitnessMemory.Key, ColonyWitnessMemory> siteWitnessMemories = new LinkedHashMap<>();
 
     private final ItemStackHandler pouch = new ItemStackHandler(POUCH_SLOTS);
 
@@ -138,6 +150,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new SymbiontMemoryWitnessGoal(this));
         this.goalSelector.addGoal(1, new SymbiontRestAndFeedGoal(this));
         this.goalSelector.addGoal(2, new SymbiontSentinelGoal(this));
         this.goalSelector.addGoal(3, new SymbiontHarvesterGoal(this));
@@ -258,6 +271,30 @@ public class ColonySymbiontEntity extends PathfinderMob {
         this.resting = resting;
     }
 
+    public void markEarlyRestAt(BlockPos sitePos) {
+        this.pendingEarlyRestSite = sitePos.immutable();
+    }
+
+    public boolean takeCourierDamageForMemory() {
+        boolean damaged = damagedDuringCourierTrip;
+        damagedDuringCourierTrip = false;
+        return damaged;
+    }
+
+    public void clearCourierDamageForMemory() {
+        damagedDuringCourierTrip = false;
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean hurt = super.hurt(source, amount);
+        if (hurt && !this.level().isClientSide() && getCaste() == SymbiontCaste.COURIER
+                && getTaskState().startsWith("courier_")) {
+            damagedDuringCourierTrip = true;
+        }
+        return hurt;
+    }
+
     public int getWorkerXp() {
         return workerXp;
     }
@@ -350,6 +387,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
         if (this.nexusPos != null) {
             SovereignColonyData direct = saved.getByNexus(this.nexusPos);
             if (direct != null) {
+                syncSiteWitnessMemories(direct);
                 return direct;
             }
         }
@@ -359,8 +397,58 @@ public class ColonySymbiontEntity extends PathfinderMob {
             if (this.ownerUuid == null) {
                 this.ownerUuid = nearest.getOwnerId();
             }
+            syncSiteWitnessMemories(nearest);
         }
         return nearest;
+    }
+
+    private void syncSiteWitnessMemories(SovereignColonyData colony) {
+        if (colony.getColonyId().equals(witnessMemoriesSyncedToColony)) {
+            return;
+        }
+        for (ColonyWitnessMemory memory : siteWitnessMemories.values()) {
+            colony.recordWitnessMemory(memory);
+        }
+        witnessMemoriesSyncedToColony = colony.getColonyId();
+    }
+
+    public void rememberCourierChest(ServerLevel level, BlockPos sitePos, BlockPos chestPos, boolean inputRole) {
+        rememberSiteExperience(level, sitePos,
+                inputRole ? ColonyWitnessMemory.Type.COURIER_INPUT : ColonyWitnessMemory.Type.COURIER_OUTPUT,
+                chestPos);
+    }
+
+    public void rememberPatrolPoint(ServerLevel level, BlockPos sitePos, BlockPos patrolPos) {
+        BlockPos offset = new BlockPos(patrolPos.getX() - sitePos.getX(),
+                patrolPos.getY() - sitePos.getY(), patrolPos.getZ() - sitePos.getZ());
+        if (com.alex.mycelialmind.colony.ColonyReconstructionRules.isSafePatrolOffset(offset)) {
+            rememberSiteExperience(level, sitePos, ColonyWitnessMemory.Type.SENTINEL_PATROL, offset);
+        }
+    }
+
+    public void rememberSuccessfulHabit(ServerLevel level, BlockPos sitePos, ColonySiteHabit habit) {
+        ColonyWitnessMemory.Type type = switch (habit) {
+            case ESCORTED_COURIER -> ColonyWitnessMemory.Type.HABIT_ESCORTED_COURIER;
+            case REST_BEFORE_RETURN -> ColonyWitnessMemory.Type.HABIT_REST_BEFORE_RETURN;
+            case STAGGERED_PICKUP -> ColonyWitnessMemory.Type.HABIT_STAGGERED_PICKUP;
+            case NONE -> null;
+        };
+        if (type != null) {
+            rememberSiteExperience(level, sitePos, type, BlockPos.ZERO);
+        }
+    }
+
+    private void rememberSiteExperience(ServerLevel level, BlockPos sitePos,
+                                        ColonyWitnessMemory.Type type, BlockPos memoryPos) {
+        SovereignColonyData colony = getColonyData(level);
+        if (colony == null) {
+            return;
+        }
+        ColonyWitnessMemory memory = new ColonyWitnessMemory(getUUID(), sitePos, type, memoryPos);
+        siteWitnessMemories.put(memory.key(), memory);
+        if (colony.recordWitnessMemory(memory)) {
+            SovereignColonySavedData.get(level).setDirty();
+        }
     }
 
     public BlockPos getHomeAnchor() {
@@ -432,6 +520,23 @@ public class ColonySymbiontEntity extends PathfinderMob {
         }
 
         if (colony != null) {
+            if (pendingEarlyRestSite != null) {
+                ColonySiteMemory memory = colony.getSiteMemory(pendingEarlyRestSite);
+                if (memory != null) {
+                    boolean learned = memory.recordTrialSuccess(ColonySiteHabit.REST_BEFORE_RETURN, 2);
+                    if (memory.usesHabit(ColonySiteHabit.REST_BEFORE_RETURN)) {
+                        rememberSiteExperience(level, pendingEarlyRestSite,
+                                ColonyWitnessMemory.Type.HABIT_REST_BEFORE_RETURN, BlockPos.ZERO);
+                    }
+                    if (learned) {
+                        level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                                pendingEarlyRestSite.getX() + 0.5D, pendingEarlyRestSite.getY() + 1.0D,
+                                pendingEarlyRestSite.getZ() + 0.5D, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                    }
+                    SovereignColonySavedData.get(level).setDirty();
+                }
+                pendingEarlyRestSite = null;
+            }
             int domainGain = (int) Math.round(SovereignColonyEngine.computeOrderDomainXp(orderType, temp, colony.getTier()));
             colony.addDomainXp(domainGain);
             SovereignColonySavedData.get(level).setDirty();
@@ -556,13 +661,31 @@ public class ColonySymbiontEntity extends PathfinderMob {
             }
             SovereignColonyData colony = getColonyData(serverLevel);
             if (colony != null) {
+                if (damagedDuringCourierTrip) {
+                    recordCourierDamageObservation(serverLevel, colony);
+                }
                 colony.recordWorkerLoss();
-                colony.removeWorker(this.getUUID());
+                colony.onWorkerDeath(this.getUUID());
                 colony.recalculateMorale();
                 SovereignColonySavedData.get(serverLevel).setDirty();
             }
         }
         super.die(source);
+    }
+
+    private void recordCourierDamageObservation(ServerLevel level, SovereignColonyData colony) {
+        BlockPos site = colony.findNearestMemorySite(this.blockPosition(), 16.0D);
+        if (site == null) {
+            return;
+        }
+        ColonySiteMemory memory = colony.getSiteMemory(site);
+        if (memory != null && memory.recordIncident(ColonySiteHabit.ESCORTED_COURIER, 1, level.getGameTime())) {
+            level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                    site.getX() + 0.5D, site.getY() + 1.0D, site.getZ() + 0.5D,
+                    1, 0.0D, 0.0D, 0.0D, 0.0D);
+        }
+        SovereignColonySavedData.get(level).setDirty();
+        damagedDuringCourierTrip = false;
     }
 
     @Override
@@ -622,6 +745,11 @@ public class ColonySymbiontEntity extends PathfinderMob {
         tag.putBoolean(TAG_STANDBY, isStandby());
         tag.putLong(TAG_LAST_WORK_TICK, lastWorkTick);
         tag.putLong(TAG_LAST_REST_TICK, lastRestTick);
+        net.minecraft.nbt.ListTag witnessTag = new net.minecraft.nbt.ListTag();
+        for (ColonyWitnessMemory memory : siteWitnessMemories.values()) {
+            witnessTag.add(memory.save());
+        }
+        tag.put(TAG_SITE_WITNESSES, witnessTag);
         tag.put(TAG_POUCH, pouch.serializeNBT(this.registryAccess()));
     }
 
@@ -640,6 +768,15 @@ public class ColonySymbiontEntity extends PathfinderMob {
         this.entityData.set(DATA_STANDBY, tag.getBoolean(TAG_STANDBY));
         this.lastWorkTick = tag.getLong(TAG_LAST_WORK_TICK);
         this.lastRestTick = tag.getLong(TAG_LAST_REST_TICK);
+        siteWitnessMemories.clear();
+        net.minecraft.nbt.ListTag witnessTag = tag.getList(TAG_SITE_WITNESSES, CompoundTag.TAG_COMPOUND);
+        for (int i = 0; i < witnessTag.size(); i++) {
+            ColonyWitnessMemory memory = ColonyWitnessMemory.load(witnessTag.getCompound(i));
+            if (memory != null && memory.witnessId().equals(getUUID())) {
+                siteWitnessMemories.put(memory.key(), memory);
+            }
+        }
+        witnessMemoriesSyncedToColony = null;
         if (tag.contains(TAG_POUCH, CompoundTag.TAG_COMPOUND)) {
             pouch.deserializeNBT(this.registryAccess(), tag.getCompound(TAG_POUCH));
         }

@@ -7,6 +7,9 @@ import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.client.screen.ClientCodexOpener;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
+import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
@@ -135,6 +138,28 @@ public class BioScannerItem extends Item {
                         String.format("%.1f", nodeBe.getVolatileTotal()),
                         nodeBe.getSymbioticStability()
                 ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                if (level.getBlockState(pos).is(ModBlocks.SYMBIOTIC_NODE.get())) {
+                    SovereignColonyData colony = SovereignColonySavedData.get(serverLevel).findContainingColony(pos);
+                    BlockPos memorySite = colony != null ? colony.findNearestMemorySite(pos, 16.0D) : null;
+                    if (colony != null && memorySite != null) {
+                        var memory = colony.getExistingSiteMemory(memorySite);
+                        ColonySiteHabit learned = memory != null ? memory.learnedHabit() : ColonySiteHabit.NONE;
+                        ColonySiteHabit trial = memory != null ? memory.trialHabit() : ColonySiteHabit.NONE;
+                        String statusKey = trial != ColonySiteHabit.NONE
+                                ? "message.mycelialmind.scanner_colony_memory_trial"
+                                : learned != ColonySiteHabit.NONE
+                                ? "message.mycelialmind.scanner_colony_memory_learned"
+                                : "message.mycelialmind.scanner_colony_memory_observing";
+                        player.sendSystemMessage(Component.translatable(
+                                "message.mycelialmind.scanner_colony_memory",
+                                Component.translatable(statusKey),
+                                Component.translatable(learned.translationKey()),
+                                Component.translatable(trial.translationKey()),
+                                memory != null ? memory.successfulTrials() : 0,
+                                memory != null ? memory.incidentCount() : 0
+                        ).withStyle(ChatFormatting.AQUA));
+                    }
+                }
                 if (player instanceof ServerPlayer serverPlayer
                         && !(level.getBlockState(pos).getBlock() instanceof com.alex.mycelialmind.block.SymbioticNodeBlock)) {
                     HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);

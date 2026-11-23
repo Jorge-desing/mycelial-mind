@@ -200,7 +200,7 @@
         "raw": "`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
       },
       {
-        "raw": "Cap.12: Net v22,\n`/mycelial` & Verify\nAdmin Commands,\nPayloads & Verify\n(1/7)\n• Networking\n(`ModNetworking` v22):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+        "raw": "Cap.12: Net v22,\n`/mycelial` & Verify\nAdmin Commands,\nPayloads & Verify\n(1/7)\n• Networking\n(`ModNetworking` v23):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
       },
       {
         "raw": "` &\n`DiscoverySyncPayloa\nd`."

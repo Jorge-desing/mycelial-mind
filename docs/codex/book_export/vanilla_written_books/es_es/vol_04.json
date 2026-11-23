@@ -1,10 +1,11 @@
 {
   "volume": 4,
   "chapters": [
+    "mundo_dimension",
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 73,
+  "page_count": 99,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.IV"
@@ -13,6 +14,84 @@
     "generation": 0,
     "resolved": true,
     "pages": [
+      {
+        "raw": "Cap.10: Brotes y\nColmenas del\nOverworld\nEstructuras y\nCaracterísticas\nOverworld (1/3)\n• `mycelial_outbreak`:\ngarra orgánica altura\n9, conectividad\n6-vecinos estricta (0\nflotantes),\n`MIN_OUTBREAK_SPACIN\nG = 56` y bóveda\n`outbreak_sealed_vaul"
+      },
+      {
+        "raw": "t`."
+      },
+      {
+        "raw": "Estructuras y\nCaracterísticas\nOverworld (2/3)\n• `surface_hive`:\nmegacápsula radio 8,\naltura 16,\n`MIN_HIVE_SPACING =\n192`,\n`MIN_NODE_CLEARANCE\n= 64`, cripta\nsubterránea, galería\nsuperior, conductos\nsinápticos y cofres\n`surface_hive_cache`"
+      },
+      {
+        "raw": "/`gallery`/`crypt`."
+      },
+      {
+        "raw": "Estructuras y\nCaracterísticas\nOverworld (3/3)\n• Motores\n(`hive_tier_rarity` /\n`FastNoiseLite`):\nfiltran rareza por\nActo vía\n`StructureProgressio\nnPolicy` usando ruido\n`FastNoiseLite`\n(`SIMPLEX_SMOOTH`,\n`CELLULAR`,\n`DOMAIN_WARP`)"
+      },
+      {
+        "raw": "auditado con\n`WorldgenAuditEngine`."
+      },
+      {
+        "raw": "Cap.10: Dimensión\nMicelio Profundo (3\nBiomas)\nDimensión y Topología\nWFC (1/3)\n• Dimensión\n`mycelialmind:deep_myc\nelium`: accede\nabriendo\n`mycelial_rift` con\n`rift_catalyst` en un\nmarco de\n`reinforced_bio_barri\ner`. Sincroniza Actos"
+      },
+      {
+        "raw": "desde el Overworld al\ninstante."
+      },
+      {
+        "raw": "Dimensión y Topología\nWFC (2/3)\n• 3 Biomas:\n`deep_mycelium_caver\nns` (cavernas\narteriales),\n`hive_heart_sanctum`\n(cámaras del\nsantuario) y\n`latent_spore_forest`\n(bosques de esporas\nlatentes). Disponen de\naudio/niebla ambiental\npropia."
+      },
+      {
+        "raw": "Dimensión y Topología\nWFC (3/3)\n• `WfcCavernLayout`\n(`Tile`): algoritmo Wave\nFunction Collapse\npara cavernas\nconectadas sin\ncallejones sellados."
+      },
+      {
+        "raw": "Cap.10: Santuario\nJigsaw y Ciudadela\nMatriarca\nMegaestructuras\nEnd-Game (1/3)\n• `hive_sanctum`\n(Jigsaw, 11 piezas\n`.nbt`):\n`sanctum_atrium`,\n`forbidden_lab`,\n`ossuary_crypt`,\n`spore_vault`,\n`incubation_wing`,\n`ribbed_nave` y"
+      },
+      {
+        "raw": "corredores con botín\n`sanctum_*`."
+      },
+      {
+        "raw": "Megaestructuras\nEnd-Game (2/3)\n• `matriarch_citadel`\n(`matriarch_citadel_pi\nece`): incluye capillas\n`AMBER` y `CRIMSON`\n(`citadel_amber_chape\nl`,\n`citadel_crimson_chap\nel`), Cripta Real\n(`citadel_royal_crypt`\n) y guardianes\npersistentes"
+      },
+      {
+        "raw": "(`spore_behemoth` + 2\n`colony_warden`)."
+      },
+      {
+        "raw": "Megaestructuras\nEnd-Game (3/3)\n• `twisted_citadel`\n(`twisted_citadel_piece\n`,\n`architectural_accent`\n): reflejo\narquitectónico en\nMicelio Profundo con\nplantillas `.nbt`\n(`spire_tower`,\n`gallery_hall`,\n`vault_bunker`)\nadaptadas a tu paleta"
+      },
+      {
+        "raw": "y proporción."
+      },
+      {
+        "raw": "Cap.10: Homeostasis\nDimensional y Quistes\nSistema Inmune de la\nDimensión (1/2)\n• 3 Etapas\n(`HomeostasisStage`):\n`STABLE` (<40),\n`IRRITATED` (>=40) e\n`IMMUNE_RESPONSE`\n(>=70; tormenta >=85).\nExplosiones, abuso de\nPilones y Fase 2\nMatriarca (+20)"
+      },
+      {
+        "raw": "sensibilizan cada\nchunk\n(`homeostasisSensitiza\ntion` 0–3)."
+      },
+      {
+        "raw": "Sistema Inmune de la\nDimensión (2/2)\n• Lluvia Ácida y\n`antibody_cyst`: en\n`IMMUNE_RESPONSE`\nbajo cielo abierto cae\nlluvia corrosiva\n(`homeostasisAcidRainD\namage = 2.0`). Brotan\nquistes (máx.\n`64`/chunk); si cubren\n>=4 caras\n(`SMOTHER_FACE_THRE"
+      },
+      {
+        "raw": "SHOLD`) sofocan\nPilones hasta\ncosecharlos."
+      },
+      {
+        "raw": "Cap.10: Protocolo de\nCiclos y Mutadores\nProtocolo de Ciclos y\nMutadores (1/4)\n• Activación\nPost-Matriarca: Tras\nderrotar a\n`apex_matriarch`, usa\n`matriarch_altar` sin\nofrenda válida para\nabrir\n`CycleProtocolScreen`,\nelegir 1–3 de los 6"
+      },
+      {
+        "raw": "mutadores e iniciar el\nCiclo N (limpia\nremisión)."
+      },
+      {
+        "raw": "Protocolo de Ciclos y\nMutadores (2/4)\n• Mutadores I–III:\n`hyper_adaptation`\n(+45% aprendizaje,\numbrales x0.85, +35%\npts), `perpetual_tide`\n(+50% marea y menor\numbral final, +40% pts)\ny `acute_homeostasis`\n(+40% estrés inmune,\n+35% pts)."
+      },
+      {
+        "raw": "Protocolo de Ciclos y\nMutadores (3/4)\n• Mutadores IV–VI:\n`synaptic_swarm`\n(+atacantes y élite en\noleadas/escuadrones,\n+40% pts),\n`primordial_apex`\n(+25% HP/+15% daño\nde jefes y cooldown\nmenor, +50% pts) y\n`hyphal_overload`\n(+35% presión hifal,"
+      },
+      {
+        "raw": "+30% pts)."
+      },
+      {
+        "raw": "Protocolo de Ciclos y\nMutadores (4/4)\n• Cierre y Récords: Al\nderrotar a\n`apex_matriarch`\ndurante el Ciclo se\ncalcula `1000 * mult +\nvelocidad(<=500) -\nmuertes*120` (mín.\n`250`) otorgando\nrango S+..C, récord y\nel engrama\n`overmind_cycle`."
+      },
       {
         "raw": "Cap.11: Los 8\nSecretos: Pistas de\nCampo\nPistas de\nDescubrimiento (1–8)\n(1/3)\n• Secreto 1 (Acto II /\nLab N2): prueba\ncombinar Muestra\nGenética, Biomasa y\nAmatista.\n• Secreto 2 (Lab):\nexperimenta con\nAntídoto de Esporas,"
       },
@@ -203,7 +282,7 @@
         "raw": "old`=`5` (`2..32`),\n`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
       },
       {
-        "raw": "Cap.12: Red v22,\n`/mycelial` y Verify\nComandos Admin,\nPayloads y Verify\n(1/7)\n• Red (`ModNetworking`\nv22):\n`HiveSyncPayload`\n(`<=64` nodos, `<=32`\npilones, `<=64` chunks\ninflamados),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+        "raw": "Cap.12: Red v22,\n`/mycelial` y Verify\nComandos Admin,\nPayloads y Verify\n(1/7)\n• Red (`ModNetworking`\nv23):\n`HiveSyncPayload`\n(`<=64` nodos, `<=32`\npilones, `<=64` chunks\ninflamados),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
       },
       {
         "raw": "` y\n`DiscoverySyncPayloa\nd`."

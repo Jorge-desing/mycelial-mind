@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.entity.ai.colony;
 
 import com.alex.mycelialmind.colony.ColonyOrder;
+import com.alex.mycelialmind.colony.ColonySiteMemory;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignTrait;
 import com.alex.mycelialmind.colony.SymbiontCaste;
@@ -112,6 +113,9 @@ public class SymbiontSentinelGoal extends Goal {
         }
 
         if (worker.getCaste() == SymbiontCaste.SENTINEL && colony != null) {
+            if (followCourierEscort(level, colony)) {
+                return;
+            }
             worker.setTaskState("patrolling");
             if (scanCooldown > 0) {
                 scanCooldown--;
@@ -121,10 +125,45 @@ public class SymbiontSentinelGoal extends Goal {
             if (worker.blockPosition().distSqr(patrolPoint) > 9.0D) {
                 worker.getNavigation().moveTo(patrolPoint.getX() + 0.5D, patrolPoint.getY(), patrolPoint.getZ() + 0.5D, 1.05D);
             } else {
+                BlockPos site = colony.findNearestMemorySite(patrolPoint, 16.0D);
+                if (site != null) {
+                    worker.rememberPatrolPoint(level, site, patrolPoint);
+                }
                 patrolIndex++;
                 scanCooldown = 40;
             }
         }
+    }
+
+    private boolean followCourierEscort(ServerLevel level, SovereignColonyData colony) {
+        long now = level.getGameTime();
+        BlockPos site = colony.findEscortSiteForSentinel(worker.getUUID(), now);
+        if (site == null) {
+            site = colony.claimNearestEscortForSentinel(worker.blockPosition(), worker.getUUID(), now, 24.0D);
+        }
+        if (site == null) {
+            return false;
+        }
+        ColonySiteMemory memory = colony.getExistingSiteMemory(site);
+        if (memory == null) {
+            return false;
+        }
+        var courierId = memory.escortCourier(now);
+        if (courierId == null || !(level.getEntity(courierId) instanceof ColonySymbiontEntity courier)
+                || !courier.isAlive() || courier.getCaste() != SymbiontCaste.COURIER) {
+            memory.clearEscort(courierId == null ? worker.getUUID() : courierId);
+            return false;
+        }
+        worker.setTaskState("courier_escort");
+        worker.getLookControl().setLookAt(courier, 20.0F, 20.0F);
+        if (worker.distanceToSqr(courier) > 4.2D) {
+            if (worker.tickCount % 10 == 0 || worker.getNavigation().isDone()) {
+                worker.getNavigation().moveTo(courier, 1.18D);
+            }
+        } else {
+            worker.getNavigation().stop();
+        }
+        return true;
     }
 
     @Nullable
