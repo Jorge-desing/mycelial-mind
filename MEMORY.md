@@ -3916,3 +3916,9 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Cambio:** Se quitó esa espera global de entity-loading del test; se mantienen la preparación de chunks, la arena, las comprobaciones funcionales y su limpieza. La repetición de CI sobre el nuevo commit queda pendiente.
 - **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`; `blindSpotOutbreakGrowsBlockByBlockStallsInLightAndCoreOrCompletionWorks`.
 - **Entrega:** Commit de corrección preparado sobre `0ca412c`; se enviará a `origin/main` y se actualizará PR #4 tras revisar el diff.
+## 2026-11-23 — Cierre de auditoría de GitHub
+- **Tipo:** `VERIFICACIÓN` | `CORRECCIÓN`
+- **Resultado:** La corrección `fbc5e74` quedó verde en `main`: JUnit, build, dry-run de publicación, assets y configuración Renovate; **176/176 GameTests**. La punta del PR #4 `5b5fa41` también pasó sus tres checks, con **176/176 GameTests**.
+- **PR #4:** Abierto y sin fusionar; mergeable, con un único cambio en `build.gradle`: Modonomicon `1.123.0` → `1.123.1`.
+- **Corrección confirmada:** La espera de carga de entidades de todos los chunks de la arena causaba una carrera irrelevante para el test síncrono de brotes. Se quitó el gate; la prueba conserva sus verificaciones funcionales y limpieza.
+- **Entrega:** Código publicado en `origin/main` (`fbc5e74`) y PR actualizado a `5b5fa41`. Se conserva intacto el trabajo local previo del usuario.
