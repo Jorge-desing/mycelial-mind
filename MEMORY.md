@@ -3859,3 +3859,6 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-22 — Evidencia resumida publicada con el guion
 - El árbol y origin/main coincidían en 3858953. Se añadió un resumen de la verificación técnica al guion versionado. Los registros brutos y los binarios generados se conservan localmente. Sin observaciones humanas nuevas.
+
+## 2026-11-22 — Modelo 3D de las flores recuperadas
+- Se integró en Model Studio la flor de expedición con tallo, sépalos, cuatro pétalos escalonados y núcleo. Las seis paletas tintan la corola y comparten geometría antes y después de cosechar. La validación de 11 pruebas de modelos pasó; se inspeccionaron ambas capturas del cliente aislado en artifacts/diagnostics/bloom-model-preview.
