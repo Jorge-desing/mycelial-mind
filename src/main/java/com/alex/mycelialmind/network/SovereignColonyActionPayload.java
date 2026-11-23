@@ -118,7 +118,11 @@ public record SovereignColonyActionPayload(
         if (!(context.player() instanceof ServerPlayer player)) {
             return;
         }
-        context.enqueueWork(() -> {
+        context.enqueueWork(() -> applyOnServer(payload, player));
+    }
+
+    /** Executes the same validated action on the server thread, including progression checks. */
+    public static void applyOnServer(SovereignColonyActionPayload payload, ServerPlayer player) {
             ServerLevel level = player.serverLevel();
             if (!SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
                 return;
@@ -215,7 +219,6 @@ public record SovereignColonyActionPayload(
             }
             nexus.syncLiveWorkers(level, colony);
             SovereignColonySyncPayload.syncToPlayer(player, nexusPos, false);
-        });
     }
 
     @Override

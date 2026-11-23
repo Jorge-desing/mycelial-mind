@@ -3941,3 +3941,7 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 ## 2026-11-23 — Barrera de progresión de colonia
 - El Nexo, biomasa manual y automatizada, incubación incluso con bypass o creativo, mejoras, controles de red y bastón, IA de trabajadores, director, escáner y comandos activos respetan el hito de Matriarca. La reconstrucción consulta la misma regla global que el Nexo. Los datos anteriores se conservan mientras el sistema está bloqueado.
 - El GameTest de tolvas comprueba rechazo sin crear datos, incubación y mejora bloqueadas incluso con bypass y aceptación después del hito. JUnit pasó; dos ejecuciones completas de GameTests pasaron 176/176 antes del último ajuste de sincronización; la ejecución final pasó los tests de colonia pero falló el test intermitente de brote ciego (élite ausente). Falta ampliar cobertura de las rutas de bastón y red para afirmar verificación integral.
+
+## 2026-11-23 — Verificación del bloqueo de colonia
+- Se añadió un GameTest con datos de colonia conservados: antes del hito, el bastón no marca zonas, una acción de red no mejora el Nexo y el snapshot oculta la colonia; tras registrar la derrota, las tres operaciones funcionan. El manejador de red y el test comparten la misma función ejecutada en el hilo de servidor.
+- Verificación final: JUnit y GameTests aislados 177/177 correctos (`test runGameTestServer -PisolatedGameTests=true --no-daemon --offline`). Una corrida no aislada previa falló únicamente el test intermitente de brote ciego, mientras el escenario nuevo pasó.
