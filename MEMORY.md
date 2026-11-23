@@ -3711,3 +3711,9 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Estado / Verificación:**
   - Verificación ejecutada en `git worktree` aislado desde `HEAD` (`1b86719`) con los 15 archivos de la tarea (debido a ediciones WIP concurrentes de `CycleProtocol`/`FieldEngram` presentes en el árbol principal): **`66/66`** JUnit PASS (`7` suites, incluida `CleanRoomAiCapabilitiesUnitTest` `4/4`) y **`168/168`** `@GameTest`s PASS en `5.644 s` (`BUILD SUCCESSFUL`).
   - CodeMode `validate_skills`: **`8/8`** PASS; paridad EN/ES verificada (`1694/1694`, `missing_in_es: []`, `missing_in_en: []`).
+
+## [2026-11-22 21:07] — Verificación de regla permanente de commit y push
+- **Tipo:** `VERIFICACIÓN`
+- **Resumen:** A petición del usuario, se comprobó que la obligación para todos los agentes de hacer commit y push después de cada sesión o de cambios significativos está presente en `AGENTS.md`, `GEMINI.md` y `.agents/rules/git-auto-commit.md`. La regla ya está incluida en `HEAD`, y `HEAD` está sincronizado con `origin/main`; no hizo falta duplicarla.
+- **Archivos / Símbolos:** `AGENTS.md` (sección 8), `GEMINI.md`, `.agents/rules/git-auto-commit.md`, `MEMORY.md`.
+- **Estado / Siguiente paso:** Regla verificada como activa y publicada. Se registra esta verificación para cerrar la sesión.
