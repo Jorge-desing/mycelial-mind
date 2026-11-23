@@ -3856,3 +3856,6 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-22 — Entrega Git de la integración de expediciones
 - Verificación antes de publicar: gradlew --offline test runGameTestServer -PisolatedGameTests=true terminó con éxito; 175/175 GameTests. Evidencia cooperativa y visual conservada localmente. La observación de cinco jugadores en dos sesiones sigue pendiente.
+
+## 2026-11-22 — Evidencia resumida publicada con el guion
+- El árbol y origin/main coincidían en 3858953. Se añadió un resumen de la verificación técnica al guion versionado. Los registros brutos y los binarios generados se conservan localmente. Sin observaciones humanas nuevas.

@@ -2,6 +2,14 @@
 
 El objetivo es observar si los jugadores vuelven por iniciativa propia a un lugar que recuperaron o eligen transformar otro. Se necesitan cinco jugadores con una partida avanzada y dos sesiones por jugador.
 
+## Verificación técnica publicada
+
+- En el servidor dedicado, dos clientes escanearon el mismo Pilón en el tick 2843 y se anunció un solo inicio de pulso. La ruta se recuperó después de tres pulsos, con los atacantes resueltos por consola.
+- Los dos clientes escanearon el último foco del mismo jardín en el tick 4567. El servidor aceptó un enlace y cada cliente recibió un solo anuncio de recuperación.
+- En el cliente aislado se comprobó la recarga de un jardín con dos focos, la pausa y reanudación de un pulso guardado, y el rechazo del Injerto al llegar al límite de cuatro nodos. El banco produjo dos flores de la misma paleta para las seis variantes y la suite previa a la publicación aprobó los 175 GameTests.
+
+El registro de sesiones de abajo está pendiente de observaciones de jugadores.
+
 ## Preparación
 
 - Crea un perfil de Minecraft 1.21.1 con NeoForge 21.1.235. Coloca `mycelialmind-2.0.0.jar` y `smartbrainlib.jar` del paquete en su carpeta `mods`. Si compartís servidor, usa la misma versión de NeoForge y los mismos dos JAR en todos los equipos.
