@@ -3966,3 +3966,8 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **Diagnóstico CI:** Dos runs sobre `843999e` mostraron por separado el gate de preparación de incursión exigiendo `areEntitiesLoaded` para toda el área forzada y el timeout al esperar el pulso de soporte Weaver.
 - **Cambio:** La incursión conserva la carga forzada de los chunks donde genera y consulta los raiders, sin el requisito global de entity-loading que impedía iniciar el comportamiento. Weaver mantiene una región PLAYER temporal centrada en la arena; su preparación verifica el tick de ambas entidades y la carga del chunk observado, y retira el ticket al completar. Se preservan el pulso de apoyo, el estado tras desync y la ventana de 65 ticks.
 - **Verificación local:** JUnit **77/77** y dos mundos aislados consecutivos con **174/174 GameTests**. CI tras esta corrección: pendiente.
+
+
+## 2026-11-23 — Verificación CI final de GameTests
+- **Commit funcional:** `05573f3` en `codex/gametest-stability-fix`. El workflow `Verify Mycelial Mind` (`45257648737`) pasó completo: JUnit/build, **174/174 GameTests**, dry-run de publicación, assets y Renovate.
+- **Skill:** `neoforge-gametest` actualizada con la diferencia entre chunks forzados y entity-ticking, ticket temporal para arenas de IA activa, gates limitados a chunks observados y limpieza del ticket.
