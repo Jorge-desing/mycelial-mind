@@ -133,7 +133,8 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             graphics.drawCenteredString(mc.font, remBanner, sw / 2, bannerY + 3, 0xFF9BF6B0);
         }
 
-        renderNearbyBossTelemetryBar(graphics, mc, player, sw, tideSec > 0, inDeepMycelium && homeoStage != HomeostasisStage.STABLE, remissionSec > 0);
+        boolean hasBossTelemetry = renderNearbyBossTelemetryBar(graphics, mc, player, sw,
+                tideSec > 0, inDeepMycelium && homeoStage != HomeostasisStage.STABLE, remissionSec > 0);
 
         boolean hasScanner = isScannerOrExtractor(player.getMainHandItem())
                 || isScannerOrExtractor(player.getOffhandItem());
@@ -145,9 +146,29 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
                 }
             }
         }
-        if (!hasScanner) {
-            return;
+        if (hasScanner) {
+            boolean inActiveCombat = hasBossTelemetry
+                    || tideSec > 0
+                    || player.hurtTime > 0
+                    || (player.getLastHurtByMobTimestamp() > 0 && (player.tickCount - player.getLastHurtByMobTimestamp()) < 100)
+                    || (player.getLastHurtMobTimestamp() > 0 && (player.tickCount - player.getLastHurtMobTimestamp()) < 100);
+            renderScannerPanel(graphics, mc, player, sw, sh, thermalVision, inDeepMycelium, homeoStage, homeoStress, inActiveCombat);
         }
+        DiegeticToastManager.render(graphics, mc.font, sw, sh);
+    }
+
+    private static void renderScannerPanel(
+            GuiGraphics graphics,
+            Minecraft mc,
+            Player player,
+            int sw,
+            int sh,
+            MobEffectInstance thermalVision,
+            boolean inDeepMycelium,
+            HomeostasisStage homeoStage,
+            double homeoStress,
+            boolean inActiveCombat
+    ) {
 
         BlockPos destination = ClientExpeditionCache.getDirectory().pinned();
         if (destination != null) {
@@ -190,17 +211,25 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
                 + (mimicPresent ? 1 : 0);
         Font font = mc.font;
 
-        boolean compact = MycelialClientConfig.isHudCompact();
+        boolean manualCompact = MycelialClientConfig.isHudCompact();
+        boolean combatFocus = MycelialClientConfig.isHudContextualCombat() && inActiveCombat;
+        boolean compact = MycelialClientConfig.shouldUseCombatCompactHud(
+                MycelialClientConfig.isHudContextualCombat(), manualCompact, inActiveCombat);
+        boolean cycleActive = com.alex.mycelialmind.network.ClientCycleCache.isCycleActive();
+        int unreadCodex = combatFocus ? 0 : com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.getTotalUnreadCount();
+        boolean showGoalLine = !combatFocus;
+
         int width = compact ? 186 : 204;
         int squadLine = squadStatus != SynapticCommandSystem.SquadTacticalStatus.NONE ? 1 : 0;
         int homeoLines = (inDeepMycelium ? 1 : 0) + (smotheredPylons > 0 ? 1 : 0);
+        int extraHudLines = (cycleActive ? 1 : 0) + (unreadCodex > 0 ? 1 : 0) - (showGoalLine ? 0 : 1);
         int height;
         if (compact) {
-            int compactExtra = (infectionLevel > 0 ? 1 : 0) + squadLine + homeoLines + extraEffectLines;
+            int compactExtra = (infectionLevel > 0 ? 1 : 0) + squadLine + homeoLines + extraEffectLines + extraHudLines;
             height = 73 + compactExtra * 10;
         } else {
             int extraLines = (suppressedSec > 0 || !synergies.isEmpty()) ? 1 + synergies.size() : 0;
-            int symLines = 1 + mutagens.size() + (infectionLevel > 0 ? 1 : 0) + squadLine + homeoLines + extraEffectLines;
+            int symLines = 1 + mutagens.size() + (infectionLevel > 0 ? 1 : 0) + squadLine + homeoLines + extraEffectLines + extraHudLines;
             height = 70 + (traits.isEmpty() ? 10 : traits.size() * 10) + extraLines * 10 + symLines * 10;
         }
 
@@ -249,7 +278,22 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             lineY += 11;
             lineY = drawStatusTailLines(graphics, font, infectionLevel, sporeRotEffect, insightEffect, deceptionActive,
                     mimicPresent, mimicExposed, squadStatus, squadSec, inDeepMycelium, homeoStress, homeoStage, smotheredPylons, x + 6, lineY);
-            drawGoalTrackerLine(graphics, font, x + 6, lineY, width - 12);
+            if (cycleActive) {
+                graphics.drawString(font, Component.translatable("hud.mycelialmind.cycle_active",
+                                com.alex.mycelialmind.network.ClientCycleCache.getActiveCycleNumber(),
+                                com.alex.mycelialmind.hive.HiveCycleMutator.countActive(
+                                        com.alex.mycelialmind.network.ClientCycleCache.getActiveMutatorMask())),
+                        x + 6, lineY, 0xFFFF4D8D, true);
+                lineY += 10;
+            }
+            if (unreadCodex > 0) {
+                graphics.drawString(font, Component.translatable("hud.mycelialmind.codex_unread", unreadCodex),
+                        x + 6, lineY, 0xFFB5E48C, true);
+                lineY += 10;
+            }
+            if (showGoalLine) {
+                drawGoalTrackerLine(graphics, font, x + 6, lineY, width - 12);
+            }
             return;
         }
 
@@ -295,7 +339,22 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         }
         lineY = drawStatusTailLines(graphics, font, infectionLevel, sporeRotEffect, insightEffect, deceptionActive,
                 mimicPresent, mimicExposed, squadStatus, squadSec, inDeepMycelium, homeoStress, homeoStage, smotheredPylons, x + 6, lineY);
-        drawGoalTrackerLine(graphics, font, x + 6, lineY, width - 12);
+        if (cycleActive) {
+            graphics.drawString(font, Component.translatable("hud.mycelialmind.cycle_active",
+                            com.alex.mycelialmind.network.ClientCycleCache.getActiveCycleNumber(),
+                            com.alex.mycelialmind.hive.HiveCycleMutator.countActive(
+                                    com.alex.mycelialmind.network.ClientCycleCache.getActiveMutatorMask())),
+                    x + 6, lineY, 0xFFFF4D8D, true);
+            lineY += 10;
+        }
+        if (unreadCodex > 0) {
+            graphics.drawString(font, Component.translatable("hud.mycelialmind.codex_unread", unreadCodex),
+                    x + 6, lineY, 0xFFB5E48C, true);
+            lineY += 10;
+        }
+        if (showGoalLine) {
+            drawGoalTrackerLine(graphics, font, x + 6, lineY, width - 12);
+        }
     }
 
     private static void drawNearestNodeLine(
@@ -434,7 +493,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         }
     }
 
-    private static void renderNearbyBossTelemetryBar(
+    private static boolean renderNearbyBossTelemetryBar(
             GuiGraphics graphics,
             Minecraft mc,
             Player player,
@@ -444,7 +503,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             boolean hasRemissionBanner
     ) {
         if (mc.level == null) {
-            return;
+            return false;
         }
         var bosses = mc.level.getEntitiesOfClass(
                 MycelialBossMob.class,
@@ -452,7 +511,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
                 MycelialBossMob::isAlive
         );
         if (bosses.isEmpty()) {
-            return;
+            return false;
         }
         MycelialBossMob nearest = null;
         double bestDistSq = Double.MAX_VALUE;
@@ -464,7 +523,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             }
         }
         if (nearest == null) {
-            return;
+            return false;
         }
 
         int topBanners = (hasTideBanner ? 1 : 0) + (hasHomeoBanner ? 1 : 0) + (hasRemissionBanner ? 1 : 0);
@@ -558,5 +617,6 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         if (stateFillW > 0) {
             graphics.fill(barX, stateBarY, barX + stateFillW, stateBarY + 3, stateBarColor);
         }
+        return true;
     }
 }

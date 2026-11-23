@@ -1,0 +1,46 @@
+{
+  "category": "mycelialmind:progresion",
+  "name": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.name",
+  "description": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.description",
+  "icon": {
+    "item": "mycelialmind:tide_beacon"
+  },
+  "x": 2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 3,
+  "parents": [
+    {
+      "entry": "mycelialmind:progresion/actos_y_amenaza",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.progresion.oleadas_marea_remision.page3.text"
+    }
+  ]
+}

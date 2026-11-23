@@ -80,6 +80,26 @@
         },
         { "type": "minecraft:item", "name": "minecraft:golden_apple", "weight": 10 }
       ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "conditions": [
+        { "condition": "minecraft:random_chance", "chance": 0.45 }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:field_engram",
+          "weight": 100,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": { "mycelialmind:engram_id": "outbreak_signal" }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

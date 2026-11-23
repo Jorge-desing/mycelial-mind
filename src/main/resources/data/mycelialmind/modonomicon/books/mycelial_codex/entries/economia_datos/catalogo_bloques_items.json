@@ -1,0 +1,102 @@
+{
+  "category": "mycelialmind:economia_datos",
+  "name": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.name",
+  "description": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.description",
+  "icon": {
+    "item": "mycelialmind:mycelial_biomass"
+  },
+  "x": -2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 1,
+  "parents": [],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page4.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page5.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page5.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page6.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page6.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page7.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page7.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page8.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page8.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page9.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page9.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page10.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page10.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page11.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page11.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page12.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.catalogo_bloques_items.page12.text"
+    }
+  ]
+}

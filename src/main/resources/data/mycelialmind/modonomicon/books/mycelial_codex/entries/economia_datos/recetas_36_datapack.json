@@ -1,0 +1,183 @@
+{
+  "category": "mycelialmind:economia_datos",
+  "name": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.name",
+  "description": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.description",
+  "icon": {
+    "item": "mycelialmind:chitin_plate"
+  },
+  "x": 0,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 2,
+  "parents": [
+    {
+      "entry": "mycelialmind:economia_datos/catalogo_bloques_items",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page1.title",
+      "recipe_id_1": "mycelialmind:bio_scanner",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page1.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page1.title2",
+      "recipe_id_2": "mycelialmind:bio_extractor"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page2.title",
+      "recipe_id_1": "mycelialmind:spore_antidote",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page2.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page2.title2",
+      "recipe_id_2": "mycelialmind:concentrated_antidote"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page3.title",
+      "recipe_id_1": "mycelialmind:chitin_helmet",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page3.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page3.title2",
+      "recipe_id_2": "mycelialmind:chitin_chestplate"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page4.title",
+      "recipe_id_1": "mycelialmind:chitin_leggings",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page4.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page4.title2",
+      "recipe_id_2": "mycelialmind:chitin_boots"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page5.title",
+      "recipe_id_1": "mycelialmind:enzyme_lance",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page5.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page5.title2",
+      "recipe_id_2": "mycelialmind:symbiotic_blade"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page6.title",
+      "recipe_id_1": "mycelialmind:neutralizing_spore_launcher",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page6.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page6.title2",
+      "recipe_id_2": "mycelialmind:purifier_grenade"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page7.title",
+      "recipe_id_1": "mycelialmind:purification_pylon",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page7.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page7.title2",
+      "recipe_id_2": "mycelialmind:purification_turret"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page8.title",
+      "recipe_id_1": "mycelialmind:reinforced_bio_barrier",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page8.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page8.title2",
+      "recipe_id_2": "mycelialmind:purifier_drone_core"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page9.title",
+      "recipe_id_1": "mycelialmind:synaptic_research_bench",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page9.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page9.title2",
+      "recipe_id_2": "mycelialmind:synaptic_graft"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page10.title",
+      "recipe_id_1": "mycelialmind:neural_echo_decoy",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page10.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page10.title2",
+      "recipe_id_2": "mycelialmind:false_engram_injector"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page11.title",
+      "recipe_id_1": "mycelialmind:schism_injector",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page11.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page11.title2",
+      "recipe_id_2": "mycelialmind:truce_pheromone"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page12.title",
+      "recipe_id_1": "mycelialmind:quorum_seal",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page12.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page12.title2",
+      "recipe_id_2": "mycelialmind:chimera_ovum"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page13.title",
+      "recipe_id_1": "mycelialmind:synaptic_suppressor",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page13.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page13.title2",
+      "recipe_id_2": "mycelialmind:rift_catalyst"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page14.title",
+      "recipe_id_1": "mycelialmind:overmind_crown",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page14.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page14.title2",
+      "recipe_id_2": "mycelialmind:tide_beacon_recharge"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.title",
+      "recipe_id_1": "mycelialmind:mycelial_codex",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.text"
+    },
+    {
+      "type": "modonomicon:smelting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page16.title",
+      "recipe_id_1": "mycelialmind:smelt_cap_to_latent_spore",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page16.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page16.title2",
+      "recipe_id_2": "mycelialmind:smelt_creeping_mycelium_to_stone"
+    },
+    {
+      "type": "modonomicon:smelting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page17.title",
+      "recipe_id_1": "mycelialmind:smelt_cyst_to_chitin_plate",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page17.text"
+    },
+    {
+      "type": "modonomicon:smoking_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page18.title",
+      "recipe_id_1": "mycelialmind:smoke_cap_to_latent_spore",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page18.text"
+    },
+    {
+      "type": "modonomicon:blasting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page19.title",
+      "recipe_id_1": "mycelialmind:blast_cyst_to_chitin_plate",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page19.text"
+    },
+    {
+      "type": "modonomicon:stonecutting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page20.title",
+      "recipe_id_1": "mycelialmind:stonecut_mycelial_stone_to_arch_brick",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page20.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page20.title2",
+      "recipe_id_2": "mycelialmind:stonecut_arch_brick_to_chitin_pillar"
+    },
+    {
+      "type": "modonomicon:stonecutting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page21.title",
+      "recipe_id_1": "mycelialmind:stonecut_chitin_plate_to_lattice",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page21.text"
+    }
+  ]
+}

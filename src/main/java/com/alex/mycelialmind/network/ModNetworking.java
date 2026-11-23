@@ -17,7 +17,7 @@ public final class ModNetworking {
     }
 
     private static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(MycelialMind.MODID).versioned("20");
+        PayloadRegistrar registrar = event.registrar(MycelialMind.MODID).versioned("21");
         registrar.playToClient(EnclaveDirectoryPayload.TYPE, EnclaveDirectoryPayload.STREAM_CODEC, EnclaveDirectoryPayload::handleOnClient);
         registrar.playToServer(EnclaveDirectoryRequestPayload.TYPE, EnclaveDirectoryRequestPayload.STREAM_CODEC, EnclaveDirectoryRequestPayload::handleOnServer);
         registrar.playToServer(EnclaveActionPayload.TYPE, EnclaveActionPayload.STREAM_CODEC, EnclaveActionPayload::handleOnServer);
@@ -45,6 +45,16 @@ public final class ModNetworking {
                 PostMatriarchExpeditionSyncPayload.TYPE,
                 PostMatriarchExpeditionSyncPayload.STREAM_CODEC,
                 PostMatriarchExpeditionSyncPayload::handleOnClient
+        );
+        registrar.playToClient(
+                CycleProtocolSyncPayload.TYPE,
+                CycleProtocolSyncPayload.STREAM_CODEC,
+                CycleProtocolSyncPayload::handleOnClient
+        );
+        registrar.playToServer(
+                CycleProtocolActionPayload.TYPE,
+                CycleProtocolActionPayload.STREAM_CODEC,
+                CycleProtocolActionPayload::handleOnServer
         );
         registrar.playToServer(
                 PinExpeditionGoalPayload.TYPE,

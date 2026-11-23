@@ -24,6 +24,9 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.BIO_SCANNER.get());
                         output.accept(ModItems.BIO_EXTRACTOR.get());
                         output.accept(ModItems.MYCELIAL_CODEX.get());
+                        for (var engramId : com.alex.mycelialmind.hive.FieldEngramId.values()) {
+                            output.accept(com.alex.mycelialmind.item.FieldEngramItem.createStack(engramId));
+                        }
                         output.accept(ModItems.ENZYME_LANCE.get());
                         output.accept(ModItems.NEUTRALIZING_SPORE_LAUNCHER.get());
                         output.accept(ModItems.SYMBIOTIC_BLADE.get());

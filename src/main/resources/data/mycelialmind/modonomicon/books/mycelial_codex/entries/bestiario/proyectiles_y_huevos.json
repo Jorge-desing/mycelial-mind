@@ -1,0 +1,60 @@
+{
+  "category": "mycelialmind:bestiario",
+  "name": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.name",
+  "description": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.description",
+  "icon": {
+    "item": "mycelialmind:hive_core_spawn_egg"
+  },
+  "x": -1,
+  "y": 4,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 10,
+  "parents": [
+    {
+      "entry": "mycelialmind:bestiario/rangos_y_primordiales",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page4.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page5.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.proyectiles_y_huevos.page5.text"
+    }
+  ]
+}

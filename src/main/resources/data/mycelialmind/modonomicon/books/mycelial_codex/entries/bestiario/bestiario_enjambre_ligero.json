@@ -1,0 +1,55 @@
+{
+  "category": "mycelialmind:bestiario",
+  "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.name",
+  "description": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.description",
+  "icon": {
+    "item": "mycelialmind:sporeling_spawn_egg"
+  },
+  "x": -1,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 2,
+  "parents": [
+    {
+      "entry": "mycelialmind:bestiario/rangos_y_primordiales",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.page1.entity_name",
+      "entity_id": "mycelialmind:sporeling",
+      "scale": 1.1,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.page1.text"
+    },
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.page2.entity_name",
+      "entity_id": "mycelialmind:leech_parasite",
+      "scale": 1.1,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.page2.text"
+    },
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.page3.entity_name",
+      "entity_id": "mycelialmind:mycelial_stalker",
+      "scale": 0.9,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_enjambre_ligero.page3.text"
+    }
+  ]
+}

@@ -403,6 +403,8 @@ public class SporeBehemothEntity extends MycelialBossMob {
         if (recentlyHit) {
             this.spawnAtLocation(ModItems.TIDE_BEACON.get());
             this.spawnAtLocation(ModItems.SYNAPTIC_CORE.get());
+            this.spawnAtLocation(com.alex.mycelialmind.item.FieldEngramItem.createStack(
+                    com.alex.mycelialmind.hive.FieldEngramId.TIDE_PRESSURE));
         }
     }
 

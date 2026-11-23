@@ -2,18 +2,18 @@
   "ok": true,
   "stats": {
     "chapters": 12,
-    "entries": 50,
-    "pages": 202
+    "entries": 61,
+    "pages": 223
   },
   "summary": {
     "blocks": {
-      "expected": 24,
-      "covered": 24,
+      "expected": 25,
+      "covered": 25,
       "missing": 0
     },
     "items": {
-      "expected": 53,
-      "covered": 53,
+      "expected": 59,
+      "covered": 59,
       "missing": 0
     },
     "entities": {
@@ -37,8 +37,8 @@
       "missing": 0
     },
     "data_components": {
-      "expected": 2,
-      "covered": 2,
+      "expected": 3,
+      "covered": 3,
       "missing": 0
     },
     "armor_materials": {
@@ -77,8 +77,8 @@
       "missing": 0
     },
     "advancements": {
-      "expected": 30,
-      "covered": 30,
+      "expected": 32,
+      "covered": 32,
       "missing": 0
     },
     "loot_tables": {
@@ -107,8 +107,8 @@
       "missing": 0
     },
     "client_configs": {
-      "expected": 12,
-      "covered": 12,
+      "expected": 13,
+      "covered": 13,
       "missing": 0
     },
     "keybindings": {
@@ -122,8 +122,8 @@
       "missing": 0
     },
     "verify_scenarios": {
-      "expected": 21,
-      "covered": 21,
+      "expected": 22,
+      "covered": 22,
       "missing": 0
     },
     "stimuli": {

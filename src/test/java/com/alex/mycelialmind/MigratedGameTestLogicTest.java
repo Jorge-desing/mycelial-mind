@@ -144,7 +144,8 @@ class MigratedGameTestLogicTest {
                         | ProgressionGoalEngine.RESEARCH_BIT_DEFLECTION_WITNESSED
                         | ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED,
                 14500,
-                2500
+                2500,
+                0x19
         );
         ByteBuf buf = Unpooled.buffer();
         try {
@@ -153,6 +154,7 @@ class MigratedGameTestLogicTest {
             assertEquals(original, decoded);
             assertEquals("minecraft:overworld", decoded.lastObservationDimension());
             assertEquals(2500, decoded.lastThreatDropPermille());
+            assertEquals(0x19, decoded.discoveredEngramsMask());
         } finally {
             buf.release();
         }

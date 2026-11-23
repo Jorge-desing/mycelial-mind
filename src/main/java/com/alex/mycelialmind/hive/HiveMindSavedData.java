@@ -489,6 +489,8 @@ public class HiveMindSavedData extends SavedData {
     private long activeTraitStateRevision;
     private long synchronizedMobTraitStateRevision = Long.MIN_VALUE;
     private boolean activeTraitStateInitialized;
+    private transient double cycleLearningMultiplier = 1.0;
+    private transient double cycleThresholdScale = 1.0;
     private final Map<Long, HyphalChunkData> hyphalChunks = new HashMap<>();
     private final Map<String, Integer> architecturalBlockCounts = new LinkedHashMap<>();
     private String primaryArchitecturalBlockId = "";
@@ -517,6 +519,13 @@ public class HiveMindSavedData extends SavedData {
 
     public static HiveMindSavedData get(ServerLevel level) {
         HiveMindSavedData data = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        if (level.getServer() != null) {
+            HiveCycleSavedData cycles = HiveCycleSavedData.get(level);
+            data.cycleLearningMultiplier = HiveCycleEngine.computeLearningMultiplier(
+                    cycles.isCycleActive(), cycles.getActiveCycleNumber(), cycles.getActiveMutatorMask());
+            data.cycleThresholdScale = HiveCycleEngine.computeThresholdScale(
+                    cycles.isCycleActive(), cycles.getActiveMutatorMask());
+        }
         if (!data.activeTraitStateInitialized) {
             data.recomputeActiveTraits(level.getGameTime());
         }
@@ -531,7 +540,7 @@ public class HiveMindSavedData extends SavedData {
         if (rawAmount <= 0.0 || Double.isNaN(rawAmount) || Double.isInfinite(rawAmount)) {
             return;
         }
-        double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
+        double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get() * cycleThresholdScale;
         double momentumMult = 1.0;
         double pivotMult = 1.0;
 
@@ -550,7 +559,7 @@ public class HiveMindSavedData extends SavedData {
         lastStimulusType = type;
         lastStimulusGameTime = currentGameTime;
 
-        double scaled = rawAmount * MycelialConfig.LEARNING_MULTIPLIER.get() * momentumMult * pivotMult;
+        double scaled = rawAmount * MycelialConfig.LEARNING_MULTIPLIER.get() * cycleLearningMultiplier * momentumMult * pivotMult;
         double current = stimulusScores.getOrDefault(type, 0.0);
         double updated = Mth.clamp(current + scaled, 0.0, 1000.0);
         stimulusScores.put(type, updated);
@@ -757,8 +766,8 @@ public class HiveMindSavedData extends SavedData {
         tier2Traits.clear();
         activeSynergies.clear();
 
-        double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
-        double tier2Threshold = MycelialConfig.getEffectiveTier2ActivationThreshold();
+        double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get() * cycleThresholdScale;
+        double tier2Threshold = MycelialConfig.getEffectiveTier2ActivationThreshold() * cycleThresholdScale;
         boolean suppressed = isSuppressed(currentGameTime);
 
         for (AdaptationTrait trait : AdaptationTrait.values()) {
@@ -927,6 +936,25 @@ public class HiveMindSavedData extends SavedData {
         this.threatLevel = HiveProgressionTier.computePostMatriarchThreat(this.threatLevel);
         endFungalTide(currentGameTime);
         setDirty();
+    }
+
+    public void clearMatriarchRemission() {
+        if (this.matriarchRemissionUntilGameTime != 0L) {
+            this.matriarchRemissionUntilGameTime = 0L;
+            setDirty();
+        }
+    }
+
+    public void setCycleModifiers(double learningMultiplier, double thresholdScale, long currentGameTime) {
+        double safeLearn = Double.isFinite(learningMultiplier) && learningMultiplier > 0.0 ? learningMultiplier : 1.0;
+        double safeThresh = Double.isFinite(thresholdScale) && thresholdScale > 0.0 ? thresholdScale : 1.0;
+        boolean changed = Double.compare(this.cycleLearningMultiplier, safeLearn) != 0
+                || Double.compare(this.cycleThresholdScale, safeThresh) != 0;
+        this.cycleLearningMultiplier = safeLearn;
+        this.cycleThresholdScale = safeThresh;
+        if (changed) {
+            recomputeActiveTraits(currentGameTime);
+        }
     }
 
     /**
@@ -1196,7 +1224,7 @@ public class HiveMindSavedData extends SavedData {
         if (rawAmount <= 0.0 || Double.isNaN(rawAmount) || Double.isInfinite(rawAmount)) {
             return;
         }
-        double scaled = rawAmount * MycelialConfig.LEARNING_MULTIPLIER.get();
+        double scaled = rawAmount * MycelialConfig.LEARNING_MULTIPLIER.get() * cycleLearningMultiplier;
         double current = habitScores.getOrDefault(habit, 0.0);
         habitScores.put(habit, Mth.clamp(current + scaled, 0.0, HABIT_MAX_SCORE));
         setDirty();

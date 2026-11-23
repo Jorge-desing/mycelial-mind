@@ -1,0 +1,42 @@
+{
+  "category": "mycelialmind:bestiario",
+  "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_jefe_matriarca.name",
+  "description": "book.mycelialmind.mycelial_codex.bestiario.bestiario_jefe_matriarca.description",
+  "icon": {
+    "item": "mycelialmind:apex_matriarch_spawn_egg"
+  },
+  "x": 3,
+  "y": 2,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 8,
+  "parents": [
+    {
+      "entry": "mycelialmind:bestiario/bestiario_jefe_hive_core",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_jefe_matriarca.page1.entity_name",
+      "entity_id": "mycelialmind:apex_matriarch",
+      "scale": 0.4,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_jefe_matriarca.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.bestiario_jefe_matriarca.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_jefe_matriarca.page2.text"
+    }
+  ]
+}

@@ -572,6 +572,15 @@ public class HiveCoreBossEntity extends MycelialBossMob {
     }
 
     @Override
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
+        if (recentlyHit) {
+            this.spawnAtLocation(com.alex.mycelialmind.item.FieldEngramItem.createStack(
+                    com.alex.mycelialmind.hive.FieldEngramId.CHITIN_RESONANCE));
+        }
+    }
+
+    @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt(TAG_PHASE, getBossPhase());

@@ -1,0 +1,53 @@
+{
+  "category": "mycelialmind:secretos_logros",
+  "name": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.name",
+  "description": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.description",
+  "icon": {
+    "item": "mycelialmind:overmind_crown"
+  },
+  "x": 2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 3,
+  "parents": [
+    {
+      "entry": "mycelialmind:secretos_logros/secretos_pistas_seguras",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.logros_30_advancements.page4.text"
+    }
+  ]
+}

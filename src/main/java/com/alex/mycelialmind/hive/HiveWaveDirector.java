@@ -282,7 +282,9 @@ public final class HiveWaveDirector {
             if (hive.getThreatLevel() >= 75.0) {
                 long cooldown = MycelialConfig.FUNGAL_TIDE_COOLDOWN_TICKS.get();
                 if (hive.getLastFungalTideGameTime() == 0 || (gameTime - hive.getLastFungalTideGameTime()) >= cooldown) {
-                    hive.triggerFungalTide(gameTime, MycelialConfig.FUNGAL_TIDE_DURATION_TICKS.get());
+                    int duration = (int) Math.round(MycelialConfig.FUNGAL_TIDE_DURATION_TICKS.get()
+                            * HiveCycleDirector.getActiveTideDurationMultiplier(level));
+                    hive.triggerFungalTide(gameTime, duration);
                     for (ServerPlayer sp : level.players()) {
                         sp.sendSystemMessage(Component.translatable("message.mycelialmind.fungal_tide_started")
                                 .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
@@ -293,7 +295,8 @@ public final class HiveWaveDirector {
             return;
         }
 
-        if (hive.getThreatLevel() < 50.0) {
+        double tideEndThreat = HiveCycleDirector.getActiveTideDurationMultiplier(level) > 1.01D ? 25.0D : 50.0D;
+        if (hive.getThreatLevel() < tideEndThreat) {
             hive.endFungalTide(gameTime);
             return;
         }
@@ -356,7 +359,7 @@ public final class HiveWaveDirector {
         RandomSource random = level.getRandom();
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         HiveDoctrine doctrine = HiveBlackboard.getDoctrine(level);
-        List<EntityType<? extends MycelialMob>> squad = HiveSquadComposer.composeWaveSquad(
+        List<EntityType<? extends MycelialMob>> squad = new ArrayList<>(HiveSquadComposer.composeWaveSquad(
                 hive,
                 doctrine,
                 milestone,
@@ -364,7 +367,11 @@ public final class HiveWaveDirector {
                 HiveBlackboard.getPacingPhase(level),
                 tracker.countSymbioticNodes(),
                 hive.isFungalTideActive(level.getGameTime())
-        );
+        ));
+        int extraAttackers = HiveCycleDirector.getActiveExpeditionExtraAttackers(level);
+        for (int i = 0; i < extraAttackers && !squad.isEmpty(); i++) {
+            squad.add(squad.get(i % squad.size()));
+        }
         int spawned = 0;
 
         // Prefer spawning from an active unprotected Incubator or Relay node near the player
@@ -377,7 +384,8 @@ public final class HiveWaveDirector {
                 && anchorNode.distSqr(player.blockPosition()) <= 56.0 * 56.0;
 
         double promoChance = hive.getEffectivenessPressure()
-                + HiveProgressionTier.fromThreat(hive.getThreatLevel()).wavePromotionBonus();
+                + HiveProgressionTier.fromThreat(hive.getThreatLevel()).wavePromotionBonus()
+                + HiveCycleDirector.getActiveExpeditionEliteBonus(level);
         for (EntityType<? extends MycelialMob> type : squad) {
             if (useNodeAnchor) {
                 BlockPos spawnPos = anchorNode.offset(random.nextIntBetweenInclusive(-2, 2), 1, random.nextIntBetweenInclusive(-2, 2));

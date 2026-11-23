@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `50` entradas y `202` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `61` entradas y `223` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -59,14 +59,25 @@
   - [Dimensión Micelio Profundo (3 Biomas)](#cap10-micelio_profundo_y_biomas) — _Portal mycelial_rift, WfcCavernLayout y los 3 biomas_
   - [Santuario Jigsaw y Ciudadela Matriarca](#cap10-megaestructuras_santuario_ciudadela) — _hive_sanctum (11 plantillas NBT) y matriarch_citadel_
   - [Homeostasis Dimensional y Quistes](#cap10-homeostasis_dimensional) — _3 etapas STABLE/IRRITATED/IMMUNE_RESPONSE, Lluvia Ácida y Quistes_
+  - [Protocolo de Ciclos y Mutadores](#cap10-ciclos_de_la_colmena) — _Rejugabilidad post-Matriarca con 1–3 mutadores y rango S+..C_
 - **Capítulo 11 — Secretos, Logros y Compat** (`secretos_logros`): 8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat
   - [Los 8 Secretos: Pistas de Campo](#cap11-secretos_pistas_seguras) — _Indicios de investigación experimental y ecológica sin spoilers_
   - [Los 8 Secretos: Revelación Exacta](#cap11-secretos_revelaciones_spoiler) — _[SPOILER] Fórmulas y disparadores exactos en código_
   - [Los 30 Logros (`advancement`)](#cap11-logros_30_advancements) — _25 logros de campaña y 5 desbloqueos automáticos de recetas_
   - [Redstone (7) y Ecosistema de Mods](#cap11-redstone_y_ecosistema_mods) — _MycelialRedstoneTelemetry + SBL, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon_
+  - [Engrama I: Señal de Brote](#cap11-engram_outbreak_signal) — _Registro inicial del elemento field_engram (engram_id)_
+  - [Engrama II: Floración Sináptica](#cap11-engram_synaptic_bloom) — _Topología temprana de nodos y pilones_
+  - [Engrama III: Resonancia Quitina](#cap11-engram_chitin_resonance) — _Eco estructural de hive_core_
+  - [Engrama IV: Presión de Marea](#cap11-engram_tide_pressure) — _Fractura multipartita de spore_behemoth_
+  - [Engrama V: Engaño del Mímico](#cap11-engram_mimic_deception) — _Mimetismo adaptativo de synaptic_mimic_
+  - [Engrama VI: Memoria Hifal](#cap11-engram_hyphal_memory) — _Rutas micorrízicas y engramas de santuario_
+  - [Engrama VII: Trauma Inmune](#cap11-engram_homeostasis_trauma) — _Sensibilización y quistes de deep_mycelium_
+  - [Engrama VIII: Linaje Primordial](#cap11-engram_primordial_lineage) — _Extracción genética de variantes primordiales_
+  - [Engrama IX: Réquiem Matriarcal](#cap11-engram_matriarch_requiem) — _Remisión dimensional y protocolo de enclave_
+  - [Engrama X: Ciclo de la Supramente](#cap11-engram_overmind_cycle) — _Maestría post-Matriarca con mutadores activos_
 - **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify
-  - [Configuraciones (12 Cliente / 43 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
-  - [Red v14, `/mycelial` y 22 Verify](#cap12-comandos_red_y_verificacion) — _4 Payloads de red, sintaxis /mycelial y escenarios de prueba_
+  - [Configuraciones (13 Cliente / 43 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
+  - [Red v21, `/mycelial` y Verify](#cap12-comandos_red_y_verificacion) — _Payloads v21, /mycelial cycle, field_engram y verify cycles_
 
 ---
 
@@ -918,23 +929,27 @@ _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recome
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.7] Los 24 Bloques (`ModBlocks`) (3/3)
 
-• **Arquitectura y Dimensión (7):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`.
+• **Arquitectura y Dimensión (8):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.8] Ítems y Armadura (`ModItems` 36 + 17 Huevos) (1/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.8] Ítems y Armadura (`ModItems`) (1/5)
 
 • **Instrumentos y Armas (10):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.9] Ítems y Armadura (`ModItems` 36 + 17 Huevos) (2/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.9] Ítems y Armadura (`ModItems`) (2/5)
 
 • **Armadura y Sueros (10):** `chitin_helmet`, `chitin_chestplate`, `chitin_leggings`, `chitin_boots`, `spore_antidote`, `concentrated_antidote`, `genetic_sample`, `symbiotic_mutagen`, `counter_serum`, `tide_beacon`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.10] Ítems y Armadura (`ModItems` 36 + 17 Huevos) (3/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.10] Ítems y Armadura (`ModItems`) (3/5)
 
-• **Diplomacia y Cognición (9):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`.
+• **Diplomacia y Cognición (10):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`, `field_engram`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.11] Ítems y Armadura (`ModItems` 36 + 17 Huevos) (4/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.11] Ítems y Armadura (`ModItems`) (4/5)
 
 • **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **17** `*_spawn_egg` en Cap.5).
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.12] Ítems y Armadura (`ModItems`) (5/5)
+
+• **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.
 
 <a id="cap9-recetas_36_datapack"></a>
 ### 2. Recetario Total (37 Datapack)
@@ -1219,6 +1234,28 @@ _Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis_ | P
 
 • **Lluvia Ácida y `antibody_cyst`:** en `IMMUNE_RESPONSE` bajo cielo abierto cae lluvia corrosiva (`homeostasisAcidRainDamage = 2.0`). Brotan quistes (máx. `64`/chunk); si cubren **>=4 caras** (`SMOTHER_FACE_THRESHOLD`) sofocan Pilones hasta cosecharlos.
 
+<a id="cap10-ciclos_de_la_colmena"></a>
+### 5. Protocolo de Ciclos y Mutadores
+
+- **ID de Entrada:** `mundo_dimension/ciclos_de_la_colmena` | **Ícono:** `mycelialmind:matriarch_altar` | **Unlock:** `post_matriarch`
+- **Resumen:** Rejugabilidad post-Matriarca con 1–3 mutadores y rango S+..C
+
+#### [Libro: Cap.10 / ciclos_de_la_colmena / Pág.1] Protocolo de Ciclos y Mutadores (1/4)
+
+• **Activación Post-Matriarca:** Tras derrotar a `apex_matriarch`, usa `matriarch_altar` sin ofrenda válida para abrir `CycleProtocolScreen`, elegir **1–3** de los **6 mutadores** e iniciar el **Ciclo N** (limpia remisión).
+
+#### [Libro: Cap.10 / ciclos_de_la_colmena / Pág.2] Protocolo de Ciclos y Mutadores (2/4)
+
+• **Mutadores I–III:** `hyper_adaptation` (+45% aprendizaje, umbrales x0.85, +35% pts), `perpetual_tide` (+50% marea y menor umbral final, +40% pts) y `acute_homeostasis` (+40% estrés inmune, +35% pts).
+
+#### [Libro: Cap.10 / ciclos_de_la_colmena / Pág.3] Protocolo de Ciclos y Mutadores (3/4)
+
+• **Mutadores IV–VI:** `synaptic_swarm` (+atacantes y élite en oleadas/escuadrones, +40% pts), `primordial_apex` (+25% HP/+15% daño de jefes y cooldown menor, +50% pts) y `hyphal_overload` (+35% presión hifal, +30% pts).
+
+#### [Libro: Cap.10 / ciclos_de_la_colmena / Pág.4] Protocolo de Ciclos y Mutadores (4/4)
+
+• **Cierre y Récords:** Al derrotar a `apex_matriarch` durante el Ciclo se calcula `1000 * mult + velocidad(<=500) - muertes*120` (mín. `250`) otorgando rango **S+**..**C**, récord y el engrama `overmind_cycle`.
+
 ---
 
 ## Capítulo 11: Secretos, Logros y Compat
@@ -1316,19 +1353,19 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 - **ID de Entrada:** `secretos_logros/logros_30_advancements` | **Ícono:** `mycelialmind:overmind_crown` | **Unlock:** `always`
 - **Resumen:** 25 logros de campaña y 5 desbloqueos automáticos de recetas
 
-#### [Libro: Cap.11 / logros_30_advancements / Pág.1] Cadena Completa de 30 Logros (1/4)
+#### [Libro: Cap.11 / logros_30_advancements / Pág.1] Cadena Completa de Logros (1/4)
 
 • **Acto I y Base (9):** `root`, `first_adaptation`, `genetic_sampler`, `sever_the_network`, `biotech_research`, `targeted_purge`, `chitin_bulwark`, `tier2_awakening`, `base_sentinel`.
 
-#### [Libro: Cap.11 / logros_30_advancements / Pág.2] Cadena Completa de 30 Logros (2/4)
+#### [Libro: Cap.11 / logros_30_advancements / Pág.2] Cadena Completa de Logros (2/4)
 
 • **Táctica y Biotecnología (9):** `bastion_tier3`, `purifier_drone_deployed`, `symbiotic_vessel`, `synaptic_graft_network`, `pavlovian_deceiver`, `chemical_diplomat`, `architect_bane`, `chimera_bioforge`, `hive_core_slayer`.
 
-#### [Libro: Cap.11 / logros_30_advancements / Pág.3] Cadena Completa de 30 Logros (3/4)
+#### [Libro: Cap.11 / logros_30_advancements / Pág.3] Cadena Completa de Logros (3/4)
 
-• **Endgame y Maestría (7):** `synaptic_mastery`, `tide_breaker`, `counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, `overmind_ascendant`, `apex_matriarch_slayer` (`discovery`).
+• **Endgame y Maestría (9):** `synaptic_mastery`, `tide_breaker`, `counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, `overmind_ascendant`, `apex_matriarch_slayer`, `recovered_garden`, `recovered_route` (`discovery`).
 
-#### [Libro: Cap.11 / logros_30_advancements / Pág.4] Cadena Completa de 30 Logros (4/4)
+#### [Libro: Cap.11 / logros_30_advancements / Pág.4] Cadena Completa de Logros (4/4)
 
 • **Desbloqueos de Receta (5):** `recipes/unlock_biomass_recipes`, `recipes/unlock_chitin_recipes`, `recipes/unlock_hive_heart_recipes`, `recipes/unlock_latent_spore_recipes`, `recipes/unlock_synaptic_core_recipes`.
 
@@ -1354,6 +1391,134 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 • **Compat UI/Render:** **JEI** (`MycelialJeiPlugin`), **EMI** (`MycelialEmiPlugin`), **Iris** (`MycelialIrisCompat` PBR), **Modonomicon** (`MycelialModonomiconCompat`) y **AzureLib**.
 
+<a id="cap11-engram_outbreak_signal"></a>
+### 5. Engrama I: Señal de Brote
+
+- **ID de Entrada:** `secretos_logros/engram_outbreak_signal` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:outbreak_signal`
+- **Resumen:** Registro inicial del elemento field_engram (engram_id)
+
+#### [Libro: Cap.11 / engram_outbreak_signal / Pág.1] Engrama I: Señal de Brote (1/2)
+
+• **Bitácora de Campo:** Todo `field_engram` porta su identificador en `engram_id` y se absorbe con clic derecho directo al Códice sin ocupar inventario.
+
+#### [Libro: Cap.11 / engram_outbreak_signal / Pág.2] Engrama I: Señal de Brote (2/2)
+
+• **Lectura Táctica (Acto I):** Las bóvedas selladas de brotes guardan bio-muestras tempranas antes de que la Colmena aprenda tus daños dominantes.
+
+<a id="cap11-engram_synaptic_bloom"></a>
+### 6. Engrama II: Floración Sináptica
+
+- **ID de Entrada:** `secretos_logros/engram_synaptic_bloom` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:synaptic_bloom`
+- **Resumen:** Topología temprana de nodos y pilones
+
+#### [Libro: Cap.11 / engram_synaptic_bloom / Pág.1] Engrama II: Floración Sináptica
+
+• **Bitácora de Campo:** Los nodos relé multiplican por `1.5x` el aprendizaje en combate cercano y enlazan hasta `28` bloques entre sí.
+• **Lectura Táctica (Acto I):** Interponiendo un `purification_pylon` cortas los enlaces activos y evitas la alerta en cascada antes de romper el nodo.
+
+<a id="cap11-engram_chitin_resonance"></a>
+### 7. Engrama III: Resonancia Quitina
+
+- **ID de Entrada:** `secretos_logros/engram_chitin_resonance` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:chitin_resonance`
+- **Resumen:** Eco estructural de hive_core
+
+#### [Libro: Cap.11 / engram_chitin_resonance / Pág.1] Engrama III: Resonancia Quitina (1/2)
+
+• **Bitácora de Campo:** Recuperado tras colapsar a `hive_core`. Sus placas quitinosas vibran con armaduras de rango `ELITE` y núcleos sinápticos.
+
+#### [Libro: Cap.11 / engram_chitin_resonance / Pág.2] Engrama III: Resonancia Quitina (2/2)
+
+• **Lectura Táctica (Acto II):** Asciende el banco a **Lab T2** con `synaptic_core` para desbloquear fórmulas experimentales y ahorrar biomasa.
+
+<a id="cap11-engram_tide_pressure"></a>
+### 8. Engrama IV: Presión de Marea
+
+- **ID de Entrada:** `secretos_logros/engram_tide_pressure` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:tide_pressure`
+- **Resumen:** Fractura multipartita de spore_behemoth
+
+#### [Libro: Cap.11 / engram_tide_pressure / Pág.1] Engrama IV: Presión de Marea
+
+• **Bitácora de Campo:** Extraído del colapso de `spore_behemoth`. Su caparazón posee cajas de impacto diferenciadas (`ARMORED_CARAPACE` y `WEAK_POINT`).
+• **Lectura Táctica (Acto III):** Rompe el caparazón para provocar `STAGGERED`: el punto débil desciende físicamente y recibe `1.35x` de daño.
+
+<a id="cap11-engram_mimic_deception"></a>
+### 9. Engrama V: Engaño del Mímico
+
+- **ID de Entrada:** `secretos_logros/engram_mimic_deception` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:mimic_deception`
+- **Resumen:** Mimetismo adaptativo de synaptic_mimic
+
+#### [Libro: Cap.11 / engram_mimic_deception / Pág.1] Engrama V: Engaño del Mímico
+
+• **Bitácora de Campo:** Los `synaptic_mimic` copian tu patrón de daño dominante y alternan posturas para castigar ataques repetitivos.
+• **Lectura Táctica (Acto III):** Alterna fuego, magia o `purifier_grenade`, o usa `false_engram_injector` para sesgar su lectura antes del choque.
+
+<a id="cap11-engram_hyphal_memory"></a>
+### 10. Engrama VI: Memoria Hifal
+
+- **ID de Entrada:** `secretos_logros/engram_hyphal_memory` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:hyphal_memory`
+- **Resumen:** Rutas micorrízicas y engramas de santuario
+
+#### [Libro: Cap.11 / engram_hyphal_memory / Pág.1] Engrama VI: Memoria Hifal (1/2)
+
+• **Bitácora de Campo:** Las rutas frecuentes cristalizan en `hyphal_vein` tras superar el umbral de tránsito y aceleran patrullas hacia bases activas.
+
+#### [Libro: Cap.11 / engram_hyphal_memory / Pág.2] Engrama VI: Memoria Hifal (2/2)
+
+• **Lectura Táctica (Acto II):** Reprograma hasta 4 nodos aliados con `synaptic_graft` o usa `neural_echo_decoy` para desviar asedios de ruta.
+
+<a id="cap11-engram_homeostasis_trauma"></a>
+### 11. Engrama VII: Trauma Inmune
+
+- **ID de Entrada:** `secretos_logros/engram_homeostasis_trauma` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:homeostasis_trauma`
+- **Resumen:** Sensibilización y quistes de deep_mycelium
+
+#### [Libro: Cap.11 / engram_homeostasis_trauma / Pág.1] Engrama VII: Trauma Inmune
+
+• **Bitácora de Campo:** En `deep_mycelium`, explosiones y exceso de pilones elevan el estrés hasta `IMMUNE_RESPONSE`, lluvia ácida y sensibilización `0–3`.
+• **Lectura Táctica (Acto III):** Si `antibody_cyst` cubre **>=4 caras** de un pilón lo sofoca hasta despejarlo; sedar el chunk detiene patrullas.
+
+<a id="cap11-engram_primordial_lineage"></a>
+### 12. Engrama VIII: Linaje Primordial
+
+- **ID de Entrada:** `secretos_logros/engram_primordial_lineage` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:primordial_lineage`
+- **Resumen:** Extracción genética de variantes primordiales
+
+#### [Libro: Cap.11 / engram_primordial_lineage / Pág.1] Engrama VIII: Linaje Primordial (1/2)
+
+• **Bitácora de Campo:** Obtenido al usar `bio_extractor` sobre ejemplares primordiales debilitados (`<=60%` HP) portadores de esencias ancestrales.
+
+#### [Libro: Cap.11 / engram_primordial_lineage / Pág.2] Engrama VIII: Linaje Primordial (2/2)
+
+• **Lectura Táctica (Acto IV):** Asciende a **Lab T3** con `neural_echo_core` o `overmind_essence` para duplicar consumibles apilables y abrir Secreto #4.
+
+<a id="cap11-engram_matriarch_requiem"></a>
+### 13. Engrama IX: Réquiem Matriarcal
+
+- **ID de Entrada:** `secretos_logros/engram_matriarch_requiem` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:matriarch_requiem`
+- **Resumen:** Remisión dimensional y protocolo de enclave
+
+#### [Libro: Cap.11 / engram_matriarch_requiem / Pág.1] Engrama IX: Réquiem Matriarcal (1/2)
+
+• **Bitácora de Campo:** Sellado al caer `apex_matriarch`. La caída activa una ventana de remisión sináptica que preserva tu rango de Acto adquirido.
+
+#### [Libro: Cap.11 / engram_matriarch_requiem / Pág.2] Engrama IX: Réquiem Matriarcal (2/2)
+
+• **Lectura Táctica (Acto IV):** Con la Matriarca derrotada puedes usar `matriarch_altar` sin ofrenda para abrir el protocolo de Ciclos.
+
+<a id="cap11-engram_overmind_cycle"></a>
+### 14. Engrama X: Ciclo de la Supramente
+
+- **ID de Entrada:** `secretos_logros/engram_overmind_cycle` | **Ícono:** `mycelialmind:field_engram` | **Unlock:** `engram:overmind_cycle`
+- **Resumen:** Maestría post-Matriarca con mutadores activos
+
+#### [Libro: Cap.11 / engram_overmind_cycle / Pág.1] Engrama X: Ciclo de la Supramente (1/2)
+
+• **Bitácora de Campo:** Emitido al completar un **Ciclo de la Colmena** venciendo a `apex_matriarch` bajo mutadores tácticos en `CycleProtocolScreen`.
+
+#### [Libro: Cap.11 / engram_overmind_cycle / Pág.2] Engrama X: Ciclo de la Supramente (2/2)
+
+• **Lectura Táctica (Ciclos):** Combina hasta 3 mutadores de alto riesgo (`primordial_apex` + `perpetual_tide` + `synaptic_swarm`) y minimiza bajas para **S+**.
+
 ---
 
 ## Capítulo 12: Técnica, Config y Comandos
@@ -1361,7 +1526,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 _181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
 
 <a id="cap12-configuracion_cliente_servidor"></a>
-### 1. Configuraciones (12 Cliente / 43 Servidor)
+### 1. Configuraciones (13 Cliente / 43 Servidor)
 
 - **ID de Entrada:** `tecnica_comandos/configuracion_cliente_servidor` | **Ícono:** `mycelialmind:synaptic_research_bench` | **Unlock:** `always`
 - **Resumen:** MycelialClientConfig, KeyBindings y MycelialConfig TOML completo
@@ -1370,25 +1535,25 @@ _181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify_ | Puerta recom
 
 • `[hud] hudAnchor` = `TOP_LEFT` (`TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, `BOTTOM_RIGHT`).
 • `[hud] hudOffsetX` = `0` (`-200..200`); `hudOffsetY` = `0` (`-200..200`).
-• `[hud] hudCompactMode` = `false`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`.
 
 #### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.2] Claves de Configuración TOML (2/12)
 
+• `[hud] hudCompactMode` = `false`; `hudContextualCombat` = `true`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`.
 • `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`).
-• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`.
 
 #### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.3] Claves de Configuración TOML (3/12)
 
+• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`.
 • `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.
-• `[hive_memory]` `learningMultiplier`=`1.0` (`0.1..10`), `decayPerMinute`=`2.0` (`0..50`), `traitActivationThreshold`=`70.0` (`5..500`).
 
 #### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.4] Claves de Configuración TOML (4/12)
 
+• `[hive_memory]` `learningMultiplier`=`1.0` (`0.1..10`), `decayPerMinute`=`2.0` (`0..50`), `traitActivationThreshold`=`70.0` (`5..500`).
 • `[hive_memory]` `tier2ActivationThreshold`=`200.0` (`25..500`), `tier2DecayMultiplier`=`1.75` (`1..5`), `synergiesEnabled`=`true`.
-• `[hive_memory]` `suppressorCooldownSeconds`=`120` (`15..600`), `projectileDeflectChance`=`0.30` (`0..0.95`), `symbiosisThreatMultiplierPerSlot`=`0.15` (`0..1`).
 
 #### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/12)
 
+• `[hive_memory]` `suppressorCooldownSeconds`=`120` (`15..600`), `projectileDeflectChance`=`0.30` (`0..0.95`), `symbiosisThreatMultiplierPerSlot`=`0.15` (`0..1`).
 • `[hive_memory]` `maxMutagenSlots`=`2` (`1..5`), `counterSerumBleedRatio`=`0.50` (`0.1..0.95`).
 
 #### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/12)
@@ -1424,22 +1589,22 @@ _181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify_ | Puerta recom
 • `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).
 
 <a id="cap12-comandos_red_y_verificacion"></a>
-### 2. Red v14, `/mycelial` y 22 Verify
+### 2. Red v21, `/mycelial` y Verify
 
 - **ID de Entrada:** `tecnica_comandos/comandos_red_y_verificacion` | **Ícono:** `mycelialmind:bio_scanner` | **Unlock:** `admin`
-- **Resumen:** 4 Payloads de red, sintaxis /mycelial y escenarios de prueba
+- **Resumen:** Payloads v21, /mycelial cycle, field_engram y verify cycles
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.1] Comandos Admin, Payloads y Verify (1/5)
 
-• **Red (`ModNetworking` v14):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, `<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload`, `DiscoverySyncPayload`.
+• **Red (`ModNetworking` v21):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, `<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload`, `DiscoverySyncPayload`, `CycleProtocolSyncPayload` y `CycleProtocolActionPayload`.
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.2] Comandos Admin, Payloads y Verify (2/5)
 
-• **Comandos Operativos (`perm 2`):** `/mycelial status`, `/mycelial reset`, `/mycelial stimulus <type> <0.1..500>`, `/mycelial habits`, `/mycelial schism <strain>`, `/mycelial diplomacy <strain> <-100..100>`.
+• **Engramas y Comandos (`perm 2`):** `field_engram` (`engram_id`), `/mycelial status`, `/mycelial reset`, `/mycelial stimulus <type> <0.1..500>`, `/mycelial habits`, `/mycelial schism <strain>`, `/mycelial diplomacy <strain> <-100..100>`.
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.3] Comandos Admin, Payloads y Verify (3/5)
 
-• **Simbiosis, Homeostasis y Auditoría:** `/mycelial symbiosis <status|clear|grant <mutagen>>`, `/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.
+• **Simbiosis, Ciclos, Homeostasis y Auditoría:** `/mycelial symbiosis <status|clear|grant <mutagen>>`, `/mycelial cycle <status|start|abort|reset>`, `/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.4] Comandos Admin, Payloads y Verify (4/5)
 
@@ -1447,6 +1612,6 @@ _181 Sonidos, LabPBR, 49 Configs, Red v14, /mycelial y 22 Verify_ | Puerta recom
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.5] Comandos Admin, Payloads y Verify (5/5)
 
-• **`/mycelial verify` (12–22):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, `tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`.
+• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, `tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`, `cycles`.
 
 ---

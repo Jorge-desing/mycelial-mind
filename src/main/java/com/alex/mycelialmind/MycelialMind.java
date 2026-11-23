@@ -7,6 +7,7 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.hive.DamageTelemetryTracker;
 import com.alex.mycelialmind.hive.HabitTelemetryTracker;
 import com.alex.mycelialmind.hive.HiveBlackboard;
+import com.alex.mycelialmind.hive.HiveCycleDirector;
 import com.alex.mycelialmind.hive.HiveWaveDirector;
 import com.alex.mycelialmind.hive.HyphalSiegeDirector;
 import com.alex.mycelialmind.hive.MycorrhizalAcousticTracker;
@@ -75,6 +76,7 @@ public class MycelialMind {
         NeoForge.EVENT_BUS.register(DamageTelemetryTracker.class);
         NeoForge.EVENT_BUS.register(HabitTelemetryTracker.class);
         NeoForge.EVENT_BUS.register(HiveBlackboard.class);
+        NeoForge.EVENT_BUS.register(HiveCycleDirector.class);
         NeoForge.EVENT_BUS.register(HiveWaveDirector.class);
         NeoForge.EVENT_BUS.register(HyphalSiegeDirector.class);
         NeoForge.EVENT_BUS.register(MycorrhizalAcousticTracker.class);

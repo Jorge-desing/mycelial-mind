@@ -994,7 +994,19 @@ public class BioScannerCodexScreen extends Screen {
                 ClientDiscoveryCache.countDiscoveredTraits(), ProgressionGoalEngine.TOTAL_TRAITS,
                 ClientDiscoveryCache.getRareVariantsFound(),
                 ClientDiscoveryCache.getBastionScore()), x, y, 286, 0xFFA3F7B5);
-        y += 12;
+        y += 11;
+
+        Component cycleSummary = com.alex.mycelialmind.network.ClientCycleCache.isCycleActive()
+                ? Component.translatable("codex.mycelialmind.goals.engrams_cycle_active",
+                        ClientDiscoveryCache.countDiscoveredEngrams(), com.alex.mycelialmind.hive.FieldEngramId.TOTAL_COUNT,
+                        com.alex.mycelialmind.network.ClientCycleCache.getActiveCycleNumber(),
+                        com.alex.mycelialmind.network.ClientCycleCache.getBestScore())
+                : Component.translatable("codex.mycelialmind.goals.engrams_cycle_idle",
+                        ClientDiscoveryCache.countDiscoveredEngrams(), com.alex.mycelialmind.hive.FieldEngramId.TOTAL_COUNT,
+                        com.alex.mycelialmind.network.ClientCycleCache.getCompletedCycles(),
+                        com.alex.mycelialmind.network.ClientCycleCache.getBestScore());
+        drawScaledText(graphics, cycleSummary, x, y, 286, 0xFF72EFDD);
+        y += 11;
 
         graphics.drawString(this.font,
                 Component.translatable("codex.mycelialmind.goals.secrets_header",

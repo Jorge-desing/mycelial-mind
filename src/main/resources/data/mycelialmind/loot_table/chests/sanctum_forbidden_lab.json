@@ -78,6 +78,37 @@
         { "type": "minecraft:item", "name": "mycelialmind:chimera_ovum", "weight": 22 },
         { "type": "minecraft:item", "name": "minecraft:echo_shard", "weight": 22 }
       ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0.0,
+      "conditions": [
+        { "condition": "minecraft:random_chance", "chance": 0.45 }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:field_engram",
+          "weight": 55,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": { "mycelialmind:engram_id": "synaptic_bloom" }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:field_engram",
+          "weight": 45,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": { "mycelialmind:engram_id": "hyphal_memory" }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

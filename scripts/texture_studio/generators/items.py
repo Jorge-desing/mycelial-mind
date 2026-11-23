@@ -686,9 +686,34 @@ def _mycelial_codex(p: float) -> IconCanvas:
     return c
 
 
+def _field_engram(p: float) -> IconCanvas:
+    c = IconCanvas(seed=138)
+    xx, yy = c.xx, c.yy
+    # Tilted bio-crystalline memory slate with corner notch & top antenna node
+    slate = rot_box(xx, yy, -0.04, 0.04, 0.36, 0.54, -0.32)
+    slate = sdf_subtract(slate, sdf_circle(xx, yy, -0.44, 0.42, 0.14))
+    _p(c, slate, "abyssal_obsidian", "OBSIDIAN_CHITIN", 0.38, height=0.65)
+    rim = sdf_onion(slate, 0.045)
+    c.zone(rim, "chitin_bone", "CHITIN_BONE", tone=0.72)
+    node = sdf_circle(xx, yy, 0.30, -0.46, 0.17)
+    _p(c, node, "biolum_cyan", "BIOLUM_CYAN", 0.85 + 0.15 * p, emissive=True, height=0.88)
+    c.glow(node <= 0.0, "biolum_cyan")
+    # Engraved synaptic trace lines across the slate face
+    trace1 = sdf_capsule(xx, yy, -0.24, -0.22, 0.16, -0.08, 0.032)
+    trace2 = sdf_capsule(xx, yy, -0.18, 0.02, 0.22, 0.16, 0.032)
+    trace3 = sdf_capsule(xx, yy, -0.12, 0.26, 0.18, 0.36, 0.028)
+    c.zone(trace1, "biolum_cyan", "BIOLUM_CYAN", tone=0.86)
+    c.zone(trace2, "warm_ivory", "BIOLUM_MYCELIUM", tone=0.92)
+    c.zone(trace3, "spore_chartreuse", "TOXIC_SPORE", tone=0.84)
+    c.glow(trace1 <= 0.0, "biolum_cyan")
+    c.glow(trace2 <= 0.0, "warm_ivory")
+    return c
+
+
 _ICONS = {
     "bio_scanner": (_bio_scanner, True, 4),
     "mycelial_codex": (_mycelial_codex, True, 4),
+    "field_engram": (_field_engram, True, 4),
     "enzyme_lance": (_enzyme_lance, True, 5),
     "neutralizing_spore_launcher": (_spore_launcher, True, 4),
     "symbiotic_blade": (_symbiotic_blade, True, 4),

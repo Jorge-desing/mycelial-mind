@@ -93,6 +93,12 @@ public class BioExtractorItem extends Item {
                     discovery.incrementRareVariantsFound();
                     PlayerDiscoveryData.unlockSecret(serverPlayer, ProgressionGoalEngine.SECRET_PRIMORDIAL_SPECIMEN);
                     PlayerDiscoveryData.onLatentSporeAcquired(serverPlayer);
+                    if (!discovery.hasEngram(com.alex.mycelialmind.hive.FieldEngramId.PRIMORDIAL_LINEAGE)) {
+                        ItemStack engramDrop = FieldEngramItem.createStack(com.alex.mycelialmind.hive.FieldEngramId.PRIMORDIAL_LINEAGE);
+                        if (!player.getInventory().add(engramDrop)) {
+                            player.drop(engramDrop, false);
+                        }
+                    }
                     DiscoverySyncPayload.syncToPlayer(serverPlayer);
                 }
             }

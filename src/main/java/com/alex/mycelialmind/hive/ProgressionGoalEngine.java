@@ -421,14 +421,32 @@ public final class ProgressionGoalEngine {
             boolean hasAdminPermission,
             boolean isCreative
     ) {
+        return isCodexGateUnlocked(
+                gate, effectiveActNumber, deepMyceliumBreached, hasAdminPermission, isCreative, 0, false);
+    }
+
+    public static boolean isCodexGateUnlocked(
+            String gate,
+            int effectiveActNumber,
+            boolean deepMyceliumBreached,
+            boolean hasAdminPermission,
+            boolean isCreative,
+            int discoveredEngramsMask,
+            boolean matriarchDefeated
+    ) {
         if (isCreative || gate == null || gate.isEmpty()) {
             return true;
+        }
+        if (gate.startsWith("engram:")) {
+            FieldEngramId engram = FieldEngramId.byIdOrNull(gate.substring("engram:".length()));
+            return engram != null && engram.isUnlocked(discoveredEngramsMask);
         }
         return switch (gate) {
             case "act_2" -> effectiveActNumber >= 2;
             case "act_3" -> effectiveActNumber >= 3;
             case "act_4" -> effectiveActNumber >= 4;
             case "deep_mycelium" -> deepMyceliumBreached;
+            case "post_matriarch" -> matriarchDefeated;
             case "admin" -> hasAdminPermission;
             default -> true;
         };

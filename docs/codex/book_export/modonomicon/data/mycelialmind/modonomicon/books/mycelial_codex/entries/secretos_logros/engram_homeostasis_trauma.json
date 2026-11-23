@@ -1,0 +1,25 @@
+{
+  "category": "mycelialmind:secretos_logros",
+  "name": "book.mycelialmind.mycelial_codex.secretos_logros.engram_homeostasis_trauma.name",
+  "description": "book.mycelialmind.mycelial_codex.secretos_logros.engram_homeostasis_trauma.description",
+  "icon": {
+    "item": "mycelialmind:field_engram"
+  },
+  "x": 0,
+  "y": 6,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 11,
+  "parents": [],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.engram_homeostasis_trauma.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.engram_homeostasis_trauma.page1.text"
+    }
+  ]
+}

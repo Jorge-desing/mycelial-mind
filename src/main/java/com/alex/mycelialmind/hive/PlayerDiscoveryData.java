@@ -36,6 +36,7 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
     private static final String TAG_STRAINS = "StrainsMask";
     private static final String TAG_SECRETS = "SecretsMask";
     private static final String TAG_MILESTONES = "MilestonesMask";
+    private static final String TAG_ENGRAMS = "EngramsMask";
     private static final String TAG_RARE_VARIANTS = "RareVariantsFound";
     private static final String TAG_BASTION_SCORE = "BastionScore";
     private static final String TAG_LAST_OBSERVATION = "LastObservationCode";
@@ -50,6 +51,7 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
     private int discoveredStrainsMask = 0;
     private int discoveredSecretsMask = 0;
     private int craftedMilestonesMask = 0;
+    private int discoveredEngramsMask = 0;
     private int rareVariantsFound = 0;
     private int bastionScore = 0;
     private int lastObservationCode = 0;
@@ -82,6 +84,26 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
 
     public int getCraftedMilestonesMask() {
         return craftedMilestonesMask;
+    }
+
+    public int getDiscoveredEngramsMask() {
+        return discoveredEngramsMask & FieldEngramId.ALL_MASK;
+    }
+
+    public int countDiscoveredEngrams() {
+        return FieldEngramId.countUnlocked(discoveredEngramsMask);
+    }
+
+    public boolean hasEngram(@javax.annotation.Nullable FieldEngramId engram) {
+        return engram != null && engram.isUnlocked(discoveredEngramsMask);
+    }
+
+    public boolean markEngramDiscovered(@javax.annotation.Nullable FieldEngramId engram) {
+        if (engram == null || engram.isUnlocked(discoveredEngramsMask)) {
+            return false;
+        }
+        discoveredEngramsMask = (discoveredEngramsMask | engram.bitMask()) & FieldEngramId.ALL_MASK;
+        return true;
     }
 
     public int getRareVariantsFound() {
@@ -399,6 +421,7 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
         tag.putInt(TAG_STRAINS, discoveredStrainsMask);
         tag.putInt(TAG_SECRETS, discoveredSecretsMask);
         tag.putInt(TAG_MILESTONES, craftedMilestonesMask);
+        tag.putInt(TAG_ENGRAMS, discoveredEngramsMask & FieldEngramId.ALL_MASK);
         tag.putInt(TAG_RARE_VARIANTS, rareVariantsFound);
         tag.putInt(TAG_BASTION_SCORE, bastionScore);
         tag.putInt(TAG_LAST_OBSERVATION, lastObservationCode);
@@ -420,6 +443,7 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
         discoveredStrainsMask = nbt.getInt(TAG_STRAINS);
         discoveredSecretsMask = nbt.getInt(TAG_SECRETS);
         craftedMilestonesMask = nbt.getInt(TAG_MILESTONES);
+        discoveredEngramsMask = nbt.getInt(TAG_ENGRAMS) & FieldEngramId.ALL_MASK;
         rareVariantsFound = Math.max(0, nbt.getInt(TAG_RARE_VARIANTS));
         bastionScore = Math.max(0, Math.min(100, nbt.getInt(TAG_BASTION_SCORE)));
         lastObservationCode = ProgressionGoalEngine.CreatureObservation.byId(nbt.getInt(TAG_LAST_OBSERVATION)).id();

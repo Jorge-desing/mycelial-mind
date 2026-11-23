@@ -8258,4 +8258,151 @@ public final class MycelialGameTests {
             brute.discard();
         }
     }
+
+    @GameTest(template = "empty", batch = "algorithm_integration")
+    public static void fieldEngramAbsorptionPersistsAndSyncs(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var fakePlayer = FakePlayerFactory.getMinecraft(level);
+        PlayerDiscoveryData discovery = fakePlayer.getData(ModAttachments.DISCOVERY);
+        CompoundTag originalTag = discovery.serializeNBT(level.registryAccess());
+        discovery.deserializeNBT(level.registryAccess(), new CompoundTag());
+        try {
+            ItemStack engramStack = com.alex.mycelialmind.item.FieldEngramItem.createStack(
+                    com.alex.mycelialmind.hive.FieldEngramId.OUTBREAK_SIGNAL);
+            helper.assertTrue(
+                    com.alex.mycelialmind.item.FieldEngramItem.getEngramId(engramStack)
+                            == com.alex.mycelialmind.hive.FieldEngramId.OUTBREAK_SIGNAL,
+                    "FieldEngramItem stack must retain OUTBREAK_SIGNAL engram_id component.");
+
+            fakePlayer.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, engramStack);
+            engramStack.use(level, fakePlayer, net.minecraft.world.InteractionHand.MAIN_HAND);
+            helper.assertTrue(
+                    discovery.hasEngram(com.alex.mycelialmind.hive.FieldEngramId.OUTBREAK_SIGNAL),
+                    "Using FieldEngramItem must archive the engram in PlayerDiscoveryData.");
+            helper.assertTrue(discovery.countDiscoveredEngrams() == 1,
+                    "Discovered engram count must increment to 1.");
+            helper.assertTrue(engramStack.isEmpty(),
+                    "Absorbing FieldEngramItem in survival must consume the stack cleanly.");
+
+            // Re-using an already archived engram does not duplicate count
+            ItemStack duplicateStack = com.alex.mycelialmind.item.FieldEngramItem.createStack(
+                    com.alex.mycelialmind.hive.FieldEngramId.OUTBREAK_SIGNAL);
+            fakePlayer.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, duplicateStack);
+            duplicateStack.use(level, fakePlayer, net.minecraft.world.InteractionHand.MAIN_HAND);
+            helper.assertTrue(discovery.countDiscoveredEngrams() == 1,
+                    "Duplicate engram absorption must not inflate discovered count.");
+
+            // NBT persistence and network StreamCodec round-trip
+            CompoundTag saved = discovery.serializeNBT(level.registryAccess());
+            PlayerDiscoveryData restored = new PlayerDiscoveryData();
+            restored.deserializeNBT(level.registryAccess(), saved);
+            helper.assertTrue(
+                    restored.hasEngram(com.alex.mycelialmind.hive.FieldEngramId.OUTBREAK_SIGNAL),
+                    "Engram unlock mask must survive NBT serialization round-trip.");
+
+            DiscoverySyncPayload payload = DiscoverySyncPayload.forPlayer(fakePlayer);
+            var buf = io.netty.buffer.Unpooled.buffer();
+            DiscoverySyncPayload.STREAM_CODEC.encode(buf, payload);
+            DiscoverySyncPayload decoded = DiscoverySyncPayload.STREAM_CODEC.decode(buf);
+            helper.assertTrue(decoded.equals(payload)
+                            && decoded.discoveredEngramsMask() == discovery.getDiscoveredEngramsMask(),
+                    "DiscoverySyncPayload STREAM_CODEC must round-trip discoveredEngramsMask intact.");
+
+            helper.assertTrue(ProgressionGoalEngine.isCodexGateUnlocked(
+                            "engram:outbreak_signal", 1, false, false, false,
+                            restored.getDiscoveredEngramsMask(), false),
+                    "Codex gate for absorbed engram must unlock.");
+            helper.assertFalse(ProgressionGoalEngine.isCodexGateUnlocked(
+                            "engram:overmind_cycle", 4, true, true, false,
+                            restored.getDiscoveredEngramsMask(), true),
+                    "Codex gate for uncollected engram must remain locked.");
+
+            helper.succeed();
+        } finally {
+            fakePlayer.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            discovery.deserializeNBT(level.registryAccess(), originalTag);
+        }
+    }
+
+    @GameTest(template = "empty", batch = "algorithm_integration")
+    public static void hiveCycleMutatorsScaleBossAndCompleteWithRecord(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        com.alex.mycelialmind.hive.HiveMindSavedData owHive =
+                com.alex.mycelialmind.hive.HiveMindSavedData.get(overworld);
+        com.alex.mycelialmind.hive.HiveCycleSavedData cycles =
+                com.alex.mycelialmind.hive.HiveCycleSavedData.get(overworld);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag cyclesSnapshot = cycles.save(new CompoundTag(), overworld.registryAccess());
+        BlockPos dropPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        ApexMatriarchEntity matriarch = null;
+        try {
+            owHive.resetAll();
+            cycles.resetAll();
+            helper.assertFalse(com.alex.mycelialmind.hive.HiveCycleDirector.isCycleUnlocked(overworld),
+                    "Hive Cycles must stay locked before Apex Matriarch is defeated.");
+            int mask = com.alex.mycelialmind.hive.HiveCycleMutator.PRIMORDIAL_APEX.bitMask()
+                    | com.alex.mycelialmind.hive.HiveCycleMutator.SYNAPTIC_SWARM.bitMask()
+                    | com.alex.mycelialmind.hive.HiveCycleMutator.HYPER_ADAPTATION.bitMask();
+            helper.assertFalse(com.alex.mycelialmind.hive.HiveCycleDirector.startCycle(null, overworld, mask),
+                    "startCycle must fail while Matriarch defeat is not recorded.");
+
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+            helper.assertTrue(com.alex.mycelialmind.hive.HiveCycleDirector.isCycleUnlocked(overworld),
+                    "Defeating Apex Matriarch must unlock Hive Cycles.");
+
+            int invalidMask = com.alex.mycelialmind.hive.HiveCycleMutator.ALL_MASK;
+            helper.assertFalse(com.alex.mycelialmind.hive.HiveCycleDirector.startCycle(null, overworld, invalidMask),
+                    "startCycle must reject selecting more than 3 mutators.");
+
+            helper.assertTrue(com.alex.mycelialmind.hive.HiveCycleDirector.startCycle(null, overworld, mask),
+                    "startCycle must accept 1..3 mutators once Matriarch is defeated.");
+            helper.assertTrue(cycles.isCycleActive() && cycles.getActiveMutatorMask() == mask,
+                    "HiveCycleSavedData must activate with selected mutators.");
+            helper.assertTrue(owHive.getMatriarchRemissionRemainingSeconds(overworld.getGameTime()) == 0,
+                    "Starting a Hive Cycle must clear Matriarch remission.");
+
+            var syncPayload = com.alex.mycelialmind.network.CycleProtocolSyncPayload.forLevel(overworld, true);
+            var syncBuf = io.netty.buffer.Unpooled.buffer();
+            com.alex.mycelialmind.network.CycleProtocolSyncPayload.STREAM_CODEC.encode(syncBuf, syncPayload);
+            var decodedSync = com.alex.mycelialmind.network.CycleProtocolSyncPayload.STREAM_CODEC.decode(syncBuf);
+            helper.assertTrue(decodedSync.equals(syncPayload) && decodedSync.cycleActive() && decodedSync.openScreen(),
+                    "CycleProtocolSyncPayload must round-trip active cycle state intact.");
+
+            matriarch = ModEntities.APEX_MATRIARCH.get().create(level);
+            helper.assertTrue(matriarch != null, "ApexMatriarchEntity creation must succeed.");
+            com.alex.mycelialmind.hive.HiveCycleDirector.applyBossCycleScaling(matriarch, level);
+            helper.assertTrue(matriarch.getMaxHealth() > 700.0F,
+                    "PRIMORDIAL_APEX must scale ApexMatriarch max health above 700 HP (got " + matriarch.getMaxHealth() + ").");
+
+            com.alex.mycelialmind.hive.HiveCycleDirector.onMatriarchDefeated(level, dropPos);
+            helper.assertFalse(cycles.isCycleActive(),
+                    "Defeating ApexMatriarch must close active Hive Cycle.");
+            helper.assertTrue(cycles.getCompletedCycles() == 1 && cycles.getBestScore() >= 1000
+                            && !cycles.getLastCompletedGrade().isEmpty(),
+                    "Completed Hive Cycle must record count, score >= 1000, and rank grade.");
+
+            var droppedEngrams = level.getEntitiesOfClass(
+                    net.minecraft.world.entity.item.ItemEntity.class,
+                    new AABB(dropPos).inflate(4.0D),
+                    e -> e.getItem().is(com.alex.mycelialmind.registry.ModItems.FIELD_ENGRAM.get())
+                            && com.alex.mycelialmind.item.FieldEngramItem.getEngramId(e.getItem())
+                            == com.alex.mycelialmind.hive.FieldEngramId.OVERMIND_CYCLE);
+            helper.assertTrue(!droppedEngrams.isEmpty(),
+                    "Completing a Hive Cycle must drop the OVERMIND_CYCLE Field Engram.");
+
+            helper.succeed();
+        } finally {
+            if (matriarch != null) {
+                matriarch.discard();
+            }
+            level.getEntitiesOfClass(
+                    net.minecraft.world.entity.item.ItemEntity.class,
+                    new AABB(dropPos).inflate(4.0D)
+            ).forEach(net.minecraft.world.entity.Entity::discard);
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            cycles.restoreFromSnapshot(cyclesSnapshot, overworld.registryAccess());
+            com.alex.mycelialmind.hive.HiveCycleDirector.syncHiveModifiersAcrossDimensions(overworld);
+        }
+    }
 }

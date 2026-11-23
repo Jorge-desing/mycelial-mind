@@ -90,7 +90,8 @@ public final class DimensionalHomeostasisDirector {
         HiveProgressionTier tier = HiveProgressionTier.fromThreat(hive.getThreatLevel());
         boolean remission = hive.isMatriarchRemissionActive(level.getGameTime());
         if (delta > 0.0) {
-            return delta * tier.deepMyceliumStressMultiplier() * (remission ? 0.50 : 1.0);
+            double cycleMult = com.alex.mycelialmind.hive.HiveCycleDirector.getActiveHomeostasisStressMultiplier(level);
+            return delta * tier.deepMyceliumStressMultiplier() * (remission ? 0.50 : 1.0) * cycleMult;
         }
         return remission ? delta * 1.50 : delta;
     }

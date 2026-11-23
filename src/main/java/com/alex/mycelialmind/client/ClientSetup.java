@@ -513,6 +513,9 @@ public final class ClientSetup {
                     ClientDiplomacyCache.clear();
                     ClientDiscoveryCache.clear();
                     ClientExpeditionCache.clear();
+                    com.alex.mycelialmind.network.ClientCycleCache.clear();
+                    com.alex.mycelialmind.client.hud.DiegeticToastManager.clear();
+                    com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.clear();
                     ClientSoundscapeDirector.resetSession();
                     CACHED_THERMAL_CYSTS.clear();
                     CACHED_THERMAL_TURRETS.clear();

@@ -1,0 +1,53 @@
+{
+  "category": "mycelialmind:mundo_dimension",
+  "name": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.name",
+  "description": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.description",
+  "icon": {
+    "item": "mycelialmind:matriarch_altar"
+  },
+  "x": 0,
+  "y": 2,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 5,
+  "parents": [
+    {
+      "entry": "mycelialmind:mundo_dimension/megaestructuras_santuario_ciudadela",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.ciclos_de_la_colmena.page4.text"
+    }
+  ]
+}

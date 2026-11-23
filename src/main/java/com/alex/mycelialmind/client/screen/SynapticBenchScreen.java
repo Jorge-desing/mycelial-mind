@@ -132,6 +132,26 @@ public class SynapticBenchScreen extends AbstractContainerScreen<SynapticBenchMe
                     Component.translatable("tooltip.mycelialmind.bench.formulas.bloom").withStyle(ChatFormatting.GREEN)
             );
             graphics.renderTooltip(this.font, lines, Optional.empty(), mouseX, mouseY);
+        } else if (isHoveringLabTier(mouseX, mouseY)) {
+            int tier = this.menu.getLabTier();
+            String nextKey = tier == 1
+                    ? "tooltip.mycelialmind.bench.upgrade_t2"
+                    : (tier == 2 ? "tooltip.mycelialmind.bench.upgrade_t3" : "tooltip.mycelialmind.bench.upgrade_max");
+            List<Component> lines = List.of(
+                    Component.translatable("tooltip.mycelialmind.bench.tier_title", tier).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD),
+                    Component.translatable(nextKey).withStyle(ChatFormatting.AQUA),
+                    Component.translatable("tooltip.mycelialmind.bench.tier_bonus").withStyle(ChatFormatting.GRAY)
+            );
+            graphics.renderTooltip(this.font, lines, Optional.empty(), mouseX, mouseY);
+        } else if (isHoveringStatus(mouseX, mouseY) && this.menu.getBlockedAct(ClientDiscoveryCache.getEffectiveActTier()) != null) {
+            HiveProgressionTier blocked = this.menu.getBlockedAct(ClientDiscoveryCache.getEffectiveActTier());
+            String actHintKey = "tooltip.mycelialmind.bench.act_hint." + blocked.actNumber();
+            List<Component> lines = List.of(
+                    Component.translatable("gui.mycelialmind.bench.requires_act",
+                            blocked.actNumber(), MycelialText.progressionTier(blocked)).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD),
+                    Component.translatable(actHintKey).withStyle(ChatFormatting.LIGHT_PURPLE)
+            );
+            graphics.renderTooltip(this.font, lines, Optional.empty(), mouseX, mouseY);
         } else {
             this.renderTooltip(graphics, mouseX, mouseY);
         }
@@ -171,6 +191,18 @@ public class SynapticBenchScreen extends AbstractContainerScreen<SynapticBenchMe
         int bx = this.leftPos + BADGE_REL_X;
         int by = this.topPos + BADGE_REL_Y;
         return mouseX >= bx && mouseX < bx + BADGE_W && mouseY >= by && mouseY < by + BADGE_H;
+    }
+
+    private boolean isHoveringLabTier(int mouseX, int mouseY) {
+        int tx = this.leftPos + 6;
+        int ty = this.topPos + 20;
+        return mouseX >= tx && mouseX < tx + 24 && mouseY >= ty && mouseY < ty + 12;
+    }
+
+    private boolean isHoveringStatus(int mouseX, int mouseY) {
+        int sx = this.leftPos + 6;
+        int sy = this.topPos + 55;
+        return mouseX >= sx && mouseX < sx + 164 && mouseY >= sy && mouseY < sy + 12;
     }
 
     private static void drawSlotBox(GuiGraphics graphics, int x, int y, int borderColor) {

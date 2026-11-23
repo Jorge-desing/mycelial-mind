@@ -26,6 +26,11 @@ public final class ModDataComponents {
                     .persistent(Codec.INT)
                     .networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> ENGRAM_ID =
+            DATA_COMPONENTS.registerComponentType("engram_id", builder -> builder
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+
     private ModDataComponents() {
     }
 

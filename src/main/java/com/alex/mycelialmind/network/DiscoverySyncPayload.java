@@ -30,7 +30,8 @@ public record DiscoverySyncPayload(
         int pinnedExpeditionGoal,
         int researchStageMask,
         int recordedThreatPermille,
-        int lastThreatDropPermille
+        int lastThreatDropPermille,
+        int discoveredEngramsMask
 ) implements CustomPacketPayload {
     public static final Type<DiscoverySyncPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "discovery_sync"));
@@ -47,7 +48,29 @@ public record DiscoverySyncPayload(
     ) {
         this(scannedSpeciesMask, discoveredTraitsMask, discoveredStrainsMask, discoveredSecretsMask,
                 craftedMilestonesMask, rareVariantsFound, bastionScore, highestActTier,
-                0, "", 0, 0, 0, 0);
+                0, "", 0, 0, 0, 0, 0);
+    }
+
+    public DiscoverySyncPayload(
+            int scannedSpeciesMask,
+            int discoveredTraitsMask,
+            int discoveredStrainsMask,
+            int discoveredSecretsMask,
+            int craftedMilestonesMask,
+            int rareVariantsFound,
+            int bastionScore,
+            int highestActTier,
+            int lastObservationCode,
+            String lastObservationDimension,
+            int pinnedExpeditionGoal,
+            int researchStageMask,
+            int recordedThreatPermille,
+            int lastThreatDropPermille
+    ) {
+        this(scannedSpeciesMask, discoveredTraitsMask, discoveredStrainsMask, discoveredSecretsMask,
+                craftedMilestonesMask, rareVariantsFound, bastionScore, highestActTier,
+                lastObservationCode, lastObservationDimension, pinnedExpeditionGoal,
+                researchStageMask, recordedThreatPermille, lastThreatDropPermille, 0);
     }
 
     public static final StreamCodec<ByteBuf, DiscoverySyncPayload> STREAM_CODEC = new StreamCodec<>() {
@@ -64,6 +87,7 @@ public record DiscoverySyncPayload(
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.STRING_UTF8.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
                     ByteBufCodecs.VAR_INT.decode(buf),
@@ -87,6 +111,7 @@ public record DiscoverySyncPayload(
             ByteBufCodecs.VAR_INT.encode(buf, payload.researchStageMask());
             ByteBufCodecs.VAR_INT.encode(buf, payload.recordedThreatPermille());
             ByteBufCodecs.VAR_INT.encode(buf, payload.lastThreatDropPermille());
+            ByteBufCodecs.VAR_INT.encode(buf, payload.discoveredEngramsMask());
         }
     };
 
@@ -107,7 +132,8 @@ public record DiscoverySyncPayload(
                 data.getPinnedExpeditionGoalId(),
                 data.getResearchStageMask(),
                 data.getRecordedThreatPermille(),
-                data.getLastThreatDropPermille()
+                data.getLastThreatDropPermille(),
+                data.getDiscoveredEngramsMask()
         );
     }
 

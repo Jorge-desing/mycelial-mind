@@ -804,6 +804,9 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
                 }
             }
             applyProgressionScaling(serverLevel, hive);
+            if (this instanceof MycelialBossMob boss) {
+                com.alex.mycelialmind.hive.HiveCycleDirector.applyBossCycleScaling(boss, serverLevel);
+            }
             if (!isBossMob() && !isAlliedEscort()) {
                 HiveProgressionTier effectiveTier = HiveProgressionTier.resolveEffectiveTier(
                         hive.getThreatLevel(), hive.getHighestTierReached());

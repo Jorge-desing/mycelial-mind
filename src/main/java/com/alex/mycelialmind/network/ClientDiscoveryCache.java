@@ -19,11 +19,14 @@ import javax.annotation.Nullable;
  * and Ongoing Research expedition state.
  */
 public final class ClientDiscoveryCache {
+    private static boolean initialized = false;
+    private static int lastAnnouncedActNumber = 1;
     private static int scannedSpeciesMask = 0;
     private static int discoveredTraitsMask = 0;
     private static int discoveredStrainsMask = 0;
     private static int discoveredSecretsMask = 0;
     private static int craftedMilestonesMask = 0;
+    private static int discoveredEngramsMask = 0;
     private static int rareVariantsFound = 0;
     private static int bastionScore = 0;
     private static int highestActTier = 0;
@@ -38,11 +41,14 @@ public final class ClientDiscoveryCache {
     }
 
     public static void clear() {
+        initialized = false;
+        lastAnnouncedActNumber = 1;
         scannedSpeciesMask = 0;
         discoveredTraitsMask = 0;
         discoveredStrainsMask = 0;
         discoveredSecretsMask = 0;
         craftedMilestonesMask = 0;
+        discoveredEngramsMask = 0;
         rareVariantsFound = 0;
         bastionScore = 0;
         highestActTier = 0;
@@ -55,11 +61,16 @@ public final class ClientDiscoveryCache {
     }
 
     public static void update(DiscoverySyncPayload payload) {
+        boolean wasInitialized = initialized;
+        int prevSecrets = discoveredSecretsMask;
+        int prevEngrams = discoveredEngramsMask;
+
         scannedSpeciesMask = payload.scannedSpeciesMask();
         discoveredTraitsMask = payload.discoveredTraitsMask();
         discoveredStrainsMask = payload.discoveredStrainsMask();
         discoveredSecretsMask = payload.discoveredSecretsMask();
         craftedMilestonesMask = payload.craftedMilestonesMask();
+        discoveredEngramsMask = payload.discoveredEngramsMask() & com.alex.mycelialmind.hive.FieldEngramId.ALL_MASK;
         rareVariantsFound = Math.max(0, payload.rareVariantsFound());
         bastionScore = Math.max(0, Math.min(100, payload.bastionScore()));
         highestActTier = Math.max(0, Math.min(HiveProgressionTier.OVERMIND.level(), payload.highestActTier()));
@@ -69,6 +80,56 @@ public final class ClientDiscoveryCache {
         researchStageMask = Math.max(0, payload.researchStageMask());
         recordedThreatPermille = Math.max(0, Math.min(100_000, payload.recordedThreatPermille()));
         lastThreatDropPermille = Math.max(0, Math.min(100_000, payload.lastThreatDropPermille()));
+
+        HiveProgressionTier effectiveTier = getEffectiveActTier();
+        int effectiveAct = effectiveTier.actNumber();
+        initialized = true;
+
+        if (!wasInitialized) {
+            lastAnnouncedActNumber = Math.max(1, effectiveAct);
+            return;
+        }
+
+        if (effectiveAct > lastAnnouncedActNumber) {
+            lastAnnouncedActNumber = effectiveAct;
+            com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.markActEntriesUnread(effectiveAct);
+            com.alex.mycelialmind.client.hud.DiegeticToastManager.enqueue(
+                    com.alex.mycelialmind.client.hud.DiegeticToastManager.ToastCategory.ACT_TRANSITION,
+                    Component.translatable("toast.mycelialmind.act_unlocked.title",
+                            effectiveAct, com.alex.mycelialmind.util.MycelialText.progressionTier(effectiveTier)),
+                    Component.translatable("toast.mycelialmind.act_unlocked.sub")
+            );
+        }
+
+        int newEngrams = discoveredEngramsMask & ~prevEngrams;
+        if (newEngrams != 0) {
+            for (var engram : com.alex.mycelialmind.hive.FieldEngramId.values()) {
+                if ((newEngrams & engram.bitMask()) != 0) {
+                    com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.markUnread(
+                            engram.codexChapterId(), engram.codexEntryId());
+                    com.alex.mycelialmind.client.hud.DiegeticToastManager.enqueue(
+                            com.alex.mycelialmind.client.hud.DiegeticToastManager.ToastCategory.FIELD_ENGRAM,
+                            Component.translatable(engram.titleKey()),
+                            Component.translatable("toast.mycelialmind.engram_unlocked.sub", engram.actNumber())
+                    );
+                }
+            }
+        }
+
+        int newSecrets = discoveredSecretsMask & ~prevSecrets;
+        if (newSecrets != 0) {
+            for (int i = 0; i < ProgressionGoalEngine.TOTAL_SECRETS; i++) {
+                if ((newSecrets & (1 << i)) != 0) {
+                    com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.markUnread(
+                            "secretos_logros", "secretos_pistas_seguras");
+                    com.alex.mycelialmind.client.hud.DiegeticToastManager.enqueue(
+                            com.alex.mycelialmind.client.hud.DiegeticToastManager.ToastCategory.SECRET_UNLOCKED,
+                            Component.translatable("codex.mycelialmind.secret.name." + (i + 1)),
+                            Component.translatable("toast.mycelialmind.secret_unlocked.sub")
+                    );
+                }
+            }
+        }
     }
 
     public static int getHighestActTier() {
@@ -97,6 +158,18 @@ public final class ClientDiscoveryCache {
 
     public static int getCraftedMilestonesMask() {
         return craftedMilestonesMask;
+    }
+
+    public static int getDiscoveredEngramsMask() {
+        return discoveredEngramsMask;
+    }
+
+    public static int countDiscoveredEngrams() {
+        return com.alex.mycelialmind.hive.FieldEngramId.countUnlocked(discoveredEngramsMask);
+    }
+
+    public static boolean hasEngram(@Nullable com.alex.mycelialmind.hive.FieldEngramId engram) {
+        return engram != null && engram.isUnlocked(discoveredEngramsMask);
     }
 
     public static int getRareVariantsFound() {

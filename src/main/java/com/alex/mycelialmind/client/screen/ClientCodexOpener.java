@@ -16,4 +16,8 @@ public final class ClientCodexOpener {
     public static void openBookCodex() {
         Minecraft.getInstance().setScreen(new MycelialCodexBookScreen());
     }
+
+    public static void openCycleProtocolScreen() {
+        Minecraft.getInstance().setScreen(new CycleProtocolScreen());
+    }
 }

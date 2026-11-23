@@ -26,6 +26,7 @@ public final class MycelialClientConfig {
     public static final ModConfigSpec.IntValue HUD_OFFSET_X;
     public static final ModConfigSpec.IntValue HUD_OFFSET_Y;
     public static final ModConfigSpec.BooleanValue HUD_COMPACT_MODE;
+    public static final ModConfigSpec.BooleanValue HUD_CONTEXTUAL_COMBAT;
     public static final ModConfigSpec.BooleanValue HUD_REQUIRE_HELD;
     public static final ModConfigSpec.BooleanValue SHOW_SYNAPTIC_VISION_BORDER;
     public static final ModConfigSpec.DoubleValue SPORE_FOG_DENSITY_SCALE;
@@ -54,6 +55,10 @@ public final class MycelialClientConfig {
         HUD_COMPACT_MODE = builder
                 .comment("Use a compact summary layout for the Bio-Scanner HUD overlay.")
                 .define("hudCompactMode", false);
+
+        HUD_CONTEXTUAL_COMBAT = builder
+                .comment("Automatically switch the Bio-Scanner HUD to compact combat focus during active combat.")
+                .define("hudContextualCombat", true);
 
         HUD_REQUIRE_HELD = builder
                 .comment("If true, the HUD displays only while holding Bio-Scanner or Bio-Extractor; if false, carrying either in the inventory suffices.")
@@ -114,6 +119,18 @@ public final class MycelialClientConfig {
 
     public static boolean isHudCompact() {
         return SPEC.isLoaded() ? HUD_COMPACT_MODE.get() : HUD_COMPACT_MODE.getDefault();
+    }
+
+    public static boolean isHudContextualCombat() {
+        return SPEC.isLoaded() ? HUD_CONTEXTUAL_COMBAT.get() : HUD_CONTEXTUAL_COMBAT.getDefault();
+    }
+
+    public static boolean shouldUseCombatCompactHud(
+            boolean contextualCombatEnabled,
+            boolean manualCompact,
+            boolean inActiveCombat
+    ) {
+        return manualCompact || (contextualCombatEnabled && inActiveCombat);
     }
 
     public static boolean isHudRequireHeld() {

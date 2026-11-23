@@ -259,7 +259,9 @@ public abstract class MycelialBossMob extends MycelialMob {
                     this.entityData.set(DATA_STATE_TICKS, ticksLeft - 1);
                 } else {
                     // Put completed attack on cooldown
-                    int cd = BossCombatArchitectureEngine.resolveEffectiveCooldownTicks(activeAttack, currentPhase);
+                    int baseCd = BossCombatArchitectureEngine.resolveEffectiveCooldownTicks(activeAttack, currentPhase);
+                    double cycleCdScale = com.alex.mycelialmind.hive.HiveCycleDirector.getActiveBossCooldownScale(level);
+                    int cd = Math.max(25, (int) Math.round(baseCd * cycleCdScale));
                     attackCooldowns.put(activeAttack, cd);
                     lastCompletedAttack = activeAttack;
 

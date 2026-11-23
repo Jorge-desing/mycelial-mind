@@ -4,7 +4,7 @@
     "economia_datos",
     "mundo_dimension"
   ],
-  "page_count": 82,
+  "page_count": 89,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -35,25 +35,28 @@
         "raw": "Los 24 Bloques\n(`ModBlocks`) (2/3)\n• Fortificación y Flora\n(8):\n`reinforced_bio_barri\ner`,\n`synaptic_research_b\nench`, `hive_altar`,\n`matriarch_altar`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`,\n`antibody_cyst`."
       },
       {
-        "raw": "Los 24 Bloques\n(`ModBlocks`) (3/3)\n• Arquitectura y\nDimensión (7):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`."
+        "raw": "Los 24 Bloques\n(`ModBlocks`) (3/3)\n• Arquitectura y\nDimensión (8):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`."
       },
       {
-        "raw": "Ítems y Armadura\n(`ModItems` 36 + 17\nHuevos) (1/4)\n• Instrumentos y\nArmas (10):\n`bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,"
+        "raw": "Ítems y Armadura\n(`ModItems`) (1/5)\n• Instrumentos y\nArmas (10):\n`bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,\n`rift_catalyst`,"
       },
       {
-        "raw": "`rift_catalyst`,\n`mycelial_codex`."
+        "raw": "`mycelial_codex`."
       },
       {
-        "raw": "Ítems y Armadura\n(`ModItems` 36 + 17\nHuevos) (2/4)\n• Armadura y Sueros\n(10): `chitin_helmet`,\n`chitin_chestplate`,\n`chitin_leggings`,\n`chitin_boots`,\n`spore_antidote`,\n`concentrated_antidot\ne`, `genetic_sample`,\n`symbiotic_mutagen`,\n`counter_serum`,"
+        "raw": "Ítems y Armadura\n(`ModItems`) (2/5)\n• Armadura y Sueros\n(10): `chitin_helmet`,\n`chitin_chestplate`,\n`chitin_leggings`,\n`chitin_boots`,\n`spore_antidote`,\n`concentrated_antidot\ne`, `genetic_sample`,\n`symbiotic_mutagen`,\n`counter_serum`,\n`tide_beacon`."
       },
       {
-        "raw": "`tide_beacon`."
+        "raw": "Ítems y Armadura\n(`ModItems`) (3/5)\n• Diplomacia y\nCognición (10):\n`purifier_drone_core`,\n`neural_echo_core`,\n`synaptic_graft`,\n`neural_echo_decoy`,\n`schism_injector`,\n`truce_pheromone`,\n`quorum_seal`,\n`chimera_ovum`,\n`volatile_engram`,"
       },
       {
-        "raw": "Ítems y Armadura\n(`ModItems` 36 + 17\nHuevos) (3/4)\n• Diplomacia y\nCognición (9):\n`purifier_drone_core`,\n`neural_echo_core`,\n`synaptic_graft`,\n`neural_echo_decoy`,\n`schism_injector`,\n`truce_pheromone`,\n`quorum_seal`,\n`chimera_ovum`,\n`volatile_engram`."
+        "raw": "`field_engram`."
       },
       {
-        "raw": "Ítems y Armadura\n(`ModItems` 36 + 17\nHuevos) (4/4)\n• Inyección y\nReactivos (7):\n`false_engram_injecto\nr`, `mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`hive_heart`,\n`overmind_essence` (+\n17 `*_spawn_egg` en\nCap.5)."
+        "raw": "Ítems y Armadura\n(`ModItems`) (4/5)\n• Inyección y\nReactivos (7):\n`false_engram_injecto\nr`, `mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`hive_heart`,\n`overmind_essence` (+\n17 `*_spawn_egg` en\nCap.5)."
+      },
+      {
+        "raw": "Ítems y Armadura\n(`ModItems`) (5/5)\n• Brotes Recuperados\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
         "raw": "Cap.9: Recetario Total\n(37 Datapack)\nBio-Escáner y\nBio-Extractor\n[crafting_shaped]  R\n/ICI/ S  (C=compass,\nI=copper_ingot,\nR=redstone,\nS=latent_spore) -> 1x\nbio_scanner\n[crafting_shaped]  A\n/IBI/ S \n(A=amethyst_shard,\nB=mycelial_biomass,"
@@ -258,6 +261,24 @@
       },
       {
         "raw": "SHOLD`) sofocan\nPilones hasta\ncosecharlos."
+      },
+      {
+        "raw": "Cap.10: Protocolo de\nCiclos y Mutadores\nProtocolo de Ciclos y\nMutadores (1/4)\n• Activación\nPost-Matriarca: Tras\nderrotar a\n`apex_matriarch`, usa\n`matriarch_altar` sin\nofrenda válida para\nabrir\n`CycleProtocolScreen`,\nelegir 1–3 de los 6"
+      },
+      {
+        "raw": "mutadores e iniciar el\nCiclo N (limpia\nremisión)."
+      },
+      {
+        "raw": "Protocolo de Ciclos y\nMutadores (2/4)\n• Mutadores I–III:\n`hyper_adaptation`\n(+45% aprendizaje,\numbrales x0.85, +35%\npts), `perpetual_tide`\n(+50% marea y menor\numbral final, +40% pts)\ny `acute_homeostasis`\n(+40% estrés inmune,\n+35% pts)."
+      },
+      {
+        "raw": "Protocolo de Ciclos y\nMutadores (3/4)\n• Mutadores IV–VI:\n`synaptic_swarm`\n(+atacantes y élite en\noleadas/escuadrones,\n+40% pts),\n`primordial_apex`\n(+25% HP/+15% daño\nde jefes y cooldown\nmenor, +50% pts) y\n`hyphal_overload`\n(+35% presión hifal,"
+      },
+      {
+        "raw": "+30% pts)."
+      },
+      {
+        "raw": "Protocolo de Ciclos y\nMutadores (4/4)\n• Cierre y Récords: Al\nderrotar a\n`apex_matriarch`\ndurante el Ciclo se\ncalcula `1000 * mult +\nvelocidad(<=500) -\nmuertes*120` (mín.\n`250`) otorgando\nrango S+..C, récord y\nel engrama\n`overmind_cycle`."
       }
     ]
   }

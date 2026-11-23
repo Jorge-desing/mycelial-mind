@@ -1,0 +1,46 @@
+{
+  "category": "mycelialmind:memoria_colmena",
+  "name": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.name",
+  "description": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.description",
+  "icon": {
+    "item": "mycelialmind:antibody_cyst"
+  },
+  "x": -2,
+  "y": 2,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 4,
+  "parents": [
+    {
+      "entry": "mycelialmind:memoria_colmena/enrutamiento_memoria",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.memoria_colmena.habitos_telemetria.page3.text"
+    }
+  ]
+}

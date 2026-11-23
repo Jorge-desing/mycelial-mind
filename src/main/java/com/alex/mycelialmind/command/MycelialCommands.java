@@ -162,10 +162,24 @@ public final class MycelialCommands {
                                 .executes(ctx -> verifyPolish(ctx.getSource())))
                         .then(Commands.literal("dimension_progression")
                                 .executes(ctx -> verifyDimensionProgression(ctx.getSource())))
+                        .then(Commands.literal("cycles")
+                                .executes(ctx -> verifyCycles(ctx.getSource())))
                         .then(Commands.literal("worldgen")
                                 .executes(ctx -> runWorldgenAudit(ctx.getSource(), 6, 64)))
                         .then(Commands.literal("all")
                                 .executes(ctx -> verifyAll(ctx.getSource()))))
+                .then(Commands.literal("cycle")
+                        .then(Commands.literal("status")
+                                .executes(ctx -> reportCycleStatus(ctx.getSource())))
+                        .then(Commands.literal("abort")
+                                .executes(ctx -> abortCycleCmd(ctx.getSource())))
+                        .then(Commands.literal("reset")
+                                .executes(ctx -> resetCycleCmd(ctx.getSource())))
+                        .then(Commands.literal("start")
+                                .then(Commands.argument("mutators", StringArgumentType.greedyString())
+                                        .executes(ctx -> startCycleCmd(
+                                                ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "mutators"))))))
                 .then(Commands.literal("homeostasis")
                         .then(Commands.literal("status")
                                 .executes(ctx -> reportHomeostasisStatus(ctx.getSource())))
@@ -254,6 +268,9 @@ public final class MycelialCommands {
         ServerLevel level = source.getLevel();
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         hive.resetAll();
+        com.alex.mycelialmind.hive.HiveCycleSavedData.get(level).abortCycle();
+        com.alex.mycelialmind.hive.HiveCycleDirector.syncHiveModifiersAcrossDimensions(level);
+        com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToAll(level);
         syncAllPlayers(level);
         source.sendSuccess(() -> Component.literal("[Mycelial] Hive Mind threat, stimuli, and wave milestone reset.")
                 .withStyle(ChatFormatting.GREEN), true);
@@ -301,8 +318,9 @@ public final class MycelialCommands {
         int r19 = verifyHomeostasis(source);
         int r20 = verifyPolish(source);
         int r21 = verifyDimensionProgression(source);
-        if (r1 == 1 && r2 == 1 && r3 == 1 && r4 == 1 && r5 == 1 && r6 == 1 && r7 == 1 && r8 == 1 && r9 == 1 && r10 == 1 && r11 == 1 && r12 == 1 && r13 == 1 && r14 == 1 && r15 == 1 && r16 == 1 && r17 == 1 && r18 == 1 && r19 == 1 && r20 == 1 && r21 == 1) {
-            source.sendSuccess(() -> Component.literal("[Mycelial Verify] ALL 21 automated scenario checks PASSED.")
+        int r22 = verifyCycles(source);
+        if (r1 == 1 && r2 == 1 && r3 == 1 && r4 == 1 && r5 == 1 && r6 == 1 && r7 == 1 && r8 == 1 && r9 == 1 && r10 == 1 && r11 == 1 && r12 == 1 && r13 == 1 && r14 == 1 && r15 == 1 && r16 == 1 && r17 == 1 && r18 == 1 && r19 == 1 && r20 == 1 && r21 == 1 && r22 == 1) {
+            source.sendSuccess(() -> Component.literal("[Mycelial Verify] ALL 22 automated scenario checks PASSED.")
                     .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD), true);
             return 1;
         }
@@ -328,6 +346,7 @@ public final class MycelialCommands {
         appendFailedScenario(failedScenarios, "homeostasis", r19);
         appendFailedScenario(failedScenarios, "polish", r20);
         appendFailedScenario(failedScenarios, "dimension_progression", r21);
+        appendFailedScenario(failedScenarios, "cycles", r22);
         source.sendFailure(Component.literal("[Mycelial Verify] Failed scenarios: " + failedScenarios + "."));
         return 0;
     }
@@ -1848,5 +1867,120 @@ public final class MycelialCommands {
         source.sendSuccess(() -> Component.literal("[Schism] Triggered " + name + " schism on " + count + " mobs.")
                 .withStyle(ChatFormatting.GOLD), false);
         return 1;
+    }
+
+    private static int reportCycleStatus(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        var cycles = com.alex.mycelialmind.hive.HiveCycleSavedData.get(level);
+        boolean unlocked = com.alex.mycelialmind.hive.HiveCycleDirector.isCycleUnlocked(level);
+        String muts = com.alex.mycelialmind.hive.HiveCycleMutator.decodeMask(cycles.getActiveMutatorMask())
+                .stream().map(com.alex.mycelialmind.hive.HiveCycleMutator::id).collect(Collectors.joining(", "));
+        source.sendSuccess(() -> Component.literal(String.format(
+                "[Cycle] Unlocked=%s Active=%s Cycle=%d Mutators=[%s] Completed=%d BestScore=%d (Cycle %d, Last=%d %s)",
+                unlocked, cycles.isCycleActive(), cycles.getActiveCycleNumber(),
+                muts.isEmpty() ? "none" : muts,
+                cycles.getCompletedCycles(), cycles.getBestScore(), cycles.getBestCycleNumber(),
+                cycles.getLastCompletedScore(), cycles.getLastCompletedGrade()
+        )).withStyle(ChatFormatting.LIGHT_PURPLE), false);
+        return 1;
+    }
+
+    private static int startCycleCmd(CommandSourceStack source, String rawMutators) {
+        int mask = 0;
+        for (String tok : rawMutators.trim().split("[,\\s]+")) {
+            if (tok.isBlank()) continue;
+            var mut = com.alex.mycelialmind.hive.HiveCycleMutator.byId(tok);
+            if (mut == null) {
+                source.sendFailure(Component.literal("[Cycle] Unknown mutator: " + tok));
+                return 0;
+            }
+            mask |= mut.bitMask();
+        }
+        ServerLevel level = source.getLevel();
+        ServerPlayer player = source.getEntity() instanceof ServerPlayer sp ? sp : null;
+        if (!com.alex.mycelialmind.hive.HiveCycleDirector.startCycle(player, level, mask)) {
+            source.sendFailure(Component.literal("[Cycle] Cannot start cycle (requires Matriarch defeated and 1-3 mutators, and no active cycle)."));
+            return 0;
+        }
+        final int chosenMask = mask;
+        source.sendSuccess(() -> Component.literal("[Cycle] Started cycle with mask=" + chosenMask)
+                .withStyle(ChatFormatting.GREEN), true);
+        return 1;
+    }
+
+    private static int abortCycleCmd(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        ServerPlayer player = source.getEntity() instanceof ServerPlayer sp ? sp : null;
+        if (!com.alex.mycelialmind.hive.HiveCycleDirector.abortCycle(player, level)) {
+            source.sendFailure(Component.literal("[Cycle] No active cycle to abort."));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("[Cycle] Aborted active cycle.")
+                .withStyle(ChatFormatting.YELLOW), true);
+        return 1;
+    }
+
+    private static int resetCycleCmd(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        com.alex.mycelialmind.hive.HiveCycleSavedData.get(level).resetAll();
+        com.alex.mycelialmind.hive.HiveCycleDirector.syncHiveModifiersAcrossDimensions(level);
+        com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToAll(level);
+        source.sendSuccess(() -> Component.literal("[Cycle] Reset all cycle state and records.")
+                .withStyle(ChatFormatting.GREEN), true);
+        return 1;
+    }
+
+    private static int verifyCycles(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        var cycles = com.alex.mycelialmind.hive.HiveCycleSavedData.get(overworld);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag cycleSnapshot = cycles.save(new CompoundTag(), overworld.registryAccess());
+        com.alex.mycelialmind.entity.ApexMatriarchEntity testMatriarch = null;
+        try {
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+            cycles.resetAll();
+            int mask = com.alex.mycelialmind.hive.HiveCycleMutator.PRIMORDIAL_APEX.bitMask()
+                    | com.alex.mycelialmind.hive.HiveCycleMutator.SYNAPTIC_SWARM.bitMask();
+            if (!com.alex.mycelialmind.hive.HiveCycleDirector.startCycle(null, overworld, mask)) {
+                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: startCycle returned false."));
+                return 0;
+            }
+            if (!cycles.isCycleActive() || cycles.getActiveMutatorMask() != mask) {
+                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: Cycle did not activate with requested mutators."));
+                return 0;
+            }
+            testMatriarch = ModEntities.APEX_MATRIARCH.get().create(overworld);
+            if (testMatriarch == null) {
+                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: Could not create ApexMatriarchEntity."));
+                return 0;
+            }
+            testMatriarch.moveTo(source.getPosition().x, source.getPosition().y + 2, source.getPosition().z);
+            com.alex.mycelialmind.hive.HiveCycleDirector.applyBossCycleScaling(testMatriarch, overworld);
+            if (testMatriarch.getMaxHealth() <= 600.0F) {
+                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: ApexMatriarch HP did not scale with PRIMORDIAL_APEX."));
+                return 0;
+            }
+            var res = cycles.completeCycle(overworld.getGameTime() + 100L);
+            if (res == null || res.score() < 1000 || cycles.getCompletedCycles() != 1 || cycles.getBestScore() != res.score()) {
+                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: Cycle completion/record calculation invalid."));
+                return 0;
+            }
+            final float scaledHp = testMatriarch.getMaxHealth();
+            source.sendSuccess(() -> Component.literal("[Verify:Cycles] PASS (ScaledHP="
+                    + scaledHp + ", Score=" + res.score() + ", Grade=" + res.grade() + ")")
+                    .withStyle(ChatFormatting.GREEN), false);
+            return 1;
+        } finally {
+            if (testMatriarch != null) {
+                testMatriarch.discard();
+            }
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            cycles.restoreFromSnapshot(cycleSnapshot, overworld.registryAccess());
+            com.alex.mycelialmind.hive.HiveCycleDirector.syncHiveModifiersAcrossDimensions(overworld);
+            com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToAll(overworld);
+            syncAllPlayers(overworld);
+        }
     }
 }

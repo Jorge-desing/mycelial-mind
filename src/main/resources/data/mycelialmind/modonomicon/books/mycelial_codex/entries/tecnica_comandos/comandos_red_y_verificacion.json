@@ -1,0 +1,60 @@
+{
+  "category": "mycelialmind:tecnica_comandos",
+  "name": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.name",
+  "description": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.description",
+  "icon": {
+    "item": "mycelialmind:bio_scanner"
+  },
+  "x": 1,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 2,
+  "parents": [
+    {
+      "entry": "mycelialmind:tecnica_comandos/configuracion_cliente_servidor",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page4.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page5.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.tecnica_comandos.comandos_red_y_verificacion.page5.text"
+    }
+  ]
+}

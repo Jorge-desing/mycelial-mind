@@ -2083,6 +2083,14 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 12,
+              "id": "all_35_items_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -2418,6 +2426,7 @@
           "unlock_gate": "always",
           "registry_refs": [
             "MycelialLootSystem",
+            "gameplay/hero_of_the_village/cleric_mycelial_gift",
             "blocks/antibody_cyst",
             "blocks/bio_chitin_lattice",
             "blocks/bioluminescent_mycelial_cap",
@@ -2731,6 +2740,59 @@
               "is_spoiler": false
             }
           ]
+        },
+        {
+          "id": "ciclos_de_la_colmena",
+          "order": 5,
+          "title_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.name",
+          "subtitle_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.desc",
+          "icon_item": "mycelialmind:matriarch_altar",
+          "x": 0,
+          "y": 2,
+          "parents": [
+            "mundo_dimension/megaestructuras_santuario_ciudadela"
+          ],
+          "unlock_gate": "post_matriarch",
+          "registry_refs": [
+            "HiveCycleEngine",
+            "HiveCycleMutator",
+            "CycleProtocolScreen",
+            "MatriarchAltarBlock"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ciclos_colmena_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.1.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "ciclos_colmena_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.2.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.2.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 3,
+              "id": "ciclos_colmena_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.3.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "ciclos_colmena_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.4.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.ciclos_de_la_colmena.page.4.text",
+              "is_spoiler": false
+            }
+          ]
         }
       ]
     },
@@ -2899,6 +2961,8 @@
             "immune_homeostasis",
             "overmind_ascendant",
             "apex_matriarch_slayer",
+            "recovered_garden",
+            "recovered_route",
             "recipes/unlock_biomass_recipes",
             "recipes/unlock_chitin_recipes",
             "recipes/unlock_hive_heart_recipes",
@@ -2990,6 +3054,306 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.4.title",
               "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.4.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_outbreak_signal",
+          "order": 5,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_outbreak_signal.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_outbreak_signal.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": 0,
+          "y": 2,
+          "parents": [],
+          "unlock_gate": "engram:outbreak_signal",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "FieldEngramId"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_outbreak_signal_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_outbreak_signal.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_outbreak_signal.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "engram_outbreak_signal_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_outbreak_signal.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_outbreak_signal.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_synaptic_bloom",
+          "order": 6,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_synaptic_bloom.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_synaptic_bloom.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": 2,
+          "y": 2,
+          "parents": [],
+          "unlock_gate": "engram:synaptic_bloom",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:mycelial_node"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_synaptic_bloom_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_synaptic_bloom.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_synaptic_bloom.page.1.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_chitin_resonance",
+          "order": 7,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_chitin_resonance.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_chitin_resonance.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": -2,
+          "y": 4,
+          "parents": [],
+          "unlock_gate": "engram:chitin_resonance",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:hive_heart"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_chitin_resonance_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_chitin_resonance.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_chitin_resonance.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "engram_chitin_resonance_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_chitin_resonance.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_chitin_resonance.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_tide_pressure",
+          "order": 8,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_tide_pressure.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_tide_pressure.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": 0,
+          "y": 4,
+          "parents": [],
+          "unlock_gate": "engram:tide_pressure",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:tide_beacon"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_tide_pressure_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_tide_pressure.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_tide_pressure.page.1.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_mimic_deception",
+          "order": 9,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_mimic_deception.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_mimic_deception.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": 2,
+          "y": 4,
+          "parents": [],
+          "unlock_gate": "engram:mimic_deception",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:false_engram_injector"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_mimic_deception_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_mimic_deception.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_mimic_deception.page.1.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_hyphal_memory",
+          "order": 10,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_hyphal_memory.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_hyphal_memory.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": -2,
+          "y": 6,
+          "parents": [],
+          "unlock_gate": "engram:hyphal_memory",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:hyphal_vein"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_hyphal_memory_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_hyphal_memory.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_hyphal_memory.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "engram_hyphal_memory_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_hyphal_memory.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_hyphal_memory.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_homeostasis_trauma",
+          "order": 11,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_homeostasis_trauma.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_homeostasis_trauma.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": 0,
+          "y": 6,
+          "parents": [],
+          "unlock_gate": "engram:homeostasis_trauma",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:antibody_cyst"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_homeostasis_trauma_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_homeostasis_trauma.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_homeostasis_trauma.page.1.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_primordial_lineage",
+          "order": 12,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_primordial_lineage.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_primordial_lineage.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": 2,
+          "y": 6,
+          "parents": [],
+          "unlock_gate": "engram:primordial_lineage",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:bio_extractor"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_primordial_lineage_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_primordial_lineage.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_primordial_lineage.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "engram_primordial_lineage_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_primordial_lineage.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_primordial_lineage.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_matriarch_requiem",
+          "order": 13,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_matriarch_requiem.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_matriarch_requiem.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": -2,
+          "y": 8,
+          "parents": [],
+          "unlock_gate": "engram:matriarch_requiem",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "mycelialmind:overmind_crown"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_matriarch_requiem_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_matriarch_requiem.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_matriarch_requiem.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "engram_matriarch_requiem_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_matriarch_requiem.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_matriarch_requiem.page.2.text",
+              "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "engram_overmind_cycle",
+          "order": 14,
+          "title_key": "codex.mycelialmind.entry.secretos_logros.engram_overmind_cycle.name",
+          "subtitle_key": "codex.mycelialmind.entry.secretos_logros.engram_overmind_cycle.desc",
+          "icon_item": "mycelialmind:field_engram",
+          "x": 0,
+          "y": 8,
+          "parents": [
+            "secretos_logros/engram_matriarch_requiem"
+          ],
+          "unlock_gate": "engram:overmind_cycle",
+          "registry_refs": [
+            "mycelialmind:field_engram",
+            "HiveCycleDirector"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "engram_overmind_cycle_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_overmind_cycle.page.1.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_overmind_cycle.page.1.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 2,
+              "id": "engram_overmind_cycle_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.engram_overmind_cycle.page.2.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.engram_overmind_cycle.page.2.text",
               "is_spoiler": false
             }
           ]
@@ -3108,6 +3472,14 @@
               "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.11.title",
               "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.11.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 12,
+              "id": "config_ref_p12",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.12.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.12.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -3129,6 +3501,8 @@
             "SymbiosisSyncPayload",
             "DiplomacySyncPayload",
             "DiscoverySyncPayload",
+            "CycleProtocolSyncPayload",
+            "CycleProtocolActionPayload",
             "MycelialCommands",
             "projectile_adaptation",
             "pylon_containment",
@@ -3151,7 +3525,8 @@
             "loot",
             "homeostasis",
             "polish",
-            "dimension_progression"
+            "dimension_progression",
+            "cycles"
           ],
           "pages": [
             {

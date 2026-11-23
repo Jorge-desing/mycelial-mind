@@ -1,0 +1,39 @@
+{
+  "category": "mycelialmind:mundo_dimension",
+  "name": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.name",
+  "description": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.description",
+  "icon": {
+    "item": "mycelialmind:luminescent_amber_vein"
+  },
+  "x": -2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 1,
+  "parents": [],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page3.text"
+    }
+  ]
+}

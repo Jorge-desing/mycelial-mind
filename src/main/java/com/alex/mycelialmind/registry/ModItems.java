@@ -47,6 +47,9 @@ public final class ModItems {
     public static final DeferredItem<Item> MYCELIAL_CODEX = ITEMS.register("mycelial_codex",
             () -> new com.alex.mycelialmind.item.MycelialCodexItem(new Item.Properties().stacksTo(1)));
 
+    public static final DeferredItem<Item> FIELD_ENGRAM = ITEMS.register("field_engram",
+            () -> new com.alex.mycelialmind.item.FieldEngramItem(new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON)));
+
     public static final DeferredItem<Item> ENZYME_LANCE = ITEMS.register("enzyme_lance",
             () -> new EnzymeLanceItem(new Item.Properties().attributes(SwordItem.createAttributes(Tiers.IRON, 2, -2.2F))));
 

@@ -1,0 +1,46 @@
+{
+  "category": "mycelialmind:secretos_logros",
+  "name": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.name",
+  "description": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.description",
+  "icon": {
+    "item": "mycelialmind:purification_turret"
+  },
+  "x": -2,
+  "y": 2,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 4,
+  "parents": [],
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page1.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page4.text"
+    }
+  ]
+}

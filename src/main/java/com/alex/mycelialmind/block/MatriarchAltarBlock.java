@@ -15,6 +15,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -64,9 +65,19 @@ public class MatriarchAltarBlock extends Block implements EntityBlock {
                 || stack.is(ModItems.HIVE_HEART.get())
                 || stack.is(ModItems.TIDE_BEACON.get());
         if (!validOffering) {
-            if (!level.isClientSide()) {
+            if (stack.isEmpty()) {
+                return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
+            if (level instanceof ServerLevel serverLevel) {
+                if (com.alex.mycelialmind.hive.HiveCycleDirector.isCycleUnlocked(serverLevel)) {
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToPlayer(serverPlayer, true);
+                    }
+                    return ItemInteractionResult.CONSUME;
+                }
                 player.displayClientMessage(Component.translatable("message.mycelialmind.matriarch_altar_requires_offering")
                         .withStyle(ChatFormatting.DARK_PURPLE), true);
+                return ItemInteractionResult.FAIL;
             }
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
@@ -115,6 +126,28 @@ public class MatriarchAltarBlock extends Block implements EntityBlock {
             }
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            BlockHitResult hitResult
+    ) {
+        if (level instanceof ServerLevel serverLevel) {
+            if (com.alex.mycelialmind.hive.HiveCycleDirector.isCycleUnlocked(serverLevel)) {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToPlayer(serverPlayer, true);
+                }
+                return net.minecraft.world.InteractionResult.CONSUME;
+            }
+            player.displayClientMessage(Component.translatable("message.mycelialmind.matriarch_altar_requires_offering")
+                    .withStyle(ChatFormatting.DARK_PURPLE), true);
+            return net.minecraft.world.InteractionResult.FAIL;
+        }
+        return net.minecraft.world.InteractionResult.PASS;
     }
 
     @Override

@@ -279,15 +279,20 @@ public final class PostMatriarchExpeditionDirector {
     private static WaveSpawnResult spawnPulseWave(ServerLevel level, BlockPos center, int pulse) {
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
-        List<EntityType<? extends MycelialMob>> squad = HiveSquadComposer.composeWaveSquad(
+        List<EntityType<? extends MycelialMob>> squad = new ArrayList<>(HiveSquadComposer.composeWaveSquad(
                 hive, HiveBlackboard.getDoctrine(level), pulse * 25, level.random,
                 HiveBlackboard.getPacingPhase(level), tracker.countSymbioticNodes(),
-                hive.isFungalTideActive(level.getGameTime()));
+                hive.isFungalTideActive(level.getGameTime())));
+        int extraAttackers = HiveCycleDirector.getActiveExpeditionExtraAttackers(level);
+        for (int i = 0; i < extraAttackers && !squad.isEmpty(); i++) {
+            squad.add(squad.get(i % squad.size()));
+        }
         List<UUID> attackers = new ArrayList<>();
         boolean foundSpace = false;
         boolean foundTarget = false;
         double promotionChance = hive.getEffectivenessPressure()
-                + HiveProgressionTier.fromThreat(hive.getThreatLevel()).wavePromotionBonus();
+                + HiveProgressionTier.fromThreat(hive.getThreatLevel()).wavePromotionBonus()
+                + HiveCycleDirector.getActiveExpeditionEliteBonus(level);
         for (EntityType<? extends MycelialMob> type : squad) {
             MycelialMob mob = type.create(level);
             if (mob == null) continue;

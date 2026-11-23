@@ -4,7 +4,7 @@
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 49,
+  "page_count": 72,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.IV"
@@ -53,25 +53,22 @@
         "raw": "Cap`."
       },
       {
-        "raw": "Cap.11: Los 30 Logros\n(`advancement`)\nCadena Completa de\n30 Logros (1/4)\n• Acto I y Base (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,"
+        "raw": "Cap.11: Los 30 Logros\n(`advancement`)\nCadena Completa de\nLogros (1/4)\n• Acto I y Base (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,\n`base_sentinel`."
       },
       {
-        "raw": "`base_sentinel`."
-      },
-      {
-        "raw": "Cadena Completa de\n30 Logros (2/4)\n• Táctica y\nBiotecnología (9):\n`bastion_tier3`,\n`purifier_drone_deplo\nyed`,\n`symbiotic_vessel`,\n`synaptic_graft_netwo\nrk`,\n`pavlovian_deceiver`,\n`chemical_diplomat`,\n`architect_bane`,\n`chimera_bioforge`,"
+        "raw": "Cadena Completa de\nLogros (2/4)\n• Táctica y\nBiotecnología (9):\n`bastion_tier3`,\n`purifier_drone_deplo\nyed`,\n`symbiotic_vessel`,\n`synaptic_graft_netwo\nrk`,\n`pavlovian_deceiver`,\n`chemical_diplomat`,\n`architect_bane`,\n`chimera_bioforge`,"
       },
       {
         "raw": "`hive_core_slayer`."
       },
       {
-        "raw": "Cadena Completa de\n30 Logros (3/4)\n• Endgame y Maestría\n(7):\n`synaptic_mastery`,\n`tide_breaker`,\n`counteroffensive_ma\nster`,\n`enter_deep_mycelium`,\n`immune_homeostasis`,\n`overmind_ascendant`,\n`apex_matriarch_slaye\nr` (`discovery`)."
+        "raw": "Cadena Completa de\nLogros (3/4)\n• Endgame y Maestría\n(9):\n`synaptic_mastery`,\n`tide_breaker`,\n`counteroffensive_ma\nster`,\n`enter_deep_mycelium`,\n`immune_homeostasis`,\n`overmind_ascendant`,\n`apex_matriarch_slaye\nr`,\n`recovered_garden`,"
       },
       {
-        "raw": "Cadena Completa de\n30 Logros (4/4)\n• Desbloqueos de\nReceta (5):\n`recipes/unlock_bioma\nss_recipes`,\n`recipes/unlock_chitin\n_recipes`,\n`recipes/unlock_hive_\nheart_recipes`,\n`recipes/unlock_latent\n_spore_recipes`,\n`recipes/unlock_syna"
+        "raw": "`recovered_route`\n(`discovery`)."
       },
       {
-        "raw": "ptic_core_recipes`."
+        "raw": "Cadena Completa de\nLogros (4/4)\n• Desbloqueos de\nReceta (5):\n`recipes/unlock_bioma\nss_recipes`,\n`recipes/unlock_chitin\n_recipes`,\n`recipes/unlock_hive_\nheart_recipes`,\n`recipes/unlock_latent\n_spore_recipes`,\n`recipes/unlock_syna\nptic_core_recipes`."
       },
       {
         "raw": "Cap.11: Redstone (7) y\nEcosistema de Mods\nTelemetría Redstone\ny Compatibilidad (1/4)\n• Comparadores\nRedstone 1/2:\n`antibody_cyst`\n(estrés chunk 1–15),\n`bioluminescent_myceli\nal_cap` y\n`mycelial_tendrils`\n(`MATURE`),\n`mycelial_node`/`symbi\notic_node`."
@@ -86,28 +83,94 @@
         "raw": "Telemetría Redstone\ny Compatibilidad (4/4)\n• Compat UI/Render:\nJEI\n(`MycelialJeiPlugin`),\nEMI\n(`MycelialEmiPlugin`),\nIris\n(`MycelialIrisCompat`\nPBR), Modonomicon\n(`MycelialModonomiconC\nompat`) y AzureLib."
       },
       {
-        "raw": "Cap.12:\nConfiguraciones (12\nCliente / 43 Servidor)\nClaves de\nConfiguración TOML\n(1/12)\n• `[hud] hudAnchor` =\n`TOP_LEFT`\n(`TOP_LEFT`,\n`TOP_RIGHT`,\n`BOTTOM_LEFT`,\n`BOTTOM_RIGHT`).\n• `[hud] hudOffsetX` =\n`0` (`-200..200`);"
+        "raw": "Cap.11: Engrama I:\nSeñal de Brote\nEngrama I: Señal de\nBrote (1/2)\n• Bitácora de Campo:\nTodo `field_engram`\nporta su identificador\nen `engram_id` y se\nabsorbe con clic\nderecho directo al\nCódice sin ocupar\ninventario."
       },
       {
-        "raw": "`hudOffsetY` = `0`\n(`-200..200`).\n• `[hud]\nhudCompactMode` =\n`false`;\n`hudRequireHeld` =\n`true`;\n`showSynapticVisionBo\nrder` = `true`."
+        "raw": "Engrama I: Señal de\nBrote (2/2)\n• Lectura Táctica\n(Acto I): Las bóvedas\nselladas de brotes\nguardan bio-muestras\ntempranas antes de\nque la Colmena\naprenda tus daños\ndominantes."
       },
       {
-        "raw": "Claves de\nConfiguración TOML\n(2/12)\n• `[atmosphere]\nsporeFogDensityScale`\n= `1.0` (`0.25..1.0`).\n• `[audio]\nambientSoundscapeVol\nume` = `1.0` (`0..1`);\n`hiveAdaptationAudioAl\nerts` = `true`;\n`caveSoundOcclusion`\n= `true`."
+        "raw": "Cap.11: Engrama II:\nFloración Sináptica\nEngrama II: Floración\nSináptica\n• Bitácora de Campo:\nLos nodos relé\nmultiplican por `1.5x`\nel aprendizaje en\ncombate cercano y\nenlazan hasta `28`\nbloques entre sí.\n• Lectura Táctica\n(Acto I):\nInterponiendo un"
       },
       {
-        "raw": "Claves de\nConfiguración TOML\n(3/12)\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle\nGlow` = `true`.\n• `[hive_memory]`\n`learningMultiplier`=`1.0\n` (`0.1..10`),\n`decayPerMinute`=`2.0`\n(`0..50`),"
+        "raw": "`purification_pylon`\ncortas los enlaces\nactivos y evitas la\nalerta en cascada\nantes de romper el\nnodo."
       },
       {
-        "raw": "`traitActivationThresh\nold`=`70.0` (`5..500`)."
+        "raw": "Cap.11: Engrama III:\nResonancia Quitina\nEngrama III:\nResonancia Quitina\n(1/2)\n• Bitácora de Campo:\nRecuperado tras\ncolapsar a\n`hive_core`. Sus\nplacas quitinosas\nvibran con armaduras\nde rango `ELITE` y\nnúcleos sinápticos."
       },
       {
-        "raw": "Claves de\nConfiguración TOML\n(4/12)\n• `[hive_memory]`\n`tier2ActivationThresh\nold`=`200.0` (`25..500`),\n`tier2DecayMultiplier`=`\n1.75` (`1..5`),\n`synergiesEnabled`=`tr\nue`.\n• `[hive_memory]`\n`suppressorCooldownS\neconds`=`120`\n(`15..600`),"
+        "raw": "Engrama III:\nResonancia Quitina\n(2/2)\n• Lectura Táctica\n(Acto II): Asciende el\nbanco a Lab T2 con\n`synaptic_core` para\ndesbloquear fórmulas\nexperimentales y\nahorrar biomasa."
       },
       {
-        "raw": "`projectileDeflectChan\nce`=`0.30` (`0..0.95`),\n`symbiosisThreatMultipl\nierPerSlot`=`0.15`\n(`0..1`)."
+        "raw": "Cap.11: Engrama IV:\nPresión de Marea\nEngrama IV: Presión\nde Marea\n• Bitácora de Campo:\nExtraído del colapso\nde `spore_behemoth`.\nSu caparazón posee\ncajas de impacto\ndiferenciadas\n(`ARMORED_CARAPACE`\ny `WEAK_POINT`).\n• Lectura Táctica"
       },
       {
-        "raw": "Claves de\nConfiguración TOML\n(5/12)\n• `[hive_memory]`\n`maxMutagenSlots`=`2`\n(`1..5`),\n`counterSerumBleedRa\ntio`=`0.50` (`0.1..0.95`)."
+        "raw": "(Acto III): Rompe el\ncaparazón para\nprovocar `STAGGERED`:\nel punto débil\ndesciende físicamente\ny recibe `1.35x` de\ndaño."
+      },
+      {
+        "raw": "Cap.11: Engrama V:\nEngaño del Mímico\nEngrama V: Engaño del\nMímico\n• Bitácora de Campo:\nLos `synaptic_mimic`\ncopian tu patrón de\ndaño dominante y\nalternan posturas\npara castigar ataques\nrepetitivos.\n• Lectura Táctica\n(Acto III): Alterna\nfuego, magia o"
+      },
+      {
+        "raw": "`purifier_grenade`, o\nusa\n`false_engram_injecto\nr` para sesgar su\nlectura antes del\nchoque."
+      },
+      {
+        "raw": "Cap.11: Engrama VI:\nMemoria Hifal\nEngrama VI: Memoria\nHifal (1/2)\n• Bitácora de Campo:\nLas rutas frecuentes\ncristalizan en\n`hyphal_vein` tras\nsuperar el umbral de\ntránsito y aceleran\npatrullas hacia bases\nactivas."
+      },
+      {
+        "raw": "Engrama VI: Memoria\nHifal (2/2)\n• Lectura Táctica\n(Acto II): Reprograma\nhasta 4 nodos aliados\ncon `synaptic_graft` o\nusa\n`neural_echo_decoy`\npara desviar asedios\nde ruta."
+      },
+      {
+        "raw": "Cap.11: Engrama VII:\nTrauma Inmune\nEngrama VII: Trauma\nInmune\n• Bitácora de Campo:\nEn `deep_mycelium`,\nexplosiones y exceso\nde pilones elevan el\nestrés hasta\n`IMMUNE_RESPONSE`,\nlluvia ácida y\nsensibilización `0–3`.\n• Lectura Táctica\n(Acto III): Si"
+      },
+      {
+        "raw": "`antibody_cyst` cubre\n>=4 caras de un pilón\nlo sofoca hasta\ndespejarlo; sedar el\nchunk detiene\npatrullas."
+      },
+      {
+        "raw": "Cap.11: Engrama VIII:\nLinaje Primordial\nEngrama VIII: Linaje\nPrimordial (1/2)\n• Bitácora de Campo:\nObtenido al usar\n`bio_extractor` sobre\nejemplares\nprimordiales\ndebilitados (`<=60%`\nHP) portadores de\nesencias ancestrales."
+      },
+      {
+        "raw": "Engrama VIII: Linaje\nPrimordial (2/2)\n• Lectura Táctica\n(Acto IV): Asciende a\nLab T3 con\n`neural_echo_core` o\n`overmind_essence`\npara duplicar\nconsumibles apilables\ny abrir Secreto #4."
+      },
+      {
+        "raw": "Cap.11: Engrama IX:\nRéquiem Matriarcal\nEngrama IX: Réquiem\nMatriarcal (1/2)\n• Bitácora de Campo:\nSellado al caer\n`apex_matriarch`. La\ncaída activa una\nventana de remisión\nsináptica que\npreserva tu rango de\nActo adquirido."
+      },
+      {
+        "raw": "Engrama IX: Réquiem\nMatriarcal (2/2)\n• Lectura Táctica\n(Acto IV): Con la\nMatriarca derrotada\npuedes usar\n`matriarch_altar` sin\nofrenda para abrir el\nprotocolo de Ciclos."
+      },
+      {
+        "raw": "Cap.11: Engrama X:\nCiclo de la Supramente\nEngrama X: Ciclo de la\nSupramente (1/2)\n• Bitácora de Campo:\nEmitido al completar un\nCiclo de la Colmena\nvenciendo a\n`apex_matriarch` bajo\nmutadores tácticos en\n`CycleProtocolScreen`."
+      },
+      {
+        "raw": "Engrama X: Ciclo de la\nSupramente (2/2)\n• Lectura Táctica\n(Ciclos): Combina\nhasta 3 mutadores de\nalto riesgo\n(`primordial_apex` +\n`perpetual_tide` +\n`synaptic_swarm`) y\nminimiza bajas para\nS+."
+      },
+      {
+        "raw": "Cap.12:\nConfiguraciones (13\nCliente / 43 Servidor)\nClaves de\nConfiguración TOML\n(1/12)\n• `[hud] hudAnchor` =\n`TOP_LEFT`\n(`TOP_LEFT`,\n`TOP_RIGHT`,\n`BOTTOM_LEFT`,\n`BOTTOM_RIGHT`).\n• `[hud] hudOffsetX` =\n`0` (`-200..200`);"
+      },
+      {
+        "raw": "`hudOffsetY` = `0`\n(`-200..200`)."
+      },
+      {
+        "raw": "Claves de\nConfiguración TOML\n(2/12)\n• `[hud]\nhudCompactMode` =\n`false`;\n`hudContextualCombat`\n= `true`;\n`hudRequireHeld` =\n`true`;\n`showSynapticVisionBo\nrder` = `true`.\n• `[atmosphere]\nsporeFogDensityScale`"
+      },
+      {
+        "raw": "= `1.0` (`0.25..1.0`)."
+      },
+      {
+        "raw": "Claves de\nConfiguración TOML\n(3/12)\n• `[audio]\nambientSoundscapeVol\nume` = `1.0` (`0..1`);\n`hiveAdaptationAudioAl\nerts` = `true`;\n`caveSoundOcclusion`\n= `true`.\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle"
+      },
+      {
+        "raw": "Glow` = `true`."
+      },
+      {
+        "raw": "Claves de\nConfiguración TOML\n(4/12)\n• `[hive_memory]`\n`learningMultiplier`=`1.0\n` (`0.1..10`),\n`decayPerMinute`=`2.0`\n(`0..50`),\n`traitActivationThresh\nold`=`70.0` (`5..500`).\n• `[hive_memory]`\n`tier2ActivationThresh\nold`=`200.0` (`25..500`),"
+      },
+      {
+        "raw": "`tier2DecayMultiplier`=`\n1.75` (`1..5`),\n`synergiesEnabled`=`tr\nue`."
+      },
+      {
+        "raw": "Claves de\nConfiguración TOML\n(5/12)\n• `[hive_memory]`\n`suppressorCooldownS\neconds`=`120`\n(`15..600`),\n`projectileDeflectChan\nce`=`0.30` (`0..0.95`),\n`symbiosisThreatMultipl\nierPerSlot`=`0.15`\n(`0..1`).\n• `[hive_memory]`\n`maxMutagenSlots`=`2`"
+      },
+      {
+        "raw": "(`1..5`),\n`counterSerumBleedRa\ntio`=`0.50` (`0.1..0.95`)."
       },
       {
         "raw": "Claves de\nConfiguración TOML\n(6/12)\n• `[territory]`\n`myceliumSpreadEnable\nd`=`true`,\n`myceliumSpreadChanc\ne`=`0.12` (`0..1`),\n`pylonPurificationRadiu\ns`=`24` (`4..64`),\n`pylonTier3ChunkLoadi\nngEnabled`=`true`."
@@ -140,16 +203,22 @@
         "raw": "old`=`5` (`2..32`),\n`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
       },
       {
-        "raw": "Cap.12: Red v14,\n`/mycelial` y 22 Verify\nComandos Admin,\nPayloads y Verify\n(1/5)\n• Red (`ModNetworking`\nv14):\n`HiveSyncPayload`\n(`<=64` nodos, `<=32`\npilones, `<=64` chunks\ninflamados),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+        "raw": "Cap.12: Red v21,\n`/mycelial` y Verify\nComandos Admin,\nPayloads y Verify\n(1/5)\n• Red (`ModNetworking`\nv21):\n`HiveSyncPayload`\n(`<=64` nodos, `<=32`\npilones, `<=64` chunks\ninflamados),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
       },
       {
-        "raw": "`,\n`DiscoverySyncPayloa\nd`."
+        "raw": "`,\n`DiscoverySyncPayloa\nd`,\n`CycleProtocolSyncPa\nyload` y\n`CycleProtocolActionP\nayload`."
       },
       {
-        "raw": "Comandos Admin,\nPayloads y Verify\n(2/5)\n• Comandos\nOperativos (`perm 2`):\n`/mycelial status`,\n`/mycelial reset`,\n`/mycelial stimulus\n<type> <0.1..500>`,\n`/mycelial habits`,\n`/mycelial schism\n<strain>`, `/mycelial\ndiplomacy <strain>\n<-100..100>`."
+        "raw": "Comandos Admin,\nPayloads y Verify\n(2/5)\n• Engramas y\nComandos (`perm 2`):\n`field_engram`\n(`engram_id`),\n`/mycelial status`,\n`/mycelial reset`,\n`/mycelial stimulus\n<type> <0.1..500>`,\n`/mycelial habits`,\n`/mycelial schism\n<strain>`, `/mycelial"
       },
       {
-        "raw": "Comandos Admin,\nPayloads y Verify\n(3/5)\n• Simbiosis,\nHomeostasis y\nAuditoría: `/mycelial\nsymbiosis\n<status|clear|grant\n<mutagen>>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,\n`/mycelial worldgen\naudit [radius] [grid]`."
+        "raw": "diplomacy <strain>\n<-100..100>`."
+      },
+      {
+        "raw": "Comandos Admin,\nPayloads y Verify\n(3/5)\n• Simbiosis, Ciclos,\nHomeostasis y\nAuditoría: `/mycelial\nsymbiosis\n<status|clear|grant\n<mutagen>>`, `/mycelial\ncycle\n<status|start|abort|re\nset>`, `/mycelial\nhomeostasis\n<status|stress"
+      },
+      {
+        "raw": "<0..100>|sedate>`,\n`/mycelial worldgen\naudit [radius] [grid]`."
       },
       {
         "raw": "Comandos Admin,\nPayloads y Verify\n(4/5)\n• `/mycelial verify\n<escenario|worldgen|al\nl>` (1–11):\n`projectile_adaptation\n`, `pylon_containment`,\n`boss_encounter`,\n`tier2_synergy`,\n`synaptic_network`,\n`symbiosis`, `units`,\n`expansion`, `tide`,"
@@ -158,7 +227,7 @@
         "raw": "`counteroffensive`,\n`arsenal`."
       },
       {
-        "raw": "Comandos Admin,\nPayloads y Verify\n(5/5)\n• `/mycelial verify`\n(12–22): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`."
+        "raw": "Comandos Admin,\nPayloads y Verify\n(5/5)\n• `/mycelial verify`\n(12–23): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`."
       }
     ]
   }

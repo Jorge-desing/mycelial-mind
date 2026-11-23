@@ -52,15 +52,15 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Bastion & Flora (8):** `reinforced_bio_barrier`, `synaptic_research_bench`, `hive_altar`, `matriarch_altar`, `bioluminescent_mycelial_cap`, `spore_bulb`, `mycelial_tendrils`, `antibody_cyst`.",
                 ),
                 (
-                    "• **Arquitectura y Dimensión (7):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`.",
-                    "• **Architecture & Rift (7):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`.",
+                    "• **Arquitectura y Dimensión (8):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`.",
+                    "• **Architecture & Rift (8):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`.",
                 ),
             ],
         ),
         *chunk_paired_blocks(
             "all_35_items",
-            "Ítems y Armadura (`ModItems` 36 + 17 Huevos)",
-            "Items & Armor (`ModItems` 36 + 17 Spawn Eggs)",
+            "Ítems y Armadura (`ModItems`)",
+            "Items & Armor (`ModItems`)",
             [
                 (
                     "• **Instrumentos y Armas (10):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`.",
@@ -71,12 +71,16 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Armor & Serums (10):** `chitin_helmet`, `chitin_chestplate`, `chitin_leggings`, `chitin_boots`, `spore_antidote`, `concentrated_antidote`, `genetic_sample`, `symbiotic_mutagen`, `counter_serum`, `tide_beacon`.",
                 ),
                 (
-                    "• **Diplomacia y Cognición (9):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`.",
-                    "• **Diplomacy & Cognition (9):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`.",
+                    "• **Diplomacia y Cognición (10):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`, `field_engram`.",
+                    "• **Diplomacy & Cognition (10):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`, `field_engram`.",
                 ),
                 (
                     "• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **17** `*_spawn_egg` en Cap.5).",
                     "• **Deception & Reagents (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **17** `*_spawn_egg` in Ch.5).",
+                ),
+                (
+                    "• **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.",
+                    "• **Reclaimed Blooms (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.",
                 ),
             ],
         ),
@@ -839,6 +843,67 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 )
             ),
         ),
+        CodexEntry(
+            id="ciclos_de_la_colmena",
+            order=5,
+            title=lt("Protocolo de Ciclos y Mutadores", "Hive Cycle Protocol & Mutators"),
+            subtitle=lt(
+                "Rejugabilidad post-Matriarca con 1–3 mutadores y rango S+..C",
+                "Post-Matriarch replayability with 1–3 mutators & S+..C rank",
+            ),
+            icon_item="mycelialmind:matriarch_altar",
+            x=grid_xy(4, 3)[0],
+            y=grid_xy(4, 3)[1],
+            parents=("megaestructuras_santuario_ciudadela",),
+            unlock_gate="post_matriarch",
+            registry_refs=(
+                "HiveCycleEngine",
+                "HiveCycleMutator",
+                "CycleProtocolScreen",
+                "MatriarchAltarBlock",
+            ),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "ciclos_colmena",
+                    "Protocolo de Ciclos y Mutadores",
+                    "Hive Cycle Protocol & Mutators",
+                    [
+                        (
+                            "• **Activación Post-Matriarca:** Tras derrotar a `apex_matriarch`, usa "
+                            "`matriarch_altar` sin ofrenda válida para abrir `CycleProtocolScreen`, elegir "
+                            "**1–3** de los **6 mutadores** e iniciar el **Ciclo N** (limpia remisión).",
+                            "• **Post-Matriarch Activation:** After defeating `apex_matriarch`, interact with "
+                            "`matriarch_altar` without a valid offering to open `CycleProtocolScreen`, pick "
+                            "**1–3** of **6 mutators**, and launch **Cycle N** (clears remission).",
+                        ),
+                        (
+                            "• **Mutadores I–III:** `hyper_adaptation` (+45% aprendizaje, umbrales x0.85, +35% "
+                            "pts), `perpetual_tide` (+50% marea y menor umbral final, +40% pts) y "
+                            "`acute_homeostasis` (+40% estrés inmune, +35% pts).",
+                            "• **Mutators I–III:** `hyper_adaptation` (+45% learning, x0.85 thresholds, +35% pts), "
+                            "`perpetual_tide` (+50% tide duration & lower end threshold, +40% pts), and "
+                            "`acute_homeostasis` (+40% immune stress, +35% pts).",
+                        ),
+                        (
+                            "• **Mutadores IV–VI:** `synaptic_swarm` (+atacantes y élite en oleadas/escuadrones, "
+                            "+40% pts), `primordial_apex` (+25% HP/+15% daño de jefes y cooldown menor, +50% pts) "
+                            "y `hyphal_overload` (+35% presión hifal, +30% pts).",
+                            "• **Mutators IV–VI:** `synaptic_swarm` (+wave/expedition attackers & elite rate, "
+                            "+40% pts), `primordial_apex` (+25% boss HP/+15% DMG & faster cooldowns, +50% pts), "
+                            "and `hyphal_overload` (+35% hyphal pressure, +30% pts).",
+                        ),
+                        (
+                            "• **Cierre y Récords:** Al derrotar a `apex_matriarch` durante el Ciclo se calcula "
+                            "`1000 * mult + velocidad(<=500) - muertes*120` (mín. `250`) otorgando rango "
+                            "**S+**..**C**, récord y el engrama `overmind_cycle`.",
+                            "• **Completion & Records:** Defeating `apex_matriarch` during an active Cycle scores "
+                            "`1000 * mult + speed(<=500) - deaths*120` (min `250`), awarding rank "
+                            "**S+**..**C**, high scores, and the `overmind_cycle` engram.",
+                        ),
+                    ],
+                )
+            ),
+        ),
     )
     ch10 = CodexChapter(
         id="mundo_dimension",
@@ -1027,6 +1092,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "immune_homeostasis",
                 "overmind_ascendant",
                 "apex_matriarch_slayer",
+                "recovered_garden",
+                "recovered_route",
                 "recipes/unlock_biomass_recipes",
                 "recipes/unlock_chitin_recipes",
                 "recipes/unlock_hive_heart_recipes",
@@ -1036,8 +1103,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             pages=tuple(
                 chunk_paired_blocks(
                     "advancements",
-                    "Cadena Completa de 30 Logros",
-                    "Complete Chain of 30 Advancements",
+                    "Cadena Completa de Logros",
+                    "Complete Advancements Chain",
                     [
                         (
                             "• **Acto I y Base (9):** `root`, `first_adaptation`, `genetic_sampler`, "
@@ -1056,12 +1123,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`chemical_diplomat`, `architect_bane`, `chimera_bioforge`, `hive_core_slayer`.",
                         ),
                         (
-                            "• **Endgame y Maestría (7):** `synaptic_mastery`, `tide_breaker`, "
+                            "• **Endgame y Maestría (9):** `synaptic_mastery`, `tide_breaker`, "
                             "`counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, "
-                            "`overmind_ascendant`, `apex_matriarch_slayer` (`discovery`).",
-                            "• **Endgame & Mastery (7):** `synaptic_mastery`, `tide_breaker`, "
+                            "`overmind_ascendant`, `apex_matriarch_slayer`, `recovered_garden`, `recovered_route` (`discovery`).",
+                            "• **Endgame & Mastery (9):** `synaptic_mastery`, `tide_breaker`, "
                             "`counteroffensive_master`, `enter_deep_mycelium`, `immune_homeostasis`, "
-                            "`overmind_ascendant`, `apex_matriarch_slayer` (`discovery`).",
+                            "`overmind_ascendant`, `apex_matriarch_slayer`, `recovered_garden`, `recovered_route` (`discovery`).",
                         ),
                         (
                             "• **Desbloqueos de Receta (5):** `recipes/unlock_biomass_recipes`, "
@@ -1126,6 +1193,339 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "**Iris** (`MycelialIrisCompat` PBR), **Modonomicon** (`MycelialModonomiconCompat`) y **AzureLib**.",
                             "• **UI/Render Compat:** **JEI** (`MycelialJeiPlugin`), **EMI** (`MycelialEmiPlugin`), "
                             "**Iris** (`MycelialIrisCompat` PBR), **Modonomicon** (`MycelialModonomiconCompat`) & **AzureLib**.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_outbreak_signal",
+            order=5,
+            title=lt("Engrama I: Señal de Brote", "Engram I: Outbreak Signal"),
+            subtitle=lt(
+                "Registro inicial del elemento field_engram (engram_id)",
+                "Field record of item field_engram (component engram_id)",
+            ),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(4, 3)[0],
+            y=grid_xy(4, 3)[1],
+            parents=(),
+            unlock_gate="engram:outbreak_signal",
+            registry_refs=("mycelialmind:field_engram", "FieldEngramId"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_outbreak_signal",
+                    "Engrama I: Señal de Brote",
+                    "Engram I: Outbreak Signal",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Todo `field_engram` porta su identificador en `engram_id` "
+                            "y se absorbe con clic derecho directo al Códice sin ocupar inventario.",
+                            "• **Field Log:** Every `field_engram` stores its key inside `engram_id` and is "
+                            "absorbed into the Codex on right-click with zero inventory clutter.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto I):** Las bóvedas selladas de brotes guardan bio-muestras "
+                            "tempranas antes de que la Colmena aprenda tus daños dominantes.",
+                            "• **Tactical Note (Act I):** Sealed outbreak vaults preserve early bio-records "
+                            "before the Hive adapts to your primary damage channels.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_synaptic_bloom",
+            order=6,
+            title=lt("Engrama II: Floración Sináptica", "Engram II: Synaptic Bloom"),
+            subtitle=lt("Topología temprana de nodos y pilones", "Early node & pylon topology"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(5, 3)[0],
+            y=grid_xy(5, 3)[1],
+            parents=(),
+            unlock_gate="engram:synaptic_bloom",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:mycelial_node"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_synaptic_bloom",
+                    "Engrama II: Floración Sináptica",
+                    "Engram II: Synaptic Bloom",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Los nodos relé multiplican por `1.5x` el aprendizaje en "
+                            "combate cercano y enlazan hasta `28` bloques entre sí.",
+                            "• **Field Log:** Relay nodes amplify nearby combat telemetry by `1.5x` and link up "
+                            "to `28` blocks across neighboring mycelium.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto I):** Interponiendo un `purification_pylon` cortas los "
+                            "enlaces activos y evitas la alerta en cascada antes de romper el nodo.",
+                            "• **Tactical Note (Act I):** Placing a `purification_pylon` between linked nodes "
+                            "severs their synaptic arc and dampens cascade alerts before excavation.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_chitin_resonance",
+            order=7,
+            title=lt("Engrama III: Resonancia Quitina", "Engram III: Chitin Resonance"),
+            subtitle=lt("Eco estructural de hive_core", "Structural echo of hive_core"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(6, 3)[0],
+            y=grid_xy(6, 3)[1],
+            parents=(),
+            unlock_gate="engram:chitin_resonance",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:hive_heart"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_chitin_resonance",
+                    "Engrama III: Resonancia Quitina",
+                    "Engram III: Chitin Resonance",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Recuperado tras colapsar a `hive_core`. Sus placas "
+                            "quitinosas vibran con armaduras de rango `ELITE` y núcleos sinápticos.",
+                            "• **Field Log:** Recovered from a fallen `hive_core`. Its chitinous resonance attunes "
+                            "`ELITE` armor plates and bench `synaptic_core` upgrades.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto II):** Asciende el banco a **Lab T2** con `synaptic_core` "
+                            "para desbloquear fórmulas experimentales y ahorrar biomasa.",
+                            "• **Tactical Note (Act II):** Upgrade the workbench to **Lab T2** with `synaptic_core` "
+                            "to unlock experimental formulas and reduce biomass consumption.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_tide_pressure",
+            order=8,
+            title=lt("Engrama IV: Presión de Marea", "Engram IV: Tide Pressure"),
+            subtitle=lt("Fractura multipartita de spore_behemoth", "Multipart shatter of spore_behemoth"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(7, 3)[0],
+            y=grid_xy(7, 3)[1],
+            parents=(),
+            unlock_gate="engram:tide_pressure",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:tide_beacon"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_tide_pressure",
+                    "Engrama IV: Presión de Marea",
+                    "Engram IV: Tide Pressure",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Extraído del colapso de `spore_behemoth`. Su caparazón "
+                            "posee cajas de impacto diferenciadas (`ARMORED_CARAPACE` y `WEAK_POINT`).",
+                            "• **Field Log:** Harvested upon slaying `spore_behemoth`. Its carapace splits into "
+                            "`ARMORED_CARAPACE` armor and exposed `WEAK_POINT` anatomy.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto III):** Rompe el caparazón para provocar `STAGGERED`: el "
+                            "punto débil desciende físicamente y recibe `1.35x` de daño.",
+                            "• **Tactical Note (Acto III):** Shatter the carapace to trigger `STAGGERED`: its "
+                            "weak point lowers physically and takes `1.35x` follow-up damage.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_mimic_deception",
+            order=9,
+            title=lt("Engrama V: Engaño del Mímico", "Engram V: Mimic Deception"),
+            subtitle=lt("Mimetismo adaptativo de synaptic_mimic", "Adaptive mimicry of synaptic_mimic"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(8, 3)[0],
+            y=grid_xy(8, 3)[1],
+            parents=(),
+            unlock_gate="engram:mimic_deception",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:false_engram_injector"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_mimic_deception",
+                    "Engrama V: Engaño del Mímico",
+                    "Engram V: Mimic Deception",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Los `synaptic_mimic` copian tu patrón de daño dominante y "
+                            "alternan posturas para castigar ataques repetitivos.",
+                            "• **Field Log:** `synaptic_mimic` organisms mirror your dominant attack profile and "
+                            "shift stances to punish repetitive damage spam.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto III):** Alterna fuego, magia o `purifier_grenade`, o usa "
+                            "`false_engram_injector` para sesgar su lectura antes del choque.",
+                            "• **Tactical Note (Acto III):** Alternate fire, magic, or `purifier_grenade`, or fire "
+                            "`false_engram_injector` to bait their adaptation before engaging.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_hyphal_memory",
+            order=10,
+            title=lt("Engrama VI: Memoria Hifal", "Engram VI: Hyphal Memory"),
+            subtitle=lt("Rutas micorrízicas y engramas de santuario", "Mycorrhizal trails & sanctum engrams"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(9, 3)[0],
+            y=grid_xy(9, 3)[1],
+            parents=(),
+            unlock_gate="engram:hyphal_memory",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:hyphal_vein"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_hyphal_memory",
+                    "Engrama VI: Memoria Hifal",
+                    "Engram VI: Hyphal Memory",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Las rutas frecuentes cristalizan en `hyphal_vein` tras "
+                            "superar el umbral de tránsito y aceleran patrullas hacia bases activas.",
+                            "• **Field Log:** Repeated player paths crystallize into `hyphal_vein` trails once "
+                            "traffic crosses threshold, speeding hive patrols toward active bases.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto II):** Reprograma hasta 4 nodos aliados con "
+                            "`synaptic_graft` o usa `neural_echo_decoy` para desviar asedios de ruta.",
+                            "• **Tactical Note (Acto II):** Reprogram up to 4 nodes with `synaptic_graft` or "
+                            "deploy `neural_echo_decoy` to redirect trail sieges.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_homeostasis_trauma",
+            order=11,
+            title=lt("Engrama VII: Trauma Inmune", "Engram VII: Homeostasis Trauma"),
+            subtitle=lt("Sensibilización y quistes de deep_mycelium", "Sensitization & cysts in deep_mycelium"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(10, 3)[0],
+            y=grid_xy(10, 3)[1],
+            parents=(),
+            unlock_gate="engram:homeostasis_trauma",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:antibody_cyst"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_homeostasis_trauma",
+                    "Engrama VII: Trauma Inmune",
+                    "Engram VII: Homeostasis Trauma",
+                    [
+                        (
+                            "• **Bitácora de Campo:** En `deep_mycelium`, explosiones y exceso de pilones elevan el "
+                            "estrés hasta `IMMUNE_RESPONSE`, lluvia ácida y sensibilización `0–3`.",
+                            "• **Field Log:** Inside `deep_mycelium`, blasts and pylon density push chunk stress "
+                            "to `IMMUNE_RESPONSE`, triggering acid rain and sensitization `0–3`.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto III):** Si `antibody_cyst` cubre **>=4 caras** de un pilón "
+                            "lo sofoca hasta despejarlo; sedar el chunk detiene patrullas.",
+                            "• **Tactical Note (Acto III):** When `antibody_cyst` seals **>=4 faces** of a pylon it "
+                            "smothers protection until cleared; sedating restores stability.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_primordial_lineage",
+            order=12,
+            title=lt("Engrama VIII: Linaje Primordial", "Engram VIII: Primordial Lineage"),
+            subtitle=lt("Extracción genética de variantes primordiales", "Genetic extraction from primordials"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(11, 3)[0],
+            y=grid_xy(11, 3)[1],
+            parents=(),
+            unlock_gate="engram:primordial_lineage",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:bio_extractor"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_primordial_lineage",
+                    "Engrama VIII: Linaje Primordial",
+                    "Engram VIII: Primordial Lineage",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Obtenido al usar `bio_extractor` sobre ejemplares primordiales "
+                            "debilitados (`<=60%` HP) portadores de esencias ancestrales.",
+                            "• **Field Log:** Captured by sampling weakened (`<=60%` HP) primordial specimens "
+                            "carrying ancient `overmind_essence` markers with `bio_extractor`.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto IV):** Asciende a **Lab T3** con `neural_echo_core` o "
+                            "`overmind_essence` para duplicar consumibles apilables y abrir Secreto #4.",
+                            "• **Tactical Note (Acto IV):** Upgrade to **Lab T3** with `neural_echo_core` or "
+                            "`overmind_essence` to gain +1 stackable craft yield and Secret #4.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_matriarch_requiem",
+            order=13,
+            title=lt("Engrama IX: Réquiem Matriarcal", "Engram IX: Matriarch Requiem"),
+            subtitle=lt("Remisión dimensional y protocolo de enclave", "Remission window & enclave protocol"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(12, 3)[0],
+            y=grid_xy(12, 3)[1],
+            parents=(),
+            unlock_gate="engram:matriarch_requiem",
+            registry_refs=("mycelialmind:field_engram", "mycelialmind:overmind_crown"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_matriarch_requiem",
+                    "Engrama IX: Réquiem Matriarcal",
+                    "Engram IX: Matriarch Requiem",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Sellado al caer `apex_matriarch`. La caída activa una ventana "
+                            "de remisión sináptica que preserva tu rango de Acto adquirido.",
+                            "• **Field Log:** Sealed upon defeating `apex_matriarch`. Victory opens a remission "
+                            "window that preserves your unlocked Act tier across worlds.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Acto IV):** Con la Matriarca derrotada puedes usar "
+                            "`matriarch_altar` sin ofrenda para abrir el protocolo de Ciclos.",
+                            "• **Tactical Note (Acto IV):** With the Matriarch slain, right-click `matriarch_altar` "
+                            "empty-handed to open the Hive Cycles Protocol console.",
+                        ),
+                    ],
+                )
+            ),
+        ),
+        CodexEntry(
+            id="engram_overmind_cycle",
+            order=14,
+            title=lt("Engrama X: Ciclo de la Supramente", "Engram X: Overmind Cycle"),
+            subtitle=lt("Maestría post-Matriarca con mutadores activos", "Post-Matriarch mastery under mutators"),
+            icon_item="mycelialmind:field_engram",
+            x=grid_xy(13, 3)[0],
+            y=grid_xy(13, 3)[1],
+            parents=("engram_matriarch_requiem",),
+            unlock_gate="engram:overmind_cycle",
+            registry_refs=("mycelialmind:field_engram", "HiveCycleDirector"),
+            pages=tuple(
+                chunk_paired_blocks(
+                    "engram_overmind_cycle",
+                    "Engrama X: Ciclo de la Supramente",
+                    "Engram X: Overmind Cycle",
+                    [
+                        (
+                            "• **Bitácora de Campo:** Emitido al completar un **Ciclo de la Colmena** venciendo a "
+                            "`apex_matriarch` bajo mutadores tácticos en `CycleProtocolScreen`.",
+                            "• **Field Log:** Issued upon closing a **Hive Cycle** by defeating `apex_matriarch` "
+                            "under active mutators chosen in `CycleProtocolScreen`.",
+                        ),
+                        (
+                            "• **Lectura Táctica (Ciclos):** Combina hasta 3 mutadores de alto riesgo "
+                            "(`primordial_apex` + `perpetual_tide` + `synaptic_swarm`) y minimiza bajas para **S+**.",
+                            "• **Tactical Note (Cycles):** Stack up to 3 high-risk mutators (`primordial_apex` + "
+                            "`perpetual_tide` + `synaptic_swarm`) with zero deaths to reach **S+**.",
                         ),
                     ],
                 )
@@ -1224,8 +1624,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[hud] hudAnchor` = `TOP_LEFT` (`TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, `BOTTOM_RIGHT`)."),
         ("• `[hud] hudOffsetX` = `0` (`-200..200`); `hudOffsetY` = `0` (`-200..200`).",
          "• `[hud] hudOffsetX` = `0` (`-200..200`); `hudOffsetY` = `0` (`-200..200`)."),
-        ("• `[hud] hudCompactMode` = `false`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`.",
-         "• `[hud] hudCompactMode` = `false`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`."),
+        ("• `[hud] hudCompactMode` = `false`; `hudContextualCombat` = `true`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`.",
+         "• `[hud] hudCompactMode` = `false`; `hudContextualCombat` = `true`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`."),
         ("• `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`).",
          "• `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`)."),
         ("• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`.",
@@ -1270,7 +1670,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="configuracion_cliente_servidor",
             order=1,
-            title=lt("Configuraciones (12 Cliente / 43 Servidor)", "Config Catalog (12 Client / 43 Server)"),
+            title=lt("Configuraciones (13 Cliente / 43 Servidor)", "Config Catalog (13 Client / 43 Server)"),
             subtitle=lt(
                 "MycelialClientConfig, KeyBindings y MycelialConfig TOML completo",
                 "MycelialClientConfig, KeyBindings & full MycelialConfig TOML",
@@ -1293,10 +1693,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="comandos_red_y_verificacion",
             order=2,
-            title=lt("Red v14, `/mycelial` y 22 Verify", "Net v14, `/mycelial` & 22 Verify"),
+            title=lt("Red v21, `/mycelial` y Verify", "Net v21, `/mycelial` & Verify"),
             subtitle=lt(
-                "4 Payloads de red, sintaxis /mycelial y escenarios de prueba",
-                "4 network SyncPayloads, /mycelial commands & verify scenarios",
+                "Payloads v21, /mycelial cycle, field_engram y verify cycles",
+                "v21 Payloads, /mycelial cycle, field_engram & cycles verify",
             ),
             icon_item="mycelialmind:bio_scanner",
             x=grid_xy(1, 2)[0],
@@ -1309,6 +1709,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "SymbiosisSyncPayload",
                 "DiplomacySyncPayload",
                 "DiscoverySyncPayload",
+                "CycleProtocolSyncPayload",
+                "CycleProtocolActionPayload",
                 "MycelialCommands",
                 "projectile_adaptation",
                 "pylon_containment",
@@ -1332,6 +1734,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "homeostasis",
                 "polish",
                 "dimension_progression",
+                "cycles",
             ),
             pages=tuple(
                 chunk_paired_blocks(
@@ -1340,28 +1743,28 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "Admin Commands, Payloads & Verify",
                     [
                         (
-                            "• **Red (`ModNetworking` v14):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, "
+                            "• **Red (`ModNetworking` v21):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, "
                             "`<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload`, "
-                            "`DiscoverySyncPayload`.",
-                            "• **Networking (`ModNetworking` v14):** `HiveSyncPayload` (`<=64` nodes, `<=32` "
+                            "`DiscoverySyncPayload`, `CycleProtocolSyncPayload` y `CycleProtocolActionPayload`.",
+                            "• **Networking (`ModNetworking` v21):** `HiveSyncPayload` (`<=64` nodes, `<=32` "
                             "pylons, `<=64` inflamed chunks), `SymbiosisSyncPayload`, `DiplomacySyncPayload`, "
-                            "`DiscoverySyncPayload`.",
+                            "`DiscoverySyncPayload`, `CycleProtocolSyncPayload` & `CycleProtocolActionPayload`.",
                         ),
                         (
-                            "• **Comandos Operativos (`perm 2`):** `/mycelial status`, `/mycelial reset`, "
-                            "`/mycelial stimulus <type> <0.1..500>`, `/mycelial habits`, `/mycelial schism <strain>`, "
-                            "`/mycelial diplomacy <strain> <-100..100>`.",
-                            "• **Operational Commands (`perm 2`):** `/mycelial status`, `/mycelial reset`, "
-                            "`/mycelial stimulus <type> <0.1..500>`, `/mycelial habits`, `/mycelial schism <strain>`, "
-                            "`/mycelial diplomacy <strain> <-100..100>`.",
+                            "• **Engramas y Comandos (`perm 2`):** `field_engram` (`engram_id`), "
+                            "`/mycelial status`, `/mycelial reset`, `/mycelial stimulus <type> <0.1..500>`, "
+                            "`/mycelial habits`, `/mycelial schism <strain>`, `/mycelial diplomacy <strain> <-100..100>`.",
+                            "• **Engrams & Commands (`perm 2`):** `field_engram` (`engram_id`), "
+                            "`/mycelial status`, `/mycelial reset`, `/mycelial stimulus <type> <0.1..500>`, "
+                            "`/mycelial habits`, `/mycelial schism <strain>`, `/mycelial diplomacy <strain> <-100..100>`.",
                         ),
                         (
-                            "• **Simbiosis, Homeostasis y Auditoría:** `/mycelial symbiosis <status|clear|grant "
-                            "<mutagen>>`, `/mycelial homeostasis <status|stress <0..100>|sedate>`, "
-                            "`/mycelial worldgen audit [radius] [grid]`.",
-                            "• **Symbiosis, Homeostasis & Audit:** `/mycelial symbiosis <status|clear|grant "
-                            "<mutagen>>`, `/mycelial homeostasis <status|stress <0..100>|sedate>`, "
-                            "`/mycelial worldgen audit [radius] [grid]`.",
+                            "• **Simbiosis, Ciclos, Homeostasis y Auditoría:** `/mycelial symbiosis <status|clear|grant "
+                            "<mutagen>>`, `/mycelial cycle <status|start|abort|reset>`, `/mycelial homeostasis "
+                            "<status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
+                            "• **Symbiosis, Cycles, Homeostasis & Audit:** `/mycelial symbiosis <status|clear|grant "
+                            "<mutagen>>`, `/mycelial cycle <status|start|abort|reset>`, `/mycelial homeostasis "
+                            "<status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
                         ),
                         (
                             "• **`/mycelial verify <escenario|worldgen|all>` (1–11):** `projectile_adaptation`, "
@@ -1372,10 +1775,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`symbiosis`, `units`, `expansion`, `tide`, `counteroffensive`, `arsenal`.",
                         ),
                         (
-                            "• **`/mycelial verify` (12–22):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
-                            "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`.",
-                            "• **`/mycelial verify` (12–22):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
-                            "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`.",
+                            "• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
+                            "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, "
+                            "`dimension_progression`, `cycles`.",
+                            "• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
+                            "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, "
+                            "`dimension_progression`, `cycles`.",
                         ),
                     ],
                 )

@@ -439,6 +439,15 @@ public class ApexMatriarchEntity extends MycelialBossMob {
         }
     }
 
+    @Override
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
+        if (recentlyHit) {
+            this.spawnAtLocation(com.alex.mycelialmind.item.FieldEngramItem.createStack(
+                    com.alex.mycelialmind.hive.FieldEngramId.MATRIARCH_REQUIEM));
+        }
+    }
+
     public static void onMatriarchDefeated(ServerLevel sourceLevel, BlockPos pos) {
         onMatriarchDefeated(sourceLevel, pos, true);
     }
@@ -458,6 +467,7 @@ public class ApexMatriarchEntity extends MycelialBossMob {
         if (DimensionalHomeostasisDirector.isHomeostasisDimension(sourceLevel)) {
             DimensionalHomeostasisDirector.sedateArea(sourceLevel, pos, 2, 60.0, 3, null);
         }
+        com.alex.mycelialmind.hive.HiveCycleDirector.onMatriarchDefeated(sourceLevel, pos);
         if (notifyPlayers) {
             for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
                 if (sp.level() instanceof ServerLevel spLevel) {

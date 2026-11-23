@@ -160,7 +160,8 @@ public final class HyphalSiegeDirector {
                         }
                     }
                 }
-                if (density >= 30.0 || nearStoredBase) {
+                double hyphalThreshold = HiveCycleDirector.getActiveHyphalPressureMultiplier(serverLevel) > 1.05D ? 22.0 : 30.0;
+                if (density >= hyphalThreshold || nearStoredBase) {
                     tryNucleateBlindSpotNear(serverLevel, hive, player.blockPosition());
                 }
             }

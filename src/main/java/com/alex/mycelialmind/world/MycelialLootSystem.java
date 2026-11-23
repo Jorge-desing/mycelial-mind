@@ -4,10 +4,12 @@ import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
+import com.alex.mycelialmind.hive.FieldEngramId;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.HiveStrain;
 import com.alex.mycelialmind.item.ChitinArmorItem;
+import com.alex.mycelialmind.item.FieldEngramItem;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModItems;
@@ -137,6 +139,11 @@ public final class MycelialLootSystem {
                 placeInFreeSlot(chest, extraSupply, random);
             }
 
+            FieldEngramId chestEngram = selectChestEngram(tableKey, random);
+            if (chestEngram != null && random.nextFloat() < 0.55F) {
+                placeInFreeSlot(chest, FieldEngramItem.createStack(chestEngram), random);
+            }
+
             boolean isCryptOrCitadel = isCryptOrCitadelTable(tableKey);
             if (bonus >= 2 || (isCryptOrCitadel && random.nextFloat() < 0.30F)) {
                 boolean evolvedExisting = false;
@@ -160,6 +167,27 @@ public final class MycelialLootSystem {
         if (ensureSurfaceHiveAuditCore) {
             ensureSurfaceHiveCoreItems(chest);
         }
+    }
+
+    @Nullable
+    public static FieldEngramId selectChestEngram(ResourceKey<LootTable> tableKey, @Nullable RandomSource random) {
+        if (tableKey == null) {
+            return null;
+        }
+        boolean coin = random != null && random.nextBoolean();
+        if (tableKey == OUTBREAK_SEALED_VAULT) {
+            return FieldEngramId.OUTBREAK_SIGNAL;
+        }
+        if (tableKey == SANCTUM_FORBIDDEN_LAB || tableKey == SANCTUM_SPORE_VAULT || tableKey == SANCTUM_OSSUARY_CRYPT) {
+            return coin ? FieldEngramId.SYNAPTIC_BLOOM : FieldEngramId.HYPHAL_MEMORY;
+        }
+        if (tableKey == SURFACE_HIVE_CACHE || tableKey == SURFACE_HIVE_GALLERY || tableKey == SURFACE_HIVE_CRYPT) {
+            return coin ? FieldEngramId.TIDE_PRESSURE : FieldEngramId.HYPHAL_MEMORY;
+        }
+        if (tableKey == CITADEL_AMBER_CHAPEL || tableKey == CITADEL_CRIMSON_CHAPEL || tableKey == CITADEL_ROYAL_CRYPT) {
+            return coin ? FieldEngramId.HOMEOSTASIS_TRAUMA : FieldEngramId.PRIMORDIAL_LINEAGE;
+        }
+        return null;
     }
 
     private static boolean isCryptOrCitadelTable(ResourceKey<LootTable> tableKey) {
@@ -546,6 +574,10 @@ public final class MycelialLootSystem {
                 if (!counterDrop.isEmpty()) {
                     mob.spawnAtLocation(counterDrop);
                 }
+            }
+            float engramChance = mimic.wasUnmaskedByCounterplay() ? 1.0F : 0.45F;
+            if (mob.getRandom().nextFloat() < engramChance) {
+                mob.spawnAtLocation(FieldEngramItem.createStack(FieldEngramId.MIMIC_DECEPTION));
             }
         }
     }

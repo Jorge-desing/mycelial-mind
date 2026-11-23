@@ -1,0 +1,55 @@
+{
+  "category": "mycelialmind:fundamentos",
+  "name": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.name",
+  "description": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.description",
+  "icon": {
+    "item": "mycelialmind:bio_scanner"
+  },
+  "x": 2,
+  "y": 0,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 3,
+  "parents": [
+    {
+      "entry": "mycelialmind:fundamentos/supervivencia_dia_uno",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "title": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page1.title",
+      "item": {
+        "item": "mycelialmind:bio_scanner",
+        "count": 1
+      },
+      "text": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page1.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page2.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page2.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page3.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.fundamentos.bio_scanner_telemetria.page4.text"
+    }
+  ]
+}

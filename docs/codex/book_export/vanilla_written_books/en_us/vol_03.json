@@ -2,10 +2,9 @@
   "volume": 3,
   "chapters": [
     "economia_datos",
-    "mundo_dimension",
-    "secretos_logros"
+    "mundo_dimension"
   ],
-  "page_count": 96,
+  "page_count": 81,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.III"
@@ -36,25 +35,25 @@
         "raw": "All 24 Blocks\n(`ModBlocks`) (2/3)\n• Bastion & Flora (8):\n`reinforced_bio_barri\ner`,\n`synaptic_research_b\nench`, `hive_altar`,\n`matriarch_altar`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`,\n`antibody_cyst`."
       },
       {
-        "raw": "All 24 Blocks\n(`ModBlocks`) (3/3)\n• Architecture & Rift\n(7): `mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`."
+        "raw": "All 24 Blocks\n(`ModBlocks`) (3/3)\n• Architecture & Rift\n(8): `mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`."
       },
       {
-        "raw": "Items & Armor\n(`ModItems` 36 + 17\nSpawn Eggs) (1/4)\n• Tools & Weapons\n(10): `bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,"
+        "raw": "Items & Armor\n(`ModItems`) (1/5)\n• Tools & Weapons\n(10): `bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,\n`rift_catalyst`,"
       },
       {
-        "raw": "`rift_catalyst`,\n`mycelial_codex`."
+        "raw": "`mycelial_codex`."
       },
       {
-        "raw": "Items & Armor\n(`ModItems` 36 + 17\nSpawn Eggs) (2/4)\n• Armor & Serums\n(10): `chitin_helmet`,\n`chitin_chestplate`,\n`chitin_leggings`,\n`chitin_boots`,\n`spore_antidote`,\n`concentrated_antidot\ne`, `genetic_sample`,\n`symbiotic_mutagen`,\n`counter_serum`,"
+        "raw": "Items & Armor\n(`ModItems`) (2/5)\n• Armor & Serums\n(10): `chitin_helmet`,\n`chitin_chestplate`,\n`chitin_leggings`,\n`chitin_boots`,\n`spore_antidote`,\n`concentrated_antidot\ne`, `genetic_sample`,\n`symbiotic_mutagen`,\n`counter_serum`,\n`tide_beacon`."
       },
       {
-        "raw": "`tide_beacon`."
+        "raw": "Items & Armor\n(`ModItems`) (3/5)\n• Diplomacy &\nCognition (10):\n`purifier_drone_core`,\n`neural_echo_core`,\n`synaptic_graft`,\n`neural_echo_decoy`,\n`schism_injector`,\n`truce_pheromone`,\n`quorum_seal`,\n`chimera_ovum`,\n`volatile_engram`,\n`field_engram`."
       },
       {
-        "raw": "Items & Armor\n(`ModItems` 36 + 17\nSpawn Eggs) (3/4)\n• Diplomacy &\nCognition (9):\n`purifier_drone_core`,\n`neural_echo_core`,\n`synaptic_graft`,\n`neural_echo_decoy`,\n`schism_injector`,\n`truce_pheromone`,\n`quorum_seal`,\n`chimera_ovum`,\n`volatile_engram`."
+        "raw": "Items & Armor\n(`ModItems`) (4/5)\n• Deception &\nReagents (7):\n`false_engram_injecto\nr`, `mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`hive_heart`,\n`overmind_essence` (+\n17 `*_spawn_egg` in\nCh.5)."
       },
       {
-        "raw": "Items & Armor\n(`ModItems` 36 + 17\nSpawn Eggs) (4/4)\n• Deception &\nReagents (7):\n`false_engram_injecto\nr`, `mycelial_biomass`,\n`chitin_plate`,\n`latent_spore`,\n`synaptic_core`,\n`hive_heart`,\n`overmind_essence` (+\n17 `*_spawn_egg` in\nCh.5)."
+        "raw": "Items & Armor\n(`ModItems`) (5/5)\n• Reclaimed Blooms\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
         "raw": "Cap.9: Complete Recipe\nBook (37 Datapack)\nBio-Scanner &\nBio-Extractor\n[crafting_shaped]  R\n/ICI/ S  (C=compass,\nI=copper_ingot,\nR=redstone,\nS=latent_spore) -> 1x\nbio_scanner\n[crafting_shaped]  A\n/IBI/ S \n(A=amethyst_shard,\nB=mycelial_biomass,"
@@ -240,67 +239,22 @@
         "raw": "Dimension Immune\nSystem (2/2)\n• Acid Rain &\n`antibody_cyst`: under\nopen sky during\n`IMMUNE_RESPONSE`,\nacid rain deals `2.0`\ndmg. Cysts grow (cap\n`64`/chunk); covering\n>=4 faces\n(`SMOTHER_FACE_THRE\nSHOLD`) smothers\nPylons until\nharvested/sedated."
       },
       {
-        "raw": "Cap.11: The 8 Secrets:\nSpoiler-Free Hints\nDiscovery Hints (1–8)\n(1/3)\n• Secret 1 (Act II /\nLab T2): test\ncombining Genetic\nSample, Biomass &\nAmethyst.\n• Secret 2 (Lab):\nexperiment with Spore\nAntidote, Biomass &\nAmethyst Shard.\n• Secret 3 (Act II /"
+        "raw": "Cap.10: Hive Cycle\nProtocol & Mutators\nHive Cycle Protocol &\nMutators (1/4)\n• Post-Matriarch\nActivation: After\ndefeating\n`apex_matriarch`,\ninteract with\n`matriarch_altar`\nwithout a valid\noffering to open\n`CycleProtocolScreen`,\npick 1–3 of 6"
       },
       {
-        "raw": "Lab T2): combine\nGenetic Sample, Latent\nSpore & Synaptic\nCore."
+        "raw": "mutators, and launch\nCycle N (clears\nremission)."
       },
       {
-        "raw": "Discovery Hints (1–8)\n(2/3)\n• Secret 4 (Act III /\nLab T3): test Spore\nAntidote, Latent Spore\n& Synaptic Core.\n• Secret 5 (World):\napply Spore Antidote\ndirectly onto a toxic\n`spore_vent`.\n• Secret 6 (World):\nuse Amethyst Shard\non `creeping_mycelium`"
+        "raw": "Hive Cycle Protocol &\nMutators (2/4)\n• Mutators I–III:\n`hyper_adaptation`\n(+45% learning, x0.85\nthresholds, +35% pts),\n`perpetual_tide` (+50%\ntide duration & lower\nend threshold, +40%\npts), and\n`acute_homeostasis`\n(+40% immune stress,\n+35% pts)."
       },
       {
-        "raw": "inside a Pylon zone."
+        "raw": "Hive Cycle Protocol &\nMutators (3/4)\n• Mutators IV–VI:\n`synaptic_swarm`\n(+wave/expedition\nattackers & elite rate,\n+40% pts),\n`primordial_apex`\n(+25% boss HP/+15%\nDMG & faster\ncooldowns, +50% pts),\nand `hyphal_overload`\n(+35% hyphal"
       },
       {
-        "raw": "Discovery Hints (1–8)\n(3/3)\n• Secret 7 (Field):\nscan, extract, or\ndefeat a glowing\nPrimordial specimen.\n• Secret 8 (Field):\npulse Bio-Scanner\nnear outcrops or\nfertilize\nBioluminescent Caps."
+        "raw": "pressure, +30% pts)."
       },
       {
-        "raw": "Cap.11: The 8 Secrets:\nExact Solutions\n[SPOILER] Exact\nSolutions (1–8) (1/6)\n• #1\n`SECRET_EXP_SYNAPTI\nC_CORE`:\n`GeneticSample`\n(typed) +\n`MycelialBiomass` +\n`AmethystShard` at Act\nII (`AWAKENED`) or Lab\nT2+ -> yields\n`synaptic_core`."
-      },
-      {
-        "raw": "[SPOILER] Exact\nSolutions (1–8) (2/6)\n• #2\n`SECRET_EXP_TRUCE_P\nHEROMONE`:\n`SporeAntidote` +\n`MycelialBiomass` +\n`AmethystShard` in\nBench -> yields 2x\n`truce_pheromone`\n(3x at Lab T3)."
-      },
-      {
-        "raw": "[SPOILER] Exact\nSolutions (1–8) (3/6)\n• #3\n`SECRET_EXP_VOLATIL\nE_ENGRAM`:\n`GeneticSample`\n(typed) +\n`LatentSpore` +\n`SynapticCore` (Act II\nor Lab T2+) -> yields\n`volatile_engram`."
-      },
-      {
-        "raw": "[SPOILER] Exact\nSolutions (1–8) (4/6)\n• #4\n`SECRET_EXP_NEURAL_\nECHO`: `SporeAntidote`\n+ `LatentSpore` +\n`SynapticCore` (Act III\n`ADAPTIVE` or Lab T3)\n-> distills\n`neural_echo_core`."
-      },
-      {
-        "raw": "[SPOILER] Exact\nSolutions (1–8) (5/6)\n• #5\n`SECRET_WORLD_VENT_\nPURIFICATION`: Use\n`spore_antidote` on\n`SporeVentBlock`.\n• #6\n`SECRET_WORLD_AMBER\n_CRYSTALLIZATION`:\nAmethyst on\n`CreepingMycelium` in\nPylon zone."
-      },
-      {
-        "raw": "[SPOILER] Exact\nSolutions (1–8) (6/6)\n• #7\n`SECRET_PRIMORDIAL_S\nPECIMEN`: scan,\nextract, or kill a\nPrimordial mob.\n• #8\n`SECRET_SEALED_BIO_\nVAULT`: detect\n`outbreak_sealed_vaul\nt` via Bio-Scanner or\nfertilize\n`BioluminescentMycelial"
-      },
-      {
-        "raw": "Cap`."
-      },
-      {
-        "raw": "Cap.11: All 30\nAdvancements\nComplete Chain of 30\nAdvancements (1/4)\n• Act I & Bastion (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,\n`base_sentinel`."
-      },
-      {
-        "raw": "Complete Chain of 30\nAdvancements (2/4)\n• Tactics & Biotech\n(9): `bastion_tier3`,\n`purifier_drone_deplo\nyed`,\n`symbiotic_vessel`,\n`synaptic_graft_netwo\nrk`,\n`pavlovian_deceiver`,\n`chemical_diplomat`,\n`architect_bane`,\n`chimera_bioforge`,"
-      },
-      {
-        "raw": "`hive_core_slayer`."
-      },
-      {
-        "raw": "Complete Chain of 30\nAdvancements (3/4)\n• Endgame & Mastery\n(7):\n`synaptic_mastery`,\n`tide_breaker`,\n`counteroffensive_ma\nster`,\n`enter_deep_mycelium`,\n`immune_homeostasis`,\n`overmind_ascendant`,\n`apex_matriarch_slaye\nr` (`discovery`)."
-      },
-      {
-        "raw": "Complete Chain of 30\nAdvancements (4/4)\n• Recipe Unlocks (5):\n`recipes/unlock_bioma\nss_recipes`,\n`recipes/unlock_chitin\n_recipes`,\n`recipes/unlock_hive_\nheart_recipes`,\n`recipes/unlock_latent\n_spore_recipes`,\n`recipes/unlock_syna\nptic_core_recipes`."
-      },
-      {
-        "raw": "Cap.11: Redstone (7) &\nMod Ecosystem\nRedstone Telemetry &\nMod Compat (1/4)\n• Redstone\nComparators 1/2:\n`antibody_cyst` (chunk\nstress 1–15),\n`bioluminescent_myceli\nal_cap` &\n`mycelial_tendrils`\n(`MATURE`),\n`mycelial_node`/`symbi\notic_node`."
-      },
-      {
-        "raw": "Redstone Telemetry &\nMod Compat (2/4)\n• Redstone\nComparators 2/2\n(`MycelialRedstoneTele\nmetry`):\n`purification_pylon`\n(state/smother),\n`purification_turret`\n(tier/jam) &\n`synaptic_research_b\nench` (inputs/output)."
-      },
-      {
-        "raw": "Redstone Telemetry &\nMod Compat (3/4)\n• AI/World Compat:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), SmartBrainLib\n(`MycelialSblBridge`),\ngdx-AI\n(`HiveTacticalTree`) &\nJade\n(`MycelialJadePlugin`)."
-      },
-      {
-        "raw": "Redstone Telemetry &\nMod Compat (4/4)\n• UI/Render Compat:\nJEI\n(`MycelialJeiPlugin`),\nEMI\n(`MycelialEmiPlugin`),\nIris\n(`MycelialIrisCompat`\nPBR), Modonomicon\n(`MycelialModonomiconC\nompat`) & AzureLib."
+        "raw": "Hive Cycle Protocol &\nMutators (4/4)\n• Completion &\nRecords: Defeating\n`apex_matriarch`\nduring an active Cycle\nscores `1000 * mult +\nspeed(<=500) -\ndeaths*120` (min\n`250`), awarding rank\nS+..C, high scores, and\nthe `overmind_cycle`\nengram."
       }
     ]
   }

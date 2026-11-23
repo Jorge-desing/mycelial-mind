@@ -1,9 +1,10 @@
 {
   "volume": 4,
   "chapters": [
+    "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 25,
+  "page_count": 71,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.IV"
@@ -13,28 +14,160 @@
     "resolved": true,
     "pages": [
       {
-        "raw": "Cap.12: Config Catalog\n(12 Client / 43\nServer)\nTOML Configuration\nKeys (1/12)\n• `[hud] hudAnchor` =\n`TOP_LEFT`\n(`TOP_LEFT`,\n`TOP_RIGHT`,\n`BOTTOM_LEFT`,\n`BOTTOM_RIGHT`).\n• `[hud] hudOffsetX` =\n`0` (`-200..200`);\n`hudOffsetY` = `0`"
+        "raw": "Cap.11: The 8 Secrets:\nSpoiler-Free Hints\nDiscovery Hints (1–8)\n(1/3)\n• Secret 1 (Act II /\nLab T2): test\ncombining Genetic\nSample, Biomass &\nAmethyst.\n• Secret 2 (Lab):\nexperiment with Spore\nAntidote, Biomass &\nAmethyst Shard.\n• Secret 3 (Act II /"
       },
       {
-        "raw": "(`-200..200`).\n• `[hud]\nhudCompactMode` =\n`false`;\n`hudRequireHeld` =\n`true`;\n`showSynapticVisionBo\nrder` = `true`."
+        "raw": "Lab T2): combine\nGenetic Sample, Latent\nSpore & Synaptic\nCore."
       },
       {
-        "raw": "TOML Configuration\nKeys (2/12)\n• `[atmosphere]\nsporeFogDensityScale`\n= `1.0` (`0.25..1.0`).\n• `[audio]\nambientSoundscapeVol\nume` = `1.0` (`0..1`);\n`hiveAdaptationAudioAl\nerts` = `true`;\n`caveSoundOcclusion`\n= `true`."
+        "raw": "Discovery Hints (1–8)\n(2/3)\n• Secret 4 (Act III /\nLab T3): test Spore\nAntidote, Latent Spore\n& Synaptic Core.\n• Secret 5 (World):\napply Spore Antidote\ndirectly onto a toxic\n`spore_vent`.\n• Secret 6 (World):\nuse Amethyst Shard\non `creeping_mycelium`"
       },
       {
-        "raw": "TOML Configuration\nKeys (3/12)\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle\nGlow` = `true`.\n• `[hive_memory]`\n`learningMultiplier`=`1.0\n` (`0.1..10`),\n`decayPerMinute`=`2.0`\n(`0..50`),\n`traitActivationThresh"
+        "raw": "inside a Pylon zone."
       },
       {
-        "raw": "old`=`70.0` (`5..500`)."
+        "raw": "Discovery Hints (1–8)\n(3/3)\n• Secret 7 (Field):\nscan, extract, or\ndefeat a glowing\nPrimordial specimen.\n• Secret 8 (Field):\npulse Bio-Scanner\nnear outcrops or\nfertilize\nBioluminescent Caps."
       },
       {
-        "raw": "TOML Configuration\nKeys (4/12)\n• `[hive_memory]`\n`tier2ActivationThresh\nold`=`200.0` (`25..500`),\n`tier2DecayMultiplier`=`\n1.75` (`1..5`),\n`synergiesEnabled`=`tr\nue`.\n• `[hive_memory]`\n`suppressorCooldownS\neconds`=`120`\n(`15..600`),"
+        "raw": "Cap.11: The 8 Secrets:\nExact Solutions\n[SPOILER] Exact\nSolutions (1–8) (1/6)\n• #1\n`SECRET_EXP_SYNAPTI\nC_CORE`:\n`GeneticSample`\n(typed) +\n`MycelialBiomass` +\n`AmethystShard` at Act\nII (`AWAKENED`) or Lab\nT2+ -> yields\n`synaptic_core`."
       },
       {
-        "raw": "`projectileDeflectChan\nce`=`0.30` (`0..0.95`),\n`symbiosisThreatMultipl\nierPerSlot`=`0.15`\n(`0..1`)."
+        "raw": "[SPOILER] Exact\nSolutions (1–8) (2/6)\n• #2\n`SECRET_EXP_TRUCE_P\nHEROMONE`:\n`SporeAntidote` +\n`MycelialBiomass` +\n`AmethystShard` in\nBench -> yields 2x\n`truce_pheromone`\n(3x at Lab T3)."
       },
       {
-        "raw": "TOML Configuration\nKeys (5/12)\n• `[hive_memory]`\n`maxMutagenSlots`=`2`\n(`1..5`),\n`counterSerumBleedRa\ntio`=`0.50` (`0.1..0.95`)."
+        "raw": "[SPOILER] Exact\nSolutions (1–8) (3/6)\n• #3\n`SECRET_EXP_VOLATIL\nE_ENGRAM`:\n`GeneticSample`\n(typed) +\n`LatentSpore` +\n`SynapticCore` (Act II\nor Lab T2+) -> yields\n`volatile_engram`."
+      },
+      {
+        "raw": "[SPOILER] Exact\nSolutions (1–8) (4/6)\n• #4\n`SECRET_EXP_NEURAL_\nECHO`: `SporeAntidote`\n+ `LatentSpore` +\n`SynapticCore` (Act III\n`ADAPTIVE` or Lab T3)\n-> distills\n`neural_echo_core`."
+      },
+      {
+        "raw": "[SPOILER] Exact\nSolutions (1–8) (5/6)\n• #5\n`SECRET_WORLD_VENT_\nPURIFICATION`: Use\n`spore_antidote` on\n`SporeVentBlock`.\n• #6\n`SECRET_WORLD_AMBER\n_CRYSTALLIZATION`:\nAmethyst on\n`CreepingMycelium` in\nPylon zone."
+      },
+      {
+        "raw": "[SPOILER] Exact\nSolutions (1–8) (6/6)\n• #7\n`SECRET_PRIMORDIAL_S\nPECIMEN`: scan,\nextract, or kill a\nPrimordial mob.\n• #8\n`SECRET_SEALED_BIO_\nVAULT`: detect\n`outbreak_sealed_vaul\nt` via Bio-Scanner or\nfertilize\n`BioluminescentMycelial"
+      },
+      {
+        "raw": "Cap`."
+      },
+      {
+        "raw": "Cap.11: All 30\nAdvancements\nComplete\nAdvancements Chain\n(1/4)\n• Act I & Bastion (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,"
+      },
+      {
+        "raw": "`base_sentinel`."
+      },
+      {
+        "raw": "Complete\nAdvancements Chain\n(2/4)\n• Tactics & Biotech\n(9): `bastion_tier3`,\n`purifier_drone_deplo\nyed`,\n`symbiotic_vessel`,\n`synaptic_graft_netwo\nrk`,\n`pavlovian_deceiver`,\n`chemical_diplomat`,\n`architect_bane`,\n`chimera_bioforge`,"
+      },
+      {
+        "raw": "`hive_core_slayer`."
+      },
+      {
+        "raw": "Complete\nAdvancements Chain\n(3/4)\n• Endgame & Mastery\n(9):\n`synaptic_mastery`,\n`tide_breaker`,\n`counteroffensive_ma\nster`,\n`enter_deep_mycelium`,\n`immune_homeostasis`,\n`overmind_ascendant`,\n`apex_matriarch_slaye\nr`,"
+      },
+      {
+        "raw": "`recovered_garden`,\n`recovered_route`\n(`discovery`)."
+      },
+      {
+        "raw": "Complete\nAdvancements Chain\n(4/4)\n• Recipe Unlocks (5):\n`recipes/unlock_bioma\nss_recipes`,\n`recipes/unlock_chitin\n_recipes`,\n`recipes/unlock_hive_\nheart_recipes`,\n`recipes/unlock_latent\n_spore_recipes`,\n`recipes/unlock_syna\nptic_core_recipes`."
+      },
+      {
+        "raw": "Cap.11: Redstone (7) &\nMod Ecosystem\nRedstone Telemetry &\nMod Compat (1/4)\n• Redstone\nComparators 1/2:\n`antibody_cyst` (chunk\nstress 1–15),\n`bioluminescent_myceli\nal_cap` &\n`mycelial_tendrils`\n(`MATURE`),\n`mycelial_node`/`symbi\notic_node`."
+      },
+      {
+        "raw": "Redstone Telemetry &\nMod Compat (2/4)\n• Redstone\nComparators 2/2\n(`MycelialRedstoneTele\nmetry`):\n`purification_pylon`\n(state/smother),\n`purification_turret`\n(tier/jam) &\n`synaptic_research_b\nench` (inputs/output)."
+      },
+      {
+        "raw": "Redstone Telemetry &\nMod Compat (3/4)\n• AI/World Compat:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), SmartBrainLib\n(`MycelialSblBridge`),\ngdx-AI\n(`HiveTacticalTree`) &\nJade\n(`MycelialJadePlugin`)."
+      },
+      {
+        "raw": "Redstone Telemetry &\nMod Compat (4/4)\n• UI/Render Compat:\nJEI\n(`MycelialJeiPlugin`),\nEMI\n(`MycelialEmiPlugin`),\nIris\n(`MycelialIrisCompat`\nPBR), Modonomicon\n(`MycelialModonomiconC\nompat`) & AzureLib."
+      },
+      {
+        "raw": "Cap.11: Engram I:\nOutbreak Signal\nEngram I: Outbreak\nSignal (1/2)\n• Field Log: Every\n`field_engram` stores\nits key inside\n`engram_id` and is\nabsorbed into the\nCodex on right-click\nwith zero inventory\nclutter."
+      },
+      {
+        "raw": "Engram I: Outbreak\nSignal (2/2)\n• Tactical Note (Act\nI): Sealed outbreak\nvaults preserve early\nbio-records before\nthe Hive adapts to\nyour primary damage\nchannels."
+      },
+      {
+        "raw": "Cap.11: Engram II:\nSynaptic Bloom\nEngram II: Synaptic\nBloom\n• Field Log: Relay\nnodes amplify nearby\ncombat telemetry by\n`1.5x` and link up to\n`28` blocks across\nneighboring mycelium.\n• Tactical Note (Act\nI): Placing a\n`purification_pylon`"
+      },
+      {
+        "raw": "between linked nodes\nsevers their synaptic\narc and dampens\ncascade alerts\nbefore excavation."
+      },
+      {
+        "raw": "Cap.11: Engram III:\nChitin Resonance\nEngram III: Chitin\nResonance (1/2)\n• Field Log:\nRecovered from a\nfallen `hive_core`. Its\nchitinous resonance\nattunes `ELITE` armor\nplates and bench\n`synaptic_core`\nupgrades."
+      },
+      {
+        "raw": "Engram III: Chitin\nResonance (2/2)\n• Tactical Note (Act\nII): Upgrade the\nworkbench to Lab T2\nwith `synaptic_core` to\nunlock experimental\nformulas and reduce\nbiomass consumption."
+      },
+      {
+        "raw": "Cap.11: Engram IV: Tide\nPressure\nEngram IV: Tide\nPressure\n• Field Log: Harvested\nupon slaying\n`spore_behemoth`. Its\ncarapace splits into\n`ARMORED_CARAPACE`\narmor and exposed\n`WEAK_POINT` anatomy.\n• Tactical Note (Acto\nIII): Shatter the"
+      },
+      {
+        "raw": "carapace to trigger\n`STAGGERED`: its weak\npoint lowers\nphysically and takes\n`1.35x` follow-up\ndamage."
+      },
+      {
+        "raw": "Cap.11: Engram V: Mimic\nDeception\nEngram V: Mimic\nDeception\n• Field Log:\n`synaptic_mimic`\norganisms mirror your\ndominant attack\nprofile and shift\nstances to punish\nrepetitive damage\nspam.\n• Tactical Note (Acto\nIII): Alternate fire,"
+      },
+      {
+        "raw": "magic, or\n`purifier_grenade`, or\nfire\n`false_engram_injecto\nr` to bait their\nadaptation before\nengaging."
+      },
+      {
+        "raw": "Cap.11: Engram VI:\nHyphal Memory\nEngram VI: Hyphal\nMemory (1/2)\n• Field Log: Repeated\nplayer paths\ncrystallize into\n`hyphal_vein` trails\nonce traffic crosses\nthreshold, speeding\nhive patrols toward\nactive bases."
+      },
+      {
+        "raw": "Engram VI: Hyphal\nMemory (2/2)\n• Tactical Note (Acto\nII): Reprogram up to 4\nnodes with\n`synaptic_graft` or\ndeploy\n`neural_echo_decoy`\nto redirect trail\nsieges."
+      },
+      {
+        "raw": "Cap.11: Engram VII:\nHomeostasis Trauma\nEngram VII:\nHomeostasis Trauma\n• Field Log: Inside\n`deep_mycelium`, blasts\nand pylon density\npush chunk stress to\n`IMMUNE_RESPONSE`,\ntriggering acid rain\nand sensitization `0–3`.\n• Tactical Note (Acto\nIII): When"
+      },
+      {
+        "raw": "`antibody_cyst` seals\n>=4 faces of a pylon\nit smothers protection\nuntil cleared; sedating\nrestores stability."
+      },
+      {
+        "raw": "Cap.11: Engram VIII:\nPrimordial Lineage\nEngram VIII: Primordial\nLineage (1/2)\n• Field Log: Captured\nby sampling weakened\n(`<=60%` HP) primordial\nspecimens carrying\nancient\n`overmind_essence`\nmarkers with\n`bio_extractor`."
+      },
+      {
+        "raw": "Engram VIII: Primordial\nLineage (2/2)\n• Tactical Note (Acto\nIV): Upgrade to Lab\nT3 with\n`neural_echo_core`\nor `overmind_essence`\nto gain +1 stackable\ncraft yield and Secret\n#4."
+      },
+      {
+        "raw": "Cap.11: Engram IX:\nMatriarch Requiem\nEngram IX: Matriarch\nRequiem (1/2)\n• Field Log: Sealed\nupon defeating\n`apex_matriarch`.\nVictory opens a\nremission window that\npreserves your\nunlocked Act tier\nacross worlds."
+      },
+      {
+        "raw": "Engram IX: Matriarch\nRequiem (2/2)\n• Tactical Note (Acto\nIV): With the Matriarch\nslain, right-click\n`matriarch_altar`\nempty-handed to open\nthe Hive Cycles\nProtocol console."
+      },
+      {
+        "raw": "Cap.11: Engram X:\nOvermind Cycle\nEngram X: Overmind\nCycle (1/2)\n• Field Log: Issued\nupon closing a Hive\nCycle by defeating\n`apex_matriarch`\nunder active mutators\nchosen in\n`CycleProtocolScreen`."
+      },
+      {
+        "raw": "Engram X: Overmind\nCycle (2/2)\n• Tactical Note\n(Cycles): Stack up to\n3 high-risk mutators\n(`primordial_apex` +\n`perpetual_tide` +\n`synaptic_swarm`) with\nzero deaths to reach\nS+."
+      },
+      {
+        "raw": "Cap.12: Config Catalog\n(13 Client / 43\nServer)\nTOML Configuration\nKeys (1/12)\n• `[hud] hudAnchor` =\n`TOP_LEFT`\n(`TOP_LEFT`,\n`TOP_RIGHT`,\n`BOTTOM_LEFT`,\n`BOTTOM_RIGHT`).\n• `[hud] hudOffsetX` =\n`0` (`-200..200`);\n`hudOffsetY` = `0`"
+      },
+      {
+        "raw": "(`-200..200`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (2/12)\n• `[hud]\nhudCompactMode` =\n`false`;\n`hudContextualCombat`\n= `true`;\n`hudRequireHeld` =\n`true`;\n`showSynapticVisionBo\nrder` = `true`.\n• `[atmosphere]\nsporeFogDensityScale`\n= `1.0` (`0.25..1.0`)."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (3/12)\n• `[audio]\nambientSoundscapeVol\nume` = `1.0` (`0..1`);\n`hiveAdaptationAudioAl\nerts` = `true`;\n`caveSoundOcclusion`\n= `true`.\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle"
+      },
+      {
+        "raw": "Glow` = `true`."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (4/12)\n• `[hive_memory]`\n`learningMultiplier`=`1.0\n` (`0.1..10`),\n`decayPerMinute`=`2.0`\n(`0..50`),\n`traitActivationThresh\nold`=`70.0` (`5..500`).\n• `[hive_memory]`\n`tier2ActivationThresh\nold`=`200.0` (`25..500`),"
+      },
+      {
+        "raw": "`tier2DecayMultiplier`=`\n1.75` (`1..5`),\n`synergiesEnabled`=`tr\nue`."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (5/12)\n• `[hive_memory]`\n`suppressorCooldownS\neconds`=`120`\n(`15..600`),\n`projectileDeflectChan\nce`=`0.30` (`0..0.95`),\n`symbiosisThreatMultipl\nierPerSlot`=`0.15`\n(`0..1`).\n• `[hive_memory]`\n`maxMutagenSlots`=`2`\n(`1..5`),"
+      },
+      {
+        "raw": "`counterSerumBleedRa\ntio`=`0.50` (`0.1..0.95`)."
       },
       {
         "raw": "TOML Configuration\nKeys (6/12)\n• `[territory]`\n`myceliumSpreadEnable\nd`=`true`,\n`myceliumSpreadChanc\ne`=`0.12` (`0..1`),\n`pylonPurificationRadiu\ns`=`24` (`4..64`),\n`pylonTier3ChunkLoadi\nngEnabled`=`true`."
@@ -67,16 +200,22 @@
         "raw": "`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
       },
       {
-        "raw": "Cap.12: Net v14,\n`/mycelial` & 22 Verify\nAdmin Commands,\nPayloads & Verify\n(1/5)\n• Networking\n(`ModNetworking` v14):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+        "raw": "Cap.12: Net v21,\n`/mycelial` & Verify\nAdmin Commands,\nPayloads & Verify\n(1/5)\n• Networking\n(`ModNetworking` v21):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
       },
       {
-        "raw": "`,\n`DiscoverySyncPayloa\nd`."
+        "raw": "`,\n`DiscoverySyncPayloa\nd`,\n`CycleProtocolSyncPa\nyload` &\n`CycleProtocolActionP\nayload`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(2/5)\n• Operational\nCommands (`perm 2`):\n`/mycelial status`,\n`/mycelial reset`,\n`/mycelial stimulus\n<type> <0.1..500>`,\n`/mycelial habits`,\n`/mycelial schism\n<strain>`, `/mycelial\ndiplomacy <strain>\n<-100..100>`."
+        "raw": "Admin Commands,\nPayloads & Verify\n(2/5)\n• Engrams & Commands\n(`perm 2`):\n`field_engram`\n(`engram_id`),\n`/mycelial status`,\n`/mycelial reset`,\n`/mycelial stimulus\n<type> <0.1..500>`,\n`/mycelial habits`,\n`/mycelial schism\n<strain>`, `/mycelial"
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(3/5)\n• Symbiosis,\nHomeostasis & Audit:\n`/mycelial symbiosis\n<status|clear|grant\n<mutagen>>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,\n`/mycelial worldgen\naudit [radius] [grid]`."
+        "raw": "diplomacy <strain>\n<-100..100>`."
+      },
+      {
+        "raw": "Admin Commands,\nPayloads & Verify\n(3/5)\n• Symbiosis, Cycles,\nHomeostasis & Audit:\n`/mycelial symbiosis\n<status|clear|grant\n<mutagen>>`, `/mycelial\ncycle\n<status|start|abort|re\nset>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,"
+      },
+      {
+        "raw": "`/mycelial worldgen\naudit [radius] [grid]`."
       },
       {
         "raw": "Admin Commands,\nPayloads & Verify\n(4/5)\n• `/mycelial verify\n<scenario|worldgen|all\n>` (1–11):\n`projectile_adaptation\n`, `pylon_containment`,\n`boss_encounter`,\n`tier2_synergy`,\n`synaptic_network`,\n`symbiosis`, `units`,\n`expansion`, `tide`,"
@@ -85,7 +224,7 @@
         "raw": "`counteroffensive`,\n`arsenal`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(5/5)\n• `/mycelial verify`\n(12–22): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`."
+        "raw": "Admin Commands,\nPayloads & Verify\n(5/5)\n• `/mycelial verify`\n(12–23): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`."
       }
     ]
   }
