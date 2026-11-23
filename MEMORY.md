@@ -3679,3 +3679,10 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - JUnit (`test`): **`62/62`** PASS (`6` suites, `0` fallos).
   - `@GameTest` (`runGameTestServer -PisolatedGameTests=true`): **`167/167`** PASS en `6.688 s`.
   - CodeMode (`mycelial-mind-dev`): `run_model_studio` **`ok: true`** (`25/25` tests, incluido `test_boss_aoe_inflate_preserved`), `audit_mod_assets` **`ok: true`**, `validate_skills` **`ok: true`** (`8/8`). Nota: `run_gradle_task` vía MCP falló en `:createMinecraftArtifacts` por `SSLContextImpl$DefaultSSLContext` en el entorno del daemon MCP, por lo que `test` + `runGameTestServer` se ejecutaron directamente con JDK 21. Pendiente playtest visual interactivo en cliente (`runClient`) para inspeccionar las nuevas barras del HUD y poses 3D en vivo.
+
+
+## [2026-11-22 18:58] — Regla permanente de commit y push obligatorio tras sesiones o cambios significativos
+- **Tipo:** `DECISIÓN`
+- **Resumen:** Se reforzó y formalizó en las reglas permanentes del proyecto y para todos los agentes la obligación de hacer `git commit` y `git push` siempre después de cada sesión o al realizar cambios significativos entre pasadas (verificando `git status` para incluir únicamente archivos propios de la tarea). Se revisó la pertinencia de las skills en `.agents/skills/` y no requerían cambios al tratarse de una regla transversal de flujo Git.
+- **Archivos / Símbolos:** `.agents/rules/git-auto-commit.md`, `AGENTS.md` (sección 8), `GEMINI.md`, `MEMORY.md`.
+- **Estado / Siguiente paso:** Regla activa en las tres rutas de descubrimiento del proyecto (`AGENTS.md`, `GEMINI.md`, `.agents/rules/git-auto-commit.md`). Pendiente `git commit` y `git push` de estos archivos.

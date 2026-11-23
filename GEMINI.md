@@ -8,3 +8,7 @@
 
 - **Regla permanente:** Toda auditoría, ejecución o depuración de las suites de pruebas del proyecto y el control automatizado del mod/juego (comandos RCON `/mycelial ...`, MC Pilot, Gradle GameTest/Visual/Structure Smoke y JFR) **debe realizarse a través de FastMCP `CodeMode`** (`mycelial-mind-dev`: `search`, `get_schema`, `execute`) encadenando las comprobaciones en un bloque Python único (ver `.agents/rules/codemode-first.md` y `.agents/skills/mycelial-codemode/SKILL.md`).
 - Usa los comandos `.bat`/`.ps1`/`.py` directos únicamente como fallback si el servidor MCP `mycelial-mind-dev` no está conectado en la sesión actual o al depurar `scripts/mcp/server.py`.
+
+# Commit y Push Obligatorio tras cada Sesión o Cambios Significativos
+
+- **Regla permanente:** Al finalizar cada sesión o tras realizar **cambios significativos entre pasadas**, ejecuta siempre `git status`, `git add` de los archivos propios de la tarea, `git commit` descriptivo y `git push` hacia `origin` (ver `.agents/rules/git-auto-commit.md`), salvo indicación explícita del usuario en contra o si existen errores de compilación/pruebas sin resolver que rompan la rama principal.

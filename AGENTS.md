@@ -200,3 +200,9 @@ Fallback directo por consola desde la raíz del workspace (`c:\Users\Alex\Docume
 - Actualiza antes de finalizar cada skill del proyecto cuyo contenido, instrucciones, referencias, comandos o limitaciones hayan quedado afectados o desactualizados. Basa los cambios en el estado comprobado del proyecto y conserva el alcance de cada skill; no edites skills que no requieran cambios.
 - Realiza esta revisión también en chats ya iniciados desde la siguiente pasada en que se conozca esta regla, y en todos los chats futuros. Una sesión que no haya recargado estas instrucciones debe hacerlo para conocer la regla.
 - Registra en la entrada final de `MEMORY.md` qué skills se actualizaron o que se revisó su pertinencia y no requerían cambios. Valida las skills modificadas mediante CodeMode cuando esté disponible, conforme a la política del proyecto.
+
+## 8. Commit y Push Obligatorio tras cada Sesión o Cambios Significativos
+
+- **Regla permanente para todos los agentes:** Al finalizar cada sesión o tras realizar cambios significativos entre pasadas (código, configuración, documentación, reglas, skills, tests, assets o correcciones verificadas), haz **siempre** `git commit` y `git push` al remoto (`origin`), conforme a `.agents/rules/git-auto-commit.md`.
+- **Alcance limpio:** Revisa `git status` antes de añadir archivos para hacer `git add` únicamente de los archivos propios de tu tarea/pasada (sin incluir temporales, secretos ni trabajo ajeno sin relación).
+- **Excepciones:** Solo omite el commit/push si el usuario lo pide explícitamente, si hay errores de compilación/pruebas sin resolver que rompan la rama principal, o si no existe remoto configurado.
