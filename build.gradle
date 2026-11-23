@@ -86,6 +86,9 @@ neoForge {
 
         visualSmoke {
             client()
+            if (providers.gradleProperty('relicVisualSmoke').getOrElse('false') == 'true') {
+                gameDirectory = project.file('artifacts/diagnostics/relic-visual-client')
+            }
             if (providers.gradleProperty('expeditionVisualSmoke').getOrElse('false') == 'true') {
                 gameDirectory = project.file('artifacts/diagnostics/expedition-visual-client')
             } else if (providers.gradleProperty('particleVisualSmoke').getOrElse('false') == 'true') {
@@ -93,6 +96,7 @@ neoForge {
             }
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             systemProperty 'mycelialmind.visualSmoke', 'true'
+            systemProperty 'mycelialmind.relicVisualSmoke', providers.gradleProperty('relicVisualSmoke').getOrElse('false')
             systemProperty 'mycelialmind.particleVisualSmoke', providers.gradleProperty('particleVisualSmoke').getOrElse('false')
             systemProperty 'mycelialmind.expeditionVisualSmoke', providers.gradleProperty('expeditionVisualSmoke').getOrElse('false')
             systemProperty 'mycelialmind.expeditionKeepSmokeEntities', providers.gradleProperty('expeditionKeepSmokeEntities').getOrElse('false')

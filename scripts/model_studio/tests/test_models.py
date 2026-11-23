@@ -250,6 +250,29 @@ class TestModelStudio(unittest.TestCase):
         for name, m in items.items():
             self.assertIn("display", m, f"3D item {name} missing display transforms")
 
+    def test_seven_hand_relics_use_individual_atlases(self):
+        from scripts.model_studio.block_item_3d import build_3d_item_models
+        from scripts.texture_studio.generators.atlas_3d import ATLAS_SPECS
+
+        relic_atlases = {
+            "synaptic_suppressor": "atlas_relic_synaptic_suppressor",
+            "tide_beacon": "atlas_relic_tide_beacon",
+            "overmind_crown": "atlas_relic_overmind_crown",
+            "quorum_seal": "atlas_relic_quorum_seal",
+            "rift_catalyst": "atlas_relic_rift_catalyst",
+            "hive_heart": "atlas_relic_hive_heart",
+            "overmind_essence": "atlas_relic_overmind_essence",
+        }
+        items = build_3d_item_models()
+        self.assertEqual(len(set(relic_atlases.values())), len(relic_atlases))
+        for item_id, atlas_name in relic_atlases.items():
+            with self.subTest(item=item_id):
+                self.assertIn(atlas_name, ATLAS_SPECS)
+                self.assertEqual(items[item_id]["textures"]["atlas"], f"mycelialmind:model_atlas/{atlas_name}")
+                self.assertGreaterEqual(len(items[item_id]["elements"]), 8)
+                self.assertIn("firstperson_righthand", items[item_id]["display"])
+                self.assertIn("thirdperson_righthand", items[item_id]["display"])
+
     def test_3d_items_no_interpenetration_and_connected(self):
         import math
         from collections import deque

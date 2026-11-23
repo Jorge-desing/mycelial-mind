@@ -47,6 +47,7 @@ public final class VisualSmokeClient {
     private static boolean blocksShot = false;
     private static boolean mobsShot = false;
     private static boolean bossesShot = false;
+    private static boolean relicSceneBuilt = false;
     private static int showcaseY = 0;
     private static int inWorldTicks = 0;
     private static boolean expeditionRequested;
@@ -182,6 +183,10 @@ public final class VisualSmokeClient {
         }
         if (Boolean.getBoolean("mycelialmind.animationVisualSmoke")) {
             runAnimationScene(mc);
+            return;
+        }
+        if (Boolean.getBoolean("mycelialmind.relicVisualSmoke")) {
+            runRelicVisualSmoke(mc);
             return;
         }
         if (!sceneBuilt && inWorldTicks >= 15) {
@@ -669,6 +674,80 @@ public final class VisualSmokeClient {
             MycelialMind.LOGGER.info("Expedition reload smoke: restored pulse completed exactly once");
         });
         if (inWorldTicks >= 195) mc.stop();
+    }
+
+    private static void runRelicVisualSmoke(Minecraft mc) {
+        if (!relicSceneBuilt && inWorldTicks >= 15) {
+            relicSceneBuilt = true;
+            if (mc.screen != null) mc.setScreen(null);
+
+            ItemStack[] relics = {
+                    new ItemStack(ModItems.SYNAPTIC_SUPPRESSOR.get()),
+                    new ItemStack(ModItems.TIDE_BEACON.get()),
+                    new ItemStack(ModItems.OVERMIND_CROWN.get()),
+                    new ItemStack(ModItems.QUORUM_SEAL.get()),
+                    new ItemStack(ModItems.RIFT_CATALYST.get()),
+                    new ItemStack(ModItems.HIVE_HEART.get()),
+                    new ItemStack(ModItems.OVERMIND_ESSENCE.get())
+            };
+            var inventory = mc.player.getInventory();
+            for (int i = 0; i < relics.length; i++) {
+                inventory.setItem(i, relics[i]);
+            }
+            inventory.selected = 0;
+            mc.options.hideGui = false;
+            mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+            org.lwjgl.glfw.GLFW.glfwSetCursorPos(mc.getWindow().getWindow(), 4.0, 4.0);
+            MycelialMind.LOGGER.info("Relic visual smoke: opened the seven-item inventory showcase");
+            return;
+        }
+
+        if (!relicSceneBuilt) return;
+        if (inWorldTicks == 24) {
+            mc.gui.getChat().clearMessages(false);
+            mc.getToasts().clear();
+            Screenshot.grab(mc.gameDirectory, "relic_inventory.png", mc.getMainRenderTarget(), msg ->
+                    MycelialMind.LOGGER.info("Relic visual smoke: {}", msg.getString()));
+        }
+        if (inWorldTicks == 28) {
+            mc.setScreen(null);
+            mc.gui.getChat().clearMessages(false);
+            mc.player.setYRot(0.0F);
+            mc.player.setXRot(0.0F);
+            mc.player.yRotO = 0.0F;
+            mc.player.xRotO = 0.0F;
+            mc.options.fov().set(70);
+            mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+        }
+
+        if (inWorldTicks >= 124 && inWorldTicks < 180) {
+            int elapsed = inWorldTicks - 124;
+            int itemIndex = elapsed / 8;
+            mc.player.getInventory().selected = itemIndex;
+            if (elapsed % 8 == 4) {
+                Screenshot.grab(mc.gameDirectory, "relic_firstperson_" + itemIndex + ".png", mc.getMainRenderTarget(), msg ->
+                        MycelialMind.LOGGER.info("Relic visual smoke: {}", msg.getString()));
+            }
+        }
+
+        if (inWorldTicks == 188) {
+            mc.player.setYRot(0.0F);
+            mc.player.setXRot(0.0F);
+            mc.player.yRotO = 0.0F;
+            mc.player.xRotO = 0.0F;
+            mc.options.fov().set(40);
+            mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);
+        }
+        if (inWorldTicks >= 191 && inWorldTicks < 247) {
+            int elapsed = inWorldTicks - 191;
+            int itemIndex = elapsed / 8;
+            mc.player.getInventory().selected = itemIndex;
+            if (elapsed % 8 == 4) {
+                Screenshot.grab(mc.gameDirectory, "relic_thirdperson_" + itemIndex + ".png", mc.getMainRenderTarget(), msg ->
+                        MycelialMind.LOGGER.info("Relic visual smoke: {}", msg.getString()));
+            }
+        }
+        if (inWorldTicks >= 250) mc.stop();
     }
 
     private static void runExpeditionScene(Minecraft mc) {

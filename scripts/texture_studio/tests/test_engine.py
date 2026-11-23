@@ -313,6 +313,13 @@ class TestTextureStudioV2(unittest.TestCase):
                     self.assertLessEqual(int(s_arr[0:16, 0:16, 2].max()), 64)
                     self.assertGreaterEqual(int(s_arr[0:16, 16:32, 2].min()), 65)
                     self.assertTrue(np.all(s_arr[32:48, 32:48, 1] == 231))
+            relic_atlases = [name for name in ATLAS_SPECS if name.startswith("atlas_relic_")]
+            self.assertEqual(len(relic_atlases), 7)
+            relic_pixels = []
+            for name in relic_atlases:
+                with Image.open(os.path.join(tmp, f"{name}.png")) as im:
+                    relic_pixels.append(np.asarray(im.convert("RGBA")).tobytes())
+            self.assertEqual(len(set(relic_pixels)), 7, "Each hand relic should have its own visible material atlas")
             with Image.open(os.path.join(tmp, "crystal_pulse_flow.png")) as im_flow:
                 self.assertEqual(im_flow.size, (64, 256))
             self.assertTrue(os.path.exists(os.path.join(tmp, "crystal_pulse_flow.png.mcmeta")))

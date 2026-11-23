@@ -207,6 +207,126 @@ R_GOLD_CRYSTAL = (1, 3)
 R_VENOM = (2, 3)
 R_IVORY_SCALE = (3, 3)
 
+# Dedicated material cells for the seven hand-held relics.
+S_DARK = (0, 0)
+S_ALLOY = (1, 0)
+S_CYAN = (2, 0)
+S_GOLD = (3, 0)
+S_INDIGO = (0, 1)
+S_VEIN = (1, 1)
+S_VENT = (2, 1)
+S_BRASS = (3, 1)
+S_AMBER = (0, 2)
+S_AQUA = (1, 2)
+S_IVORY = (2, 2)
+S_AMETHYST = (3, 2)
+S_RUNE = (0, 3)
+S_PLATE = (1, 3)
+S_SCALE = (2, 3)
+S_CRYSTAL = (3, 3)
+
+T_VIOLET = (0, 0)
+T_OBSIDIAN = (1, 0)
+T_BRASS = (2, 0)
+T_GOLD = (3, 0)
+T_INDIGO = (0, 1)
+T_VEIN = (1, 1)
+T_CYAN = (2, 1)
+T_RUNE = (3, 1)
+T_AMETHYST = (0, 2)
+T_BONE = (1, 2)
+T_VENT = (2, 2)
+T_CRYSTAL = (3, 2)
+T_DARK = (0, 3)
+T_PLATE = (1, 3)
+T_GOLD_SCALE = (2, 3)
+T_IVORY = (3, 3)
+
+C_OBSIDIAN = (0, 0)
+C_GOLD = (1, 0)
+C_AMETHYST = (2, 0)
+C_VIOLET = (3, 0)
+C_INDIGO = (0, 1)
+C_BRASS = (1, 1)
+C_RUNE = (2, 1)
+C_CRYSTAL = (3, 1)
+C_BONE = (0, 2)
+C_CHITIN = (1, 2)
+C_PLATINUM = (2, 2)
+C_VEIN = (3, 2)
+C_DARK = (0, 3)
+C_PURPLE = (1, 3)
+C_GEM = (2, 3)
+C_HIGHLIGHT = (3, 3)
+
+Q_JADE = (0, 0)
+Q_DARK = (1, 0)
+Q_BRASS = (2, 0)
+Q_RUNE = (3, 0)
+Q_EMERALD = (0, 1)
+Q_BONE = (1, 1)
+Q_GOLD = (2, 1)
+Q_GEM = (3, 1)
+Q_OLIVE = (0, 2)
+Q_PLATE = (1, 2)
+Q_VEIN = (2, 2)
+Q_SCALE = (3, 2)
+Q_OBSIDIAN = (0, 3)
+Q_CRYSTAL = (1, 3)
+Q_METAL = (2, 3)
+Q_HIGHLIGHT = (3, 3)
+
+K_OBSIDIAN = (0, 0)
+K_INDIGO = (1, 0)
+K_VIOLET = (2, 0)
+K_EMBER = (3, 0)
+K_RUNE = (0, 1)
+K_VEIN = (1, 1)
+K_AMETHYST = (2, 1)
+K_CRYSTAL = (3, 1)
+K_PLATE = (0, 2)
+K_DARK = (1, 2)
+K_GOLD = (2, 2)
+K_CYAN = (3, 2)
+K_SCALE = (0, 3)
+K_BRASS = (1, 3)
+K_GLOW = (2, 3)
+K_HIGHLIGHT = (3, 3)
+
+H_HEART = (0, 0)
+H_ROSE = (1, 0)
+H_VESSEL = (2, 0)
+H_DARK = (3, 0)
+H_RIB = (0, 1)
+H_GOLD = (1, 1)
+H_EMBER = (2, 1)
+H_GLOW = (3, 1)
+H_BONE = (0, 2)
+H_SCALE = (1, 2)
+H_VEIN = (2, 2)
+H_PLATE = (3, 2)
+H_OBSIDIAN = (0, 3)
+H_RUNE = (1, 3)
+H_AMBER = (2, 3)
+H_LIGHT = (3, 3)
+
+E_IVORY = (0, 0)
+E_GOLD = (1, 0)
+E_BONE = (2, 0)
+E_OBSIDIAN = (3, 0)
+E_CRYSTAL = (0, 1)
+E_AMBER = (1, 1)
+E_RUNE = (2, 1)
+E_INDIGO = (3, 1)
+E_PLATE = (0, 2)
+E_BRASS = (1, 2)
+E_DARK = (2, 2)
+E_GLOW = (3, 2)
+E_SCALE = (0, 3)
+E_VEIN = (1, 3)
+E_PURPLE = (2, 3)
+E_HIGHLIGHT = (3, 3)
+
 
 def _atlas_textures(atlas_name: str, particle: str, with_flow: bool = False) -> Dict[str, str]:
     tex = {
@@ -708,6 +828,18 @@ _RELIC_DISPLAY = {
     "fixed": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [0.9, 0.9, 0.9]},
 }
 
+
+def _individual_relic_display(yaw: float, scale: float) -> Dict[str, Dict[str, Any]]:
+    return {
+        "thirdperson_righthand": {"rotation": [12, yaw, 0], "translation": [0, 2.5, 1.0], "scale": [scale, scale, scale]},
+        "thirdperson_lefthand": {"rotation": [12, -yaw, 0], "translation": [0, 2.5, 1.0], "scale": [scale, scale, scale]},
+        "firstperson_righthand": {"rotation": [0, yaw, 0], "translation": [0, 2.5, 0], "scale": [scale * 0.92, scale * 0.92, scale * 0.92]},
+        "firstperson_lefthand": {"rotation": [0, -yaw, 0], "translation": [0, 2.5, 0], "scale": [scale * 0.92, scale * 0.92, scale * 0.92]},
+        "gui": {"rotation": [25, 225 + yaw, 0], "translation": [0, 0, 0], "scale": [0.95, 0.95, 0.95]},
+        "ground": {"rotation": [0, yaw, 0], "translation": [0, 3, 0], "scale": [0.55, 0.55, 0.55]},
+        "fixed": {"rotation": [0, yaw, 0], "translation": [0, 0, 0], "scale": [0.9, 0.9, 0.9]},
+    }
+
 _MATERIAL_COMPACT_DISPLAY = {
     "thirdperson_righthand": {"rotation": [20, 45, 0], "translation": [0, 2.0, 1.0], "scale": [0.50, 0.50, 0.50]},
     "thirdperson_lefthand": {"rotation": [20, -45, 0], "translation": [0, 2.0, 1.0], "scale": [0.50, 0.50, 0.50]},
@@ -825,39 +957,39 @@ def build_3d_item_models() -> Dict[str, Dict[str, Any]]:
         "display": _TOOL_INJECTOR_DISPLAY,
     }
 
-    # 6. synaptic_suppressor: zero-overlap emitter pins bridging the 3 containment ribs to the core
+    # 6. synaptic_suppressor: forked emitter cage around a narrow cyan suppressor spine
     models["synaptic_suppressor"] = {
-        "textures": _atlas_textures("atlas_items_weapons", "mycelialmind:item/synaptic_suppressor"),
+        "textures": _atlas_textures("atlas_relic_synaptic_suppressor", "mycelialmind:item/synaptic_suppressor"),
         "elements": [
-            _tbox((7.0, 0.5, 7.0), (9.0, 6.8, 9.0), W_OBS),
-            _tbox((5.4, 6.8, 5.4), (10.6, 8.4, 10.6), W_GOLD_COIL),
-            _tbox((6.5, 9.4, 6.5), (9.5, 13.0, 9.5), W_AMETHYST_VEIN, shade=False),
-            _tbox((5.9, 10.8, 7.4), (6.5, 11.6, 8.6), W_GOLD_COIL),
-            _tbox((9.5, 10.8, 7.4), (10.1, 11.6, 8.6), W_GOLD_COIL),
-            _tbox((7.4, 10.8, 5.9), (8.6, 11.6, 6.5), W_GOLD_COIL),
-            _tbox((4.8, 8.4, 7.4), (5.9, 14.2, 8.6), W_BRUSHED),
-            _tbox((10.1, 8.4, 7.4), (11.2, 14.2, 8.6), W_BRUSHED),
-            _tbox((7.4, 8.4, 4.8), (8.6, 14.2, 5.9), W_BRUSHED),
-            _tbox((4.8, 14.2, 4.8), (11.2, 15.8, 11.2), W_GOLD_COIL),
+            _tbox((7.0, 0.5, 7.0), (9.0, 1.8, 9.0), S_GOLD),
+            _tbox((7.4, 1.8, 7.4), (8.6, 5.3, 8.6), S_DARK),
+            _tbox((5.2, 5.3, 6.3), (10.8, 6.7, 9.7), S_ALLOY),
+            _tbox((7.25, 6.7, 7.2), (8.75, 13.25, 8.8), S_CYAN, shade=False),
+            _tbox((4.3, 6.7, 7.0), (5.5, 13.25, 9.0), _faces(S_DARK, east=S_VENT)),
+            _tbox((10.5, 6.7, 7.0), (11.7, 13.25, 9.0), _faces(S_DARK, west=S_VENT)),
+            _tbox((4.3, 13.25, 7.0), (11.7, 14.5, 9.0), S_GOLD),
+            _tbox((7.6, 14.5, 7.5), (8.4, 15.6, 8.5), S_AMETHYST, shade=False),
         ],
-        "display": _WEAPON_DISPLAY,
+        "display": _individual_relic_display(-18, 0.76),
     }
 
-    # 7. tide_beacon: radial struts connecting the 3 fins cleanly to the prism & tripod base
+    # 7. tide_beacon: three-footed tide bell with a wide stepped crown
     models["tide_beacon"] = {
-        "textures": _atlas_textures("atlas_items_armor_relics", "mycelialmind:item/tide_beacon"),
+        "textures": _atlas_textures("atlas_relic_tide_beacon", "mycelialmind:item/tide_beacon"),
         "elements": [
-            _tbox((4.0, 1.0, 4.0), (12.0, 2.8, 12.0), R_OBS_RUNE),
-            _tbox((6.0, 2.8, 6.0), (10.0, 12.0, 10.0), R_CYAN, shade=False),
-            _tbox((6.5, 12.0, 6.5), (9.5, 14.8, 9.5), R_GOLD_CRYSTAL, shade=False),
-            _tbox((4.6, 5.2, 7.4), (6.0, 6.2, 8.6), R_BRASS),
-            _tbox((10.0, 5.2, 7.4), (11.4, 6.2, 8.6), R_BRASS),
-            _tbox((7.4, 5.2, 4.6), (8.6, 6.2, 6.0), R_BRASS),
-            _tbox((2.8, 4.5, 7.2), (4.6, 11.5, 8.8), R_PLAT),
-            _tbox((11.4, 4.5, 7.2), (13.2, 11.5, 8.8), R_PLAT),
-            _tbox((7.2, 4.5, 2.8), (8.8, 11.5, 4.6), R_PLAT),
+            _tbox((3.2, 0.0, 6.6), (7.0, 1.0, 9.4), T_BRASS),
+            _tbox((9.0, 0.0, 6.6), (12.8, 1.0, 9.4), T_BRASS),
+            _tbox((7.0, 0.0, 3.2), (9.0, 1.0, 7.0), T_BRASS),
+            _tbox((4.0, 1.0, 7.0), (7.0, 4.8, 9.0), T_VIOLET),
+            _tbox((9.0, 1.0, 7.0), (12.0, 4.8, 9.0), T_VIOLET),
+            _tbox((7.0, 1.0, 4.0), (9.0, 4.8, 7.0), T_VIOLET),
+            _tbox((6.0, 4.8, 6.0), (10.0, 6.2, 10.0), T_GOLD),
+            _tbox((7.2, 6.2, 7.2), (8.8, 10.5, 8.8), T_INDIGO),
+            _tbox((5.5, 10.5, 5.5), (10.5, 12.4, 10.5), T_CYAN, shade=False),
+            _tbox((4.2, 12.4, 4.2), (11.8, 13.4, 11.8), T_VENT),
+            _tbox((6.0, 13.4, 6.0), (10.0, 15.4, 10.0), T_CRYSTAL, shade=False),
         ],
-        "display": _RELIC_DISPLAY,
+        "display": _individual_relic_display(22, 0.72),
     }
 
     # 8. neural_echo_decoy: central emitter stem & flush base collar connecting orb & antennae
@@ -875,24 +1007,23 @@ def build_3d_item_models() -> Dict[str, Dict[str, Any]]:
         "display": _RELIC_DISPLAY,
     }
 
-    # 9. overmind_crown: slimmer 1.2-thick circlet + 3-step tapered central spire & angled side spires
+    # 9. overmind_crown: three high neural tines above a broad dark diadem and inset eye
     models["overmind_crown"] = {
-        "textures": _atlas_textures("atlas_items_armor_relics", "mycelialmind:item/overmind_crown"),
+        "textures": _atlas_textures("atlas_relic_overmind_crown", "mycelialmind:item/overmind_crown"),
         "elements": [
-            _tbox((3.0, 4.0, 3.0), (13.0, 6.2, 4.2), R_OBS_RUNE),
-            _tbox((3.0, 4.0, 11.8), (13.0, 6.2, 13.0), R_OBS_RUNE),
-            _tbox((3.0, 4.0, 4.2), (4.2, 6.2, 11.8), R_OBS_RUNE),
-            _tbox((11.8, 4.0, 4.2), (13.0, 6.2, 11.8), R_OBS_RUNE),
-            _tbox((6.8, 6.2, 3.0), (9.2, 8.6, 4.2), R_GOLD_RUNE),
-            _tbox((7.1, 8.6, 3.1), (8.9, 11.4, 4.1), R_GOLD_RUNE),
-            _tbox((7.5, 11.4, 3.3), (8.5, 14.0, 3.9), R_GOLD_RUNE),
-            _tbox((7.3, 6.8, 2.3), (8.7, 9.6, 3.0), R_GOLD_CRYSTAL, shade=False),
-            _tbox((4.2, 6.2, 3.1), (5.5, 10.8, 4.1), R_GOLD_RUNE, rotation=_rot((4.2, 6.2, 3.6), "z", 22.5)),
-            _tbox((10.5, 6.2, 3.1), (11.8, 10.8, 4.1), R_GOLD_RUNE, rotation=_rot((11.8, 6.2, 3.6), "z", -22.5)),
-            _tbox((3.1, 6.2, 7.2), (4.2, 9.6, 8.8), R_BRASS),
-            _tbox((11.8, 6.2, 7.2), (12.9, 9.6, 8.8), R_BRASS),
+            _tbox((3.0, 3.8, 6.5), (13.0, 5.2, 9.5), C_OBSIDIAN),
+            _tbox((3.0, 5.2, 6.8), (13.0, 6.5, 9.2), C_GOLD),
+            _tbox((1.4, 5.0, 7.0), (3.0, 8.2, 9.0), C_OBSIDIAN),
+            _tbox((13.0, 5.0, 7.0), (14.6, 8.2, 9.0), C_OBSIDIAN),
+            _tbox((6.5, 6.5, 5.5), (9.5, 8.6, 7.0), C_GEM, shade=False),
+            _tbox((3.8, 6.5, 7.0), (5.2, 9.2, 9.0), C_AMETHYST),
+            _tbox((2.8, 9.2, 7.2), (4.2, 12.0, 8.8), C_GOLD),
+            _tbox((7.1, 8.6, 5.8), (8.9, 10.5, 7.0), C_VIOLET),
+            _tbox((7.3, 10.5, 5.8), (8.7, 14.0, 7.4), C_GOLD),
+            _tbox((10.8, 6.5, 7.0), (12.2, 9.2, 9.0), C_AMETHYST),
+            _tbox((11.8, 9.2, 7.2), (13.2, 12.0, 8.8), C_GOLD),
         ],
-        "display": _RELIC_DISPLAY,
+        "display": _individual_relic_display(0, 0.68),
     }
 
     # 10. purifier_drone_core: chassis with non-overlapping rotor arms connecting all 4 micro-rotors
@@ -1119,20 +1250,20 @@ def build_3d_item_models() -> Dict[str, Dict[str, Any]]:
     }
 
     models["hive_heart"] = {
-        "textures": _atlas_textures("atlas_items_armor_relics", "mycelialmind:item/hive_heart"),
+        "textures": _atlas_textures("atlas_relic_hive_heart", "mycelialmind:item/hive_heart"),
         "elements": [
-            # Organic asymmetrical biomechanical heart: root -> main chamber -> lateral ventricle -> chitin ribs -> angled aortic valves
-            _tbox((6.8, 1.0, 6.8), (9.2, 2.2, 9.2), R_OBS_RUNE),
-            _tbox((6.2, 2.2, 6.2), (9.8, 3.5, 9.8), R_GOLD_CRYSTAL, shade=False),
-            _tbox((5.0, 3.5, 5.0), (11.0, 11.0, 11.0), R_EMBER, shade=False),
-            _tbox((11.0, 4.5, 5.8), (12.5, 9.5, 10.2), R_CHARTREUSE, shade=False),
-            _tbox((4.1, 4.6, 5.4), (5.0, 9.8, 10.6), R_VIOLET_VEIN),
-            _tbox((5.6, 5.2, 4.2), (10.4, 9.2, 5.0), _faces(R_OBS_SCALE, north=R_OBS_RUNE)),
-            _tbox((5.6, 5.2, 11.0), (10.4, 9.2, 11.8), _faces(R_OBS_SCALE, south=R_OBS_RUNE)),
-            _tbox((5.6, 11.0, 6.4), (7.6, 14.4, 8.8), R_OBS_RUNE, rotation=_rot((5.6, 11.0, 7.6), "z", 22.5)),
-            _tbox((8.8, 11.0, 7.2), (10.6, 13.8, 9.4), R_GOLD_RUNE, rotation=_rot((10.6, 11.0, 8.3), "z", -22.5)),
+            _tbox((7.2, 0.8, 7.1), (8.8, 2.5, 8.9), H_DARK),
+            _tbox((6.0, 2.5, 6.5), (10.0, 5.0, 9.5), H_HEART, shade=False),
+            _tbox((5.0, 5.0, 6.5), (11.0, 10.0, 9.5), H_HEART, shade=False),
+            _tbox((4.0, 10.0, 6.5), (7.0, 13.5, 9.5), H_ROSE, shade=False),
+            _tbox((9.0, 10.0, 6.5), (12.0, 13.5, 9.5), H_ROSE, shade=False),
+            _tbox((7.0, 11.0, 6.5), (9.0, 13.5, 9.5), H_VESSEL),
+            _tbox((4.8, 13.5, 7.0), (6.2, 15.5, 9.0), H_GOLD),
+            _tbox((9.8, 13.5, 7.0), (11.2, 15.5, 9.0), H_AMBER),
+            _tbox((7.0, 10.0, 5.8), (9.0, 12.5, 6.5), H_DARK),
+            _tbox((6.0, 5.5, 5.8), (6.8, 9.5, 6.5), H_VEIN),
         ],
-        "display": _RELIC_DISPLAY,
+        "display": _individual_relic_display(15, 0.78),
     }
 
     # 2) neural_echo_core: perpendicular dual-ring gyroscope around a cyan echo sphere
@@ -1159,38 +1290,43 @@ def build_3d_item_models() -> Dict[str, Dict[str, Any]]:
         "display": _RELIC_DISPLAY,
     }
 
-    # 3) overmind_essence: imperial chalice reliquary with 3-tier golden diamond & winged volutes
+    # 3) overmind_essence: ivory crystal held inside a narrow, connected reliquary frame
     models["overmind_essence"] = {
-        "textures": _atlas_textures("atlas_items_armor_relics", "mycelialmind:item/overmind_essence"),
+        "textures": _atlas_textures("atlas_relic_overmind_essence", "mycelialmind:item/overmind_essence"),
         "elements": [
-            _tbox((5.2, 0.8, 5.2), (10.8, 2.2, 10.8), _faces(R_OBS_RUNE, up=R_GOLD_RUNE)),
-            _tbox((7.0, 2.2, 7.0), (9.0, 4.6, 9.0), R_GOLD_RUNE),
-            _tbox((5.4, 4.6, 5.4), (10.6, 6.0, 10.6), _faces(R_OBS_RUNE, up=R_GOLD_RUNE)),
-            _tbox((5.8, 6.0, 5.8), (10.2, 8.2, 10.2), R_GOLD_CRYSTAL, shade=False),
-            _tbox((6.4, 8.2, 6.4), (9.6, 10.4, 9.6), R_GOLD_CRYSTAL, shade=False),
-            _tbox((7.2, 10.4, 7.2), (8.8, 12.2, 8.8), R_GOLD_CRYSTAL, shade=False),
-            _tbox((3.8, 6.0, 7.2), (5.4, 11.4, 8.8), _faces(R_GOLD_RUNE, north=R_OBS_RUNE, south=R_OBS_RUNE), rotation=_rot((5.4, 6.0, 8.0), "z", 22.5)),
-            _tbox((10.6, 6.0, 7.2), (12.2, 11.4, 8.8), _faces(R_GOLD_RUNE, north=R_OBS_RUNE, south=R_OBS_RUNE), rotation=_rot((10.6, 6.0, 8.0), "z", -22.5)),
-            _tbox((6.4, 12.2, 6.4), (9.6, 13.6, 9.6), _faces(R_OBS_RUNE, up=R_GOLD_RUNE)),
-            _tbox((7.5, 13.6, 7.5), (8.5, 15.2, 8.5), R_GOLD_CRYSTAL, shade=False),
+            _tbox((5.0, 0.8, 6.2), (11.0, 2.2, 10.2), E_OBSIDIAN),
+            _tbox((7.25, 2.2, 7.2), (8.75, 5.4, 9.2), E_GOLD),
+            _tbox((6.0, 5.4, 6.2), (10.0, 6.5, 10.2), E_BRASS),
+            _tbox((6.8, 6.5, 6.8), (9.2, 9.5, 9.2), E_IVORY, shade=False),
+            _tbox((7.2, 9.5, 7.2), (8.8, 12.0, 8.8), E_CRYSTAL, shade=False),
+            _tbox((6.5, 12.0, 6.5), (9.5, 13.0, 9.5), E_RUNE),
+            _tbox((7.4, 13.0, 7.4), (8.6, 15.2, 8.6), E_AMBER, shade=False),
+            _tbox((4.5, 3.5, 7.0), (6.0, 10.5, 9.0), E_DARK),
+            _tbox((10.0, 3.5, 7.0), (11.5, 10.5, 9.0), E_DARK),
+            _tbox((6.0, 9.5, 7.2), (7.2, 10.5, 8.8), E_GOLD),
+            _tbox((8.8, 9.5, 7.2), (10.0, 10.5, 8.8), E_GOLD),
         ],
-        "display": _RELIC_DISPLAY,
+        "display": _individual_relic_display(0, 0.74),
     }
 
-    # 4) rift_catalyst: abyssal monolith gate framing an incandescent dimensional tear
+    # 4) rift_catalyst: asymmetrical portal key with a toothed stem and inset tear
     models["rift_catalyst"] = {
-        "textures": _atlas_textures("atlas_items_armor_relics", "mycelialmind:item/rift_catalyst"),
+        "textures": _atlas_textures("atlas_relic_rift_catalyst", "mycelialmind:item/rift_catalyst"),
         "elements": [
-            _tbox((3.8, 0.8, 4.8), (12.2, 2.4, 11.2), _faces(R_OBS_RUNE, up=R_VIOLET_VEIN)),
-            _tbox((4.0, 2.4, 6.4), (6.0, 12.4, 9.6), _faces(R_OBS_RUNE, north=R_VIOLET_VEIN, south=R_VIOLET_VEIN)),
-            _tbox((10.0, 2.4, 6.4), (12.0, 12.4, 9.6), _faces(R_OBS_RUNE, north=R_VIOLET_VEIN, south=R_VIOLET_VEIN)),
-            _tbox((6.8, 2.4, 7.2), (9.2, 12.4, 8.8), R_EMBER, shade=False),
-            _tbox((7.1, 3.6, 8.8), (8.9, 11.2, 9.5), R_VIOLET_VEIN, shade=False),
-            _tbox((3.8, 12.4, 6.0), (12.2, 14.0, 10.0), _faces(R_OBS_RUNE, up=R_EMBER)),
-            _tbox((2.6, 14.0, 7.2), (3.8, 15.8, 8.8), R_EMBER, rotation=_rot((3.8, 14.0, 8.0), "z", 22.5), shade=False),
-            _tbox((12.2, 14.0, 7.2), (13.4, 15.8, 8.8), R_EMBER, rotation=_rot((12.2, 14.0, 8.0), "z", -22.5), shade=False),
+            _tbox((7.0, 0.8, 7.0), (9.0, 2.0, 9.0), K_OBSIDIAN),
+            _tbox((7.4, 2.0, 7.2), (8.6, 5.5, 8.8), K_DARK),
+            _tbox((8.6, 3.0, 7.0), (11.0, 4.2, 9.0), K_GOLD),
+            _tbox((6.0, 5.5, 6.2), (10.0, 6.8, 9.8), K_BRASS),
+            _tbox((4.2, 6.8, 7.0), (6.2, 7.8, 9.0), K_OBSIDIAN),
+            _tbox((10.0, 6.8, 7.0), (12.0, 7.8, 9.0), K_OBSIDIAN),
+            _tbox((4.2, 7.8, 7.0), (6.2, 12.0, 9.0), K_OBSIDIAN),
+            _tbox((10.0, 7.8, 7.0), (12.0, 10.8, 9.0), K_INDIGO),
+            _tbox((10.0, 10.8, 7.0), (12.0, 12.0, 9.0), K_VIOLET),
+            _tbox((4.2, 12.0, 7.0), (12.0, 13.5, 9.0), K_RUNE),
+            _tbox((7.2, 7.8, 8.9), (8.8, 12.0, 9.5), K_GLOW, shade=False),
+            _tbox((4.8, 8.6, 6.2), (6.0, 11.0, 7.0), K_AMETHYST),
         ],
-        "display": _RELIC_DISPLAY,
+        "display": _individual_relic_display(-28, 0.74),
     }
 
     models["synaptic_graft"] = {
@@ -1266,19 +1402,21 @@ def build_3d_item_models() -> Dict[str, Dict[str, Any]]:
     }
 
     models["quorum_seal"] = {
-        "textures": _atlas_textures("atlas_items_armor_relics", "mycelialmind:item/quorum_seal"),
+        "textures": _atlas_textures("atlas_relic_quorum_seal", "mycelialmind:item/quorum_seal"),
         "elements": [
-            _tbox((4.4, 4.6, 6.8), (11.6, 11.4, 9.2), _faces(R_GOLD_RUNE, east=R_BRASS, west=R_BRASS)),
-            _tbox((5.4, 11.4, 7.0), (10.6, 12.6, 9.0), R_GOLD_RUNE),
-            _tbox((7.0, 12.6, 7.4), (9.0, 14.2, 8.6), R_GOLD_CRYSTAL, shade=False),
-            _tbox((3.4, 5.8, 7.1), (4.4, 10.2, 8.9), _faces(R_OBS_RUNE, north=R_PLAT, south=R_PLAT)),
-            _tbox((11.6, 5.8, 7.1), (12.6, 10.2, 8.9), _faces(R_OBS_RUNE, north=R_PLAT, south=R_PLAT)),
-            _tbox((6.1, 6.1, 5.9), (9.9, 9.9, 6.8), R_AMETHYST, shade=False),
-            _tbox((6.1, 6.1, 9.2), (9.9, 9.9, 10.1), R_AMETHYST, shade=False),
-            _tbox((5.6, 1.0, 7.3), (7.2, 4.6, 8.7), R_VIOLET_VEIN, rotation=_rot((5.6, 4.6, 8.0), "z", -22.5)),
-            _tbox((8.8, 1.0, 7.3), (10.4, 4.6, 8.7), R_VIOLET_VEIN, rotation=_rot((10.4, 4.6, 8.0), "z", 22.5)),
+            _tbox((5.5, 5.5, 6.5), (10.5, 10.5, 9.5), Q_JADE),
+            _tbox((6.5, 10.5, 6.5), (9.5, 13.5, 9.5), Q_EMERALD),
+            _tbox((2.5, 6.5, 6.5), (5.5, 9.5, 9.5), Q_DARK),
+            _tbox((10.5, 6.5, 6.5), (13.5, 9.5, 9.5), Q_DARK),
+            _tbox((6.5, 2.5, 6.5), (9.5, 5.5, 9.5), Q_EMERALD),
+            _tbox((5.5, 7.0, 5.5), (7.0, 9.0, 6.5), Q_BRASS),
+            _tbox((9.0, 7.0, 5.5), (10.5, 9.0, 6.5), Q_BRASS),
+            _tbox((7.0, 9.0, 5.5), (9.0, 10.5, 6.5), Q_GOLD),
+            _tbox((7.0, 5.5, 5.5), (9.0, 7.0, 6.5), Q_GOLD),
+            _tbox((7.0, 7.0, 5.5), (9.0, 9.0, 6.5), Q_GEM, shade=False),
+            _tbox((7.2, 13.5, 7.2), (8.8, 15.0, 8.8), Q_HIGHLIGHT, shade=False),
         ],
-        "display": _RELIC_DISPLAY,
+        "display": _individual_relic_display(38, 0.80),
     }
 
     models["volatile_engram"] = {
