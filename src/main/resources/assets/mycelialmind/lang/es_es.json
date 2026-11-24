@@ -2037,5 +2037,6 @@
   "message.mycelialmind.colony.dialect_pulse": "Pulso de dialecto %s: tono %s",
   "gui.mycelialmind.colony.dialect.teacher": "Maestro: %s (%s)",
   "message.mycelialmind.colony.dialect_conflict": "Conflicto de llamada: %s usa los mismos pulsos que %s.",
-  "gui.mycelialmind.colony.dialect.episode_actor": "Protagonista del episodio: %s"
+  "gui.mycelialmind.colony.dialect.episode_actor": "Protagonista del episodio: %s",
+  "message.mycelialmind.colony.dialect_site_destroyed": "Lección de dialecto cancelada: un puesto fue destruido."
 }

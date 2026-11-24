@@ -8736,6 +8736,76 @@ public final class MycelialGameTests {
         }
     }
 
+    @GameTest(template = "empty", batch = "colony_dialect_journey", timeoutTicks = 800)
+    public static void dialectLessonThreeSitesAndRestCall(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData hive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 4, 4));
+        BlockPos a = nexusPos.east(4), b = nexusPos.east(8), c = nexusPos.east(12);
+        var player = FakePlayerFactory.getMinecraft(level);
+        var oldPos = player.position();
+        var teacher = ModEntities.COLONY_SYMBIONT.get().create(level);
+        var pupil = ModEntities.COLONY_SYMBIONT.get().create(level);
+        var pupilC = ModEntities.COLONY_SYMBIONT.get().create(level);
+        try {
+            hive.resetAll(); saved.resetAll(); hive.recordMatriarchDefeat(overworld.getGameTime());
+            level.setBlockAndUpdate(nexusPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            for (BlockPos pos : List.of(a, b, c)) level.setBlockAndUpdate(pos, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            var nexus = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            nexus.setOwner(player);
+            var colony = nexus.getOrCreateColony(level);
+            colony.replaceLinkedOutposts(List.of(a, b, c));
+            for (var worker : List.of(teacher, pupil, pupilC)) {
+                worker.setNexusPos(nexusPos);
+                worker.setOwnerUuid(colony.getOwnerId());
+                worker.setPos(a.getX() + 0.5D, a.getY(), a.getZ() + 0.5D);
+                level.addFreshEntity(worker);
+                worker.syncRosterToColony();
+            }
+            var habit = com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN;
+            colony.recordDialectEpisode(level, a, habit, teacher);
+            helper.assertTrue(colony.startDialectLesson(a, b, habit, 2, pupil.getUUID(), teacher.getUUID(), true), "A and B must start coinage.");
+            var lessonGoal = new com.alex.mycelialmind.entity.ai.colony.SymbiontDialectLessonGoal(pupil);
+            lessonGoal.tick();
+            helper.assertTrue(colony.getDialectLesson().stage() == com.alex.mycelialmind.colony.ColonyDialectLesson.Stage.OBSERVING, "Pupil must reach observation.");
+            colony.recordDialectEpisode(level, a, habit, teacher);
+            helper.assertTrue(colony.getDialectLesson().stage() == com.alex.mycelialmind.colony.ColonyDialectLesson.Stage.RETURNING, "Teacher event must be observed.");
+            pupil.setPos(b.getX() + 0.5D, b.getY(), b.getZ() + 0.5D);
+            lessonGoal.tick();
+            helper.assertTrue(colony.getDialectLesson() == null && colony.getDialect(a).call(habit) == 2 && colony.getDialect(b).call(habit) == 2, "A and B must share call after return.");
+            player.setPos(a.getX() + 0.5D, a.getY(), a.getZ() + 0.5D);
+            helper.assertFalse(com.alex.mycelialmind.colony.ColonyDialectCallDirector.emit(level, colony, a, c, habit, player), "C must not understand before teaching.");
+            teacher.setPos(b.getX() + 0.5D, b.getY(), b.getZ() + 0.5D);
+            pupilC.setPos(b.getX() + 0.5D, b.getY(), b.getZ() + 0.5D);
+            colony.recordDialectEpisode(level, b, habit, teacher);
+            helper.assertTrue(colony.startDialectLesson(b, c, habit, 2, pupilC.getUUID(), teacher.getUUID(), false), "B and C must start teaching.");
+            var goalC = new com.alex.mycelialmind.entity.ai.colony.SymbiontDialectLessonGoal(pupilC);
+            goalC.tick();
+            colony.recordDialectEpisode(level, b, habit, teacher);
+            pupilC.setPos(c.getX() + 0.5D, c.getY(), c.getZ() + 0.5D);
+            goalC.tick();
+            helper.assertTrue(colony.getDialect(c).call(habit) == 2, "C must learn after returning.");
+            pupilC.setFatigue(90.0F);
+            helper.assertTrue(com.alex.mycelialmind.colony.ColonyDialectCallDirector.emit(level, colony, a, c, habit, player), "C must accept learned call.");
+            helper.assertTrue(pupilC.hasDialectRestRequest(), "Most fatigued worker must receive a rest request.");
+            helper.assertTrue(colony.startDialectLesson(a, b, habit, 2, pupil.getUUID(), teacher.getUUID(), false),
+                    "A second lesson can begin after completing the first.");
+            level.removeBlock(b, false);
+            helper.assertTrue(colony.getDialectLesson() == null, "Destroying either outpost must cancel its lesson immediately.");
+            helper.succeed();
+        } finally {
+            for (var worker : List.of(teacher, pupil, pupilC)) if (worker != null) worker.discard();
+            player.setPos(oldPos);
+            for (BlockPos pos : List.of(a, b, c, nexusPos)) level.removeBlock(pos, false);
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, overworld.registryAccess());
+        }
+    }
+
     @GameTest(template = "empty", batch = "sovereign_rival_raid", timeoutTicks = 800)
     public static void sovereignRivalRaidDefenseAwardsXpAndMoraleTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();

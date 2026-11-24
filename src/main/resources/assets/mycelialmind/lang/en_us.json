@@ -2037,5 +2037,6 @@
   "message.mycelialmind.colony.dialect_pulse": "Dialect pulse %s: tone %s",
   "gui.mycelialmind.colony.dialect.teacher": "Teacher: %s (%s)",
   "message.mycelialmind.colony.dialect_conflict": "Call conflict: %s uses the same pulses as %s.",
-  "gui.mycelialmind.colony.dialect.episode_actor": "Episode protagonist: %s"
+  "gui.mycelialmind.colony.dialect.episode_actor": "Episode protagonist: %s",
+  "message.mycelialmind.colony.dialect_site_destroyed": "Dialect lesson cancelled: an outpost was destroyed."
 }

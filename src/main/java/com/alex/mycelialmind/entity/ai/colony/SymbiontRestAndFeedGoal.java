@@ -62,7 +62,7 @@ public class SymbiontRestAndFeedGoal extends Goal {
         }
         boolean recovered = SovereignColonyEngine.isRecoveredFromRest(worker.getFatigue(), worker.getNutrition())
                 && worker.getHealth() >= worker.getMaxHealth() * 0.85F;
-        return !recovered && restTicks < 240 && worker.getColonyData(level) != null;
+        return (!recovered || restTicks == 0) && restTicks < 240 && worker.getColonyData(level) != null;
     }
 
     @Override

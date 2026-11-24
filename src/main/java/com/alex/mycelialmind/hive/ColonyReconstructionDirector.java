@@ -29,6 +29,13 @@ public final class ColonyReconstructionDirector {
     public static void recordOutpostDestroyed(ServerLevel level, BlockPos outpostPos) {
         SovereignColonySavedData saved = SovereignColonySavedData.get(level);
         for (SovereignColonyData colony : saved.getAllColonies()) {
+            var lesson = colony.getDialectLesson();
+            if (lesson != null && (lesson.source().equals(outpostPos) || lesson.target().equals(outpostPos))) {
+                colony.cancelDialectLesson();
+                saved.setDirty();
+                notifyOwner(level, colony, Component.translatable("message.mycelialmind.colony.dialect_site_destroyed")
+                        .withStyle(ChatFormatting.YELLOW));
+            }
             if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(level, colony.getNexusPos())
                     || !colony.isKnownOutpost(outpostPos) || colony.getReconstruction(outpostPos) != null) {
                 continue;

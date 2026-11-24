@@ -4083,3 +4083,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, variantes y protagonista
 - Cada significado puede conservar varias secuencias; la enseñanza acepta una secuencia alternativa libre y las llamadas eligen una secuencia compartida entre origen y destino. Se migra el formato anterior de una llamada al cargar. El cliente recibe y muestra el protagonista del último episodio por significado; protocolo 27.
 - JUnit incluye variantes, conflicto y migración. GameTests aislados 179/179 y JUnit pasaron. Pendiente verificación integral con tres puestos y cliente real, revisión de interrupciones y efectos, y correcciones que surjan.
+
+## 2026-11-23 — Dialectos, prueba de tres puestos
+- GameTest añade A/B/C con acuñación, una demostración con maestro y aprendiz, regreso, enseñanza a C, llamada de descanso y cancelación al destruir el puesto. El test posiciona manualmente a los participantes, por lo que no acredita navegación autónoma. La destrucción cancela de inmediato e informa al dueño; una llamada de descanso garantiza al menos un tick de descanso.
+- `test runGameTestServer -PisolatedGameTests=true --offline --no-daemon` pasó, 180/180 GameTests. Pendiente prueba autónoma de navegación y trabajo real, descarga/recarga, escolta y turnos en vivo, y revisión de interfaz/audio en cliente.
