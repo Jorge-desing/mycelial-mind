@@ -101,6 +101,22 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Castas y Sondeos Rivales:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` y `SENTINEL` operan `ColonyOrderBoard` por prioridad/reserva con descanso y humor (`SymbiontTemperament`). Repeler sondeos de la Colmena rival otorga XP de Dominio y moral.",
                     "• **Castes & Rival Probes:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` & `SENTINEL` claim `ColonyOrderBoard` tasks via priority/TTL locks while managing rest & `SymbiontTemperament`. Repelling rival Hive probes awards Domain XP & morale.",
                 ),
+                (
+                    "• **Memoria Territorial:** cada Nexo o puesto aprende de incidentes locales. Dos incidentes parecidos abren un ensayo; dos resultados favorables consolidan la conducta.",
+                    "• **Territorial Memory:** each Nexus or outpost learns from local incidents. Two similar incidents open a trial; two successful outcomes establish the behavior.",
+                ),
+                (
+                    "• **Hábitos:** los puestos pueden aprender escoltas para mensajeros, descanso antes del regreso o recolección por turnos. El primer recuerdo se aprende solo; puedes adoptar un segundo ensayo en `Memoria`.",
+                    "• **Habits:** sites can learn courier escorts, rest before returning, or taking turns collecting. The first memory is learned automatically; adopt a second tested behavior in `Memory`.",
+                ),
+                (
+                    "• **Enseñanza:** en `Memoria`, elige el puesto de origen y el destino. Un mensajero lleva el recuerdo aprendido; el destino lo prueba con sus propios trabajos.",
+                    "• **Teaching:** in `Memory`, select a source site and destination. A courier carries the learned memory; the destination tests it through its own work.",
+                ),
+                (
+                    "• **Bioescáner:** úsalo sobre un `symbiotic_node` para leer incidentes y ensayos. Olvidar borra el historial local del puesto.",
+                    "• **Bio Scanner:** use it on a `symbiotic_node` to read incidents and trials. Forgetting clears that site's local history.",
+                ),
             ],
         ),
     )
@@ -1787,9 +1803,9 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "Admin Commands, Payloads & Verify",
                     [
                         (
-                            "• **Red (`ModNetworking` v22):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, "
+                            "• **Red (`ModNetworking` v23):** `HiveSyncPayload` (`<=64` nodos, `<=32` pilones, "
                             "`<=64` chunks inflamados), `SymbiosisSyncPayload`, `DiplomacySyncPayload` y `DiscoverySyncPayload`.",
-                            "• **Networking (`ModNetworking` v22):** `HiveSyncPayload` (`<=64` nodes, `<=32` "
+                            "• **Networking (`ModNetworking` v23):** `HiveSyncPayload` (`<=64` nodes, `<=32` "
                             "pylons, `<=64` inflamed chunks), `SymbiosisSyncPayload`, `DiplomacySyncPayload` & `DiscoverySyncPayload`.",
                         ),
                         (
@@ -1844,8 +1860,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         number=12,
         title=lt("Técnica, Config y Comandos", "Tech, Configs & Commands"),
         subtitle=lt(
-            "186 Sonidos, LabPBR, 49 Configs, Red v22, /mycelial y 23 Verify",
-            "186 Sounds, LabPBR, 49 Configs, Net v22, /mycelial & 23 Verify",
+            "186 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify",
+            "186 Sounds, LabPBR, 49 Configs, Net v23, /mycelial & 23 Verify",
         ),
         icon_item="mycelialmind:bio_scanner",
         entries=ch12_entries,

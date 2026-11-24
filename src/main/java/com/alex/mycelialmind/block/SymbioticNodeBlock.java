@@ -6,6 +6,7 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.MycorrhizalAcousticTracker;
+import com.alex.mycelialmind.hive.ColonyReconstructionDirector;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -47,6 +48,14 @@ public class SymbioticNodeBlock extends MycelialNodeBlock {
     @Override
     protected SynapticNodeType nodeType() {
         return SynapticNodeType.SYMBIOTIC;
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
+            ColonyReconstructionDirector.recordOutpostDestroyed(serverLevel, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
