@@ -84,6 +84,7 @@ public class MycelialMind {
         NeoForge.EVENT_BUS.register(PostMatriarchExpeditionDirector.class);
         NeoForge.EVENT_BUS.register(DimensionalHomeostasisDirector.class);
         NeoForge.EVENT_BUS.register(SovereignColonyDirector.class);
+        NeoForge.EVENT_BUS.register(com.alex.mycelialmind.colony.ColonyDialectCallDirector.class);
         NeoForge.EVENT_BUS.register(MycelialCommands.class);
         NeoForge.EVENT_BUS.addListener(com.alex.mycelialmind.data.CodexReloadListener::onAddReloadListeners);
         LOGGER.info("Mycelial Mind initialized.");

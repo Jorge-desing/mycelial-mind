@@ -2033,5 +2033,6 @@
   "message.mycelialmind.colony.dialect_unknown": "El destino no entiende esta llamada.",
   "message.mycelialmind.colony.dialect_cooldown": "El puesto debe esperar antes de llamar de nuevo.",
   "message.mycelialmind.colony.dialect_accepted": "Llamada comprendida: %s",
-  "message.mycelialmind.colony.dialect_no_worker": "No hay trabajador o turno disponible para %s."
+  "message.mycelialmind.colony.dialect_no_worker": "No hay trabajador o turno disponible para %s.",
+  "message.mycelialmind.colony.dialect_pulse": "Pulso de dialecto %s: tono %s"
 }

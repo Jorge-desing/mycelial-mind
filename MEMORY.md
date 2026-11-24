@@ -4071,3 +4071,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, llamadas y respuestas iniciales
 - El bastón ofrece llamadas de escolta, descanso y recogida entre puestos enlazados que comparten secuencia. Se conectaron a solicitudes de escolta, descanso del trabajador más fatigado y concesión del turno al mensajero que más espera; enfriamiento persistente de 200 ticks y feedback traducido.
 - JUnit pasó incluyendo pruebas de enfriamiento y cola; GameTests aislados 179/179 pasaron antes de añadir las pruebas JUnit. Pendiente: maestro seleccionable, demostración y señales audiovisuales completas con pulsos secuenciales y subtítulos, resolución de conflictos en interfaz, pruebas integrales y revisión visual.
+
+## 2026-11-23 — Pulsos de dialecto secuenciales
+- Cada llamada emite dos pulsos separados por ocho ticks, con tres partículas y tonos diferenciados y texto localizado para jugadores cercanos. Se usa el sonido existente del bastón y el segundo pulso pendiente se elimina al descargar la dimensión.
+- JUnit y GameTests aislados 179/179 pasaron. Falta verificar audiovisual en cliente y completar selección de maestro, resolución de conflictos, enseñanza funcional y pruebas integrales.

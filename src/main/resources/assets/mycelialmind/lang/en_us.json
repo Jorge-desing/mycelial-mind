@@ -2033,5 +2033,6 @@
   "message.mycelialmind.colony.dialect_unknown": "The destination does not understand this call.",
   "message.mycelialmind.colony.dialect_cooldown": "This outpost must wait before calling again.",
   "message.mycelialmind.colony.dialect_accepted": "Call understood: %s",
-  "message.mycelialmind.colony.dialect_no_worker": "No suitable worker or waiting turn for %s."
+  "message.mycelialmind.colony.dialect_no_worker": "No suitable worker or waiting turn for %s.",
+  "message.mycelialmind.colony.dialect_pulse": "Dialect pulse %s: tone %s"
 }
