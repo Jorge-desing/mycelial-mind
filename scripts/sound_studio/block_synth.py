@@ -39,6 +39,9 @@ BLOCK_FUNCTIONAL_IDS: frozenset[str] = frozenset(
         "matriarch_altar_awaken",
         "synaptic_bench_synthesize",
         "sovereign_nexus_pulse",
+        "colony_dialect_tone_1",
+        "colony_dialect_tone_2",
+        "colony_dialect_tone_3",
     }
 )
 
@@ -755,5 +758,22 @@ def synthesize_block_functional(
         shimmer = _swept_resonant_filter(pink[shift:], 360.0 if rng.random() > 0.5 else 2400.0, 2400.0 if rng.random() > 0.5 else 360.0, q=2.8) * exp_decay(rt, duration * 0.36) * 0.42
         wave[shift:] = bell + sub + shimmer
         return _cavern_reverb(np.tanh(wave * 1.15), rng, wet=0.22, rt60=0.52, lp_hz=5600.0)
+
+    if sound_id in {"colony_dialect_tone_1", "colony_dialect_tone_2", "colony_dialect_tone_3"}:
+        # Three distinct organic bio-synaptic syllable pulses (~330 / 495 / 660 Hz)
+        onset_s = int(rng.uniform(0.012, 0.045) * n)
+        pt = t[onset_s:] - t[onset_s]
+        tone_idx = int(sound_id.rsplit("_", 1)[1])
+        root = base_freq * rng.uniform(0.96, 1.04)
+        wave = np.zeros(n, dtype=np.float64)
+        ratios = (0.5, 1.0, 1.5 if tone_idx < 3 else 1.498, 2.0, 3.0)
+        decays = (0.20, 0.17, 0.12, 0.08, 0.05)
+        amps = (0.35, 0.90, 0.55, 0.36, 0.18)
+        bell = _modal_bank(pt, root, ratios, decays, amps, rng, mode_jitter=0.045)
+        env = (1.0 - np.exp(-pt / 0.006)) * exp_decay(pt, duration * 0.42)
+        chirp = np.sin(2.0 * np.pi * (root * np.linspace(0.94, 1.03, len(pt))) * pt + rng.uniform(0, 6.28)) * env * 0.42
+        air = _sos_bandpass(pink[onset_s:], root * 1.4, min(6800.0, root * 4.5)) * exp_decay(pt, 0.055) * 0.22
+        wave[onset_s:] = bell + chirp + air
+        return _cavern_reverb(np.tanh(wave * 1.10), rng, wet=0.18, rt60=0.38, lp_hz=6200.0)
 
     raise ValueError(f"Unknown functional block sound_id: {sound_id}")

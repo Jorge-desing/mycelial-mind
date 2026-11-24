@@ -498,7 +498,15 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_hi_hz=7600.0,
         mix_weight=0.22,
         attack_guard_ms=24.0,
-        sound_ids=("synaptic_node_mature", "symbiotic_node_charge", "symbiotic_node_teleport", "sovereign_nexus_pulse"),
+        sound_ids=(
+            "synaptic_node_mature",
+            "symbiotic_node_charge",
+            "symbiotic_node_teleport",
+            "sovereign_nexus_pulse",
+            "colony_dialect_tone_1",
+            "colony_dialect_tone_2",
+            "colony_dialect_tone_3",
+        ),
     ),
     StemArchetype(
         stem_id="func_mycelial_rift_portal",
@@ -743,6 +751,18 @@ def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False)
         if force_regen or not (out_dir / f"{arch.stem_id}.wav").is_file() or (out_dir / f"{arch.stem_id}.wav").stat().st_size < 1024
     ]
     if not missing and manifest_path.is_file():
+        manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        changed = manifest_data.get("mapped_sound_events") != len(SOUND_TO_ARCHETYPE)
+        stems_meta = manifest_data.get("stems", {})
+        for arch in AI_STEM_ARCHETYPES:
+            entry = stems_meta.get(arch.stem_id)
+            desired_ids = list(arch.sound_ids)
+            if isinstance(entry, dict) and entry.get("sound_ids") != desired_ids:
+                entry["sound_ids"] = desired_ids
+                changed = True
+        if changed:
+            manifest_data["mapped_sound_events"] = len(SOUND_TO_ARCHETYPE)
+            manifest_path.write_text(json.dumps(manifest_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         return {arch.stem_id: out_dir / f"{arch.stem_id}.wav" for arch in AI_STEM_ARCHETYPES}
 
     import torch

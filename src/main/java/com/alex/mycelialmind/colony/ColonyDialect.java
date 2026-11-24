@@ -57,6 +57,26 @@ public final class ColonyDialect {
         return true;
     }
 
+    public boolean clearCall(int call) {
+        if (call < 0 || call >= 9) return false;
+        int bit = 1 << call;
+        boolean changed = false;
+        var iterator = calls.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            int nextMask = entry.getValue() & ~bit;
+            if (nextMask != entry.getValue()) {
+                changed = true;
+                if (nextMask == 0) {
+                    iterator.remove();
+                } else {
+                    entry.setValue(nextMask);
+                }
+            }
+        }
+        return changed;
+    }
+
     public boolean tryEmit(long gameTime) {
         if (lastCallTick != Long.MIN_VALUE && gameTime >= lastCallTick && gameTime - lastCallTick < 200L) return false;
         lastCallTick = gameTime;

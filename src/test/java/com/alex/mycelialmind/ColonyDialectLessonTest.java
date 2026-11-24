@@ -91,4 +91,47 @@ class ColonyDialectLessonTest {
         old.put("Entries", list);
         assertEquals(3, ColonyDialect.load(old).call(ColonySiteHabit.ESCORTED_COURIER));
     }
+
+    @Test
+    void clearCallUnblocksConflictingLessonAndDropsEmptyMask() {
+        ColonyDialect dialect = new ColonyDialect();
+        assertTrue(dialect.teach(ColonySiteHabit.ESCORTED_COURIER, 2));
+        assertFalse(dialect.teach(ColonySiteHabit.REST_BEFORE_RETURN, 2));
+        assertTrue(dialect.clearCall(2));
+        assertFalse(dialect.clearCall(2));
+        assertEquals(-1, dialect.call(ColonySiteHabit.ESCORTED_COURIER));
+        assertTrue(dialect.teach(ColonySiteHabit.REST_BEFORE_RETURN, 2));
+        assertEquals(2, dialect.call(ColonySiteHabit.REST_BEFORE_RETURN));
+    }
+
+    @Test
+    void selectableAlternativeTeacherAllowedAndConflictClearableOnColony() {
+        var nexus = new BlockPos(0, 64, 0);
+        var source = new BlockPos(10, 64, 0);
+        var target = new BlockPos(20, 64, 0);
+        var colony = new com.alex.mycelialmind.colony.SovereignColonyData(
+                UUID.randomUUID(), UUID.randomUUID(), "Tester", nexus);
+        colony.replaceLinkedOutposts(java.util.List.of(source, target));
+
+        UUID protagonistId = UUID.randomUUID();
+        UUID altTeacherId = UUID.randomUUID();
+        UUID apprenticeId = UUID.randomUUID();
+        for (UUID id : java.util.List.of(protagonistId, altTeacherId, apprenticeId)) {
+            colony.upsertWorker(new com.alex.mycelialmind.colony.SovereignColonyData.WorkerRosterEntry(
+                    id,
+                    com.alex.mycelialmind.colony.SymbiontCaste.COURIER,
+                    com.alex.mycelialmind.colony.SymbiontRank.NOVICE,
+                    com.alex.mycelialmind.colony.SymbiontTemperament.DILIGENT,
+                    100.0D, 0.0D, 80.0D, false, 0));
+        }
+
+        colony.getDialect(source).recordEpisode(ColonySiteHabit.ESCORTED_COURIER, protagonistId, 100L);
+        assertTrue(colony.getDialect(target).teach(ColonySiteHabit.REST_BEFORE_RETURN, 4));
+        assertFalse(colony.startDialectLesson(source, target, ColonySiteHabit.ESCORTED_COURIER, 4, apprenticeId, altTeacherId, true));
+        assertTrue(colony.clearDialectCall(target, 4));
+        assertEquals(-1, colony.getDialect(target).call(ColonySiteHabit.REST_BEFORE_RETURN));
+        assertTrue(colony.startDialectLesson(source, target, ColonySiteHabit.ESCORTED_COURIER, 4, apprenticeId, altTeacherId, true));
+        assertEquals(altTeacherId, colony.getDialectLesson().teacher());
+        assertFalse(colony.clearDialectCall(target, 4));
+    }
 }

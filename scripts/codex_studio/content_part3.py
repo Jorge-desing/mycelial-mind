@@ -114,8 +114,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Teaching:** in `Memory`, select a source site and destination. A courier carries the learned memory; the destination tests it through its own work.",
                 ),
                 (
-                    "• **Bioescáner:** úsalo sobre un `symbiotic_node` para leer incidentes y ensayos. Olvidar borra el historial local del puesto.",
-                    "• **Bio Scanner:** use it on a `symbiotic_node` to read incidents and trials. Forgetting clears that site's local history.",
+                    "• **Bioescáner:** úsalo en `symbiotic_node` (dialecto/ensayos) o un simbionte (rol). Olvidar borra el historial.",
+                    "• **Bio Scanner:** use on `symbiotic_node` (dialect/trials) or symbiont (lesson role). Forgetting clears site history.",
+                ),
+                (
+                    "• **Dialecto (`ColonyDialect`):** en `Dialecto` elige maestro, aprendiz, pulsos (`1–3·1–3`), resuelve conflictos y emite vía `sovereign_command_staff`.",
+                    "• **Colony Dialect (`ColonyDialect`):** in `Dialect` pick teacher, apprentice & pulses (`1–3·1–3`), clear conflicts & call via `sovereign_command_staff`.",
                 ),
             ],
         ),
@@ -1657,13 +1661,14 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         "tide_beacon_activate", "rift_catalyst_ignite", "overmind_crown_surge",
         "sovereign_nexus_pulse", "colony_symbiont_ambient", "colony_symbiont_work",
         "colony_symbiont_promote", "command_staff_mark",
+        "colony_dialect_tone_1", "colony_dialect_tone_2", "colony_dialect_tone_3",
     ]
     sound_blocks = [
         (
             "• **Estudio Visual y Audio:** 18 `Model` multi-articulados (UV manifests), texturas LabPBR "
-            "`_n`/`_s`, `ClientSoundscapeDirector` y **186 eventos `ModSounds`** (**501** `.ogg` mono `44.1kHz`).",
+            "`_n`/`_s`, `ClientSoundscapeDirector` y **189 eventos `ModSounds`** (**507** `.ogg` mono `44.1kHz`).",
             "• **Visual & Audio Studio:** 18 articulated 3D models (UV manifests), LabPBR `_n`/`_s` "
-            "maps, `ClientSoundscapeDirector`, and **186 `ModSounds`** (**501** mono `44.1kHz` `.ogg`).",
+            "maps, `ClientSoundscapeDirector`, and **189 `ModSounds`** (**507** mono `44.1kHz` `.ogg`).",
         ),
         (
             "• **Dinámica Vocal:** tono modulable (`0.45–1.85`) según Rango (`BASE/MUTATED/ELITE`), Cepa "
@@ -1861,8 +1866,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         number=12,
         title=lt("Técnica, Config y Comandos", "Tech, Configs & Commands"),
         subtitle=lt(
-            "186 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify",
-            "186 Sounds, LabPBR, 49 Configs, Net v23, /mycelial & 23 Verify",
+            "189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify",
+            "189 Sounds, LabPBR, 49 Configs, Net v23, /mycelial & 23 Verify",
         ),
         icon_item="mycelialmind:bio_scanner",
         entries=ch12_entries,

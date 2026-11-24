@@ -47,6 +47,7 @@ public class SovereignNexusScreen extends Screen {
     private int dialectCall;
     private int dialectWorker;
     private int dialectTeacher;
+    private boolean dialectTeacherCustom;
 
     private Button casteSelectButton;
     private Button incubateButton;
@@ -256,6 +257,53 @@ public class SovereignNexusScreen extends Screen {
         dialect.active = !dialectPage;
     }
 
+    private static ColonySiteHabit dialectConflictHabit(ClientColonyCache.SiteMemorySnapshot site,
+                                                      ColonySiteHabit exclude, int call) {
+        if (site == null || call < 0 || call >= 9) return null;
+        int bit = 1 << call;
+        if (exclude != ColonySiteHabit.ESCORTED_COURIER && (site.escortCall() & bit) != 0) {
+            return ColonySiteHabit.ESCORTED_COURIER;
+        }
+        if (exclude != ColonySiteHabit.REST_BEFORE_RETURN && (site.restCall() & bit) != 0) {
+            return ColonySiteHabit.REST_BEFORE_RETURN;
+        }
+        if (exclude != ColonySiteHabit.STAGGERED_PICKUP && (site.pickupCall() & bit) != 0) {
+            return ColonySiteHabit.STAGGERED_PICKUP;
+        }
+        return null;
+    }
+
+    private static String formatDialectMask(int mask) {
+        StringBuilder sb = new StringBuilder();
+        for (int c = 0; c < 9; c++) {
+            if ((mask & (1 << c)) != 0) {
+                if (!sb.isEmpty()) sb.append(',');
+                sb.append((c / 3) + 1).append('·').append((c % 3) + 1);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static Component formatSiteDialectCalls(ClientColonyCache.SiteMemorySnapshot site) {
+        if (site == null) return Component.literal("—");
+        StringBuilder sb = new StringBuilder();
+        if (site.escortCall() != 0) {
+            sb.append(Component.translatable("gui.mycelialmind.colony.dialect.short_escort").getString())
+                    .append(' ').append(formatDialectMask(site.escortCall()));
+        }
+        if (site.restCall() != 0) {
+            if (!sb.isEmpty()) sb.append(" · ");
+            sb.append(Component.translatable("gui.mycelialmind.colony.dialect.short_rest").getString())
+                    .append(' ').append(formatDialectMask(site.restCall()));
+        }
+        if (site.pickupCall() != 0) {
+            if (!sb.isEmpty()) sb.append(" · ");
+            sb.append(Component.translatable("gui.mycelialmind.colony.dialect.short_pickup").getString())
+                    .append(' ').append(formatDialectMask(site.pickupCall()));
+        }
+        return Component.literal(sb.isEmpty() ? "—" : sb.toString());
+    }
+
     private void rebuildDialectWidgets(int left, int top, BlockPos nexus) {
         var sites = ClientColonyCache.getSiteMemories().stream()
                 .filter(site -> !site.sitePos().equals(nexus)).toList();
@@ -265,22 +313,42 @@ public class SovereignNexusScreen extends Screen {
             dialectTarget = Math.floorMod(dialectTarget, sites.size());
             var source = sites.get(dialectSource);
             var target = sites.get(dialectTarget);
+            ColonySiteHabit habit = ColonySiteHabit.fromIndex(dialectMeaning);
+            UUID episodeActor = switch (habit) {
+                case ESCORTED_COURIER -> source.escortActor();
+                case REST_BEFORE_RETURN -> source.restActor();
+                case STAGGERED_PICKUP -> source.pickupActor();
+                default -> null;
+            };
             addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.source", formatPos(source.sitePos())), b -> {
-                dialectSource = (dialectSource + 1) % sites.size(); rebuildColonyWidgets();
+                dialectSource = (dialectSource + 1) % sites.size();
+                dialectTeacherCustom = false;
+                rebuildColonyWidgets();
             }).bounds(left + 10, top + 45, 348, 20).build());
             addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.target", formatPos(target.sitePos())), b -> {
                 dialectTarget = (dialectTarget + 1) % sites.size(); rebuildColonyWidgets();
             }).bounds(left + 10, top + 68, 348, 20).build());
-            ColonySiteHabit habit = ColonySiteHabit.fromIndex(dialectMeaning);
             addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.meaning", Component.translatable(habit.translationKey())), b -> {
-                dialectMeaning = dialectMeaning % 3 + 1; rebuildColonyWidgets();
+                dialectMeaning = dialectMeaning % 3 + 1;
+                dialectTeacherCustom = false;
+                rebuildColonyWidgets();
             }).bounds(left + 10, top + 91, 348, 20).build());
             addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.call", dialectCall / 3 + 1, dialectCall % 3 + 1), b -> {
                 dialectCall = (dialectCall + 1) % 9; rebuildColonyWidgets();
             }).bounds(left + 10, top + 114, 348, 20).build());
+            boolean hasAnyLesson = sites.stream().anyMatch(s -> s.lessonStage() >= 0);
+            int call = dialectCall;
             if (!workers.isEmpty()) {
                 dialectWorker = Math.floorMod(dialectWorker, workers.size());
                 var worker = workers.get(dialectWorker);
+                if (!dialectTeacherCustom && episodeActor != null) {
+                    for (int i = 0; i < workers.size(); i++) {
+                        if (workers.get(i).workerId().equals(episodeActor)) {
+                            dialectTeacher = i;
+                            break;
+                        }
+                    }
+                }
                 addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.apprentice", worker.workerId().toString().substring(0, 8), Component.translatable(worker.caste().nameKey())), b -> {
                     dialectWorker = (dialectWorker + 1) % workers.size(); rebuildColonyWidgets();
                 }).bounds(left + 10, top + 137, 348, 20).build());
@@ -288,7 +356,9 @@ public class SovereignNexusScreen extends Screen {
                 var teacher = workers.get(dialectTeacher);
                 addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.teacher",
                         teacher.workerId().toString().substring(0, 8), Component.translatable(teacher.caste().nameKey())), b -> {
-                    dialectTeacher = (dialectTeacher + 1) % workers.size(); rebuildColonyWidgets();
+                    dialectTeacher = (dialectTeacher + 1) % workers.size();
+                    dialectTeacherCustom = true;
+                    rebuildColonyWidgets();
                 }).bounds(left + 10, top + 160, 348, 20).build());
                 int knownCall = switch (habit) {
                     case ESCORTED_COURIER -> source.escortCall();
@@ -297,17 +367,41 @@ public class SovereignNexusScreen extends Screen {
                     default -> -1;
                 };
                 boolean coinage = knownCall == 0;
-                int call = dialectCall;
+                boolean hasEpisode = (source.episodeMask() & (1 << habit.ordinal())) != 0;
+                ColonySiteHabit sourceConflict = dialectConflictHabit(source, habit, call);
+                ColonySiteHabit targetConflict = dialectConflictHabit(target, habit, call);
+                BlockPos conflictSite = sourceConflict != null ? source.sitePos()
+                        : targetConflict != null ? target.sitePos() : null;
                 Button start = addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.start"), b -> {
                     SovereignColonyActionPayload.sendDialectLesson(nexus, source.sitePos(), target.sitePos(), worker.workerId(), teacher.workerId(), habit.ordinal(), call, coinage);
+                    playClick(1.2F);
                 }).bounds(left + 10, top + 183, 170, 20).build());
-                start.active = nexus != null && !source.sitePos().equals(target.sitePos())
+                start.active = nexus != null && !hasAnyLesson
+                        && !source.sitePos().equals(target.sitePos())
+                        && workers.size() >= 2
                         && !teacher.workerId().equals(worker.workerId())
-                        && (source.episodeMask() & (1 << habit.ordinal())) != 0 && source.lessonStage() < 0;
+                        && hasEpisode
+                        && sourceConflict == null
+                        && targetConflict == null;
+
+                if (conflictSite != null) {
+                    ColonySiteHabit conflictingHabit = sourceConflict != null ? sourceConflict : targetConflict;
+                    BlockPos resolvedSite = conflictSite.immutable();
+                    Button clearConflict = addRenderableWidget(Button.builder(
+                            Component.translatable("gui.mycelialmind.colony.dialect.clear_conflict",
+                                    Component.translatable(conflictingHabit.translationKey()),
+                                    (call / 3) + 1, (call % 3) + 1),
+                            b -> {
+                                SovereignColonyActionPayload.sendClearDialectCall(nexus, resolvedSite, call);
+                                playClick(1.1F);
+                            }).bounds(left + 10, top + 278, 348, 20).build());
+                    clearConflict.active = nexus != null && !hasAnyLesson;
+                }
             }
             addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.cancel"), b -> {
                 SovereignColonyActionPayload.sendToServer(SovereignColonyActionPayload.ACTION_CANCEL_DIALECT_LESSON, nexus, 0, null);
-            }).bounds(left + 188, top + 183, 170, 20).build()).active = nexus != null;
+                playClick(0.9F);
+            }).bounds(left + 188, top + 183, 170, 20).build()).active = nexus != null && hasAnyLesson;
         }
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> onClose())
                 .bounds(left + PANEL_W - 84, top + PANEL_H - 25, 74, 18).build());
@@ -609,25 +703,83 @@ public class SovereignNexusScreen extends Screen {
             graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.title"), left + 10, top + 25, 0xFFD8B4FE, true);
             var sites = ClientColonyCache.getSiteMemories().stream()
                     .filter(site -> !site.sitePos().equals(ClientColonyCache.getNexusPos())).toList();
-            if (sites.size() >= 2) {
-                var site = sites.get(Math.floorMod(dialectSource, sites.size()));
-                int stage = site.lessonStage();
-                UUID actor = switch (ColonySiteHabit.fromIndex(dialectMeaning)) {
-                    case ESCORTED_COURIER -> site.escortActor();
-                    case REST_BEFORE_RETURN -> site.restActor();
-                    case STAGGERED_PICKUP -> site.pickupActor();
+            if (sites.size() < 2) {
+                graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.need_sites"),
+                        left + 10, top + 48, 0xFFFDE68A, false);
+            } else {
+                var source = sites.get(Math.floorMod(dialectSource, sites.size()));
+                var target = sites.get(Math.floorMod(dialectTarget, sites.size()));
+                var workersList = ClientColonyCache.getWorkers();
+                ColonySiteHabit habit = ColonySiteHabit.fromIndex(dialectMeaning);
+                int stage = sites.stream().mapToInt(ClientColonyCache.SiteMemorySnapshot::lessonStage)
+                        .filter(s -> s >= 0).findFirst().orElse(-1);
+                UUID actor = switch (habit) {
+                    case ESCORTED_COURIER -> source.escortActor();
+                    case REST_BEFORE_RETURN -> source.restActor();
+                    case STAGGERED_PICKUP -> source.pickupActor();
                     default -> null;
                 };
-                graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.episode_actor",
-                                actor == null ? "—" : actor.toString().substring(0, 8)),
-                        left + 10, top + 226, 0xFFD8F3DC, false);
                 String key = stage < 0 ? "idle" : switch (stage) {
                     case 0 -> "travelling";
                     case 1 -> "observing";
                     default -> "returning";
                 };
                 graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect." + key),
-                        left + 10, top + 212, 0xFFD8F3DC, false);
+                        left + 10, top + 210, 0xFFD8F3DC, false);
+                graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.episode_actor",
+                                actor == null ? "—" : actor.toString().substring(0, 8)),
+                        left + 10, top + 223, 0xFFD8F3DC, false);
+                graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.source_calls",
+                                formatSiteDialectCalls(source)),
+                        left + 10, top + 236, 0xFFA5F3FC, false);
+                graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.target_calls",
+                                formatSiteDialectCalls(target)),
+                        left + 10, top + 249, 0xFFA5F3FC, false);
+
+                ColonySiteHabit sourceConflict = dialectConflictHabit(source, habit, dialectCall);
+                ColonySiteHabit targetConflict = dialectConflictHabit(target, habit, dialectCall);
+                Component statusMsg;
+                int statusColor = 0xFFFDE68A;
+                if (stage >= 0) {
+                    statusMsg = Component.translatable("gui.mycelialmind.colony.dialect.status_lesson_active");
+                } else if (source.sitePos().equals(target.sitePos())) {
+                    statusMsg = Component.translatable("gui.mycelialmind.colony.dialect.status_same_site");
+                } else if (workersList.size() < 2) {
+                    statusMsg = Component.translatable("gui.mycelialmind.colony.dialect.status_need_workers");
+                } else {
+                    var apprenticeSnap = workersList.get(Math.floorMod(dialectWorker, workersList.size()));
+                    var teacherSnap = workersList.get(Math.floorMod(dialectTeacher, workersList.size()));
+                    if (apprenticeSnap.workerId().equals(teacherSnap.workerId())) {
+                        statusMsg = Component.translatable("gui.mycelialmind.colony.dialect.status_same_worker");
+                    } else if ((source.episodeMask() & (1 << habit.ordinal())) == 0) {
+                        statusMsg = Component.translatable("gui.mycelialmind.colony.dialect.status_no_episode",
+                                Component.translatable(habit.translationKey()));
+                    } else if (sourceConflict != null) {
+                        statusColor = 0xFFFCA5A5;
+                        statusMsg = Component.translatable("gui.mycelialmind.colony.dialect.status_conflict",
+                                formatPos(source.sitePos()), Component.translatable(sourceConflict.translationKey()),
+                                (dialectCall / 3) + 1, (dialectCall % 3) + 1);
+                    } else if (targetConflict != null) {
+                        statusColor = 0xFFFCA5A5;
+                        statusMsg = Component.translatable("gui.mycelialmind.colony.dialect.status_conflict",
+                                formatPos(target.sitePos()), Component.translatable(targetConflict.translationKey()),
+                                (dialectCall / 3) + 1, (dialectCall % 3) + 1);
+                    } else {
+                        int knownMask = switch (habit) {
+                            case ESCORTED_COURIER -> source.escortCall();
+                            case REST_BEFORE_RETURN -> source.restCall();
+                            case STAGGERED_PICKUP -> source.pickupCall();
+                            default -> 0;
+                        };
+                        statusColor = 0xFF9BF6B0;
+                        statusMsg = Component.translatable(knownMask == 0
+                                        ? "gui.mycelialmind.colony.dialect.status_ready_coinage"
+                                        : "gui.mycelialmind.colony.dialect.status_ready_relay",
+                                Component.translatable(habit.translationKey()),
+                                (dialectCall / 3) + 1, (dialectCall % 3) + 1);
+                    }
+                }
+                graphics.drawString(this.font, statusMsg, left + 10, top + 263, statusColor, false);
             }
             super.render(graphics, mouseX, mouseY, partialTick);
             graphics.pose().popPose();

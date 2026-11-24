@@ -2866,6 +2866,57 @@
       }
     ]
   },
+  "colony_dialect_tone_1": {
+    "subtitle": "subtitles.mycelialmind.colony_dialect_tone_1",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_dialect_tone_1_1",
+        "volume": 0.832,
+        "pitch": 0.978,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "mycelialmind:colony_dialect_tone_1_2",
+        "volume": 0.846,
+        "pitch": 1.024,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "colony_dialect_tone_2": {
+    "subtitle": "subtitles.mycelialmind.colony_dialect_tone_2",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_dialect_tone_2_1",
+        "volume": 0.822,
+        "pitch": 0.98,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "mycelialmind:colony_dialect_tone_2_2",
+        "volume": 0.827,
+        "pitch": 0.984,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "colony_dialect_tone_3": {
+    "subtitle": "subtitles.mycelialmind.colony_dialect_tone_3",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_dialect_tone_3_1",
+        "volume": 0.857,
+        "pitch": 0.963,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "mycelialmind:colony_dialect_tone_3_2",
+        "volume": 0.851,
+        "pitch": 1.036,
+        "attenuation_distance": 20
+      }
+    ]
+  },
   "bio_scanner_ping": {
     "subtitle": "subtitles.mycelialmind.bio_scanner_ping",
     "sounds": [

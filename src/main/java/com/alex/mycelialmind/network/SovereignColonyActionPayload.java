@@ -2,6 +2,7 @@ package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
+import com.alex.mycelialmind.colony.ColonyDialectCallDirector;
 import com.alex.mycelialmind.colony.ColonySiteMemory;
 import com.alex.mycelialmind.colony.ColonyReconstruction;
 import com.alex.mycelialmind.colony.ColonyReconstructionStatus;
@@ -56,6 +57,7 @@ public record SovereignColonyActionPayload(
     public static final int ACTION_ABANDON_RECONSTRUCTION = 13;
     public static final int ACTION_START_DIALECT_LESSON = 14;
     public static final int ACTION_CANCEL_DIALECT_LESSON = 15;
+    public static final int ACTION_CLEAR_DIALECT_CALL = 16;
 
     private static final UUID ZERO_UUID = new UUID(0L, 0L);
 
@@ -258,8 +260,25 @@ public record SovereignColonyActionPayload(
                 }
                 case ACTION_CANCEL_DIALECT_LESSON -> {
                     if (player.getUUID().equals(colony.getOwnerId()) && colony.getDialectLesson() != null) {
+                        var cancelled = colony.getDialectLesson();
                         colony.cancelDialectLesson();
                         SovereignColonySavedData.get(level).setDirty();
+                        ColonyDialectCallDirector.notifyNearbyPlayers(
+                                level,
+                                cancelled.source(),
+                                Component.translatable("message.mycelialmind.colony.dialect_cancelled",
+                                        Component.translatable(cancelled.meaning().translationKey())));
+                    }
+                }
+                case ACTION_CLEAR_DIALECT_CALL -> {
+                    if (player.getUUID().equals(colony.getOwnerId())
+                            && colony.clearDialectCall(payload.sourceSitePos(), payload.param())) {
+                        SovereignColonySavedData.get(level).setDirty();
+                        ColonyDialectCallDirector.notifyNearbyPlayers(
+                                level,
+                                payload.sourceSitePos(),
+                                Component.translatable("message.mycelialmind.colony.dialect_cleared",
+                                        (payload.param() / 3) + 1, (payload.param() % 3) + 1));
                     }
                 }
                 default -> {
@@ -267,6 +286,16 @@ public record SovereignColonyActionPayload(
             }
             nexus.syncLiveWorkers(level, colony);
             SovereignColonySyncPayload.syncToPlayer(player, nexusPos, false);
+    }
+
+    public static void sendClearDialectCall(BlockPos nexusPos, BlockPos sitePos, int call) {
+        PacketDistributor.sendToServer(new SovereignColonyActionPayload(
+                ACTION_CLEAR_DIALECT_CALL,
+                nexusPos == null ? BlockPos.ZERO : nexusPos,
+                call,
+                ZERO_UUID,
+                sitePos == null ? BlockPos.ZERO : sitePos,
+                BlockPos.ZERO));
     }
 
     @Override

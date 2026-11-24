@@ -3,11 +3,11 @@
   "sample_rate": 44100,
   "channels": 1,
   "vorbis_quality": "4",
-  "total_events": 186,
-  "total_ogg_files": 501,
+  "total_events": 189,
+  "total_ogg_files": 507,
   "max_correlation_threshold": 0.85,
   "worst_correlation": 0.5069,
-  "build_duration_secs": 40.31,
+  "build_duration_secs": 35.69,
   "acceleration_backend": "CPU SciPy",
   "failed_files": [],
   "failed_correlation_events": [],
@@ -62,11 +62,11 @@
       "mean_centroid_hz": 908.3
     },
     "ui_item": {
-      "count": 20,
+      "count": 23,
       "target_dbfs": -15.0,
-      "mean_active_rms_dbfs": -14.96,
+      "mean_active_rms_dbfs": -14.94,
       "max_peak_dbfs": -1.05,
-      "mean_centroid_hz": 1061.4
+      "mean_centroid_hz": 1012.5
     }
   },
   "event_correlations": {
@@ -197,6 +197,9 @@
     "matriarch_altar_awaken": 0.0,
     "synaptic_bench_synthesize": 0.0547,
     "sovereign_nexus_pulse": 0.0309,
+    "colony_dialect_tone_1": 0.0339,
+    "colony_dialect_tone_2": 0.0315,
+    "colony_dialect_tone_3": 0.0274,
     "bio_scanner_ping": 0.1994,
     "bio_scanner_thermal_pulse": 0.1426,
     "bio_extractor_draw": 0.0812,

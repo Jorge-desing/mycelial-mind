@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -550,7 +551,14 @@ public final class SovereignColonyData {
                 && apprentice.isAlive() && !apprentice.getUUID().equals(actor.getUUID())
                 && apprentice.blockPosition().distSqr(sitePos) <= 9.0D
                 && apprentice.distanceToSqr(actor) <= 64.0D) {
-            dialectLesson.witness(dialect.episode(habit).id());
+            if (dialectLesson.witness(dialect.episode(habit).id())) {
+                ColonyDialectCallDirector.playSequence(level, sitePos, dialectLesson.call());
+                ColonyDialectCallDirector.notifyNearbyPlayers(
+                        level,
+                        sitePos,
+                        Component.translatable("message.mycelialmind.colony.dialect_witnessed",
+                                Component.translatable(habit.translationKey())));
+            }
         }
     }
 
@@ -568,7 +576,7 @@ public final class SovereignColonyData {
         ColonyDialect sourceDialect = getDialect(source);
         ColonyDialect targetDialect = getDialect(target);
         ColonyDialect.Episode episode = sourceDialect.episode(habit);
-        if (episode == null || (coinage && !episode.worker().equals(teacher))
+        if (episode == null
                 || (!coinage && sourceDialect.callMask(habit) == 0)
                 || (coinage && sourceDialect.call(habit) >= 0)) return false;
         for (ColonySiteHabit other : ColonySiteHabit.values()) {
@@ -576,6 +584,22 @@ public final class SovereignColonyData {
         }
         dialectLesson = new ColonyDialectLesson(source, target, habit, call, apprentice, teacher, episode.id(), coinage);
         return true;
+    }
+
+    public boolean clearDialectCall(BlockPos sitePos, int call) {
+        if (sitePos == null || call < 0 || call >= 9 || !linkedOutposts.contains(sitePos)) {
+            return false;
+        }
+        ColonyDialect dialect = getDialect(sitePos);
+        if (dialect == null) {
+            return false;
+        }
+        if (dialectLesson != null
+                && dialectLesson.call() == call
+                && (dialectLesson.source().equals(sitePos) || dialectLesson.target().equals(sitePos))) {
+            return false;
+        }
+        return dialect.clearCall(call);
     }
 
     public boolean finishDialectLesson(UUID apprentice) {

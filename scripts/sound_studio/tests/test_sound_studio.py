@@ -40,12 +40,12 @@ from scripts.sound_studio.system_env_synth import SYSTEM_ENV_IDS
 
 class SoundStudioTests(unittest.TestCase):
     def test_catalog_size_species_loudness_and_attenuation_invariants(self) -> None:
-        self.assertEqual(len(SOUND_CATALOG), 186)
-        self.assertEqual(len(SOUND_BY_ID), 186)
+        self.assertEqual(len(SOUND_CATALOG), 189)
+        self.assertEqual(len(SOUND_BY_ID), 189)
         consts = {s.java_const for s in SOUND_CATALOG}
-        self.assertEqual(len(consts), 186)
+        self.assertEqual(len(consts), 189)
         total_oggs = sum(s.variations for s in SOUND_CATALOG)
-        self.assertEqual(total_oggs, 501)
+        self.assertEqual(total_oggs, 507)
         for spec in SOUND_CATALOG:
             self.assertIn(spec.loudness_group, LOUDNESS_TARGETS_DBFS)
             self.assertTrue(1 <= spec.variations <= 4, msg=f"{spec.sound_id} invalid variations={spec.variations}")
@@ -212,7 +212,7 @@ class SoundStudioTests(unittest.TestCase):
         if not sounds_json.is_file():
             self.skipTest("sounds.json not present")
         data = json.loads(sounds_json.read_text(encoding="utf-8"))
-        self.assertEqual(len(data), 186)
+        self.assertEqual(len(data), 189)
         for sid, entry in data.items():
             spec = SOUND_BY_ID[sid]
             snd_list = entry.get("sounds", [])
@@ -232,8 +232,8 @@ class SoundStudioTests(unittest.TestCase):
         self.assertTrue(qr["ok"], msg=f"Quality report failures: {qr.get('failed_files')[:3]}")
         self.assertEqual(qr["sample_rate"], 44100)
         self.assertEqual(qr["vorbis_quality"], VORBIS_QUALITY)
-        self.assertEqual(qr["total_events"], 186)
-        self.assertEqual(qr["total_ogg_files"], 501)
+        self.assertEqual(qr["total_events"], 189)
+        self.assertEqual(qr["total_ogg_files"], 507)
         self.assertLess(qr["worst_correlation"], 0.85)
         self.assertTrue(html_path.is_file())
         html_text = html_path.read_text(encoding="utf-8")
@@ -296,7 +296,7 @@ class SoundStudioTests(unittest.TestCase):
 
     def test_block_functional_sounds_are_mutually_distinct(self) -> None:
         func_ids = [s.sound_id for s in SOUND_CATALOG if s.category == "block_functional"]
-        self.assertEqual(len(func_ids), 15)
+        self.assertEqual(len(func_ids), 18)
         waves: list[np.ndarray] = []
         metrics: dict[str, dict[str, float]] = {}
         for sid in func_ids:
@@ -466,7 +466,7 @@ class SoundStudioTests(unittest.TestCase):
         for space in IR_SPACE_NAMES:
             self.assertIn(f'"ir_space": "{space}"', audition_html)
 
-        self.assertEqual(len(manifest["sounds"]), 186)
+        self.assertEqual(len(manifest["sounds"]), 189)
         for entry in manifest["sounds"]:
             self.assertIn(entry.get("ir_space"), IR_SPACE_NAMES, entry["sound_id"])
             lufs = entry["metrics"].get("integrated_lufs")
@@ -494,11 +494,11 @@ class SoundStudioTests(unittest.TestCase):
 
         self.assertEqual(INFERENCE_STEPS, 14)
         self.assertEqual(len(AI_STEM_ARCHETYPES), 52)
-        self.assertEqual(len(SOUND_TO_ARCHETYPE), 186)
+        self.assertEqual(len(SOUND_TO_ARCHETYPE), 189)
         self.assertTrue(STEM_MANIFEST_PATH.is_file(), f"Missing stem manifest: {STEM_MANIFEST_PATH}")
         stem_manifest = json.loads(STEM_MANIFEST_PATH.read_text(encoding="utf-8"))
         self.assertEqual(stem_manifest["stem_count"], 52)
-        self.assertEqual(stem_manifest["mapped_sound_events"], 186)
+        self.assertEqual(stem_manifest["mapped_sound_events"], 189)
         self.assertEqual(stem_manifest["steps"], 14)
         self.assertIn("RTX 4060", stem_manifest["device_name"])
         self.assertEqual(stem_manifest["sample_rate"], SAMPLE_RATE)

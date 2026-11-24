@@ -163,6 +163,27 @@ public class BioScannerItem extends Item {
                                 memory != null ? memory.successfulTrials() : 0,
                                 memory != null ? memory.incidentCount() : 0
                         ).withStyle(ChatFormatting.AQUA));
+                        if (colony.getLinkedOutposts().contains(memorySite)) {
+                            var dialect = colony.getDialect(memorySite);
+                            int knownCalls = Integer.bitCount(
+                                    dialect.callMask(ColonySiteHabit.ESCORTED_COURIER)
+                                            | dialect.callMask(ColonySiteHabit.REST_BEFORE_RETURN)
+                                            | dialect.callMask(ColonySiteHabit.STAGGERED_PICKUP));
+                            var lesson = colony.getDialectLesson();
+                            String stageKey = "gui.mycelialmind.colony.dialect.idle";
+                            if (lesson != null && (lesson.source().equals(memorySite) || lesson.target().equals(memorySite))) {
+                                stageKey = "gui.mycelialmind.colony.dialect." + switch (lesson.stage()) {
+                                    case TRAVELLING -> "travelling";
+                                    case OBSERVING -> "observing";
+                                    case RETURNING -> "returning";
+                                };
+                            }
+                            player.sendSystemMessage(Component.translatable(
+                                    "message.mycelialmind.scanner_outpost_dialect",
+                                    knownCalls,
+                                    Component.translatable(stageKey)
+                            ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                        }
                     }
                 }
                 if (player instanceof ServerPlayer serverPlayer
@@ -517,6 +538,27 @@ public class BioScannerItem extends Item {
                         Component.translatable(symbiont.getRank().nameKey()),
                         Math.round(symbiont.getMorale())
                 ).withStyle(ChatFormatting.AQUA));
+                SovereignColonyData colony = symbiont.getColonyData(serverLevel);
+                var lesson = colony != null ? colony.getDialectLesson() : null;
+                if (lesson != null && (symbiont.getUUID().equals(lesson.teacher())
+                        || symbiont.getUUID().equals(lesson.apprentice()))) {
+                    String roleKey = symbiont.getUUID().equals(lesson.teacher())
+                            ? "message.mycelialmind.scanner_symbiont_dialect_teacher"
+                            : "message.mycelialmind.scanner_symbiont_dialect_apprentice";
+                    String stageKey = "gui.mycelialmind.colony.dialect." + switch (lesson.stage()) {
+                        case TRAVELLING -> "travelling";
+                        case OBSERVING -> "observing";
+                        case RETURNING -> "returning";
+                    };
+                    player.sendSystemMessage(Component.translatable(
+                            "message.mycelialmind.scanner_symbiont_dialect_role",
+                            Component.translatable(roleKey),
+                            Component.translatable(lesson.meaning().translationKey()),
+                            (lesson.call() / 3) + 1,
+                            (lesson.call() % 3) + 1,
+                            Component.translatable(stageKey)
+                    ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                }
                 if (player instanceof ServerPlayer serverPlayer) {
                     PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
                     discovery.recordSpecies(symbiont.getType());

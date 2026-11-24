@@ -9,7 +9,7 @@
   "sampler_type": "pingpong",
   "sample_rate": 44100,
   "stem_count": 52,
-  "mapped_sound_events": 186,
+  "mapped_sound_events": 189,
   "stems": {
     "acid_spitter_wet_gurgle": {
       "group": "entity",
@@ -383,7 +383,10 @@
         "synaptic_node_mature",
         "symbiotic_node_charge",
         "symbiotic_node_teleport",
-        "sovereign_nexus_pulse"
+        "sovereign_nexus_pulse",
+        "colony_dialect_tone_1",
+        "colony_dialect_tone_2",
+        "colony_dialect_tone_3"
       ]
     },
     "goliath_carrier_hollow_thud": {

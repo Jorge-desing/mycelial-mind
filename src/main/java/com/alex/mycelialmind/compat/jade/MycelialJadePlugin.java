@@ -214,6 +214,9 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 if (symbiont.isStandby()) {
                     tooltip.add(Component.translatable("jade.mycelialmind.symbiont_standby"));
                 }
+                if ("dialect_observing".equals(symbiont.getTaskState())) {
+                    tooltip.add(Component.translatable("jade.mycelialmind.symbiont_dialect_observing"));
+                }
             }
         }
 
@@ -236,6 +239,19 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 if (node.getNodeType() == SynapticNodeType.SYMBIOTIC) {
                     tooltip.add(Component.translatable("jade.mycelialmind.node_stability",
                             node.getSymbioticStability()));
+                    var nodePos = accessor.getPosition();
+                    var site = com.alex.mycelialmind.network.ClientColonyCache.getSiteMemories().stream()
+                            .filter(s -> s.sitePos().equals(nodePos))
+                            .findFirst()
+                            .orElse(null);
+                    if (site != null) {
+                        int callCount = Integer.bitCount(site.escortCall())
+                                + Integer.bitCount(site.restCall())
+                                + Integer.bitCount(site.pickupCall());
+                        if (callCount > 0 || site.lessonStage() >= 0) {
+                            tooltip.add(Component.translatable("jade.mycelialmind.node_dialect_calls", callCount));
+                        }
+                    }
                 }
             } else if (accessor.getBlockEntity() instanceof PurificationTurretBlockEntity turret) {
                 tooltip.add(Component.translatable("jade.mycelialmind.turret_info",

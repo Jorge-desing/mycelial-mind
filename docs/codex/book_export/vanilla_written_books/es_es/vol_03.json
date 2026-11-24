@@ -3,7 +3,7 @@
   "chapters": [
     "economia_datos"
   ],
-  "page_count": 77,
+  "page_count": 78,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -58,34 +58,37 @@
         "raw": "Ítems y Armadura\n(`ModItems`) (5/5)\n• Brotes Recuperados\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (1/6)\n• Ancla y Puestos\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`): tras derrotar\na la Matriarca, el\n`sovereign_nexus`\nacepta\n`mycelial_biomass`\n(mano o tolvas) e\nintegra hasta 4\n`symbiotic_node`"
+        "raw": "Colonia Soberana\nPost-Matriarca (1/7)\n• Ancla y Puestos\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`): tras derrotar\na la Matriarca, el\n`sovereign_nexus`\nacepta\n`mycelial_biomass`\n(mano o tolvas) e\nintegra hasta 4\n`symbiotic_node`"
       },
       {
         "raw": "cercanos (+8m radio\ncada uno)."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (2/6)\n• Niveles y Mando\n(`SovereignColonyDire\nctor`): Nivel 1–3\n(4/8/12 simbiontes,\nradio 24/36/48m). Usa\n`sovereign_command_s\ntaff` (`staff_mode`)\npara marcar cofres\n`INPUT`/`OUTPUT` y\nzonas de trabajo;"
+        "raw": "Colonia Soberana\nPost-Matriarca (2/7)\n• Niveles y Mando\n(`SovereignColonyDire\nctor`): Nivel 1–3\n(4/8/12 simbiontes,\nradio 24/36/48m). Usa\n`sovereign_command_s\ntaff` (`staff_mode`)\npara marcar cofres\n`INPUT`/`OUTPUT` y\nzonas de trabajo;"
       },
       {
         "raw": "desbloquea rasgos\n`SovereignTrait` y\nrangos."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (3/6)\n• Castas y Sondeos\nRivales: `HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT` y\n`SENTINEL` operan\n`ColonyOrderBoard`\npor\nprioridad/reserva\ncon descanso y humor\n(`SymbiontTemperament\n`). Repeler sondeos"
+        "raw": "Colonia Soberana\nPost-Matriarca (3/7)\n• Castas y Sondeos\nRivales: `HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT` y\n`SENTINEL` operan\n`ColonyOrderBoard`\npor\nprioridad/reserva\ncon descanso y humor\n(`SymbiontTemperament\n`). Repeler sondeos"
       },
       {
         "raw": "de la Colmena rival\notorga XP de Dominio y\nmoral."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (4/6)\n• Memoria Territorial:\ncada Nexo o puesto\naprende de incidentes\nlocales. Dos incidentes\nparecidos abren un\nensayo; dos\nresultados\nfavorables consolidan\nla conducta."
+        "raw": "Colonia Soberana\nPost-Matriarca (4/7)\n• Memoria Territorial:\ncada Nexo o puesto\naprende de incidentes\nlocales. Dos incidentes\nparecidos abren un\nensayo; dos\nresultados\nfavorables consolidan\nla conducta."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (5/6)\n• Hábitos: los puestos\npueden aprender\nescoltas para\nmensajeros, descanso\nantes del regreso o\nrecolección por\nturnos. El primer\nrecuerdo se aprende\nsolo; puedes adoptar\nun segundo ensayo en\n`Memoria`."
+        "raw": "Colonia Soberana\nPost-Matriarca (5/7)\n• Hábitos: los puestos\npueden aprender\nescoltas para\nmensajeros, descanso\nantes del regreso o\nrecolección por\nturnos. El primer\nrecuerdo se aprende\nsolo; puedes adoptar\nun segundo ensayo en\n`Memoria`."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (6/6)\n• Enseñanza: en\n`Memoria`, elige el\npuesto de origen y el\ndestino. Un mensajero\nlleva el recuerdo\naprendido; el destino\nlo prueba con sus\npropios trabajos.\n• Bioescáner: úsalo\nsobre un\n`symbiotic_node` para"
+        "raw": "Colonia Soberana\nPost-Matriarca (6/7)\n• Enseñanza: en\n`Memoria`, elige el\npuesto de origen y el\ndestino. Un mensajero\nlleva el recuerdo\naprendido; el destino\nlo prueba con sus\npropios trabajos.\n• Bioescáner: úsalo\nen `symbiotic_node`"
       },
       {
-        "raw": "leer incidentes y\nensayos. Olvidar\nborra el historial\nlocal del puesto."
+        "raw": "(dialecto/ensayos) o\nun simbionte (rol).\nOlvidar borra el\nhistorial."
+      },
+      {
+        "raw": "Colonia Soberana\nPost-Matriarca (7/7)\n• Dialecto\n(`ColonyDialect`): en\n`Dialecto` elige\nmaestro, aprendiz,\npulsos (`1–3·1–3`),\nresuelve conflictos y\nemite vía\n`sovereign_command_s\ntaff`."
       },
       {
         "raw": "Cap.9: Recetario Total\n(39 Datapack)\nBio-Escáner y\nBio-Extractor\n[crafting_shaped]  R\n/ICI/ S  (C=compass,\nI=copper_ingot,\nR=redstone,\nS=latent_spore) -> 1x\nbio_scanner\n[crafting_shaped]  A\n/IBI/ S \n(A=amethyst_shard,\nB=mycelial_biomass,"

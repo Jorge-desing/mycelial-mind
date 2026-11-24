@@ -61,8 +61,20 @@ public final class SymbiontDialectLessonGoal extends Goal {
         } else if (lesson.stage() == ColonyDialectLesson.Stage.OBSERVING) {
             // The work event validates both participants at the instant it happens.
             worker.setTaskState("dialect_observing");
-        } else if (colony.finishDialectLesson(worker.getUUID())) {
-            SovereignColonySavedData.get(level).setDirty();
+        } else {
+            com.alex.mycelialmind.colony.ColonyDialectLesson finished = colony.getDialectLesson();
+            if (colony.finishDialectLesson(worker.getUUID())) {
+                SovereignColonySavedData.get(level).setDirty();
+                if (finished != null) {
+                    com.alex.mycelialmind.colony.ColonyDialectCallDirector.playSequence(level, finished.target(), finished.call());
+                    com.alex.mycelialmind.colony.ColonyDialectCallDirector.notifyNearbyPlayers(
+                            level,
+                            finished.target(),
+                            net.minecraft.network.chat.Component.translatable(
+                                    "message.mycelialmind.colony.dialect_learned",
+                                    net.minecraft.network.chat.Component.translatable(finished.meaning().translationKey())));
+                }
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
   "stats": {
     "chapters": 12,
     "entries": 61,
-    "pages": 233
+    "pages": 234
   },
   "summary": {
     "blocks": {
@@ -97,8 +97,8 @@
       "missing": 0
     },
     "compostables": {
-      "expected": 7,
-      "covered": 7,
+      "expected": 13,
+      "covered": 13,
       "missing": 0
     },
     "server_configs": {

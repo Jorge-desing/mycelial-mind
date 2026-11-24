@@ -1388,7 +1388,7 @@ public final class MycelialCommands {
     private static int verifyPolish(CommandSourceStack source) {
         ServerLevel level = source.getLevel();
         var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-        boolean soundsOk = soundEntries.size() == 186;
+        boolean soundsOk = soundEntries.size() == 189;
         if (soundsOk) {
             for (var holder : soundEntries) {
                 SoundEvent evt = holder.get();
@@ -2155,9 +2155,26 @@ public final class MycelialCommands {
                 source.sendFailure(Component.literal("[Verify:Colony] FAIL: Symbiont caste switch failed."));
                 return 0;
             }
+            if (ModSounds.COLONY_DIALECT_TONE_1.get() == null
+                    || ModSounds.COLONY_DIALECT_TONE_2.get() == null
+                    || ModSounds.COLONY_DIALECT_TONE_3.get() == null) {
+                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Dialect tone sounds missing."));
+                return 0;
+            }
+            var dialectA = new com.alex.mycelialmind.colony.ColonyDialect();
+            var dialectB = new com.alex.mycelialmind.colony.ColonyDialect();
+            if (!dialectA.teach(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, 2)
+                    || dialectA.teach(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2)
+                    || !dialectA.clearCall(2)
+                    || !dialectA.teach(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2)
+                    || !dialectB.teach(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2)
+                    || dialectA.sharedCall(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, dialectB) != 2) {
+                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Dialect teach/clearCall/sharedCall check failed."));
+                return 0;
+            }
             source.sendSuccess(() -> Component.literal("[Verify:Colony] PASS (Tier=" + colony.getTier()
                     + ", Radius=" + colony.getEffectiveRadius() + ", TraitMask=0x"
-                    + Integer.toHexString(colony.getUnlockedTraitMask()) + ")").withStyle(ChatFormatting.GREEN), false);
+                    + Integer.toHexString(colony.getUnlockedTraitMask()) + ", Dialect=OK)").withStyle(ChatFormatting.GREEN), false);
             return 1;
         } finally {
             if (worker != null) {

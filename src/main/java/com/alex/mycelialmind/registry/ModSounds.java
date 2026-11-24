@@ -375,6 +375,9 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_SYMBIONT_WORK = register("colony_symbiont_work");
     public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_SYMBIONT_PROMOTE = register("colony_symbiont_promote");
     public static final DeferredHolder<SoundEvent, SoundEvent> COMMAND_STAFF_MARK = register("command_staff_mark");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_DIALECT_TONE_1 = register("colony_dialect_tone_1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_DIALECT_TONE_2 = register("colony_dialect_tone_2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_DIALECT_TONE_3 = register("colony_dialect_tone_3");
 
     // =========================================================================
     // 7 DeferredSoundType Surface Families

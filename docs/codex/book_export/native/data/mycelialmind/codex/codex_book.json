@@ -2154,6 +2154,14 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 19,
+              "id": "sovereign_colony_guide_p7",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.text",
+              "is_spoiler": false
             }
           ]
         },

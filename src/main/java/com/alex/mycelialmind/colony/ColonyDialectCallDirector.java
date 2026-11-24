@@ -45,17 +45,34 @@ public final class ColonyDialectCallDirector {
         if (event.getLevel() instanceof ServerLevel level) PENDING.remove(level);
     }
 
+    public static void playSequence(ServerLevel level, BlockPos pos, int call) {
+        if (level == null || pos == null || call < 0 || call >= 9) return;
+        playPulse(level, pos, call / 3, 1);
+        PENDING.computeIfAbsent(level, ignored -> new ArrayList<>())
+                .add(new PendingPulse(pos.immutable(), call % 3, level.getGameTime() + 8L));
+    }
+
+    public static void notifyNearbyPlayers(ServerLevel level, BlockPos pos, Component message) {
+        if (level == null || pos == null || message == null) return;
+        for (ServerPlayer listener : level.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(16.0D))) {
+            listener.displayClientMessage(message, true);
+        }
+    }
+
     private static void playPulse(ServerLevel level, BlockPos pos, int tone, int index) {
         var particle = switch (tone) {
             case 0 -> ModParticles.SCAN.get();
             case 1 -> ModParticles.ENGRAM.get();
             default -> ModParticles.INSIGHT.get();
         };
+        var sound = switch (tone) {
+            case 0 -> ModSounds.COLONY_DIALECT_TONE_1.get();
+            case 1 -> ModSounds.COLONY_DIALECT_TONE_2.get();
+            default -> ModSounds.COLONY_DIALECT_TONE_3.get();
+        };
         level.sendParticles(particle, pos.getX() + 0.5D, pos.getY() + 1.25D, pos.getZ() + 0.5D, 1, 0, 0, 0, 0);
-        level.playSound(null, pos, ModSounds.COMMAND_STAFF_MARK.get(), SoundSource.BLOCKS, 0.7F, 0.75F + tone * 0.25F);
-        for (ServerPlayer listener : level.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(16.0D))) {
-            listener.displayClientMessage(Component.translatable("message.mycelialmind.colony.dialect_pulse", index, tone + 1), true);
-        }
+        level.playSound(null, pos, sound, SoundSource.BLOCKS, 0.85F, 1.0F);
+        notifyNearbyPlayers(level, pos, Component.translatable("message.mycelialmind.colony.dialect_pulse", index, tone + 1));
     }
 
     public static boolean emit(ServerLevel level, SovereignColonyData colony, BlockPos source,
@@ -87,9 +104,7 @@ public final class ColonyDialectCallDirector {
             default -> false;
         };
         SovereignColonySavedData.get(level).setDirty();
-        playPulse(level, target, call / 3, 1);
-        PENDING.computeIfAbsent(level, ignored -> new ArrayList<>())
-                .add(new PendingPulse(target.immutable(), call % 3, now + 8L));
+        playSequence(level, target, call);
         player.displayClientMessage(Component.translatable(accepted
                 ? "message.mycelialmind.colony.dialect_accepted"
                 : "message.mycelialmind.colony.dialect_no_worker", Component.translatable(meaning.translationKey())), true);

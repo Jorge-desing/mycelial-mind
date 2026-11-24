@@ -4,7 +4,7 @@
     "economia_datos",
     "mundo_dimension"
   ],
-  "page_count": 95,
+  "page_count": 96,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.III"
@@ -56,34 +56,37 @@
         "raw": "Items & Armor\n(`ModItems`) (5/5)\n• Reclaimed Blooms\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
-        "raw": "Post-Matriarch\nSovereign Hive Colony\n(1/6)\n• Anchor & Outposts\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`):\npost-Matriarch\nendgame hub\naccepting\n`mycelial_biomass`\n(manual or hopper)\nand linking up to 4"
+        "raw": "Post-Matriarch\nSovereign Hive Colony\n(1/7)\n• Anchor & Outposts\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`):\npost-Matriarch\nendgame hub\naccepting\n`mycelial_biomass`\n(manual or hopper)\nand linking up to 4"
       },
       {
         "raw": "nearby\n`symbiotic_node`\noutposts (+8m radius\neach)."
       },
       {
-        "raw": "Post-Matriarch\nSovereign Hive Colony\n(2/6)\n• Tiers & Control\n(`SovereignColonyDire\nctor`): Tiers 1–3\n(4/8/12 cap,\n24/36/48m radius).\nUse\n`sovereign_command_s\ntaff` (`staff_mode`) to\ntag `INPUT`/`OUTPUT`\nchests & work zones,\nunlocking global"
+        "raw": "Post-Matriarch\nSovereign Hive Colony\n(2/7)\n• Tiers & Control\n(`SovereignColonyDire\nctor`): Tiers 1–3\n(4/8/12 cap,\n24/36/48m radius).\nUse\n`sovereign_command_s\ntaff` (`staff_mode`) to\ntag `INPUT`/`OUTPUT`\nchests & work zones,\nunlocking global"
       },
       {
         "raw": "`SovereignTrait` buffs\nand ranks."
       },
       {
-        "raw": "Post-Matriarch\nSovereign Hive Colony\n(3/6)\n• Castes & Rival\nProbes: `HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT` &\n`SENTINEL` claim\n`ColonyOrderBoard`\ntasks via priority/TTL\nlocks while managing\nrest &\n`SymbiontTemperament`.\nRepelling rival Hive"
+        "raw": "Post-Matriarch\nSovereign Hive Colony\n(3/7)\n• Castes & Rival\nProbes: `HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT` &\n`SENTINEL` claim\n`ColonyOrderBoard`\ntasks via priority/TTL\nlocks while managing\nrest &\n`SymbiontTemperament`.\nRepelling rival Hive"
       },
       {
         "raw": "probes awards Domain\nXP & morale."
       },
       {
-        "raw": "Post-Matriarch\nSovereign Hive Colony\n(4/6)\n• Territorial Memory:\neach Nexus or\noutpost learns from\nlocal incidents. Two\nsimilar incidents open\na trial; two successful\noutcomes establish\nthe behavior."
+        "raw": "Post-Matriarch\nSovereign Hive Colony\n(4/7)\n• Territorial Memory:\neach Nexus or\noutpost learns from\nlocal incidents. Two\nsimilar incidents open\na trial; two successful\noutcomes establish\nthe behavior."
       },
       {
-        "raw": "Post-Matriarch\nSovereign Hive Colony\n(5/6)\n• Habits: sites can\nlearn courier\nescorts, rest before\nreturning, or taking\nturns collecting. The\nfirst memory is\nlearned automatically;\nadopt a second tested\nbehavior in `Memory`."
+        "raw": "Post-Matriarch\nSovereign Hive Colony\n(5/7)\n• Habits: sites can\nlearn courier\nescorts, rest before\nreturning, or taking\nturns collecting. The\nfirst memory is\nlearned automatically;\nadopt a second tested\nbehavior in `Memory`."
       },
       {
-        "raw": "Post-Matriarch\nSovereign Hive Colony\n(6/6)\n• Teaching: in\n`Memory`, select a\nsource site and\ndestination. A courier\ncarries the learned\nmemory; the\ndestination tests it\nthrough its own work.\n• Bio Scanner: use it\non a `symbiotic_node`"
+        "raw": "Post-Matriarch\nSovereign Hive Colony\n(6/7)\n• Teaching: in\n`Memory`, select a\nsource site and\ndestination. A courier\ncarries the learned\nmemory; the\ndestination tests it\nthrough its own work.\n• Bio Scanner: use on\n`symbiotic_node`\n(dialect/trials) or"
       },
       {
-        "raw": "to read incidents and\ntrials. Forgetting\nclears that site's\nlocal history."
+        "raw": "symbiont (lesson\nrole). Forgetting\nclears site history."
+      },
+      {
+        "raw": "Post-Matriarch\nSovereign Hive Colony\n(7/7)\n• Colony Dialect\n(`ColonyDialect`): in\n`Dialect` pick teacher,\napprentice & pulses\n(`1–3·1–3`), clear\nconflicts & call via\n`sovereign_command_s\ntaff`."
       },
       {
         "raw": "Cap.9: Complete Recipe\nBook (39 Datapack)\nBio-Scanner &\nBio-Extractor\n[crafting_shaped]  R\n/ICI/ S  (C=compass,\nI=copper_ingot,\nR=redstone,\nS=latent_spore) -> 1x\nbio_scanner\n[crafting_shaped]  A\n/IBI/ S \n(A=amethyst_shard,\nB=mycelial_biomass,"

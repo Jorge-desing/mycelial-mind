@@ -4980,7 +4980,7 @@ public final class MycelialGameTests {
 
         try {
             var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-            boolean soundsOk = soundEntries.size() == 186;
+            boolean soundsOk = soundEntries.size() == 189;
             if (soundsOk) {
                 for (var holder : soundEntries) {
                     SoundEvent evt = holder.get();
@@ -9294,6 +9294,140 @@ public final class MycelialGameTests {
             }
             level.removeBlock(floorPos, false);
             hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_dialect_integration")
+    public static void colonyDialectConflictClearanceAndScannerIntegrationTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag colonySnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(2, 2, 2));
+        BlockPos source = helper.absolutePos(new BlockPos(5, 2, 2));
+        BlockPos target = helper.absolutePos(new BlockPos(8, 2, 2));
+        com.alex.mycelialmind.entity.ColonySymbiontEntity teacher = null;
+        com.alex.mycelialmind.entity.ColonySymbiontEntity apprentice = null;
+        try {
+            owHive.resetAll();
+            saved.resetAll();
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+            for (BlockPos pos : List.of(nexusPos, source, target)) {
+                level.setBlockAndUpdate(pos.below(), Blocks.STONE.defaultBlockState());
+            }
+            level.setBlockAndUpdate(nexusPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            level.setBlockAndUpdate(source, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            level.setBlockAndUpdate(target, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            PurificationZoneTracker.get(level).addNode(source, SynapticNodeType.SYMBIOTIC);
+            PurificationZoneTracker.get(level).addNode(target, SynapticNodeType.SYMBIOTIC);
+
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            helper.assertTrue(nexusBe != null, "SovereignNexusBlockEntity must exist.");
+            nexusBe.enableAdministrativeOverride(level);
+            var colony = nexusBe.getOrCreateColony(level);
+            colony.replaceLinkedOutposts(List.of(source, target));
+
+            teacher = ModEntities.COLONY_SYMBIONT.get().create(level);
+            apprentice = ModEntities.COLONY_SYMBIONT.get().create(level);
+            helper.assertTrue(teacher != null && apprentice != null, "ColonySymbiont entities must spawn.");
+            teacher.setNexusPos(nexusPos);
+            apprentice.setNexusPos(nexusPos);
+            teacher.setPos(source.getX() + 0.5D, source.getY() + 1.0D, source.getZ() + 0.5D);
+            apprentice.setPos(target.getX() + 0.5D, target.getY() + 1.0D, target.getZ() + 0.5D);
+            level.addFreshEntity(teacher);
+            level.addFreshEntity(apprentice);
+            teacher.syncRosterToColony();
+            apprentice.syncRosterToColony();
+
+            UUID testerId = UUID.randomUUID();
+            colony.setOwnerId(testerId);
+            java.util.List<net.minecraft.network.chat.Component> scannerMessages = new java.util.ArrayList<>();
+            var tester = new net.neoforged.neoforge.common.util.FakePlayer(
+                    level, new com.mojang.authlib.GameProfile(testerId, "DialectTester")) {
+                @Override
+                public void sendSystemMessage(net.minecraft.network.chat.Component message) {
+                    scannerMessages.add(message);
+                }
+
+                @Override
+                public void displayClientMessage(net.minecraft.network.chat.Component message, boolean actionBar) {
+                    scannerMessages.add(message);
+                }
+            };
+            tester.setPos(nexusPos.getX() + 0.5D, nexusPos.getY() + 1.0D, nexusPos.getZ() + 0.5D);
+
+            colony.recordDialectEpisode(level, source, com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, apprentice);
+            helper.assertTrue(colony.getDialect(target).teach(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 4),
+                    "Target outpost must learn call 4 for REST_BEFORE_RETURN.");
+            helper.assertTrue(!colony.startDialectLesson(source, target,
+                            com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, 4,
+                            apprentice.getUUID(), teacher.getUUID(), true),
+                    "Colliding call 4 at target must block lesson start before clearance.");
+
+            var clearPayload = new com.alex.mycelialmind.network.SovereignColonyActionPayload(
+                    com.alex.mycelialmind.network.SovereignColonyActionPayload.ACTION_CLEAR_DIALECT_CALL,
+                    nexusPos, 4,
+                    new UUID(0L, 0L),
+                    target, BlockPos.ZERO);
+            com.alex.mycelialmind.network.SovereignColonyActionPayload.applyOnServer(clearPayload, tester);
+            helper.assertTrue(colony.getDialect(target).call(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN) == -1,
+                    "ACTION_CLEAR_DIALECT_CALL must clear call 4 on target outpost.");
+
+            helper.assertTrue(colony.startDialectLesson(source, target,
+                            com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, 4,
+                            apprentice.getUUID(), teacher.getUUID(), true),
+                    "Lesson with selectable alternative teacher must start once conflict is cleared.");
+
+            ItemStack scanner = new ItemStack(ModItems.BIO_SCANNER.get());
+            tester.setItemInHand(InteractionHand.MAIN_HAND, scanner);
+            scanner.useOn(new net.minecraft.world.item.context.UseOnContext(
+                    tester, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(source), Direction.UP, source, false)));
+            scanner.getItem().interactLivingEntity(scanner, tester, teacher, InteractionHand.MAIN_HAND);
+            scanner.getItem().interactLivingEntity(scanner, tester, apprentice, InteractionHand.MAIN_HAND);
+
+            boolean sawOutpostDialect = scannerMessages.stream()
+                    .anyMatch(msg -> msg.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents tc
+                            && tc.getKey().equals("message.mycelialmind.scanner_outpost_dialect"));
+            long roleMessages = scannerMessages.stream()
+                    .filter(msg -> msg.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents tc
+                            && tc.getKey().equals("message.mycelialmind.scanner_symbiont_dialect_role"))
+                    .count();
+            helper.assertTrue(sawOutpostDialect && roleMessages == 2L,
+                    "BioScannerItem must report outpost dialect and teacher/apprentice lesson roles.");
+
+            var cancelPayload = new com.alex.mycelialmind.network.SovereignColonyActionPayload(
+                    com.alex.mycelialmind.network.SovereignColonyActionPayload.ACTION_CANCEL_DIALECT_LESSON,
+                    nexusPos, 0,
+                    new UUID(0L, 0L),
+                    BlockPos.ZERO, BlockPos.ZERO);
+            com.alex.mycelialmind.network.SovereignColonyActionPayload.applyOnServer(cancelPayload, tester);
+            helper.assertTrue(colony.getDialectLesson() == null,
+                    "ACTION_CANCEL_DIALECT_LESSON must clear active lesson cleanly.");
+
+            com.alex.mycelialmind.colony.ColonyDialectCallDirector.playSequence(level, target, 4);
+            helper.assertTrue(ModSounds.COLONY_DIALECT_TONE_1.get() != null
+                            && ModSounds.COLONY_DIALECT_TONE_2.get() != null
+                            && ModSounds.COLONY_DIALECT_TONE_3.get() != null,
+                    "Dedicated Colony Dialect tone sounds must be registered.");
+            helper.succeed();
+        } finally {
+            if (teacher != null) {
+                teacher.discard();
+            }
+            if (apprentice != null) {
+                apprentice.discard();
+            }
+            PurificationZoneTracker.get(level).removeNode(source);
+            PurificationZoneTracker.get(level).removeNode(target);
+            for (BlockPos pos : List.of(nexusPos, source, target)) {
+                level.removeBlock(pos, false);
+                level.removeBlock(pos.below(), false);
+            }
+            saved.restoreFromSnapshot(colonySnapshot, level.registryAccess());
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
         }
     }
 }

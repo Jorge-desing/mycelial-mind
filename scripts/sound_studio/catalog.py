@@ -247,6 +247,9 @@ BLOCK_FUNCTIONAL_SOUNDS: list[SoundSpec] = [
     _s("matriarch_altar_awaken", "block_functional", "block_functional", 2.95, 112.0, 4.2, "Apex Matriarch awakens", "La Matriarca Suprema despierta", species="synaptic_eldritch", loudness_group="boss_cinematic", variations=1, attenuation_distance=60, seed_offset=513, volume=1.0),
     _s("synaptic_bench_synthesize", "block_functional", "block_functional", 0.68, 570.0, 8.5, "Synaptic synthesis completes", "Síntesis sináptica completada", species="purifier_tech", loudness_group="ui_item", variations=2, attenuation_distance=14, seed_offset=514, volume=0.88),
     _s("sovereign_nexus_pulse", "block_functional", "block_functional", 0.64, 440.0, 7.5, "Sovereign Nexus resonates", "Nexo Soberano resuena", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=515, volume=0.88),
+    _s("colony_dialect_tone_1", "block_functional", "block_functional", 0.34, 330.0, 7.0, "Colony dialect low pulse", "Pulso grave de dialecto de colonia", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=516, volume=0.84),
+    _s("colony_dialect_tone_2", "block_functional", "block_functional", 0.34, 495.0, 7.0, "Colony dialect mid pulse", "Pulso medio de dialecto de colonia", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=517, volume=0.84),
+    _s("colony_dialect_tone_3", "block_functional", "block_functional", 0.34, 660.0, 7.0, "Colony dialect high pulse", "Pulso agudo de dialecto de colonia", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=518, volume=0.84),
 ]
 
 ITEM_PROJECTILE_SOUNDS: list[SoundSpec] = [
