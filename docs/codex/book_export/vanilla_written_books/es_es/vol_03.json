@@ -3,7 +3,7 @@
   "chapters": [
     "economia_datos"
   ],
-  "page_count": 79,
+  "page_count": 80,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -175,7 +175,10 @@
         "raw": "tide_beacon\nPináculo Acto IV\n(`overmind_essence` +\n`hive_heart`); recarga\n`tide_beacon` con\namatista y quitina."
       },
       {
-        "raw": "Códice de la Colmena\nViva\n[crafting_shapeless]\nbook + latent_spore +\nmycelial_biomass -> 1x\nmycelial_codex\nManual in-game sin\nmesa: Libro +\n`latent_spore` +\n`mycelial_biomass`\n(`mycelial_codex`)."
+        "raw": "Códice de la Colmena\nViva y Ámbar\nBioluminiscente\n[crafting_shapeless]\nbook + latent_spore +\nmycelial_biomass -> 1x\nmycelial_codex\n[crafting_shaped]\nMLM/GSG/MLM\n(G=glowstone_dust,\nL=latent_spore,\nM=mycelial_stone,\nS=synaptic_core) ->\n1x"
+      },
+      {
+        "raw": "luminescent_amber_vei\nn\nManual in-game sin\nmesa\n(`mycelial_codex`);\nveta cristalina para\npotenciar estaciones\n(`luminescent_amber_v\nein`)."
       },
       {
         "raw": "Fundición: Espora y\nPiedra Micelial\n[smelting]\nbioluminescent_mycelia\nl_cap -> 1x\nlatent_spore\n[smelting]\ncreeping_mycelium ->\n1x mycelial_stone\nHornea\n`bioluminescent_myceli\nal_cap` ->\n`latent_spore` (0.15\nXP) o"

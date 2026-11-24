@@ -12,7 +12,7 @@ import org.lwjgl.glfw.GLFW;
 /**
  * Client-side KeyMappings for quick Codex access and compact HUD toggling.
  */
-@EventBusSubscriber(modid = MycelialMind.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MycelialMind.MODID, value = Dist.CLIENT)
 public final class MycelialKeyBindings {
     public static final KeyMapping OPEN_CODEX = new KeyMapping(
             "key.mycelialmind.open_codex",

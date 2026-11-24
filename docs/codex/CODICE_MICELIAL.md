@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `61` entradas y `235` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `61` entradas y `238` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -22,7 +22,7 @@
   - [Los 4 Hábitos del Jugador](#cap3-habitos_telemetria) — _HabitTelemetryTracker: contra-adaptaciones desde 60.0_
   - [Engaño Pavloviano y Contramedidas](#cap3-engano_pavloviano) — _FalseEngramInjector, CounterSerum y SynapticSuppressor_
 - **Capítulo 4 — IA Táctica y Campo Vivo** (`ia_tactica`): HiveBrain, gdx-AI, Escuadrones, Trauma, Carroña y Goals
-  - [Arquitectura Híbrida HiveBrain + gdx-AI](#cap4-arquitectura_hivebrain_gdxai) — _HiveBrainBridge, 11 ModMemoryTypes y HiveTacticalTree_
+  - [Arquitectura Nativa HiveBrain](#cap4-arquitectura_hivebrain) — _HiveBrain, HiveBehaviorTree, HiveSteeringEngine y 11 ModMemoryTypes_
   - [Doctrinas, Escuadrones y Pacing](#cap4-doctrina_escuadron_pacing) — _HiveDoctrine, HiveOrder, SwarmRole, Frenesí y Desync (5s)_
   - [IA de Campo Vivo y Goals](#cap4-campo_batalla_vivo) — _Trauma, Carroña, Quitina Efímera, Atascos y Goals personalizados_
 - **Capítulo 5 — Bestiario y Quimeras** (`bestiario`): 17 especies vivas, 3 proyectiles, 17 huevos y genes 5x5
@@ -374,23 +374,31 @@ _Router 40/60, 5 Rasgos, 5 Sinergias, 4 Hábitos y Engaño_ | Puerta recomendada
 
 _HiveBrain, gdx-AI, Escuadrones, Trauma, Carroña y Goals_ | Puerta recomendada: `always` | Ícono: `mycelialmind:neural_echo_core`
 
-<a id="cap4-arquitectura_hivebrain_gdxai"></a>
-### 1. Arquitectura Híbrida HiveBrain + gdx-AI
+<a id="cap4-arquitectura_hivebrain"></a>
+### 1. Arquitectura Nativa HiveBrain
 
-- **ID de Entrada:** `ia_tactica/arquitectura_hivebrain_gdxai` | **Ícono:** `mycelialmind:neural_echo_core` | **Unlock:** `always`
-- **Resumen:** HiveBrainBridge, 11 ModMemoryTypes y HiveTacticalTree
+- **ID de Entrada:** `ia_tactica/arquitectura_hivebrain` | **Ícono:** `mycelialmind:neural_echo_core` | **Unlock:** `always`
+- **Resumen:** HiveBrain, HiveBehaviorTree, HiveSteeringEngine y 11 ModMemoryTypes
 
-#### [Libro: Cap.4 / arquitectura_hivebrain_gdxai / Pág.1] HiveBrain Nativo, Memorias y gdx-AI (1/3)
+#### [Libro: Cap.4 / arquitectura_hivebrain / Pág.1] HiveBrain Nativo, Memorias y Steering (1/5)
 
-• **Motor HiveBrain (`HiveBrainBridge`):** sensor `HiveMindSensor` + 5 conductas (`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, `StalkerFlankBehaviour`, `WeaverSupportBehaviour`).
+• **Motor `HiveBrain`:** `HiveBrain` + `HiveBrainSchedule` + `UtilitySelectorBehaviour` (con histéresis) + LOD adaptativo e inspección `/mycelial ai`.
 
-#### [Libro: Cap.4 / arquitectura_hivebrain_gdxai / Pág.2] HiveBrain Nativo, Memorias y gdx-AI (2/3)
+#### [Libro: Cap.4 / arquitectura_hivebrain / Pág.2] HiveBrain Nativo, Memorias y Steering (2/5)
 
-• **11 `ModMemoryTypes`:** `shared_target_pos`, `hive_alert_level`, `nearest_node_pos`, `stalker_flank_pos`, `weaver_support_pos`, `nearest_pylon_pos`, `hive_order`, `mob_combat_xp`, `last_attack_stimulus`, `nearby_ally_count`, `hive_mind_sensor`.
+• **Sensores y Conductas (`HiveBrainBridge`):** `HiveMindSensor` + `HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, `StalkerFlankBehaviour`, `WeaverSupportBehaviour`.
 
-#### [Libro: Cap.4 / arquitectura_hivebrain_gdxai / Pág.3] HiveBrain Nativo, Memorias y gdx-AI (3/3)
+#### [Libro: Cap.4 / arquitectura_hivebrain / Pág.3] HiveBrain Nativo, Memorias y Steering (3/5)
 
-• **Capa gdx-AI (`HiveTacticalTree`):** Árbol de Comportamiento + evaluador de utilidad (`HiveUtilityEvaluator`) + pizarra táctica (`HiveAiBlackboard`, `TacticalIntent`) y campos orgánicos `FastNoiseLite`.
+• **11 `ModMemoryTypes`:** `shared_target_pos`, `hive_alert_level`, `nearest_node_pos`, `stalker_flank_pos`, `weaver_support_pos`, `nearest_pylon_pos`, `hive_order`, `mob_combat_xp`, `last_attack_stimulus`, `nearby_ally_count`, `incoming_projectile_pos`, `hive_mind_sensor`.
+
+#### [Libro: Cap.4 / arquitectura_hivebrain / Pág.4] HiveBrain Nativo, Memorias y Steering (4/5)
+
+• **Motor Táctico Clean-Room:** `HiveBehaviorTree` (`HiveTacticalTree`) + `HiveUtilityEvaluator` + `HiveAiBlackboard` (Doctrina, Trauma y Memoria Episódica).
+
+#### [Libro: Cap.4 / arquitectura_hivebrain / Pág.5] HiveBrain Nativo, Memorias y Steering (5/5)
+
+• **Steering Nativo:** `HiveSteeringEngine` zero-alloc (slots angulares + repulsión de Pilones) y campos `FastNoiseLite`.
 
 <a id="cap4-doctrina_escuadron_pacing"></a>
 ### 2. Doctrinas, Escuadrones y Pacing
@@ -1091,11 +1099,12 @@ Reliquias de Acto III+: congela aprendizaje global o abre grietas al Micelio Pro
 
 Pináculo Acto IV (`overmind_essence` + `hive_heart`); recarga `tide_beacon` con amatista y quitina.
 
-#### [Libro: Cap.9 / recetas_36_datapack / Pág.15] Códice de la Colmena Viva
+#### [Libro: Cap.9 / recetas_36_datapack / Pág.15] Códice de la Colmena Viva y Ámbar Bioluminiscente
 
 > **[Receta 1]** `[crafting_shapeless] book + latent_spore + mycelial_biomass -> 1x mycelial_codex`
+> **[Receta 2]** `[crafting_shaped] MLM/GSG/MLM (G=glowstone_dust, L=latent_spore, M=mycelial_stone, S=synaptic_core) -> 1x luminescent_amber_vein`
 
-Manual in-game sin mesa: Libro + `latent_spore` + `mycelial_biomass` (`mycelial_codex`).
+Manual in-game sin mesa (`mycelial_codex`); veta cristalina para potenciar estaciones (`luminescent_amber_vein`).
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.16] Fundición: Espora y Piedra Micelial
 
@@ -1428,7 +1437,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.3] Telemetría Redstone y Compatibilidad (3/4)
 
-• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** (`HiveBrainBridge`), **gdx-AI** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).
+• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** (`HiveBrainBridge`), **HiveBehaviorTree / HiveSteeringEngine** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.4] Telemetría Redstone y Compatibilidad (4/4)
 
@@ -1574,62 +1583,66 @@ _189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify_ | Puerta recom
 - **ID de Entrada:** `tecnica_comandos/configuracion_cliente_servidor` | **Ícono:** `mycelialmind:synaptic_research_bench` | **Unlock:** `always`
 - **Resumen:** MycelialClientConfig, KeyBindings y MycelialConfig TOML completo
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.1] Claves de Configuración TOML (1/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.1] Claves de Configuración TOML (1/14)
 
 • `[hud] hudAnchor` = `TOP_LEFT` (`TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, `BOTTOM_RIGHT`).
 • `[hud] hudOffsetX` = `0` (`-200..200`); `hudOffsetY` = `0` (`-200..200`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.2] Claves de Configuración TOML (2/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.2] Claves de Configuración TOML (2/14)
 
 • `[hud] hudCompactMode` = `false`; `hudContextualCombat` = `true`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`.
 • `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.3] Claves de Configuración TOML (3/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.3] Claves de Configuración TOML (3/14)
 
 • `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`.
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.4] Claves de Configuración TOML (4/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.4] Claves de Configuración TOML (4/14)
 
 • `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.
+
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/14)
+
+• `[juice]` `screenShakeScale` = `0.65` (`0..1.5`); `statusVignetteEnabled` = `true`; `uiAudioFeedbackEnabled` = `true`; `smoothHudBarsEnabled` = `true`.
+
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/14)
+
 • `[hive_memory]` `learningMultiplier`=`1.0` (`0.1..10`), `decayPerMinute`=`2.0` (`0..50`), `traitActivationThreshold`=`70.0` (`5..500`).
-
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/13)
-
 • `[hive_memory]` `tier2ActivationThreshold`=`200.0` (`25..500`), `tier2DecayMultiplier`=`1.75` (`1..5`), `synergiesEnabled`=`true`.
+
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.7] Claves de Configuración TOML (7/14)
+
 • `[hive_memory]` `suppressorCooldownSeconds`=`120` (`15..600`), `projectileDeflectChance`=`0.30` (`0..0.95`), `symbiosisThreatMultiplierPerSlot`=`0.15` (`0..1`).
-
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/13)
-
 • `[hive_memory]` `maxMutagenSlots`=`2` (`1..5`), `counterSerumBleedRatio`=`0.50` (`0.1..0.95`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.7] Claves de Configuración TOML (7/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.8] Claves de Configuración TOML (8/14)
 
 • `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`), `pylonTier3ChunkLoadingEnabled`=`true`.
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.8] Claves de Configuración TOML (8/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.9] Claves de Configuración TOML (9/14)
 
 • `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`.
 • `[territory]` `playerCountScaling`=`0.15` (`0..1`), `wavesEnabled`=`true`, `waveCooldownTicks`=`3600` (`200..72000`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.9] Claves de Configuración TOML (9/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.10] Claves de Configuración TOML (10/14)
 
 • `[territory]` `autonomousExpansionEnabled`=`true`, `aggressiveVillageAssimilation`=`true`, `maxAutonomousNodes`=`32` (`4..128`), `minNodeSpacing`=`18` (`8..48`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.10] Claves de Configuración TOML (10/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.11] Claves de Configuración TOML (11/14)
 
 • `[territory]` `infectionConversionEnabled`=`true`, `fungalTideEnabled`=`true`, `fungalTideDurationTicks`=`6000` (`600..24000`).
 • `[territory]` `fungalTideCooldownTicks`=`24000` (`1200..72000`), `mycorrhizalAcousticsEnabled`=`true`, `maxSymbioticNodes`=`4` (`1..16`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.11] Claves de Configuración TOML (11/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.12] Claves de Configuración TOML (12/14)
 
 • `[territory]` `mycorrhizalTravelRange`=`96` (`16..256`), `mycorrhizalTravelCooldownTicks`=`1500` (`100..6000`).
 • `[territory]` `progressiveThreatScaling`=`true`, `deathThreatPenalty`=`5.0` (`0..25`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.12] Claves de Configuración TOML (12/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.13] Claves de Configuración TOML (13/14)
 
 • `[dimensional_homeostasis]` `homeostasisEnabled`=`true`, `homeostasisExplosionStressScale`=`1.0` (`0.1..5`), `homeostasisAcidRainDamage`=`2.0` (`0.5..10`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.13] Claves de Configuración TOML (13/13)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.14] Claves de Configuración TOML (14/14)
 
 • `[dimensional_homeostasis]` `homeostasisAntibodyEncapsulationEnabled`=`true`, `homeostasisMaxCystsPerChunk`=`64` (`8..256`).
 • `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).

@@ -46,7 +46,7 @@ import java.util.Set;
  * Displays Hive Mind threat level and active AdaptationTraits on the HUD
  * whenever the player carries or holds the Mycelial Bio-Scanner / Bio-Extractor.
  */
-@EventBusSubscriber(modid = MycelialMind.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MycelialMind.MODID, value = Dist.CLIENT)
 public final class BioScannerHudOverlay implements LayeredDraw.Layer {
     private static final ResourceLocation LAYER_ID =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bio_scanner_hud");

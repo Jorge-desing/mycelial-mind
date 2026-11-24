@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Registers NeoForge DataGen entrypoint and emits NeoForge Data Maps and Global Loot Modifiers.
  */
-@EventBusSubscriber(modid = MycelialMind.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = MycelialMind.MODID)
 public final class ModDataGenerators {
     private ModDataGenerators() {
     }

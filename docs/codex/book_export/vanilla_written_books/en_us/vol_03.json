@@ -4,7 +4,7 @@
     "economia_datos",
     "mundo_dimension"
   ],
-  "page_count": 97,
+  "page_count": 98,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.III"
@@ -173,7 +173,10 @@
         "raw": "tide_beacon\nAct IV pinnacle\n(`overmind_essence` +\n`hive_heart`);\nrestores\n`tide_beacon` charges."
       },
       {
-        "raw": "Codex of the Living\nHive\n[crafting_shapeless]\nbook + latent_spore +\nmycelial_biomass -> 1x\nmycelial_codex\nIn-game manual: Book\n+ `latent_spore` +\n`mycelial_biomass`\n(`mycelial_codex`)."
+        "raw": "Codex of the Living\nHive & Luminescent\nAmber Vein\n[crafting_shapeless]\nbook + latent_spore +\nmycelial_biomass -> 1x\nmycelial_codex\n[crafting_shaped]\nMLM/GSG/MLM\n(G=glowstone_dust,\nL=latent_spore,\nM=mycelial_stone,\nS=synaptic_core) ->\n1x"
+      },
+      {
+        "raw": "luminescent_amber_vei\nn\nIn-game manual\n(`mycelial_codex`);\ncrystalline vein to\namplify stations\n(`luminescent_amber_v\nein`)."
       },
       {
         "raw": "Smelting: Spore &\nMycelial Stone\n[smelting]\nbioluminescent_mycelia\nl_cap -> 1x\nlatent_spore\n[smelting]\ncreeping_mycelium ->\n1x mycelial_stone\nSmelt\n`bioluminescent_myceli\nal_cap` ->\n`latent_spore` (0.15\nXP) or"

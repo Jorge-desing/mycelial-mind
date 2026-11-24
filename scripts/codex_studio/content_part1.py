@@ -850,12 +850,12 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
     # ==================================================================
     ch4_entries = (
         CodexEntry(
-            id="arquitectura_hivebrain_gdxai",
+            id="arquitectura_hivebrain",
             order=1,
-            title=lt("Arquitectura Híbrida HiveBrain + gdx-AI", "HiveBrain + gdx-AI Architecture"),
+            title=lt("Arquitectura Nativa HiveBrain", "Native HiveBrain Architecture"),
             subtitle=lt(
-                "HiveBrainBridge, 11 ModMemoryTypes y HiveTacticalTree",
-                "HiveBrainBridge, 11 ModMemoryTypes & HiveTacticalTree",
+                "HiveBrain, HiveBehaviorTree, HiveSteeringEngine y 11 ModMemoryTypes",
+                "HiveBrain, HiveBehaviorTree, HiveSteeringEngine & 11 ModMemoryTypes",
             ),
             icon_item="mycelialmind:neural_echo_core",
             x=grid_xy(0, 3)[0],
@@ -863,8 +863,13 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
             parents=(),
             unlock_gate="always",
             registry_refs=(
+                "HiveBrain",
                 "HiveBrainBridge",
                 "HiveBrainOwner",
+                "HiveBrainSchedule",
+                "UtilitySelectorBehaviour",
+                "HiveBehaviorTree",
+                "HiveSteeringEngine",
                 "HiveMindSensor",
                 "HiveTacticalTree",
                 "HiveUtilityEvaluator",
@@ -880,39 +885,50 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
                 "mycelialmind:mob_combat_xp",
                 "mycelialmind:last_attack_stimulus",
                 "mycelialmind:nearby_ally_count",
+                "mycelialmind:incoming_projectile_pos",
                 "mycelialmind:hive_mind_sensor",
             ),
             pages=tuple(
                 chunk_paired_blocks(
-                    "hivebrain_gdx",
-                    "HiveBrain Nativo, Memorias y gdx-AI",
-                    "Native HiveBrain, Memories & gdx-AI",
+                    "hivebrain_native",
+                    "HiveBrain Nativo, Memorias y Steering",
+                    "Native HiveBrain, Memories & Steering",
                     [
                         (
-                            "• **Motor HiveBrain (`HiveBrainBridge`):** sensor `HiveMindSensor` + 5 conductas "
-                            "(`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, "
-                            "`StalkerFlankBehaviour`, `WeaverSupportBehaviour`).",
-                            "• **HiveBrain Engine (`HiveBrainBridge`):** `HiveMindSensor` + 5 behaviours "
-                            "(`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, "
-                            "`StalkerFlankBehaviour`, `WeaverSupportBehaviour`).",
+                            "• **Motor `HiveBrain`:** `HiveBrain` + `HiveBrainSchedule` + "
+                            "`UtilitySelectorBehaviour` (con histéresis) + LOD adaptativo e inspección `/mycelial ai`.",
+                            "• **`HiveBrain` Engine:** `HiveBrain` + `HiveBrainSchedule` + "
+                            "`UtilitySelectorBehaviour` (hysteresis) + adaptive LOD & `/mycelial ai` telemetry.",
+                        ),
+                        (
+                            "• **Sensores y Conductas (`HiveBrainBridge`):** `HiveMindSensor` + "
+                            "`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, "
+                            "`StalkerFlankBehaviour`, `WeaverSupportBehaviour`.",
+                            "• **Sensors & Behaviours (`HiveBrainBridge`):** `HiveMindSensor` + "
+                            "`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, "
+                            "`StalkerFlankBehaviour`, `WeaverSupportBehaviour`.",
                         ),
                         (
                             "• **11 `ModMemoryTypes`:** `shared_target_pos`, `hive_alert_level`, "
                             "`nearest_node_pos`, `stalker_flank_pos`, `weaver_support_pos`, "
                             "`nearest_pylon_pos`, `hive_order`, `mob_combat_xp`, `last_attack_stimulus`, "
-                            "`nearby_ally_count`, `hive_mind_sensor`.",
+                            "`nearby_ally_count`, `incoming_projectile_pos`, `hive_mind_sensor`.",
                             "• **11 `ModMemoryTypes`:** `shared_target_pos`, `hive_alert_level`, "
                             "`nearest_node_pos`, `stalker_flank_pos`, `weaver_support_pos`, "
                             "`nearest_pylon_pos`, `hive_order`, `mob_combat_xp`, `last_attack_stimulus`, "
-                            "`nearby_ally_count`, `hive_mind_sensor`.",
+                            "`nearby_ally_count`, `incoming_projectile_pos`, `hive_mind_sensor`.",
                         ),
                         (
-                            "• **Capa gdx-AI (`HiveTacticalTree`):** Árbol de Comportamiento + evaluador "
-                            "de utilidad (`HiveUtilityEvaluator`) + pizarra táctica (`HiveAiBlackboard`, "
-                            "`TacticalIntent`) y campos orgánicos `FastNoiseLite`.",
-                            "• **gdx-AI Layer (`HiveTacticalTree`):** Behavior Tree + utility scoring "
-                            "(`HiveUtilityEvaluator`) + tactical blackboard (`HiveAiBlackboard`, "
-                            "`TacticalIntent`) and `FastNoiseLite` steering fields.",
+                            "• **Motor Táctico Clean-Room:** `HiveBehaviorTree` (`HiveTacticalTree`) + "
+                            "`HiveUtilityEvaluator` + `HiveAiBlackboard` (Doctrina, Trauma y Memoria Episódica).",
+                            "• **Clean-Room Tactical Layer:** `HiveBehaviorTree` (`HiveTacticalTree`) + "
+                            "`HiveUtilityEvaluator` + `HiveAiBlackboard` (Doctrine, Trauma & Episodic Memory).",
+                        ),
+                        (
+                            "• **Steering Nativo:** `HiveSteeringEngine` zero-alloc (slots angulares + "
+                            "repulsión de Pilones) y campos `FastNoiseLite`.",
+                            "• **Native Steering:** zero-alloc `HiveSteeringEngine` (attack slots + "
+                            "Pylon repulsion) & `FastNoiseLite` organic flow.",
                         ),
                     ],
                 )
@@ -929,7 +945,7 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
             icon_item="mycelialmind:purifier_grenade",
             x=grid_xy(1, 3)[0],
             y=grid_xy(1, 3)[1],
-            parents=("arquitectura_hivebrain_gdxai",),
+            parents=("arquitectura_hivebrain",),
             unlock_gate="always",
             registry_refs=(
                 "HiveDoctrine",

@@ -6,7 +6,7 @@
     "memoria_colmena",
     "ia_tactica"
   ],
-  "page_count": 75,
+  "page_count": 77,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.I"
@@ -193,19 +193,25 @@
         "raw": "(`suppressorCooldown\nSeconds = 120s`)."
       },
       {
-        "raw": "Cap.4: HiveBrain +\ngdx-AI Architecture\nNative HiveBrain,\nMemories & gdx-AI\n(1/3)\n• HiveBrain Engine\n(`HiveBrainBridge`):\n`HiveMindSensor` + 5\nbehaviours\n(`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh\naviour`,\n`AcidSpitterCombatBeh"
+        "raw": "Cap.4: Native HiveBrain\nArchitecture\nNative HiveBrain,\nMemories & Steering\n(1/5)\n• `HiveBrain` Engine:\n`HiveBrain` +\n`HiveBrainSchedule` +\n`UtilitySelectorBehavio\nur` (hysteresis) +\nadaptive LOD &\n`/mycelial ai`\ntelemetry."
       },
       {
-        "raw": "aviour`,\n`StalkerFlankBehaviou\nr`,\n`WeaverSupportBehavi\nour`)."
+        "raw": "Native HiveBrain,\nMemories & Steering\n(2/5)\n• Sensors &\nBehaviours\n(`HiveBrainBridge`):\n`HiveMindSensor` +\n`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh\naviour`,\n`AcidSpitterCombatBeh\naviour`,\n`StalkerFlankBehaviou"
       },
       {
-        "raw": "Native HiveBrain,\nMemories & gdx-AI\n(2/3)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
+        "raw": "r`,\n`WeaverSupportBehavi\nour`."
       },
       {
-        "raw": "`nearby_ally_count`,\n`hive_mind_sensor`."
+        "raw": "Native HiveBrain,\nMemories & Steering\n(3/5)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
       },
       {
-        "raw": "Native HiveBrain,\nMemories & gdx-AI\n(3/3)\n• gdx-AI Layer\n(`HiveTacticalTree`):\nBehavior Tree + utility\nscoring\n(`HiveUtilityEvaluator`)\n+ tactical blackboard\n(`HiveAiBlackboard`,\n`TacticalIntent`) and\n`FastNoiseLite`\nsteering fields."
+        "raw": "`nearby_ally_count`,\n`incoming_projectile_p\nos`,\n`hive_mind_sensor`."
+      },
+      {
+        "raw": "Native HiveBrain,\nMemories & Steering\n(4/5)\n• Clean-Room Tactical\nLayer:\n`HiveBehaviorTree`\n(`HiveTacticalTree`) +\n`HiveUtilityEvaluator` +\n`HiveAiBlackboard`\n(Doctrine, Trauma &\nEpisodic Memory)."
+      },
+      {
+        "raw": "Native HiveBrain,\nMemories & Steering\n(5/5)\n• Native Steering:\nzero-alloc\n`HiveSteeringEngine`\n(attack slots + Pylon\nrepulsion) &\n`FastNoiseLite` organic\nflow."
       },
       {
         "raw": "Cap.4: Doctrines,\nSquads & Pacing\nTactical Command &\nInfluence (1/4)\n• 5 Doctrines\n(`HiveDoctrine`) & 4\nOrders (`HiveOrder`):\n`DORMANT`->`NONE`,\n`FORAGING`->`FLANK_PE\nRIMETER`,\n`ADAPTIVE_HUNT`->`FLA\nNK_PERIMETER`,\n`SIEGE_ASSAULT`->`PRE\nSSURE_TARGET`,"

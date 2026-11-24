@@ -4349,3 +4349,21 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Verificación / Estado:**
   - `CodeMode` (`mycelial-mind-dev`): `test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon` -> **`BUILD SUCCESSFUL` (`23s`), `193/193` `@GameTest`s PASS (`5.795s`), `110/110` JUnit en `12` suites (`2.041s`)**, `validate_skills` (`8/8` OK), `audit_mod_assets` (`ok: true`, `2146/2146` claves EN/ES). Nota: en una corrida intermedia previa `ecosystempurposelayersallworkinruntime` falló de forma intermitente (aura de `ColonyWarden`) y pasó al re-ejecutar `193/193`.
   - Auditoría de JAR (`build/libs/mycelialmind-2.0.0.jar`, `2387` entradas): `0` JARs/clases de `gdx` o `smartbrainlib`.
+
+
+## [2026-11-24 15:44] — Pulido Integral: 0 Warnings, Cobertura 100% de Codex Studio, Estabilidad `@GameTest`, RCON 23/23 y `dist/` (`/grill-me`)
+- **Tipo:** `CORRECCIÓN` | `VERIFICACIÓN` | `IMPLEMENTACIÓN`
+- **Resumen:**
+  1. **Limpieza de Warnings de Compilación (`EventBusSubscriber.Bus`):** Eliminado `bus = EventBusSubscriber.Bus.MOD` (marcado `[removal]` en NeoForge 21.1.267) en `ClientSetup`, `BioScannerHudOverlay`, `MycelialKeyBindings`, `MycelialParticleProviders` y `ModDataGenerators` (`compileJava` limpio con `0` warnings propios).
+  2. **Estabilización de `@GameTest` (`ecosystemPurposeLayersAllWorkInRuntime`):** Fijada cepa explícita `HiveStrain.ORTHODOX` en `warden` y `wingman` antes de `warden.aiStep()`, y limpiado el texto residual `"gdxAI Arrive+BlendedSteering"` en `MycelialGameTests.java`.
+  3. **Cobertura 100% en `codex_studio` (`ok=True`):** Actualizado `scripts/codex_studio/content_part1.py` (`arquitectura_hivebrain_gdxai` -> `arquitectura_hivebrain` con motor 100% nativo `HiveBrain` / `HiveBehaviorTree` / `HiveSteeringEngine` / LOD / `/mycelial ai` y `incoming_projectile_pos`) y `scripts/codex_studio/content_part3.py` (`luminescent_amber_vein` en `rec_craft_15`, `[juice]` `screenShakeScale`/`statusVignetteEnabled`/`uiAudioFeedbackEnabled`/`smoothHudBarsEnabled`, y reemplazo de mención `gdx-AI`), regenerando `docs/codex/` y `data/mycelialmind/{codex,modonomicon}/` y eliminando los `.json` huérfanos de `arquitectura_hivebrain_gdxai`.
+  4. **Paquete `dist/` Actualizado:** Copiado `build/libs/mycelialmind-2.0.0.jar` (`SHA-256: 2DA6155EF28916C62614C7495C94B31763C13E1ECAB67403056B4619E4EFFBD1`) y regenerado `dist/mycelialmind-2.0.0-mc1.21.1-neoforge.zip` (`SHA-256: BCDC8CEF3CCB8C540479665652F348D002D479759B142D27E07F3E56FA4378E7`).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/{client/{ClientSetup,MycelialKeyBindings,hud/BioScannerHudOverlay,particle/MycelialParticleProviders},datagen/ModDataGenerators,test/MycelialGameTests}.java`
+  - `scripts/codex_studio/content_part{1,3}.py`, `docs/codex/**`, `src/main/resources/data/mycelialmind/{codex,modonomicon}/**`, `src/main/resources/assets/mycelialmind/lang/{en_us,es_es}.json`
+  - `dist/mycelialmind-2.0.0-mc1.21.1-neoforge/` + `.zip`, `MEMORY.md`
+- **Skills revisadas:** Pertinencia de las `8` skills revisada; sin cambios necesarios (`validate_skills` = `8/8 OK`).
+- **Verificación / Estado:**
+  - `CodeMode` (`mycelial-mind-dev`): `run_model_studio` (`ok: true`), `run_texture_studio` (`ok: true`), `run_particle_studio` (`ok: true`), `run_sound_studio` (`ok: true`), `run_codex_studio` (`ok: true`, `chapters=12`, `entries=61`, `pages=238`, `5/5` tests OK), `audit_mod_assets` (`ok: true`, `2146/2146` EN/ES, `0` faltantes), `validate_skills` (`8/8` OK).
+  - Gradle JDK 21 (`test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon`): **`BUILD SUCCESSFUL` (`40s`), `110/110` JUnit (`1.939s`), `193/193` `@GameTest`s PASS (`5.692s`)**.
+  - Servidor smoke headless (`start_smoke_server` -> `run_rcon_verify_suite` -> `stop_smoke_server`): **`ALL 23 automated scenario checks PASSED`** + `/mycelial ai 24` OK.

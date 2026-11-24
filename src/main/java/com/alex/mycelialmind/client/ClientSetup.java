@@ -102,7 +102,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 /**
  * Client-side custom 3D model layers, entity/projectile renderers, and emissive glow layers.
  */
-@EventBusSubscriber(modid = MycelialMind.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MycelialMind.MODID, value = Dist.CLIENT)
 public final class ClientSetup {
     private static final ResourceLocation ACID_SPIT_TEX =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "textures/entity/acid_spit.png");

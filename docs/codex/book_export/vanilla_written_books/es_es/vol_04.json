@@ -161,7 +161,7 @@
         "raw": "(nivel/simbiontes/biom\nasa)."
       },
       {
-        "raw": "Telemetría Redstone\ny Compatibilidad (3/4)\n• Compat IA/Mundo:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), HiveBrain\n(`HiveBrainBridge`),\ngdx-AI\n(`HiveTacticalTree`) y\nJade\n(`MycelialJadePlugin`)."
+        "raw": "Telemetría Redstone\ny Compatibilidad (3/4)\n• Compat IA/Mundo:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), HiveBrain\n(`HiveBrainBridge`),\nHiveBehaviorTree /\nHiveSteeringEngine\n(`HiveTacticalTree`) y\nJade\n(`MycelialJadePlugin`)."
       },
       {
         "raw": "Telemetría Redstone\ny Compatibilidad (4/4)\n• Compat UI/Render:\nJEI\n(`MycelialJeiPlugin`),\nEMI\n(`MycelialEmiPlugin`),\nIris\n(`MycelialIrisCompat`\nPBR), Modonomicon\n(`MycelialModonomiconC\nompat`) y AzureLib."

@@ -1,9 +1,9 @@
 {
-  "ok": false,
+  "ok": true,
   "stats": {
     "chapters": 12,
     "entries": 61,
-    "pages": 235
+    "pages": 238
   },
   "summary": {
     "blocks": {
@@ -67,8 +67,8 @@
       "missing": 0
     },
     "memory_types": {
-      "expected": 11,
-      "covered": 11,
+      "expected": 12,
+      "covered": 12,
       "missing": 0
     },
     "recipes": {
@@ -108,8 +108,8 @@
     },
     "client_configs": {
       "expected": 19,
-      "covered": 15,
-      "missing": 4
+      "covered": 19,
+      "missing": 0
     },
     "keybindings": {
       "expected": 2,
@@ -193,8 +193,8 @@
     },
     "recipe_widgets": {
       "expected": 40,
-      "covered": 39,
-      "missing": 1
+      "covered": 40,
+      "missing": 0
     },
     "entity_widgets": {
       "expected": 18,
@@ -202,17 +202,7 @@
       "missing": 0
     }
   },
-  "missing": {
-    "client_configs": [
-      "screenShakeScale",
-      "statusVignetteEnabled",
-      "uiAudioFeedbackEnabled",
-      "smoothHudBarsEnabled"
-    ],
-    "recipe_widgets": [
-      "luminescent_amber_vein"
-    ]
-  },
+  "missing": {},
   "invalid_refs": [],
   "recipe_pair_errors": [],
   "budget_issues": []

@@ -12,7 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 
 /** Registers the client provider for every Mycelial Mind particle type. */
-@EventBusSubscriber(modid = MycelialMind.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MycelialMind.MODID, value = Dist.CLIENT)
 public final class MycelialParticleProviders {
     @SubscribeEvent
     public static void register(RegisterParticleProvidersEvent event) {

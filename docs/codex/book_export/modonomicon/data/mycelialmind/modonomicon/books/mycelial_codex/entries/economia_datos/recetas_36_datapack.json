@@ -137,7 +137,9 @@
       "type": "modonomicon:crafting_recipe",
       "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.title",
       "recipe_id_1": "mycelialmind:mycelial_codex",
-      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.text"
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.title2",
+      "recipe_id_2": "mycelialmind:luminescent_amber_vein"
     },
     {
       "type": "modonomicon:smelting_recipe",

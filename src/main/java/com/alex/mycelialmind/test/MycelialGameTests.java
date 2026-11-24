@@ -3341,7 +3341,7 @@ public final class MycelialGameTests {
         var arriveVec = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeTacticalArriveSteering(
                 brute, player.position(), level);
         if (arriveVec.x <= 0.0D || arriveVec.length() > 2.21D) {
-            helper.fail("gdxAI Arrive+BlendedSteering invalid: vec=" + arriveVec);
+            helper.fail("Native Arrive+BlendedSteering invalid: vec=" + arriveVec);
             return;
         }
 
@@ -9788,6 +9788,8 @@ public final class MycelialGameTests {
             helper.assertTrue(warden != null && wingman != null, "Warden and Sporeling must instantiate.");
             spawnedEntities.add(warden);
             spawnedEntities.add(wingman);
+            warden.setHiveStrain(com.alex.mycelialmind.hive.HiveStrain.ORTHODOX);
+            wingman.setHiveStrain(com.alex.mycelialmind.hive.HiveStrain.ORTHODOX);
             warden.setPos(origin.getX() + 1.5D, origin.getY() + 3.0D, origin.getZ() + 1.5D);
             wingman.setPos(origin.getX() + 3.0D, origin.getY() + 3.0D, origin.getZ() + 1.5D);
             level.addFreshEntity(warden);

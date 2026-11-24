@@ -284,10 +284,13 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         recipe_page(
             "rec_craft_15",
             "mycelialmind:mycelial_codex",
-            "Códice de la Colmena Viva",
-            "Codex of the Living Hive",
-            "Manual in-game sin mesa: Libro + `latent_spore` + `mycelial_biomass` (`mycelial_codex`).",
-            "In-game manual: Book + `latent_spore` + `mycelial_biomass` (`mycelial_codex`).",
+            "Códice de la Colmena Viva y Ámbar Bioluminiscente",
+            "Codex of the Living Hive & Luminescent Amber Vein",
+            "Manual in-game sin mesa (`mycelial_codex`); veta cristalina para potenciar estaciones (`luminescent_amber_vein`).",
+            "In-game manual (`mycelial_codex`); crystalline vein to amplify stations (`luminescent_amber_vein`).",
+            recipe_id_2="mycelialmind:luminescent_amber_vein",
+            title2_es="Veta de Ámbar Bioluminiscente",
+            title2_en="Luminescent Amber Vein",
         ),
         recipe_page(
             "rec_smelt_1",
@@ -1244,9 +1247,9 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                         ),
                         (
                             "• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** "
-                            "(`HiveBrainBridge`), **gdx-AI** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).",
+                            "(`HiveBrainBridge`), **HiveBehaviorTree / HiveSteeringEngine** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).",
                             "• **AI/World Compat:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** "
-                            "(`HiveBrainBridge`), **gdx-AI** (`HiveTacticalTree`) & **Jade** (`MycelialJadePlugin`).",
+                            "(`HiveBrainBridge`), **HiveBehaviorTree / HiveSteeringEngine** (`HiveTacticalTree`) & **Jade** (`MycelialJadePlugin`).",
                         ),
                         (
                             "• **Compat UI/Render:** **JEI** (`MycelialJeiPlugin`), **EMI** (`MycelialEmiPlugin`), "
@@ -1699,6 +1702,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`."),
         ("• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.",
          "• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`."),
+        ("• `[juice]` `screenShakeScale` = `0.65` (`0..1.5`); `statusVignetteEnabled` = `true`; `uiAudioFeedbackEnabled` = `true`; `smoothHudBarsEnabled` = `true`.",
+         "• `[juice]` `screenShakeScale` = `0.65` (`0..1.5`); `statusVignetteEnabled` = `true`; `uiAudioFeedbackEnabled` = `true`; `smoothHudBarsEnabled` = `true`."),
     ]
     server_cfg_blocks = [
         ("• `[hive_memory]` `learningMultiplier`=`1.0` (`0.1..10`), `decayPerMinute`=`2.0` (`0..50`), `traitActivationThreshold`=`70.0` (`5..500`).",

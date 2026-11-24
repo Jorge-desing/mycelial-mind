@@ -14,7 +14,7 @@
   "sort_number": 2,
   "parents": [
     {
-      "entry": "mycelialmind:ia_tactica/arquitectura_hivebrain_gdxai",
+      "entry": "mycelialmind:ia_tactica/arquitectura_hivebrain",
       "draw_arrow": true,
       "line_enabled": true,
       "line_reversed": false
