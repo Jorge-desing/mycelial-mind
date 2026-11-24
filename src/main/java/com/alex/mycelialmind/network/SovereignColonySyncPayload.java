@@ -108,7 +108,10 @@ public record SovereignColonySyncPayload(
                 int incidentCode = ByteBufCodecs.VAR_INT.decode(buf);
                 int outcomeCode = ByteBufCodecs.VAR_INT.decode(buf);
                 memories.add(new ClientColonyCache.SiteMemorySnapshot(sitePos, learnedHabit, trialHabit,
-                        incidents, successes, failures, incidentCode, outcomeCode));
+                        incidents, successes, failures, incidentCode, outcomeCode,
+                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf)));
             }
             boolean transferActive = ByteBufCodecs.BOOL.decode(buf);
             BlockPos transferSource = BlockPos.of(buf.readLong());
@@ -199,6 +202,11 @@ public record SovereignColonySyncPayload(
                 ByteBufCodecs.VAR_INT.encode(buf, memory.failedTrials());
                 ByteBufCodecs.VAR_INT.encode(buf, memory.lastIncidentCode());
                 ByteBufCodecs.VAR_INT.encode(buf, memory.lastOutcomeCode());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.episodeMask());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.escortCall());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.restCall());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.pickupCall());
+                ByteBufCodecs.VAR_INT.encode(buf, memory.lessonStage());
             }
             ByteBufCodecs.BOOL.encode(buf, payload.memoryTransferActive());
             buf.writeLong(payload.memoryTransferSource().asLong());
@@ -266,10 +274,19 @@ public record SovereignColonySyncPayload(
         }
         List<ClientColonyCache.SiteMemorySnapshot> memories = new ArrayList<>();
         for (SovereignColonyData.SiteMemorySnapshot memory : colony.getSiteMemorySnapshots()) {
+            var dialect = colony.getDialect(memory.sitePos());
+            int episodeMask = 0;
+            for (ColonySiteHabit habit : ColonySiteHabit.values()) {
+                if (habit != ColonySiteHabit.NONE && dialect.episode(habit) != null) episodeMask |= 1 << habit.ordinal();
+            }
+            var lesson = colony.getDialectLesson();
+            int lessonStage = lesson != null && lesson.source().equals(memory.sitePos()) ? lesson.stage().ordinal() : -1;
             memories.add(new ClientColonyCache.SiteMemorySnapshot(
                     memory.sitePos(), memory.learnedHabit().ordinal(), memory.trialHabit().ordinal(),
                     memory.incidentCount(), memory.successfulTrials(), memory.failedTrials(),
-                    memory.lastIncidentCode(), memory.lastOutcomeCode()));
+                    memory.lastIncidentCode(), memory.lastOutcomeCode(), episodeMask,
+                    dialect.call(ColonySiteHabit.ESCORTED_COURIER), dialect.call(ColonySiteHabit.REST_BEFORE_RETURN),
+                    dialect.call(ColonySiteHabit.STAGGERED_PICKUP), lessonStage));
         }
         List<ClientColonyCache.ReconstructionSnapshot> reconstructions = new ArrayList<>();
         for (ColonyReconstruction entry : colony.getReconstructionEntries()) {

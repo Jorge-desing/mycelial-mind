@@ -23,8 +23,17 @@ public final class ClientColonyCache {
             int successfulTrials,
             int failedTrials,
             int lastIncidentCode,
-            int lastOutcomeCode
+            int lastOutcomeCode,
+            int episodeMask,
+            int escortCall,
+            int restCall,
+            int pickupCall,
+            int lessonStage
     ) {
+        public SiteMemorySnapshot(BlockPos pos, int learned, int trial, int incidents, int successes,
+                                  int failures, int incidentCode, int outcomeCode) {
+            this(pos, learned, trial, incidents, successes, failures, incidentCode, outcomeCode, 0, -1, -1, -1, -1);
+        }
     }
 
     public record WorkerSnapshot(

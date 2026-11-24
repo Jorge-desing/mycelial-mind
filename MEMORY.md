@@ -4059,3 +4059,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, lección persistente
 - Añadidas etapas guardadas de viaje, observación y regreso, selección validada de aprendiz y comprobación de demostraciones en el instante del episodio con ambos trabajadores presentes. La muerte del aprendiz cancela la lección. Acciones de servidor para iniciar y cancelar añadidas. `test` pasó offline.
 - Pendiente: selección de maestro, interfaz y sincronización de dialectos, emisión y respuestas, conflictos, cancelación visible, sonido/subtítulos, pruebas funcionales y revisión de los casos de descarga y destrucción. La nueva lección aún no está conectada a la interfaz.
+
+## 2026-11-23 — Dialectos, controles iniciales
+- Añadida página de dialectos en el Nexo para seleccionar origen, destino, significado, dos pulsos y aprendiz, iniciar o cancelar lección y consultar su etapa. La red sincroniza episodios y vocabulario por puesto con protocolo 25; mensajes en español e inglés.
+- JUnit pasó y GameTests aislados 179/179 pasaron antes del último ajuste de mensaje de rechazo; JUnit volvió a pasar después. Falta verificar visualmente la pantalla. Pendientes maestro seleccionado, señal audible y visual, emisión, respuestas reales, conflictos explicativos y pruebas funcionales de la lección.

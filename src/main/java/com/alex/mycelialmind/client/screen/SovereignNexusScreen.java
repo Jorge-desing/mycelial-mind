@@ -39,6 +39,12 @@ public class SovereignNexusScreen extends Screen {
     private int reconstructionSuccessorIndex;
     private int reconstructionWitnessIndex;
     private boolean memoryPage;
+    private boolean dialectPage;
+    private int dialectSource;
+    private int dialectTarget = 1;
+    private int dialectMeaning = 1;
+    private int dialectCall;
+    private int dialectWorker;
 
     private Button casteSelectButton;
     private Button incubateButton;
@@ -60,6 +66,10 @@ public class SovereignNexusScreen extends Screen {
         BlockPos nexusPos = ClientColonyCache.getNexusPos();
 
         addPageTabs(left, top);
+        if (dialectPage) {
+            rebuildDialectWidgets(left, top, nexusPos);
+            return;
+        }
         if (memoryPage) {
             rebuildMemoryWidgets(left, top, nexusPos);
             return;
@@ -194,17 +204,75 @@ public class SovereignNexusScreen extends Screen {
         Button overview = this.addRenderableWidget(Button.builder(
                 Component.translatable("gui.mycelialmind.colony.tab_overview"), button -> {
                     memoryPage = false;
+                    dialectPage = false;
                     playClick(1.0F);
                     rebuildColonyWidgets();
                 }).bounds(left + 4, top + 3, 78, 16).build());
-        overview.active = memoryPage;
+        overview.active = memoryPage || dialectPage;
         Button memories = this.addRenderableWidget(Button.builder(
                 Component.translatable("gui.mycelialmind.colony.tab_memory"), button -> {
                     memoryPage = true;
+                    dialectPage = false;
                     playClick(1.18F);
                     rebuildColonyWidgets();
                 }).bounds(left + PANEL_W - 82, top + 3, 78, 16).build());
-        memories.active = !memoryPage;
+        memories.active = !memoryPage || dialectPage;
+        Button dialect = this.addRenderableWidget(Button.builder(
+                Component.translatable("gui.mycelialmind.colony.dialect.tab"), button -> {
+                    dialectPage = true;
+                    memoryPage = false;
+                    rebuildColonyWidgets();
+                }).bounds(left + 145, top + 3, 78, 16).build());
+        dialect.active = !dialectPage;
+    }
+
+    private void rebuildDialectWidgets(int left, int top, BlockPos nexus) {
+        var sites = ClientColonyCache.getSiteMemories();
+        var workers = ClientColonyCache.getWorkers();
+        if (sites.size() >= 2) {
+            dialectSource = Math.floorMod(dialectSource, sites.size());
+            dialectTarget = Math.floorMod(dialectTarget, sites.size());
+            var source = sites.get(dialectSource);
+            var target = sites.get(dialectTarget);
+            addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.source", formatPos(source.sitePos())), b -> {
+                dialectSource = (dialectSource + 1) % sites.size(); rebuildColonyWidgets();
+            }).bounds(left + 10, top + 45, 348, 20).build());
+            addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.target", formatPos(target.sitePos())), b -> {
+                dialectTarget = (dialectTarget + 1) % sites.size(); rebuildColonyWidgets();
+            }).bounds(left + 10, top + 68, 348, 20).build());
+            ColonySiteHabit habit = ColonySiteHabit.fromIndex(dialectMeaning);
+            addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.meaning", Component.translatable(habit.translationKey())), b -> {
+                dialectMeaning = dialectMeaning % 3 + 1; rebuildColonyWidgets();
+            }).bounds(left + 10, top + 91, 348, 20).build());
+            addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.call", dialectCall / 3 + 1, dialectCall % 3 + 1), b -> {
+                dialectCall = (dialectCall + 1) % 9; rebuildColonyWidgets();
+            }).bounds(left + 10, top + 114, 348, 20).build());
+            if (!workers.isEmpty()) {
+                dialectWorker = Math.floorMod(dialectWorker, workers.size());
+                var worker = workers.get(dialectWorker);
+                addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.apprentice", worker.workerId().toString().substring(0, 8), Component.translatable(worker.caste().nameKey())), b -> {
+                    dialectWorker = (dialectWorker + 1) % workers.size(); rebuildColonyWidgets();
+                }).bounds(left + 10, top + 137, 348, 20).build());
+                int knownCall = switch (habit) {
+                    case ESCORTED_COURIER -> source.escortCall();
+                    case REST_BEFORE_RETURN -> source.restCall();
+                    case STAGGERED_PICKUP -> source.pickupCall();
+                    default -> -1;
+                };
+                boolean coinage = knownCall < 0;
+                int call = coinage ? dialectCall : knownCall;
+                Button start = addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.start"), b -> {
+                    SovereignColonyActionPayload.sendDialectLesson(nexus, source.sitePos(), target.sitePos(), worker.workerId(), habit.ordinal(), call, coinage);
+                }).bounds(left + 10, top + 160, 170, 20).build());
+                start.active = nexus != null && !source.sitePos().equals(target.sitePos())
+                        && (source.episodeMask() & (1 << habit.ordinal())) != 0 && source.lessonStage() < 0;
+            }
+            addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.cancel"), b -> {
+                SovereignColonyActionPayload.sendToServer(SovereignColonyActionPayload.ACTION_CANCEL_DIALECT_LESSON, nexus, 0, null);
+            }).bounds(left + 188, top + 160, 170, 20).build()).active = nexus != null;
+        }
+        addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> onClose())
+                .bounds(left + PANEL_W - 84, top + PANEL_H - 25, 74, 18).build());
     }
 
     private void rebuildMemoryWidgets(int left, int top, BlockPos nexusPos) {
@@ -494,7 +562,23 @@ public class SovereignNexusScreen extends Screen {
 
         graphics.drawCenteredString(this.font, this.title, left + PANEL_W / 2, top + 7, 0xFF9BF6B0);
 
-        if (memoryPage) {
+        if (dialectPage) {
+            graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.title"), left + 10, top + 25, 0xFFD8B4FE, true);
+            var sites = ClientColonyCache.getSiteMemories();
+            if (sites.size() >= 2) {
+                var site = sites.get(Math.floorMod(dialectSource, sites.size()));
+                int stage = site.lessonStage();
+                String key = stage < 0 ? "idle" : switch (stage) {
+                    case 0 -> "travelling";
+                    case 1 -> "observing";
+                    default -> "returning";
+                };
+                graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect." + key),
+                        left + 10, top + 190, 0xFFD8F3DC, false);
+            }
+            super.render(graphics, mouseX, mouseY, partialTick);
+            return;
+        } else if (memoryPage) {
             renderMemoryPage(graphics, left, top);
             super.render(graphics, mouseX, mouseY, partialTick);
             return;

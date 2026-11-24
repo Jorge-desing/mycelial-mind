@@ -2011,5 +2011,19 @@
   "compat.mycelialmind.info.sovereign_nexus": "Ancla una Colonia Soberana cooperativa tras vencer a la Matriarca Ápex; almacena biomasa, incuba simbiontes, emite telemetría de Redstone y calma el estrés homeostático cercano.",
   "compat.mycelialmind.info.sovereign_command_staff": "Configura zonas de trabajo, cofres de entrada/salida, castas y estado de espera de los simbiontes, y órdenes directas de colonia.",
   "compat.mycelialmind.info.field_engram": "Núcleo de telemetría único recuperado en santuarios, mareas fúngicas, expediciones de Micelio Profundo y ciclos post-Matriarca; se analiza con el Códice.",
-  "compat.mycelialmind.info.reclaimed_bloom": "Flora simbiótica regenerativa de los jardines recuperados en Micelio Profundo; al madurar libera esencias adaptativas y vuelve a brotar sola."
+  "compat.mycelialmind.info.reclaimed_bloom": "Flora simbiótica regenerativa de los jardines recuperados en Micelio Profundo; al madurar libera esencias adaptativas y vuelve a brotar sola.",
+  "gui.mycelialmind.colony.dialect.tab": "Dialecto",
+  "gui.mycelialmind.colony.dialect.title": "Dialecto de colonia",
+  "gui.mycelialmind.colony.dialect.source": "Origen: %s",
+  "gui.mycelialmind.colony.dialect.target": "Destino: %s",
+  "gui.mycelialmind.colony.dialect.meaning": "Significado: %s",
+  "gui.mycelialmind.colony.dialect.call": "Llamada: %s · %s",
+  "gui.mycelialmind.colony.dialect.apprentice": "Aprendiz: %s (%s)",
+  "gui.mycelialmind.colony.dialect.start": "Iniciar lección",
+  "gui.mycelialmind.colony.dialect.cancel": "Cancelar lección",
+  "gui.mycelialmind.colony.dialect.idle": "Sin lección en este puesto",
+  "gui.mycelialmind.colony.dialect.travelling": "Aprendiz en camino",
+  "gui.mycelialmind.colony.dialect.observing": "Esperando una demostración",
+  "gui.mycelialmind.colony.dialect.returning": "Aprendiz de regreso",
+  "message.mycelialmind.colony.dialect_unavailable": "Lección no disponible: revisa el episodio, los conflictos de llamada, el aprendiz y la lección activa."
 }

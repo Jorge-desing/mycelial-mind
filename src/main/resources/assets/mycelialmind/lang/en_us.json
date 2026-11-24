@@ -2011,5 +2011,19 @@
   "compat.mycelialmind.info.sovereign_nexus": "Anchors a cooperative Sovereign Hive Colony once the Apex Matriarch falls; stores biomass, incubates Symbiont workers, emits Redstone telemetry, and calms nearby Deep Mycelium chunk stress.",
   "compat.mycelialmind.info.sovereign_command_staff": "Configures Sovereign Colony work zones, input/output logistics chests, Symbiont castes/standby, and direct orders.",
   "compat.mycelialmind.info.field_engram": "Unique encoded telemetry core recovered from Hive Sanctums, Fungal Tides, Deep Mycelium expeditions, and Post-Matriarch Cycles; inspect via the Bio-Scanner Codex.",
-  "compat.mycelialmind.info.reclaimed_bloom": "Regenerative symbiotic flora blooming inside recovered Deep Mycelium gardens; drops adaptive pollen essences when mature and regrows automatically."
+  "compat.mycelialmind.info.reclaimed_bloom": "Regenerative symbiotic flora blooming inside recovered Deep Mycelium gardens; drops adaptive pollen essences when mature and regrows automatically.",
+  "gui.mycelialmind.colony.dialect.tab": "Dialect",
+  "gui.mycelialmind.colony.dialect.title": "Colony dialect",
+  "gui.mycelialmind.colony.dialect.source": "Source: %s",
+  "gui.mycelialmind.colony.dialect.target": "Destination: %s",
+  "gui.mycelialmind.colony.dialect.meaning": "Meaning: %s",
+  "gui.mycelialmind.colony.dialect.call": "Call: %s · %s",
+  "gui.mycelialmind.colony.dialect.apprentice": "Apprentice: %s (%s)",
+  "gui.mycelialmind.colony.dialect.start": "Begin lesson",
+  "gui.mycelialmind.colony.dialect.cancel": "Cancel lesson",
+  "gui.mycelialmind.colony.dialect.idle": "No lesson at this site",
+  "gui.mycelialmind.colony.dialect.travelling": "Apprentice travelling",
+  "gui.mycelialmind.colony.dialect.observing": "Waiting for a demonstration",
+  "gui.mycelialmind.colony.dialect.returning": "Apprentice returning",
+  "message.mycelialmind.colony.dialect_unavailable": "Lesson unavailable: check the episode, call conflict, apprentice, and active lesson."
 }

@@ -116,6 +116,13 @@ public record SovereignColonyActionPayload(
         ));
     }
 
+    public static void sendDialectLesson(BlockPos nexus, BlockPos source, BlockPos target,
+                                         UUID apprentice, int meaning, int call, boolean coinage) {
+        int param = meaning | (call << 2) | (coinage ? 64 : 0);
+        PacketDistributor.sendToServer(new SovereignColonyActionPayload(ACTION_START_DIALECT_LESSON,
+                nexus, param, apprentice, source, target));
+    }
+
     public static void handleOnServer(SovereignColonyActionPayload payload, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player)) {
             return;
@@ -219,11 +226,14 @@ public record SovereignColonyActionPayload(
                     int meaningIndex = payload.param() & 3;
                     int call = (payload.param() >> 2) & 15;
                     boolean coinage = (payload.param() & 64) != 0;
-                    if (player.getUUID().equals(colony.getOwnerId())
-                            && colony.startDialectLesson(payload.sourceSitePos(), payload.targetSitePos(),
-                            com.alex.mycelialmind.colony.ColonySiteHabit.fromIndex(meaningIndex), call,
-                            payload.targetWorkerId(), coinage)) {
-                        SovereignColonySavedData.get(level).setDirty();
+                    if (player.getUUID().equals(colony.getOwnerId())) {
+                        if (colony.startDialectLesson(payload.sourceSitePos(), payload.targetSitePos(),
+                                com.alex.mycelialmind.colony.ColonySiteHabit.fromIndex(meaningIndex), call,
+                                payload.targetWorkerId(), coinage)) {
+                            SovereignColonySavedData.get(level).setDirty();
+                        } else {
+                            player.displayClientMessage(Component.translatable("message.mycelialmind.colony.dialect_unavailable"), true);
+                        }
                     }
                 }
                 case ACTION_CANCEL_DIALECT_LESSON -> {
