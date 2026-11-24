@@ -35,11 +35,13 @@ from scripts.sound_studio.dsp_engine import (
     _wet_squelch_layer,
     adsr_envelope,
     exp_decay,
+    fold_seamless_loop,
+    modal_resonator_bank,
 )
 
 SYSTEM_ENV_IDS: frozenset[str] = frozenset(
     {
-        # System, Hive Mind, Tactical AI & Homeostasis (16; boss_phase_shift & fungal_tide_horn are in BOSS_CINEMATIC_IDS)
+        # System, Hive Mind, Tactical AI & Homeostasis (17; boss_phase_shift, fungal_tide_horn, colony_raid_horn are in BOSS_CINEMATIC_IDS)
         "hive_mutate_tier2",
         "synaptic_pulse",
         "suppressor_discharge",
@@ -56,6 +58,7 @@ SYSTEM_ENV_IDS: frozenset[str] = frozenset(
         "acid_rain_sizzle",
         "necrophagy_feast",
         "swarm_flank_call",
+        "primordial_presence_pulse",
         # Biome Soundscapes (9)
         "biome_caverns_loop",
         "biome_caverns_mood",
@@ -66,14 +69,32 @@ SYSTEM_ENV_IDS: frozenset[str] = frozenset(
         "biome_forest_loop",
         "biome_forest_mood",
         "biome_forest_additions",
-        # Positional Loops & Hive Adaptation Alerts (5)
+        # Positional Loops & Hive Adaptation Alerts (7)
         "fungal_tide_ambience",
         "purification_pylon_hum",
+        "sovereign_nexus_hum",
+        "boss_combat_tension_bed",
         "hive_trait_adapt",
         "hive_synergy_unlock",
         "hive_threat_milestone",
     }
 )
+
+
+def _circular_loop_crossfade(wave: np.ndarray, crossfade_ms: float = 120.0) -> np.ndarray:
+    n = len(wave)
+    cf = min(n // 5, int(SAMPLE_RATE * crossfade_ms / 1000.0))
+    if cf < 32:
+        return wave
+    out = wave.copy()
+    theta = np.linspace(0.0, 0.5 * np.pi, cf, dtype=np.float64)
+    fade_in = np.sin(theta)
+    fade_out = np.cos(theta)
+    head = out[:cf].copy()
+    tail = out[-cf:].copy()
+    out[:cf] = head * fade_in + tail * fade_out
+    out[-cf:] = tail * fade_out + head * fade_in
+    return out
 
 
 def synthesize_system_env_sound(
@@ -261,21 +282,32 @@ def synthesize_system_env_sound(
     # 2. BIOME AMBIENT SOUNDSCAPES (9: 3 biomes x [loop, mood, additions])
     # =========================================================================
     if sound_id == "biome_caverns_loop":
-        # Deep Mycelium Caverns 5.5s loop: subterranean draft + low mycorrhizal drone + distant mineral drips
-        env = adsr_envelope(n, 0.14, 0.16, 0.72, 0.22)
-        f_drone = bf * (0.5 + 0.015 * np.sin(2.0 * np.pi * 0.45 * t + pjit))
+        # Deep Mycelium Caverns 5.5s seamless loop: subterranean draft + integer-locked mycorrhizal drone + drips
+        cf = int(SAMPLE_RATE * 0.30)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        ext_brown = _brown_noise(rng, ext_n)
+        lfo_w = max(1.0, round(0.35 * dur)) / dur
+        f0 = max(36.0, 2.0 * round(0.25 * bf * dur) / dur)
         sub_drone = (
-            np.sin(2.0 * np.pi * np.cumsum(f_drone) / SAMPLE_RATE + pjit) * 0.55
-            + np.sin(2.0 * np.pi * np.cumsum(f_drone * 1.498) / SAMPLE_RATE) * 0.35
-        )
-        wind = _swept_resonant_filter(brown * 0.7 + pink * 0.5, 110.0, 420.0, q=3.2) * (0.65 + 0.35 * np.sin(2.0 * np.pi * 0.35 * t + pjit)) * 0.85
-        drips = np.zeros(n, dtype=np.float64)
-        for pos in _bounce_train(n, rng, 5, start_frac=0.12, end_frac=0.86, accelerate=False):
-            dlen = min(n - pos, int(SAMPLE_RATE * 0.09))
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.55
+            + np.sin(2.0 * np.pi * (f0 * 1.5) * ext_t) * 0.35
+        ) * (0.88 + 0.12 * np.sin(2.0 * np.pi * lfo_w * ext_t + pjit))
+        wind = _sos_bandpass(ext_brown * 0.7 + ext_pink * 0.5, 95.0, 420.0) * (0.76 + 0.24 * np.sin(2.0 * np.pi * lfo_w * ext_t + pjit)) * 0.85
+        drips = np.zeros(ext_n, dtype=np.float64)
+        for pos in _bounce_train(n, rng, 5, start_frac=0.14, end_frac=0.82, accelerate=False):
+            dlen = min(ext_n - pos, int(SAMPLE_RATE * 0.09))
             dt = np.arange(dlen, dtype=np.float64) / SAMPLE_RATE
             f_d = rng.uniform(680.0, 1350.0) * (0.85 + 0.45 * (dt / max(1e-4, dt[-1])))
             drips[pos : pos + dlen] += np.sin(2.0 * np.pi * np.cumsum(f_d) / SAMPLE_RATE) * exp_decay(dt, 0.028) * 0.35
-        return _abyssal_reverb((sub_drone + wind + drips) * env, rng, predelay_ms=22.0, wet=0.38, rt60=0.95, lp_hz=2400.0)
+        dry = sub_drone + wind + drips
+        preroll = min(ext_n // 2, int(SAMPLE_RATE * 1.0))
+        reverb_in = np.concatenate([dry[-preroll:], dry])
+        raw = _abyssal_reverb(reverb_in, rng, predelay_ms=22.0, wet=0.38, rt60=0.95, lp_hz=2400.0)[
+            preroll : preroll + ext_n
+        ]
+        return fold_seamless_loop(raw, n, crossfade_ms=300.0)
 
     if sound_id == "biome_caverns_mood":
         # Ominous tectonic cavern groan + distant hollow chitin resonance
@@ -293,22 +325,25 @@ def synthesize_system_env_sound(
         return _cavern_reverb(stretch + drops + clicks, rng, wet=0.28, rt60=0.65, lp_hz=3800.0)
 
     if sound_id == "biome_sanctum_loop":
-        # Hive Heart Sanctum 5.5s loop: slow arterial heart-chamber pulse + synaptic organ drone
-        env = adsr_envelope(n, 0.14, 0.16, 0.72, 0.22)
+        # Hive Heart Sanctum 5.5s seamless loop: arterial heart-chamber pulse + synaptic organ drone
+        cf = int(SAMPLE_RATE * 0.16)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
         organ = (
-            np.sin(2.0 * np.pi * (bf * 0.5) * t + pjit) * 0.52
-            + np.sin(2.0 * np.pi * bf * t) * 0.44
-            + np.sin(2.0 * np.pi * (bf * 1.189) * t + 0.8) * 0.34
-            + np.sin(2.0 * np.pi * (bf * 1.498) * t + 1.7) * 0.28
-        ) * (0.72 + 0.28 * np.sin(2.0 * np.pi * 0.55 * t + pjit))
-        pulse = np.zeros(n, dtype=np.float64)
+            np.sin(2.0 * np.pi * (bf * 0.5) * ext_t + pjit) * 0.52
+            + np.sin(2.0 * np.pi * bf * ext_t) * 0.44
+            + np.sin(2.0 * np.pi * (bf * 1.189) * ext_t + 0.8) * 0.34
+            + np.sin(2.0 * np.pi * (bf * 1.498) * ext_t + 1.7) * 0.28
+        ) * (0.74 + 0.26 * np.sin(2.0 * np.pi * 0.55 * ext_t + pjit))
+        pulse = np.zeros(ext_n, dtype=np.float64)
         for p_frac in (0.14, 0.24, 0.62, 0.72):
             pos = int(p_frac * n)
-            plen = min(n - pos, int(SAMPLE_RATE * 0.24))
+            plen = min(ext_n - pos, int(SAMPLE_RATE * 0.24))
             pt = np.arange(plen, dtype=np.float64) / SAMPLE_RATE
             f_b = 58.0 * (0.6 + 1.1 * exp_decay(pt, 0.04))
             pulse[pos : pos + plen] += np.sin(2.0 * np.pi * np.cumsum(f_b) / SAMPLE_RATE) * exp_decay(pt, 0.085) * 0.65
-        return _abyssal_reverb((organ + pulse) * env, rng, predelay_ms=20.0, wet=0.38, rt60=0.98, lp_hz=3200.0, shimmer=0.16)
+        raw = _abyssal_reverb(organ + pulse, rng, predelay_ms=20.0, wet=0.38, rt60=0.98, lp_hz=3200.0, shimmer=0.16)
+        return fold_seamless_loop(raw, n, crossfade_ms=160.0)
 
     if sound_id == "biome_sanctum_mood":
         # Haunted synaptic choir murmur + monolith funeral bell toll
@@ -326,20 +361,24 @@ def synthesize_system_env_sound(
         return _cavern_reverb((crystal + zaps + sac) * adsr_envelope(n, 0.08, 0.22, 0.55, 0.34), rng, wet=0.28, rt60=0.65, lp_hz=5400.0)
 
     if sound_id == "biome_forest_loop":
-        # Latent Spore Forest 5.5s loop: warm breeze through giant fungal caps + soft bioluminescent chimes
-        env = adsr_envelope(n, 0.14, 0.16, 0.72, 0.22)
-        breeze = _swept_resonant_filter(pink, 240.0, 1150.0, q=2.6) * (0.60 + 0.40 * np.sin(2.0 * np.pi * 0.40 * t + pjit)) * 0.75
+        # Latent Spore Forest 5.5s seamless loop: warm breeze through giant fungal caps + soft bioluminescent chimes
+        cf = int(SAMPLE_RATE * 0.16)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        breeze = _swept_resonant_filter(ext_pink, 240.0, 1150.0, q=2.6) * (0.62 + 0.38 * np.sin(2.0 * np.pi * 0.40 * ext_t + pjit)) * 0.75
         pad = (
-            np.sin(2.0 * np.pi * bf * t + pjit) * 0.45
-            + np.sin(2.0 * np.pi * (bf * 1.498) * t + 1.1) * 0.35
-            + np.sin(2.0 * np.pi * (bf * 2.0) * t + 2.2) * 0.22
+            np.sin(2.0 * np.pi * bf * ext_t + pjit) * 0.45
+            + np.sin(2.0 * np.pi * (bf * 1.498) * ext_t + 1.1) * 0.35
+            + np.sin(2.0 * np.pi * (bf * 2.0) * ext_t + 2.2) * 0.22
         )
-        chimes = np.zeros(n, dtype=np.float64)
+        chimes = np.zeros(ext_n, dtype=np.float64)
         for idx, pos in enumerate(_bounce_train(n, rng, 4, start_frac=0.14, end_frac=0.84, accelerate=False)):
-            ct = np.arange(n - pos, dtype=np.float64) / SAMPLE_RATE
+            ct = np.arange(ext_n - pos, dtype=np.float64) / SAMPLE_RATE
             ratio = (1.25, 1.50, 1.875, 2.25)[idx % 4]
             chimes[pos:] += _modal_bank(ct, bf * 2.0 * ratio, (1.0, 2.0, 3.01), (0.38, 0.24, 0.14), (0.42, 0.25, 0.14), rng)
-        return _abyssal_reverb((breeze + pad + chimes) * env, rng, predelay_ms=18.0, wet=0.34, rt60=0.88, lp_hz=4800.0, shimmer=0.18)
+        raw = _abyssal_reverb(breeze + pad + chimes, rng, predelay_ms=18.0, wet=0.34, rt60=0.88, lp_hz=4800.0, shimmer=0.18)
+        return fold_seamless_loop(raw, n, crossfade_ms=160.0)
 
     if sound_id == "biome_forest_mood":
         # Resonant hollow wood-cap horn call echoing across the spore canopy
@@ -363,25 +402,37 @@ def synthesize_system_env_sound(
     # 3. POSITIONAL LOOPS & HIVE ADAPTATION ALERTS (5)
     # =========================================================================
     if sound_id == "fungal_tide_ambience":
-        # Swelling violet spore-storm gale + ominous distant swarm drone
-        env = adsr_envelope(n, 0.16, 0.18, 0.68, 0.26)
-        gale = _swept_resonant_filter(pink * 0.7 + brown * 0.5, 180.0, 1250.0, q=3.2) * (0.60 + 0.40 * np.sin(2.0 * np.pi * 0.65 * t + pjit)) * 0.95
-        f_dr = bf * (0.98 + 0.05 * np.sin(2.0 * np.pi * 0.8 * t + pjit))
-        drone = _brass_braaam(t, f_dr, rng, detune_cents=16.0, sub_oct=0.85, shimmer_mix=0.14, formant_shift=formant_shift) * 0.65
-        return _abyssal_reverb((gale + drone) * env, rng, predelay_ms=18.0, wet=0.34, rt60=0.88, lp_hz=2800.0)
+        # Swelling violet spore-storm gale + ominous distant swarm drone (seamless loop)
+        cf = int(SAMPLE_RATE * 0.28)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        ext_brown = _brown_noise(rng, ext_n)
+        lfo_g = max(1.0, round(0.65 * dur)) / dur
+        lfo_d = max(1.0, round(0.80 * dur)) / dur
+        gale = _swept_resonant_filter(ext_pink * 0.7 + ext_brown * 0.5, 180.0, 1250.0, q=3.2) * (0.72 + 0.28 * np.sin(2.0 * np.pi * lfo_g * ext_t + pjit)) * 0.95
+        f_dr = bf * (0.98 + 0.04 * np.sin(2.0 * np.pi * lfo_d * ext_t + pjit))
+        drone = _brass_braaam(ext_t, f_dr, rng, detune_cents=16.0, sub_oct=0.85, shimmer_mix=0.14, formant_shift=formant_shift) * 0.65
+        raw = _abyssal_reverb(gale + drone, rng, predelay_ms=18.0, wet=0.34, rt60=0.88, lp_hz=2800.0)
+        return fold_seamless_loop(raw, n, crossfade_ms=280.0)
 
     if sound_id == "purification_pylon_hum":
-        # Clean sterile containment field hum: pure warm harmonic triad + high-frequency air ionization
-        env = adsr_envelope(n, 0.16, 0.18, 0.68, 0.26)
-        f0 = bf * 0.5
+        # Clean sterile containment field hum: continuous integer-locked harmonic triad + seamless fold
+        cf = int(SAMPLE_RATE * 0.14)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        f0 = max(90.0, round((bf * 0.5) * dur) / dur)
+        lfo_hz = max(1.0, round(2.2 * dur) / dur)
         field = (
-            np.sin(2.0 * np.pi * f0 * t + pjit) * 0.58
-            + np.sin(2.0 * np.pi * (f0 * 1.5) * t) * 0.38
-            + np.sin(2.0 * np.pi * (f0 * 2.0) * t) * 0.24
-            + np.sin(2.0 * np.pi * (f0 * 3.0) * t) * 0.12
-        ) * (0.82 + 0.18 * np.sin(2.0 * np.pi * 2.2 * t + pjit))
-        ion = _sos_bandpass(pink, 2200.0, 6400.0) * 0.22
-        return _cavern_reverb(_sos_highpass((field + ion) * env, 150.0), rng, wet=0.08, rt60=0.22, lp_hz=7600.0)
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.58
+            + np.sin(2.0 * np.pi * (f0 * 1.5) * ext_t) * 0.38
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t) * 0.24
+            + np.sin(2.0 * np.pi * (f0 * 3.0) * ext_t) * 0.12
+        ) * (0.84 + 0.16 * np.sin(2.0 * np.pi * lfo_hz * ext_t + pjit))
+        ion = _sos_bandpass(ext_pink, 2200.0, 6400.0) * 0.22
+        raw = _cavern_reverb(_sos_highpass(field + ion, 150.0), rng, wet=0.08, rt60=0.22, lp_hz=7600.0)
+        return fold_seamless_loop(raw, n, crossfade_ms=140.0)
 
     if sound_id == "hive_trait_adapt":
         # Bio-Scanner telemetry alert blip -> sinister organic-crystal adaptation chord (minor-second -> tritone)
@@ -420,5 +471,65 @@ def synthesize_system_env_sound(
         horn = _brass_braaam(ht, f_h, rng, detune_cents=16.0, sub_oct=0.90, shimmer_mix=0.18, formant_shift=formant_shift) * adsr_envelope(len(ht), 0.08, 0.20, 0.58, 0.36)
         wave[horn_s:] += horn * 1.15
         return _cavern_reverb(np.tanh(wave * 1.25), rng, wet=0.26, rt60=0.58, lp_hz=4800.0)
+
+    if sound_id == "primordial_presence_pulse":
+        # Bioluminescent elder aura: shimmering crystalline drone + deep ancestral sub throb
+        onset = int(rng.uniform(0.02, 0.08) * n)
+        pt = np.arange(n - onset, dtype=np.float64) / SAMPLE_RATE
+        env = adsr_envelope(len(pt), 0.14, 0.24, 0.55, 0.38)
+        sub = np.sin(2.0 * np.pi * (bf * 0.25) * pt + pjit) * env * 0.62
+        harm = modal_resonator_bank(
+            len(pt),
+            (bf, bf * 1.498, bf * 2.25, bf * 3.16),
+            (0.52, 0.42, 0.30, 0.20),
+            rng,
+            amplitudes=(0.75, 0.55, 0.38, 0.22),
+        )
+        breath = _swept_resonant_filter(pink[onset:], 260.0, 1450.0, q=3.4) * env * 0.48
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = sub + harm + breath
+        return _abyssal_reverb(np.tanh(wave * 1.15), rng, predelay_ms=16.0, wet=0.34, rt60=0.86, lp_hz=5600.0, shimmer=0.26)
+
+    if sound_id == "sovereign_nexus_hum":
+        # Continuous warm Sovereign Nexus field hum (integer-cycle harmonics + seamless loop fold)
+        cf = int(SAMPLE_RATE * 0.14)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        f0 = max(64.0, round(bf * dur) / dur)
+        lfo_hz = max(1.0, round(1.5 * dur) / dur)
+        organ = (
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.52
+            + np.sin(2.0 * np.pi * (f0 * 1.5) * ext_t + rng.uniform(0, 6.28)) * 0.36
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.25
+            + np.sin(2.0 * np.pi * (f0 * 3.0) * ext_t + rng.uniform(0, 6.28)) * 0.14
+        ) * (0.86 + 0.14 * np.sin(2.0 * np.pi * lfo_hz * ext_t + pjit))
+        air = _sos_bandpass(ext_pink, 320.0, 2400.0) * 0.28
+        raw = _cavern_reverb(_sos_highpass(organ + air, 55.0), rng, wet=0.18, rt60=0.45, lp_hz=4800.0)
+        return fold_seamless_loop(raw, n, crossfade_ms=140.0)
+
+    if sound_id == "boss_combat_tension_bed":
+        # Continuous sub-harmonic boss dread drone bed (integer-cycle sub + dark choir air + seamless loop fold)
+        cf = int(SAMPLE_RATE * 0.28)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        ext_brown = _brown_noise(rng, ext_n)
+        f0 = max(44.0, 2.0 * round(0.5 * bf * dur) / dur)
+        pulse_hz = max(0.25, round(0.5 * dur) / dur)
+        sub = (
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.72
+            + np.sin(2.0 * np.pi * (f0 * 1.5) * ext_t + rng.uniform(0, 6.28)) * 0.38
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.24
+        ) * (0.86 + 0.14 * np.sin(2.0 * np.pi * pulse_hz * ext_t + pjit))
+        rumble = _sos_bandpass(ext_brown * 0.8 + ext_pink * 0.35, 38.0, 320.0) * 0.65
+        choir_air = _sos_bandpass(ext_pink, 140.0, 420.0) * 0.35
+        dry = np.tanh((sub + rumble + choir_air) * 1.18)
+        preroll = min(ext_n // 2, int(SAMPLE_RATE * 0.85))
+        reverb_in = np.concatenate([dry[-preroll:], dry])
+        raw = _abyssal_reverb(reverb_in, rng, predelay_ms=18.0, wet=0.30, rt60=0.72, lp_hz=1800.0)[
+            preroll : preroll + ext_n
+        ]
+        return fold_seamless_loop(raw, n, crossfade_ms=280.0)
 
     raise ValueError(f"Unhandled system/environment sound_id in system_env_synth: {sound_id}")

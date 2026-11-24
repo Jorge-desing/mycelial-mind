@@ -166,6 +166,67 @@ public enum EvolutionRank {
         return 15.0D;
     }
 
+    public static float computeAudioDuckingMultiplier(
+            int remainingDuckTicks,
+            int totalDuckTicks,
+            float maxDuckReduction
+    ) {
+        if (remainingDuckTicks <= 0 || totalDuckTicks <= 0 || !Float.isFinite(maxDuckReduction) || maxDuckReduction <= 0.0F) {
+            return 1.0F;
+        }
+        float reduction = Math.min(0.85F, Math.max(0.0F, maxDuckReduction));
+        float progress = Math.min(1.0F, Math.max(0.0F, (float) remainingDuckTicks / (float) totalDuckTicks));
+        return Math.max(0.15F, 1.0F - (reduction * progress));
+    }
+
+    public static float computeSmoothFadeVolume(
+            float currentVolume,
+            float targetVolume,
+            float maxStepPerTick
+    ) {
+        float step = Math.max(0.001F, Float.isFinite(maxStepPerTick) ? maxStepPerTick : 0.04F);
+        float safeCurrent = Float.isFinite(currentVolume) ? Math.max(0.0F, currentVolume) : 0.0F;
+        float safeTarget = Float.isFinite(targetVolume) ? Math.max(0.0F, Math.min(1.5F, targetVolume)) : 0.0F;
+        float diff = safeTarget - safeCurrent;
+        if (Math.abs(diff) <= step) {
+            return safeTarget;
+        }
+        return safeCurrent + Math.signum(diff) * step;
+    }
+
+    public static float computeBossTensionBedVolume(
+            boolean bossNearby,
+            float bossHealthRatio,
+            float envVol,
+            float duckMultiplier
+    ) {
+        if (!bossNearby || !Float.isFinite(envVol) || envVol <= 0.01F) {
+            return 0.0F;
+        }
+        float safeHp = Float.isFinite(bossHealthRatio) ? Math.max(0.0F, Math.min(1.0F, bossHealthRatio)) : 1.0F;
+        float clampedEnv = Math.max(0.0F, Math.min(1.0F, envVol));
+        float clampedDuck = Float.isFinite(duckMultiplier) ? Math.max(0.10F, Math.min(1.0F, duckMultiplier)) : 1.0F;
+        float intensity = 0.28F + 0.22F * (1.0F - safeHp);
+        return intensity * clampedEnv * clampedDuck;
+    }
+
+    public static float computeSovereignNexusHumVolume(
+            double distSq,
+            double maxRadius,
+            float envVol,
+            float duckMultiplier
+    ) {
+        if (!Double.isFinite(distSq) || distSq < 0.0D || !Double.isFinite(maxRadius) || maxRadius <= 0.0D
+                || distSq > maxRadius * maxRadius || !Float.isFinite(envVol) || envVol <= 0.01F) {
+            return 0.0F;
+        }
+        double dist = Math.sqrt(distSq);
+        float falloff = (float) Math.max(0.0D, Math.min(1.0D, 1.0D - (dist / maxRadius)));
+        float clampedEnv = Math.max(0.0F, Math.min(1.0F, envVol));
+        float clampedDuck = Float.isFinite(duckMultiplier) ? Math.max(0.10F, Math.min(1.0F, duckMultiplier)) : 1.0F;
+        return (0.08F + 0.30F * falloff) * clampedEnv * clampedDuck;
+    }
+
     public static EvolutionRank fromId(int id) {
         for (EvolutionRank rank : values()) {
             if (rank.id == id) {

@@ -1463,13 +1463,17 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
                         8, 0.25, 0.25, 0.25, 0.05);
                 serverLevel.sendParticles(ModParticles.IMPACT.get(), px, py, pz,
                         1, 0.0, 0.1, 0.0, 0.15);
-                serverLevel.playSound(null, part.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(),
-                        SoundSource.HOSTILE, 0.85F, 1.45F);
+                serverLevel.playSound(null, part.blockPosition(), ModSounds.BOSS_WEAKPOINT_CRIT.get(),
+                        SoundSource.HOSTILE, 0.95F, 1.0F);
             } else {
+                boolean carapaceBroken = this instanceof MycelialBossMob boss && boss.isCarapaceBroken();
                 serverLevel.sendParticles(ModParticles.CHITIN_SHARD.get(), px, py, pz,
                         5, 0.3, 0.2, 0.3, 0.03);
-                serverLevel.playSound(null, part.blockPosition(), ModSounds.HIVE_CORE_SHIELD.get(),
-                        SoundSource.HOSTILE, 0.55F, 1.35F);
+                SoundEvent partSound = carapaceBroken
+                        ? ModSounds.SYNAPTIC_PULSE.get()
+                        : ModSounds.BOSS_CARAPACE_RICOCHET.get();
+                serverLevel.playSound(null, part.blockPosition(), partSound,
+                        SoundSource.HOSTILE, 0.85F, carapaceBroken ? 1.25F : 1.0F);
             }
         }
         return hurt;

@@ -74,6 +74,24 @@ def deterministic_rng(sound_id: str, seed_offset: int = 0, variation_idx: int = 
     return np.random.default_rng(seed)
 
 
+def fold_seamless_loop(wave_ext: np.ndarray, target_len: int, crossfade_ms: float = 120.0) -> np.ndarray:
+    """Fold an extended waveform ``len >= target_len + cf`` into an exact-length seamless loop."""
+    if len(wave_ext) <= target_len + 16:
+        return wave_ext[:target_len]
+    cf = min(len(wave_ext) - target_len, int(SAMPLE_RATE * crossfade_ms / 1000.0))
+    if cf < 32:
+        return wave_ext[:target_len]
+    if cf % 2 == 1:
+        cf -= 1
+    half = cf // 2
+    theta = np.linspace(0.0, 0.5 * np.pi, cf, dtype=np.float64)
+    head = wave_ext[:cf]
+    mid = wave_ext[cf:target_len]
+    tail = wave_ext[target_len : target_len + cf]
+    bridge = tail * np.cos(theta) + head * np.sin(theta)
+    return np.concatenate([bridge[half:], mid, bridge[:half]])
+
+
 def apply_fade_guards(wave: np.ndarray, fade_in_ms: float = 3.0, fade_out_ms: float = 14.0) -> np.ndarray:
     """Apply smooth raised-cosine fades at buffer boundaries to eliminate clicks/pops."""
     n = len(wave)
@@ -309,6 +327,33 @@ def _wet_squelch_layer(
     return out + sticky * (0.28 * intensity)
 
 
+def modal_resonator_bank(
+    n: int,
+    modes: tuple[float, ...] | list[float],
+    decay_rates: tuple[float, ...] | list[float],
+    rng: np.random.Generator,
+    sample_rate: int = SAMPLE_RATE,
+    *,
+    amplitudes: tuple[float, ...] | list[float] | None = None,
+    detune_jitter: float = 0.025,
+) -> np.ndarray:
+    """Synthesize a physical modal resonator bank for chitin, crystal, and armored carapace impacts."""
+    if n <= 0 or not modes:
+        return np.zeros(max(0, n), dtype=np.float64)
+    t = np.arange(n, dtype=np.float64) / float(sample_rate)
+    out = np.zeros(n, dtype=np.float64)
+    count = min(len(modes), len(decay_rates))
+    for idx in range(count):
+        freq = float(modes[idx]) * float(rng.uniform(1.0 - detune_jitter, 1.0 + detune_jitter))
+        if freq <= 12.0 or freq >= 0.46 * sample_rate:
+            continue
+        tau = max(0.004, float(decay_rates[idx]))
+        amp = float(amplitudes[idx]) if amplitudes and idx < len(amplitudes) else (1.0 / (1.0 + 0.55 * idx))
+        phase = float(rng.uniform(0.0, 2.0 * np.pi))
+        out += amp * np.sin(2.0 * np.pi * freq * t + phase) * np.exp(-t / tau)
+    return out
+
+
 def _chitin_modal_hits(
     n: int,
     rng: np.random.Generator,
@@ -464,6 +509,7 @@ def synthesize_waveform(
     )
     from scripts.sound_studio.boss_synth import (
         BOSS_CINEMATIC_IDS,
+        BOSS_PART_IMPACT_IDS,
         synthesize_boss_sound,
     )
     from scripts.sound_studio.entity_synth import (
@@ -483,7 +529,7 @@ def synthesize_waveform(
     rev_wet = 0.28 if is_boss else 0.18
     rev_rt60 = 0.62 if is_boss else 0.42
 
-    if sound_id in BOSS_CINEMATIC_IDS:
+    if sound_id in BOSS_CINEMATIC_IDS or sound_id in BOSS_PART_IMPACT_IDS:
         wave = synthesize_boss_sound(
             sound_id,
             duration=dur,

@@ -20,6 +20,8 @@ from scripts.sound_studio.dsp_engine import (
     _wet_squelch_layer,
     adsr_envelope,
     exp_decay,
+    fold_seamless_loop,
+    modal_resonator_bank,
 )
 
 BLOCK_FUNCTIONAL_IDS: frozenset[str] = frozenset(
@@ -42,6 +44,11 @@ BLOCK_FUNCTIONAL_IDS: frozenset[str] = frozenset(
         "colony_dialect_tone_1",
         "colony_dialect_tone_2",
         "colony_dialect_tone_3",
+        "reclaimed_bloom_harvest",
+        "reclaimed_bloom_pulse",
+        "colony_dialect_mastered",
+        "colony_dialect_conflict",
+        "colony_reconstruction_pulse",
     }
 )
 
@@ -669,17 +676,25 @@ def synthesize_block_functional(
         return _cavern_reverb(_sos_highpass(wave, 260.0), rng, wet=0.12, rt60=0.28, lp_hz=7200.0)
 
     if sound_id == "mycelial_rift_hum":
-        # Dimensional abyss drone: slow beating sub (52 Hz vs 54.8 Hz) + howling narrow-Q void wind
-        env = adsr_envelope(n, 0.16, 0.18, 0.65, 0.36)
+        # Dimensional abyss drone: slow beating integer-locked sub + howling narrow-Q void wind (seamless fold)
+        cf = int(SAMPLE_RATE * 0.24)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        ext_brown = _brown_noise(rng, ext_n)
+        f_sub = max(44.0, round(52.0 * duration) / max(0.2, duration))
+        beat_hz = max(1.0, round(2.2 * duration) / max(0.2, duration))
+        mod_amp = 0.80 + 0.20 * np.sin(2.0 * np.pi * beat_hz * ext_t + pjit)
         sub = (
-            np.sin(2.0 * np.pi * 52.0 * t + pjit) * 0.62
-            + np.sin(2.0 * np.pi * 54.8 * t + rng.uniform(0, 6.28)) * 0.56
-            + np.sin(2.0 * np.pi * 104.0 * t) * 0.30
-            + np.sin(2.0 * np.pi * 147.0 * t) * 0.22
-        ) * env
-        howl1 = _swept_resonant_filter(pink, 380.0, 740.0, q=6.5) * env * 0.85
-        howl2 = _swept_resonant_filter(brown, 110.0, 260.0, q=4.0) * env * 0.65
-        return _cavern_reverb(sub + howl1 + howl2, rng, wet=0.36, rt60=0.78, lp_hz=2800.0)
+            np.sin(2.0 * np.pi * f_sub * ext_t + pjit) * 0.62
+            + np.sin(2.0 * np.pi * (f_sub + beat_hz) * ext_t + rng.uniform(0, 6.28)) * 0.50
+            + np.sin(2.0 * np.pi * (f_sub * 2.0) * ext_t) * 0.28
+            + np.sin(2.0 * np.pi * (f_sub * 2.828) * ext_t) * 0.20
+        ) * mod_amp
+        howl1 = _sos_bandpass(ext_pink, 380.0, 740.0) * (0.72 + 0.28 * np.sin(2.0 * np.pi * (beat_hz * 0.5) * ext_t)) * 0.72
+        howl2 = _sos_bandpass(ext_brown, 110.0, 260.0) * 0.58
+        raw = _cavern_reverb(sub + howl1 + howl2, rng, wet=0.34, rt60=0.72, lp_hz=2800.0)
+        return fold_seamless_loop(raw, n, crossfade_ms=240.0)
 
     if sound_id == "hive_altar_awaken":
         # Monumental 3-stage ritual: stone grind & obsidian bell -> colossal bio-horror horn & growl -> cavern ring
@@ -775,5 +790,104 @@ def synthesize_block_functional(
         air = _sos_bandpass(pink[onset_s:], root * 1.4, min(6800.0, root * 4.5)) * exp_decay(pt, 0.055) * 0.22
         wave[onset_s:] = bell + chirp + air
         return _cavern_reverb(np.tanh(wave * 1.10), rng, wet=0.18, rt60=0.38, lp_hz=6200.0)
+
+    if sound_id == "reclaimed_bloom_harvest":
+        # Crisp stem snap + bioluminescent glass-petal chime + soft spore release puff
+        snap_len = min(n // 4, int(SAMPLE_RATE * 0.055))
+        wave = np.zeros(n, dtype=np.float64)
+        if snap_len > 24:
+            st = np.arange(snap_len, dtype=np.float64) / SAMPLE_RATE
+            wave[:snap_len] = _sos_bandpass(rng.normal(0.0, 1.0, snap_len), 1400.0, 6800.0) * exp_decay(st, 0.012) * 0.65
+        chime_s = max(12, int(rng.uniform(0.02, 0.07) * n))
+        ct = np.arange(n - chime_s, dtype=np.float64) / SAMPLE_RATE
+        root = base_freq * rng.uniform(0.95, 1.05)
+        petals = _modal_bank(
+            ct,
+            root,
+            (1.0, 1.498, 2.0, 2.996, 4.0),
+            (0.24, 0.19, 0.14, 0.09, 0.05),
+            (0.85, 0.68, 0.50, 0.30, 0.18),
+            rng,
+        )
+        puff = _swept_resonant_filter(pink[chime_s:], 700.0, 3200.0, q=2.0) * exp_decay(ct, 0.14) * 0.35
+        wave[chime_s:] += petals + puff
+        return _cavern_reverb(np.tanh(wave * 1.12), rng, wet=0.20, rt60=0.45, lp_hz=6800.0)
+
+    if sound_id == "reclaimed_bloom_pulse":
+        # Gentle organic luminescence swell + harmonic dewdrop shimmer
+        onset = int(rng.uniform(0.02, 0.08) * n)
+        pt = np.arange(n - onset, dtype=np.float64) / SAMPLE_RATE
+        root = base_freq * rng.uniform(0.94, 1.06)
+        wave = np.zeros(n, dtype=np.float64)
+        env = adsr_envelope(len(pt), 0.18, 0.24, 0.48, 0.34)
+        chime = modal_resonator_bank(
+            len(pt),
+            (root, root * 1.5, root * 2.5, root * 3.0),
+            (0.26, 0.20, 0.14, 0.09),
+            rng,
+            amplitudes=(0.80, 0.58, 0.35, 0.22),
+        )
+        shimmer = np.sin(2.0 * np.pi * root * pt + pjit) * env * 0.42
+        wave[onset:] = chime + shimmer
+        return _cavern_reverb(wave, rng, wet=0.24, rt60=0.50, lp_hz=6200.0)
+
+    if sound_id == "colony_dialect_mastered":
+        # Ascending 3-note symbiotic triad resolving into a sovereign unison shimmer
+        wave = np.zeros(n, dtype=np.float64)
+        ratios = (1.0, 1.498, 2.0)
+        onsets = (0.02, rng.uniform(0.20, 0.26), rng.uniform(0.40, 0.48))
+        root = base_freq * rng.uniform(0.96, 1.04)
+        for ratio, frac in zip(ratios, onsets):
+            pos = int(frac * n)
+            rem = n - pos
+            nt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+            wave[pos:] += _modal_bank(
+                nt,
+                root * ratio,
+                (0.5, 1.0, 1.498, 2.0),
+                (0.28, 0.26, 0.18, 0.11),
+                (0.35, 0.85, 0.55, 0.30),
+                rng,
+            )
+        bed = np.sin(2.0 * np.pi * (root * 0.5) * t + pjit) * adsr_envelope(n, 0.12, 0.22, 0.55, 0.36) * 0.42
+        return _cavern_reverb(np.tanh((wave + bed) * 1.12), rng, wet=0.26, rt60=0.60, lp_hz=6600.0)
+
+    if sound_id == "colony_dialect_conflict":
+        # Brief dissonant tritone + minor-second clash & dampening static pulse
+        onset = int(rng.uniform(0.01, 0.05) * n)
+        rem = n - onset
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        root = base_freq * rng.uniform(0.94, 1.06)
+        wave = np.zeros(n, dtype=np.float64)
+        clash = modal_resonator_bank(
+            rem,
+            (root, root * 1.065, root * 1.414, root * 2.11),
+            (0.22, 0.20, 0.15, 0.10),
+            rng,
+            amplitudes=(0.82, 0.78, 0.64, 0.42),
+        )
+        buzz = _fm_tone(rt, root * (1.0 - 0.18 * (rt / max(1e-4, rt[-1]))), root * 0.707, 2.4, pjit) * exp_decay(rt, 0.22) * 0.48
+        wave[onset:] = clash + buzz
+        return _cavern_reverb(np.tanh(wave * 1.18), rng, wet=0.20, rt60=0.44, lp_hz=5400.0)
+
+    if sound_id == "colony_reconstruction_pulse":
+        # Warm mnemonic echo wave: reverse-like breath into ancestral harmonic chord
+        s1, e1 = 0, int(0.32 * n)
+        rev_env = np.linspace(0.0, 1.0, max(2, e1 - s1)) ** 1.8
+        wave = np.zeros(n, dtype=np.float64)
+        wave[s1:e1] = _swept_resonant_filter(pink[s1:e1], 240.0, 1400.0, q=3.2) * rev_env * 0.55
+        pulse_s = int(0.24 * n)
+        pt = np.arange(n - pulse_s, dtype=np.float64) / SAMPLE_RATE
+        root = base_freq * rng.uniform(0.95, 1.05)
+        chord = _modal_bank(
+            pt,
+            root,
+            (0.5, 1.0, 1.333, 1.998, 2.667),
+            (0.38, 0.34, 0.26, 0.18, 0.12),
+            (0.42, 0.88, 0.62, 0.44, 0.26),
+            rng,
+        )
+        wave[pulse_s:] += chord
+        return _cavern_reverb(np.tanh(wave * 1.15), rng, wet=0.28, rt60=0.64, lp_hz=6000.0)
 
     raise ValueError(f"Unknown functional block sound_id: {sound_id}")

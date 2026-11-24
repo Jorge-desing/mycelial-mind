@@ -4980,7 +4980,7 @@ public final class MycelialGameTests {
 
         try {
             var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-            boolean soundsOk = soundEntries.size() == 189;
+            boolean soundsOk = soundEntries.size() == 200;
             if (soundsOk) {
                 for (var holder : soundEntries) {
                     SoundEvent evt = holder.get();

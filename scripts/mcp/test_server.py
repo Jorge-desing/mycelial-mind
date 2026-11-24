@@ -20,6 +20,8 @@ if str(MCP_DIR) not in sys.path:
 from server import (
     _annotate_gradle_result,
     _build_gradle_task_command,
+    _parse_colony_status_output,
+    _parse_cycle_status_output,
     _parse_hive_status_output,
     _parse_spark_tps_output,
     _pick_minecraft_jvm_pid,
@@ -44,7 +46,7 @@ def _start_mock_rcon_server() -> tuple[socket.socket, int, threading.Thread]:
 
     def _serve() -> None:
         srv.settimeout(60.0)
-        for _ in range(10):
+        for _ in range(16):
             try:
                 conn, _ = srv.accept()
             except OSError:
@@ -70,6 +72,16 @@ def _start_mock_rcon_server() -> tuple[socket.socket, int, threading.Thread]:
                                 "Traits: melee_thorns, fire_resistant | Tier2: flanking_swarm | "
                                 "Synergies: pyrolytic_shell | Links: 3 | Suppressed: 0s | NearestNode: (12, 64, -8) | "
                                 "Breached: true | MatriarchDefeated: false | Remission: 0s"
+                            )
+                        elif payload == "mycelial colony status":
+                            resp_str = (
+                                "[Colony] Nexus=10, 65, -20 | Tier=2 | Radius=36m | Pop=5/8 | Biomass=140 | "
+                                "Morale=88% | DomainXP=420 | Traits=0x5 | Outposts=2 | Orders=3"
+                            )
+                        elif payload == "mycelial cycle status":
+                            resp_str = (
+                                "[Cycle] Unlocked=true Active=true Cycle=2 Mutators=[lethal_spores, fast_learning] "
+                                "Completed=1 BestScore=1450 (Cycle 1, Last=1450 S)"
                             )
                         elif payload.startswith("mycelial verify "):
                             resp_str = "[Verify:HiveAI] PASSED"
@@ -177,6 +189,29 @@ async def verify_code_mode() -> None:
     assert hive_es["threat_pct"] == 75.8 and hive_es["tier"] == "OVERMIND", hive_es
     assert hive_es["protected"] is True and hive_es["traits"] == [] and hive_es["nearest_node"] is None, hive_es
     assert hive_es["breached"] is True and hive_es["matriarch_defeated"] is True and hive_es["remission_secs"] == 1200, hive_es
+
+    colony_active = _parse_colony_status_output(
+        "[Colony] Nexus=10, 65, -20 | Tier=2 | Radius=36m | Pop=5/8 | Biomass=140 | "
+        "Morale=88% | DomainXP=420 | Traits=0x5 | Outposts=2 | Orders=3"
+    )
+    assert colony_active["found"] is True and colony_active["tier"] == 2 and colony_active["radius_m"] == 36, colony_active
+    assert colony_active["population"] == 5 and colony_active["population_cap"] == 8, colony_active
+    assert colony_active["trait_mask_hex"] == "0x5" and colony_active["outposts"] == 2 and colony_active["orders"] == 3, colony_active
+
+    colony_empty = _parse_colony_status_output("[Colony] No Sovereign Colony found within 256 blocks. Total in dim: 1")
+    assert colony_empty["found"] is False and colony_empty["total_in_dim"] == 1, colony_empty
+
+    cycle_parsed = _parse_cycle_status_output(
+        "[Cycle] Unlocked=true Active=true Cycle=2 Mutators=[lethal_spores, fast_learning] "
+        "Completed=1 BestScore=1450 (Cycle 1, Last=1450 S)"
+    )
+    assert cycle_parsed["unlocked"] is True and cycle_parsed["active"] is True and cycle_parsed["cycle_number"] == 2, cycle_parsed
+    assert cycle_parsed["mutators"] == ["lethal_spores", "fast_learning"] and cycle_parsed["last_grade"] == "S", cycle_parsed
+
+    iso_cmd = _build_gradle_task_command(["runGameTestServer"], 2, False, True, isolated_gametests=True)
+    assert "-PisolatedGameTests=true" in iso_cmd and "--offline" in iso_cmd, iso_cmd
+    pub_cmd = _build_gradle_task_command(["publishMods"], 2, False, True, isolated_gametests=True)
+    assert "-PpublishDryRun=true" in pub_cmd and "-PisolatedGameTests=true" not in pub_cmd, pub_cmd
 
     picked_pid = _pick_minecraft_jvm_pid([
         {"pid": 100, "main_class": "org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.10"},
@@ -458,10 +493,13 @@ import asyncio
     call_tool("run_sound_studio", {{"check_only": True, "run_tests": True}}),
     call_tool("run_codex_studio", {{"check_only": True, "run_tests": True}}),
 )
-latest_live, diag_bundle, missing_artifacts = await asyncio.gather(
+latest_live, diag_bundle, missing_artifacts, sound_inspect, live_colony, diag_colony = await asyncio.gather(
     call_tool("get_latest_live_report", {{}}),
     call_tool("collect_diagnostic_bundle", {{"log_tail_lines": 20, "max_artifacts": 5}}),
     call_tool("list_diagnostic_artifacts", {{"subdir": "nonexistent_subdir_12345"}}),
+    call_tool("inspect_sound_event", {{"sound_id": "boss_weakpoint_crit"}}),
+    call_tool("get_live_colony_status", {{"port": {rcon_port}, "password": "secret"}}),
+    call_tool("diagnose_symptom", {{"symptom": "dialecto", "include_live_state": False}}),
 )
 return {{
     "bad_sess_rejected": bad_sess.get("ok") is False and "Unknown session_id" in bad_sess.get("error", ""),
@@ -485,7 +523,14 @@ return {{
         and missing_artifacts.get("returned_count") == 0
     ),
     "sound_studio_ok": sound_chk.get("ok"),
+    "sound_inspect_ok": sound_inspect.get("ok") and sound_inspect.get("sound_id") == "boss_weakpoint_crit",
     "codex_studio_ok": codex_chk.get("ok"),
+    "live_colony_ok": (
+        live_colony.get("ok") is True
+        and (live_colony.get("colony") or {{}}).get("tier") == 2
+        and (live_colony.get("cycle") or {{}}).get("last_grade") == "S"
+    ),
+    "diag_colony_ok": diag_colony.get("ok") is True and diag_colony.get("symptom") == "colony_dialects",
 }}
 """
                 exec_live = await client.call_tool("execute", {"code": code_live})
@@ -530,13 +575,16 @@ return {{
             assert payload["asset_lang"].get("referenced_keys_count", 0) >= 100
             assert payload["asset_lang"].get("missing_referenced_keys") == []
             assert payload["blockstates_count"] >= 20
-            assert payload["sounds_json_count"] == 189
-            assert payload["ogg_files_count"] == 507
+            assert payload["sounds_json_count"] == 200
+            assert payload["ogg_files_count"] == 532
             assert payload["missing_sound_files"] == []
             assert payload["vanilla_event_redirects"] == 0
             assert payload["audio_quality_ok"] is True
             assert payload["sound_studio_ok"] is True
+            assert payload["sound_inspect_ok"] is True
             assert payload["codex_studio_ok"] is True
+            assert payload["live_colony_ok"] is True
+            assert payload["diag_colony_ok"] is True
             assert payload["entities_without_uv"] == []
             assert payload["datapack_total"] > 0
             assert payload["datapack_external_total"] >= 15
@@ -589,7 +637,7 @@ return {{
             assert payload["rcon_closed_ok"] is False
             assert payload["struct_studio_ok"] is True
             assert payload["tags_ok"] is True
-            assert payload["tagged_tools_count"] >= 64
+            assert payload["tagged_tools_count"] >= 66
             assert payload["metrics_tracked_tools"] >= 20
             assert payload["cache_hits"] >= 1
             assert payload["cleared_ok"] is True

@@ -2164,4 +2164,28 @@ class HiveAlgorithmsUnitTest {
         assertEquals(0.08F, HiveUtilityEvaluator.stimulusRegroupBonus(com.alex.mycelialmind.hive.StimulusType.FIRE, 0), 1.0E-6F);
         assertEquals(0.14F, HiveUtilityEvaluator.stimulusRegroupBonus(com.alex.mycelialmind.hive.StimulusType.EXPLOSION, 150), 1.0E-6F);
     }
+
+    @Test
+    void reactiveLoopFadingDuckingBossTensionAndNexusHumMathHold() {
+        assertEquals(1.0F, EvolutionRank.computeAudioDuckingMultiplier(0, 40, 0.55F), 1.0E-5F);
+        assertEquals(0.45F, EvolutionRank.computeAudioDuckingMultiplier(40, 40, 0.55F), 1.0E-5F);
+        assertEquals(0.725F, EvolutionRank.computeAudioDuckingMultiplier(20, 40, 0.55F), 1.0E-5F);
+        assertEquals(0.15F, EvolutionRank.computeAudioDuckingMultiplier(40, 40, 2.0F), 1.0E-5F);
+
+        assertEquals(0.04F, EvolutionRank.computeSmoothFadeVolume(0.0F, 0.50F, 0.04F), 1.0E-5F);
+        assertEquals(0.50F, EvolutionRank.computeSmoothFadeVolume(0.48F, 0.50F, 0.04F), 1.0E-5F);
+        assertEquals(0.26F, EvolutionRank.computeSmoothFadeVolume(0.30F, 0.0F, 0.04F), 1.0E-5F);
+
+        assertEquals(0.0F, EvolutionRank.computeBossTensionBedVolume(false, 0.5F, 1.0F, 1.0F), 1.0E-5F);
+        float bossFullHp = EvolutionRank.computeBossTensionBedVolume(true, 1.0F, 1.0F, 1.0F);
+        float bossLowHp = EvolutionRank.computeBossTensionBedVolume(true, 0.1F, 1.0F, 1.0F);
+        float bossDucked = EvolutionRank.computeBossTensionBedVolume(true, 0.1F, 1.0F, 0.5F);
+        assertTrue(bossLowHp > bossFullHp && bossFullHp > 0.25F);
+        assertEquals(bossLowHp * 0.5F, bossDucked, 1.0E-4F);
+
+        assertEquals(0.0F, EvolutionRank.computeSovereignNexusHumVolume(700.0D, 24.0D, 1.0F, 1.0F), 1.0E-5F);
+        float nexusNear = EvolutionRank.computeSovereignNexusHumVolume(4.0D, 24.0D, 1.0F, 1.0F);
+        float nexusFar = EvolutionRank.computeSovereignNexusHumVolume(400.0D, 24.0D, 1.0F, 1.0F);
+        assertTrue(nexusNear > nexusFar && nexusFar > 0.05F);
+    }
 }

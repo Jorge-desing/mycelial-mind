@@ -1,4 +1,4 @@
-"""Complete 167-event sound catalog for Mycelial Mind's dark bio-horror & clinical tech studio."""
+"""Complete 200-event sound catalog for Mycelial Mind's dark bio-horror & clinical tech studio."""
 
 from __future__ import annotations
 
@@ -197,6 +197,10 @@ ENTITY_SOUNDS: list[SoundSpec] = [
     _s("apex_matriarch_death", "entity", "death", 3.25, 165.0, 4.2, "Apex Matriarch perishes", "Matriarca Suprema perece", species="synaptic_eldritch", loudness_group="boss_cinematic", variations=2, attenuation_distance=64, seed_offset=243, volume=1.0),
     _s("apex_matriarch_barrage", "entity", "projectile_pop", 1.10, 215.0, 12.0, "Apex Matriarch fires spore barrage", "Matriarca Suprema lanza descarga", species="synaptic_eldritch", loudness_group="boss_cinematic", variations=2, attenuation_distance=54, seed_offset=244, volume=1.0),
 
+    # 15b. Boss Multi-Part Tactical Feedback (2)
+    _s("boss_weakpoint_crit", "entity", "bellow", 0.72, 190.0, 9.0, "Boss weak-point ruptured", "Punto débil del jefe fracturado", species="colossal_organic", loudness_group="combat", variations=3, attenuation_distance=28, seed_offset=291, volume=0.98),
+    _s("boss_carapace_ricochet", "entity", "surface_hit", 0.44, 520.0, 14.0, "Attack deflects off armored carapace", "Ataque rebota en caparazón acorazado", species="insectoid_chitin", loudness_group="combat", variations=3, attenuation_distance=24, seed_offset=292, volume=0.92),
+
     # 16. Purifier Drone (Ally, clinical purifier_tech)
     _s("purifier_drone_hum", "entity", "tech_chime", 0.56, 610.0, 6.0, "Purifier Drone hums", "Dron Purificador zumba", species="purifier_tech", loudness_group="ambient", variations=3, attenuation_distance=16, seed_offset=251, volume=0.75),
     _s("purifier_drone_hurt", "entity", "hurt", 0.30, 490.0, 14.0, "Purifier Drone damaged", "Dron Purificador dañado", species="purifier_tech", loudness_group="combat", variations=3, attenuation_distance=18, seed_offset=252, volume=0.88),
@@ -250,6 +254,11 @@ BLOCK_FUNCTIONAL_SOUNDS: list[SoundSpec] = [
     _s("colony_dialect_tone_1", "block_functional", "block_functional", 0.34, 330.0, 7.0, "Colony dialect low pulse", "Pulso grave de dialecto de colonia", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=516, volume=0.84),
     _s("colony_dialect_tone_2", "block_functional", "block_functional", 0.34, 495.0, 7.0, "Colony dialect mid pulse", "Pulso medio de dialecto de colonia", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=517, volume=0.84),
     _s("colony_dialect_tone_3", "block_functional", "block_functional", 0.34, 660.0, 7.0, "Colony dialect high pulse", "Pulso agudo de dialecto de colonia", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=518, volume=0.84),
+    _s("reclaimed_bloom_harvest", "block_functional", "block_functional", 0.56, 560.0, 8.5, "Reclaimed Bloom harvested", "Flor Recuperada cosechada", species="bio_relic", loudness_group="ui_item", variations=3, attenuation_distance=16, seed_offset=519, volume=0.86),
+    _s("reclaimed_bloom_pulse", "block_functional", "block_functional", 0.52, 690.0, 6.5, "Reclaimed Bloom blooms", "Flor Recuperada florece", species="bio_relic", loudness_group="ambient", variations=2, attenuation_distance=14, seed_offset=520, volume=0.78),
+    _s("colony_dialect_mastered", "block_functional", "block_functional", 0.92, 440.0, 6.0, "Colony dialect mastered", "Dialecto de colonia dominado", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=521, volume=0.92),
+    _s("colony_dialect_conflict", "block_functional", "block_functional", 0.58, 310.0, 11.0, "Colony dialect collision", "Colisión de dialecto de colonia", species="synaptic_eldritch", loudness_group="ui_item", variations=2, attenuation_distance=18, seed_offset=522, volume=0.88),
+    _s("colony_reconstruction_pulse", "block_functional", "block_functional", 0.84, 380.0, 7.5, "Colony memory restored", "Memoria de colonia restaurada", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=22, seed_offset=523, volume=0.90),
 ]
 
 ITEM_PROJECTILE_SOUNDS: list[SoundSpec] = [
@@ -301,6 +310,8 @@ SYSTEM_HIVE_SOUNDS: list[SoundSpec] = [
     _s("acid_rain_sizzle", "system", "sizzle", 0.34, 540.0, 16.0, "Acid rain corrodes", "La lluvia ácida corroe", species="wet_visceral", loudness_group="ambient", variations=3, attenuation_distance=16, seed_offset=716, volume=0.72),
     _s("necrophagy_feast", "system", "feast", 0.48, 200.0, 11.5, "Organism consumes carrion", "Organismo consume biomasa", species="wet_visceral", loudness_group="combat", variations=3, attenuation_distance=18, seed_offset=717, volume=0.84),
     _s("swarm_flank_call", "system", "chitter", 0.36, 540.0, 15.0, "Swarm signals flank", "Enjambre coordina flanqueo", species="insectoid_chitin", loudness_group="combat", variations=3, attenuation_distance=22, seed_offset=718, volume=0.82),
+    _s("colony_raid_horn", "system", "bellow", 2.55, 82.0, 4.0, "Rival swarm raid horn sounds", "Cuerno de incursión rival resuena", species="colossal_organic", loudness_group="boss_cinematic", variations=2, attenuation_distance=48, seed_offset=719, volume=0.98),
+    _s("primordial_presence_pulse", "system", "system_env", 1.15, 310.0, 5.5, "Primordial entity resonates nearby", "Entidad Primordial resuena cerca", species="synaptic_eldritch", loudness_group="ambient", variations=2, attenuation_distance=24, seed_offset=720, volume=0.86),
 ]
 
 BIOME_AMBIENT_AND_ALERT_SOUNDS: list[SoundSpec] = [
@@ -325,6 +336,8 @@ BIOME_AMBIENT_AND_ALERT_SOUNDS: list[SoundSpec] = [
     _s("hive_trait_adapt", "system", "system_env", 0.95, 390.0, 9.5, "Hive adapts new trait", "La Colmena adapta un nuevo rasgo", species="synaptic_eldritch", loudness_group="ui_item", variations=2, attenuation_distance=24, seed_offset=812, volume=0.92),
     _s("hive_synergy_unlock", "system", "system_env", 1.35, 245.0, 7.2, "Hive unlocks elite synergy", "La Colmena desbloquea sinergia de élite", species="synaptic_eldritch", loudness_group="combat", variations=2, attenuation_distance=32, seed_offset=813, volume=0.96),
     _s("hive_threat_milestone", "system", "system_env", 1.20, 175.0, 8.0, "Hive threat escalates", "La amenaza de la Colmena escala", species="colossal_organic", loudness_group="combat", variations=2, attenuation_distance=28, seed_offset=814, volume=0.95),
+    _s("sovereign_nexus_hum", "biome_ambient", "system_env", 4.00, 146.0, 2.8, "Sovereign Nexus field hums", "Campo del Nexo Soberano zumba", species="bio_relic", loudness_group="ambient", variations=2, attenuation_distance=24, seed_offset=815, volume=0.76),
+    _s("boss_combat_tension_bed", "biome_ambient", "system_env", 4.50, 56.0, 2.2, "Hive dread pulses in combat", "Pavor de la Colmena palpita en combate", species="colossal_organic", loudness_group="ambient", variations=2, attenuation_distance=32, seed_offset=816, volume=0.82),
 ]
 
 SOUND_CATALOG: list[SoundSpec] = [

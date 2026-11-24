@@ -15,7 +15,7 @@ if str(REPO_ROOT) not in sys.path:
 import numpy as np
 
 from scripts.sound_studio.block_synth import BLOCK_FUNCTIONAL_IDS
-from scripts.sound_studio.boss_synth import BOSS_CINEMATIC_IDS
+from scripts.sound_studio.boss_synth import BOSS_CINEMATIC_IDS, BOSS_PART_IMPACT_IDS
 from scripts.sound_studio.catalog import SOUND_BY_ID, SOUND_CATALOG
 from scripts.sound_studio.dsp_engine import (
     LOUDNESS_TARGETS_DBFS,
@@ -28,24 +28,28 @@ from scripts.sound_studio.dsp_engine import (
 )
 from scripts.sound_studio.entity_synth import ENTITY_SYNTH_IDS
 from scripts.sound_studio.item_synth import ITEM_PROJECTILE_IDS
+from scripts.sound_studio.mastering import SEAMLESS_LOOP_IDS, measure_true_peak_dbfs
 from scripts.sound_studio.metrics import (
     _normalized_lag_correlation,
     analyze_waveform,
+    compare_against_baseline,
     decode_ogg_to_float,
     evaluate_quality,
+    load_acoustic_baseline,
     max_pairwise_correlation,
+    save_acoustic_baseline,
 )
 from scripts.sound_studio.system_env_synth import SYSTEM_ENV_IDS
 
 
 class SoundStudioTests(unittest.TestCase):
     def test_catalog_size_species_loudness_and_attenuation_invariants(self) -> None:
-        self.assertEqual(len(SOUND_CATALOG), 189)
-        self.assertEqual(len(SOUND_BY_ID), 189)
+        self.assertEqual(len(SOUND_CATALOG), 200)
+        self.assertEqual(len(SOUND_BY_ID), 200)
         consts = {s.java_const for s in SOUND_CATALOG}
-        self.assertEqual(len(consts), 189)
+        self.assertEqual(len(consts), 200)
         total_oggs = sum(s.variations for s in SOUND_CATALOG)
-        self.assertEqual(total_oggs, 507)
+        self.assertEqual(total_oggs, 532)
         for spec in SOUND_CATALOG:
             self.assertIn(spec.loudness_group, LOUDNESS_TARGETS_DBFS)
             self.assertTrue(1 <= spec.variations <= 4, msg=f"{spec.sound_id} invalid variations={spec.variations}")
@@ -57,6 +61,7 @@ class SoundStudioTests(unittest.TestCase):
         for spec in SOUND_CATALOG:
             is_dedicated = (
                 spec.sound_id in BOSS_CINEMATIC_IDS
+                or spec.sound_id in BOSS_PART_IMPACT_IDS
                 or spec.sound_id in BLOCK_FUNCTIONAL_IDS
                 or spec.sound_id in ENTITY_SYNTH_IDS
                 or spec.sound_id in ITEM_PROJECTILE_IDS
@@ -80,7 +85,7 @@ class SoundStudioTests(unittest.TestCase):
             self.assertGreater(len(wave), int(SAMPLE_RATE * 0.08))
             self.assertTrue(np.all(np.isfinite(wave)))
             m = analyze_waveform(wave, SAMPLE_RATE)
-            issues = evaluate_quality(m, spec.loudness_group)
+            issues = evaluate_quality(m, spec.loudness_group, is_loop=spec.sound_id in SEAMLESS_LOOP_IDS)
             self.assertEqual(issues, [], msg=f"{spec.sound_id} failed QA: {issues}")
 
     def test_loudness_hierarchy_footsteps_vs_boss_cinematic(self) -> None:
@@ -212,7 +217,7 @@ class SoundStudioTests(unittest.TestCase):
         if not sounds_json.is_file():
             self.skipTest("sounds.json not present")
         data = json.loads(sounds_json.read_text(encoding="utf-8"))
-        self.assertEqual(len(data), 189)
+        self.assertEqual(len(data), 200)
         for sid, entry in data.items():
             spec = SOUND_BY_ID[sid]
             snd_list = entry.get("sounds", [])
@@ -232,16 +237,22 @@ class SoundStudioTests(unittest.TestCase):
         self.assertTrue(qr["ok"], msg=f"Quality report failures: {qr.get('failed_files')[:3]}")
         self.assertEqual(qr["sample_rate"], 44100)
         self.assertEqual(qr["vorbis_quality"], VORBIS_QUALITY)
-        self.assertEqual(qr["total_events"], 189)
-        self.assertEqual(qr["total_ogg_files"], 507)
+        self.assertEqual(qr["total_events"], 200)
+        self.assertEqual(qr["total_ogg_files"], 532)
         self.assertLess(qr["worst_correlation"], 0.85)
+        self.assertLessEqual(float(qr.get("max_true_peak_dbfs", -96.0)), -0.25)
+        self.assertTrue(qr.get("loop_seam_ok", False))
         self.assertTrue(html_path.is_file())
         html_text = html_path.read_text(encoding="utf-8")
         self.assertIn("apex_matriarch_wail", html_text)
         self.assertIn("44100", html_text)
         self.assertIn("Bloques Físicos", html_text)
-        self.assertIn("Biomas y Ambiente (14)", html_text)
+        self.assertIn("Biomas y Ambiente (16)", html_text)
         self.assertIn("fftCanvas", html_text)
+        self.assertIn("specCanvas", html_text)
+        self.assertIn("mix-deck", html_text)
+        self.assertIn("seamStatus", html_text)
+        self.assertIn("TP 4x", html_text)
 
     def _synth_spec(self, sid: str, variation_idx: int = 0) -> tuple[np.ndarray, dict[str, float]]:
         spec = SOUND_BY_ID[sid]
@@ -296,12 +307,12 @@ class SoundStudioTests(unittest.TestCase):
 
     def test_block_functional_sounds_are_mutually_distinct(self) -> None:
         func_ids = [s.sound_id for s in SOUND_CATALOG if s.category == "block_functional"]
-        self.assertEqual(len(func_ids), 18)
+        self.assertEqual(len(func_ids), 23)
         waves: list[np.ndarray] = []
         metrics: dict[str, dict[str, float]] = {}
         for sid in func_ids:
             w, m = self._synth_spec(sid)
-            self.assertEqual(evaluate_quality(m, SOUND_BY_ID[sid].loudness_group), [], msg=sid)
+            self.assertEqual(evaluate_quality(m, SOUND_BY_ID[sid].loudness_group, is_loop=sid in SEAMLESS_LOOP_IDS), [], msg=sid)
             waves.append(w)
             metrics[sid] = m
 
@@ -320,13 +331,14 @@ class SoundStudioTests(unittest.TestCase):
         self.assertGreater(metrics["ephemeral_chitin_crumble"]["spectral_centroid_hz"], 2500.0)
 
     def test_boss_sounds_are_epic_cinematic_and_distinct(self) -> None:
-        """All 17 boss & ritual cinematics must span multi-act durations and separate three boss identities."""
-        self.assertEqual(len(BOSS_CINEMATIC_IDS), 17)
+        """All 18 boss & ritual cinematics + 2 part impacts must span multi-act durations and separate identities."""
+        self.assertEqual(len(BOSS_CINEMATIC_IDS), 18)
+        self.assertEqual(len(BOSS_PART_IMPACT_IDS), 2)
         exports_dir = REPO_ROOT / "scripts" / "sound_studio" / "exports"
         manifest = json.loads((exports_dir / "sound_manifest.json").read_text(encoding="utf-8"))
         report = json.loads((exports_dir / "sound_quality_report.json").read_text(encoding="utf-8"))
         audition_html = (exports_dir / "sound_audition.html").read_text(encoding="utf-8")
-        self.assertIn("Jefes y Cinemática (17)", audition_html)
+        self.assertIn("Jefes y Cinemática (18)", audition_html)
 
         by_id = {entry["sound_id"]: entry for entry in manifest["sounds"]}
         correlations = report.get("event_correlations", {})
@@ -339,6 +351,7 @@ class SoundStudioTests(unittest.TestCase):
             "apex_matriarch_death",
             "boss_phase_shift",
             "fungal_tide_horn",
+            "colony_raid_horn",
             "hive_altar_awaken",
             "matriarch_altar_awaken",
         }
@@ -430,8 +443,9 @@ class SoundStudioTests(unittest.TestCase):
         self.assertLess(max_pairwise_correlation(waves), 0.65)
 
     def test_biome_ambient_loops_and_tactical_alerts_meet_quality_invariants(self) -> None:
-        """All 14 new biome ambient loops/moods/additions and tactical HUD alerts must synthesize cleanly."""
-        self.assertEqual(len(SYSTEM_ENV_IDS), 30)
+        """All biome ambient loops, beds, and tactical HUD alerts must synthesize cleanly with seamless loops."""
+        self.assertEqual(len(SYSTEM_ENV_IDS), 33)
+        self.assertEqual(len(SEAMLESS_LOOP_IDS), 8)
         biome_loops = ("biome_caverns_loop", "biome_sanctum_loop", "biome_forest_loop")
         loop_waves = []
         for sid in biome_loops:
@@ -441,9 +455,13 @@ class SoundStudioTests(unittest.TestCase):
             self.assertLessEqual(m["edge_end_abs"], 0.01, sid)
             loop_waves.append(w)
         self.assertLess(max_pairwise_correlation(loop_waves), 0.55)
+        for sid in sorted(SEAMLESS_LOOP_IDS):
+            _, m = self._synth_spec(sid)
+            self.assertLessEqual(m["loop_seam_delta"], 0.025, sid)
+            self.assertLessEqual(m["true_peak_dbfs"], -0.25, sid)
 
     def test_stage1_pedalboard_lufs_and_convolution_ir_bank(self) -> None:
-        """Stage 1: 6 mono 44.1 kHz IR .wav files, Pedalboard convolution, and ITU-R BS.1770-4 LUFS must back all 181 sounds."""
+        """Stage 1: 6 mono 44.1 kHz IR .wav files, Pedalboard convolution, 4x True-Peak & LUFS must back all 200 sounds."""
         import wave as std_wave
         from scripts.sound_studio.ir_bank import IR_SPACE_NAMES, IRS_DIR, ensure_ir_bank
         from scripts.sound_studio.mastering import master_with_pedalboard, measure_integrated_lufs
@@ -466,12 +484,15 @@ class SoundStudioTests(unittest.TestCase):
         for space in IR_SPACE_NAMES:
             self.assertIn(f'"ir_space": "{space}"', audition_html)
 
-        self.assertEqual(len(manifest["sounds"]), 189)
+        self.assertEqual(len(manifest["sounds"]), 200)
         for entry in manifest["sounds"]:
             self.assertIn(entry.get("ir_space"), IR_SPACE_NAMES, entry["sound_id"])
             lufs = entry["metrics"].get("integrated_lufs")
             self.assertIsNotNone(lufs, entry["sound_id"])
             self.assertTrue(-50.0 < float(lufs) < 0.0, f"{entry['sound_id']} LUFS out of range: {lufs}")
+            tp = entry["metrics"].get("true_peak_dbfs")
+            self.assertIsNotNone(tp, entry["sound_id"])
+            self.assertLessEqual(float(tp), -0.25, entry["sound_id"])
 
         t = np.linspace(0.0, 0.8, int(SAMPLE_RATE * 0.8), endpoint=False)
         probe = np.sin(2.0 * np.pi * 110.0 * t) * np.exp(-t / 0.25)
@@ -479,10 +500,11 @@ class SoundStudioTests(unittest.TestCase):
         self.assertEqual(len(mastered), len(probe))
         self.assertTrue(np.all(np.isfinite(mastered)))
         self.assertLessEqual(float(np.max(np.abs(mastered))), 0.945)
+        self.assertLessEqual(measure_true_peak_dbfs(mastered), -0.25)
         self.assertTrue(-35.0 < measure_integrated_lufs(mastered, SAMPLE_RATE) < -3.0)
 
     def test_stage2_rtx4060_stable_audio_open_small_stems_and_hybrid_blend(self) -> None:
-        """Stage 2: 52 RTX 4060 Stable Audio Open Small stems (steps=14) must back all 181 sounds with worst_corr < 0.55."""
+        """Stage 2: 59 RTX 4060 Stable Audio Open Small stems (steps=14) must back all 200 sounds with worst_corr < 0.55."""
         import wave as std_wave
         from scripts.sound_studio.ai_stem_generator import (
             AI_STEMS_DIR,
@@ -493,12 +515,12 @@ class SoundStudioTests(unittest.TestCase):
         )
 
         self.assertEqual(INFERENCE_STEPS, 14)
-        self.assertEqual(len(AI_STEM_ARCHETYPES), 52)
-        self.assertEqual(len(SOUND_TO_ARCHETYPE), 189)
+        self.assertEqual(len(AI_STEM_ARCHETYPES), 59)
+        self.assertEqual(len(SOUND_TO_ARCHETYPE), 200)
         self.assertTrue(STEM_MANIFEST_PATH.is_file(), f"Missing stem manifest: {STEM_MANIFEST_PATH}")
         stem_manifest = json.loads(STEM_MANIFEST_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(stem_manifest["stem_count"], 52)
-        self.assertEqual(stem_manifest["mapped_sound_events"], 189)
+        self.assertEqual(stem_manifest["stem_count"], 59)
+        self.assertEqual(stem_manifest["mapped_sound_events"], 200)
         self.assertEqual(stem_manifest["steps"], 14)
         self.assertIn("RTX 4060", stem_manifest["device_name"])
         self.assertEqual(stem_manifest["sample_rate"], SAMPLE_RATE)
@@ -627,6 +649,52 @@ class SoundStudioTests(unittest.TestCase):
             self.assertIsNotNone(blended)
             self.assertEqual(len(blended), n)
             self.assertTrue(np.all(np.isfinite(blended)))
+
+    def test_stage3_true_peak_baseline_diff_and_incremental_cache_contract(self) -> None:
+        """Stage 3: Acoustic baseline comparison, incremental cache hashing & boss part spectral contrast."""
+        from scripts.sound_studio.build_sounds import (
+            BASELINE_PATH,
+            BUILD_CACHE_PATH,
+            _compute_engine_fingerprint,
+            _compute_spec_cache_hash,
+        )
+
+        _, m_crit = self._synth_spec("boss_weakpoint_crit")
+        _, m_rico = self._synth_spec("boss_carapace_ricochet")
+        self.assertGreater(m_rico["spectral_centroid_hz"], m_crit["spectral_centroid_hz"])
+
+        fp = _compute_engine_fingerprint()
+        h1 = _compute_spec_cache_hash(SOUND_BY_ID["sovereign_nexus_hum"], fp)
+        h2 = _compute_spec_cache_hash(SOUND_BY_ID["sovereign_nexus_hum"], fp)
+        self.assertEqual(h1, h2)
+        self.assertEqual(len(h1), 24)
+
+        exports_dir = REPO_ROOT / "scripts" / "sound_studio" / "exports"
+        manifest = json.loads((exports_dir / "sound_manifest.json").read_text(encoding="utf-8"))
+        report = json.loads((exports_dir / "sound_quality_report.json").read_text(encoding="utf-8"))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            bpath = Path(tmp) / "baseline.json"
+            base = save_acoustic_baseline(manifest, report, bpath)
+            loaded = load_acoustic_baseline(bpath)
+            self.assertIsNotNone(loaded)
+            same_diff = compare_against_baseline(manifest, report, loaded)  # type: ignore[arg-type]
+            self.assertTrue(same_diff["ok"])
+            self.assertEqual(same_diff["drifted_events"], [])
+
+            mutated_base = json.loads(json.dumps(base))
+            mutated_base["events"]["boss_weakpoint_crit"]["active_rms_dbfs"] -= 4.0
+            drift_diff = compare_against_baseline(manifest, report, mutated_base)
+            self.assertFalse(drift_diff["ok"])
+            self.assertEqual(len(drift_diff["drifted_events"]), 1)
+
+        if BASELINE_PATH.is_file():
+            disk_base = load_acoustic_baseline(BASELINE_PATH)
+            self.assertIsNotNone(disk_base)
+            self.assertEqual(disk_base["total_events"], 200)  # type: ignore[index]
+        if BUILD_CACHE_PATH.is_file():
+            cache_data = json.loads(BUILD_CACHE_PATH.read_text(encoding="utf-8"))
+            self.assertEqual(len(cache_data.get("event_hashes", {})), 200)
 
 
 if __name__ == "__main__":

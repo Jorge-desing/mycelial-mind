@@ -33,6 +33,8 @@ public final class MycelialClientConfig {
     public static final ModConfigSpec.DoubleValue AMBIENT_SOUNDSCAPE_VOLUME;
     public static final ModConfigSpec.BooleanValue HIVE_ADAPTATION_AUDIO_ALERTS;
     public static final ModConfigSpec.BooleanValue CAVE_SOUND_OCCLUSION;
+    public static final ModConfigSpec.BooleanValue DYNAMIC_AUDIO_DUCKING;
+    public static final ModConfigSpec.BooleanValue BOSS_TENSION_BED_ENABLED;
     public static final ModConfigSpec.DoubleValue PARTICLE_DENSITY_SCALE;
     public static final ModConfigSpec.BooleanValue ENABLE_ADDITIVE_PARTICLE_GLOW;
 
@@ -87,6 +89,14 @@ public final class MycelialClientConfig {
         CAVE_SOUND_OCCLUSION = builder
                 .comment("Attenuate volume and pitch when Mycelial organisms vocalize behind solid cave walls.")
                 .define("caveSoundOcclusion", true);
+
+        DYNAMIC_AUDIO_DUCKING = builder
+                .comment("Automatically duck ambient soundscape loops during high-priority Hive alerts and boss encounters.")
+                .define("dynamicAudioDucking", true);
+
+        BOSS_TENSION_BED_ENABLED = builder
+                .comment("Play a reactive sub-harmonic tension drone bed when fighting Mycelial bosses.")
+                .define("bossTensionBedEnabled", true);
         builder.pop();
 
         builder.push("particles");
@@ -155,6 +165,14 @@ public final class MycelialClientConfig {
 
     public static boolean caveSoundOcclusion() {
         return SPEC.isLoaded() ? CAVE_SOUND_OCCLUSION.get() : CAVE_SOUND_OCCLUSION.getDefault();
+    }
+
+    public static boolean dynamicAudioDucking() {
+        return SPEC.isLoaded() ? DYNAMIC_AUDIO_DUCKING.get() : DYNAMIC_AUDIO_DUCKING.getDefault();
+    }
+
+    public static boolean bossTensionBedEnabled() {
+        return SPEC.isLoaded() ? BOSS_TENSION_BED_ENABLED.get() : BOSS_TENSION_BED_ENABLED.getDefault();
     }
 
     public static double particleDensityScale() {

@@ -41,6 +41,7 @@ from scripts.sound_studio.dsp_engine import (
     _wet_squelch_layer,
     adsr_envelope,
     exp_decay,
+    modal_resonator_bank,
 )
 
 BOSS_CINEMATIC_IDS: frozenset[str] = frozenset(
@@ -60,12 +61,20 @@ BOSS_CINEMATIC_IDS: frozenset[str] = frozenset(
         "apex_matriarch_hurt",
         "apex_matriarch_death",
         "apex_matriarch_barrage",
-        # Shared Boss & Ritual Cinematics (5)
+        # Shared Boss & Ritual Cinematics (6)
         "boss_phase_shift",
         "fungal_tide_horn",
+        "colony_raid_horn",
         "hive_altar_awaken",
         "matriarch_altar_awaken",
         "mob_step_colossal",
+    }
+)
+
+BOSS_PART_IMPACT_IDS: frozenset[str] = frozenset(
+    {
+        "boss_weakpoint_crit",
+        "boss_carapace_ricochet",
     }
 )
 
@@ -853,6 +862,65 @@ def synthesize_boss_sound(
         raw = np.tanh((seals * 0.85 + suck + rift_bomb * 1.05 + choir * 1.32 + sparks) * 1.25)
         raw = _sos_highpass(raw, 48.0, order=2)
         return _abyssal_reverb(raw, rng, predelay_ms=19.0, wet=0.36, rt60=1.20, lp_hz=6400.0, shimmer=0.38)
+
+    elif sound_id == "boss_weakpoint_crit":
+        # Tactile dorsal weak-point rupture: crisp organic membrane split -> resonant neural scream -> sub crunch
+        onset = int(rng.uniform(0.015, 0.065) * n)
+        bomb = _sub_bomb(t, onset, f_start=168.0, f_end=34.0, drop_tau=0.065, sustain_tau=dur * 0.42, punch_gain=0.72)
+        crack = _chitin_modal_hits(n, rng, bf * 3.4, 5, 0.045, spread_frac=0.32) * 0.88
+        modal = modal_resonator_bank(
+            n,
+            (bf * 1.5, bf * 2.38, bf * 3.72, bf * 5.25),
+            (0.24, 0.16, 0.10, 0.06),
+            rng,
+            amplitudes=(0.80, 0.62, 0.44, 0.25),
+        )
+        squelch = _wet_squelch_layer(n, rng, bf * 1.3, 6, intensity=0.95) * adsr_envelope(n, 0.02, 0.20, 0.45, 0.35)
+        wail = _apply_formant_bank(
+            _glottal_sub_source(t, bf * (1.32 - 0.48 * (t / dur)), rng, harmonics=9, sub_weight=0.75, rattle_hz=24.0),
+            [(380.0 * formant_shift, 3.0, 1.0), (1120.0 * formant_shift, 3.6, 0.8)],
+        ) * adsr_envelope(n, 0.04, 0.22, 0.40, 0.38) * 0.72
+        raw = np.tanh((bomb * 1.25 + crack + modal * 0.75 + squelch + wail) * 1.28)
+        return _abyssal_reverb(raw, rng, predelay_ms=12.0, wet=0.26, rt60=0.62, lp_hz=5600.0)
+
+    elif sound_id == "boss_carapace_ricochet":
+        # Heavy armored carapace deflection: stiff modal chitin clang -> metallic pitch ricochet -> muted low thud
+        onset = int(rng.uniform(0.010, 0.050) * n)
+        rem = n - onset
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        modal = np.zeros(n, dtype=np.float64)
+        modal[onset:] = modal_resonator_bank(
+            rem,
+            (bf * 1.0, bf * 1.68, bf * 2.54, bf * 3.86, bf * 5.42),
+            (0.14, 0.10, 0.07, 0.045, 0.025),
+            rng,
+            amplitudes=(0.75, 0.85, 0.65, 0.45, 0.25),
+        )
+        zip_up = np.zeros(n, dtype=np.float64)
+        f_ric = bf * (1.1 + 1.85 * np.exp(-rt / 0.09))
+        zip_up[onset:] = _fm_tone(rt, f_ric, bf * 0.62, 1.9, pjit) * exp_decay(rt, 0.14) * 0.68
+        snap = _sos_bandpass(rng.normal(0.0, 1.0, n), 1800.0, 9600.0) * exp_decay(np.maximum(0.0, t - t[onset]), 0.018) * 0.52
+        raw = np.tanh((modal + zip_up + snap) * 1.22)
+        return _cavern_reverb(_sos_highpass(raw, 120.0), rng, wet=0.18, rt60=0.40, lp_hz=6800.0)
+
+    elif sound_id == "colony_raid_horn":
+        # Urgent rival-swarm bronze/chitin siege warhorn: staggered dual-blast + dissonant swarm drone
+        s1, e1 = _window_slice(n, 0.02, 0.44)
+        s2, e2 = _window_slice(n, 0.46, 0.96)
+        e_b1 = _envelope_segment(n, s1, e1, attack_frac=0.14, release_frac=0.30)
+        e_b2 = _envelope_segment(n, s2, e2, attack_frac=0.10, release_frac=0.40)
+        f_h1 = bf * (0.96 + 0.12 * (t / dur))
+        f_h2 = bf * (1.12 - 0.10 * (t / dur))
+        horn1 = _brass_braaam(t, f_h1, rng, detune_cents=15.0, sub_oct=0.90, shimmer_mix=0.16, formant_shift=formant_shift) * e_b1
+        horn2 = (
+            _brass_braaam(t, f_h2, rng, detune_cents=18.0, sub_oct=0.95, shimmer_mix=0.22, formant_shift=formant_shift)
+            + _brass_braaam(t, f_h2 * 1.414, rng, detune_cents=12.0, sub_oct=0.40, shimmer_mix=0.18, formant_shift=formant_shift) * 0.55
+        ) * e_b2
+        punch = _sub_bomb(t, s2, f_start=135.0, f_end=33.0, drop_tau=0.075, sustain_tau=dur * 0.36) * 0.85
+        rattle = _chitin_modal_hits(n, rng, bf * 4.8, 7, 0.04, spread_frac=0.75) * 0.32
+        raw = np.tanh((horn1 * 0.90 + horn2 * 1.05 + punch + rattle) * 1.28)
+        raw = _sos_lowpass(raw, 3400.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.35, rt60=1.15, lp_hz=2800.0)
 
     else:  # "mob_step_colossal"
         # Heavy pre-step floor groan -> chest-thumping tectonic footfall bomb -> stone crunch & mycelium squish

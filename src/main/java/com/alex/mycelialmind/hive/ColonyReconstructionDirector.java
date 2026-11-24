@@ -247,8 +247,8 @@ public final class ColonyReconstructionDirector {
         level.sendParticles(com.alex.mycelialmind.registry.ModParticles.PSYCHIC_WAVE.get(),
                 entry.successorSite().getX() + 0.5D, entry.successorSite().getY() + 1.0D,
                 entry.successorSite().getZ() + 0.5D, 1, 0.0D, 0.0D, 0.0D, 0.0D);
-        level.playSound(null, entry.successorSite(), com.alex.mycelialmind.registry.ModSounds.SYMBIOTIC_NODE_CHARGE.get(),
-                witness.getSoundSource(), 0.7F, 1.2F);
+        level.playSound(null, entry.successorSite(), com.alex.mycelialmind.registry.ModSounds.COLONY_RECONSTRUCTION_PULSE.get(),
+                witness.getSoundSource(), 0.85F, 1.0F);
         witness.setTaskState("idle");
         notifyOwner(level, colony,
                 Component.translatable("message.mycelialmind.colony.reconstruction_restored",

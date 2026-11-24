@@ -8,8 +8,8 @@
   "vae_sliced_decode": true,
   "sampler_type": "pingpong",
   "sample_rate": 44100,
-  "stem_count": 52,
-  "mapped_sound_events": 189,
+  "stem_count": 59,
+  "mapped_sound_events": 200,
   "stems": {
     "acid_spitter_wet_gurgle": {
       "group": "entity",
@@ -200,6 +200,33 @@
         "apex_matriarch_wail"
       ]
     },
+    "boss_tension_bed": {
+      "group": "system_env",
+      "prompt": "Dark subterranean boss battle tension drone, slow pulsing infrasonic dread bed, ominous cavern choir air",
+      "seed": 1797257799,
+      "batch_index": 6,
+      "seconds_total": 5.2,
+      "duration_secs": 5.2,
+      "rms_dbfs": -12.66,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "boss_combat_tension_bed"
+      ]
+    },
+    "boss_weakpoint_impact": {
+      "group": "boss",
+      "prompt": "Heavy monster weak-point rupture crunch followed by chitin armor ricochet clang, dry tactical foley",
+      "seed": 1797257799,
+      "batch_index": 1,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -22.49,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "boss_weakpoint_crit",
+        "boss_carapace_ricochet"
+      ]
+    },
     "burrower_chitin_grind": {
       "group": "entity",
       "prompt": "Scraping insect claws grinding against coarse basalt rock, crumbling earth gravel tunnel",
@@ -259,6 +286,34 @@
         "chitin_brute_hurt",
         "chitin_brute_death",
         "chitin_brute_smash"
+      ]
+    },
+    "colony_dialect_resonance": {
+      "group": "block_func",
+      "prompt": "Symbiotic alien colony harmonic tone triad, resonant bio-crystal memory chime and brief dissonant clash",
+      "seed": 1797257799,
+      "batch_index": 2,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -12.09,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "colony_dialect_mastered",
+        "colony_dialect_conflict",
+        "colony_reconstruction_pulse"
+      ]
+    },
+    "colony_raid_signal": {
+      "group": "boss",
+      "prompt": "Distant menacing insectoid siege warhorn blast across cavern, urgent chitinous rattle, cinematic foley",
+      "seed": 1797257799,
+      "batch_index": 4,
+      "seconds_total": 3.2,
+      "duration_secs": 3.2,
+      "rms_dbfs": -14.83,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "colony_raid_horn"
       ]
     },
     "colony_warden_deep_bellow": {
@@ -508,6 +563,19 @@
         "leech_parasite_siphon"
       ]
     },
+    "primordial_biolum_pulse": {
+      "group": "system_env",
+      "prompt": "Deep eldritch bioluminescent organism aura pulse, warm resonant crystal drone and ancestral sub throb",
+      "seed": 1797257799,
+      "batch_index": 3,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -9.24,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "primordial_presence_pulse"
+      ]
+    },
     "purifier_drone_servo_thruster": {
       "group": "entity",
       "prompt": "Clean miniature futuristic quadcopter servo hum, crisp clinical electronic telemetry chirp, metallic impact",
@@ -543,6 +611,20 @@
         "pyro_shroom_ignite"
       ]
     },
+    "reclaimed_bloom_chime": {
+      "group": "block_func",
+      "prompt": "Bioluminescent crystal flower harvest chime, gentle stem snap, sparkling organic dewdrop shimmer",
+      "seed": 1797257799,
+      "batch_index": 0,
+      "seconds_total": 2.0,
+      "duration_secs": 2.0,
+      "rms_dbfs": -15.55,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "reclaimed_bloom_harvest",
+        "reclaimed_bloom_pulse"
+      ]
+    },
     "ritual_dimensional_rift": {
       "group": "boss",
       "prompt": "Urgent sci-fi power surge alarm, reverse vacuum suction cut, massive cinematic sub bass drop and choir shockwave",
@@ -569,6 +651,19 @@
       "sound_ids": [
         "hive_altar_awaken",
         "fungal_tide_horn"
+      ]
+    },
+    "sovereign_nexus_bed": {
+      "group": "system_env",
+      "prompt": "Steady warm alien bio-sanctuary harmonic hum drone, gentle glowing energy field ambient loop",
+      "seed": 1797257799,
+      "batch_index": 5,
+      "seconds_total": 5.0,
+      "duration_secs": 5.0,
+      "rms_dbfs": -7.53,
+      "peak_dbfs": -0.92,
+      "sound_ids": [
+        "sovereign_nexus_hum"
       ]
     },
     "spore_architect_pulse": {

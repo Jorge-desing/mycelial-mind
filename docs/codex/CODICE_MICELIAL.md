@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `61` entradas y `234` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `61` entradas y `235` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -1574,59 +1574,62 @@ _189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify_ | Puerta recom
 - **ID de Entrada:** `tecnica_comandos/configuracion_cliente_servidor` | **Ícono:** `mycelialmind:synaptic_research_bench` | **Unlock:** `always`
 - **Resumen:** MycelialClientConfig, KeyBindings y MycelialConfig TOML completo
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.1] Claves de Configuración TOML (1/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.1] Claves de Configuración TOML (1/13)
 
 • `[hud] hudAnchor` = `TOP_LEFT` (`TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, `BOTTOM_RIGHT`).
 • `[hud] hudOffsetX` = `0` (`-200..200`); `hudOffsetY` = `0` (`-200..200`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.2] Claves de Configuración TOML (2/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.2] Claves de Configuración TOML (2/13)
 
 • `[hud] hudCompactMode` = `false`; `hudContextualCombat` = `true`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`.
 • `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.3] Claves de Configuración TOML (3/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.3] Claves de Configuración TOML (3/13)
 
-• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`.
+• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`.
+
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.4] Claves de Configuración TOML (4/13)
+
 • `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.
-
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.4] Claves de Configuración TOML (4/12)
-
 • `[hive_memory]` `learningMultiplier`=`1.0` (`0.1..10`), `decayPerMinute`=`2.0` (`0..50`), `traitActivationThreshold`=`70.0` (`5..500`).
+
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/13)
+
 • `[hive_memory]` `tier2ActivationThreshold`=`200.0` (`25..500`), `tier2DecayMultiplier`=`1.75` (`1..5`), `synergiesEnabled`=`true`.
-
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/12)
-
 • `[hive_memory]` `suppressorCooldownSeconds`=`120` (`15..600`), `projectileDeflectChance`=`0.30` (`0..0.95`), `symbiosisThreatMultiplierPerSlot`=`0.15` (`0..1`).
+
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/13)
+
 • `[hive_memory]` `maxMutagenSlots`=`2` (`1..5`), `counterSerumBleedRatio`=`0.50` (`0.1..0.95`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.7] Claves de Configuración TOML (7/13)
 
 • `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`), `pylonTier3ChunkLoadingEnabled`=`true`.
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.7] Claves de Configuración TOML (7/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.8] Claves de Configuración TOML (8/13)
 
 • `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`.
 • `[territory]` `playerCountScaling`=`0.15` (`0..1`), `wavesEnabled`=`true`, `waveCooldownTicks`=`3600` (`200..72000`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.8] Claves de Configuración TOML (8/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.9] Claves de Configuración TOML (9/13)
 
 • `[territory]` `autonomousExpansionEnabled`=`true`, `aggressiveVillageAssimilation`=`true`, `maxAutonomousNodes`=`32` (`4..128`), `minNodeSpacing`=`18` (`8..48`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.9] Claves de Configuración TOML (9/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.10] Claves de Configuración TOML (10/13)
 
 • `[territory]` `infectionConversionEnabled`=`true`, `fungalTideEnabled`=`true`, `fungalTideDurationTicks`=`6000` (`600..24000`).
 • `[territory]` `fungalTideCooldownTicks`=`24000` (`1200..72000`), `mycorrhizalAcousticsEnabled`=`true`, `maxSymbioticNodes`=`4` (`1..16`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.10] Claves de Configuración TOML (10/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.11] Claves de Configuración TOML (11/13)
 
 • `[territory]` `mycorrhizalTravelRange`=`96` (`16..256`), `mycorrhizalTravelCooldownTicks`=`1500` (`100..6000`).
 • `[territory]` `progressiveThreatScaling`=`true`, `deathThreatPenalty`=`5.0` (`0..25`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.11] Claves de Configuración TOML (11/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.12] Claves de Configuración TOML (12/13)
 
 • `[dimensional_homeostasis]` `homeostasisEnabled`=`true`, `homeostasisExplosionStressScale`=`1.0` (`0.1..5`), `homeostasisAcidRainDamage`=`2.0` (`0.5..10`).
 
-#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.12] Claves de Configuración TOML (12/12)
+#### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.13] Claves de Configuración TOML (13/13)
 
 • `[dimensional_homeostasis]` `homeostasisAntibodyEncapsulationEnabled`=`true`, `homeostasisMaxCystsPerChunk`=`64` (`8..256`).
 • `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).

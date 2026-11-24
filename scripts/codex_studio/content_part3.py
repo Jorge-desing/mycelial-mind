@@ -1662,13 +1662,17 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         "sovereign_nexus_pulse", "colony_symbiont_ambient", "colony_symbiont_work",
         "colony_symbiont_promote", "command_staff_mark",
         "colony_dialect_tone_1", "colony_dialect_tone_2", "colony_dialect_tone_3",
+        "boss_weakpoint_crit", "boss_carapace_ricochet", "reclaimed_bloom_harvest",
+        "reclaimed_bloom_pulse", "primordial_presence_pulse", "colony_dialect_mastered",
+        "colony_dialect_conflict", "colony_raid_horn", "colony_reconstruction_pulse",
+        "sovereign_nexus_hum", "boss_combat_tension_bed",
     ]
     sound_blocks = [
         (
             "• **Estudio Visual y Audio:** 18 `Model` multi-articulados (UV manifests), texturas LabPBR "
-            "`_n`/`_s`, `ClientSoundscapeDirector` y **189 eventos `ModSounds`** (**507** `.ogg` mono `44.1kHz`).",
+            "`_n`/`_s`, `ClientSoundscapeDirector` y **200 eventos `ModSounds`** (**532** `.ogg` mono `44.1kHz`).",
             "• **Visual & Audio Studio:** 18 articulated 3D models (UV manifests), LabPBR `_n`/`_s` "
-            "maps, `ClientSoundscapeDirector`, and **189 `ModSounds`** (**507** mono `44.1kHz` `.ogg`).",
+            "maps, `ClientSoundscapeDirector`, and **200 `ModSounds`** (**532** mono `44.1kHz` `.ogg`).",
         ),
         (
             "• **Dinámica Vocal:** tono modulable (`0.45–1.85`) según Rango (`BASE/MUTATED/ELITE`), Cepa "
@@ -1691,8 +1695,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[hud] hudCompactMode` = `false`; `hudContextualCombat` = `true`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`."),
         ("• `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`).",
          "• `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`)."),
-        ("• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`.",
-         "• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`."),
+        ("• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`.",
+         "• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`."),
         ("• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.",
          "• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`."),
     ]

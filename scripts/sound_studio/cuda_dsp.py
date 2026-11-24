@@ -402,21 +402,30 @@ def gpu_blend_ai_stem(
         start_idx = int(rot_frac * max(1, m_stem - 64))
         rolled = torch.roll(stem_t, -start_idx, dims=0)
 
-        src_needed = max(64, int(round(n * pitch_ratio)))
+        loop_cf = 0
+        if seamless_loop and n >= int(1.2 * sample_rate):
+            cf_cand = min(n // 4, int(sample_rate * 0.260))
+            if cf_cand % 2 == 1:
+                cf_cand -= 1
+            if cf_cand >= 32:
+                loop_cf = cf_cand
+        n_resample = n + loop_cf
+
+        src_needed = max(64, int(round(n_resample * pitch_ratio)))
         if src_needed > m_stem:
             reps = int(math.ceil(src_needed / float(m_stem)))
             tiled = rolled.repeat(reps)[:src_needed]
         else:
             tiled = rolled[:src_needed]
 
-        # Exact piecewise-linear interpolation matching np.interp on [0..src_needed-1] -> [0..n-1]
+        # Exact piecewise-linear interpolation matching np.interp on [0..src_needed-1] -> [0..n_resample-1]
         m_src = int(tiled.numel())
-        if m_src == n:
+        if m_src == n_resample:
             resampled_t = tiled
         elif m_src <= 1:
-            resampled_t = tiled[:1].expand(n)
+            resampled_t = tiled[:1].expand(n_resample)
         else:
-            pos = torch.arange(n, device="cuda", dtype=torch.float32) * (float(m_src) / float(n))
+            pos = torch.arange(n_resample, device="cuda", dtype=torch.float32) * (float(m_src) / float(n_resample))
             pos = torch.clamp(pos, 0.0, float(m_src - 1))
             idx0 = pos.to(torch.long)
             idx1 = torch.clamp(idx0 + 1, max=m_src - 1)
@@ -424,32 +433,41 @@ def gpu_blend_ai_stem(
             v0 = tiled[idx0]
             resampled_t = v0 + frac * (tiled[idx1] - v0)
 
-        if seamless_loop and n >= int(2.2 * sample_rate):
-            cf = min(n // 5, int(sample_rate * 120.0 / 1000.0))
-            if cf >= 32:
-                theta = torch.linspace(0.0, 0.5 * math.pi, cf, device="cuda", dtype=torch.float32)
-                fade_in = torch.sin(theta)
-                fade_out = torch.cos(theta)
-                head = resampled_t[:cf].clone()
-                tail = resampled_t[-cf:].clone()
-                resampled_t = resampled_t.clone()
-                resampled_t[:cf] = head * fade_in + tail * fade_out
-                resampled_t[-cf:] = tail * fade_out + head * fade_in
+        if loop_cf >= 32:
+            half = loop_cf // 2
+            theta = torch.linspace(0.0, 0.5 * math.pi, loop_cf, device="cuda", dtype=torch.float32)
+            bridge = resampled_t[n : n + loop_cf] * torch.cos(theta) + resampled_t[:loop_cf] * torch.sin(theta)
+            # Fold circular crossfade seamlessly around the wrap seam while preserving exact length n
+            resampled_t = torch.cat([bridge[half:], resampled_t[loop_cf:n], bridge[:half]], dim=0)
 
         dsp_t = torch.as_tensor(np.ascontiguousarray(dsp_wave, dtype=np.float32), device="cuda")
-        shaped_t = _apply_bandpass_and_envelope_gpu(
-            torch,
-            resampled_t,
-            dsp_t,
-            sample_rate=sample_rate,
-            band_lo_hz=band_lo_hz,
-            band_hi_hz=band_hi_hz,
-        )
+        if seamless_loop and n >= 4096:
+            wrap = min(n // 4, 4096)
+            res_in = torch.cat([resampled_t[-wrap:], resampled_t, resampled_t[:wrap]], dim=0)
+            dsp_in = torch.cat([dsp_t[-wrap:], dsp_t, dsp_t[:wrap]], dim=0)
+            shaped_t = _apply_bandpass_and_envelope_gpu(
+                torch,
+                res_in,
+                dsp_in,
+                sample_rate=sample_rate,
+                band_lo_hz=band_lo_hz,
+                band_hi_hz=band_hi_hz,
+            )[wrap : wrap + n]
+        else:
+            shaped_t = _apply_bandpass_and_envelope_gpu(
+                torch,
+                resampled_t,
+                dsp_t,
+                sample_rate=sample_rate,
+                band_lo_hz=band_lo_hz,
+                band_hi_hz=band_hi_hz,
+            )
 
-        guard_samples = min(n // 2, int(sample_rate * attack_guard_ms / 1000.0))
-        if guard_samples > 8:
-            guard_ramp = torch.linspace(0.0, 1.0, guard_samples, device="cuda", dtype=torch.float32) ** 1.6
-            shaped_t[:guard_samples] *= guard_ramp
+        if not seamless_loop:
+            guard_samples = min(n // 2, int(sample_rate * attack_guard_ms / 1000.0))
+            if guard_samples > 8:
+                guard_ramp = torch.linspace(0.0, 1.0, guard_samples, device="cuda", dtype=torch.float32) ** 1.6
+                shaped_t[:guard_samples] *= guard_ramp
 
         dsp_rms = float(torch.sqrt(torch.mean(dsp_t * dsp_t)).item()) + 1e-8
         stem_rms = float(torch.sqrt(torch.mean(shaped_t * shaped_t)).item())

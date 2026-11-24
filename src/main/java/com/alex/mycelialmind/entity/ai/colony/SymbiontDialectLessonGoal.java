@@ -66,6 +66,8 @@ public final class SymbiontDialectLessonGoal extends Goal {
             if (colony.finishDialectLesson(worker.getUUID())) {
                 SovereignColonySavedData.get(level).setDirty();
                 if (finished != null) {
+                    level.playSound(null, finished.target(), com.alex.mycelialmind.registry.ModSounds.COLONY_DIALECT_MASTERED.get(),
+                            net.minecraft.sounds.SoundSource.BLOCKS, 0.88F, 1.0F);
                     com.alex.mycelialmind.colony.ColonyDialectCallDirector.playSequence(level, finished.target(), finished.call());
                     com.alex.mycelialmind.colony.ColonyDialectCallDirector.notifyNearbyPlayers(
                             level,

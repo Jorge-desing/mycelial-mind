@@ -255,6 +255,11 @@ public record SovereignColonyActionPayload(
                                     ? Component.translatable("message.mycelialmind.colony.dialect_unavailable")
                                     : Component.translatable("message.mycelialmind.colony.dialect_conflict",
                                             Component.translatable(meaning.translationKey()), Component.translatable(conflict.translationKey())), true);
+                            if (conflict != com.alex.mycelialmind.colony.ColonySiteHabit.NONE) {
+                                level.playSound(null, payload.sourceSitePos(),
+                                        com.alex.mycelialmind.registry.ModSounds.COLONY_DIALECT_CONFLICT.get(),
+                                        net.minecraft.sounds.SoundSource.BLOCKS, 0.78F, 0.96F);
+                            }
                         }
                     }
                 }
@@ -274,6 +279,9 @@ public record SovereignColonyActionPayload(
                     if (player.getUUID().equals(colony.getOwnerId())
                             && colony.clearDialectCall(payload.sourceSitePos(), payload.param())) {
                         SovereignColonySavedData.get(level).setDirty();
+                        level.playSound(null, payload.sourceSitePos(),
+                                com.alex.mycelialmind.registry.ModSounds.COLONY_DIALECT_CONFLICT.get(),
+                                net.minecraft.sounds.SoundSource.BLOCKS, 0.72F, 1.12F);
                         ColonyDialectCallDirector.notifyNearbyPlayers(
                                 level,
                                 payload.sourceSitePos(),

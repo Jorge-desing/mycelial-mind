@@ -1,10 +1,13 @@
 package com.alex.mycelialmind.client;
 
 import com.alex.mycelialmind.block.AntibodyCystBlock;
+import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.config.MycelialClientConfig;
+import com.alex.mycelialmind.entity.MycelialBossMob;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveSynergy;
+import com.alex.mycelialmind.network.ClientColonyCache;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
@@ -12,16 +15,19 @@ import com.alex.mycelialmind.world.DimensionalHomeostasisEngine.HomeostasisStage
 import com.alex.mycelialmind.world.ModDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 
+import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Client-side reactive soundscape and Hive Mind adaptation alert director.
- * Plays positional ambient loops (Purification Pylon field hum, Fungal Tide spore storm,
- * Deep Mycelium Homeostasis arterial heartbeat + acid rain sizzle) and one-shot HUD/dimension
- * alerts when the Hive Mind evolves new traits, synergies, threat milestones, or IMMUNE_RESPONSE.
+ * Drives smooth fading {@link ReactiveLoopSoundInstance} beds (Purification Pylon hum, Fungal Tide storm,
+ * Deep Mycelium Homeostasis arterial heartbeat + acid rain sizzle, Sovereign Nexus hum, and Boss tension bed),
+ * cinematic audio ducking during alerts, and dedicated Primordial / Hive adaptation cues.
  */
 public final class ClientSoundscapeDirector {
     private static boolean baselineCaptured = false;
@@ -32,6 +38,22 @@ public final class ClientSoundscapeDirector {
     private static int tickCounter = 0;
     private static int alertCooldownTicks = 0;
     private static int primordialAlertCooldownTicks = 0;
+    private static int duckTicksRemaining = 0;
+    private static int duckTotalTicks = 0;
+    private static float duckMaxReduction = 0.0F;
+
+    @Nullable
+    private static ReactiveLoopSoundInstance fungalTideLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance homeostasisHeartbeatLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance acidRainSizzleLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance pylonHumLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance sovereignNexusHumLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance bossTensionBedLoop;
 
     private ClientSoundscapeDirector() {
     }
@@ -49,6 +71,84 @@ public final class ClientSoundscapeDirector {
         tickCounter = 0;
         alertCooldownTicks = 0;
         primordialAlertCooldownTicks = 0;
+        duckTicksRemaining = 0;
+        duckTotalTicks = 0;
+        duckMaxReduction = 0.0F;
+
+        Minecraft mc = Minecraft.getInstance();
+        stopLoopImmediate(mc, fungalTideLoop);
+        stopLoopImmediate(mc, homeostasisHeartbeatLoop);
+        stopLoopImmediate(mc, acidRainSizzleLoop);
+        stopLoopImmediate(mc, pylonHumLoop);
+        stopLoopImmediate(mc, sovereignNexusHumLoop);
+        stopLoopImmediate(mc, bossTensionBedLoop);
+        fungalTideLoop = null;
+        homeostasisHeartbeatLoop = null;
+        acidRainSizzleLoop = null;
+        pylonHumLoop = null;
+        sovereignNexusHumLoop = null;
+        bossTensionBedLoop = null;
+    }
+
+    private static void stopLoopImmediate(@Nullable Minecraft mc, @Nullable ReactiveLoopSoundInstance loop) {
+        if (loop == null) {
+            return;
+        }
+        loop.forceStopImmediate();
+        if (mc != null && mc.getSoundManager() != null) {
+            mc.getSoundManager().stop(loop);
+        }
+    }
+
+    private static void triggerDucking(int ticks, float reduction) {
+        if (!MycelialClientConfig.dynamicAudioDucking() || ticks <= 0) {
+            return;
+        }
+        duckTotalTicks = Math.max(ticks, 1);
+        duckTicksRemaining = ticks;
+        duckMaxReduction = Math.max(duckMaxReduction, reduction);
+    }
+
+    @Nullable
+    private static ReactiveLoopSoundInstance updateReactiveLoop(
+            Minecraft mc,
+            @Nullable ReactiveLoopSoundInstance current,
+            SoundEvent soundEvent,
+            SoundSource source,
+            boolean positional,
+            double x,
+            double y,
+            double z,
+            float targetVol,
+            float targetPitch,
+            float maxStepPerTick
+    ) {
+        if (targetVol <= 0.005F) {
+            if (current != null) {
+                current.requestStop();
+                if (current.isStopped() || !mc.getSoundManager().isActive(current)) {
+                    return null;
+                }
+            }
+            return current;
+        }
+
+        if (current == null || current.isStopped() || !mc.getSoundManager().isActive(current)) {
+            ReactiveLoopSoundInstance created = new ReactiveLoopSoundInstance(
+                    soundEvent, source, positional, targetPitch, maxStepPerTick);
+            if (positional) {
+                created.setPosition(x, y, z);
+            }
+            created.updateTarget(targetVol, targetPitch);
+            mc.getSoundManager().play(created);
+            return created;
+        }
+
+        if (positional) {
+            current.setPosition(x, y, z);
+        }
+        current.updateTarget(targetVol, targetPitch);
+        return current;
     }
 
     public static void onClientTick(Minecraft mc) {
@@ -61,6 +161,12 @@ public final class ClientSoundscapeDirector {
         }
         if (primordialAlertCooldownTicks > 0) {
             primordialAlertCooldownTicks--;
+        }
+        if (duckTicksRemaining > 0) {
+            duckTicksRemaining--;
+            if (duckTicksRemaining == 0) {
+                duckMaxReduction = 0.0F;
+            }
         }
 
         Set<AdaptationTrait> currentTraits = ClientHiveCache.getActiveTraits();
@@ -120,6 +226,7 @@ public final class ClientSoundscapeDirector {
                         ModSounds.HIVE_SYNERGY_UNLOCK.get(), SoundSource.HOSTILE,
                         0.78F, 1.0F, false
                 );
+                triggerDucking(55, 0.55F);
                 alertCooldownTicks = 30;
             } else if (immuneSurgeTriggered) {
                 mc.level.playLocalSound(
@@ -127,6 +234,7 @@ public final class ClientSoundscapeDirector {
                         ModSounds.IMMUNE_SURGE.get(), SoundSource.HOSTILE,
                         0.84F, 0.96F + mc.level.random.nextFloat() * 0.08F, false
                 );
+                triggerDucking(55, 0.55F);
                 alertCooldownTicks = 30;
             } else if (newTraitAdapted) {
                 mc.level.playLocalSound(
@@ -134,6 +242,7 @@ public final class ClientSoundscapeDirector {
                         ModSounds.HIVE_TRAIT_ADAPT.get(), SoundSource.HOSTILE,
                         0.72F, 1.0F, false
                 );
+                triggerDucking(40, 0.45F);
                 alertCooldownTicks = 25;
             } else if (milestoneEscalated) {
                 float pitch = 0.90F + (currentMilestone / 100.0F) * 0.20F;
@@ -142,42 +251,36 @@ public final class ClientSoundscapeDirector {
                         ModSounds.HIVE_THREAT_MILESTONE.get(), SoundSource.HOSTILE,
                         0.75F, pitch, false
                 );
+                triggerDucking(45, 0.50F);
                 alertCooldownTicks = 25;
             }
         }
 
-        // 2. Positional Ambient Soundscape Loops
+        // 2. Reactive Tickable Ambient Loops with smooth fade-in/fade-out & ducking
         float envVol = (float) MycelialClientConfig.ambientSoundscapeVolume();
-        if (envVol <= 0.01F) {
-            return;
-        }
+        float alertDuck = MycelialClientConfig.dynamicAudioDucking()
+                ? EvolutionRank.computeAudioDuckingMultiplier(duckTicksRemaining, duckTotalTicks, duckMaxReduction)
+                : 1.0F;
 
-        // 2a. Fungal Tide storm howl (when active outside Pylon protection)
-        if (ClientHiveCache.getFungalTideSecondsRemaining() > 0
-                && !ClientHiveCache.isInProtectedZone()
-                && tickCounter % 72 == 0) {
-            mc.level.playLocalSound(
-                    mc.player.getX(), mc.player.getY() + 2.0D, mc.player.getZ(),
-                    ModSounds.FUNGAL_TIDE_AMBIENCE.get(), SoundSource.AMBIENT,
-                    0.48F * envVol, 0.96F + mc.level.random.nextFloat() * 0.08F, false
-            );
-        }
+        // 2a. Fungal Tide storm loop (active outside Purification Pylon protection)
+        boolean tideStormActive = envVol > 0.01F
+                && ClientHiveCache.getFungalTideSecondsRemaining() > 0
+                && !ClientHiveCache.isInProtectedZone();
+        float tideTargetVol = tideStormActive ? 0.48F * envVol * alertDuck : 0.0F;
+        fungalTideLoop = updateReactiveLoop(
+                mc, fungalTideLoop, ModSounds.FUNGAL_TIDE_AMBIENCE.get(), SoundSource.AMBIENT,
+                false, 0.0D, 0.0D, 0.0D, tideTargetVol, 1.0F, 0.025F
+        );
 
         // 2b. Deep Mycelium Homeostasis arterial heartbeat + acid rain sizzle under open sky
-        if (inDeepMycelium) {
-            if (stage != HomeostasisStage.STABLE) {
-                int interval = stage == HomeostasisStage.IMMUNE_RESPONSE ? 36 : 60;
-                if (tickCounter % interval == 0) {
-                    float stress01 = (float) Math.min(1.0D, Math.max(0.2D, ClientHiveCache.getHomeostasisStress() / 100.0D));
-                    float hbPitch = stage == HomeostasisStage.IMMUNE_RESPONSE ? 1.08F : 0.96F;
-                    mc.level.playLocalSound(
-                            mc.player.getX(), mc.player.getY() - 1.0D, mc.player.getZ(),
-                            ModSounds.HOMEOSTASIS_HEARTBEAT.get(), SoundSource.AMBIENT,
-                            (0.32F + 0.35F * stress01) * envVol, hbPitch, false
-                    );
-                }
-            }
-            if (stage == HomeostasisStage.IMMUNE_RESPONSE && tickCounter % 44 == 12) {
+        float heartbeatVol = 0.0F;
+        float heartbeatPitch = 0.96F;
+        float sizzleVol = 0.0F;
+        if (envVol > 0.01F && inDeepMycelium && stage != HomeostasisStage.STABLE) {
+            float stress01 = (float) Math.min(1.0D, Math.max(0.2D, ClientHiveCache.getHomeostasisStress() / 100.0D));
+            heartbeatPitch = stage == HomeostasisStage.IMMUNE_RESPONSE ? 1.08F : 0.96F;
+            heartbeatVol = (0.28F + 0.34F * stress01) * envVol * alertDuck;
+            if (stage == HomeostasisStage.IMMUNE_RESPONSE) {
                 BlockPos headPos = mc.player.blockPosition().above();
                 boolean sheltered = false;
                 for (int dy = 1; dy <= 10; dy++) {
@@ -187,23 +290,24 @@ public final class ClientSoundscapeDirector {
                         break;
                     }
                 }
-                float sizzleVol = EvolutionRank.computeAcidRainSizzleVolume(
-                        ClientHiveCache.getHomeostasisStress(), sheltered, envVol);
-                if (sizzleVol > 0.01F) {
-                    mc.level.playLocalSound(
-                            mc.player.getX(), mc.player.getY() + 1.5D, mc.player.getZ(),
-                            ModSounds.ACID_RAIN_SIZZLE.get(), SoundSource.WEATHER,
-                            sizzleVol, 0.92F + mc.level.random.nextFloat() * 0.16F, false
-                    );
-                }
+                sizzleVol = EvolutionRank.computeAcidRainSizzleVolume(
+                        ClientHiveCache.getHomeostasisStress(), sheltered, envVol) * alertDuck;
             }
         }
+        homeostasisHeartbeatLoop = updateReactiveLoop(
+                mc, homeostasisHeartbeatLoop, ModSounds.HOMEOSTASIS_HEARTBEAT.get(), SoundSource.AMBIENT,
+                false, 0.0D, 0.0D, 0.0D, heartbeatVol, heartbeatPitch, 0.025F
+        );
+        acidRainSizzleLoop = updateReactiveLoop(
+                mc, acidRainSizzleLoop, ModSounds.ACID_RAIN_SIZZLE.get(), SoundSource.WEATHER,
+                false, 0.0D, 0.0D, 0.0D, sizzleVol, 1.0F, 0.04F
+        );
 
         // 2c. Nearby active Purification Pylon electromagnetic field hum (tier-scaled radius & pitch)
-        if (tickCounter % 50 == 25) {
+        BlockPos closestPylon = null;
+        int closestTier = 1;
+        if (envVol > 0.01F) {
             BlockPos playerPos = mc.player.blockPosition();
-            BlockPos closestPylon = null;
-            int closestTier = 1;
             double bestDistSq = Double.MAX_VALUE;
             for (BlockPos pylonPos : ClientHiveCache.getNearbyPylons()) {
                 int tier = mc.level.getBlockEntity(pylonPos) instanceof com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity focus
@@ -221,18 +325,78 @@ public final class ClientSoundscapeDirector {
                     }
                 }
             }
-            if (closestPylon != null) {
-                float basePitch = EvolutionRank.computePylonHumPitch(closestTier);
-                mc.level.playLocalSound(
-                        closestPylon.getX() + 0.5D, closestPylon.getY() + 0.8D, closestPylon.getZ() + 0.5D,
-                        ModSounds.PURIFICATION_PYLON_HUM.get(), SoundSource.BLOCKS,
-                        0.40F * envVol, basePitch * (0.98F + mc.level.random.nextFloat() * 0.04F), false
-                );
+        }
+        float pylonVol = closestPylon != null ? 0.40F * envVol * alertDuck : 0.0F;
+        float pylonPitch = EvolutionRank.computePylonHumPitch(closestTier);
+        double px = closestPylon != null ? closestPylon.getX() + 0.5D : mc.player.getX();
+        double py = closestPylon != null ? closestPylon.getY() + 0.8D : mc.player.getY();
+        double pz = closestPylon != null ? closestPylon.getZ() + 0.5D : mc.player.getZ();
+        pylonHumLoop = updateReactiveLoop(
+                mc, pylonHumLoop, ModSounds.PURIFICATION_PYLON_HUM.get(), SoundSource.BLOCKS,
+                true, px, py, pz, pylonVol, pylonPitch, 0.03F
+        );
+
+        // 2d. Active Sovereign Nexus ambient field hum
+        BlockPos nexusPos = ClientColonyCache.hasColony() && ClientColonyCache.isUnlocked()
+                ? ClientColonyCache.getNexusPos()
+                : null;
+        float nexusVol = 0.0F;
+        double nx = mc.player.getX();
+        double ny = mc.player.getY();
+        double nz = mc.player.getZ();
+        if (envVol > 0.01F && nexusPos != null && mc.level.isLoaded(nexusPos)
+                && mc.level.getBlockEntity(nexusPos) instanceof SovereignNexusBlockEntity) {
+            double maxNexusRadius = 24.0D;
+            double dSq = nexusPos.distSqr(mc.player.blockPosition());
+            nexusVol = EvolutionRank.computeSovereignNexusHumVolume(dSq, maxNexusRadius, envVol, alertDuck);
+            nx = nexusPos.getX() + 0.5D;
+            ny = nexusPos.getY() + 1.0D;
+            nz = nexusPos.getZ() + 0.5D;
+        }
+        sovereignNexusHumLoop = updateReactiveLoop(
+                mc, sovereignNexusHumLoop, ModSounds.SOVEREIGN_NEXUS_HUM.get(), SoundSource.BLOCKS,
+                true, nx, ny, nz, nexusVol, 1.0F, 0.02F
+        );
+
+        // 2e. Boss combat tension bed (sub-harmonic drone bed scaling as boss HP drops)
+        float bossBedVol = 0.0F;
+        float bossBedPitch = 1.0F;
+        if (envVol > 0.01F && MycelialClientConfig.bossTensionBedEnabled() && tickCounter % 5 == 0) {
+            List<MycelialBossMob> bosses = mc.level.getEntitiesOfClass(
+                    MycelialBossMob.class,
+                    mc.player.getBoundingBox().inflate(48.0D),
+                    m -> m.isAlive()
+            );
+            if (!bosses.isEmpty()) {
+                MycelialBossMob nearestBoss = bosses.get(0);
+                double bestDist = nearestBoss.distanceToSqr(mc.player);
+                for (int i = 1; i < bosses.size(); i++) {
+                    double d = bosses.get(i).distanceToSqr(mc.player);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        nearestBoss = bosses.get(i);
+                    }
+                }
+                float hpRatio = nearestBoss.getMaxHealth() > 0.0F
+                        ? nearestBoss.getHealth() / nearestBoss.getMaxHealth()
+                        : 1.0F;
+                bossBedVol = EvolutionRank.computeBossTensionBedVolume(true, hpRatio, envVol, alertDuck);
+                bossBedPitch = 0.96F + 0.10F * (1.0F - Math.max(0.0F, Math.min(1.0F, hpRatio)));
             }
+            bossTensionBedLoop = updateReactiveLoop(
+                    mc, bossTensionBedLoop, ModSounds.BOSS_COMBAT_TENSION_BED.get(), SoundSource.AMBIENT,
+                    false, 0.0D, 0.0D, 0.0D, bossBedVol, bossBedPitch, 0.025F
+            );
+        } else if (envVol <= 0.01F || !MycelialClientConfig.bossTensionBedEnabled()) {
+            bossTensionBedLoop = updateReactiveLoop(
+                    mc, bossTensionBedLoop, ModSounds.BOSS_COMBAT_TENSION_BED.get(), SoundSource.AMBIENT,
+                    false, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, 0.04F
+            );
         }
 
-        // 2d. Nearby Primordial Bioluminescent Mob resonance pulse
-        if (MycelialClientConfig.hiveAdaptationAudioAlerts()
+        // 2f. Nearby Primordial Bioluminescent Mob resonance pulse (dedicated event)
+        if (envVol > 0.01F
+                && MycelialClientConfig.hiveAdaptationAudioAlerts()
                 && primordialAlertCooldownTicks == 0
                 && tickCounter % 40 == 10) {
             boolean primordialNear = !mc.level.getEntitiesOfClass(
@@ -243,9 +407,10 @@ public final class ClientSoundscapeDirector {
             if (primordialNear) {
                 mc.level.playLocalSound(
                         mc.player.getX(), mc.player.getY(), mc.player.getZ(),
-                        ModSounds.BIO_SCANNER_PING.get(), SoundSource.HOSTILE,
-                        0.48F * envVol, 1.45F, false
+                        ModSounds.PRIMORDIAL_PRESENCE_PULSE.get(), SoundSource.HOSTILE,
+                        0.68F * envVol, 1.0F, false
                 );
+                triggerDucking(25, 0.35F);
                 primordialAlertCooldownTicks = 200;
             }
         }

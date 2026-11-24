@@ -1,7 +1,7 @@
 """RTX 4060 GPU stem generator & multiband spectral hybrid mixer backed by Stable Audio Open Small.
 
-Generates 52 curated acoustic archetype stems (steps=14, bfloat16 on CUDA)
-covering all 181 Mycelial Mind sound events, cached as 44.1 kHz mono 16-bit PCM
+Generates 59 curated acoustic archetype stems (steps=14, bfloat16 on CUDA)
+covering all 200 Mycelial Mind sound events, cached as 44.1 kHz mono 16-bit PCM
 `.wav` files in ``scripts/sound_studio/ai_stems/``.
 
 Combines neural stems with the 5 specialized procedural engines via:
@@ -516,6 +516,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_lo_hz=38.0,
         band_hi_hz=3400.0,
         mix_weight=0.28,
+        seamless_loop=True,
         sound_ids=("mycelial_rift_hum",),
     ),
     # =========================================================================
@@ -649,6 +650,88 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         seamless_loop=True,
         sound_ids=("suppressor_discharge", "squad_desync", "corrosive_jam", "purification_pylon_hum"),
     ),
+    # =========================================================================
+    # 7 Selective Expansion Stems (v3: Boss Weak-Points, Blooms, Primordial, Colony & Beds)
+    # =========================================================================
+    StemArchetype(
+        stem_id="boss_weakpoint_impact",
+        group="boss",
+        prompt="Heavy monster weak-point rupture crunch followed by chitin armor ricochet clang, dry tactical foley",
+        seconds_total=2.2,
+        band_lo_hz=42.0,
+        band_hi_hz=6800.0,
+        mix_weight=0.28,
+        attack_guard_ms=18.0,
+        sound_ids=("boss_weakpoint_crit", "boss_carapace_ricochet"),
+    ),
+    StemArchetype(
+        stem_id="reclaimed_bloom_chime",
+        group="block_func",
+        prompt="Bioluminescent crystal flower harvest chime, gentle stem snap, sparkling organic dewdrop shimmer",
+        seconds_total=2.0,
+        band_lo_hz=180.0,
+        band_hi_hz=8200.0,
+        mix_weight=0.24,
+        attack_guard_ms=20.0,
+        sound_ids=("reclaimed_bloom_harvest", "reclaimed_bloom_pulse"),
+    ),
+    StemArchetype(
+        stem_id="primordial_biolum_pulse",
+        group="system_env",
+        prompt="Deep eldritch bioluminescent organism aura pulse, warm resonant crystal drone and ancestral sub throb",
+        seconds_total=2.8,
+        band_lo_hz=55.0,
+        band_hi_hz=5800.0,
+        mix_weight=0.28,
+        attack_guard_ms=24.0,
+        sound_ids=("primordial_presence_pulse",),
+    ),
+    StemArchetype(
+        stem_id="colony_dialect_resonance",
+        group="block_func",
+        prompt="Symbiotic alien colony harmonic tone triad, resonant bio-crystal memory chime and brief dissonant clash",
+        seconds_total=2.4,
+        band_lo_hz=110.0,
+        band_hi_hz=6800.0,
+        mix_weight=0.24,
+        attack_guard_ms=20.0,
+        sound_ids=("colony_dialect_mastered", "colony_dialect_conflict", "colony_reconstruction_pulse"),
+    ),
+    StemArchetype(
+        stem_id="colony_raid_signal",
+        group="boss",
+        prompt="Distant menacing insectoid siege warhorn blast across cavern, urgent chitinous rattle, cinematic foley",
+        seconds_total=3.2,
+        band_lo_hz=36.0,
+        band_hi_hz=3800.0,
+        mix_weight=0.32,
+        attack_guard_ms=22.0,
+        sound_ids=("colony_raid_horn",),
+    ),
+    StemArchetype(
+        stem_id="sovereign_nexus_bed",
+        group="system_env",
+        prompt="Steady warm alien bio-sanctuary harmonic hum drone, gentle glowing energy field ambient loop",
+        seconds_total=5.0,
+        band_lo_hz=65.0,
+        band_hi_hz=4400.0,
+        mix_weight=0.26,
+        attack_guard_ms=30.0,
+        seamless_loop=True,
+        sound_ids=("sovereign_nexus_hum",),
+    ),
+    StemArchetype(
+        stem_id="boss_tension_bed",
+        group="system_env",
+        prompt="Dark subterranean boss battle tension drone, slow pulsing infrasonic dread bed, ominous cavern choir air",
+        seconds_total=5.2,
+        band_lo_hz=32.0,
+        band_hi_hz=2200.0,
+        mix_weight=0.30,
+        attack_guard_ms=30.0,
+        seamless_loop=True,
+        sound_ids=("boss_combat_tension_bed",),
+    ),
 )
 
 SOUND_TO_ARCHETYPE: dict[str, StemArchetype] = {
@@ -740,7 +823,7 @@ def _postprocess_generated_stem(raw_mono: np.ndarray, arch: StemArchetype) -> np
 
 
 def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False) -> dict[str, Path]:
-    """Ensure all 52 RTX 4060 Stable Audio Open Small stems exist locally, generating missing ones via CUDA."""
+    """Ensure all RTX 4060 Stable Audio Open Small stems exist locally, generating missing ones via CUDA."""
     out_dir = stems_dir or AI_STEMS_DIR
     manifest_path = out_dir / "stem_manifest.json"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -752,7 +835,10 @@ def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False)
     ]
     if not missing and manifest_path.is_file():
         manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        changed = manifest_data.get("mapped_sound_events") != len(SOUND_TO_ARCHETYPE)
+        changed = (
+            manifest_data.get("mapped_sound_events") != len(SOUND_TO_ARCHETYPE)
+            or manifest_data.get("stem_count") != len(AI_STEM_ARCHETYPES)
+        )
         stems_meta = manifest_data.get("stems", {})
         for arch in AI_STEM_ARCHETYPES:
             entry = stems_meta.get(arch.stem_id)
@@ -761,6 +847,7 @@ def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False)
                 entry["sound_ids"] = desired_ids
                 changed = True
         if changed:
+            manifest_data["stem_count"] = len(AI_STEM_ARCHETYPES)
             manifest_data["mapped_sound_events"] = len(SOUND_TO_ARCHETYPE)
             manifest_path.write_text(json.dumps(manifest_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         return {arch.stem_id: out_dir / f"{arch.stem_id}.wav" for arch in AI_STEM_ARCHETYPES}
@@ -985,6 +1072,29 @@ def _circular_loop_crossfade(wave: np.ndarray, crossfade_ms: float = 120.0) -> n
     return out
 
 
+def _prepare_seamless_stem_body(stem: np.ndarray, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
+    """Trim silent fade tails and build a continuous palindrome loop from the steady active stem body."""
+    n = len(stem)
+    block = 2048
+    if n < block * 2:
+        return stem
+    n_blocks = n // block
+    blocks = stem[: n_blocks * block].reshape(n_blocks, block)
+    block_rms = np.sqrt(np.mean(blocks * blocks, axis=1))
+    peak_rms = float(np.max(block_rms))
+    if peak_rms > 1e-8:
+        active_idx = np.flatnonzero(block_rms >= 0.28 * peak_rms)
+        if len(active_idx) > 0:
+            start = int(active_idx[0]) * block
+            end = int(active_idx[-1] + 1) * block
+            active = stem[start:end] if (end - start) >= int(0.5 * sample_rate) else stem
+        else:
+            active = stem
+    else:
+        active = stem
+    return np.ascontiguousarray(np.concatenate([active, active[::-1]]))
+
+
 def blend_with_ai_stem(
     dsp_wave: np.ndarray,
     sound_id: str,
@@ -1000,6 +1110,9 @@ def blend_with_ai_stem(
     stem = _load_cached_stem(arch.stem_id, stems_dir=stems_dir)
     if stem is None or len(stem) < 128:
         return dsp_wave
+
+    if arch.seamless_loop:
+        stem = _prepare_seamless_stem_body(stem, SAMPLE_RATE)
 
     if rng is None:
         rng = np.random.default_rng(_seed_for_stem(f"{sound_id}:v{variation_idx}"))
@@ -1027,7 +1140,16 @@ def blend_with_ai_stem(
     start_idx = int(rot_frac * max(1, len(stem) - 64))
     rolled = np.roll(stem, -start_idx)
 
-    src_needed = max(64, int(round(n * pitch_ratio)))
+    loop_cf = 0
+    if arch.seamless_loop and n >= int(1.2 * SAMPLE_RATE):
+        cf_cand = min(n // 4, int(SAMPLE_RATE * 0.260))
+        if cf_cand % 2 == 1:
+            cf_cand -= 1
+        if cf_cand >= 32:
+            loop_cf = cf_cand
+    n_resample = n + loop_cf
+
+    src_needed = max(64, int(round(n_resample * pitch_ratio)))
     if src_needed > len(rolled):
         reps = int(np.ceil(src_needed / float(len(rolled))))
         tiled = np.tile(rolled, reps)[:src_needed]
@@ -1035,17 +1157,28 @@ def blend_with_ai_stem(
         tiled = rolled[:src_needed]
 
     resampled = np.interp(
-        np.linspace(0.0, 1.0, n, endpoint=False),
+        np.linspace(0.0, 1.0, n_resample, endpoint=False),
         np.linspace(0.0, 1.0, len(tiled), endpoint=False),
         tiled,
     )
-    if arch.seamless_loop and n >= int(2.2 * SAMPLE_RATE):
-        resampled = _circular_loop_crossfade(resampled, crossfade_ms=120.0)
+    if loop_cf >= 32:
+        half = loop_cf // 2
+        theta = np.linspace(0.0, 0.5 * np.pi, loop_cf, dtype=np.float64)
+        bridge = resampled[n : n + loop_cf] * np.cos(theta) + resampled[:loop_cf] * np.sin(theta)
+        resampled = np.concatenate([bridge[half:], resampled[loop_cf:n], bridge[:half]])
+
+    wrap = min(n // 4, 4096) if (arch.seamless_loop and n >= 4096) else 0
+    if wrap > 0:
+        res_in = np.concatenate([resampled[-wrap:], resampled, resampled[:wrap]])
+        dsp_in = np.concatenate([dsp_wave[-wrap:], dsp_wave, dsp_wave[:wrap]])
+    else:
+        res_in = resampled
+        dsp_in = dsp_wave
 
     # Try batched RTX CUDA FFT dual-band filtering & envelope following; fall back to CPU SciPy cleanly
     shaped = _gpu_dualband_blend_shape(
-        resampled,
-        dsp_wave,
+        res_in,
+        dsp_in,
         sample_rate=SAMPLE_RATE,
         band_lo_hz=arch.band_lo_hz,
         band_hi_hz=arch.band_hi_hz,
@@ -1054,21 +1187,24 @@ def blend_with_ai_stem(
         # Dual-band spectral split + dual envelope following so body weight & upper shimmer never smear each other
         split_hz = min(420.0, max(arch.band_lo_hz * 1.4, arch.band_hi_hz * 0.38))
         if split_hz > arch.band_lo_hz + 25.0 and arch.band_hi_hz > split_hz + 80.0:
-            stem_lo = _bandpass(resampled, arch.band_lo_hz, split_hz)
-            stem_hi = _bandpass(resampled, max(arch.band_lo_hz, split_hz * 0.85), arch.band_hi_hz)
-            dsp_lo = _bandpass(dsp_wave, arch.band_lo_hz, split_hz)
-            dsp_hi = _bandpass(dsp_wave, max(arch.band_lo_hz, split_hz * 0.85), arch.band_hi_hz)
+            stem_lo = _bandpass(res_in, arch.band_lo_hz, split_hz)
+            stem_hi = _bandpass(res_in, max(arch.band_lo_hz, split_hz * 0.85), arch.band_hi_hz)
+            dsp_lo = _bandpass(dsp_in, arch.band_lo_hz, split_hz)
+            dsp_hi = _bandpass(dsp_in, max(arch.band_lo_hz, split_hz * 0.85), arch.band_hi_hz)
             env_lo = _envelope_follower(dsp_lo, window_ms=22.0)
             env_hi = _envelope_follower(dsp_hi, window_ms=14.0)
             shaped = stem_lo * env_lo + stem_hi * env_hi
         else:
-            filtered = _bandpass(resampled, arch.band_lo_hz, arch.band_hi_hz)
-            shaped = filtered * _envelope_follower(dsp_wave, window_ms=18.0)
+            filtered = _bandpass(res_in, arch.band_lo_hz, arch.band_hi_hz)
+            shaped = filtered * _envelope_follower(dsp_in, window_ms=18.0)
+    if wrap > 0:
+        shaped = shaped[wrap : wrap + n]
 
-    # Preserve initial pure DSP attack transient (20-28 ms) for crisp physical/material identity
-    guard_samples = min(n // 2, int(SAMPLE_RATE * arch.attack_guard_ms / 1000.0))
-    if guard_samples > 8:
-        shaped[:guard_samples] *= np.linspace(0.0, 1.0, guard_samples) ** 1.6
+    # Preserve initial pure DSP attack transient (20-28 ms) for non-loop one-shots
+    if not arch.seamless_loop:
+        guard_samples = min(n // 2, int(SAMPLE_RATE * arch.attack_guard_ms / 1000.0))
+        if guard_samples > 8:
+            shaped[:guard_samples] *= np.linspace(0.0, 1.0, guard_samples) ** 1.6
 
     dsp_rms = float(np.sqrt(np.mean(dsp_wave * dsp_wave))) + 1e-8
     stem_rms = float(np.sqrt(np.mean(shaped * shaped)))

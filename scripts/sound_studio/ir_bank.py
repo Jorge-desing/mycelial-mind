@@ -221,6 +221,7 @@ def select_ir_space(sound_id: str, species: str, loudness_group: str, category: 
             "sporeling",
             "truce_pheromone_spray",
             "tide_beacon_activate",
+            "reclaimed_bloom",
         )
     ):
         return "spore_canopy"
@@ -237,6 +238,10 @@ def select_ir_space(sound_id: str, species: str, loudness_group: str, category: 
             "spore_architect",
             "quorum_seal_pact",
             "synaptic_graft_splice",
+            "sovereign_nexus",
+            "colony_dialect",
+            "colony_reconstruction",
+            "primordial_presence",
         )
     ) or sp == "synaptic_eldritch" or "monolith" in sid:
         return "monolith_vault"
@@ -252,6 +257,9 @@ def select_ir_space(sound_id: str, species: str, loudness_group: str, category: 
             "block_mycelial_stone",
             "block_hive_altar",
             "colossal",
+            "boss_weakpoint",
+            "boss_combat_tension",
+            "colony_raid_horn",
         )
     ) or sp == "colossal_organic":
         return "abyssal_cavern"

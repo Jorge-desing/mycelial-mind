@@ -153,7 +153,7 @@ public final class SovereignColonyDirector {
             colony.setActiveRaidUntilTick(now + 2400L);
             colony.setActiveRaidRemaining(spawned);
             SovereignColonySavedData.get(level).setDirty();
-            level.playSound(null, nexus, ModSounds.FUNGAL_TIDE_HORN.get(), SoundSource.HOSTILE, 1.1F, 1.15F);
+            level.playSound(null, nexus, ModSounds.COLONY_RAID_HORN.get(), SoundSource.HOSTILE, 1.1F, 1.05F);
             level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
                     nexus.getX() + 0.5, nexus.getY() + 1.2, nexus.getZ() + 0.5, 1, 0, 0, 0, 0);
 

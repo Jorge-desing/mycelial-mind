@@ -215,7 +215,7 @@ sandbox = MontySandboxProvider(
 mcp = FastMCP(
     name="MycelialMindDev",
     instructions=(
-        "FastMCP CodeMode server for Mycelial Mind (Minecraft 1.21.1 / NeoForge 21.1.176). "
+        "FastMCP CodeMode server for Mycelial Mind (Minecraft 1.21.1 / NeoForge 21.1.267). "
         "Always use `search`/`get_schema` to discover tools on demand and `execute` to run "
         "sandboxed Python scripts calling `await call_tool(name, args)` (all tools return dicts; "
         "use `asyncio.gather(...)` for parallel checks and return a compact summary dict). "
@@ -227,14 +227,14 @@ mcp = FastMCP(
         "list_datapack_content, get_gradle_config, list_skills, get_skill_guide('mycelial-codemode'), "
         "validate_skills; "
         "(3) Studios & Visual QA: run_model_studio, run_texture_studio, run_particle_studio, run_sound_studio, "
-        "run_codex_studio, run_structure_studio, get_uv_manifest, audit_mod_assets, check_visual_regression, "
+        "inspect_sound_event, run_codex_studio, run_structure_studio, get_uv_manifest, audit_mod_assets, check_visual_regression, "
         "check_structure_visual_regression, get_latest_structure_visual_smoke; "
         "(4) Build/Suites/Cache/Reports: manage_verify_cache, run_gradle_task, run_verify_mod, "
         "get_latest_junit_report, get_latest_pitest_report, get_latest_worldgen_audit; "
         "(5) Unified Live Game Control (Server + RCON + MC Pilot + JFR): start_smoke_server, "
         "smoke_server_status, stop_smoke_server, start_live_session, stop_live_session, "
         "run_live_scenario, collect_spark_tps, capture_mcpilot_screenshot, get_latest_live_report, "
-        "compare_live_reports, get_live_hive_status, run_live_verify_scenario, rcon_command, "
+        "compare_live_reports, get_live_hive_status, get_live_colony_status, run_live_verify_scenario, rcon_command, "
         "run_rcon_batch, run_rcon_verify_suite, prepare_mcpilot_client, mcpilot_command, "
         "stop_mcpilot_client, list_java_processes, run_jfr, summarize_jfr, get_diagnostics_guide, "
         "diagnose_symptom, collect_diagnostic_bundle, read_diagnostic_logs, list_diagnostic_artifacts. "
@@ -766,16 +766,36 @@ async def run_particle_studio(
 async def run_sound_studio(
     check_only: bool = True,
     run_tests: bool = True,
+    only: str | None = None,
+    changed_only: bool = False,
+    check_baseline: bool = False,
+    update_baseline: bool = False,
 ) -> dict[str, Any]:
     """Run Mycelial Mind Procedural Sound Studio and its unit tests.
 
     Args:
         check_only: If True, validates .ogg headers, sounds.json, bilingual subtitles, and ModSounds.java without regenerating files.
         run_tests: Also run scripts/sound_studio/tests.
+        only: Optional comma-separated sound_ids to synthesize incrementally (when check_only=False).
+        changed_only: If True (and check_only=False), only rebuild sound events whose code, spec, IR, or AI stem changed.
+        check_baseline: If True, verify acoustic metrics against exports/sound_baseline.json.
+        update_baseline: If True (and check_only=False), update exports/sound_baseline.json.
     """
     args = [sys.executable, "scripts/sound_studio/build_sounds.py", "--check"]
     if not check_only:
-        args.append("--all")
+        if only:
+            cleaned = ",".join(s.strip() for s in only.split(",") if s.strip())
+            if not re.fullmatch(r"[a-z0-9_,]+", cleaned):
+                return {"ok": False, "studio": "sound_studio", "error": f"Invalid sound_id filter: {only}"}
+            args.extend(["--only", cleaned])
+        elif changed_only:
+            args.append("--changed-only")
+        else:
+            args.append("--all")
+        if update_baseline:
+            args.append("--update-baseline")
+    if check_baseline:
+        args.append("--check-baseline")
     return await _run_studio_with_tests(
         "sound_studio",
         args,
@@ -783,6 +803,63 @@ async def run_sound_studio(
         check_only=check_only,
         run_tests=run_tests,
     )
+
+
+@_tool(tags={"studios", "assets"})
+def inspect_sound_event(sound_id: str) -> dict[str, Any]:
+    """Inspect acoustic telemetry, IR room, AI stem, Ogg files, and baseline delta for a sound event."""
+    sid = sound_id.strip()
+    if not sid:
+        return {"ok": False, "error": "sound_id must be non-empty"}
+    exports_dir = REPO_ROOT / "scripts" / "sound_studio" / "exports"
+    manifest_path = exports_dir / "sound_manifest.json"
+    qr_path = exports_dir / "sound_quality_report.json"
+    baseline_path = exports_dir / "sound_baseline.json"
+    if not manifest_path.is_file():
+        return {"ok": False, "error": f"Missing manifest at {manifest_path}"}
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    entry = next((e for e in manifest.get("sounds", []) if e.get("sound_id") == sid), None)
+    if entry is None:
+        return {"ok": False, "error": f"Unknown sound_id '{sid}'", "total_events": len(manifest.get("sounds", []))}
+
+    corr = entry.get("max_variant_corr", 0.0)
+    if qr_path.is_file():
+        qr = json.loads(qr_path.read_text(encoding="utf-8"))
+        corr = qr.get("event_correlations", {}).get(sid, corr)
+
+    base_entry = None
+    delta: dict[str, float] | None = None
+    if baseline_path.is_file():
+        base = json.loads(baseline_path.read_text(encoding="utf-8"))
+        base_entry = (base.get("events", {}) or {}).get(sid)
+        if isinstance(base_entry, dict):
+            m = entry.get("metrics", {})
+            delta = {
+                "active_rms_delta_db": round(float(m.get("active_rms_dbfs", 0.0)) - float(base_entry.get("active_rms_dbfs", 0.0)), 2),
+                "lufs_delta": round(float(m.get("integrated_lufs", 0.0)) - float(base_entry.get("integrated_lufs", 0.0)), 2),
+                "true_peak_delta_db": round(
+                    float(m.get("true_peak_dbfs", m.get("peak_dbfs", 0.0))) - float(base_entry.get("true_peak_dbfs", 0.0)),
+                    2,
+                ),
+                "centroid_delta_hz": round(float(m.get("spectral_centroid_hz", 0.0)) - float(base_entry.get("spectral_centroid_hz", 0.0)), 1),
+            }
+
+    return {
+        "ok": True,
+        "sound_id": sid,
+        "category": entry.get("category"),
+        "species": entry.get("species"),
+        "loudness_group": entry.get("loudness_group"),
+        "ir_space": entry.get("ir_space"),
+        "ai_hybrid": bool(entry.get("ai_hybrid", False)),
+        "stem_id": entry.get("stem_id", ""),
+        "attenuation_distance": entry.get("attenuation_distance"),
+        "files": entry.get("files", []),
+        "max_variant_corr": corr,
+        "metrics": entry.get("metrics", {}),
+        "baseline": base_entry,
+        "baseline_delta": delta,
+    }
 
 
 @_tool(tags={"studios"})
@@ -940,7 +1017,11 @@ _ALLOWED_GRADLE_TASKS = {
 
 
 def _build_gradle_task_command(
-    tasks: list[str], max_workers: int, no_daemon: bool, use_offline: bool
+    tasks: list[str],
+    max_workers: int,
+    no_daemon: bool,
+    use_offline: bool,
+    isolated_gametests: bool = False,
 ) -> list[str]:
     """Build a safe Gradle command; CodeMode can only run publishMods in dry-run mode."""
     publish_dry_run = "publishMods" in tasks
@@ -958,6 +1039,8 @@ def _build_gradle_task_command(
             raise ValueError(f"Task '{t}' is not in allowed Gradle tasks: {sorted(_ALLOWED_GRADLE_TASKS)}")
 
     cmd = ["cmd.exe", "/c", "gradlew.bat", *tasks]
+    if isolated_gametests and "runGameTestServer" in tasks and not publish_dry_run and "-PisolatedGameTests=true" not in tasks:
+        cmd.append("-PisolatedGameTests=true")
     if publish_dry_run:
         # Never allow the MCP route to publish remotely, even if user Gradle properties differ.
         cmd.append("-PpublishDryRun=true")
@@ -976,11 +1059,14 @@ async def run_gradle_task(
     max_workers: int = 2,
     timeout_secs: int = 300,
     offline: bool | None = None,
+    isolated_gametests: bool = False,
 ) -> dict[str, Any]:
     """Run allowlisted Gradle tasks; publishMods is restricted to a forced local dry-run.
 
     Uses JDK 21 and Windows root truststore automatically. Defaults to max_workers=2 for
     parallel task execution and auto-enables --offline when GRADLE_USER_HOME uses .gradle-user-home.
+    Pass isolated_gametests=True with runGameTestServer to inject -PisolatedGameTests=true, or include
+    -PdialectVisualSmoke=true alongside runVisualSmoke for the Nexus/Dialects UI smoke scene.
     """
     use_offline = (
         offline
@@ -990,7 +1076,7 @@ async def run_gradle_task(
             and "--refresh-dependencies" not in tasks
         )
     )
-    cmd = _build_gradle_task_command(tasks, max_workers, no_daemon, use_offline)
+    cmd = _build_gradle_task_command(tasks, max_workers, no_daemon, use_offline, isolated_gametests=isolated_gametests)
     res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=60)
     _invalidate_cache()
     return _annotate_gradle_result(res)
@@ -1323,6 +1409,18 @@ _DIAGNOSTIC_SYMPTOM_MATRIX: dict[str, dict[str, Any]] = {
         "keywords": ("biomas", "estructuras", "dimension", "worldgen", "sanctum", "citadel", "structures"),
         "tools": ["run_structure_studio", "get_latest_worldgen_audit", "run_gradle_task", "check_structure_visual_regression", "get_latest_structure_visual_smoke"],
         "first_step": "Audit NBT connectivity, worldgen-audit-latest.json distributions, and runStructureVisualSmoke renders.",
+    },
+    "colony_dialects": {
+        "label": "Colonia Soberana, Reconstrucción o Dialectos",
+        "keywords": ("colonia", "colony", "dialect", "dialecto", "nexus", "nexo", "symbiont", "simbionte", "reconstruccion", "reconstruction"),
+        "tools": ["get_hive_ai_overview", "get_live_colony_status", "run_live_verify_scenario", "run_gradle_task", "inspect_sound_event"],
+        "first_step": "Inspect colony/dialect enums via get_hive_ai_overview(), run '/mycelial verify colony' or get_live_colony_status(), and capture UI with runVisualSmoke -PdialectVisualSmoke=true.",
+    },
+    "expeditions_cycles": {
+        "label": "Expediciones Post-Matriarca, Flores o Ciclos",
+        "keywords": ("expedition", "expedicion", "enclave", "bloom", "flor", "cycle", "ciclo", "matriarch", "matriarca"),
+        "tools": ["get_live_colony_status", "get_live_hive_status", "run_live_verify_scenario", "run_gradle_task"],
+        "first_step": "Check cycle/colony live state via get_live_colony_status() and run '/mycelial verify cycles' or isolated GameTests (-PisolatedGameTests=true).",
     },
 }
 
@@ -1785,9 +1883,28 @@ def get_uv_manifest(model_id: str = "") -> dict[str, Any]:
     return {"exists": True, "ok": True, "count": len(summary), "models": summary}
 
 
+def _parse_java_enum_constants(path: Path, enum_name: str) -> list[str]:
+    """Extract enum constant names from a Java enum source file."""
+    consts: list[str] = []
+    in_enum = False
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if f"enum {enum_name}" in line:
+            in_enum = True
+            continue
+        if in_enum:
+            if ";" in line and not _ENUM_CONST_RE.match(line):
+                break
+            m = _ENUM_CONST_RE.match(line)
+            if m:
+                consts.append(m.group(1))
+            if ";" in line:
+                break
+    return consts
+
+
 @_tool(tags={"code", "hive"})
 def get_hive_ai_overview() -> dict[str, Any]:
-    """Summarize Mycelial Mind Hive AI subsystems, enum constants, and SBL memory types."""
+    """Summarize Mycelial Mind Hive AI and Sovereign Colony subsystems, enum constants, and SBL memory types."""
     cached = _cache_get("hive_ai_overview")
     if cached is not None:
         return cached
@@ -1806,29 +1923,31 @@ def get_hive_ai_overview() -> dict[str, Any]:
     ):
         path = JAVA_SRC_ROOT / "hive" / f"{enum_name}.java"
         if path.is_file():
-            consts: list[str] = []
-            in_enum = False
-            for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-                if f"enum {enum_name}" in line:
-                    in_enum = True
-                    continue
-                if in_enum:
-                    if ";" in line and not _ENUM_CONST_RE.match(line):
-                        break
-                    m = _ENUM_CONST_RE.match(line)
-                    if m:
-                        consts.append(m.group(1))
-                    if ";" in line:
-                        break
-            enums[enum_name] = consts
+            enums[enum_name] = _parse_java_enum_constants(path, enum_name)
+
+    colony_enums: dict[str, list[str]] = {}
+    for enum_name in (
+        "SymbiontCaste",
+        "SymbiontRank",
+        "SymbiontTemperament",
+        "SovereignTrait",
+        "ColonyReconstructionStatus",
+    ):
+        path = JAVA_SRC_ROOT / "colony" / f"{enum_name}.java"
+        if path.is_file():
+            colony_enums[enum_name] = _parse_java_enum_constants(path, enum_name)
 
     hive_files = [
         p.relative_to(REPO_ROOT).as_posix()
         for p in sorted((JAVA_SRC_ROOT / "hive").glob("*.java"))
     ] if (JAVA_SRC_ROOT / "hive").is_dir() else []
+    colony_files = [
+        p.relative_to(REPO_ROOT).as_posix()
+        for p in sorted((JAVA_SRC_ROOT / "colony").glob("*.java"))
+    ] if (JAVA_SRC_ROOT / "colony").is_dir() else []
     ai_files = [
         p.relative_to(REPO_ROOT).as_posix()
-        for p in sorted((JAVA_SRC_ROOT / "entity" / "ai").glob("*.java"))
+        for p in sorted((JAVA_SRC_ROOT / "entity" / "ai").rglob("*.java"))
     ] if (JAVA_SRC_ROOT / "entity" / "ai").is_dir() else []
     mem_types = get_registered_content().get("ModMemoryTypes", [])
     return _cache_set(
@@ -1836,8 +1955,10 @@ def get_hive_ai_overview() -> dict[str, Any]:
         {
             "ok": True,
             "hive_files": hive_files,
+            "colony_files": colony_files,
             "ai_files": ai_files,
             "enums": enums,
+            "colony_enums": colony_enums,
             "memory_types": mem_types,
         },
     )
@@ -2395,6 +2516,88 @@ async def get_live_hive_status(
     return {"ok": True, **_parse_hive_status_output(str(res.get("response", "")))}
 
 
+def _parse_colony_status_output(raw: str) -> dict[str, Any]:
+    """Parse '/mycelial colony status' output from MycelialCommands.java into structured fields."""
+    empty_m = re.search(r"No Sovereign Colony found within \d+ blocks\. Total in dim:\s*([0-9]+)", raw)
+    if empty_m:
+        return {
+            "found": False,
+            "total_in_dim": int(empty_m.group(1)),
+            "raw": raw,
+        }
+    nexus_m = re.search(r"Nexus=\s*([^|\n]+)", raw)
+    tier_m = re.search(r"Tier=\s*([0-9]+)", raw)
+    radius_m = re.search(r"Radius=\s*([0-9]+)m", raw)
+    pop_m = re.search(r"Pop=\s*([0-9]+)/([0-9]+)", raw)
+    bio_m = re.search(r"Biomass=\s*([0-9]+)", raw)
+    morale_m = re.search(r"Morale=\s*([0-9]+(?:[.,][0-9]+)?)%", raw)
+    xp_m = re.search(r"DomainXP=\s*([0-9]+)", raw)
+    traits_m = re.search(r"Traits=\s*(0x[0-9A-Fa-f]+)", raw)
+    outposts_m = re.search(r"Outposts=\s*([0-9]+)", raw)
+    orders_m = re.search(r"Orders=\s*([0-9]+)", raw)
+    return {
+        "found": nexus_m is not None,
+        "nexus": nexus_m.group(1).strip() if nexus_m else None,
+        "tier": int(tier_m.group(1)) if tier_m else None,
+        "radius_m": int(radius_m.group(1)) if radius_m else None,
+        "population": int(pop_m.group(1)) if pop_m else None,
+        "population_cap": int(pop_m.group(2)) if pop_m else None,
+        "biomass": int(bio_m.group(1)) if bio_m else None,
+        "morale_pct": float(morale_m.group(1).replace(",", ".")) if morale_m else None,
+        "domain_xp": int(xp_m.group(1)) if xp_m else None,
+        "trait_mask_hex": traits_m.group(1) if traits_m else None,
+        "outposts": int(outposts_m.group(1)) if outposts_m else None,
+        "orders": int(orders_m.group(1)) if orders_m else None,
+        "raw": raw,
+    }
+
+
+def _parse_cycle_status_output(raw: str) -> dict[str, Any]:
+    """Parse '/mycelial cycle status' output from MycelialCommands.java into structured fields."""
+    cycle_m = re.search(r"Cycle=\s*([0-9]+)", raw)
+    mut_m = re.search(r"Mutators=\[([^\]]*)\]", raw)
+    comp_m = re.search(r"Completed=\s*([0-9]+)", raw)
+    best_m = re.search(r"BestScore=\s*([0-9]+)\s*\(Cycle\s+([0-9]+),\s*Last=\s*([0-9]+)\s+([^\)\s]+)\)", raw)
+    mutators = _parse_csv_tags(mut_m) if mut_m else []
+    return {
+        "unlocked": _parse_bool_field(r"Unlocked=\s*(true|false)", raw),
+        "active": _parse_bool_field(r"Active=\s*(true|false)", raw),
+        "cycle_number": int(cycle_m.group(1)) if cycle_m else None,
+        "mutators": mutators,
+        "completed_cycles": int(comp_m.group(1)) if comp_m else None,
+        "best_score": int(best_m.group(1)) if best_m else None,
+        "best_cycle": int(best_m.group(2)) if best_m else None,
+        "last_score": int(best_m.group(3)) if best_m else None,
+        "last_grade": best_m.group(4) if best_m else None,
+        "raw": raw,
+    }
+
+
+@_tool(tags={"rcon", "hive", "lifecycle"})
+async def get_live_colony_status(
+    host: str = "127.0.0.1",
+    port: int = 25575,
+    password: str = "mycelialtest",
+    include_cycle: bool = True,
+    timeout_secs: float = 10.0,
+) -> dict[str, Any]:
+    """Run '/mycelial colony status' (and optional '/mycelial cycle status') via RCON and return parsed telemetry."""
+    col_res = await rcon_command("mycelial colony status", host=host, port=port, password=password, timeout_secs=timeout_secs)
+    if not col_res.get("ok"):
+        return col_res
+    out: dict[str, Any] = {
+        "ok": True,
+        "colony": _parse_colony_status_output(str(col_res.get("response", ""))),
+    }
+    if include_cycle:
+        cyc_res = await rcon_command("mycelial cycle status", host=host, port=port, password=password, timeout_secs=timeout_secs)
+        if cyc_res.get("ok"):
+            out["cycle"] = _parse_cycle_status_output(str(cyc_res.get("response", "")))
+        else:
+            out["cycle"] = {"ok": False, "error": cyc_res.get("error", "RCON cycle status failed")}
+    return out
+
+
 @_tool(tags={"rcon", "diagnostics", "lifecycle"})
 async def run_live_verify_scenario(
     scenario: str = "all",
@@ -2796,6 +2999,17 @@ _LIVE_SCENARIO_PRESETS: dict[str, list[str]] = {
         "mycelial homeostasis status",
         "mycelial verify field_ai",
         "mycelial verify homeostasis",
+        "mycelial verify dimension_progression",
+        "mycelial status",
+    ],
+    "colony_and_dialects": [
+        "mycelial colony status",
+        "mycelial verify colony",
+        "mycelial status",
+    ],
+    "cycles_and_endgame": [
+        "mycelial cycle status",
+        "mycelial verify cycles",
         "mycelial verify dimension_progression",
         "mycelial status",
     ],

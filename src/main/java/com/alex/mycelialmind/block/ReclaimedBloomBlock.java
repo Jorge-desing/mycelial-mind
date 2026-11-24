@@ -62,6 +62,7 @@ public final class ReclaimedBloomBlock extends Block {
         if (!state.getValue(MATURE)) {
             level.setBlockAndUpdate(pos, state.setValue(MATURE, true));
             level.updateNeighbourForOutputSignal(pos, this);
+            level.playSound(null, pos, ModSounds.RECLAIMED_BLOOM_PULSE.get(), SoundSource.BLOCKS, 0.48F, 1.0F);
         }
     }
 
@@ -104,7 +105,7 @@ public final class ReclaimedBloomBlock extends Block {
         level.scheduleTick(pos, this, 1200);
         level.sendParticles(ModParticles.BIO_LUME.get(),
                 pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 6, 0.25, 0.25, 0.25, 0.02);
-        level.playSound(null, pos, ModSounds.SPORE_ANTIDOTE_CURE.get(), SoundSource.BLOCKS, 0.75F, 1.25F);
+        level.playSound(null, pos, ModSounds.RECLAIMED_BLOOM_HARVEST.get(), SoundSource.BLOCKS, 0.82F, 1.0F);
     }
 
     @Override

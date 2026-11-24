@@ -20,6 +20,7 @@ from pedalboard import (
     Pedalboard,
 )
 import pyloudnorm as pyln
+from scipy import signal
 
 from scripts.sound_studio.ir_bank import ensure_ir_bank, select_ir_space
 
@@ -45,6 +46,19 @@ except ImportError:
 
 SAMPLE_RATE = 44100
 TRUE_PEAK_CEILING = 0.94
+
+SEAMLESS_LOOP_IDS: frozenset[str] = frozenset(
+    {
+        "biome_caverns_loop",
+        "biome_sanctum_loop",
+        "biome_forest_loop",
+        "fungal_tide_ambience",
+        "purification_pylon_hum",
+        "mycelial_rift_hum",
+        "sovereign_nexus_hum",
+        "boss_combat_tension_bed",
+    }
+)
 
 # Must match dsp_engine.LOUDNESS_TARGETS_DBFS
 LOUDNESS_TARGETS_DBFS: dict[str, float] = {
@@ -141,6 +155,50 @@ def _apply_fade_guards(wave: np.ndarray, fade_in_ms: float = 3.0, fade_out_ms: f
     if fo > 0:
         out[-fo:] *= 0.5 * (1.0 + np.cos(np.linspace(0.0, np.pi, fo, dtype=np.float64)))
     return out
+
+
+def _circular_loop_crossfade(wave: np.ndarray, crossfade_ms: float = 90.0) -> np.ndarray:
+    """Wrap end-of-buffer reverb & drone tails smoothly into start-of-buffer for seamless looping."""
+    n = len(wave)
+    cf = min(n // 5, int(SAMPLE_RATE * crossfade_ms / 1000.0))
+    if cf < 32:
+        return wave
+    out = wave.copy()
+    theta = np.linspace(0.0, 0.5 * np.pi, cf, dtype=np.float64)
+    fade_in = np.sin(theta)
+    fade_out = np.cos(theta)
+    head = out[:cf].copy()
+    tail = out[-cf:].copy()
+    out[:cf] = head * fade_in + tail * fade_out
+    out[-cf:] = tail * fade_out + head * fade_in
+    return out
+
+
+def measure_true_peak_linear(wave: np.ndarray) -> float:
+    """Measure 4x oversampled inter-sample linear true peak."""
+    w = np.nan_to_num(np.asarray(wave, dtype=np.float64), nan=0.0, posinf=0.0, neginf=0.0)
+    if len(w) == 0:
+        return 0.0
+    sample_peak = float(np.max(np.abs(w)))
+    if sample_peak < 1e-8 or len(w) < 16:
+        return sample_peak
+    oversampled = signal.resample_poly(w, 4, 1)
+    return max(sample_peak, float(np.max(np.abs(oversampled))))
+
+
+def measure_true_peak_dbfs(wave: np.ndarray) -> float:
+    """Measure 4x oversampled inter-sample true peak in dBFS."""
+    tp = measure_true_peak_linear(wave)
+    return float(20.0 * np.log10(max(tp, 1e-6)))
+
+
+def true_peak_limit_4x(wave: np.ndarray, ceiling: float = TRUE_PEAK_CEILING) -> np.ndarray:
+    """Enforce 4x oversampled true-peak ceiling below target threshold."""
+    out = np.clip(wave, -ceiling, ceiling)
+    tp = measure_true_peak_linear(out)
+    if tp > ceiling and tp > 1e-8:
+        out = out * ((ceiling * 0.992) / tp)
+    return np.clip(out, -ceiling, ceiling)
 
 
 def measure_integrated_lufs(wave: np.ndarray, sample_rate: int = SAMPLE_RATE) -> float:
@@ -297,21 +355,40 @@ def master_with_pedalboard(
 
     ir_space = select_ir_space(sound_id, species, loudness_group, category)
     key = _profile_params(sound_id, species, loudness_group, ir_space)
+    is_loop = sound_id in SEAMLESS_LOOP_IDS
+    preroll = min(n // 2, int(SAMPLE_RATE * 1.25)) if (is_loop and n > 2048) else 0
+    postroll = min(n // 4, int(SAMPLE_RATE * 0.25)) if (is_loop and n > 2048) else 0
+    if postroll % 2 == 1:
+        postroll -= 1
+    w_proc_in = np.concatenate([w_in[-preroll:], w_in, w_in[:postroll]]) if (preroll > 0 and postroll > 0) else (
+        np.concatenate([w_in[-preroll:], w_in]) if preroll > 0 else w_in
+    )
+    n_proc = len(w_proc_in)
+
     processed: np.ndarray | None = None
-    if _is_cuda_available() and n >= 2048:
+    if _is_cuda_available() and n_proc >= 2048:
         pre_board, post_board = _get_thread_boards_gpu_split(key)
-        pre_out = pre_board.process(w_in, SAMPLE_RATE, reset=True).astype(np.float64)
+        pre_out = pre_board.process(w_proc_in, SAMPLE_RATE, reset=True).astype(np.float64)
         ir_wave = _get_ir_waves().get(ir_space)
         conv_out = _gpu_ir_convolve(pre_out, ir_space, ir_wave, mix=float(key[9]))
         if conv_out is not None:
             processed = post_board.process(conv_out.astype(np.float32), SAMPLE_RATE, reset=True).astype(np.float64)
     if processed is None:
         board = _get_thread_board(key)
-        processed = board.process(w_in, SAMPLE_RATE, reset=True).astype(np.float64)
-    if len(processed) > n:
-        processed = processed[:n]
-    elif len(processed) < n:
-        processed = np.pad(processed, (0, n - len(processed)))
+        processed = board.process(w_proc_in, SAMPLE_RATE, reset=True).astype(np.float64)
+    if len(processed) > n_proc:
+        processed = processed[:n_proc]
+    elif len(processed) < n_proc:
+        processed = np.pad(processed, (0, n_proc - len(processed)))
+    if preroll > 0:
+        if postroll >= 32:
+            seg = processed[preroll : preroll + n + postroll]
+            alpha = np.linspace(0.0, 1.0, postroll, dtype=np.float64)
+            bridge = seg[n : n + postroll] * (1.0 - alpha) + seg[:postroll] * alpha
+            half = postroll // 2
+            processed = np.concatenate([bridge[half:], seg[postroll:n], bridge[:half]])
+        else:
+            processed = processed[preroll : preroll + n]
 
     processed = processed - np.mean(processed)
 
@@ -319,8 +396,10 @@ def master_with_pedalboard(
     target_rms = 10.0 ** (target_dbfs / 20.0)
     ceiling = float(target_peak) if target_peak is not None else TRUE_PEAK_CEILING
 
-    # Shape boundaries early so short 0.16s hits account for fade-in/out attenuation
-    processed = _apply_fade_guards(processed, fade_in_ms=2.5, fade_out_ms=14.0)
+    # Shape boundaries early so short 0.16s hits account for fade-in/out attenuation,
+    # while loops keep full boundary energy warmed up from preroll.
+    if not is_loop:
+        processed = _apply_fade_guards(processed, fade_in_ms=2.5, fade_out_ms=14.0)
 
     # Converge toward calibrated active RMS while factoring ITU-R BS.1770-4 LUFS perceptually
     for pass_idx in range(3):
@@ -346,10 +425,13 @@ def master_with_pedalboard(
                 processed *= float(np.clip(target_rms / cur_rms, 0.25, 4.0))
                 processed = _soft_knee_limit(processed, threshold=min(0.76, ceiling * 0.82), ceiling=ceiling)
 
-    processed = _apply_fade_guards(processed, fade_in_ms=0.5, fade_out_ms=4.0)
+    if is_loop:
+        processed = _apply_fade_guards(processed, fade_in_ms=1.5, fade_out_ms=1.5)
+    else:
+        processed = _apply_fade_guards(processed, fade_in_ms=0.5, fade_out_ms=4.0)
     processed = processed - np.mean(processed)
     # Re-zero extreme edge samples if DC subtraction nudged sample 0 / N-1 slightly
     if len(processed) >= 8:
         processed[:4] *= np.linspace(0.0, 1.0, 4)
         processed[-4:] *= np.linspace(1.0, 0.0, 4)
-    return np.clip(processed, -ceiling, ceiling)
+    return true_peak_limit_4x(processed, ceiling=ceiling)

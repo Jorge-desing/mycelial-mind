@@ -1205,6 +1205,52 @@
       }
     ]
   },
+  "boss_weakpoint_crit": {
+    "subtitle": "subtitles.mycelialmind.boss_weakpoint_crit",
+    "sounds": [
+      {
+        "name": "mycelialmind:boss_weakpoint_crit_1",
+        "volume": 0.999,
+        "pitch": 0.96,
+        "attenuation_distance": 28
+      },
+      {
+        "name": "mycelialmind:boss_weakpoint_crit_2",
+        "volume": 0.954,
+        "pitch": 1.016,
+        "attenuation_distance": 28
+      },
+      {
+        "name": "mycelialmind:boss_weakpoint_crit_3",
+        "volume": 0.999,
+        "pitch": 1.013,
+        "attenuation_distance": 28
+      }
+    ]
+  },
+  "boss_carapace_ricochet": {
+    "subtitle": "subtitles.mycelialmind.boss_carapace_ricochet",
+    "sounds": [
+      {
+        "name": "mycelialmind:boss_carapace_ricochet_1",
+        "volume": 0.894,
+        "pitch": 0.967,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:boss_carapace_ricochet_2",
+        "volume": 0.915,
+        "pitch": 1.039,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:boss_carapace_ricochet_3",
+        "volume": 0.911,
+        "pitch": 1.031,
+        "attenuation_distance": 24
+      }
+    ]
+  },
   "purifier_drone_hum": {
     "subtitle": "subtitles.mycelialmind.purifier_drone_hum",
     "sounds": [
@@ -2917,6 +2963,97 @@
       }
     ]
   },
+  "reclaimed_bloom_harvest": {
+    "subtitle": "subtitles.mycelialmind.reclaimed_bloom_harvest",
+    "sounds": [
+      {
+        "name": "mycelialmind:reclaimed_bloom_harvest_1",
+        "volume": 0.869,
+        "pitch": 1.005,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "mycelialmind:reclaimed_bloom_harvest_2",
+        "volume": 0.885,
+        "pitch": 1.036,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "mycelialmind:reclaimed_bloom_harvest_3",
+        "volume": 0.847,
+        "pitch": 0.976,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "reclaimed_bloom_pulse": {
+    "subtitle": "subtitles.mycelialmind.reclaimed_bloom_pulse",
+    "sounds": [
+      {
+        "name": "mycelialmind:reclaimed_bloom_pulse_1",
+        "volume": 0.763,
+        "pitch": 1.024,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "mycelialmind:reclaimed_bloom_pulse_2",
+        "volume": 0.778,
+        "pitch": 1.006,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "colony_dialect_mastered": {
+    "subtitle": "subtitles.mycelialmind.colony_dialect_mastered",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_dialect_mastered_1",
+        "volume": 0.921,
+        "pitch": 1.009,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "mycelialmind:colony_dialect_mastered_2",
+        "volume": 0.941,
+        "pitch": 0.976,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "colony_dialect_conflict": {
+    "subtitle": "subtitles.mycelialmind.colony_dialect_conflict",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_dialect_conflict_1",
+        "volume": 0.896,
+        "pitch": 1.026,
+        "attenuation_distance": 18
+      },
+      {
+        "name": "mycelialmind:colony_dialect_conflict_2",
+        "volume": 0.889,
+        "pitch": 0.979,
+        "attenuation_distance": 18
+      }
+    ]
+  },
+  "colony_reconstruction_pulse": {
+    "subtitle": "subtitles.mycelialmind.colony_reconstruction_pulse",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_reconstruction_pulse_1",
+        "volume": 0.898,
+        "pitch": 1.014,
+        "attenuation_distance": 22
+      },
+      {
+        "name": "mycelialmind:colony_reconstruction_pulse_2",
+        "volume": 0.892,
+        "pitch": 0.994,
+        "attenuation_distance": 22
+      }
+    ]
+  },
   "bio_scanner_ping": {
     "subtitle": "subtitles.mycelialmind.bio_scanner_ping",
     "sounds": [
@@ -3694,6 +3831,40 @@
       }
     ]
   },
+  "colony_raid_horn": {
+    "subtitle": "subtitles.mycelialmind.colony_raid_horn",
+    "sounds": [
+      {
+        "name": "mycelialmind:colony_raid_horn_1",
+        "volume": 0.963,
+        "pitch": 1.033,
+        "attenuation_distance": 48
+      },
+      {
+        "name": "mycelialmind:colony_raid_horn_2",
+        "volume": 0.964,
+        "pitch": 1.036,
+        "attenuation_distance": 48
+      }
+    ]
+  },
+  "primordial_presence_pulse": {
+    "subtitle": "subtitles.mycelialmind.primordial_presence_pulse",
+    "sounds": [
+      {
+        "name": "mycelialmind:primordial_presence_pulse_1",
+        "volume": 0.88,
+        "pitch": 0.967,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:primordial_presence_pulse_2",
+        "volume": 0.839,
+        "pitch": 1.01,
+        "attenuation_distance": 24
+      }
+    ]
+  },
   "biome_caverns_loop": {
     "subtitle": "subtitles.mycelialmind.biome_caverns_loop",
     "sounds": [
@@ -3983,6 +4154,40 @@
         "volume": 0.969,
         "pitch": 1.015,
         "attenuation_distance": 28
+      }
+    ]
+  },
+  "sovereign_nexus_hum": {
+    "subtitle": "subtitles.mycelialmind.sovereign_nexus_hum",
+    "sounds": [
+      {
+        "name": "mycelialmind:sovereign_nexus_hum_1",
+        "volume": 0.746,
+        "pitch": 1.024,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:sovereign_nexus_hum_2",
+        "volume": 0.772,
+        "pitch": 0.965,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "boss_combat_tension_bed": {
+    "subtitle": "subtitles.mycelialmind.boss_combat_tension_bed",
+    "sounds": [
+      {
+        "name": "mycelialmind:boss_combat_tension_bed_1",
+        "volume": 0.816,
+        "pitch": 0.985,
+        "attenuation_distance": 32
+      },
+      {
+        "name": "mycelialmind:boss_combat_tension_bed_2",
+        "volume": 0.839,
+        "pitch": 1.033,
+        "attenuation_distance": 32
       }
     ]
   }

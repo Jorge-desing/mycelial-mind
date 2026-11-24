@@ -379,6 +379,19 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_DIALECT_TONE_2 = register("colony_dialect_tone_2");
     public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_DIALECT_TONE_3 = register("colony_dialect_tone_3");
 
+    // Tactical Audio Studio v3 Expansion (11)
+    public static final DeferredHolder<SoundEvent, SoundEvent> BOSS_WEAKPOINT_CRIT = register("boss_weakpoint_crit");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BOSS_CARAPACE_RICOCHET = register("boss_carapace_ricochet");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RECLAIMED_BLOOM_HARVEST = register("reclaimed_bloom_harvest");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RECLAIMED_BLOOM_PULSE = register("reclaimed_bloom_pulse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PRIMORDIAL_PRESENCE_PULSE = register("primordial_presence_pulse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_DIALECT_MASTERED = register("colony_dialect_mastered");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_DIALECT_CONFLICT = register("colony_dialect_conflict");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_RAID_HORN = register("colony_raid_horn");
+    public static final DeferredHolder<SoundEvent, SoundEvent> COLONY_RECONSTRUCTION_PULSE = register("colony_reconstruction_pulse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SOVEREIGN_NEXUS_HUM = register("sovereign_nexus_hum");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BOSS_COMBAT_TENSION_BED = register("boss_combat_tension_bed");
+
     // =========================================================================
     // 7 DeferredSoundType Surface Families
     // =========================================================================
