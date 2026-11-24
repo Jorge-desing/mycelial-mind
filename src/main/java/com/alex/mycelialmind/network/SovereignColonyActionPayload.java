@@ -118,7 +118,11 @@ public record SovereignColonyActionPayload(
         if (!(context.player() instanceof ServerPlayer player)) {
             return;
         }
-        context.enqueueWork(() -> {
+        context.enqueueWork(() -> applyOnServer(payload, player));
+    }
+
+    /** Executes the same validated action on the server thread, including progression checks. */
+    public static void applyOnServer(SovereignColonyActionPayload payload, ServerPlayer player) {
             ServerLevel level = player.serverLevel();
             BlockPos nexusPos = payload.nexusPos();
             if (!level.isLoaded(nexusPos) || player.blockPosition().distSqr(nexusPos) > 128.0D * 128.0D) {
@@ -127,6 +131,8 @@ public record SovereignColonyActionPayload(
             if (!(level.getBlockEntity(nexusPos) instanceof SovereignNexusBlockEntity nexus)) {
                 return;
             }
+            if (!SovereignNexusBlockEntity.isColonyActive(level, nexusPos) && !player.isCreative()) return;
+            if (player.isCreative()) nexus.enableAdministrativeOverride(level);
             SovereignColonyData colony = nexus.getOrCreateColony(level);
             switch (payload.action()) {
                 case ACTION_INCUBATE -> nexus.incubateSymbiont(level, player, SymbiontCaste.fromIndex(payload.param()), false);
@@ -212,7 +218,6 @@ public record SovereignColonyActionPayload(
             }
             nexus.syncLiveWorkers(level, colony);
             SovereignColonySyncPayload.syncToPlayer(player, nexusPos, false);
-        });
     }
 
     @Override

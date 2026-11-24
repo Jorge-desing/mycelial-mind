@@ -3573,7 +3573,7 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", batch = "structures")
+    @GameTest(template = "empty", batch = "structures", timeoutTicks = 800)
     public static void matriarchCitadelPieceGeneratesCryptChapelsAndGuardians(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forced = forceArenaChunks(helper, 0, 52, 0, 52);
@@ -8582,13 +8582,26 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "sovereign_nexus_hopper")
     public static void sovereignNexusHopperBiomassInsertionTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData hive = HiveMindSavedData.get(overworld);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), overworld.registryAccess());
         var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
         CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
         BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
         try {
             saved.resetAll();
+            hive.resetAll();
             level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
             var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            var blocked = nexusBe.insertBiomassFromAutomation(new ItemStack(ModItems.MYCELIAL_BIOMASS.get(), 10), false);
+            helper.assertTrue(blocked.getCount() == 10 && saved.getByNexus(nexusPos) == null,
+                    "Locked Nexus must reject hopper biomass without creating colony data.");
+            helper.assertTrue(nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, false) == null
+                            && !nexusBe.upgradeTier(level, null, false),
+                    "Locked Nexus must reject ordinary incubation and upgrades.");
+            com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.serverTick(level, nexusPos, level.getBlockState(nexusPos), nexusBe);
+            helper.assertTrue(saved.getByNexus(nexusPos) == null, "Locked Nexus tick must not create a colony.");
+            hive.recordMatriarchDefeat(overworld.getGameTime());
             var colony = nexusBe.getOrCreateColony(level);
             int initialBiomass = colony.getBiomassStored();
 
@@ -8612,10 +8625,118 @@ public final class MycelialGameTests {
         } finally {
             level.removeBlock(nexusPos, false);
             saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, overworld.registryAccess());
         }
     }
 
-    @GameTest(template = "empty", batch = "sovereign_rival_raid", timeoutTicks = 240)
+    @GameTest(template = "empty", batch = "colony_progression_gate")
+    public static void colonyStaffAndNetworkRespectMatriarchGate(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData hive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        BlockPos markPos = nexusPos.east(2);
+        var player = FakePlayerFactory.getMinecraft(level);
+        var priorPos = player.position();
+        ItemStack previous = player.getMainHandItem().copy();
+        try {
+            hive.resetAll();
+            saved.resetAll();
+            level.setBlockAndUpdate(nexusPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            level.setBlockAndUpdate(markPos, Blocks.STONE.defaultBlockState());
+            var nexus = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            nexus.setOwner(player);
+            // Simulate a colony retained from a save where progression was subsequently reset.
+            var colony = nexus.getOrCreateColony(level);
+            colony.addBiomass(100);
+            colony.addDomainXp(500);
+            player.moveTo(nexusPos.getX() + 0.5D, nexusPos.getY(), nexusPos.getZ() + 0.5D);
+            ItemStack staff = new ItemStack(ModItems.SOVEREIGN_COMMAND_STAFF.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+            com.alex.mycelialmind.item.SovereignCommandStaffItem.setMode(staff,
+                    com.alex.mycelialmind.item.SovereignCommandStaffItem.StaffMode.MARK_HARVEST_ZONE);
+            var use = new net.minecraft.world.item.context.UseOnContext(player, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(markPos), Direction.UP, markPos, false));
+            var action = new com.alex.mycelialmind.network.SovereignColonyActionPayload(
+                    com.alex.mycelialmind.network.SovereignColonyActionPayload.ACTION_UPGRADE_TIER,
+                    nexusPos, 0, player.getUUID(), BlockPos.ZERO, BlockPos.ZERO);
+            var staffItem = (com.alex.mycelialmind.item.SovereignCommandStaffItem) staff.getItem();
+            helper.assertTrue(staffItem.useOn(use) == net.minecraft.world.InteractionResult.FAIL
+                            && colony.getTotalWorkZoneCount() == 0,
+                    "Locked staff must not mark a work zone in retained colony data.");
+            com.alex.mycelialmind.network.SovereignColonyActionPayload.applyOnServer(action, player);
+            helper.assertTrue(colony.getTier() == 1
+                            && !com.alex.mycelialmind.network.SovereignColonySyncPayload.forNexus(level, nexusPos, false).hasColony(),
+                    "Locked network action and snapshot must not expose or modify retained colony data.");
+            hive.recordMatriarchDefeat(overworld.getGameTime());
+            helper.assertTrue(staffItem.useOn(use).consumesAction() && colony.getTotalWorkZoneCount() == 1,
+                    "Unlocked staff must mark a work zone.");
+            com.alex.mycelialmind.network.SovereignColonyActionPayload.applyOnServer(action, player);
+            helper.assertTrue(colony.getTier() == 2
+                            && com.alex.mycelialmind.network.SovereignColonySyncPayload.forNexus(level, nexusPos, false).hasColony(),
+                    "Unlocked network action must upgrade and expose the colony.");
+            helper.succeed();
+        } finally {
+            player.setItemInHand(InteractionHand.MAIN_HAND, previous);
+            player.setPos(priorPos);
+            level.removeBlock(markPos, false);
+            level.removeBlock(nexusPos, false);
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, overworld.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_creative_override")
+    public static void colonyCreativeAndCommandOverrideRemainLocalAndPersist(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData hive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        BlockPos otherPos = nexusPos.east(10);
+        var creative = helper.makeMockPlayer(GameType.CREATIVE);
+        com.alex.mycelialmind.entity.ColonySymbiontEntity worker = null;
+        try {
+            hive.resetAll();
+            saved.resetAll();
+            level.setBlockAndUpdate(nexusPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            level.setBlockAndUpdate(otherPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            var nexus = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            var other = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(otherPos);
+            nexus.setOwner(creative);
+            var colony = nexus.getOrCreateColony(level);
+            var otherColony = other.getOrCreateColony(level);
+            helper.assertTrue(colony.hasAdministrativeOverride() && !otherColony.hasAdministrativeOverride()
+                            && !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level),
+                    "Creative override must belong only to its colony and leave world progression locked.");
+            helper.assertTrue(com.alex.mycelialmind.colony.SovereignColonyData.load(colony.save()).hasAdministrativeOverride(),
+                    "Administrative override must survive save/load.");
+            worker = nexus.incubateSymbiont(level, creative, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, false);
+            helper.assertTrue(worker != null && !worker.isStandby() && worker.getColonyData(level) == colony,
+                    "Creative workers must remain active before the Matriarch defeat.");
+            helper.assertTrue(nexus.insertBiomassFromAutomation(new ItemStack(ModItems.MYCELIAL_BIOMASS.get(), 2), false).isEmpty(),
+                    "Creative colony automation must remain active.");
+            var commandSource = level.getServer().createCommandSourceStack().withLevel(level)
+                    .withPosition(Vec3.atCenterOf(otherPos)).withPermission(4).withSuppressedOutput();
+            level.getServer().getCommands().performPrefixedCommand(commandSource, "mycelial colony upgrade");
+            helper.assertTrue(otherColony.getTier() == 2 && otherColony.hasAdministrativeOverride(),
+                    "Administrative command must upgrade and activate its target colony before defeat.");
+            helper.succeed();
+        } finally {
+            if (worker != null) worker.discard();
+            level.removeBlock(nexusPos, false);
+            level.removeBlock(otherPos, false);
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, overworld.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "sovereign_rival_raid", timeoutTicks = 800)
     public static void sovereignRivalRaidDefenseAwardsXpAndMoraleTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();

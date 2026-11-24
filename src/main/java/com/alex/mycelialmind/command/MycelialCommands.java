@@ -2091,6 +2091,7 @@ public final class MycelialCommands {
             source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
             return 0;
         }
+        nearest.enableAdministrativeOverride();
         int added = nearest.addBiomass(amount);
         saved.setDirty();
         source.sendSuccess(() -> Component.literal("[Colony] Added " + added + " biomass (Total=" + nearest.getBiomassStored() + ").")
@@ -2106,6 +2107,8 @@ public final class MycelialCommands {
             source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
             return 0;
         }
+        nearest.enableAdministrativeOverride();
+        com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).setDirty();
         int spawned = com.alex.mycelialmind.colony.SovereignColonyDirector.triggerRivalRaid(level, nearest, 0);
         source.sendSuccess(() -> Component.literal("[Colony] Dispatched Rival Hive probe (" + spawned + " hostiles).")
                 .withStyle(ChatFormatting.RED), true);
@@ -2134,6 +2137,7 @@ public final class MycelialCommands {
                 source.sendFailure(Component.literal("[Verify:Colony] FAIL: SovereignNexusBlockEntity missing."));
                 return 0;
             }
+            nexus.enableAdministrativeOverride(level);
             var colony = nexus.getOrCreateColony(level);
             colony.addBiomass(64);
             colony.addDomainXp(160);

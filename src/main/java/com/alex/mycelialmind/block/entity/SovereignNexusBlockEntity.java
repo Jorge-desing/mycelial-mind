@@ -67,6 +67,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
         setChanged();
         if (this.level instanceof ServerLevel serverLevel) {
             SovereignColonyData data = getOrCreateColony(serverLevel);
+            if (player.isCreative()) data.enableAdministrativeOverride();
             data.setOwnerId(this.ownerUuid);
             data.setOwnerName(this.ownerName);
             SovereignColonySavedData.get(serverLevel).setDirty();
@@ -93,8 +94,22 @@ public class SovereignNexusBlockEntity extends BlockEntity {
                 || HiveMindSavedData.get(level).isMatriarchDefeated();
     }
 
+    public static boolean isColonyActive(ServerLevel level, @Nullable BlockPos nexusPos) {
+        if (isSovereignUnlocked(level)) return true;
+        SovereignColonyData colony = nexusPos == null ? null : SovereignColonySavedData.get(level).getByNexus(nexusPos);
+        return colony != null && colony.hasAdministrativeOverride();
+    }
+
+    public void enableAdministrativeOverride(ServerLevel level) {
+        getOrCreateColony(level).enableAdministrativeOverride();
+        SovereignColonySavedData.get(level).setDirty();
+    }
+
     public ItemStack insertBiomassFromAutomation(ItemStack stack, boolean simulate) {
         if (stack.isEmpty() || !stack.is(ModItems.MYCELIAL_BIOMASS.get()) || !(this.level instanceof ServerLevel serverLevel)) {
+            return stack;
+        }
+        if (!isColonyActive(serverLevel, worldPosition)) {
             return stack;
         }
         SovereignColonyData colony = getOrCreateColony(serverLevel);
@@ -122,7 +137,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
             SymbiontCaste caste,
             boolean bypassCostAndGate
     ) {
-        if (!bypassCostAndGate && !isSovereignUnlocked(level) && (initiator == null || !initiator.isCreative())) {
+        if (!isColonyActive(level, worldPosition) && !bypassCostAndGate && (initiator == null || !initiator.isCreative())) {
             if (initiator != null) {
                 initiator.displayClientMessage(
                         Component.translatable("message.mycelialmind.sovereign_nexus_locked").withStyle(ChatFormatting.DARK_PURPLE),
@@ -131,6 +146,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
             return null;
         }
 
+        if (bypassCostAndGate || (initiator != null && initiator.isCreative())) enableAdministrativeOverride(level);
         SovereignColonyData colony = getOrCreateColony(level);
         if (initiator != null && (this.ownerUuid == null || this.ownerUuid.getMostSignificantBits() == 0L)) {
             setOwner(initiator);
@@ -138,7 +154,8 @@ public class SovereignNexusBlockEntity extends BlockEntity {
 
         // Sync live entities in range to prune stale/dead entries before checking cap
         syncLiveWorkers(level, colony);
-        if (!bypassCostAndGate && colony.getRoster().size() >= colony.getPopulationCap()) {
+        if (!bypassCostAndGate && (initiator == null || !initiator.isCreative())
+                && colony.getRoster().size() >= colony.getPopulationCap()) {
             if (initiator != null) {
                 initiator.displayClientMessage(
                         Component.translatable("message.mycelialmind.colony_pop_cap",
@@ -186,12 +203,16 @@ public class SovereignNexusBlockEntity extends BlockEntity {
     }
 
     public boolean upgradeTier(ServerLevel level, @Nullable Player player, boolean bypassCost) {
+        if (!isColonyActive(level, worldPosition) && !bypassCost && (player == null || !player.isCreative())) {
+            return false;
+        }
+        if (bypassCost || (player != null && player.isCreative())) enableAdministrativeOverride(level);
         SovereignColonyData colony = getOrCreateColony(level);
         int current = colony.getTier();
         if (current >= SovereignColonyEngine.MAX_TIER) {
             return false;
         }
-        if (!bypassCost) {
+        if (!bypassCost && (player == null || !player.isCreative())) {
             if (!SovereignColonyEngine.canUpgradeTier(current, colony.getBiomassStored(), colony.getDomainXp())) {
                 if (player != null) {
                     player.displayClientMessage(Component.translatable(
@@ -224,6 +245,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
     }
 
     public int recallAllWorkers(ServerLevel level) {
+        if (!isColonyActive(level, worldPosition)) return 0;
         SovereignColonyData colony = getOrCreateColony(level);
         colony.getOrderBoard().clear();
         List<ColonySymbiontEntity> workers = findColonyWorkers(level, 128.0D);
@@ -243,6 +265,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
     }
 
     public boolean setWorkerCaste(ServerLevel level, UUID workerId, SymbiontCaste caste) {
+        if (!isColonyActive(level, worldPosition)) return false;
         if (level.getEntity(workerId) instanceof ColonySymbiontEntity worker && worker.isAlive()) {
             worker.setCaste(caste);
             level.playSound(null, worker.blockPosition(), ModSounds.COMMAND_STAFF_MARK.get(), SoundSource.BLOCKS, 0.7F, 1.2F);
@@ -252,6 +275,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
     }
 
     public boolean toggleWorkerStandby(ServerLevel level, UUID workerId) {
+        if (!isColonyActive(level, worldPosition)) return false;
         if (level.getEntity(workerId) instanceof ColonySymbiontEntity worker && worker.isAlive()) {
             worker.setStandby(!worker.isStandby());
             return true;
@@ -287,7 +311,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, SovereignNexusBlockEntity be) {
-        if (!(level instanceof ServerLevel serverLevel)) {
+        if (!(level instanceof ServerLevel serverLevel) || !isColonyActive(serverLevel, pos)) {
             return;
         }
         be.tickCounter++;

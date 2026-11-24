@@ -145,7 +145,8 @@ public class BioScannerItem extends Item {
                 if (level.getBlockState(pos).is(ModBlocks.SYMBIOTIC_NODE.get())) {
                     SovereignColonyData colony = SovereignColonySavedData.get(serverLevel).findContainingColony(pos);
                     BlockPos memorySite = colony != null ? colony.findNearestMemorySite(pos, 16.0D) : null;
-                    if (colony != null && memorySite != null) {
+                    if (colony != null && memorySite != null && (player.isCreative()
+                            || com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(serverLevel, colony.getNexusPos()))) {
                         var memory = colony.getExistingSiteMemory(memorySite);
                         ColonySiteHabit learned = memory != null ? memory.learnedHabit() : ColonySiteHabit.NONE;
                         ColonySiteHabit trial = memory != null ? memory.trialHabit() : ColonySiteHabit.NONE;
