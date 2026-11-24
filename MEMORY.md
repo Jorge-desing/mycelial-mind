@@ -3928,6 +3928,24 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - El round-trip basico de HiveSync se integra en la prueba JUnit de marcadores territoriales. Las curvas de utilidad y el ruido determinista se comprueban en la suite JUnit existente.
 - Skill neoforge-gametest revisada. CI se ejecuta al publicar.
 
+## 2026-11-23 — Segunda limpieza de MycelialGameTests
+- **Cambios:** Las pruebas de ramificación hifal ahora consultan cada tick la desaparición de ambos descendientes, conservan la raíz y respetan el límite de 90 ticks; usan una rama controlada con bloques de entidad reales. La prueba de caída observa desde el primer tick la entidad tras quitar el soporte, espera a que desaparezca y comprueba que no quedan vena ni drops dentro de 30 ticks. La prueba táctica termina al publicarse la intención activa (máximo 6 ticks); la supresión avanza por estados y tiempo de juego, manteniendo las ventanas observadas de Weaver y los rasgos del jefe en cada fase.
+- **Cobertura trasladada:** El round-trip de `SovereignColonySyncPayload` con obrero Courier y la cobertura de límites/campos de persistencia NBT de `HiveMindSavedData` pasan a `MigratedGameTestLogicTest`. GameTest conserva la incubación real, los campos de `forNexus` y las aserciones de guardar/cargar entidad que requieren mundo.
+- **Preparación y guía:** Ciudadela y brote comprueban disponibilidad entity-ticking en chunks de las posiciones inspeccionadas antes de consultar entidades. `neoforge-gametest` reemplaza la recomendación de pausa fija de dos ticks por esa condición observable.
+- **Verificación:** `test` completó JUnit **80/80** y `runGameTestServer -PisolatedGameTests=true` completó **175/175 GameTests en dos worktrees y mundos nuevos**; `git diff --check` pasó. Una ejecución exploratoria previa falló solo en la preparación de chunks del GameTest independiente `sovereignRivalRaidDefenseAwardsXpAndMoraleTest`; no alcanzó su fase funcional y no se reprodujo en las dos ejecuciones finales.
+## 2026-11-23 — Estabilización final de los GameTests para los PR
+- **Ajuste tardío:** El punto de finalización del brote se coloca en el chunk de la arena y la espera valida el chunk exacto del primer spawn; se reconstruye su plataforma después del sitio previo. La caída de vena usa una posición central entity-ticking sin forzar un rectángulo enorme. La preparación de la incursión rival comprueba el radio de spawn entity-ticking, no todos los chunks de la arena.
+- **Verificación repetida:** En dos worktrees y mundos aislados, `runGameTestServer -PisolatedGameTests=true` aprobó **175/175 GameTests** por ejecución. `:test --rerun-tasks` se ejecutó en ambos worktrees y aprobó **80/80 JUnit**, cero errores, fallos u omitidos; `MigratedGameTestLogicTest` pasó sus **8/8** casos, incluido Courier y el round-trip NBT.
+- **Diagnóstico separado:** Las iteraciones exploratorias fallaron en requisitos de preparación de chunks (spawn rival/brote y tick de la vena caída); al centrar esos fixtures y esperar el chunk real de spawn, las dos ejecuciones finales completaron las comprobaciones funcionales.
+- **PRs observados:** Los checks `Build and GameTests` de #6, #7, #9 y #10 aún estaban rojos en sus heads existentes al auditarlos; esta corrección se publicará como PR separado para integrar la estabilización y permitir que esos heads se reevalúen sobre la base corregida.
+- **CI del commit de seguimiento:** pendiente de ejecutar tras publicar.
+
+## 2026-11-23 — Validación del PR de limpieza sobre main actualizado
+- **Compatibilidad de payload:** Tras integrar `main` (`866247e`), `SovereignColonySyncPayload` ya incluye reconstrucciones y testigos. El round-trip JUnit ahora serializa un obrero Courier junto con un `ReconstructionSnapshot` y su testigo, cubriendo los campos nuevos.
+- **Validación final:** Dos worktrees nuevos, cada uno ejecutando `test runGameTestServer -PisolatedGameTests=true --rerun-tasks --offline`: JUnit **87/87** y GameTests **175/175** en ambos; `MigratedGameTestLogicTest` **8/8**, sin fallos ni omitidos. `git diff --check` limpio.
+- **CI y publicación:** El workflow `Verify Mycelial Mind` run `45294708541` pasó sus tres jobs (`Build and GameTests`, `Asset checks`, `Validate automation config`) en el head `781f0db`. PR #11 quedó abierto, limpio y con checks verdes.
+- **Estado de los Renovate PR:** #6, #7, #9 y #10 aún conservan checks rojos en sus heads anteriores; requieren integración de #11 y sincronización/revalidación para que CI confirme la corrección en esas ramas.
+
 ## 2026-11-23 — Reconstrucción post-Matriarca de puestos de colonia
 
 - Añadió recuerdos persistentes por simbionte para rutas de mensajería, puntos de patrulla y hábitos locales confirmados; al perderse un puesto tras la derrota de la Matriarca, esos recuerdos pasan a una reconstrucción que el jugador dirige desde el Nexo.
