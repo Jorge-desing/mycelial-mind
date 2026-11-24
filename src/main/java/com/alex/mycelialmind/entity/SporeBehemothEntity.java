@@ -45,7 +45,10 @@ import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Roaming Fungal Tide Mini-Boss (200 HP, 2 Phases).
@@ -76,6 +79,7 @@ public class SporeBehemothEntity extends MycelialBossMob {
     private final MycelialBossPart[] bossParts;
 
     private boolean lowHpShieldTriggered = false;
+    private final Set<UUID> chargeHitEntities = new HashSet<>();
 
     public SporeBehemothEntity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -121,6 +125,11 @@ public class SporeBehemothEntity extends MycelialBossMob {
     }
 
     @Override
+    protected float getNextPhaseThresholdRatio() {
+        return getBehemothPhase() == 1 ? 0.50F : -1.0F;
+    }
+
+    @Override
     public boolean isMultipartEntity() {
         return true;
     }
@@ -150,7 +159,7 @@ public class SporeBehemothEntity extends MycelialBossMob {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.05D, false));
+        this.goalSelector.addGoal(2, new BossStateGatedMeleeGoal(this, 1.05D, false));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.85D));
         this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 12.0F));
         this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
@@ -250,13 +259,15 @@ public class SporeBehemothEntity extends MycelialBossMob {
         if (ticksRemaining % 3 != 0) {
             return;
         }
-        Vec3 anchor = target != null && target.isAlive() ? target.position() : this.telegraphAnchor;
+        Vec3 anchor = (!isTelegraphLocked() && target != null && target.isAlive()) ? target.position() : this.telegraphAnchor;
         switch (attack) {
             case BEHEMOTH_SEISMIC_CHARGE -> {
                 if (anchor != null) {
-                    this.telegraphAnchor = anchor;
-                    spawnGroundLineTelegraph(level, ModParticles.CHITIN_SHARD.get(), this.position(), anchor, 8);
-                    spawnGroundRingTelegraph(level, ModParticles.TIDE_MOTE.get(), anchor, 2.2D, 10);
+                    if (!isTelegraphLocked()) {
+                        this.telegraphAnchor = anchor;
+                    }
+                    spawnGroundLineTelegraph(level, ModParticles.CHITIN_SHARD.get(), this.position(), this.telegraphAnchor, 8);
+                    spawnGroundRingTelegraph(level, ModParticles.TIDE_MOTE.get(), this.telegraphAnchor, 2.2D, 10);
                 }
             }
             case BEHEMOTH_SEISMIC_SLAM -> {
@@ -287,8 +298,19 @@ public class SporeBehemothEntity extends MycelialBossMob {
         }
     }
 
+    @Override
+    protected void onAttackActiveTick(ServerLevel level, BossAttackId attack, int ticksRemaining, int totalTicks, @Nullable LivingEntity target) {
+        if (attack == BossAttackId.BEHEMOTH_SEISMIC_CHARGE) {
+            level.sendParticles(ModParticles.CHITIN_SHARD.get(), this.getX(), this.getY() + 0.35, this.getZ(), 4, 0.5, 0.2, 0.5, 0.04);
+            applySeismicChargeCollision(level);
+        }
+    }
+
     private void executeSeismicCharge(ServerLevel serverLevel, @Nullable LivingEntity target) {
-        Vec3 dest = target != null && target.isAlive() ? target.position() : this.telegraphAnchor;
+        this.chargeHitEntities.clear();
+        Vec3 dest = this.telegraphAnchor != null
+                ? this.telegraphAnchor
+                : (target != null && target.isAlive() ? target.position() : null);
         if (dest != null) {
             Vec3 delta = dest.subtract(this.position());
             Vec3 dash = delta.lengthSqr() > 0.01D ? delta.normalize().scale(1.22D) : this.getLookAngle().scale(1.15D);
@@ -297,9 +319,13 @@ public class SporeBehemothEntity extends MycelialBossMob {
         }
         serverLevel.sendParticles(ModParticles.CHITIN_SHARD.get(), this.getX(), this.getY() + 0.5, this.getZ(), 10, 0.9, 0.3, 0.9, 0.05);
         serverLevel.playSound(null, this.blockPosition(), ModSounds.SPORE_BEHEMOTH_SLAM.get(), SoundSource.HOSTILE, 1.45F, 0.95F);
+        applySeismicChargeCollision(serverLevel);
+    }
+
+    private void applySeismicChargeCollision(ServerLevel serverLevel) {
         float dmg = getBehemothPhase() >= 2 ? 8.5F : 6.5F;
         for (LivingEntity hit : serverLevel.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(2.2D))) {
-            if (hit != this && !(hit instanceof MycelialMob) && hit.isAlive()) {
+            if (hit != this && !(hit instanceof MycelialMob) && hit.isAlive() && this.chargeHitEntities.add(hit.getUUID())) {
                 hit.hurt(this.damageSources().mobAttack(this), dmg);
                 hit.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 1));
             }

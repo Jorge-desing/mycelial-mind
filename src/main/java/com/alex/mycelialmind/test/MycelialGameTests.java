@@ -8265,10 +8265,14 @@ public final class MycelialGameTests {
                     behemoth.getCombatState() == com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.WINDUP,
                     "Boss must enter WINDUP when an attack starts."
             );
+            boolean sawTelegraphLock = false;
             boolean sawActive = false;
             boolean sawRecovery = false;
             for (int t = 0; t < 70; t++) {
                 behemoth.customServerAiStep();
+                if (behemoth.isTelegraphLocked()) {
+                    sawTelegraphLock = true;
+                }
                 var st = behemoth.getCombatState();
                 if (st == com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.ACTIVE) {
                     sawActive = true;
@@ -8276,16 +8280,25 @@ public final class MycelialGameTests {
                     sawRecovery = true;
                 }
             }
-            helper.assertTrue(sawActive && sawRecovery, "Boss state machine must progress through WINDUP -> ACTIVE -> RECOVERY.");
+            helper.assertTrue(sawTelegraphLock && sawActive && sawRecovery,
+                    "Boss state machine must progress through WINDUP (with lock-in) -> ACTIVE -> RECOVERY.");
 
-            // 2. Physical carapace shatter via ARMORED_CARAPACE part -> STAGGERED + lowered WEAK_POINT
+            // 2. Phase-skip damage clamp: a massive single hit cannot skip Phase 2 and kill from 100% HP
+            behemoth.setHealth(behemoth.getMaxHealth());
+            behemoth.invulnerableTime = 0;
+            behemoth.hurt(level.damageSources().magic(), 500.0F);
+            helper.assertTrue(behemoth.isAlive() && behemoth.getHealth() >= behemoth.getMaxHealth() * 0.45F,
+                    "Phase-skip damage clamp must stop a single massive hit just past the Phase 2 threshold.");
+            behemoth.setHealth(behemoth.getMaxHealth());
+
+            // 3. Physical carapace shatter via ARMORED_CARAPACE part -> STAGGERED + lowered WEAK_POINT
             behemoth.aiStep();
             var parts = behemoth.getParts();
             com.alex.mycelialmind.entity.MycelialBossPart weakPart = (com.alex.mycelialmind.entity.MycelialBossPart) parts[0];
             com.alex.mycelialmind.entity.MycelialBossPart carapacePart = (com.alex.mycelialmind.entity.MycelialBossPart) parts[1];
             double weakYBefore = weakPart.getY();
 
-            for (int hit = 0; hit < 8 && !behemoth.isCarapaceBroken(); hit++) {
+            for (int hit = 0; hit < 10 && !behemoth.isCarapaceBroken(); hit++) {
                 behemoth.invulnerableTime = 0;
                 carapacePart.hurt(level.damageSources().magic(), 12.0F);
             }
@@ -8295,7 +8308,7 @@ public final class MycelialGameTests {
             helper.assertTrue(weakPart.getY() < weakYBefore - 0.5D,
                     "Shattering carapace must physically lower WEAK_POINT hitbox for melee punishment.");
 
-            // 3. Phase 2 transition at <= 50% HP restores carapace cleanly
+            // 4. Phase 2 transition at <= 50% HP restores carapace cleanly
             behemoth.setHealth(behemoth.getMaxHealth() * 0.45F);
             behemoth.customServerAiStep();
             helper.assertTrue(behemoth.getBehemothPhase() == 2, "SporeBehemoth must transition to Phase 2 below 50% HP.");

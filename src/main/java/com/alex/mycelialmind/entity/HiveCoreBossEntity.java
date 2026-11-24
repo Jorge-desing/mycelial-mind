@@ -66,6 +66,8 @@ import java.util.List;
 public class HiveCoreBossEntity extends MycelialBossMob {
     private static final EntityDataAccessor<Integer> DATA_BOSS_PHASE =
             SynchedEntityData.defineId(HiveCoreBossEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_REMAINING_ANCHORS =
+            SynchedEntityData.defineId(HiveCoreBossEntity.class, EntityDataSerializers.INT);
 
     private static final String TAG_PHASE = "BossPhase";
     private static final String TAG_PHASE2_DONE = "Phase2ShieldBroken";
@@ -76,6 +78,12 @@ public class HiveCoreBossEntity extends MycelialBossMob {
             BossAttackId.HIVE_CORE_SYNAPTIC_SWEEP,
             BossAttackId.HIVE_CORE_COMMAND_PULSE,
             BossAttackId.HIVE_CORE_ANCHOR_RAY,
+            BossAttackId.HIVE_CORE_SPORE_SHOCKWAVE
+    );
+    private static final List<BossAttackId> ATTACK_KIT_NO_ANCHORS = List.of(
+            BossAttackId.HIVE_CORE_ACID_FAN,
+            BossAttackId.HIVE_CORE_SYNAPTIC_SWEEP,
+            BossAttackId.HIVE_CORE_COMMAND_PULSE,
             BossAttackId.HIVE_CORE_SPORE_SHOCKWAVE
     );
 
@@ -109,7 +117,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
 
     @Override
     protected List<BossAttackId> getBossAttackKit() {
-        return ATTACK_KIT;
+        return isShieldedPhaseTwo() ? ATTACK_KIT : ATTACK_KIT_NO_ANCHORS;
     }
 
     @Override
@@ -120,6 +128,22 @@ public class HiveCoreBossEntity extends MycelialBossMob {
     @Override
     public int getMaxBossPhases() {
         return 3;
+    }
+
+    @Override
+    protected float getNextPhaseThresholdRatio() {
+        int phase = getBossPhase();
+        if (phase == 1) {
+            return 0.65F;
+        }
+        if (phase == 2 && phase2ShieldBroken) {
+            return 0.30F;
+        }
+        return -1.0F;
+    }
+
+    public int getSyncedRemainingAnchors() {
+        return this.entityData.get(DATA_REMAINING_ANCHORS);
     }
 
     @Override
@@ -158,6 +182,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_BOSS_PHASE, 1);
+        builder.define(DATA_REMAINING_ANCHORS, 0);
     }
 
     public int getBossPhase() {
@@ -193,7 +218,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 0.9D, false));
+        this.goalSelector.addGoal(1, new BossStateGatedMeleeGoal(this, 0.9D, false));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 16.0F));
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
@@ -216,6 +241,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
             enterPhaseTwo(serverLevel);
         } else if (currentPhase == 2) {
             int remaining = countRemainingAnchors(serverLevel);
+            this.entityData.set(DATA_REMAINING_ANCHORS, phase2ShieldBroken ? 0 : remaining);
             if (remaining > 0) {
                 if (this.tickCount % 15 == 0) {
                     for (BlockPos anchor : anchorPositions) {
@@ -232,6 +258,8 @@ public class HiveCoreBossEntity extends MycelialBossMob {
             if (BossCombatArchitectureEngine.resolveHiveCorePhase(hpRatio, phase2ShieldBroken) == 3) {
                 enterPhaseThree(serverLevel);
             }
+        } else if (this.entityData.get(DATA_REMAINING_ANCHORS) != 0) {
+            this.entityData.set(DATA_REMAINING_ANCHORS, 0);
         }
 
         // Phase 3 rotating HiveSynergy
@@ -297,6 +325,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
                 level.destroyBlock(anchorPos, false);
             }
         }
+        this.entityData.set(DATA_REMAINING_ANCHORS, anchorPositions.size());
         onBossPhaseTransition(level);
         updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_PHASE_SHIFT.get(), SoundSource.HOSTILE, 1.65F, 0.92F);
@@ -332,6 +361,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
 
     private void enterPhaseThree(ServerLevel level) {
         setBossPhase(3);
+        this.entityData.set(DATA_REMAINING_ANCHORS, 0);
         onBossPhaseTransition(level);
         updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_PHASE_SHIFT.get(), SoundSource.HOSTILE, 1.80F, 0.78F);
@@ -378,11 +408,14 @@ public class HiveCoreBossEntity extends MycelialBossMob {
             }
             case HIVE_CORE_ANCHOR_RAY -> {
                 if (anchor != null) {
-                    this.telegraphAnchor = anchor;
-                    spawnGroundRingTelegraph(level, ModParticles.SYNAPSE_SPARK.get(), anchor, 2.8D, 12);
+                    if (!isTelegraphLocked()) {
+                        this.telegraphAnchor = anchor;
+                    }
+                    Vec3 lockedAnchor = this.telegraphAnchor != null ? this.telegraphAnchor : anchor;
+                    spawnGroundRingTelegraph(level, ModParticles.SYNAPSE_SPARK.get(), lockedAnchor, 2.8D, 12);
                     for (BlockPos pos : anchorPositions) {
                         if (level.getBlockState(pos).is(ModBlocks.SENTINEL_NODE.get())) {
-                            spawnGroundLineTelegraph(level, ModParticles.HIVE_PULSE.get(), Vec3.atCenterOf(pos), anchor, 6);
+                            spawnGroundLineTelegraph(level, ModParticles.HIVE_PULSE.get(), Vec3.atCenterOf(pos), lockedAnchor, 6);
                         }
                     }
                 }

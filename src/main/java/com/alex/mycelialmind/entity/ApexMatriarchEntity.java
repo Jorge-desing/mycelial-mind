@@ -123,6 +123,18 @@ public class ApexMatriarchEntity extends MycelialBossMob {
     }
 
     @Override
+    protected float getNextPhaseThresholdRatio() {
+        int phase = getMatriarchPhase();
+        if (phase == 1) {
+            return 0.60F;
+        }
+        if (phase == 2) {
+            return 0.25F;
+        }
+        return -1.0F;
+    }
+
+    @Override
     public boolean isMultipartEntity() {
         return true;
     }
@@ -166,7 +178,7 @@ public class ApexMatriarchEntity extends MycelialBossMob {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.05D, false));
+        this.goalSelector.addGoal(1, new BossStateGatedMeleeGoal(this, 1.05D, false));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 20.0F));
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
@@ -306,9 +318,12 @@ public class ApexMatriarchEntity extends MycelialBossMob {
             case MATRIARCH_SPORE_BARRAGE -> level.playSound(null, this.blockPosition(),
                     ModSounds.APEX_MATRIARCH_WAIL.get(), SoundSource.HOSTILE, 1.35F, 1.15F);
             case MATRIARCH_ECHO_TELEPORT -> {
-                double tx = target.getX() + (this.random.nextDouble() - 0.5) * 5.0;
-                double tz = target.getZ() + (this.random.nextDouble() - 0.5) * 5.0;
-                this.telegraphAnchor = new Vec3(tx, target.getY(), tz);
+                BlockPos safePos = MycelialSpawnUtil.findOpenGroundPosition(level, this, target.blockPosition(), 4, 3);
+                if (safePos != null) {
+                    this.telegraphAnchor = Vec3.atBottomCenterOf(safePos);
+                } else {
+                    this.telegraphAnchor = target.position();
+                }
                 level.playSound(null, this.blockPosition(),
                         ModSounds.SYMBIOTIC_NODE_TELEPORT.get(), SoundSource.HOSTILE, 1.30F, 1.25F);
             }
@@ -341,8 +356,12 @@ public class ApexMatriarchEntity extends MycelialBossMob {
                 spawnGroundLineTelegraph(level, ModParticles.SYNAPSE_SPARK.get(), this.position(), anchor, 7);
             }
             case MATRIARCH_HOMEOSTATIC_PULSE -> {
+                if (!isTelegraphLocked() && target != null && target.isAlive()) {
+                    this.telegraphAnchor = target.position();
+                }
+                Vec3 pulseCenter = this.telegraphAnchor != null ? this.telegraphAnchor : anchor;
                 double r = 2.0D + 4.0D * getStateProgress();
-                spawnGroundRingTelegraph(level, ModParticles.NECROTIC_MIST.get(), anchor, r, 16);
+                spawnGroundRingTelegraph(level, ModParticles.NECROTIC_MIST.get(), pulseCenter, r, 16);
             }
             case MATRIARCH_SYNAPTIC_STORM -> {
                 double r = 2.5D + 5.8D * getStateProgress();

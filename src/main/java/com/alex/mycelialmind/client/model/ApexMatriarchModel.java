@@ -686,6 +686,12 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
                     this.upperArmR.xRot += 0.90F;
                     this.upperArmL.xRot += 0.90F;
                 }
+                case RECOVERY -> {
+                    float rec = 1.0F - bossProg;
+                    this.body.xRot += 0.14F * rec;
+                    this.upperArmR.xRot += 0.28F * rec;
+                    this.upperArmL.xRot += 0.28F * rec;
+                }
                 case STAGGERED -> {
                     this.body.xRot += 0.40F;
                     this.head.xRot += 0.32F;

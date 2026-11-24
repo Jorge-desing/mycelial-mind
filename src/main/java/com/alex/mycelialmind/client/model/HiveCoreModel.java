@@ -645,6 +645,11 @@ public class HiveCoreModel<T extends Entity> extends EntityModel<T> {
                     this.ringB.yRot -= 1.65F;
                     this.coreBody.xRot += 0.16F;
                 }
+                case RECOVERY -> {
+                    float rec = 1.0F - bossProg;
+                    this.coreBody.xRot += 0.12F * rec;
+                    this.crownChandelier.y += 1.0F * rec;
+                }
                 case STAGGERED -> {
                     this.coreBody.xRot += 0.38F;
                     this.crownChandelier.y += 2.2F;

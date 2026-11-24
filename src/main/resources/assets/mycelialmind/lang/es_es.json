@@ -2113,5 +2113,8 @@
   "message.mycelialmind.amber_requires_spore": "Cristalizar Ámbar Luminiscente requiere al menos 1 Espora Latente en tu inventario.",
   "message.mycelialmind.rift_gate_locked": "La Grieta Micelial rechaza el catalizador — alcanza el Acto III (ADAPTIVE) o derrota al Núcleo de la Colmena primero.",
   "message.mycelialmind.scanner_turret_ammo": "Munición de Torreta: %s / %s cargas neutralizantes",
-  "message.mycelialmind.scanner_pylon_charge": "Bioenergía del Pilón: %s / %s"
+  "message.mycelialmind.scanner_pylon_charge": "Bioenergía del Pilón: %s / %s",
+  "hud.mycelialmind.boss_combo_badge": "¡COMBO!",
+  "hud.mycelialmind.boss_anchors_badge": "Anclas %s/%s",
+  "hud.mycelialmind.boss_telegraph_locked": "FIJADO: ¡%s!"
 }

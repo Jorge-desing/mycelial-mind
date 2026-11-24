@@ -2135,6 +2135,33 @@ class HiveAlgorithmsUnitTest {
         assertEquals(2, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveHiveCorePhase(0.60F, false));
         assertEquals(3, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveHiveCorePhase(0.28F, true));
         assertEquals(3, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveMatriarchPhase(0.20F));
+
+        // Telegraph lock-in, melee goal gating, anti-pillar selection, phase-skip clamp, and scaled carapace
+        assertFalse(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.isTelegraphLocked(8));
+        assertTrue(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.isTelegraphLocked(7));
+        assertFalse(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.isTelegraphLocked(0));
+        assertTrue(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.canExecuteMeleeGoal(
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.IDLE));
+        assertFalse(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.canExecuteMeleeGoal(
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.WINDUP));
+        assertFalse(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.canExecuteMeleeGoal(
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState.STAGGERED));
+
+        var antiPillarPick = com.alex.mycelialmind.hive.BossCombatArchitectureEngine.selectNextAttack(
+                kit, 1, 5.0D, java.util.Map.of(),
+                com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.NONE,
+                null, java.util.Set.of(), false, 5.0D
+        );
+        assertEquals(com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId.BEHEMOTH_SPORE_RAIN, antiPillarPick);
+
+        // Phase-skip clamp prevents a single 180-damage hit from skipping Behemoth's 50% phase threshold
+        float clamped = com.alex.mycelialmind.hive.BossCombatArchitectureEngine.clampPhaseTransitionDamage(200.0F, 200.0F, 180.0F, 0.50F);
+        assertEquals(100.5F, clamped, 1.0E-4F);
+
+        // Dynamic carapace scaling: solo 1.0x, 2 players +25%, 6 players capped at +100%, multiplied by cycle scale
+        assertEquals(80.0F, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.computeScaledCarapaceIntegrity(80.0F, 1, 1.0F), 1.0E-4F);
+        assertEquals(100.0F, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.computeScaledCarapaceIntegrity(80.0F, 2, 1.0F), 1.0E-4F);
+        assertEquals(200.0F, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.computeScaledCarapaceIntegrity(80.0F, 6, 1.25F), 1.0E-4F);
     }
 
     @Test

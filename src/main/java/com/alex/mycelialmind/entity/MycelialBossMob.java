@@ -4,6 +4,8 @@ import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCarapaceProfile;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCombatState;
+import com.alex.mycelialmind.hive.HiveCycleEngine;
+import com.alex.mycelialmind.hive.HiveCycleSavedData;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.PlayerHabit;
 import com.alex.mycelialmind.hive.StimulusType;
@@ -22,7 +24,9 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -58,22 +62,32 @@ public abstract class MycelialBossMob extends MycelialMob {
             SynchedEntityData.defineId(MycelialBossMob.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> DATA_CARAPACE_INTEGRITY =
             SynchedEntityData.defineId(MycelialBossMob.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DATA_MAX_CARAPACE_INTEGRITY =
+            SynchedEntityData.defineId(MycelialBossMob.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> DATA_CARAPACE_BROKEN_TICKS =
             SynchedEntityData.defineId(MycelialBossMob.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_COMBO_ACTIVE =
+            SynchedEntityData.defineId(MycelialBossMob.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_TELEGRAPH_LOCKED =
+            SynchedEntityData.defineId(MycelialBossMob.class, EntityDataSerializers.BOOLEAN);
 
     private static final String TAG_CARAPACE_INTEGRITY = "CarapaceIntegrity";
+    private static final String TAG_MAX_CARAPACE_INTEGRITY = "MaxCarapaceIntegrity";
     private static final String TAG_CARAPACE_BROKEN_TICKS = "CarapaceBrokenTicks";
 
     protected final Map<BossAttackId, Integer> attackCooldowns = new EnumMap<>(BossAttackId.class);
     protected BossAttackId lastCompletedAttack = BossAttackId.NONE;
     protected boolean comboChainedThisSequence = false;
     protected int globalIdleDelayTicks = 20;
+    private boolean carapaceScaledInitialized = false;
     @Nullable
     protected Vec3 telegraphAnchor = null;
 
     protected MycelialBossMob(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
-        this.entityData.set(DATA_CARAPACE_INTEGRITY, getCarapaceProfile().maxIntegrity());
+        float baseMax = getCarapaceProfile().maxIntegrity();
+        this.entityData.set(DATA_MAX_CARAPACE_INTEGRITY, baseMax);
+        this.entityData.set(DATA_CARAPACE_INTEGRITY, baseMax);
     }
 
     @Override
@@ -84,7 +98,33 @@ public abstract class MycelialBossMob extends MycelialMob {
         builder.define(DATA_STATE_TICKS, 0);
         builder.define(DATA_STATE_TOTAL_TICKS, 1);
         builder.define(DATA_CARAPACE_INTEGRITY, 80.0F);
+        builder.define(DATA_MAX_CARAPACE_INTEGRITY, 80.0F);
         builder.define(DATA_CARAPACE_BROKEN_TICKS, 0);
+        builder.define(DATA_COMBO_ACTIVE, false);
+        builder.define(DATA_TELEGRAPH_LOCKED, false);
+    }
+
+    /**
+     * Melee attack goal gated by the boss combat state machine so vanilla melee never
+     * competes with WINDUP, ACTIVE, RECOVERY, or STAGGERED states.
+     */
+    protected static class BossStateGatedMeleeGoal extends MeleeAttackGoal {
+        private final MycelialBossMob boss;
+
+        public BossStateGatedMeleeGoal(MycelialBossMob boss, double speedModifier, boolean followingTargetEvenIfNotSeen) {
+            super(boss, speedModifier, followingTargetEvenIfNotSeen);
+            this.boss = boss;
+        }
+
+        @Override
+        public boolean canUse() {
+            return BossCombatArchitectureEngine.canExecuteMeleeGoal(this.boss.getCombatState()) && super.canUse();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return BossCombatArchitectureEngine.canExecuteMeleeGoal(this.boss.getCombatState()) && super.canContinueToUse();
+        }
     }
 
     protected abstract BossCarapaceProfile getCarapaceProfile();
@@ -110,6 +150,14 @@ public abstract class MycelialBossMob extends MycelialMob {
 
     protected boolean isBossInvulnerableToCarapaceDamage(ServerLevel level) {
         return false;
+    }
+
+    /**
+     * Returns the HP ratio threshold of the next phase (e.g. {@code 0.50F}),
+     * or {@code -1.0F} when already in the final phase. Used to prevent single hits from skipping a phase.
+     */
+    protected float getNextPhaseThresholdRatio() {
+        return -1.0F;
     }
 
     protected void onCarapaceStateChanged(ServerLevel level, boolean broken) {
@@ -158,14 +206,11 @@ public abstract class MycelialBossMob extends MycelialMob {
     }
 
     public float getMaxCarapaceIntegrity() {
-        return getCarapaceProfile().maxIntegrity();
+        return Math.max(1.0F, this.entityData.get(DATA_MAX_CARAPACE_INTEGRITY));
     }
 
     public float getCarapaceIntegrityRatio() {
         float max = getMaxCarapaceIntegrity();
-        if (max <= 0.0F) {
-            return 0.0F;
-        }
         return Math.max(0.0F, Math.min(1.0F, getCarapaceIntegrity() / max));
     }
 
@@ -175,6 +220,14 @@ public abstract class MycelialBossMob extends MycelialMob {
 
     public int getCarapaceBrokenTicksRemaining() {
         return this.entityData.get(DATA_CARAPACE_BROKEN_TICKS);
+    }
+
+    public boolean isComboActive() {
+        return this.entityData.get(DATA_COMBO_ACTIVE);
+    }
+
+    public boolean isTelegraphLocked() {
+        return this.entityData.get(DATA_TELEGRAPH_LOCKED);
     }
 
     public double getWeakPointLowerOffset() {
@@ -188,6 +241,11 @@ public abstract class MycelialBossMob extends MycelialMob {
     // --- State machine tick ---
 
     protected void tickBossCombatStateMachine(ServerLevel level, @Nullable LivingEntity target, int currentPhase) {
+        if (!carapaceScaledInitialized) {
+            carapaceScaledInitialized = true;
+            refreshScaledCarapaceMax(level, true);
+        }
+
         // 1. Decrement attack cooldowns
         for (Map.Entry<BossAttackId, Integer> entry : attackCooldowns.entrySet()) {
             int val = entry.getValue();
@@ -233,11 +291,25 @@ public abstract class MycelialBossMob extends MycelialMob {
             }
             case WINDUP -> {
                 if (activeAttack == BossAttackId.NONE) {
+                    this.entityData.set(DATA_TELEGRAPH_LOCKED, false);
+                    this.entityData.set(DATA_COMBO_ACTIVE, false);
                     setCombatState(BossCombatState.IDLE, 0);
                     return;
                 }
                 this.getNavigation().stop();
-                if (target != null && target.isAlive()) {
+                boolean lockedNow = BossCombatArchitectureEngine.isTelegraphLocked(ticksLeft);
+                boolean wasLocked = isTelegraphLocked();
+                if (lockedNow && !wasLocked) {
+                    this.entityData.set(DATA_TELEGRAPH_LOCKED, true);
+                    Vec3 flashPos = this.telegraphAnchor != null ? this.telegraphAnchor : this.position();
+                    level.sendParticles(ModParticles.THERMAL_RETICLE.get(),
+                            flashPos.x, flashPos.y + 0.6D, flashPos.z, 4, 0.35, 0.2, 0.35, 0.02);
+                    level.sendParticles(ModParticles.IMPACT.get(),
+                            this.getX(), this.getY(0.65), this.getZ(), 1, 0.1, 0.1, 0.1, 0.05);
+                    level.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(),
+                            SoundSource.HOSTILE, 1.05F, 1.55F);
+                }
+                if (!lockedNow && target != null && target.isAlive()) {
                     this.getLookControl().setLookAt(target, 30.0F, 30.0F);
                 }
                 onAttackWindupTick(level, activeAttack, ticksLeft, getStateTotalTicks(), target);
@@ -245,6 +317,7 @@ public abstract class MycelialBossMob extends MycelialMob {
                     this.entityData.set(DATA_STATE_TICKS, ticksLeft - 1);
                 } else {
                     // Transition WINDUP -> ACTIVE
+                    this.entityData.set(DATA_TELEGRAPH_LOCKED, false);
                     setCombatState(BossCombatState.ACTIVE, Math.max(1, activeAttack.activeTicks()));
                     onAttackExecute(level, activeAttack, target);
                 }
@@ -279,6 +352,7 @@ public abstract class MycelialBossMob extends MycelialMob {
 
                     // Transition ACTIVE -> RECOVERY
                     comboChainedThisSequence = false;
+                    this.entityData.set(DATA_COMBO_ACTIVE, false);
                     setCombatState(BossCombatState.RECOVERY, Math.max(1, activeAttack.recoveryTicks()));
                 }
             }
@@ -288,6 +362,8 @@ public abstract class MycelialBossMob extends MycelialMob {
                     this.entityData.set(DATA_STATE_TICKS, ticksLeft - 1);
                 } else {
                     setActiveAttack(BossAttackId.NONE);
+                    this.entityData.set(DATA_COMBO_ACTIVE, false);
+                    this.entityData.set(DATA_TELEGRAPH_LOCKED, false);
                     setCombatState(BossCombatState.IDLE, 0);
                     globalIdleDelayTicks = Math.max(10, 18 - currentPhase * 3);
                 }
@@ -300,6 +376,7 @@ public abstract class MycelialBossMob extends MycelialMob {
                 StimulusType dominant = resolveDominantStimulus(hive);
                 Set<PlayerHabit> habits = resolveActiveHabits(hive);
                 double distance = this.distanceTo(target);
+                double targetHeightDelta = target.getY() - this.getY();
                 BossAttackId chosen = BossCombatArchitectureEngine.selectNextAttack(
                         getBossAttackKit(),
                         currentPhase,
@@ -308,7 +385,8 @@ public abstract class MycelialBossMob extends MycelialMob {
                         lastCompletedAttack,
                         dominant,
                         habits,
-                        isShieldAttackAllowed(level)
+                        isShieldAttackAllowed(level),
+                        targetHeightDelta
                 );
                 if (chosen != BossAttackId.NONE) {
                     comboChainedThisSequence = false;
@@ -353,6 +431,8 @@ public abstract class MycelialBossMob extends MycelialMob {
         }
         int windup = BossCombatArchitectureEngine.resolveEffectiveWindupTicks(attack, currentPhase, isComboFollowUp);
         this.telegraphAnchor = target.position();
+        this.entityData.set(DATA_COMBO_ACTIVE, isComboFollowUp);
+        this.entityData.set(DATA_TELEGRAPH_LOCKED, BossCombatArchitectureEngine.isTelegraphLocked(windup));
         setActiveAttack(attack);
         setCombatState(BossCombatState.WINDUP, Math.max(1, windup));
         onAttackWindupStart(level, attack, target);
@@ -362,6 +442,8 @@ public abstract class MycelialBossMob extends MycelialMob {
         int ticks = Math.max(10, durationTicks);
         this.comboChainedThisSequence = false;
         this.telegraphAnchor = null;
+        this.entityData.set(DATA_COMBO_ACTIVE, false);
+        this.entityData.set(DATA_TELEGRAPH_LOCKED, false);
         setActiveAttack(BossAttackId.NONE);
         setCombatState(BossCombatState.STAGGERED, ticks);
         this.getNavigation().stop();
@@ -371,17 +453,58 @@ public abstract class MycelialBossMob extends MycelialMob {
     protected void onBossPhaseTransition(ServerLevel level) {
         this.comboChainedThisSequence = false;
         this.telegraphAnchor = null;
+        this.entityData.set(DATA_COMBO_ACTIVE, false);
+        this.entityData.set(DATA_TELEGRAPH_LOCKED, false);
         if (getCombatState() != BossCombatState.STAGGERED) {
             setActiveAttack(BossAttackId.NONE);
             setCombatState(BossCombatState.IDLE, 0);
             this.globalIdleDelayTicks = 16;
         }
+        refreshScaledCarapaceMax(level, false);
         restoreCarapace(level, false);
+        emitPhaseTransitionShockwave(level);
+    }
+
+    protected void emitPhaseTransitionShockwave(ServerLevel level) {
+        spawnGroundRingTelegraph(level, ModParticles.HIVE_PULSE.get(), this.position(), 5.5D, 18);
+        level.sendParticles(ModParticles.IMPACT.get(), this.getX(), this.getY(0.55), this.getZ(), 3, 0.8, 0.5, 0.8, 0.08);
+        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.5D),
+                e -> e != this && !(e instanceof MycelialMob) && e.isAlive())) {
+            Vec3 away = entity.position().subtract(this.position());
+            if (away.lengthSqr() > 0.01D) {
+                Vec3 dir = away.normalize().scale(0.80D);
+                entity.push(dir.x, 0.32D, dir.z);
+            }
+        }
+    }
+
+    public void refreshScaledCarapaceMax(ServerLevel level, boolean preserveRatio) {
+        int nearbyPlayers = level.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(40.0D),
+                p -> p.isAlive() && !p.isSpectator()).size();
+        float cycleHpMult = 1.0F;
+        if (level.getServer() != null) {
+            HiveCycleSavedData cycles = HiveCycleSavedData.get(level.getServer().overworld());
+            cycleHpMult = (float) HiveCycleEngine.computeBossHealthMultiplier(
+                    cycles.isCycleActive(), cycles.getActiveCycleNumber(), cycles.getActiveMutatorMask());
+        }
+        float scaledMax = BossCombatArchitectureEngine.computeScaledCarapaceIntegrity(
+                getCarapaceProfile().maxIntegrity(), Math.max(1, nearbyPlayers), cycleHpMult);
+        float oldMax = getMaxCarapaceIntegrity();
+        float oldCurrent = getCarapaceIntegrity();
+        this.entityData.set(DATA_MAX_CARAPACE_INTEGRITY, scaledMax);
+        if (!isCarapaceBroken()) {
+            if (preserveRatio && oldMax > 0.0F) {
+                float ratio = Math.max(0.0F, Math.min(1.0F, oldCurrent / oldMax));
+                this.entityData.set(DATA_CARAPACE_INTEGRITY, scaledMax * ratio);
+            } else {
+                this.entityData.set(DATA_CARAPACE_INTEGRITY, scaledMax);
+            }
+        }
     }
 
     public void restoreCarapace(ServerLevel level, boolean notify) {
         boolean wasBroken = isCarapaceBroken();
-        this.entityData.set(DATA_CARAPACE_INTEGRITY, getCarapaceProfile().maxIntegrity());
+        this.entityData.set(DATA_CARAPACE_INTEGRITY, getMaxCarapaceIntegrity());
         this.entityData.set(DATA_CARAPACE_BROKEN_TICKS, 0);
         if (wasBroken) {
             onCarapaceStateChanged(level, false);
@@ -408,11 +531,24 @@ public abstract class MycelialBossMob extends MycelialMob {
                 this.getX(), this.getY(0.55), this.getZ(), 24, 0.9, 0.8, 0.9, 0.12);
         level.sendParticles(ModParticles.IMPACT.get(),
                 this.getX(), this.getY(0.6), this.getZ(), 2, 0.2, 0.2, 0.2, 0.10);
-        level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_SHIELD.get(),
+        level.playSound(null, this.blockPosition(), ModSounds.BOSS_CARAPACE_RICOCHET.get(),
                 SoundSource.HOSTILE, 1.55F, 0.55F);
-        level.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(),
-                SoundSource.HOSTILE, 1.35F, 0.72F);
+        level.playSound(null, this.blockPosition(), ModSounds.BOSS_WEAKPOINT_CRIT.get(),
+                SoundSource.HOSTILE, 1.35F, 1.20F);
         return true;
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        float effectiveAmount = amount;
+        if (!this.level().isClientSide() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            float nextPhaseRatio = getNextPhaseThresholdRatio();
+            if (nextPhaseRatio > 0.0F) {
+                effectiveAmount = BossCombatArchitectureEngine.clampPhaseTransitionDamage(
+                        this.getHealth(), this.getMaxHealth(), amount, nextPhaseRatio);
+            }
+        }
+        return super.hurt(source, effectiveAmount);
     }
 
     @Override
@@ -465,16 +601,23 @@ public abstract class MycelialBossMob extends MycelialMob {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat(TAG_CARAPACE_INTEGRITY, getCarapaceIntegrity());
+        tag.putFloat(TAG_MAX_CARAPACE_INTEGRITY, getMaxCarapaceIntegrity());
         tag.putInt(TAG_CARAPACE_BROKEN_TICKS, getCarapaceBrokenTicksRemaining());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
+        if (tag.contains(TAG_MAX_CARAPACE_INTEGRITY)) {
+            this.entityData.set(DATA_MAX_CARAPACE_INTEGRITY, Math.max(1.0F, tag.getFloat(TAG_MAX_CARAPACE_INTEGRITY)));
+            this.carapaceScaledInitialized = true;
+        } else {
+            this.entityData.set(DATA_MAX_CARAPACE_INTEGRITY, getCarapaceProfile().maxIntegrity());
+        }
         if (tag.contains(TAG_CARAPACE_INTEGRITY)) {
             this.entityData.set(DATA_CARAPACE_INTEGRITY, Math.max(0.0F, tag.getFloat(TAG_CARAPACE_INTEGRITY)));
         } else {
-            this.entityData.set(DATA_CARAPACE_INTEGRITY, getCarapaceProfile().maxIntegrity());
+            this.entityData.set(DATA_CARAPACE_INTEGRITY, getMaxCarapaceIntegrity());
         }
         if (tag.contains(TAG_CARAPACE_BROKEN_TICKS)) {
             this.entityData.set(DATA_CARAPACE_BROKEN_TICKS, Math.max(0, tag.getInt(TAG_CARAPACE_BROKEN_TICKS)));

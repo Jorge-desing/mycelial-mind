@@ -2,6 +2,7 @@ package com.alex.mycelialmind.client.hud;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.config.MycelialClientConfig;
+import com.alex.mycelialmind.entity.HiveCoreBossEntity;
 import com.alex.mycelialmind.entity.MycelialBossMob;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
@@ -548,34 +549,47 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         }
 
         int topBanners = (hasTideBanner ? 1 : 0) + (hasHomeoBanner ? 1 : 0) + (hasRemissionBanner ? 1 : 0);
-        int panelW = 216;
-        int panelH = 38;
-        int panelX = (sw - panelW) / 2;
-        int panelY = 40 + topBanners * 17;
-
+        Font font = mc.font;
         boolean broken = nearest.isCarapaceBroken();
         BossCombatState state = nearest.getCombatState();
-        int borderCol = broken
-                ? 0xFFFFD166
-                : (state == BossCombatState.WINDUP ? 0xFFFF595E : 0xFF9D4EDD);
-        graphics.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC140A20);
-        graphics.renderOutline(panelX, panelY, panelW, panelH, borderCol);
+        boolean telegraphLocked = state == BossCombatState.WINDUP && nearest.isTelegraphLocked();
+        boolean comboActive = nearest.isComboActive();
+        int remainingAnchors = nearest instanceof HiveCoreBossEntity hiveBoss ? hiveBoss.getSyncedRemainingAnchors() : 0;
 
-        Font font = mc.font;
         Component header = Component.translatable(
                 "hud.mycelialmind.boss_header",
                 nearest.getDisplayName(),
                 nearest.getActiveBossPhase(),
                 nearest.getMaxBossPhases()
         );
-        graphics.drawString(font, header, panelX + 5, panelY + 4, 0xFFF3D5FF, true);
-
         int carapacePct = Math.round(nearest.getCarapaceIntegrityRatio() * 100.0F);
         Component carapaceLabel = broken
                 ? Component.translatable("hud.mycelialmind.boss_carapace_broken")
                 : Component.translatable("hud.mycelialmind.boss_carapace_intact", carapacePct);
-        int carapaceTextColor = broken ? 0xFFFFD166 : 0xFFF4A261;
+        int headerW = font.width(header);
         int labelW = font.width(carapaceLabel);
+
+        int panelW = Math.min(sw - 16, Math.max(228, headerW + labelW + 18));
+        int panelH = 38;
+        int panelX = (sw - panelW) / 2;
+        int panelY = 40 + topBanners * 17;
+
+        boolean flashToggle = (player.tickCount / 2) % 2 == 0;
+        int borderCol;
+        if (telegraphLocked) {
+            borderCol = flashToggle ? 0xFFFF2A55 : 0xFFFFB703;
+        } else if (broken) {
+            borderCol = 0xFFFFD166;
+        } else if (state == BossCombatState.WINDUP) {
+            borderCol = 0xFFFF595E;
+        } else {
+            borderCol = 0xFF9D4EDD;
+        }
+        graphics.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC140A20);
+        graphics.renderOutline(panelX, panelY, panelW, panelH, borderCol);
+
+        graphics.drawString(font, header, panelX + 5, panelY + 4, 0xFFF3D5FF, true);
+        int carapaceTextColor = broken ? 0xFFFFD166 : 0xFFF4A261;
         graphics.drawString(font, carapaceLabel, panelX + panelW - labelW - 5, panelY + 4, carapaceTextColor, true);
 
         // Carapace Integrity Bar
@@ -601,9 +615,11 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         float barFill;
         switch (state) {
             case WINDUP -> {
-                stateText = Component.translatable("hud.mycelialmind.boss_telegraph_windup", attackName);
-                stateColor = 0xFFFF9F1C;
-                stateBarColor = nearest.getStateProgress() >= 0.72F ? 0xFFFF3366 : 0xFFFF9F1C;
+                stateText = telegraphLocked
+                        ? Component.translatable("hud.mycelialmind.boss_telegraph_locked", attackName)
+                        : Component.translatable("hud.mycelialmind.boss_telegraph_windup", attackName);
+                stateColor = telegraphLocked ? 0xFFFF4D6D : 0xFFFF9F1C;
+                stateBarColor = telegraphLocked ? 0xFFFF2A55 : 0xFFFF9F1C;
                 barFill = nearest.getStateProgress();
             }
             case ACTIVE -> {
@@ -632,6 +648,17 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             }
         }
         graphics.drawString(font, stateText, barX, panelY + 22, stateColor, true);
+
+        // Right-aligned live COMBO / Sentinel Anchors badge
+        if (comboActive) {
+            Component comboBadge = Component.translatable("hud.mycelialmind.boss_combo_badge");
+            int badgeW = font.width(comboBadge);
+            graphics.drawString(font, comboBadge, panelX + panelW - badgeW - 5, panelY + 22, 0xFFFFD166, true);
+        } else if (remainingAnchors > 0) {
+            Component anchorsBadge = Component.translatable("hud.mycelialmind.boss_anchors_badge", remainingAnchors, 3);
+            int badgeW = font.width(anchorsBadge);
+            graphics.drawString(font, anchorsBadge, panelX + panelW - badgeW - 5, panelY + 22, 0xFF4CC9F0, true);
+        }
         int stateBarY = panelY + 32;
         graphics.fill(barX, stateBarY, barX + barW, stateBarY + 3, 0xFF221330);
         int stateFillW = Math.round(barW * Math.max(0.0F, Math.min(1.0F, barFill)));

@@ -323,6 +323,12 @@ public class SporeBehemothModel<T extends Entity> extends EntityModel<T> {
                     this.armR.xRot += 0.85F;
                     this.armL.xRot += 0.65F;
                 }
+                case RECOVERY -> {
+                    float rec = 1.0F - bossProg;
+                    this.torso.xRot += 0.16F * rec;
+                    this.armR.xRot += 0.25F * rec;
+                    this.armL.xRot += 0.20F * rec;
+                }
                 case STAGGERED -> {
                     this.torso.xRot += 0.42F;
                     this.head.xRot += 0.35F;

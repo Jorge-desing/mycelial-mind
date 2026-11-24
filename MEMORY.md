@@ -4198,3 +4198,28 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `CodeMode` (`clear_bridge_cache` + `audit_mod_assets` + `validate_skills` + `get_latest_junit_report`): **`2115/2115` claves EN/ES (`0` faltantes en `795` referencias), `8/8` skills OK, `98/98` JUnit en `11` suites (`4.228s`)**.
   - Gradle JDK 21 (`test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon`): **`BUILD SUCCESSFUL` (`29s`), `184/184` `@GameTest`s (`5.691s`, incluyendo `acquisitionDifficultyAndMaintenanceWorkInRuntime` en `batch = "acquisition_difficulty"`)**.
   - Listo para commit descriptivo y `git push origin main`.
+
+
+## [2026-11-24 10:51] — Pulido Integral del Sistema de Combate de Jefes (`/goal` + `/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:**
+  1. **Motor puro (`BossCombatArchitectureEngine.java`):** Añadidos `TELEGRAPH_LOCK_TICKS = 7` (`isTelegraphLocked`), `canExecuteMeleeGoal(BossCombatState)`, selector anti-pilar por elevación (`ELEVATED_TARGET_HEIGHT_THRESHOLD = 4.0D`, `isAntiPillarAttack` y sobrecarga 9-arg de `selectNextAttack`), tope anti-salto de fase (`clampPhaseTransitionDamage`) y escalado dinámico del caparazón (`computeScaledCarapaceIntegrity`: `+25%` por jugador extra hasta `+100%`, multiplicado por `HiveCycleEngine`).
+  2. **Base de jefes y los 3 jefes (`MycelialBossMob`, `SporeBehemothEntity`, `HiveCoreBossEntity`, `ApexMatriarchEntity`):**
+     - `BossStateGatedMeleeGoal` reemplaza a `MeleeAttackGoal` en los 3 jefes para que el melee vanilla nunca compita con `WINDUP`/`ACTIVE`/`RECOVERY`/`STAGGERED`.
+     - Bloqueo justo de telegrafiado (`DATA_TELEGRAPH_LOCKED` a `<= 7` ticks del impacto con destello `THERMAL_RETICLE`/`IMPACT` + pulso sonoro), indicador sincronizado de combo (`DATA_COMBO_ACTIVE`), caparazón máximo escalado sincronizado (`DATA_MAX_CARAPACE_INTEGRITY` persistido en NBT), tope de daño en `hurt(...)` para impedir saltar fases enteras de 1 golpe, pulso radial no letal en transiciones de fase (`emitPhaseTransitionShockwave`) y cues de audio v3 (`BOSS_CARAPACE_RICOCHET` + `BOSS_WEAKPOINT_CRIT`) al quebrar el caparazón.
+     - `SporeBehemothEntity`: colisión continua durante los 10 ticks `ACTIVE` de `BEHEMOTH_SEISMIC_CHARGE` (`chargeHitEntities`, preservando `inflate(2.2D)`).
+     - `HiveCoreBossEntity`: contador sincronizado de anclas restantes (`DATA_REMAINING_ANCHORS`) y exclusión de `HIVE_CORE_ANCHOR_RAY` cuando el escudo de Fase 2 ya cayó.
+     - `ApexMatriarchEntity`: aterrizaje seguro validado con `MycelialSpawnUtil.findOpenGroundPosition` en `MATRIARCH_ECHO_TELEPORT` y bloqueo de puntería en `MATRIARCH_HOMEOSTATIC_PULSE`.
+  3. **UX de Cliente, Poses 3D y Localización:** Barra de telemetría de jefes en `BioScannerHudOverlay.java` con ancho auto-ajustado sin solapamientos, badges `COMBO!` y `Anchors X/3`, y borde parpadeante + etiqueta `LOCKED: <ataque>!` en ventana de esquive; pose `RECOVERY` añadida a los 3 modelos de jefe vía `scripts/model_studio/java_emitter.py`; 3 nuevas claves bilingües EN/ES en `en_us.json` / `es_es.json`.
+  4. **Skills revisadas y actualizadas:** Actualizada `.agents/skills/mycelial-ai-hive/SKILL.md`; revisadas las demás skills del proyecto sin cambios necesarios (`8/8` validadas).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/hive/BossCombatArchitectureEngine.java`
+  - `src/main/java/com/alex/mycelialmind/entity/{MycelialBossMob,SporeBehemothEntity,HiveCoreBossEntity,ApexMatriarchEntity}.java`
+  - `src/main/java/com/alex/mycelialmind/client/{hud/BioScannerHudOverlay,model/{SporeBehemothModel,HiveCoreModel,ApexMatriarchModel}}.java`
+  - `scripts/model_studio/java_emitter.py`, `src/main/resources/assets/mycelialmind/lang/{en_us,es_es}.json`
+  - `src/test/java/com/alex/mycelialmind/HiveAlgorithmsUnitTest.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`
+  - `.agents/skills/mycelial-ai-hive/SKILL.md`
+- **Estado / Verificación:**
+  - CodeMode (`mycelial-mind-dev`): `run_model_studio` (`ok: true`, `25/25`), `audit_mod_assets` (`ok: true`), `validate_skills` (`ok: true`, `8/8`), `get_latest_junit_report` (`98/98` JUnit PASS en `11` suites, `3.87s`).
+  - Gradle JDK 21 (`test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon`): **`BUILD SUCCESSFUL` (`51s`), `184/184` `@GameTest`s PASS (`6.306s`)**.
+  - Listo para commit descriptivo y `git push origin main`.

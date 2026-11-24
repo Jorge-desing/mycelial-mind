@@ -21,6 +21,10 @@ public final class BossCombatArchitectureEngine {
     public static final float EXPOSED_WEAK_POINT_MULTIPLIER = 1.55F;
     public static final float INTACT_CARAPACE_MULTIPLIER = 0.75F;
     public static final float BROKEN_CARAPACE_MULTIPLIER = 1.00F;
+    public static final int TELEGRAPH_LOCK_TICKS = 7;
+    public static final double ELEVATED_TARGET_HEIGHT_THRESHOLD = 4.0D;
+    public static final float MULTIPLAYER_CARAPACE_STEP = 0.25F;
+    public static final float MULTIPLAYER_CARAPACE_MAX_BONUS = 1.00F;
 
     private BossCombatArchitectureEngine() {
     }
@@ -206,9 +210,32 @@ public final class BossCombatArchitectureEngine {
             Set<PlayerHabit> activeHabits,
             boolean shieldAllowed
     ) {
+        return selectNextAttack(
+                kit, currentPhase, distance, cooldowns, lastAttack,
+                dominantStimulus, activeHabits, shieldAllowed, 0.0D
+        );
+    }
+
+    /**
+     * Evaluates a boss's attack kit and picks the highest-utility eligible attack
+     * based on phase, target distance, cooldowns, anti-spam history, Hive Mind telemetry,
+     * and anti-pillar elevation delta.
+     */
+    public static BossAttackId selectNextAttack(
+            List<BossAttackId> kit,
+            int currentPhase,
+            double distance,
+            Map<BossAttackId, Integer> cooldowns,
+            BossAttackId lastAttack,
+            StimulusType dominantStimulus,
+            Set<PlayerHabit> activeHabits,
+            boolean shieldAllowed,
+            double targetHeightDelta
+    ) {
         if (kit == null || kit.isEmpty()) {
             return BossAttackId.NONE;
         }
+        boolean targetElevated = targetHeightDelta >= ELEVATED_TARGET_HEIGHT_THRESHOLD;
         BossAttackId best = BossAttackId.NONE;
         double bestScore = Double.NEGATIVE_INFINITY;
 
@@ -251,6 +278,15 @@ public final class BossCombatArchitectureEngine {
                 score += 4.0D;
             }
 
+            // Anti-pillar elevation response: favor ranged/teleport/vertical attacks when target pillars >= 4 blocks
+            if (targetElevated) {
+                if (isAntiPillarAttack(candidate)) {
+                    score += 7.5D;
+                } else {
+                    score -= 4.5D;
+                }
+            }
+
             // Anti-spam penalty so bosses weave varied patterns
             if (candidate == lastAttack) {
                 score -= 5.5D;
@@ -262,6 +298,74 @@ public final class BossCombatArchitectureEngine {
             }
         }
         return best;
+    }
+
+    public static boolean isAntiPillarAttack(BossAttackId attack) {
+        if (attack == null) {
+            return false;
+        }
+        return switch (attack) {
+            case BEHEMOTH_SPORE_RAIN,
+                 HIVE_CORE_ACID_FAN,
+                 HIVE_CORE_COMMAND_PULSE,
+                 HIVE_CORE_ANCHOR_RAY,
+                 MATRIARCH_SPORE_BARRAGE,
+                 MATRIARCH_ECHO_TELEPORT,
+                 MATRIARCH_HOMEOSTATIC_PULSE -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Returns true once a windup enters its locked dodge window ({@code <= 7} ticks before impact).
+     */
+    public static boolean isTelegraphLocked(int windupTicksRemaining) {
+        return windupTicksRemaining > 0 && windupTicksRemaining <= TELEGRAPH_LOCK_TICKS;
+    }
+
+    /**
+     * Prevents vanilla {@code MeleeAttackGoal} from competing with active telegraphs, recovery, or stagger.
+     */
+    public static boolean canExecuteMeleeGoal(BossCombatState state) {
+        return state == BossCombatState.IDLE;
+    }
+
+    /**
+     * Clamps a single incoming hit so it cannot skip an entire boss phase threshold
+     * (e.g. one-shotting Hive Core from Phase 1 straight into Phase 3).
+     */
+    public static float clampPhaseTransitionDamage(
+            float currentHp,
+            float maxHp,
+            float incomingDamage,
+            float nextPhaseThresholdRatio
+    ) {
+        if (incomingDamage <= 0.0F || maxHp <= 0.0F || nextPhaseThresholdRatio <= 0.0F) {
+            return Math.max(0.0F, incomingDamage);
+        }
+        float thresholdHp = maxHp * nextPhaseThresholdRatio;
+        if (currentHp > thresholdHp && (currentHp - incomingDamage) < (thresholdHp - 0.5F)) {
+            return Math.max(1.0F, (currentHp - thresholdHp) + 0.5F);
+        }
+        return incomingDamage;
+    }
+
+    /**
+     * Scales physical carapace integrity by nearby player count (+25% per extra player, capped at +100%)
+     * and active Post-Matriarch Cycle boss HP multiplier.
+     */
+    public static float computeScaledCarapaceIntegrity(
+            float baseMaxIntegrity,
+            int nearbyPlayers,
+            float cycleHpMultiplier
+    ) {
+        if (baseMaxIntegrity <= 0.0F) {
+            return 0.0F;
+        }
+        int extraPlayers = Math.max(0, nearbyPlayers - 1);
+        float playerBonus = Math.min(MULTIPLAYER_CARAPACE_MAX_BONUS, extraPlayers * MULTIPLAYER_CARAPACE_STEP);
+        float cycleScale = Math.max(1.0F, cycleHpMultiplier);
+        return Math.round(baseMaxIntegrity * (1.0F + playerBonus) * cycleScale * 10.0F) / 10.0F;
     }
 
     /**

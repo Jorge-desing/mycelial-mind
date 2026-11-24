@@ -2113,5 +2113,8 @@
   "message.mycelialmind.amber_requires_spore": "Crystallizing Luminescent Amber requires at least 1 Latent Spore in your inventory.",
   "message.mycelialmind.rift_gate_locked": "The Mycelial Rift rejects the catalyst — reach Act III (ADAPTIVE) or defeat the Hive Core first.",
   "message.mycelialmind.scanner_turret_ammo": "Turret Ammunition: %s / %s neutralizing charges",
-  "message.mycelialmind.scanner_pylon_charge": "Pylon Bio-Energy: %s / %s"
+  "message.mycelialmind.scanner_pylon_charge": "Pylon Bio-Energy: %s / %s",
+  "hud.mycelialmind.boss_combo_badge": "COMBO!",
+  "hud.mycelialmind.boss_anchors_badge": "Anchors %s/%s",
+  "hud.mycelialmind.boss_telegraph_locked": "LOCKED: %s!"
 }
