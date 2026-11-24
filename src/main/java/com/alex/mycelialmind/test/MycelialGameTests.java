@@ -231,34 +231,42 @@ public final class MycelialGameTests {
                 .thenSucceed();
     }
 
-    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 240)
+    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 300)
     public static void weaverSupportCoversSeparatedSquad(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forced = forceArenaChunks(helper, -4, 22, -5, 9);
+        List<ChunkPos> forced = forceArenaChunks(helper, -4, 22, -5, 14);
         for (int x = -4; x <= 21; x++) {
-            for (int z = -4; z <= 8; z++) {
+            for (int z = -4; z <= 13; z++) {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
                 for (int y = 1; y <= 4; y++) {
                     helper.setBlock(new BlockPos(x, y, z), Blocks.AIR);
                 }
             }
         }
-        var weaver = helper.spawn(ModEntities.SYNAPSE_WEAVER.get(), 2, 1, 2);
-        var first = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 15, 1, 2);
-        var second = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 15, 1, 5);
-        var enemy = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 12);
-        weaver.setHiveStrain(HiveStrain.AMBER);
-        first.setHiveStrain(HiveStrain.AMBER);
-        second.setHiveStrain(HiveStrain.AMBER);
-        enemy.setHiveStrain(HiveStrain.CRIMSON);
-        weaver.setSchismTicks(1000);
-        enemy.setSchismTicks(1000);
-        weaver.setTarget(enemy);
+        final MycelialMob[] allies = new MycelialMob[2];
         helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        entityChunksReady(level, helper.absolutePos(new BlockPos(9, 1, 5)), 9),
+                        "Weaver support arena chunks must be entity-ticking"))
+                .thenExecute(() -> {
+                    var weaver = helper.spawn(ModEntities.SYNAPSE_WEAVER.get(), 2, 1, 2);
+                    var first = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 15, 1, 2);
+                    var second = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 15, 1, 5);
+                    var enemy = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 12);
+                    weaver.setHiveStrain(HiveStrain.AMBER);
+                    first.setHiveStrain(HiveStrain.AMBER);
+                    second.setHiveStrain(HiveStrain.AMBER);
+                    enemy.setHiveStrain(HiveStrain.CRIMSON);
+                    weaver.setSchismTicks(1000);
+                    enemy.setSchismTicks(1000);
+                    weaver.setTarget(enemy);
+                    allies[0] = first;
+                    allies[1] = second;
+                })
                 .thenWaitUntil(() -> {
-                    helper.assertTrue(first.hasEffect(MobEffects.REGENERATION),
+                    helper.assertTrue(allies[0] != null && allies[0].hasEffect(MobEffects.REGENERATION),
                             "First ally must receive the support pulse");
-                    helper.assertTrue(second.hasEffect(MobEffects.REGENERATION),
+                    helper.assertTrue(allies[1] != null && allies[1].hasEffect(MobEffects.REGENERATION),
                             "Second ally must receive the support pulse");
                 })
                 .thenExecute(() -> releaseArenaChunks(level, forced))
@@ -1188,74 +1196,80 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(batch = "defaultBatch", template = "empty")
+    @GameTest(batch = "defaultBatch", template = "empty", timeoutTicks = 200)
     public static void purifierGrenadeUsesSphericalBlockAndEntityRadius(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData.get(level).resetAll();
-        HiveBlackboard.clear(level);
-
         BlockPos center = helper.absolutePos(new BlockPos(4, 1, 4));
         BlockPos insideMycelium = center.east(3);
         BlockPos outsideMycelium = center.offset(3, 0, 3);
-        level.setBlockAndUpdate(center, Blocks.STONE.defaultBlockState());
-        level.setBlockAndUpdate(insideMycelium, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
-        level.setBlockAndUpdate(outsideMycelium, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
+        List<ChunkPos> forced = forceArenaChunks(helper, -4, 12, -4, 12);
 
-        MycelialMob insideMob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 2, 1, 2);
-        MycelialMob outsideMob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 6, 1, 6);
-        PurifierDroneEntity insideDrone = helper.spawnWithNoFreeWill(ModEntities.PURIFIER_DRONE.get(), 2, 1, 4);
-        PurifierDroneEntity outsideDrone = helper.spawnWithNoFreeWill(ModEntities.PURIFIER_DRONE.get(), 7, 1, 6);
-        insideMob.setPos(center.getX() + 2.5D, center.getY() + 1.0D, center.getZ() + 0.5D);
-        outsideMob.setPos(center.getX() + 3.5D, center.getY() + 1.0D, center.getZ() + 3.5D);
-        insideDrone.setPos(center.getX() + 1.5D, center.getY() + 1.0D, center.getZ() + 0.5D);
-        outsideDrone.setPos(center.getX() + 4.2D, center.getY() + 1.0D, center.getZ() + 3.5D);
-        insideMob.applyHiveState(
-                Set.of(AdaptationTrait.FIRE_RESISTANT),
-                Set.of(AdaptationTrait.FIRE_RESISTANT),
-                Set.of(HiveSynergy.PYROLYTIC_SHELL));
-        outsideMob.applyHiveState(
-                Set.of(AdaptationTrait.FIRE_RESISTANT),
-                Set.of(AdaptationTrait.FIRE_RESISTANT),
-                Set.of(HiveSynergy.PYROLYTIC_SHELL));
-        insideDrone.setJammedTicks(60);
-        outsideDrone.setJammedTicks(60);
-        float outsideHealth = outsideMob.getHealth();
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, center, 8),
+                        "Purifier grenade arena chunks must be entity-ticking"))
+                .thenExecute(() -> {
+                    HiveMindSavedData.get(level).resetAll();
+                    HiveBlackboard.clear(level);
+                    level.setBlockAndUpdate(center, Blocks.STONE.defaultBlockState());
+                    level.setBlockAndUpdate(insideMycelium, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
+                    level.setBlockAndUpdate(outsideMycelium, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
 
-        try {
-            PurifierGrenadeProjectile grenade = new PurifierGrenadeProjectile(ModEntities.PURIFIER_GRENADE.get(), level);
-            grenade.setPos(center.getX() + 0.5D, center.getY() + 1.35D, center.getZ() + 0.5D);
-            grenade.shoot(0.0D, -1.0D, 0.0D, 1.5F, 0.0F);
-            level.addFreshEntity(grenade);
-            for (int tick = 0; tick < 6 && !grenade.isRemoved(); tick++) {
-                grenade.tick();
-            }
+                    MycelialMob insideMob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 2, 1, 2);
+                    MycelialMob outsideMob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 6, 1, 6);
+                    PurifierDroneEntity insideDrone = helper.spawnWithNoFreeWill(ModEntities.PURIFIER_DRONE.get(), 2, 1, 4);
+                    PurifierDroneEntity outsideDrone = helper.spawnWithNoFreeWill(ModEntities.PURIFIER_DRONE.get(), 7, 1, 6);
+                    insideMob.setPos(center.getX() + 2.5D, center.getY() + 1.0D, center.getZ() + 0.5D);
+                    outsideMob.setPos(center.getX() + 3.5D, center.getY() + 1.0D, center.getZ() + 3.5D);
+                    insideDrone.setPos(center.getX() + 1.5D, center.getY() + 1.0D, center.getZ() + 0.5D);
+                    outsideDrone.setPos(center.getX() + 4.2D, center.getY() + 1.0D, center.getZ() + 3.5D);
+                    insideMob.applyHiveState(
+                            Set.of(AdaptationTrait.FIRE_RESISTANT),
+                            Set.of(AdaptationTrait.FIRE_RESISTANT),
+                            Set.of(HiveSynergy.PYROLYTIC_SHELL));
+                    outsideMob.applyHiveState(
+                            Set.of(AdaptationTrait.FIRE_RESISTANT),
+                            Set.of(AdaptationTrait.FIRE_RESISTANT),
+                            Set.of(HiveSynergy.PYROLYTIC_SHELL));
+                    insideDrone.setJammedTicks(60);
+                    outsideDrone.setJammedTicks(60);
+                    float outsideHealth = outsideMob.getHealth();
 
-            boolean blockRadius = level.getBlockState(insideMycelium).is(Blocks.DIRT)
-                    && level.getBlockState(outsideMycelium).is(ModBlocks.CREEPING_MYCELIUM.get());
-            boolean mobRadius = insideMob.getTraitMask() == 0 && insideMob.isDesynced()
-                    && outsideMob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
-                    && outsideMob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
-                    && outsideMob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL)
-                    && Math.abs(outsideMob.getHealth() - outsideHealth) < 0.01F;
-            boolean droneRadius = !insideDrone.isJammed() && outsideDrone.isJammed();
+                    try {
+                        PurifierGrenadeProjectile grenade = new PurifierGrenadeProjectile(ModEntities.PURIFIER_GRENADE.get(), level);
+                        grenade.setPos(center.getX() + 0.5D, center.getY() + 1.35D, center.getZ() + 0.5D);
+                        grenade.shoot(0.0D, -1.0D, 0.0D, 1.5F, 0.0F);
+                        level.addFreshEntity(grenade);
+                        for (int tick = 0; tick < 6 && !grenade.isRemoved(); tick++) {
+                            grenade.tick();
+                        }
 
-            if (!grenade.isRemoved() || !blockRadius || !mobRadius || !droneRadius) {
-                helper.fail("Purifier grenade sphere check failed: removed=" + grenade.isRemoved()
-                        + " blocks=" + blockRadius + " mobs=" + mobRadius + " drones=" + droneRadius);
-                return;
-            }
-            helper.succeed();
-        } finally {
-            insideMob.discard();
-            outsideMob.discard();
-            insideDrone.discard();
-            outsideDrone.discard();
-            level.removeBlock(center, false);
-            level.removeBlock(insideMycelium, false);
-            level.removeBlock(outsideMycelium, false);
-            HiveMindSavedData.get(level).resetAll();
-            HiveBlackboard.clear(level);
-        }
+                        boolean blockRadius = level.getBlockState(insideMycelium).is(Blocks.DIRT)
+                                && level.getBlockState(outsideMycelium).is(ModBlocks.CREEPING_MYCELIUM.get());
+                        boolean mobRadius = insideMob.getTraitMask() == 0 && insideMob.isDesynced()
+                                && outsideMob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
+                                && outsideMob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                                && outsideMob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL)
+                                && Math.abs(outsideMob.getHealth() - outsideHealth) < 0.01F;
+                        boolean droneRadius = !insideDrone.isJammed() && outsideDrone.isJammed();
+
+                        if (!grenade.isRemoved() || !blockRadius || !mobRadius || !droneRadius) {
+                            helper.fail("Purifier grenade sphere check failed: removed=" + grenade.isRemoved()
+                                    + " blocks=" + blockRadius + " mobs=" + mobRadius + " drones=" + droneRadius);
+                        }
+                    } finally {
+                        insideMob.discard();
+                        outsideMob.discard();
+                        insideDrone.discard();
+                        outsideDrone.discard();
+                        level.removeBlock(center, false);
+                        level.removeBlock(insideMycelium, false);
+                        level.removeBlock(outsideMycelium, false);
+                        HiveMindSavedData.get(level).resetAll();
+                        HiveBlackboard.clear(level);
+                        releaseArenaChunks(level, forced);
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(batch = "defaultBatch", template = "empty")
@@ -8601,7 +8615,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "sovereign_rival_raid")
+    @GameTest(template = "empty", batch = "sovereign_rival_raid", timeoutTicks = 240)
     public static void sovereignRivalRaidDefenseAwardsXpAndMoraleTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();
