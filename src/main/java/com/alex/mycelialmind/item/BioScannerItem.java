@@ -129,6 +129,11 @@ public class BioScannerItem extends Item {
                         zone,
                         status
                 ).withStyle(turret.isJammed() ? ChatFormatting.YELLOW : ChatFormatting.AQUA));
+                player.sendSystemMessage(Component.translatable(
+                        "message.mycelialmind.scanner_turret_ammo",
+                        turret.getAmmo(),
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO
+                ).withStyle(turret.hasAmmo() ? ChatFormatting.AQUA : ChatFormatting.RED));
                 serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.6F);
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
@@ -225,6 +230,14 @@ public class BioScannerItem extends Item {
                         pylonTier,
                         pylonRadius
                 ).withStyle(ChatFormatting.AQUA));
+                int pylonCharge = be instanceof MonumentFocusBlockEntity focus
+                        ? focus.getPurificationCharge()
+                        : com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE;
+                player.sendSystemMessage(Component.translatable(
+                        "message.mycelialmind.scanner_pylon_charge",
+                        pylonCharge,
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE
+                ).withStyle(pylonCharge > 20 ? ChatFormatting.AQUA : (pylonCharge > 0 ? ChatFormatting.YELLOW : ChatFormatting.RED)));
                 serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.5F);
             }
             return InteractionResult.sidedSuccess(level.isClientSide());

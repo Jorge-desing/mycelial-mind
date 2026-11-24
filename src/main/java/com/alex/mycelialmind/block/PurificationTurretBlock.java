@@ -63,22 +63,30 @@ public class PurificationTurretBlock extends Block implements EntityBlock {
             if (turret.tryCleanJam(stack, player)) {
                 return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
-            if (turret.tryUpgrade(stack, player)) {
-                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel && !player.isCreative()) {
-                    com.alex.mycelialmind.hive.SynapticMemoryRouter.routeHabit(
-                            serverLevel, pos, com.alex.mycelialmind.hive.PlayerHabit.BASTION_BUILDER, 4.0D * turret.getTier());
-                }
-                if (player instanceof ServerPlayer serverPlayer) {
-                    com.alex.mycelialmind.hive.PlayerDiscoveryData.unlockMilestone(
-                            serverPlayer, com.alex.mycelialmind.hive.ProgressionGoalEngine.MILESTONE_STATION_UPGRADED);
-                    if (turret.getTier() >= 3 && serverPlayer.getServer() != null) {
-                        AdvancementHolder adv = serverPlayer.getServer().getAdvancements()
-                                .get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bastion_tier3"));
-                        if (adv != null) {
-                            serverPlayer.getAdvancements().award(adv, "upgrade_tier3");
+            if (turret.resolveNextTierForCatalyst(stack) > 0) {
+                if (turret.tryUpgrade(stack, player)) {
+                    if (level instanceof net.minecraft.server.level.ServerLevel serverLevel && !player.isCreative()) {
+                        com.alex.mycelialmind.hive.SynapticMemoryRouter.routeHabit(
+                                serverLevel, pos, com.alex.mycelialmind.hive.PlayerHabit.BASTION_BUILDER, 4.0D * turret.getTier());
+                    }
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        com.alex.mycelialmind.hive.PlayerDiscoveryData.unlockMilestone(
+                                serverPlayer, com.alex.mycelialmind.hive.ProgressionGoalEngine.MILESTONE_STATION_UPGRADED);
+                        if (turret.getTier() >= 3 && serverPlayer.getServer() != null) {
+                            AdvancementHolder adv = serverPlayer.getServer().getAdvancements()
+                                    .get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bastion_tier3"));
+                            if (adv != null) {
+                                serverPlayer.getAdvancements().award(adv, "upgrade_tier3");
+                            }
                         }
                     }
+                    return ItemInteractionResult.sidedSuccess(level.isClientSide());
                 }
+                if (level instanceof net.minecraft.server.level.ServerLevel) {
+                    return ItemInteractionResult.FAIL;
+                }
+            }
+            if (turret.tryReload(stack, player)) {
                 return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
         }

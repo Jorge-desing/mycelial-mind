@@ -104,51 +104,51 @@ public final class MycelialVanillaIntegration {
     public static void onVillagerTrades(VillagerTradesEvent event) {
         if (event.getType() == VillagerProfession.CLERIC) {
             event.getTrades().get(2).add(new BasicItemListing(
-                    new ItemStack(ModItems.MYCELIAL_BIOMASS.get(), 4),
+                    new ItemStack(ModItems.MYCELIAL_BIOMASS.get(), 8),
                     new ItemStack(Items.EMERALD, 1),
-                    12, 5, 0.05F));
+                    8, 5, 0.05F));
             event.getTrades().get(3).add(new BasicItemListing(
-                    3,
+                    7,
                     new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 1),
-                    8, 10, 0.05F));
+                    4, 10, 0.05F));
             event.getTrades().get(4).add(new BasicItemListing(
-                    4,
+                    8,
                     new ItemStack(ModItems.LATENT_SPORE.get(), 2),
-                    6, 15, 0.05F));
+                    3, 15, 0.05F));
             event.getTrades().get(5).add(new BasicItemListing(
-                    9,
+                    18,
                     new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get(), 1),
-                    4, 20, 0.05F));
+                    2, 20, 0.05F));
         } else if (event.getType() == VillagerProfession.MASON) {
             event.getTrades().get(3).add(new BasicItemListing(
-                    1,
-                    new ItemStack(ModBlocks.MYCELIAL_ARCH_BRICK.get(), 4),
-                    12, 10, 0.05F));
+                    6,
+                    new ItemStack(ModBlocks.MYCELIAL_ARCH_BRICK.get(), 2),
+                    4, 10, 0.05F));
             event.getTrades().get(4).add(new BasicItemListing(
-                    2,
-                    new ItemStack(ModBlocks.CHITIN_PILLAR.get(), 2),
-                    8, 15, 0.05F));
+                    10,
+                    new ItemStack(ModBlocks.CHITIN_PILLAR.get(), 1),
+                    3, 15, 0.05F));
         }
     }
 
     @SubscribeEvent
     public static void onWandererTrades(WandererTradesEvent event) {
         event.getGenericTrades().add(new BasicItemListing(
-                2,
-                new ItemStack(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get(), 2),
-                6, 5, 0.05F));
-        event.getGenericTrades().add(new BasicItemListing(
-                3,
-                new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 1),
-                6, 5, 0.05F));
-        event.getRareTrades().add(new BasicItemListing(
                 5,
-                new ItemStack(ModBlocks.LUMINESCENT_AMBER_VEIN.get(), 2),
-                4, 15, 0.05F));
+                new ItemStack(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get(), 1),
+                4, 5, 0.05F));
+        event.getGenericTrades().add(new BasicItemListing(
+                8,
+                new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 1),
+                3, 5, 0.05F));
         event.getRareTrades().add(new BasicItemListing(
-                6,
+                16,
+                new ItemStack(ModBlocks.LUMINESCENT_AMBER_VEIN.get(), 1),
+                2, 15, 0.05F));
+        event.getRareTrades().add(new BasicItemListing(
+                14,
                 new ItemStack(ModItems.TRUCE_PHEROMONE.get(), 1),
-                3, 15, 0.05F));
+                2, 15, 0.05F));
     }
 
     @SubscribeEvent
@@ -224,7 +224,9 @@ public final class MycelialVanillaIntegration {
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == 0 && (turret.canCleanJamWith(stack) || turret.canUpgradeWith(stack));
+            return slot == 0 && (turret.canCleanJamWith(stack)
+                    || turret.canUpgradeWith(stack)
+                    || turret.canReloadWith(stack));
         }
 
         @Override
@@ -244,6 +246,12 @@ public final class MycelialVanillaIntegration {
                 }
                 return remainderAfterSingleUse(stack);
             }
+            if (turret.canReloadWith(stack)) {
+                if (!simulate && !turret.tryReload(stack.copyWithCount(1), null)) {
+                    return stack;
+                }
+                return remainderAfterSingleUse(stack);
+            }
             return stack;
         }
     }
@@ -257,18 +265,31 @@ public final class MycelialVanillaIntegration {
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == 0 && focus.canUpgradeWith(stack);
+            boolean rechargeAllowed = !(focus.getTier() == 1 && stack.is(ModItems.SYNAPTIC_CORE.get()))
+                    && focus.canRechargeWith(stack);
+            return slot == 0 && (focus.canUpgradeWith(stack) || rechargeAllowed);
         }
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            if (slot != 0 || stack.isEmpty() || !focus.canUpgradeWith(stack)) {
+            if (slot != 0 || stack.isEmpty()) {
                 return stack;
             }
-            if (!simulate && !focus.tryUpgrade(stack.copyWithCount(1), null)) {
-                return stack;
+            if (focus.canUpgradeWith(stack)) {
+                if (!simulate && !focus.tryUpgrade(stack.copyWithCount(1), null)) {
+                    return stack;
+                }
+                return remainderAfterSingleUse(stack);
             }
-            return remainderAfterSingleUse(stack);
+            boolean rechargeAllowed = !(focus.getTier() == 1 && stack.is(ModItems.SYNAPTIC_CORE.get()))
+                    && focus.canRechargeWith(stack);
+            if (rechargeAllowed) {
+                if (!simulate && !focus.tryRecharge(stack.copyWithCount(1), null)) {
+                    return stack;
+                }
+                return remainderAfterSingleUse(stack);
+            }
+            return stack;
         }
     }
 

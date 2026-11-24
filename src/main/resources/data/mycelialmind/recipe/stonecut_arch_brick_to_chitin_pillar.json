@@ -1,7 +1,7 @@
 {
   "type": "minecraft:stonecutting",
   "ingredient": {
-    "item": "mycelialmind:mycelial_arch_brick"
+    "item": "mycelialmind:reinforced_bio_barrier"
   },
   "result": {
     "id": "mycelialmind:chitin_pillar",

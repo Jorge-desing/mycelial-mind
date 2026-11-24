@@ -2249,4 +2249,87 @@ class HiveAlgorithmsUnitTest {
         assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectWardenAura(true, true, false));
         assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectWardenAura(true, false, true));
     }
+
+    @Test
+    void acquisitionDifficultyEngineGatingMaintenanceAndUpkeepHold() {
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                1, com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, false, false));
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                2, com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                2, com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                2, com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, true, false));
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                3, com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                3, com.alex.mycelialmind.hive.HiveProgressionTier.ADAPTIVE, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                3, com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, true, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                3, com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, false, true));
+
+        assertEquals(com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED,
+                com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.requiredActForTier(2));
+        assertEquals(com.alex.mycelialmind.hive.HiveProgressionTier.ADAPTIVE,
+                com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.requiredActForTier(3));
+
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canCrystallizeAmber(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canCrystallizeAmber(
+                com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canCrystallizeAmber(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, true, false));
+
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canOpenRift(
+                com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canOpenRift(
+                com.alex.mycelialmind.hive.HiveProgressionTier.ADAPTIVE, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canOpenRift(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, true, false));
+
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeMutagenOrSerum(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, 1));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeMutagenOrSerum(
+                com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, 1));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeMutagenOrSerum(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, 2));
+
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeBloomDuplication(
+                com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, 1, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeBloomDuplication(
+                com.alex.mycelialmind.hive.HiveProgressionTier.ADAPTIVE, 1, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeBloomDuplication(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, 2, false));
+
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeChimeraOvum(
+                com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, 2, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeChimeraOvum(
+                com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED, 3, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canSynthesizeChimeraOvum(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, 1, true));
+
+        assertEquals(0, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.computePylonDrain(1, false, false, false));
+        assertEquals(1, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.computePylonDrain(2, false, false, false));
+        assertEquals(0, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.computePylonDrain(2, false, true, true));
+        assertEquals(2, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.computePylonDrain(1, true, false, false));
+        assertEquals(1, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.computePylonDrain(1, true, true, true));
+
+        assertEquals(25, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.pylonRechargeAmount("amethyst_shard"));
+        assertEquals(15, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.pylonRechargeAmount("latent_spore"));
+        assertEquals(10, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.pylonRechargeAmount("mycelial_biomass"));
+        assertEquals(100, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.pylonRechargeAmount("synaptic_core"));
+        assertEquals(0, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.pylonRechargeAmount("dirt"));
+
+        assertEquals(16, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.turretAmmoGain("latent_spore"));
+        assertEquals(24, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.turretAmmoGain("amethyst_shard"));
+        assertEquals(32, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.turretAmmoGain("spore_antidote"));
+        assertEquals(64, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.turretAmmoGain("concentrated_antidote"));
+        assertEquals(0, com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.turretAmmoGain("stone"));
+
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.shouldBloomConsumeMaturation(5, false, false));
+        assertTrue(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.shouldBloomConsumeMaturation(6, false, false));
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.shouldBloomConsumeMaturation(12, true, false));
+        assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.shouldBloomConsumeMaturation(12, false, true));
+    }
 }

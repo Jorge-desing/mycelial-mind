@@ -10,7 +10,7 @@
       "item": "mycelialmind:chitin_plate"
     },
     "P": {
-      "item": "minecraft:polished_deepslate"
+      "item": "minecraft:obsidian"
     },
     "D": {
       "item": "mycelialmind:mycelial_biomass"
@@ -18,6 +18,6 @@
   },
   "result": {
     "id": "mycelialmind:reinforced_bio_barrier",
-    "count": 4
+    "count": 2
   }
 }

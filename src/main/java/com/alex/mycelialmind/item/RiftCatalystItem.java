@@ -49,6 +49,15 @@ public class RiftCatalystItem extends Item {
                         .withStyle(ChatFormatting.YELLOW));
                 return InteractionResult.FAIL;
             }
+            HiveProgressionTier effectiveAct = com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(serverLevel);
+            boolean hiveCoreDefeated = com.alex.mycelialmind.hive.DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, player);
+            boolean creative = player.isCreative() || player.getAbilities().instabuild;
+            if (!com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canOpenRift(
+                    effectiveAct, hiveCoreDefeated, creative)) {
+                player.sendSystemMessage(Component.translatable("message.mycelialmind.rift_gate_locked")
+                        .withStyle(ChatFormatting.YELLOW));
+                return InteractionResult.FAIL;
+            }
             BlockPos riftPos = clicked.above();
             if (!serverLevel.isEmptyBlock(riftPos)) {
                 return InteractionResult.FAIL;

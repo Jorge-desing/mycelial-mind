@@ -131,8 +131,30 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         if (stack.is(ModItems.BIO_SCANNER.get())) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        if (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus && focus.tryUpgrade(stack, player)) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        if (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus) {
+            if (focus.resolveNextTierForCatalyst(stack) > 0) {
+                if (focus.tryUpgrade(stack, player)) {
+                    return ItemInteractionResult.sidedSuccess(level.isClientSide());
+                }
+                if (level instanceof ServerLevel) {
+                    return ItemInteractionResult.FAIL;
+                }
+            }
+            if (focus.tryRecharge(stack, player)) {
+                if (level instanceof ServerLevel serverLevel) {
+                    serverLevel.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(),
+                            SoundSource.BLOCKS, 0.85F, 1.3F);
+                    serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),
+                            pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5,
+                            10, 0.35, 0.35, 0.35, 0.03);
+                    player.displayClientMessage(Component.translatable(
+                            "message.mycelialmind.pylon_recharged",
+                            focus.getPurificationCharge(),
+                            com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE)
+                            .withStyle(ChatFormatting.AQUA), true);
+                }
+                return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            }
         }
         if (stack.is(ModItems.HIVE_HEART.get())) {
             if (level instanceof ServerLevel serverLevel) {
@@ -216,7 +238,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
         boolean wasSmothered = tracker.isPylonSmothered(pos);
         boolean smothered = AntibodyCystBlock.countAdjacentCysts(level, pos) >= DimensionalHomeostasisEngine.SMOTHER_FACE_THRESHOLD;
@@ -224,15 +246,22 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         if (smothered && !wasSmothered) {
             com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
         }
-        int tier = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus) ? focus.getTier() : 1;
+        MonumentFocusBlockEntity focus = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity mf) ? mf : null;
+        int tier = focus != null ? focus.getTier() : 1;
+        boolean depleted = focus != null && focus.isDepleted();
+        boolean wasDepleted = tracker.isPylonDepleted(pos);
+        tracker.setPylonDepleted(pos, depleted);
+        if (depleted && !wasDepleted && !smothered && !wasSmothered) {
+            com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
+        }
         if (tracker.getPylonTier(pos) != tier) {
             tracker.setPylonTier(pos, tier);
         }
-        if (wasSmothered != smothered) {
+        if (wasSmothered != smothered || wasDepleted != depleted) {
             level.updateNeighbourForOutputSignal(pos, state.getBlock());
-            level.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(), SoundSource.BLOCKS, 0.85F, smothered ? 0.65F : 1.25F);
+            level.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(), SoundSource.BLOCKS, 0.85F, (smothered || depleted) ? 0.65F : 1.25F);
         }
-        com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(level, pos, tier >= 3 && !smothered);
+        com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(level, pos, tier >= 3 && !smothered && !depleted);
         if (smothered) {
             level.sendParticles(ModParticles.NECROTIC_MIST.get(),
                     pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5,
@@ -243,14 +272,22 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
             level.scheduleTick(pos, this, 40);
             return;
         }
+        if (depleted) {
+            level.sendParticles(ModParticles.SPORE_FALL.get(),
+                    pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
+                    4, 0.25, 0.2, 0.25, 0.01);
+            level.scheduleTick(pos, this, 40);
+            return;
+        }
         int baseRadius = MycelialConfig.PYLON_PURIFICATION_RADIUS.get();
-        int tierRadius = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus)
+        int tierRadius = focus != null
                 ? focus.getEffectiveRadius(baseRadius)
                 : baseRadius;
         int bonusRadius = syncAdjacentArchitectureBonus(level, pos, tracker);
+        boolean hasAmberConduit = LuminescentAmberVeinBlock.hasAdjacentConduit(level, pos);
         int radius = EcosystemPurposeEngine.computePylonEffectiveRadius(
                 tierRadius,
-                LuminescentAmberVeinBlock.hasAdjacentConduit(level, pos),
+                hasAmberConduit,
                 countAdjacentBarriers(level, pos)
         );
         if (bonusRadius > 0 && radius < tierRadius + bonusRadius) {
@@ -264,11 +301,12 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         AABB box = new AABB(pos).inflate(radius);
         boolean purifiedAny = false;
         float t3PurgeDmg = effectiveAct.pylonTier3PurgeDamage();
-        for (MycelialMob mob : level.getEntitiesOfClass(MycelialMob.class, box)) {
+        for (MycelialMob mob : level.getEntitiesOfClass(MycelialMob.class, box,
+                m -> m.isAlive() && !m.isAlliedEscort())) {
             if (mob.blockPosition().distSqr(pos) <= radiusSq) {
                 mob.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
                 mob.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0));
-                if (tier >= 3 && !mob.isAlliedEscort()) {
+                if (tier >= 3) {
                     mob.hurt(level.damageSources().magic(), t3PurgeDmg);
                 }
                 purifiedAny = true;
@@ -297,6 +335,19 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         if (purifiedAny) {
             level.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(), SoundSource.BLOCKS, 0.6F, 1.05F);
         }
+        if (focus != null) {
+            int drain = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.computePylonDrain(
+                    tier, purifiedAny, DimensionalHomeostasisDirector.isHomeostasisDimension(level), hasAmberConduit);
+            if (drain > 0) {
+                focus.consumePurificationCharge(drain);
+                if (focus.isDepleted()) {
+                    tracker.setPylonDepleted(pos, true);
+                    level.updateNeighbourForOutputSignal(pos, state.getBlock());
+                    com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
+                    com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(level, pos, false);
+                }
+            }
+        }
         level.sendParticles(ModParticles.PURIFIER_CROSS.get(),
                 pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5,
                 2, 0.15, 0.2, 0.15, 0.01);
@@ -310,10 +361,11 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
 
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
-        boolean smothered = (level instanceof ServerLevel sl && PurificationZoneTracker.get(sl).isPylonSmothered(pos))
+        boolean inactive = (level instanceof ServerLevel sl && (PurificationZoneTracker.get(sl).isPylonSmothered(pos)
+                || PurificationZoneTracker.get(sl).isPylonDepleted(pos)))
                 || AntibodyCystBlock.countAdjacentCysts(level, pos) >= DimensionalHomeostasisEngine.SMOTHER_FACE_THRESHOLD;
         int tier = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus) ? focus.getTier() : 1;
-        return MycelialRedstoneTelemetry.pylonSignal(smothered, tier);
+        return MycelialRedstoneTelemetry.pylonSignal(inactive, tier);
     }
 
     @Override

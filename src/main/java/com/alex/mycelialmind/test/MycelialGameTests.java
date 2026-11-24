@@ -1573,6 +1573,7 @@ public final class MycelialGameTests {
             helper.fail("Expected SynapticBenchBlockEntity at bench position.");
             return;
         }
+        bench.setLabTier(2);
 
         ItemStack sample = new ItemStack(ModItems.GENETIC_SAMPLE.get());
         sample.set(ModDataComponents.TRAIT_ID.get(), AdaptationTrait.BLAST_SHIELDED.id());
@@ -2154,23 +2155,30 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void purificationTurretUpgradesToTier2AndTier3(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        BlockPos turretRel = new BlockPos(2, 1, 2);
-        helper.setBlock(turretRel, ModBlocks.PURIFICATION_TURRET.get());
-        if (!(helper.getBlockEntity(turretRel) instanceof PurificationTurretBlockEntity turret)) {
-            helper.fail("Expected PurificationTurretBlockEntity at turretRel.");
-            return;
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        CompoundTag snapshot = hive.save(new CompoundTag(), level.registryAccess());
+        try {
+            hive.promoteHighestTier(HiveProgressionTier.ADAPTIVE);
+            BlockPos turretRel = new BlockPos(2, 1, 2);
+            helper.setBlock(turretRel, ModBlocks.PURIFICATION_TURRET.get());
+            if (!(helper.getBlockEntity(turretRel) instanceof PurificationTurretBlockEntity turret)) {
+                helper.fail("Expected PurificationTurretBlockEntity at turretRel.");
+                return;
+            }
+            var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+            boolean up2 = turret.tryUpgrade(new ItemStack(ModItems.SYNAPTIC_CORE.get()), player);
+            boolean up3 = turret.tryUpgrade(new ItemStack(ModItems.TIDE_BEACON.get()), player);
+            if (!up2 || !up3
+                    || turret.getTier() != 3
+                    || turret.getShotsPerVolley() != 2
+                    || turret.getRangeRadius() < 28.0) {
+                helper.fail("Expected PurificationTurret to upgrade T1->T2->T3 with double shot and 28m range.");
+                return;
+            }
+            helper.succeed();
+        } finally {
+            hive.restoreFromSnapshot(snapshot, level.registryAccess());
         }
-        var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-        boolean up2 = turret.tryUpgrade(new ItemStack(ModItems.SYNAPTIC_CORE.get()), player);
-        boolean up3 = turret.tryUpgrade(new ItemStack(ModItems.TIDE_BEACON.get()), player);
-        if (!up2 || !up3
-                || turret.getTier() != 3
-                || turret.getShotsPerVolley() != 2
-                || turret.getRangeRadius() < 28.0) {
-            helper.fail("Expected PurificationTurret to upgrade T1->T2->T3 with double shot and 28m range.");
-            return;
-        }
-        helper.succeed();
     }
 
     @GameTest(template = "empty")
@@ -3815,6 +3823,7 @@ public final class MycelialGameTests {
             helper.fail("Missing SynapticBenchBlockEntity.");
             return;
         }
+        bench.setLabTier(3);
         bench.getInventory().setStackInSlot(1, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
         bench.getInventory().setStackInSlot(2, new ItemStack(ModItems.NEURAL_ECHO_CORE.get()));
         // Blank untyped sample must NOT synthesize Chimera Ovum
@@ -4194,27 +4203,36 @@ public final class MycelialGameTests {
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        // 1. Turret T2 upgrade must reject Chitin Plate and require Synaptic Core
+        // 1. Turret T2 upgrade must reject Chitin Plate, reject Act I core, and accept core once Act II (AWAKENED) is reached
         BlockPos turretPos = helper.absolutePos(new BlockPos(2, 1, 2));
         level.setBlockAndUpdate(turretPos, ModBlocks.PURIFICATION_TURRET.get().defaultBlockState());
         boolean rejectedPlate = false;
+        boolean rejectedAct1Core = false;
         boolean acceptedCore = false;
         if (level.getBlockEntity(turretPos) instanceof com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity turret) {
             rejectedPlate = !turret.tryUpgrade(new ItemStack(ModItems.CHITIN_PLATE.get()), player);
+            rejectedAct1Core = !turret.tryUpgrade(new ItemStack(ModItems.SYNAPTIC_CORE.get()), player);
+            hive.promoteHighestTier(HiveProgressionTier.AWAKENED);
             acceptedCore = turret.tryUpgrade(new ItemStack(ModItems.SYNAPTIC_CORE.get()), player);
         }
+        hive.resetAll();
         level.removeBlock(turretPos, false);
 
-        // 2. BioExtractor must reject full-HP mob and allow weakened mob (<= 60% HP) with active trait
+        // 2. BioExtractor must reject full-HP and 55%-HP mobs, allowing weakened mob (<= 50% HP) with active trait
         var mob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 4, 1, 4);
         mob.applyHiveTraits(java.util.EnumSet.of(AdaptationTrait.MELEE_THORNS));
         ItemStack extractor = new ItemStack(ModItems.BIO_EXTRACTOR.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, extractor);
         var fullHpRes = extractor.getItem().interactLivingEntity(extractor, player, mob, InteractionHand.MAIN_HAND);
 
-        mob.setHealth(mob.getMaxHealth() * 0.5F);
+        mob.setHealth(mob.getMaxHealth() * 0.55F);
+        player.getCooldowns().removeCooldown(ModItems.BIO_EXTRACTOR.get());
+        var midHpRes = extractor.getItem().interactLivingEntity(extractor, player, mob, InteractionHand.MAIN_HAND);
+
+        mob.setHealth(mob.getMaxHealth() * 0.45F);
         player.getCooldowns().removeCooldown(ModItems.BIO_EXTRACTOR.get());
         var weakenedRes = extractor.getItem().interactLivingEntity(extractor, player, mob, InteractionHand.MAIN_HAND);
+        hive.resetAll();
         mob.discard();
 
         // 3. BioExtractor must reject dormant MycelialNode (0% threat / no traits)
@@ -4236,7 +4254,8 @@ public final class MycelialGameTests {
                 new ItemStack(ModItems.SYNAPTIC_CORE.get()), level, player, InteractionHand.MAIN_HAND, altarHit);
         level.removeBlock(altarPos, false);
 
-        if (!rejectedPlate || !acceptedCore || fullHpRes.consumesAction() || !weakenedRes.consumesAction()
+        if (!rejectedPlate || !rejectedAct1Core || !acceptedCore || fullHpRes.consumesAction()
+                || midHpRes.consumesAction() || !weakenedRes.consumesAction()
                 || dormantNodeRes.consumesAction() || altarCoreRes.consumesAction()) {
             helper.fail(String.format("Progression gating failed: rejPlate=%s accCore=%s fullHp=%s weak=%s dormNode=%s altarCore=%s",
                     rejectedPlate, acceptedCore, fullHpRes, weakenedRes, dormantNodeRes, altarCoreRes));
@@ -4663,33 +4682,40 @@ public final class MycelialGameTests {
         boolean routingOk = false;
         boolean synthTakenOk = false;
         if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
-            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            ItemStack codedSample = new ItemStack(ModItems.GENETIC_SAMPLE.get());
-            codedSample.set(ModDataComponents.TRAIT_ID.get(), AdaptationTrait.MELEE_THORNS.id());
-            player.getInventory().setItem(9, new ItemStack(ModItems.NEURAL_ECHO_CORE.get()));
-            player.getInventory().setItem(10, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
-            player.getInventory().setItem(11, codedSample);
-            player.getInventory().setItem(12, new ItemStack(Items.DIRT));
+            HiveMindSavedData hive = HiveMindSavedData.get(level);
+            CompoundTag hiveSnap = hive.save(new CompoundTag(), level.registryAccess());
+            try {
+                hive.promoteHighestTier(HiveProgressionTier.ADAPTIVE);
+                Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+                ItemStack codedSample = new ItemStack(ModItems.GENETIC_SAMPLE.get());
+                codedSample.set(ModDataComponents.TRAIT_ID.get(), AdaptationTrait.MELEE_THORNS.id());
+                player.getInventory().setItem(9, new ItemStack(ModItems.NEURAL_ECHO_CORE.get()));
+                player.getInventory().setItem(10, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
+                player.getInventory().setItem(11, codedSample);
+                player.getInventory().setItem(12, new ItemStack(Items.DIRT));
 
-            var menu = new com.alex.mycelialmind.menu.SynapticBenchMenu(1, player.getInventory(), bench);
-            menu.quickMoveStack(player, 4); // Echo Core -> Slot 2
-            menu.quickMoveStack(player, 5); // Biomass -> Slot 1
-            menu.quickMoveStack(player, 6); // Sample -> Slot 0
-            ItemStack dirtRejected = menu.quickMoveStack(player, 7); // Dirt rejected
+                var menu = new com.alex.mycelialmind.menu.SynapticBenchMenu(1, player.getInventory(), bench);
+                menu.quickMoveStack(player, 4); // Echo Core -> Slot 2
+                menu.quickMoveStack(player, 5); // Biomass -> Slot 1
+                menu.quickMoveStack(player, 6); // Sample -> Slot 0
+                ItemStack dirtRejected = menu.quickMoveStack(player, 7); // Dirt rejected
 
-            routingOk = dirtRejected.isEmpty()
-                    && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE).is(ModItems.GENETIC_SAMPLE.get())
-                    && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS).is(ModItems.MYCELIAL_BIOMASS.get())
-                    && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST).is(ModItems.NEURAL_ECHO_CORE.get())
-                    && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_OUTPUT).is(ModItems.CHIMERA_OVUM.get())
-                    && menu.getSlot(7).getItem().is(Items.DIRT);
+                routingOk = dirtRejected.isEmpty()
+                        && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE).is(ModItems.GENETIC_SAMPLE.get())
+                        && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS).is(ModItems.MYCELIAL_BIOMASS.get())
+                        && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST).is(ModItems.NEURAL_ECHO_CORE.get())
+                        && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_OUTPUT).is(ModItems.CHIMERA_OVUM.get())
+                        && menu.getSlot(7).getItem().is(Items.DIRT);
 
-            if (routingOk) {
-                menu.quickMoveStack(player, SynapticBenchBlockEntity.SLOT_OUTPUT);
-                synthTakenOk = player.getInventory().countItem(ModItems.CHIMERA_OVUM.get()) == 1
-                        && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE).isEmpty()
-                        && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS).isEmpty()
-                        && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST).isEmpty();
+                if (routingOk) {
+                    menu.quickMoveStack(player, SynapticBenchBlockEntity.SLOT_OUTPUT);
+                    synthTakenOk = player.getInventory().countItem(ModItems.CHIMERA_OVUM.get()) == 1
+                            && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE).isEmpty()
+                            && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS).isEmpty()
+                            && bench.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST).isEmpty();
+                }
+            } finally {
+                hive.restoreFromSnapshot(hiveSnap, level.registryAccess());
             }
         }
         level.removeBlock(benchPos, false);
@@ -5186,6 +5212,7 @@ public final class MycelialGameTests {
             int matchedRecipes = 0;
             int matchedBloomPalettes = 0;
             if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
+                bench.setLabTier(3);
                 for (var desc : recipes) {
                     bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, desc.sampleInputs().get(0).copy());
                     bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS, desc.biomassInputs().get(0).copy());
@@ -5256,6 +5283,7 @@ public final class MycelialGameTests {
             int benchOneInputSig = 0;
             int benchReadySig = 0;
             if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
+                bench.setLabTier(2);
                 ItemStack sample = SynapticBenchRecipeDefinitions.sampleStack(AdaptationTrait.MELEE_THORNS);
                 bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, sample);
                 benchOneInputSig = level.getBlockState(benchPos).getAnalogOutputSignal(level, benchPos);
@@ -6262,6 +6290,7 @@ public final class MycelialGameTests {
                     && player.getInventory().countItem(ModItems.LATENT_SPORE.get()) == sporesBeforeBulb + 2;
 
             // 4. Purification Pylon T1 -> T2 -> T3 upgrade + expanded protection radius
+            HiveMindSavedData.get(level).promoteHighestTier(HiveProgressionTier.ADAPTIVE);
             level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
             int baseRadius = MycelialConfig.PYLON_PURIFICATION_RADIUS.get();
             boolean pylonUpgradeOk = false;
@@ -6384,6 +6413,8 @@ public final class MycelialGameTests {
             boolean ventOk = ventRes.consumesAction()
                     && level.getBlockState(ventPos).is(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get());
 
+            hive.promoteHighestTier(HiveProgressionTier.AWAKENED);
+            player.getInventory().add(new ItemStack(ModItems.LATENT_SPORE.get()));
             level.setBlockAndUpdate(protectedMyceliumPos, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.AMETHYST_SHARD));
             var amberProtectedRes = level.getBlockState(protectedMyceliumPos).useItemOn(
@@ -6603,6 +6634,8 @@ public final class MycelialGameTests {
                     .setValue(BioluminescentMycelialCapBlock.MATURE, true));
 
             double habitBefore = hive.getHabitScore(com.alex.mycelialmind.hive.PlayerHabit.BASTION_BUILDER);
+            CompoundTag hivePreUpgradeSnap = hive.save(new CompoundTag(), level.registryAccess());
+            hive.promoteHighestTier(HiveProgressionTier.ADAPTIVE);
             survivalPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.SYNAPTIC_CORE.get()));
             level.getBlockState(pylonPos).useItemOn(
                     survivalPlayer.getMainHandItem(), level, survivalPlayer, InteractionHand.MAIN_HAND,
@@ -6619,6 +6652,7 @@ public final class MycelialGameTests {
                 bench.tryUpgradeLab(new ItemStack(ModItems.SYNAPTIC_CORE.get()), survivalPlayer);
             }
             double habitAfter = hive.getHabitScore(com.alex.mycelialmind.hive.PlayerHabit.BASTION_BUILDER);
+            hive.restoreFromSnapshot(hivePreUpgradeSnap, level.registryAccess());
 
             PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
             BlockPos remoteProbe = pylonPos.east(MycelialConfig.PYLON_PURIFICATION_RADIUS.get() + 4);
@@ -7662,6 +7696,7 @@ public final class MycelialGameTests {
             helper.assertTrue(symCap.extractItem(0, 1, false).isEmpty(),
                     "Symbiotic Node capability must remain insert-only");
 
+            hive.promoteHighestTier(HiveProgressionTier.ADAPTIVE);
             level.setBlockAndUpdate(turretPos, ModBlocks.PURIFICATION_TURRET.get().defaultBlockState());
             if (level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity turretBe) {
                 turretBe.applyCorrosiveJam(200);
@@ -7686,6 +7721,7 @@ public final class MycelialGameTests {
             helper.assertTrue(com.alex.mycelialmind.world.MycelialChunkTicketManager.shouldAnchorPylon(level, pylonPos)
                     && level.getForcedChunks().contains(new ChunkPos(pylonPos).toLong()),
                     "Tier 3 Purification Pylon must register a NeoForge TicketController forced chunk");
+            hive.resetAll();
 
             // 4. Native PartEntity sub-hitboxes on all 3 bosses
             helper.assertTrue(behemoth != null && hiveCore != null && matriarch != null,
@@ -7874,6 +7910,7 @@ public final class MycelialGameTests {
             // Synthesize Mutagen on Synaptic Research Bench -> RESEARCH_BIT_BIOTECH_SYNTHESIZED
             level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
             if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
+                bench.setLabTier(2);
                 ItemStack sample = new ItemStack(ModItems.GENETIC_SAMPLE.get());
                 sample.set(ModDataComponents.TRAIT_ID.get(), AdaptationTrait.PROJECTILE_DEFLECT.id());
                 bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, sample);
@@ -9702,6 +9739,377 @@ public final class MycelialGameTests {
                     new AABB(origin).inflate(16.0D))) {
                 ie.discard();
             }
+            tracker.clearAll();
+            for (BlockPos p : placedBlocks) {
+                level.removeBlock(p, false);
+            }
+            saved.restoreFromSnapshot(colonySnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
+            owHive.restoreFromSnapshot(owSnapshot, overworld.registryAccess());
+            releaseArenaChunks(level, forcedChunks);
+        }
+    }
+
+    @GameTest(template = "empty", batch = "acquisition_difficulty")
+    public static void acquisitionDifficultyAndMaintenanceWorkInRuntime(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        CompoundTag owSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
+        CompoundTag colonySnapshot = saved.save(new CompoundTag(), level.registryAccess());
+
+        BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+        BlockPos pylonPos = origin.offset(1, 0, 1);
+        BlockPos turretPos = origin.offset(4, 0, 1);
+        BlockPos benchPos = origin.offset(7, 0, 1);
+        BlockPos mycPos = origin.offset(1, 0, 4);
+        BlockPos barrierPos = origin.offset(4, 0, 4);
+        BlockPos riftPos = barrierPos.above();
+        BlockPos bloomBasePos = origin.offset(7, 0, 4);
+        BlockPos bloomPos = bloomBasePos.above();
+        BlockPos bloomAmberPos = bloomPos.east();
+        BlockPos bulbPos = origin.offset(10, 0, 4);
+
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, 0, 14, 0, 8);
+        List<BlockPos> placedBlocks = new java.util.ArrayList<>();
+        List<net.minecraft.world.entity.Entity> spawnedEntities = new java.util.ArrayList<>();
+        var survival = new net.neoforged.neoforge.common.util.FakePlayer(
+                level, new com.mojang.authlib.GameProfile(UUID.randomUUID(), "AcqSurvivalTester")) { };
+        Player creative = helper.makeMockPlayer(GameType.CREATIVE);
+
+        try {
+            owHive.resetAll();
+            hive.resetAll();
+            saved.resetAll();
+            tracker.clearAll();
+            survival.getInventory().clearContent();
+            survival.getData(ModAttachments.DISCOVERY).deserializeNBT(level.registryAccess(), new CompoundTag());
+
+            // 1. Progressive Act / Hive Core Gates + Creative Bypass
+            level.setBlockAndUpdate(pylonPos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            placedBlocks.addAll(List.of(pylonPos.below(), pylonPos));
+            var focus = (MonumentFocusBlockEntity) level.getBlockEntity(pylonPos);
+            helper.assertTrue(focus != null, "MonumentFocusBlockEntity must exist.");
+
+            helper.assertFalse(focus.tryUpgrade(new ItemStack(ModItems.SYNAPTIC_CORE.get()), survival),
+                    "Survival cannot upgrade Pylon to T2 during Act I (DORMANT).");
+            helper.assertTrue(focus.tryUpgrade(new ItemStack(ModItems.SYNAPTIC_CORE.get()), creative),
+                    "Creative must bypass Pylon Act II gate.");
+
+            // Fresh T1 pylon for Act II / HiveCore gate verification
+            level.removeBlock(pylonPos, false);
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            focus = (MonumentFocusBlockEntity) level.getBlockEntity(pylonPos);
+            helper.assertTrue(focus != null && focus.getTier() == 1, "Reset pylon starts at Tier 1.");
+
+            hive.promoteHighestTier(HiveProgressionTier.AWAKENED);
+            helper.assertTrue(focus.tryUpgrade(new ItemStack(ModItems.SYNAPTIC_CORE.get()), survival),
+                    "Act II (AWAKENED) must unlock Pylon Tier 2.");
+            helper.assertFalse(focus.tryUpgrade(new ItemStack(ModItems.OVERMIND_ESSENCE.get()), survival),
+                    "Act II alone must still block Pylon Tier 3 until Act III or Hive Core defeat.");
+
+            survival.getData(ModAttachments.DISCOVERY).recordMilestone(
+                    ProgressionGoalEngine.MILESTONE_HIVE_CORE_DEFEATED);
+            helper.assertTrue(focus.tryUpgrade(new ItemStack(ModItems.OVERMIND_ESSENCE.get()), survival),
+                    "Defeating Hive Core must unlock Pylon Tier 3 early.");
+            survival.getData(ModAttachments.DISCOVERY).deserializeNBT(level.registryAccess(), new CompoundTag());
+            hive.resetAll();
+
+            // 2. Synaptic Bench Gates (Mutagen/Serum in Act I, Chimera Ovum, Bloom Duplication)
+            level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
+            placedBlocks.add(benchPos);
+            var bench = (SynapticBenchBlockEntity) level.getBlockEntity(benchPos);
+            helper.assertTrue(bench != null, "SynapticBenchBlockEntity must exist.");
+            ItemStack sample = new ItemStack(ModItems.GENETIC_SAMPLE.get());
+            sample.set(ModDataComponents.TRAIT_ID.get(), AdaptationTrait.MELEE_THORNS.id());
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, sample.copy());
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, new ItemStack(ModItems.SYNAPTIC_CORE.get()));
+            helper.assertTrue(bench.computeSynthesisDetails().output().isEmpty(),
+                    "Bench T1 in Act I must block Symbiotic Mutagen synthesis.");
+
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, new ItemStack(ModItems.RECLAIMED_BLOOM_MELEE.get()));
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, ItemStack.EMPTY);
+            helper.assertTrue(bench.computeSynthesisDetails().output().isEmpty(),
+                    "Bench T1 in Act I must block Reclaimed Bloom duplication.");
+
+            hive.promoteHighestTier(HiveProgressionTier.AWAKENED);
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, sample.copy());
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, new ItemStack(ModItems.SYNAPTIC_CORE.get()));
+            helper.assertTrue(bench.computeSynthesisDetails().output().is(ModItems.SYMBIOTIC_MUTAGEN.get()),
+                    "Act II (AWAKENED) must unlock Symbiotic Mutagen synthesis.");
+
+            // 3. Amber Crystallization & Rift Catalyst Gating
+            hive.resetAll();
+            tracker.addPylon(pylonPos);
+            focus.setPurificationCharge(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE);
+            level.setBlockAndUpdate(mycPos, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
+            placedBlocks.add(mycPos);
+            survival.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.AMETHYST_SHARD, 2));
+            var amberAct1 = level.getBlockState(mycPos).useItemOn(
+                    survival.getMainHandItem(), level, survival, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(mycPos), Direction.UP, mycPos, false));
+            helper.assertFalse(amberAct1.consumesAction(),
+                    "Amber crystallization must be blocked in Act I for survival.");
+
+            hive.promoteHighestTier(HiveProgressionTier.AWAKENED);
+            var amberNoSpore = level.getBlockState(mycPos).useItemOn(
+                    survival.getMainHandItem(), level, survival, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(mycPos), Direction.UP, mycPos, false));
+            helper.assertFalse(amberNoSpore.consumesAction(),
+                    "Amber crystallization must fail without a Latent Spore in inventory.");
+
+            survival.getInventory().add(new ItemStack(ModItems.LATENT_SPORE.get(), 1));
+            var amberSuccess = level.getBlockState(mycPos).useItemOn(
+                    survival.getMainHandItem(), level, survival, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(mycPos), Direction.UP, mycPos, false));
+            helper.assertTrue(amberSuccess.consumesAction()
+                            && level.getBlockState(mycPos).is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())
+                            && survival.getInventory().countItem(ModItems.LATENT_SPORE.get()) == 0,
+                    "Amber crystallization must convert mycelium and consume 1 Latent Spore in Act II.");
+
+            hive.resetAll();
+            level.setBlockAndUpdate(barrierPos, ModBlocks.REINFORCED_BIO_BARRIER.get().defaultBlockState());
+            placedBlocks.addAll(List.of(barrierPos, riftPos));
+            ItemStack catalyst = new ItemStack(ModItems.RIFT_CATALYST.get());
+            survival.setItemInHand(InteractionHand.MAIN_HAND, catalyst);
+            var riftAct1 = catalyst.getItem().useOn(new net.minecraft.world.item.context.UseOnContext(
+                    survival, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(barrierPos), Direction.UP, barrierPos, false)));
+            helper.assertFalse(riftAct1.consumesAction() || level.getBlockState(riftPos).is(ModBlocks.MYCELIAL_RIFT.get()),
+                    "Rift Catalyst must stay locked in Act I before Act III / Hive Core defeat.");
+
+            hive.promoteHighestTier(HiveProgressionTier.ADAPTIVE);
+            var riftAct3 = catalyst.getItem().useOn(new net.minecraft.world.item.context.UseOnContext(
+                    survival, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(barrierPos), Direction.UP, barrierPos, false)));
+            helper.assertTrue(riftAct3.consumesAction() && level.getBlockState(riftPos).is(ModBlocks.MYCELIAL_RIFT.get()),
+                    "Rift Catalyst must open MYCELIAL_RIFT once Act III is reached.");
+
+            // 4. Pylon Charge Drain, Amber Reduction, Depletion Protection Loss, and Hopper Recharge
+            hive.resetAll();
+            focus.setTier(1);
+            focus.setPurificationCharge(0);
+            ((com.alex.mycelialmind.block.PurificationPylonBlock) ModBlocks.PURIFICATION_PYLON.get())
+                    .tick(level.getBlockState(pylonPos), level, pylonPos, level.random);
+            helper.assertTrue(tracker.isPylonDepleted(pylonPos) && !tracker.isProtected(pylonPos),
+                    "Depleted Pylon (0 charge) must lose protection radius.");
+
+            var pylonCap = level.getCapability(Capabilities.ItemHandler.BLOCK, pylonPos, Direction.UP);
+            helper.assertTrue(pylonCap != null, "Pylon must expose ItemHandler capability.");
+            ItemStack rem = pylonCap.insertItem(0, new ItemStack(Items.AMETHYST_SHARD, 2), false);
+            helper.assertTrue(rem.getCount() == 1
+                            && focus.getPurificationCharge() == 25
+                            && !tracker.isPylonDepleted(pylonPos)
+                            && tracker.isProtected(pylonPos),
+                    "Inserting Amethyst Shard via hopper must recharge Pylon (+25) and restore protection.");
+
+            level.getEntitiesOfClass(MycelialMob.class, new AABB(pylonPos).inflate(36.0D))
+                    .forEach(net.minecraft.world.entity.Entity::discard);
+            SporelingEntity pylonTarget = ModEntities.SPORELING.get().create(level);
+            helper.assertTrue(pylonTarget != null, "Sporeling must instantiate.");
+            spawnedEntities.add(pylonTarget);
+            pylonTarget.setPos(pylonPos.getX() + 2.0D, pylonPos.getY(), pylonPos.getZ() + 0.5D);
+            level.addFreshEntity(pylonTarget);
+            int beforeCombatDrain = focus.getPurificationCharge();
+            ((com.alex.mycelialmind.block.PurificationPylonBlock) ModBlocks.PURIFICATION_PYLON.get())
+                    .tick(level.getBlockState(pylonPos), level, pylonPos, level.random);
+            helper.assertTrue(focus.getPurificationCharge() == beforeCombatDrain - 2,
+                    "Purifying a mob must drain 2 Pylon charge without Amber conduit.");
+
+            BlockPos pylonAmberPos = pylonPos.east();
+            level.setBlockAndUpdate(pylonAmberPos, ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState());
+            placedBlocks.add(pylonAmberPos);
+            int beforeAmberCombat = focus.getPurificationCharge();
+            ((com.alex.mycelialmind.block.PurificationPylonBlock) ModBlocks.PURIFICATION_PYLON.get())
+                    .tick(level.getBlockState(pylonPos), level, pylonPos, level.random);
+            helper.assertTrue(focus.getPurificationCharge() == beforeAmberCombat - 1,
+                    "Adjacent Amber conduit must halve Pylon combat drain to 1.");
+            pylonTarget.discard();
+            level.getEntitiesOfClass(MycelialMob.class, new AABB(pylonPos).inflate(36.0D))
+                    .forEach(net.minecraft.world.entity.Entity::discard);
+
+            int beforeAmberIdle = focus.getPurificationCharge();
+            int leftoverMobs = level.getEntitiesOfClass(MycelialMob.class, new AABB(pylonPos).inflate(30.0D)).size();
+            ((com.alex.mycelialmind.block.PurificationPylonBlock) ModBlocks.PURIFICATION_PYLON.get())
+                    .tick(level.getBlockState(pylonPos), level, pylonPos, level.random);
+            helper.assertTrue(focus.getPurificationCharge() == beforeAmberIdle,
+                    "Adjacent Amber conduit must reduce Pylon idle drain to 0 (charge " + beforeAmberIdle
+                            + " -> " + focus.getPurificationCharge() + ", nearbyMobs=" + leftoverMobs + ").");
+
+            // 5. Purification Turret Ammo Consumption, Dry Halt, and Hopper Reload
+            level.setBlockAndUpdate(turretPos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(turretPos, ModBlocks.PURIFICATION_TURRET.get().defaultBlockState());
+            placedBlocks.addAll(List.of(turretPos.below(), turretPos));
+            var turret = (PurificationTurretBlockEntity) level.getBlockEntity(turretPos);
+            helper.assertTrue(turret != null && turret.getAmmo() == com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO,
+                    "New Turret must start with 32 ammo.");
+            SporelingEntity turretTarget = ModEntities.SPORELING.get().create(level);
+            helper.assertTrue(turretTarget != null, "Turret target Sporeling must instantiate.");
+            spawnedEntities.add(turretTarget);
+            turretTarget.setPos(turretPos.getX() + 3.0D, turretPos.getY(), turretPos.getZ() + 0.5D);
+            level.addFreshEntity(turretTarget);
+            for (int t = 0; t < 40; t++) {
+                PurificationTurretBlockEntity.serverTick(level, turretPos, level.getBlockState(turretPos), turret);
+            }
+            helper.assertTrue(turret.getAmmo() < com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO,
+                    "Firing Turret must consume ammunition.");
+
+            turret.setAmmo(0);
+            int projBeforeDry = level.getEntitiesOfClass(NeutralizingSporeProjectile.class,
+                    new AABB(turretPos).inflate(8.0D)).size();
+            for (int t = 0; t < 40; t++) {
+                PurificationTurretBlockEntity.serverTick(level, turretPos, level.getBlockState(turretPos), turret);
+            }
+            int projAfterDry = level.getEntitiesOfClass(NeutralizingSporeProjectile.class,
+                    new AABB(turretPos).inflate(8.0D)).size();
+            helper.assertTrue(projAfterDry <= projBeforeDry && turret.getAmmo() == 0,
+                    "Turret at 0 ammo must halt firing.");
+
+            var turretCap = level.getCapability(Capabilities.ItemHandler.BLOCK, turretPos, Direction.NORTH);
+            helper.assertTrue(turretCap != null, "Turret must expose ItemHandler capability.");
+            turretCap.insertItem(0, new ItemStack(ModItems.LATENT_SPORE.get()), false);
+            helper.assertTrue(turret.getAmmo() == 16,
+                    "Inserting Latent Spore via hopper must reload Turret (+16 ammo).");
+            turretTarget.discard();
+
+            // BioScanner telemetry inspects Turret & Pylon safely
+            survival.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.BIO_SCANNER.get()));
+            helper.assertTrue(survival.getMainHandItem().useOn(new net.minecraft.world.item.context.UseOnContext(
+                            survival, InteractionHand.MAIN_HAND,
+                            new BlockHitResult(Vec3.atCenterOf(turretPos), Direction.UP, turretPos, false))).consumesAction()
+                    && survival.getMainHandItem().useOn(new net.minecraft.world.item.context.UseOnContext(
+                            survival, InteractionHand.MAIN_HAND,
+                            new BlockHitResult(Vec3.atCenterOf(pylonPos), Direction.UP, pylonPos, false))).consumesAction(),
+                    "BioScanner must inspect Turret ammo and Pylon charge.");
+
+            // 6. Reclaimed Bloom Environment & 6-Pulse Exhaustion vs Amber Sustainment
+            tracker.clearAll();
+            level.setBlockAndUpdate(bloomBasePos, Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(bloomPos, ModBlocks.RECLAIMED_BLOOM.get().defaultBlockState()
+                    .setValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.PALETTE, 1)
+                    .setValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE, true));
+            placedBlocks.addAll(List.of(bloomBasePos, bloomPos, bloomAmberPos));
+
+            var ally = ModEntities.COLONY_SYMBIONT.get().create(level);
+            helper.assertTrue(ally != null, "ColonySymbiont must instantiate.");
+            spawnedEntities.add(ally);
+            ally.setPos(bloomPos.getX() + 1.0D, bloomPos.getY(), bloomPos.getZ() + 0.5D);
+            level.addFreshEntity(ally);
+            com.alex.mycelialmind.block.ReclaimedBloomBlock.emitSanctuaryAura(level, bloomPos, 1);
+            helper.assertFalse(ally.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST),
+                    "Reclaimed Bloom on bare Stone outside Pylon/Nexus must not radiate sanctuary buffs.");
+
+            level.setBlockAndUpdate(bloomBasePos, ModBlocks.MYCELIAL_STONE.get().defaultBlockState());
+            for (int p = 0; p < 5; p++) {
+                com.alex.mycelialmind.block.ReclaimedBloomBlock.emitSanctuaryAura(level, bloomPos, 1);
+            }
+            helper.assertTrue(ally.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST)
+                            && level.getBlockState(bloomPos).getValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE),
+                    "Bloom on Mycelial Stone must buff allies for up to 5 pulses while staying mature.");
+            com.alex.mycelialmind.block.ReclaimedBloomBlock.emitSanctuaryAura(level, bloomPos, 1);
+            helper.assertFalse(level.getBlockState(bloomPos).getValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE),
+                    "6th unanchored Bloom pulse must exhaust MATURE state.");
+
+            level.setBlockAndUpdate(bloomAmberPos, ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState());
+            level.setBlockAndUpdate(bloomPos, level.getBlockState(bloomPos)
+                    .setValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE, true));
+            for (int p = 0; p < 7; p++) {
+                com.alex.mycelialmind.block.ReclaimedBloomBlock.emitSanctuaryAura(level, bloomPos, 1);
+            }
+            helper.assertTrue(level.getBlockState(bloomPos).getValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE),
+                    "Adjacent Luminescent Amber Vein must sustain Bloom indefinitely past 6 pulses.");
+            ally.discard();
+
+            // 7. Field Risk-Reward Friction (BioExtractor Alert + 50% threshold, Relics Hunger/Weakness, SporeBulb Harvest)
+            hive.resetAll();
+            SporelingEntity extractTarget = ModEntities.SPORELING.get().create(level);
+            SporelingEntity backupWitness = ModEntities.SPORELING.get().create(level);
+            helper.assertTrue(extractTarget != null && backupWitness != null, "Sporelings must instantiate.");
+            spawnedEntities.add(extractTarget);
+            spawnedEntities.add(backupWitness);
+            extractTarget.setPos(origin.getX() + 1.5D, origin.getY(), origin.getZ() + 7.0D);
+            backupWitness.setPos(origin.getX() + 6.5D, origin.getY(), origin.getZ() + 7.0D);
+            survival.setPos(origin.getX() + 2.0D, origin.getY(), origin.getZ() + 7.0D);
+            level.addFreshEntity(extractTarget);
+            level.addFreshEntity(backupWitness);
+            extractTarget.applyHiveTraits(java.util.EnumSet.of(AdaptationTrait.MELEE_THORNS));
+
+            ItemStack ext = new ItemStack(ModItems.BIO_EXTRACTOR.get());
+            survival.setItemInHand(InteractionHand.MAIN_HAND, ext);
+            extractTarget.setHealth(extractTarget.getMaxHealth() * 0.55F);
+            helper.assertFalse(ext.getItem().interactLivingEntity(ext, survival, extractTarget, InteractionHand.MAIN_HAND).consumesAction(),
+                    "BioExtractor must reject non-primordial target at 55% HP.");
+            survival.getCooldowns().removeCooldown(ModItems.BIO_EXTRACTOR.get());
+            extractTarget.setHealth(extractTarget.getMaxHealth() * 0.45F);
+            double threatBeforeExt = hive.getThreatLevel();
+            var extractRes = ext.getItem().interactLivingEntity(ext, survival, extractTarget, InteractionHand.MAIN_HAND);
+            helper.assertTrue(extractRes.consumesAction()
+                            && hive.getThreatLevel() > threatBeforeExt
+                            && backupWitness.getTarget() == survival,
+                    "BioExtractor extraction must spike Hive threat and alert nearby MycelialMobs (res=" + extractRes
+                            + ", threat=" + threatBeforeExt + "->" + hive.getThreatLevel()
+                            + ", target=" + backupWitness.getTarget() + ").");
+
+            survival.getFoodData().setFoodLevel(20);
+            survival.removeAllEffects();
+            survival.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.SYNAPTIC_SUPPRESSOR.get()));
+            survival.getCooldowns().removeCooldown(ModItems.SYNAPTIC_SUPPRESSOR.get());
+            ModItems.SYNAPTIC_SUPPRESSOR.get().use(level, survival, InteractionHand.MAIN_HAND);
+            helper.assertTrue(survival.hasEffect(net.minecraft.world.effect.MobEffects.HUNGER)
+                            && survival.getFoodData().getFoodLevel() == 16,
+                    "Synaptic Suppressor must apply Hunger and food backlash.");
+
+            survival.getFoodData().setFoodLevel(20);
+            survival.removeAllEffects();
+            survival.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OVERMIND_CROWN.get()));
+            survival.getCooldowns().removeCooldown(ModItems.OVERMIND_CROWN.get());
+            ModItems.OVERMIND_CROWN.get().use(level, survival, InteractionHand.MAIN_HAND);
+            helper.assertTrue(survival.hasEffect(net.minecraft.world.effect.MobEffects.HUNGER)
+                            && survival.hasEffect(net.minecraft.world.effect.MobEffects.WEAKNESS)
+                            && survival.getFoodData().getFoodLevel() == 16,
+                    "Overmind Crown global purge must apply Hunger, Weakness, and food backlash.");
+
+            tracker.clearAll();
+            survival.removeAllEffects();
+            survival.getInventory().clearContent();
+            level.setBlockAndUpdate(bulbPos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(bulbPos, ModBlocks.SPORE_BULB.get().defaultBlockState());
+            placedBlocks.addAll(List.of(bulbPos.below(), bulbPos));
+            survival.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
+            level.getBlockState(bulbPos).useItemOn(
+                    survival.getMainHandItem(), level, survival, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(bulbPos), Direction.UP, bulbPos, false));
+            helper.assertTrue(survival.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                    "Shearing unprotected SporeBulb without Chitin armor must inflict short MYCELIAL_INFECTION.");
+
+            helper.succeed();
+        } finally {
+            for (net.minecraft.world.entity.Entity e : spawnedEntities) {
+                if (e != null && !e.isRemoved()) {
+                    e.discard();
+                }
+            }
+            for (var ie : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                    new AABB(origin).inflate(20.0D))) {
+                ie.discard();
+            }
+            for (var proj : level.getEntitiesOfClass(NeutralizingSporeProjectile.class,
+                    new AABB(origin).inflate(20.0D))) {
+                proj.discard();
+            }
+            survival.removeAllEffects();
+            survival.getInventory().clearContent();
+            survival.getData(ModAttachments.DISCOVERY).deserializeNBT(level.registryAccess(), new CompoundTag());
+            survival.getCooldowns().removeCooldown(ModItems.BIO_EXTRACTOR.get());
+            survival.getCooldowns().removeCooldown(ModItems.SYNAPTIC_SUPPRESSOR.get());
+            survival.getCooldowns().removeCooldown(ModItems.OVERMIND_CROWN.get());
+            survival.getCooldowns().removeCooldown(ModItems.BIO_SCANNER.get());
             tracker.clearAll();
             for (BlockPos p : placedBlocks) {
                 level.removeBlock(p, false);

@@ -86,6 +86,10 @@ public class PlayerDiscoveryData implements INBTSerializable<CompoundTag> {
         return craftedMilestonesMask;
     }
 
+    public boolean hasMilestone(int milestoneBit) {
+        return milestoneBit >= 0 && milestoneBit < 16 && (craftedMilestonesMask & (1 << milestoneBit)) != 0;
+    }
+
     public int getDiscoveredEngramsMask() {
         return discoveredEngramsMask & FieldEngramId.ALL_MASK;
     }

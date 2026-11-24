@@ -81,6 +81,7 @@ public final class PostMatriarchExpeditionGameTests {
         BlockPos local = new BlockPos(1, 1, 1);
         helper.setBlock(local, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get());
         SynapticBenchBlockEntity bench = (SynapticBenchBlockEntity) helper.getBlockEntity(local);
+        bench.setLabTier(2);
         ItemStack red = new ItemStack(ModItems.RECLAIMED_BLOOM_MELEE.get());
         ItemStack blue = new ItemStack(ModItems.RECLAIMED_BLOOM_PROJECTILE.get());
         bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, red.copy());
@@ -165,6 +166,7 @@ public final class PostMatriarchExpeditionGameTests {
         BlockPos local = new BlockPos(1, 1, 1);
         helper.setBlock(local, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get());
         SynapticBenchBlockEntity bench = (SynapticBenchBlockEntity) helper.getBlockEntity(local);
+        bench.setLabTier(2);
         ItemStack[] blooms = {
                 new ItemStack(ModBlocks.RECLAIMED_BLOOM.get()),
                 new ItemStack(ModItems.RECLAIMED_BLOOM_MELEE.get()),

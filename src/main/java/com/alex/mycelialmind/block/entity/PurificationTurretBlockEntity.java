@@ -41,12 +41,14 @@ import java.util.List;
 public class PurificationTurretBlockEntity extends BlockEntity {
     private static final String TAG_TIER = "TurretTier";
     private static final String TAG_JAMMED_TICKS = "JammedTicks";
+    private static final String TAG_AMMO = "TurretAmmo";
 
     private int tickCounter = 0;
     private int fireCooldownTicks = -1;
     private int observedFireInterval = -1;
     private int tier = 1;
     private int jammedTicks = 0;
+    private int ammo = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO;
     public float clientAimYaw = 0.0F;
     public float clientAimTargetYaw = 0.0F;
     public long clientAimTargetUpdateTick = Long.MIN_VALUE;
@@ -116,15 +118,92 @@ public class PurificationTurretBlockEntity extends BlockEntity {
                 || stack.is(ModItems.CHITIN_PLATE.get());
     }
 
-    public boolean canUpgradeWith(ItemStack stack) {
+    public int getAmmo() {
+        return this.ammo;
+    }
+
+    public boolean hasAmmo() {
+        return this.ammo > 0;
+    }
+
+    public void setAmmo(int ammo) {
+        int clamped = Math.max(0, Math.min(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO, ammo));
+        if (this.ammo != clamped) {
+            this.ammo = clamped;
+            setChanged();
+        }
+    }
+
+    public void consumeAmmo(int amount) {
+        if (amount <= 0 || this.ammo <= 0) {
+            return;
+        }
+        setAmmo(this.ammo - amount);
+    }
+
+    public boolean canReloadWith(ItemStack stack) {
         if (stack.isEmpty()) {
             return false;
         }
-        if (this.tier == 1 && stack.is(ModItems.SYNAPTIC_CORE.get())) {
-            return true;
+        String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+        return com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.turretAmmoGain(path) > 0
+                && this.ammo < com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO;
+    }
+
+    public boolean tryReload(ItemStack stack, @Nullable Player player) {
+        if (!(this.level instanceof ServerLevel serverLevel) || stack.isEmpty()) {
+            return false;
         }
-        return this.tier == 2
-                && (stack.is(ModItems.TIDE_BEACON.get()) || stack.is(ModItems.OVERMIND_ESSENCE.get()));
+        String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+        int gain = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.turretAmmoGain(path);
+        if (gain <= 0 || this.ammo >= com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO) {
+            return false;
+        }
+        setAmmo(this.ammo + gain);
+        if (player == null || (!player.isCreative() && !player.getAbilities().instabuild)) {
+            stack.shrink(1);
+        }
+        serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),
+                worldPosition.getX() + 0.5, worldPosition.getY() + 1.25, worldPosition.getZ() + 0.5,
+                8, 0.25, 0.25, 0.25, 0.03);
+        serverLevel.playSound(null, worldPosition, ModSounds.PURIFICATION_TURRET_UPGRADE.get(),
+                SoundSource.BLOCKS, 0.7F, 1.35F);
+        if (player != null) {
+            player.displayClientMessage(Component.translatable(
+                    "message.mycelialmind.turret_reloaded",
+                    this.ammo,
+                    com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO)
+                    .withStyle(ChatFormatting.AQUA), true);
+        }
+        return true;
+    }
+
+    public int resolveNextTierForCatalyst(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 0;
+        }
+        if (this.tier == 1 && stack.is(ModItems.SYNAPTIC_CORE.get())) {
+            return 2;
+        }
+        if (this.tier == 2 && (stack.is(ModItems.TIDE_BEACON.get()) || stack.is(ModItems.OVERMIND_ESSENCE.get()))) {
+            return 3;
+        }
+        return 0;
+    }
+
+    public boolean canUpgradeWith(ItemStack stack) {
+        int nextTier = resolveNextTierForCatalyst(stack);
+        if (nextTier == 0) {
+            return false;
+        }
+        if (this.level instanceof ServerLevel serverLevel) {
+            com.alex.mycelialmind.hive.HiveProgressionTier effectiveAct =
+                    com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(serverLevel);
+            boolean defeated = com.alex.mycelialmind.hive.DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, null);
+            return com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                    nextTier, effectiveAct, defeated, false);
+        }
+        return true;
     }
 
     public boolean tryCleanJam(ItemStack stack, @Nullable Player player) {
@@ -164,17 +243,28 @@ public class PurificationTurretBlockEntity extends BlockEntity {
         if (!(this.level instanceof ServerLevel serverLevel)) {
             return false;
         }
-        int nextTier = 0;
-        if (this.tier == 1 && stack.is(ModItems.SYNAPTIC_CORE.get())) {
-            nextTier = 2;
-        } else if (this.tier == 2 && (stack.is(ModItems.TIDE_BEACON.get()) || stack.is(ModItems.OVERMIND_ESSENCE.get()))) {
-            nextTier = 3;
-        }
+        int nextTier = resolveNextTierForCatalyst(stack);
         if (nextTier == 0) {
             return false;
         }
+        com.alex.mycelialmind.hive.HiveProgressionTier effectiveAct =
+                com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(serverLevel);
+        boolean defeated = com.alex.mycelialmind.hive.DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, player);
+        boolean creative = player != null && (player.isCreative() || player.getAbilities().instabuild);
+        if (!com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
+                nextTier, effectiveAct, defeated, creative)) {
+            if (player != null) {
+                com.alex.mycelialmind.hive.HiveProgressionTier reqAct =
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.requiredActForTier(nextTier);
+                player.displayClientMessage(
+                        Component.translatable("message.mycelialmind.gate_requires_act", reqAct.name(), nextTier)
+                                .withStyle(ChatFormatting.YELLOW),
+                        true);
+            }
+            return false;
+        }
         setTier(nextTier);
-        if (player != null && !player.getAbilities().instabuild) {
+        if (player != null && !creative) {
             stack.shrink(1);
         }
         serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),
@@ -220,6 +310,12 @@ public class PurificationTurretBlockEntity extends BlockEntity {
             }
         }
         be.fireCooldownTicks = interval;
+        if (!be.hasAmmo()) {
+            serverLevel.sendParticles(ModParticles.SPORE_FALL.get(),
+                    pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5,
+                    2, 0.18, 0.15, 0.18, 0.01);
+            return;
+        }
 
         double rangeRadius = be.getRangeRadius();
         AABB range = new AABB(pos).inflate(rangeRadius);
@@ -239,7 +335,7 @@ public class PurificationTurretBlockEntity extends BlockEntity {
 
         int shots = be.getShotsPerVolley();
         boolean firedAny = false;
-        for (int s = 0; s < shots && !mobs.isEmpty(); s++) {
+        for (int s = 0; s < shots && !mobs.isEmpty() && be.hasAmmo(); s++) {
             MycelialMob target = pickPriorityTarget(pos, mobs);
             if (target == null) {
                 break;
@@ -256,6 +352,7 @@ public class PurificationTurretBlockEntity extends BlockEntity {
             if (!serverLevel.addFreshEntity(proj)) {
                 break;
             }
+            be.consumeAmmo(1);
             mobs.remove(target);
             firedAny = true;
         }
@@ -275,6 +372,9 @@ public class PurificationTurretBlockEntity extends BlockEntity {
         if (this.jammedTicks > 0) {
             tag.putInt(TAG_JAMMED_TICKS, this.jammedTicks);
         }
+        if (this.ammo != com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO) {
+            tag.putInt(TAG_AMMO, this.ammo);
+        }
     }
 
     @Override
@@ -284,6 +384,13 @@ public class PurificationTurretBlockEntity extends BlockEntity {
             this.tier = Math.max(1, Math.min(3, tag.getInt(TAG_TIER)));
         }
         this.jammedTicks = tag.contains(TAG_JAMMED_TICKS) ? Math.max(0, tag.getInt(TAG_JAMMED_TICKS)) : 0;
+        if (tag.contains(TAG_AMMO)) {
+            this.ammo = Math.max(0, Math.min(
+                    com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO,
+                    tag.getInt(TAG_AMMO)));
+        } else {
+            this.ammo = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO;
+        }
     }
 
     @Override

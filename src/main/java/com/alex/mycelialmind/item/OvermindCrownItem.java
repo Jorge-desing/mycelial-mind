@@ -60,6 +60,13 @@ public class OvermindCrownItem extends Item {
             serverLevel.playSound(null, pos, ModSounds.OVERMIND_CROWN_SURGE.get(), SoundSource.PLAYERS, 1.2F, 1.15F);
             player.sendSystemMessage(Component.translatable("message.mycelialmind.pylon_overcharged", cleansed)
                     .withStyle(ChatFormatting.AQUA));
+            if (!player.isCreative() && !player.getAbilities().instabuild) {
+                player.addEffect(new MobEffectInstance(MobEffects.HUNGER,
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.RELIC_BACKLASH_HUNGER_TICKS, 0));
+                player.getFoodData().setFoodLevel(Math.max(0,
+                        player.getFoodData().getFoodLevel()
+                                - com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.RELIC_BACKLASH_FOOD_COST));
+            }
             player.getCooldowns().addCooldown(this, 400);
             return InteractionResult.CONSUME;
         }
@@ -78,6 +85,15 @@ public class OvermindCrownItem extends Item {
             player.removeEffect(ModEffects.MYCELIAL_INFECTION);
             player.removeEffect(ModEffects.SPORE_ROT);
             player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 160, 0));
+            if (!player.isCreative() && !player.getAbilities().instabuild) {
+                player.addEffect(new MobEffectInstance(MobEffects.HUNGER,
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.RELIC_BACKLASH_HUNGER_TICKS, 0));
+                player.addEffect(new MobEffectInstance(MobEffects.WEAKNESS,
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.RELIC_BACKLASH_WEAKNESS_TICKS, 0));
+                player.getFoodData().setFoodLevel(Math.max(0,
+                        player.getFoodData().getFoodLevel()
+                                - com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.RELIC_BACKLASH_FOOD_COST));
+            }
 
             for (ServerPlayer sp : serverLevel.players()) {
                 PacketDistributor.sendToPlayer(sp, HiveSyncPayload.forPlayer(serverLevel, sp));

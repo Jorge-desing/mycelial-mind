@@ -3,12 +3,15 @@
   "category": "equipment",
   "pattern": [
     "CCC",
-    "C C",
+    "CIC",
     "C C"
   ],
   "key": {
     "C": {
       "item": "mycelialmind:chitin_plate"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
     }
   },
   "result": {

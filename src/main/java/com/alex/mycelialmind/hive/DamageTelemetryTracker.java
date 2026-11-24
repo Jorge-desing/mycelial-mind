@@ -427,6 +427,31 @@ public final class DamageTelemetryTracker {
         }
     }
 
+    public static boolean isHiveCoreDefeated(ServerLevel level, @org.jetbrains.annotations.Nullable Player player) {
+        if (level == null) {
+            return false;
+        }
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        HiveMindSavedData overworldHive = level.getServer() != null
+                ? HiveMindSavedData.get(level.getServer().overworld())
+                : hive;
+        if (hive.isMatriarchDefeated() || overworldHive.isMatriarchDefeated()) {
+            return true;
+        }
+        if (player instanceof ServerPlayer sp
+                && sp.getData(ModAttachments.DISCOVERY).hasMilestone(ProgressionGoalEngine.MILESTONE_HIVE_CORE_DEFEATED)) {
+            return true;
+        }
+        if (level.getServer() != null) {
+            for (ServerPlayer sp : level.getServer().getPlayerList().getPlayers()) {
+                if (sp.getData(ModAttachments.DISCOVERY).hasMilestone(ProgressionGoalEngine.MILESTONE_HIVE_CORE_DEFEATED)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static void notifyTierAdvancement(ServerLevel level, HiveMindSavedData hive) {
         HiveProgressionTier reached = hive.tryAdvanceHighestTier();
         if (reached == null || reached == HiveProgressionTier.DORMANT) {

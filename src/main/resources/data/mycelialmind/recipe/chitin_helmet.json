@@ -3,11 +3,14 @@
   "category": "equipment",
   "pattern": [
     "CCC",
-    "C C"
+    "CAC"
   ],
   "key": {
     "C": {
       "item": "mycelialmind:chitin_plate"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
     }
   },
   "result": {

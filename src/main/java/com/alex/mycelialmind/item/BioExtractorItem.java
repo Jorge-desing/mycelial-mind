@@ -57,7 +57,10 @@ public class BioExtractorItem extends Item {
             if (player.getCooldowns().isOnCooldown(this)) {
                 return InteractionResult.FAIL;
             }
-            if (mob.getHealth() > mob.getMaxHealth() * 0.60F) {
+            float maxRatio = mob.isPrimordialVariant()
+                    ? 0.60F
+                    : com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.EXTRACTOR_MAX_HEALTH_RATIO;
+            if (mob.getHealth() > mob.getMaxHealth() * maxRatio) {
                 player.sendSystemMessage(Component.translatable("message.mycelialmind.extractor_target_too_strong")
                         .withStyle(ChatFormatting.YELLOW));
                 return InteractionResult.FAIL;
@@ -102,6 +105,7 @@ public class BioExtractorItem extends Item {
                     DiscoverySyncPayload.syncToPlayer(serverPlayer);
                 }
             }
+            triggerExtractionBacklash(serverLevel, mob.blockPosition(), player, mob);
             serverLevel.sendParticles(ModParticles.NECROTIC_MIST.get(), mob.getX(), mob.getY(0.5), mob.getZ(),
                     12, 0.3, 0.4, 0.3, 0.04);
             serverLevel.playSound(null, mob.blockPosition(), ModSounds.BIO_EXTRACTOR_DRAW.get(), SoundSource.PLAYERS, 0.9F, 1.2F);
@@ -166,6 +170,7 @@ public class BioExtractorItem extends Item {
                 giveSample(player, dominant, 1);
                 if (!(clickedState.getBlock() instanceof SymbioticNodeBlock)) {
                     PurificationZoneTracker.get(serverLevel).alertNearbyNodes(serverLevel, pos, 160);
+                    triggerExtractionBacklash(serverLevel, pos, player, null);
                 }
                 serverLevel.sendParticles(ModParticles.BIO_LUME.get(), pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
                         12, 0.3, 0.3, 0.3, 0.04);
@@ -177,6 +182,28 @@ public class BioExtractorItem extends Item {
             }
         }
         return InteractionResult.PASS;
+    }
+
+    private static void triggerExtractionBacklash(
+            ServerLevel serverLevel,
+            BlockPos origin,
+            Player player,
+            @org.jetbrains.annotations.Nullable MycelialMob excludedMob
+    ) {
+        if (player.isCreative()) {
+            return;
+        }
+        HiveMindSavedData.get(serverLevel)
+                .addThreatPenalty(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.EXTRACTOR_THREAT_SPIKE);
+        double alertRadius = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.EXTRACTOR_ALERT_RADIUS;
+        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(origin).inflate(alertRadius);
+        double radiusSq = alertRadius * alertRadius;
+        for (MycelialMob nearby : serverLevel.getEntitiesOfClass(MycelialMob.class, box,
+                m -> m.isAlive() && m != excludedMob && !m.isAlliedEscort())) {
+            if (nearby.blockPosition().distSqr(origin) <= radiusSq) {
+                nearby.setTarget(player);
+            }
+        }
     }
 
     private static AdaptationTrait findDominantTrait(HiveMindSavedData hive) {

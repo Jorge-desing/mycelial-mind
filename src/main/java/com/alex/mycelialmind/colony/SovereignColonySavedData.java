@@ -104,6 +104,17 @@ public class SovereignColonySavedData extends SavedData {
         return best;
     }
 
+    public boolean hasActiveColonyNear(net.minecraft.server.level.ServerLevel level, BlockPos pos, double maxDistance) {
+        double maxDistSq = maxDistance * maxDistance;
+        for (SovereignColonyData data : coloniesByNexus.values()) {
+            if (data.getNexusPos().distSqr(pos) <= maxDistSq
+                    && com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(level, data.getNexusPos())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void resetAll() {
         coloniesByNexus.clear();
         setDirty();

@@ -57,7 +57,7 @@
   "effect.mycelialmind.mycelial_infection": "Infección Micelial",
   "message.mycelialmind.extractor_no_traits": "El organismo objetivo no tiene rasgos adaptativos activos.",
   "message.mycelialmind.extractor_primordial_bonus": "[Muestra Primordial] ¡Genética extra + Espora Latente + Biomasa Micelial extraídas!",
-  "message.mycelialmind.extractor_target_too_strong": "El objetivo es demasiado fuerte — debilítalo por debajo del 60% de vida primero.",
+  "message.mycelialmind.extractor_target_too_strong": "El objetivo es demasiado fuerte — debilítalo por debajo del 50% de vida primero (60% en Primordiales).",
   "message.mycelialmind.extractor_node_dormant": "El nodo está latente — aún no registra adaptación dominante.",
   "message.mycelialmind.sample_extracted": "Muestra genética extraída: %s",
   "message.mycelialmind.mutagen_implanted": "Mutágeno Simbiótico implantado: %s (%d/%d ranuras)",
@@ -2106,5 +2106,12 @@
   "message.mycelialmind.sovereign_heart_pulse": "Pulso del Corazón en Nexo añadió +35 biomasa y restauró la vitalidad total de la colonia.",
   "message.mycelialmind.sovereign_overmind_grace": "Gracia Soberana otorgó +25 XP obrera, recuperación total y Perspicacia Sináptica.",
   "message.mycelialmind.symbiont_heart_infused": "¡%s potenciado y curado con infusión del Corazón de la Colmena!",
-  "message.mycelialmind.chimera_heart_empowered": "¡Quimera potenciada y restaurada a vitalidad máxima!"
+  "message.mycelialmind.chimera_heart_empowered": "¡Quimera potenciada y restaurada a vitalidad máxima!",
+  "message.mycelialmind.gate_requires_act": "Requiere Mente Colmena %s o derrotar al Núcleo de la Colmena para desbloquear el Nivel %s.",
+  "message.mycelialmind.pylon_recharged": "Pilón de Purificación recargado: %s / %s de bioenergía.",
+  "message.mycelialmind.turret_reloaded": "Torreta Purificadora recargada: %s / %s cargas neutralizantes.",
+  "message.mycelialmind.amber_requires_spore": "Cristalizar Ámbar Luminiscente requiere al menos 1 Espora Latente en tu inventario.",
+  "message.mycelialmind.rift_gate_locked": "La Grieta Micelial rechaza el catalizador — alcanza el Acto III (ADAPTIVE) o derrota al Núcleo de la Colmena primero.",
+  "message.mycelialmind.scanner_turret_ammo": "Munición de Torreta: %s / %s cargas neutralizantes",
+  "message.mycelialmind.scanner_pylon_charge": "Bioenergía del Pilón: %s / %s"
 }

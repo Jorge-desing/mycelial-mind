@@ -57,7 +57,7 @@
   "effect.mycelialmind.mycelial_infection": "Mycelial Infection",
   "message.mycelialmind.extractor_no_traits": "Target organism has no active adaptive traits to sample.",
   "message.mycelialmind.extractor_primordial_bonus": "[Primordial Sample] Extracted bonus genetics + Latent Spore + Mycelial Biomass!",
-  "message.mycelialmind.extractor_target_too_strong": "Target is too strong to sample — weaken it below 60% HP first.",
+  "message.mycelialmind.extractor_target_too_strong": "Target is too strong to sample — weaken it below 50% HP first (60% for Primordials).",
   "message.mycelialmind.extractor_node_dormant": "Node is dormant — no dominant adaptation recorded yet.",
   "message.mycelialmind.sample_extracted": "Extracted genetic sample: %s",
   "message.mycelialmind.mutagen_implanted": "Symbiotic Mutagen implanted: %s (%d/%d slots)",
@@ -2106,5 +2106,12 @@
   "message.mycelialmind.sovereign_heart_pulse": "Nexus Heart Surge added +35 biomass & restored full vitality across the colony.",
   "message.mycelialmind.sovereign_overmind_grace": "Sovereign Grace granted +25 Worker XP, full recovery & Synaptic Insight.",
   "message.mycelialmind.symbiont_heart_infused": "%s empowered and healed by Hive Heart infusion!",
-  "message.mycelialmind.chimera_heart_empowered": "Chimera empowered and restored to full vitality!"
+  "message.mycelialmind.chimera_heart_empowered": "Chimera empowered and restored to full vitality!",
+  "message.mycelialmind.gate_requires_act": "Requires Hive %s or defeating the Hive Core to unlock Tier %s.",
+  "message.mycelialmind.pylon_recharged": "Purification Pylon recharged: %s / %s bio-energy.",
+  "message.mycelialmind.turret_reloaded": "Purification Turret reloaded: %s / %s neutralizing charges.",
+  "message.mycelialmind.amber_requires_spore": "Crystallizing Luminescent Amber requires at least 1 Latent Spore in your inventory.",
+  "message.mycelialmind.rift_gate_locked": "The Mycelial Rift rejects the catalyst — reach Act III (ADAPTIVE) or defeat the Hive Core first.",
+  "message.mycelialmind.scanner_turret_ammo": "Turret Ammunition: %s / %s neutralizing charges",
+  "message.mycelialmind.scanner_pylon_charge": "Pylon Bio-Energy: %s / %s"
 }

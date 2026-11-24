@@ -13,6 +13,8 @@ import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.hive.AcquisitionDifficultyEngine;
+import com.alex.mycelialmind.hive.DamageTelemetryTracker;
 import com.alex.mycelialmind.world.structure.StructureProgressionPolicy;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -137,8 +139,20 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         if (nextTier == 0) {
             return false;
         }
+        HiveProgressionTier effectiveAct = StructureProgressionPolicy.resolveTier(serverLevel);
+        boolean defeated = DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, player);
+        boolean creative = player != null && (player.isCreative() || player.getAbilities().instabuild);
+        if (!AcquisitionDifficultyEngine.canUpgradeToTier(nextTier, effectiveAct, defeated, creative)) {
+            if (player != null) {
+                HiveProgressionTier reqAct = AcquisitionDifficultyEngine.requiredActForTier(nextTier);
+                player.displayClientMessage(Component.translatable(
+                        "message.mycelialmind.gate_requires_act", reqAct.name(), nextTier)
+                        .withStyle(ChatFormatting.YELLOW), true);
+            }
+            return false;
+        }
         setLabTier(nextTier);
-        if (player == null || !player.getAbilities().instabuild) {
+        if (player == null || !creative) {
             stack.shrink(1);
         }
         if (player != null && !player.isCreative()) {
@@ -184,11 +198,17 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
     public SynthesisResult computeSynthesisDetails(HiveProgressionTier effectiveAct) {
         HiveProgressionTier safeAct = effectiveAct != null ? effectiveAct : HiveProgressionTier.DORMANT;
         int effectiveLabTier = getEffectiveLabTier();
+        boolean hiveCoreDefeated = this.level instanceof ServerLevel sl
+                && DamageTelemetryTracker.isHiveCoreDefeated(sl, null);
         ItemStack s0 = inventory.getStackInSlot(SLOT_SAMPLE);
         ItemStack s1 = inventory.getStackInSlot(SLOT_BIOMASS);
         ItemStack s2 = inventory.getStackInSlot(SLOT_CATALYST);
 
         if (isReclaimedBloom(s0) && s1.is(ModItems.MYCELIAL_BIOMASS.get()) && s2.isEmpty()) {
+            if (!AcquisitionDifficultyEngine.canSynthesizeBloomDuplication(
+                    safeAct, effectiveLabTier, hiveCoreDefeated)) {
+                return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.ADAPTIVE);
+            }
             ItemStack output = s0.copyWithCount(2);
             return new SynthesisResult(output, -1, null);
         }
@@ -199,6 +219,9 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 && s2.is(ModItems.SYNAPTIC_CORE.get())) {
             AdaptationTrait trait = GeneticSampleItem.getTrait(s0);
             if (trait != null) {
+                if (!AcquisitionDifficultyEngine.canSynthesizeMutagenOrSerum(safeAct, effectiveLabTier)) {
+                    return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.AWAKENED);
+                }
                 ItemStack out = new ItemStack(ModItems.SYMBIOTIC_MUTAGEN.get());
                 out.set(ModDataComponents.TRAIT_ID.get(), trait.id());
                 return new SynthesisResult(out, -1, null);
@@ -211,6 +234,9 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 && (s2.is(ModItems.PURIFIER_GRENADE.get()) || s2.is(Items.AMETHYST_SHARD))) {
             AdaptationTrait trait = GeneticSampleItem.getTrait(s0);
             if (trait != null) {
+                if (!AcquisitionDifficultyEngine.canSynthesizeMutagenOrSerum(safeAct, effectiveLabTier)) {
+                    return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.AWAKENED);
+                }
                 ItemStack out = new ItemStack(ModItems.COUNTER_SERUM.get(), effectiveLabTier >= 3 ? 2 : 1);
                 out.set(ModDataComponents.TRAIT_ID.get(), trait.id());
                 return new SynthesisResult(out, -1, null);
@@ -229,6 +255,10 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 && GeneticSampleItem.getTrait(s0) != null
                 && s1.is(ModItems.MYCELIAL_BIOMASS.get())
                 && s2.is(ModItems.NEURAL_ECHO_CORE.get())) {
+            if (!AcquisitionDifficultyEngine.canSynthesizeChimeraOvum(
+                    safeAct, effectiveLabTier, hiveCoreDefeated)) {
+                return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.ADAPTIVE);
+            }
             return new SynthesisResult(new ItemStack(ModItems.CHIMERA_OVUM.get()), -1, null);
         }
 

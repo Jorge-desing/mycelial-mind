@@ -104,6 +104,14 @@ public class SporeBulbBlock extends Block {
                     PlayerDiscoveryData.onLatentSporeAcquired(serverPlayer);
                 }
                 stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                if (!player.isCreative()
+                        && !com.alex.mycelialmind.world.PurificationZoneTracker.get(serverLevel).isProtected(pos)
+                        && !ChitinArmorItem.hasFullSet(player)) {
+                    player.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 60, 0));
+                    serverLevel.sendParticles(ModParticles.SPORE_CLOUD.get(),
+                            pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                            8, 0.25, 0.25, 0.25, 0.02);
+                }
                 serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
                         pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                         12, 0.25, 0.25, 0.25, 0.03);

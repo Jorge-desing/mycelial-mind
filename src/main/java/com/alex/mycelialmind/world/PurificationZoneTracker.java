@@ -28,6 +28,7 @@ public class PurificationZoneTracker extends SavedData {
     private static final String DATA_NAME = "mycelialmind_territory_tracker";
     private static final String TAG_PYLONS = "Pylons";
     private static final String TAG_SMOTHERED_PYLONS = "SmotheredPylons";
+    private static final String TAG_DEPLETED_PYLONS = "DepletedPylons";
     private static final String TAG_PYLON_TIERS = "PylonTiers";
     private static final String TAG_NODES = "Nodes";
     private static final String TAG_TYPED_NODES = "TypedNodes";
@@ -40,6 +41,7 @@ public class PurificationZoneTracker extends SavedData {
 
     private final Set<BlockPos> pylonPositions = new HashSet<>();
     private final Set<BlockPos> smotheredPylons = new HashSet<>();
+    private final Set<BlockPos> depletedPylons = new HashSet<>();
     private final Map<BlockPos, Integer> pylonTiers = new HashMap<>();
     private final Map<BlockPos, Integer> pylonBonusRadii = new HashMap<>();
     private final Set<BlockPos> nodePositions = new HashSet<>();
@@ -58,9 +60,10 @@ public class PurificationZoneTracker extends SavedData {
     public synchronized void removePylon(BlockPos pos) {
         boolean removed = pylonPositions.remove(pos);
         boolean unsmothered = smotheredPylons.remove(pos);
+        boolean undepleted = depletedPylons.remove(pos);
         boolean removedTier = pylonTiers.remove(pos) != null;
         boolean removedBonus = pylonBonusRadii.remove(pos) != null;
-        if (removed || unsmothered || removedTier || removedBonus) {
+        if (removed || unsmothered || undepleted || removedTier || removedBonus) {
             setDirty();
         }
     }
@@ -68,6 +71,7 @@ public class PurificationZoneTracker extends SavedData {
     public synchronized void clearAll() {
         pylonPositions.clear();
         smotheredPylons.clear();
+        depletedPylons.clear();
         pylonTiers.clear();
         pylonBonusRadii.clear();
         nodePositions.clear();
@@ -81,6 +85,8 @@ public class PurificationZoneTracker extends SavedData {
         pylonPositions.addAll(restored.pylonPositions);
         smotheredPylons.clear();
         smotheredPylons.addAll(restored.smotheredPylons);
+        depletedPylons.clear();
+        depletedPylons.addAll(restored.depletedPylons);
         pylonTiers.clear();
         pylonTiers.putAll(restored.pylonTiers);
         pylonBonusRadii.clear();
@@ -151,6 +157,24 @@ public class PurificationZoneTracker extends SavedData {
         return smotheredPylons.contains(pos);
     }
 
+    public synchronized void setPylonDepleted(BlockPos pos, boolean depleted) {
+        BlockPos immutable = pos.immutable();
+        if (!pylonPositions.contains(immutable)) {
+            if (depletedPylons.remove(immutable)) {
+                setDirty();
+            }
+            return;
+        }
+        boolean changed = depleted ? depletedPylons.add(immutable) : depletedPylons.remove(immutable);
+        if (changed) {
+            setDirty();
+        }
+    }
+
+    public synchronized boolean isPylonDepleted(BlockPos pos) {
+        return depletedPylons.contains(pos);
+    }
+
     public synchronized int countSmotheredPylons() {
         return smotheredPylons.size();
     }
@@ -159,7 +183,7 @@ public class PurificationZoneTracker extends SavedData {
         double maxSq = (double) radius * radius;
         int count = 0;
         for (BlockPos pylon : pylonPositions) {
-            if (!smotheredPylons.contains(pylon) && pylon.distSqr(center) <= maxSq) {
+            if (!smotheredPylons.contains(pylon) && !depletedPylons.contains(pylon) && pylon.distSqr(center) <= maxSq) {
                 count++;
             }
         }
@@ -169,7 +193,7 @@ public class PurificationZoneTracker extends SavedData {
     public synchronized int getMaxActivePylonTierWithin(BlockPos center, int baseRadius) {
         int maxTier = 0;
         for (BlockPos pylon : pylonPositions) {
-            if (smotheredPylons.contains(pylon)) {
+            if (smotheredPylons.contains(pylon) || depletedPylons.contains(pylon)) {
                 continue;
             }
             int effRadius = Math.max(baseRadius, getPylonRadius(pylon));
@@ -217,7 +241,7 @@ public class PurificationZoneTracker extends SavedData {
 
     public synchronized boolean isProtected(BlockPos pos) {
         for (BlockPos pylon : pylonPositions) {
-            if (!smotheredPylons.contains(pylon)) {
+            if (!smotheredPylons.contains(pylon) && !depletedPylons.contains(pylon)) {
                 int radius = getPylonRadius(pylon);
                 if (pylon.distSqr(pos) <= (double) radius * radius) {
                     return true;
@@ -240,7 +264,7 @@ public class PurificationZoneTracker extends SavedData {
         double lenSq = vx * vx + vy * vy + vz * vz;
 
         for (BlockPos pylon : pylonPositions) {
-            if (smotheredPylons.contains(pylon)) {
+            if (smotheredPylons.contains(pylon) || depletedPylons.contains(pylon)) {
                 continue;
             }
             int radius = getPylonRadius(pylon);
@@ -547,6 +571,12 @@ public class PurificationZoneTracker extends SavedData {
         }
         tag.put(TAG_SMOTHERED_PYLONS, smothered);
 
+        ListTag depleted = new ListTag();
+        for (BlockPos pos : depletedPylons) {
+            depleted.add(LongTag.valueOf(pos.asLong()));
+        }
+        tag.put(TAG_DEPLETED_PYLONS, depleted);
+
         ListTag tiers = new ListTag();
         for (Map.Entry<BlockPos, Integer> entry : pylonTiers.entrySet()) {
             CompoundTag entryTag = new CompoundTag();
@@ -591,6 +621,10 @@ public class PurificationZoneTracker extends SavedData {
         ListTag smothered = tag.getList(TAG_SMOTHERED_PYLONS, Tag.TAG_LONG);
         for (int i = 0; i < smothered.size(); i++) {
             tracker.smotheredPylons.add(BlockPos.of(((LongTag) smothered.get(i)).getAsLong()));
+        }
+        ListTag depleted = tag.getList(TAG_DEPLETED_PYLONS, Tag.TAG_LONG);
+        for (int i = 0; i < depleted.size(); i++) {
+            tracker.depletedPylons.add(BlockPos.of(((LongTag) depleted.get(i)).getAsLong()));
         }
         ListTag tiers = tag.getList(TAG_PYLON_TIERS, Tag.TAG_COMPOUND);
         for (int i = 0; i < tiers.size(); i++) {

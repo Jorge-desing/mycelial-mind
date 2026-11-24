@@ -61,7 +61,22 @@ public class CreepingMyceliumBlock extends Block {
                             .withStyle(ChatFormatting.YELLOW), true);
                     return ItemInteractionResult.FAIL;
                 }
-                if (!player.getAbilities().instabuild) {
+                HiveProgressionTier gateAct = com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(serverLevel);
+                boolean hiveCoreDefeated = com.alex.mycelialmind.hive.DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, player);
+                boolean creative = player.isCreative() || player.getAbilities().instabuild;
+                if (!com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canCrystallizeAmber(
+                        gateAct, hiveCoreDefeated, creative)) {
+                    player.displayClientMessage(Component.translatable(
+                            "message.mycelialmind.gate_requires_act",
+                            HiveProgressionTier.AWAKENED.name(), 2).withStyle(ChatFormatting.YELLOW), true);
+                    return ItemInteractionResult.FAIL;
+                }
+                if (!creative && !consumeOneItem(player, ModItems.LATENT_SPORE.get())) {
+                    player.displayClientMessage(Component.translatable("message.mycelialmind.amber_requires_spore")
+                            .withStyle(ChatFormatting.YELLOW), true);
+                    return ItemInteractionResult.FAIL;
+                }
+                if (!creative) {
                     stack.shrink(1);
                 }
                 serverLevel.setBlockAndUpdate(pos, ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState());
@@ -156,6 +171,21 @@ public class CreepingMyceliumBlock extends Block {
                 || state.is(BlockTags.LOGS)
                 || state.is(BlockTags.WOODEN_SLABS)
                 || state.is(BlockTags.WOODEN_STAIRS);
+    }
+
+    private static boolean consumeOneItem(Player player, Item item) {
+        if (player.getOffhandItem().is(item) && !player.getOffhandItem().isEmpty()) {
+            player.getOffhandItem().shrink(1);
+            return true;
+        }
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack inv = player.getInventory().getItem(i);
+            if (inv.is(item) && !inv.isEmpty()) {
+                inv.shrink(1);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

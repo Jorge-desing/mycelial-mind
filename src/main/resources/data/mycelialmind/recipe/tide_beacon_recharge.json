@@ -1,15 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "mycelialmind:tide_beacon"
-    },
-    {
-      "item": "minecraft:amethyst_shard"
-    },
-    {
-      "item": "mycelialmind:chitin_plate"
-    }
+    { "item": "mycelialmind:tide_beacon" },
+    { "item": "mycelialmind:synaptic_core" },
+    { "item": "mycelialmind:chitin_plate" },
+    { "item": "mycelialmind:chitin_plate" },
+    { "item": "minecraft:amethyst_shard" }
   ],
   "result": {
     "id": "mycelialmind:tide_beacon",

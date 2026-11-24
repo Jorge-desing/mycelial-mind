@@ -48,6 +48,8 @@ public final class ReclaimedBloomBlock extends Block {
     public static final IntegerProperty PALETTE = IntegerProperty.create("palette", 0, 5);
     public static final BooleanProperty MATURE = BooleanProperty.create("mature");
     private static final VoxelShape SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 12.0D, 13.0D);
+    private static final java.util.Map<ServerLevel, java.util.Map<BlockPos, Integer>> BLOOM_PULSE_COUNTS =
+            java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
 
     public ReclaimedBloomBlock(Properties properties) {
         super(properties);
@@ -86,13 +88,17 @@ public final class ReclaimedBloomBlock extends Block {
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (state.getValue(MATURE) && !level.getBlockTicks().hasScheduledTick(pos, this)) {
             emitSanctuaryAura(level, pos, state.getValue(PALETTE));
-            level.scheduleTick(pos, this, EcosystemPurposeEngine.BLOOM_AURA_INTERVAL_TICKS);
+            BlockState after = level.getBlockState(pos);
+            if (after.is(this) && after.getValue(MATURE) && !level.getBlockTicks().hasScheduledTick(pos, this)) {
+                level.scheduleTick(pos, this, EcosystemPurposeEngine.BLOOM_AURA_INTERVAL_TICKS);
+            }
         }
     }
 
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!state.getValue(MATURE)) {
+            clearPulseCount(level, pos);
             level.setBlockAndUpdate(pos, state.setValue(MATURE, true));
             level.updateNeighbourForOutputSignal(pos, this);
             level.playSound(null, pos, ModSounds.RECLAIMED_BLOOM_PULSE.get(), SoundSource.BLOCKS, 0.48F, 1.0F);
@@ -100,10 +106,50 @@ public final class ReclaimedBloomBlock extends Block {
             return;
         }
         emitSanctuaryAura(level, pos, state.getValue(PALETTE));
-        level.scheduleTick(pos, this, EcosystemPurposeEngine.BLOOM_AURA_INTERVAL_TICKS);
+        BlockState after = level.getBlockState(pos);
+        if (after.is(this) && after.getValue(MATURE) && !level.getBlockTicks().hasScheduledTick(pos, this)) {
+            level.scheduleTick(pos, this, EcosystemPurposeEngine.BLOOM_AURA_INTERVAL_TICKS);
+        }
+    }
+
+    public static boolean hasValidAuraEnvironment(ServerLevel level, BlockPos pos) {
+        BlockState below = level.getBlockState(pos.below());
+        if (below.is(ModBlocks.MYCELIAL_STONE.get()) || below.is(ModBlocks.CREEPING_MYCELIUM.get())) {
+            return true;
+        }
+        if (LuminescentAmberVeinBlock.hasAdjacentConduit(level, pos)) {
+            return true;
+        }
+        if (com.alex.mycelialmind.world.PurificationZoneTracker.get(level).isProtected(pos)) {
+            return true;
+        }
+        return com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).hasActiveColonyNear(level, pos, 24.0D);
+    }
+
+    public static int getRecordedPulseCount(ServerLevel level, BlockPos pos) {
+        java.util.Map<BlockPos, Integer> pulses = BLOOM_PULSE_COUNTS.get(level);
+        return pulses == null ? 0 : pulses.getOrDefault(pos.immutable(), 0);
+    }
+
+    private static void clearPulseCount(ServerLevel level, BlockPos pos) {
+        java.util.Map<BlockPos, Integer> pulses = BLOOM_PULSE_COUNTS.get(level);
+        if (pulses != null) {
+            pulses.remove(pos.immutable());
+        }
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
+            clearPulseCount(serverLevel, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     public static void emitSanctuaryAura(ServerLevel level, BlockPos pos, int palette) {
+        if (!hasValidAuraEnvironment(level, pos)) {
+            return;
+        }
         BloomAuraKind kind = EcosystemPurposeEngine.bloomAuraForPalette(palette);
         Holder<MobEffect> primaryEffect = switch (kind) {
             case STRENGTH -> MobEffects.DAMAGE_BOOST;
@@ -156,6 +202,22 @@ public final class ReclaimedBloomBlock extends Block {
             level.sendParticles(ModParticles.BIO_LUME.get(),
                     pos.getX() + 0.5D, pos.getY() + 0.55D, pos.getZ() + 0.5D,
                     2, 0.3D, 0.2D, 0.3D, 0.01D);
+            boolean hasAmber = LuminescentAmberVeinBlock.hasAdjacentConduit(level, pos);
+            boolean nearActiveNexus = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level)
+                    .hasActiveColonyNear(level, pos, 24.0D);
+            java.util.Map<BlockPos, Integer> pulses = BLOOM_PULSE_COUNTS.computeIfAbsent(level, unused -> new java.util.HashMap<>());
+            BlockPos key = pos.immutable();
+            int count = pulses.merge(key, 1, Integer::sum);
+            if (com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.shouldBloomConsumeMaturation(
+                    count, hasAmber, nearActiveNexus)) {
+                pulses.remove(key);
+                BlockState current = level.getBlockState(pos);
+                if (current.getBlock() instanceof ReclaimedBloomBlock && current.getValue(MATURE)) {
+                    level.setBlockAndUpdate(pos, current.setValue(MATURE, false));
+                    level.updateNeighbourForOutputSignal(pos, current.getBlock());
+                    level.scheduleTick(pos, current.getBlock(), 1200);
+                }
+            }
         }
     }
 
@@ -193,6 +255,7 @@ public final class ReclaimedBloomBlock extends Block {
         if (!player.isCreative()) {
             popResource(level, pos, itemForPalette(state.getValue(PALETTE)));
         }
+        clearPulseCount(level, pos);
         level.setBlockAndUpdate(pos, state.setValue(MATURE, false));
         level.updateNeighbourForOutputSignal(pos, this);
         level.scheduleTick(pos, this, 1200);

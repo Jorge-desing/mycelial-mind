@@ -124,6 +124,15 @@ public class SynapticSuppressorItem extends Item {
 
             player.getCooldowns().addCooldown(this, 200);
             stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+            if (!player.isCreative() && !player.getAbilities().instabuild) {
+                player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                        net.minecraft.world.effect.MobEffects.HUNGER,
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.RELIC_BACKLASH_HUNGER_TICKS,
+                        0));
+                player.getFoodData().setFoodLevel(Math.max(0,
+                        player.getFoodData().getFoodLevel()
+                                - com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.RELIC_BACKLASH_FOOD_COST));
+            }
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
     }

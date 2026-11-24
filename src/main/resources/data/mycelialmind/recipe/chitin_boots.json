@@ -3,11 +3,14 @@
   "category": "equipment",
   "pattern": [
     "C C",
-    "C C"
+    "CLC"
   ],
   "key": {
     "C": {
       "item": "mycelialmind:chitin_plate"
+    },
+    "L": {
+      "item": "minecraft:leather"
     }
   },
   "result": {
