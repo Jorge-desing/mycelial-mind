@@ -47,6 +47,22 @@
       "matchManagers": ["gradle"],
       "matchDepNames": ["maven.modrinth:iris"],
       "allowedVersions": "/\\+1\\.21\\.1-neoforge$/"
+    },
+    {
+      "description": "Keep Jade updates on the Minecraft 1.21.1 line",
+      "matchManagers": ["gradle"],
+      "matchDepNames": ["maven.modrinth:jade"],
+      "allowedVersions": "/^15\\./"
+    },
+    {
+      "description": "Keep Java pinned to JDK 21 for Minecraft 1.21.1 / NeoForge 21.1",
+      "matchDepNames": ["java-jdk"],
+      "allowedVersions": "/^21(\\b|\\.)/"
+    },
+    {
+      "description": "Keep Gradle on 8.x for ModDevGradle/Pitest compatibility",
+      "matchDepNames": ["gradle"],
+      "allowedVersions": "/^8\\./"
     }
   ]
 }
