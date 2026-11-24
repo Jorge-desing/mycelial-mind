@@ -8792,6 +8792,34 @@ public final class MycelialGameTests {
             pupilC.setFatigue(90.0F);
             helper.assertTrue(com.alex.mycelialmind.colony.ColonyDialectCallDirector.emit(level, colony, a, c, habit, player), "C must accept learned call.");
             helper.assertTrue(pupilC.hasDialectRestRequest(), "Most fatigued worker must receive a rest request.");
+            var escort = com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER;
+            colony.getDialect(b).teach(escort, 4);
+            colony.getDialect(c).teach(escort, 4);
+            teacher.setCaste(com.alex.mycelialmind.colony.SymbiontCaste.COURIER);
+            teacher.setPos(c.getX() + 1.5D, c.getY(), c.getZ() + 0.5D);
+            teacher.insertIntoPouch(new ItemStack(Items.STONE));
+            pupil.setCaste(com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL);
+            pupil.setPos(c.getX() + 2.5D, c.getY(), c.getZ() + 0.5D);
+            helper.assertTrue(com.alex.mycelialmind.colony.ColonyDialectCallDirector.emit(level, colony, b, c, escort, player),
+                    "A shared escort call must create a request for an active courier.");
+            var sentinelGoal = new com.alex.mycelialmind.entity.ai.colony.SymbiontSentinelGoal(pupil);
+            sentinelGoal.tick();
+            helper.assertTrue("courier_escort".equals(pupil.getTaskState()), "The sentinel must respond to the escort request.");
+            var pickup = com.alex.mycelialmind.colony.ColonySiteHabit.STAGGERED_PICKUP;
+            colony.getDialect(c).teach(pickup, 5);
+            colony.getDialect(b).teach(pickup, 5);
+            var pickupMemory = colony.getSiteMemory(b);
+            UUID holder = UUID.randomUUID(), first = UUID.randomUUID(), second = UUID.randomUUID();
+            long now = level.getGameTime();
+            pickupMemory.tryAcquirePickupTurn(holder, now, 20);
+            pickupMemory.tryAcquirePickupTurn(first, now + 1, 20);
+            pickupMemory.tryAcquirePickupTurn(second, now + 2, 20);
+            pickupMemory.releasePickupTurn(holder);
+            helper.assertTrue(com.alex.mycelialmind.colony.ColonyDialectCallDirector.emit(level, colony, c, b, pickup, player),
+                    "A shared pickup call must assign the oldest waiting courier.");
+            helper.assertTrue(pickupMemory.tryAcquirePickupTurn(first, now + 3, 20)
+                            && !pickupMemory.tryAcquirePickupTurn(second, now + 3, 20),
+                    "The oldest waiting courier must own the pickup lease.");
             helper.assertTrue(colony.startDialectLesson(a, b, habit, 2, pupil.getUUID(), teacher.getUUID(), false),
                     "A second lesson can begin after completing the first.");
             level.removeBlock(b, false);
@@ -8804,6 +8832,63 @@ public final class MycelialGameTests {
             saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
             hive.restoreFromSnapshot(hiveSnapshot, overworld.registryAccess());
         }
+    }
+
+    @GameTest(template = "empty", batch = "dialect_live_navigation", timeoutTicks = 800)
+    public static void dialectApprenticeNavigatesBothWaysAfterReload(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData hive = HiveMindSavedData.get(overworld);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag oldHive = hive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag oldColonies = saved.save(new CompoundTag(), level.registryAccess());
+        List<ChunkPos> forced = forceArenaChunks(helper, -3, 22, -4, 8);
+        BlockPos floor = helper.absolutePos(new BlockPos(0, 120, 0));
+        BlockPos nexusPos = floor.offset(2, 1, 2), source = floor.offset(6, 1, 2), target = floor.offset(17, 1, 2);
+        for (int x = -2; x <= 21; x++) for (int z = -3; z <= 7; z++) {
+            level.setBlock(floor.offset(x, 0, z), Blocks.STONE.defaultBlockState(), 18);
+            for (int y = 1; y <= 4; y++) level.setBlock(floor.offset(x, y, z), Blocks.AIR.defaultBlockState(), 18);
+        }
+        hive.resetAll(); saved.resetAll(); hive.recordMatriarchDefeat(overworld.getGameTime());
+        level.setBlockAndUpdate(nexusPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+        level.setBlockAndUpdate(source, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+        level.setBlockAndUpdate(target, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+        var nexus = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+        var colony = nexus.getOrCreateColony(level);
+        colony.replaceLinkedOutposts(List.of(source, target));
+        var teacher = ModEntities.COLONY_SYMBIONT.get().create(level);
+        var pupil = ModEntities.COLONY_SYMBIONT.get().create(level);
+        teacher.setNexusPos(nexusPos); pupil.setNexusPos(nexusPos);
+        teacher.setPos(source.getX() + 1.5D, source.getY(), source.getZ() + 0.5D);
+        pupil.setPos(target.getX() + 1.5D, target.getY(), target.getZ() + 0.5D);
+        level.addFreshEntity(teacher); level.addFreshEntity(pupil);
+        teacher.syncRosterToColony(); pupil.syncRosterToColony();
+        var habit = com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN;
+        colony.recordDialectEpisode(level, source, habit, teacher);
+        helper.assertTrue(colony.startDialectLesson(source, target, habit, 3, pupil.getUUID(), teacher.getUUID(), true), "Lesson must start.");
+        saved.restoreFromSnapshot(saved.save(new CompoundTag(), level.registryAccess()), level.registryAccess());
+        helper.startSequence().thenWaitUntil(() -> {
+            var current = saved.getByNexus(nexusPos);
+            helper.assertTrue(current.getDialectLesson() != null && current.getDialectLesson().stage()
+                    == com.alex.mycelialmind.colony.ColonyDialectLesson.Stage.OBSERVING,
+                    "Apprentice must navigate from destination to source after reload.");
+        }).thenExecute(() -> {
+            var current = saved.getByNexus(nexusPos);
+            current.recordDialectEpisode(level, source, habit, teacher);
+            helper.assertTrue(current.getDialectLesson().stage() == com.alex.mycelialmind.colony.ColonyDialectLesson.Stage.RETURNING,
+                    "Present apprentice must witness a new episode.");
+            saved.restoreFromSnapshot(saved.save(new CompoundTag(), level.registryAccess()), level.registryAccess());
+        }).thenWaitUntil(() -> {
+            var current = saved.getByNexus(nexusPos);
+            helper.assertTrue(current.getDialectLesson() == null && current.getDialect(target).call(habit) == 3,
+                    "Apprentice must navigate home and complete lesson after reload.");
+        }).thenExecute(() -> {
+            teacher.discard(); pupil.discard();
+            for (BlockPos pos : List.of(source, target, nexusPos)) level.removeBlock(pos, false);
+            saved.restoreFromSnapshot(oldColonies, level.registryAccess());
+            hive.restoreFromSnapshot(oldHive, overworld.registryAccess());
+            releaseArenaChunks(level, forced);
+        }).thenSucceed();
     }
 
     @GameTest(template = "empty", batch = "sovereign_rival_raid", timeoutTicks = 800)

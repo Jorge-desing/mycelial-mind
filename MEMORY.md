@@ -4087,3 +4087,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, prueba de tres puestos
 - GameTest añade A/B/C con acuñación, una demostración con maestro y aprendiz, regreso, enseñanza a C, llamada de descanso y cancelación al destruir el puesto. El test posiciona manualmente a los participantes, por lo que no acredita navegación autónoma. La destrucción cancela de inmediato e informa al dueño; una llamada de descanso garantiza al menos un tick de descanso.
 - `test runGameTestServer -PisolatedGameTests=true --offline --no-daemon` pasó, 180/180 GameTests. Pendiente prueba autónoma de navegación y trabajo real, descarga/recarga, escolta y turnos en vivo, y revisión de interfaz/audio en cliente.
+
+## 2026-11-23 — Dialectos, navegación y llamadas verificadas
+- GameTest con entidades activas verifica navegación autónoma del aprendiz de ida y regreso, restaurando SavedData en ambas fases. El evento de demostración se invoca desde la prueba, sin reproducir todavía el oficio real.
+- Ampliado el escenario de tres puestos para comprobar llamada de escolta y respuesta del goal Centinela, y concesión del turno al primer mensajero en espera. JUnit y GameTests aislados 181/181 pasaron. Pendiente demostración mediante oficio autónomo, descarga real de chunks y revisión visual/audio en cliente.
