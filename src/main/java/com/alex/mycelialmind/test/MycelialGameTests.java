@@ -10587,4 +10587,171 @@ public final class MycelialGameTests {
             drone.discard();
         }
     }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    public static void hiveBrainEngineLifecycleMemoriesAndSchedulesWorkInRuntime(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
+        var weaver = helper.spawnWithNoFreeWill(ModEntities.SYNAPSE_WEAVER.get(), 4, 1, 4);
+        try {
+            var brain = brute.getHiveBrain();
+            helper.assertTrue(brain != null && brain == brute.getHiveBrainRuntime(),
+                    "getHiveBrain() and getHiveBrainRuntime() must return the unified HiveBrain instance.");
+
+            // Manual immediate sensor scan before setting manual test memories
+            brain.triggerSensorsNow(level, brute);
+
+            // Typed memory API directly on HiveBrain
+            BlockPos hotspot = brute.blockPosition().offset(5, 0, 0);
+            brain.setMemory(ModMemoryTypes.SHARED_TARGET_POS.get(), hotspot);
+            brain.setMemory(ModMemoryTypes.HIVE_ALERT_LEVEL.get(), 0.75F);
+            helper.assertTrue(brain.hasMemory(ModMemoryTypes.SHARED_TARGET_POS.get()),
+                    "HiveBrain.hasMemory must reflect stored memory.");
+            helper.assertTrue(hotspot.equals(brain.getMemory(ModMemoryTypes.SHARED_TARGET_POS.get())),
+                    "HiveBrain.getMemory must return stored value.");
+
+            // Schedule activity switch and day-tick callback
+            int currentDayTick = com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler
+                    .normalizeDayTick(level.getDayTime());
+            boolean[] callbackFired = {false};
+            boolean[] predicateActive = {true};
+            var schedule = new com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSchedule()
+                    .activityWhen((srv, entity) -> predicateActive[0], net.minecraft.world.entity.schedule.Activity.INVESTIGATE)
+                    .callbackAt(currentDayTick, (srv, entity) -> callbackFired[0] = true);
+            brain.setSchedule(schedule);
+
+            brute.tickBrain(brute);
+            helper.assertTrue(callbackFired[0], "HiveBrainSchedule callbackAt must fire for matching dayTick.");
+            helper.assertTrue(brain.getActiveActivity() == net.minecraft.world.entity.schedule.Activity.INVESTIGATE,
+                    "HiveBrain must track activeActivity transition to INVESTIGATE.");
+            helper.assertTrue(brain.getPreviousActivity() == net.minecraft.world.entity.schedule.Activity.IDLE,
+                    "HiveBrain must record previousActivity as IDLE.");
+            helper.assertTrue(brain.getBrainTickCount() >= 1L, "HiveBrain tickCount must increment.");
+            helper.assertTrue(brain.getRunningBehaviourCount() >= 0, "HiveBrain running count must be queryable.");
+
+            // Combat FIGHT still preempts scheduled INVESTIGATE when ATTACK_TARGET is present
+            brain.setAttackTarget(weaver);
+            brute.tickBrain(brute);
+            helper.assertTrue(brain.getActiveActivity() == net.minecraft.world.entity.schedule.Activity.FIGHT,
+                    "FIGHT must take priority over scheduled non-combat activity when ATTACK_TARGET is set.");
+            helper.assertTrue(brain.getPreviousActivity() == net.minecraft.world.entity.schedule.Activity.INVESTIGATE,
+                    "previousActivity must update to INVESTIGATE on FIGHT transition.");
+
+            // Clearing target & predicate returns cleanly to IDLE
+            brain.setAttackTarget(null);
+            predicateActive[0] = false;
+            brain.clearMemory(ModMemoryTypes.SHARED_TARGET_POS.get());
+            brain.setSchedule(null);
+            brute.tickBrain(brute);
+            helper.assertTrue(brain.getActiveActivity() == net.minecraft.world.entity.schedule.Activity.IDLE,
+                    "HiveBrain must return to IDLE when combat and schedule predicates clear.");
+            helper.assertTrue(brain.describeRunningBehaviours() != null,
+                    "HiveBrain.describeRunningBehaviours must return non-null diagnostics.");
+
+            helper.succeed();
+        } finally {
+            brute.discard();
+            weaver.discard();
+        }
+    }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    public static void hiveBrainUtilitySelectorAndReactiveAllApplicableWorkInRuntime(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var weaver = helper.spawnWithNoFreeWill(ModEntities.SYNAPSE_WEAVER.get(), 2, 1, 2);
+        try {
+            float[] dynamicScores = {0.80F, 0.70F};
+            int[] startCounts = {0, 0};
+            int[] stopCounts = {0, 0};
+
+            var branchA = new com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour<MycelialMob>() {
+                @Override
+                protected List<com.mojang.datafixers.util.Pair<net.minecraft.world.entity.ai.memory.MemoryModuleType<?>, net.minecraft.world.entity.ai.memory.MemoryStatus>> getMemoryRequirements() {
+                    return List.of();
+                }
+
+                @Override
+                protected boolean shouldKeepRunning(MycelialMob entity) {
+                    return true;
+                }
+            }
+                    .whenStarting(mob -> startCounts[0]++)
+                    .whenStopping(mob -> stopCounts[0]++)
+                    .runFor(mob -> 40);
+            var branchB = new com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour<MycelialMob>() {
+                @Override
+                protected List<com.mojang.datafixers.util.Pair<net.minecraft.world.entity.ai.memory.MemoryModuleType<?>, net.minecraft.world.entity.ai.memory.MemoryStatus>> getMemoryRequirements() {
+                    return List.of();
+                }
+
+                @Override
+                protected boolean shouldKeepRunning(MycelialMob entity) {
+                    return true;
+                }
+            }
+                    .whenStarting(mob -> startCounts[1]++)
+                    .whenStopping(mob -> stopCounts[1]++)
+                    .runFor(mob -> 40);
+
+            var utilitySelector = new com.alex.mycelialmind.entity.ai.brain.core.UtilitySelectorBehaviour<MycelialMob>()
+                    .hysteresisBonus(0.15F)
+                    .minScoreThreshold(0.10F)
+                    .continuousPreemption(true)
+                    .add(branchA, mob -> dynamicScores[0])
+                    .add(branchB, mob -> dynamicScores[1]);
+
+            long t = level.getGameTime();
+            helper.assertTrue(utilitySelector.tryStart(level, weaver, t),
+                    "UtilitySelectorBehaviour must start initial winning branch.");
+            helper.assertTrue(startCounts[0] == 1 && startCounts[1] == 0,
+                    "Branch A (0.80) must win over Branch B (0.70).");
+
+            // Raise B to 0.85: A effective = 0.80 + 0.15 = 0.95 -> A holds via hysteresis
+            dynamicScores[1] = 0.85F;
+            utilitySelector.tickOrStop(level, weaver, t + 1L);
+            helper.assertTrue(stopCounts[0] == 0 && startCounts[1] == 0,
+                    "Hysteresis must prevent switching when B (0.85) < A + hysteresis (0.95).");
+
+            // Raise B to 1.05: exceeds 0.95 -> B preempts A
+            dynamicScores[1] = 1.05F;
+            utilitySelector.tickOrStop(level, weaver, t + 2L);
+            helper.assertTrue(stopCounts[0] == 1 && startCounts[1] == 1,
+                    "Branch B (1.05) must preempt Branch A once it exceeds score + hysteresis.");
+            utilitySelector.doStop(level, weaver, t + 3L);
+
+            // AllApplicableBehaviours with reEvaluateStoppedChildren(true) restarts stopped sibling
+            int[] transientStarts = {0};
+            var persistentChild = new com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour<MycelialMob>() {
+                @Override
+                protected List<com.mojang.datafixers.util.Pair<net.minecraft.world.entity.ai.memory.MemoryModuleType<?>, net.minecraft.world.entity.ai.memory.MemoryStatus>> getMemoryRequirements() {
+                    return List.of();
+                }
+
+                @Override
+                protected boolean shouldKeepRunning(MycelialMob entity) {
+                    return true;
+                }
+            }.noTimeout();
+            var transientChild = new com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour<MycelialMob>(mob -> {})
+                    .whenStarting(mob -> transientStarts[0]++)
+                    .runFor(mob -> 1);
+            var reactiveAll = new com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours<>(
+                    persistentChild, transientChild).reEvaluateStoppedChildren(true);
+
+            helper.assertTrue(reactiveAll.tryStart(level, weaver, t + 10L),
+                    "Reactive AllApplicableBehaviours must start eligible children.");
+            helper.assertTrue(transientStarts[0] == 1, "Transient child must start on first tick.");
+            // Tick at t+12: transientChild times out (endTimestamp = t+11, timedOut when gameTime > t+11) and stops
+            reactiveAll.tickOrStop(level, weaver, t + 12L);
+            // Next tick: persistentChild is still running, and reEvaluateStoppedChildren restarts transientChild
+            reactiveAll.tickOrStop(level, weaver, t + 13L);
+            helper.assertTrue(transientStarts[0] == 2,
+                    "Reactive AllApplicableBehaviours must restart stopped child while persistent sibling runs.");
+            reactiveAll.doStop(level, weaver, t + 14L);
+
+            helper.succeed();
+        } finally {
+            weaver.discard();
+        }
+    }
 }

@@ -34,8 +34,8 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
-import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.core.UtilitySelectorBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
@@ -89,7 +89,10 @@ public class SynapseWeaverEntity extends MycelialMob {
 
         return BrainActivityGroup.coreTasks(
                 new WeaverSupportBehaviour(),
-                new FirstApplicableBehaviour<>(avoidPlayers, projectileSidestep),
+                new UtilitySelectorBehaviour<MycelialMob>()
+                        .hysteresisBonus(0.12F)
+                        .add(projectileSidestep, mob -> HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()) ? 0.95F : 0.0F)
+                        .add(avoidPlayers, mob -> 0.70F),
                 new LookAtTarget<>(),
                 new MoveToWalkTarget<>()
         );
@@ -101,7 +104,7 @@ public class SynapseWeaverEntity extends MycelialMob {
                 new AllApplicableBehaviours<>(
                         new HiveNodeRegenBehaviour().startCondition(mob -> mob.getTarget() == null),
                         new SetPlayerLookTarget<>()
-                )
+                ).reEvaluateStoppedChildren(true)
         );
     }
 

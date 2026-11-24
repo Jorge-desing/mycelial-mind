@@ -4304,3 +4304,29 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`, `.agents/skills/mycelial-ai-hive/SKILL.md`, `MEMORY.md`
 - **Verificación / Estado:**
   - `CodeMode` (`mycelial-mind-dev`): `test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon` -> **`BUILD SUCCESSFUL` (`34s`), `190/190` `@GameTest`s PASS (`5.711s`), `105/105` JUnit en `12` suites (`2.119s`)**, `audit_mod_assets` (`ok: true`, `2146/2146` claves EN/ES, `0` faltantes), `validate_skills` (`8/8` OK).
+
+
+## [2026-11-24 13:27] — Evolución Arquitectónica del Motor `HiveBrain` y Contrato `HiveBrainOwner` (`/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:**
+  1. **Motor de Primera Clase `HiveBrain<E>` y Contrato `HiveBrainOwner<T>` (`core/HiveBrain.java`, `core/HiveBrainRuntime.java`, `core/HiveBrainOwner.java`):**
+     - `HiveBrain<E>` envuelve `Brain<E>`, sensores, `HiveBrainSchedule`, resolución de prioridades con cero asignaciones en el camino caliente (`priorityResolutionBuffer` pre-alocado y uso directo de `activityPriorities`), tracking de actividad (`activeActivity`, `previousActivity`, `lastActivityChangeGameTime`, `getTicksInCurrentActivity`, `getBrainTickCount`), métodos tipados de memoria/objetivo, `triggerSensorsNow`, `forceActivity`, `resetToDefaultActivity` e introspección (`getRunningBehaviourCount`, `describeRunningBehaviours`).
+     - `HiveBrainRuntime<E>` hereda de `HiveBrain<E>` conservando compatibilidad total hacia atrás.
+     - `HiveBrainOwner<T>` incorpora `getHiveBrain()`, `setHiveBrain()`, `getBrainSchedule()`, `shouldTickBrain()`, `onBrainTickStart()`, `onActivityChanged()`, `onBrainTickEnd()` y `handleAdditionalBrainSetup(HiveBrain<T>)`.
+  2. **Planificación Declarativa y Helpers Puros (`core/HiveBrainSchedule.java`, `core/HiveBrainScheduler.java`):**
+     - `HiveBrainSchedule` añade ventanas por `dayTick` (con soporte nocturno), reglas dinámicas `activityWhen(...)` y callbacks `callbackAt(...)` una vez por `gameTime`.
+     - `HiveBrainScheduler` suma `computePhasedFirstTickTime`, `normalizeDayTick`, `isTickWithinWindow` y `selectHighestUtilityIndex` (umbral mínimo + histéresis + desempate estable).
+  3. **Optimización de Construcción, Sensores y Composites (`HiveBrainFactory`, `HiveSensor`, `AllApplicableBehaviours`, `UtilitySelectorBehaviour`):**
+     - `HiveBrainFactory` indexa `MEMORY_CACHE` por `Class<?>` y evita la doble compilación entre `createProvider` e `initializeBrain` mediante un `ThreadLocal<CompiledBrainSpec<?>>` con `WeakReference` limpiado en `finally`.
+     - `HiveSensor` activa desfase determinista por `entity.getId()` tras el primer escaneo inmediato y añade `forceScan`/`resetSchedule`.
+     - `AllApplicableBehaviours` incorpora `.reEvaluateStoppedChildren(boolean)` (default `false`) para reactivar hijos detenidos mientras otros siguen en ejecución.
+     - Nuevo `UtilitySelectorBehaviour<E>` (extiende `GroupBehaviour<E>`) con `UtilityScorer<E>`, umbral mínimo, bono de histéresis, buffer pre-alocado de scores y preempción continua; integrado en `AcidSpitterEntity`, `SynapseWeaverEntity` y `SynapticMimicEntity`.
+  4. **Pruebas, Docs y Skills:** Ampliados `HiveBrainEngineUnitTest.java` (`107` JUnit en `12` suites) y `MycelialGameTests.java` (`192` `@GameTest`s incluyendo `hiveBrainEngineLifecycleMemoriesAndSchedulesWorkInRuntime` y `hiveBrainUtilitySelectorAndReactiveAllApplicableWorkInRuntime`); actualizados `docs/HIVE_BRAIN_ARCHITECTURE.md` y `.agents/skills/mycelial-ai-hive/SKILL.md` (revisadas el resto de skills sin cambios requeridos).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/entity/ai/brain/core/{HiveBrain,HiveBrainRuntime,HiveBrainOwner,HiveBrainSchedule,HiveBrainScheduler,HiveBrainFactory,AllApplicableBehaviours,UtilitySelectorBehaviour}.java`
+  - `src/main/java/com/alex/mycelialmind/entity/ai/brain/sensor/HiveSensor.java`
+  - `src/main/java/com/alex/mycelialmind/entity/{AcidSpitterEntity,SynapseWeaverEntity,SynapticMimicEntity}.java`
+  - `src/test/java/com/alex/mycelialmind/HiveBrainEngineUnitTest.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`
+  - `docs/HIVE_BRAIN_ARCHITECTURE.md`, `.agents/skills/mycelial-ai-hive/SKILL.md`, `MEMORY.md`
+- **Verificación / Estado:**
+  - `CodeMode` (`mycelial-mind-dev`): `test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon` -> **`BUILD SUCCESSFUL` (`31s`), `192/192` `@GameTest`s PASS (`6.662s`), `107/107` JUnit en `12` suites (`2.102s`)**, `audit_mod_assets` (`ok: true`, `2146/2146` claves EN/ES, `0` faltantes), `validate_skills` (`8/8` OK).

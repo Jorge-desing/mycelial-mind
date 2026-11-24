@@ -2,13 +2,14 @@ package com.alex.mycelialmind.entity.ai.brain.core;
 
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.schedule.Activity;
 
+import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,28 +19,59 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Clean-room brain factory operating without Access Transformers or Mixins.
- * Collects declared memories from sensors and behaviour trees, builds a vanilla
- * {@link Brain.Provider}, wires all {@link BrainActivityGroup}s, and returns a {@link HiveBrainRuntime}.
+ * Caches declared memories per entity {@link Class} and avoids duplicate compilation
+ * between {@link #createProvider} and {@link #initializeBrain}.
  */
 public final class HiveBrainFactory {
-    private static final Map<EntityType<?>, List<MemoryModuleType<?>>> MEMORY_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, List<MemoryModuleType<?>>> MEMORY_CACHE = new ConcurrentHashMap<>();
+    private static final ThreadLocal<CompiledBrainSpec<?>> PENDING_SPEC = new ThreadLocal<>();
 
     private HiveBrainFactory() {
     }
 
+    public static void clearMemoryCache() {
+        MEMORY_CACHE.clear();
+        PENDING_SPEC.remove();
+    }
+
+    public static int getCachedMemoryClassCount() {
+        return MEMORY_CACHE.size();
+    }
+
     public static <E extends LivingEntity & HiveBrainOwner<E>> Brain.Provider<E> createProvider(E owner) {
-        List<MemoryModuleType<?>> memories = MEMORY_CACHE.computeIfAbsent(
-                owner.getType(),
-                ignored -> List.copyOf(collectDeclaredMemories(owner, compileTaskGroups(owner), owner.getSensors()))
-        );
+        List<MemoryModuleType<?>> cached = MEMORY_CACHE.get(owner.getClass());
+        if (cached != null) {
+            return Brain.provider(cached, List.of());
+        }
+
+        List<BrainActivityGroup<E>> groups = compileTaskGroups(owner);
+        List<? extends HiveSensor<? extends E>> sensors = owner.getSensors();
+        List<MemoryModuleType<?>> memories = List.copyOf(collectDeclaredMemories(groups, sensors));
+        MEMORY_CACHE.putIfAbsent(owner.getClass(), memories);
+        PENDING_SPEC.set(new CompiledBrainSpec<>(owner, groups, sensors));
         return Brain.provider(memories, List.of());
     }
 
     @SuppressWarnings("unchecked")
     public static <E extends LivingEntity & HiveBrainOwner<E>> HiveBrainRuntime<E> initializeBrain(
             E owner, Brain<E> brain) {
-        List<BrainActivityGroup<E>> groups = compileTaskGroups(owner);
-        for (BrainActivityGroup<E> group : groups) {
+        List<BrainActivityGroup<E>> groups;
+        List<? extends HiveSensor<? extends E>> rawSensors;
+        try {
+            CompiledBrainSpec<?> pending = PENDING_SPEC.get();
+            if (pending != null && pending.matches(owner)) {
+                groups = (List<BrainActivityGroup<E>>) (List<?>) pending.groups;
+                rawSensors = (List<? extends HiveSensor<? extends E>>) (List<?>) pending.sensors;
+            } else {
+                groups = compileTaskGroups(owner);
+                rawSensors = owner.getSensors();
+            }
+        } finally {
+            PENDING_SPEC.remove();
+        }
+
+        for (int i = 0, size = groups.size(); i < size; i++) {
+            BrainActivityGroup<E> group = groups.get(i);
             if (!group.getBehaviours().isEmpty()
                     || !group.getActivityStartMemoryConditions().isEmpty()
                     || !group.getWipedMemoriesOnFinish().isEmpty()) {
@@ -62,13 +94,28 @@ public final class HiveBrainFactory {
         }
         owner.handleAdditionalBrainSetup(brain);
 
-        List<HiveSensor<? super E>> sensors = new ArrayList<>();
-        for (HiveSensor<? extends E> sensor : owner.getSensors()) {
-            if (sensor != null) {
-                sensors.add((HiveSensor<? super E>) sensor);
+        List<HiveSensor<? super E>> sensors = new ArrayList<>(rawSensors != null ? rawSensors.size() : 0);
+        if (rawSensors != null) {
+            for (int i = 0, size = rawSensors.size(); i < size; i++) {
+                HiveSensor<? extends E> sensor = rawSensors.get(i);
+                if (sensor != null) {
+                    sensors.add((HiveSensor<? super E>) sensor);
+                }
             }
         }
-        return new HiveBrainRuntime<>(sensors, owner.getActivityPriorities());
+        HiveBrainRuntime<E> runtime = new HiveBrainRuntime<>(
+                brain,
+                sensors,
+                owner.getActivityPriorities(),
+                groups,
+                defaultActivity
+        );
+        HiveBrainSchedule schedule = owner.getBrainSchedule();
+        if (schedule != null) {
+            runtime.setSchedule(schedule);
+        }
+        owner.handleAdditionalBrainSetup(runtime);
+        return runtime;
     }
 
     @SuppressWarnings("unchecked")
@@ -87,16 +134,15 @@ public final class HiveBrainFactory {
     }
 
     private static <E extends LivingEntity & HiveBrainOwner<E>> void addIfNonNull(
-            List<BrainActivityGroup<E>> groups, BrainActivityGroup<E> group) {
+            List<BrainActivityGroup<E>> groups, @Nullable BrainActivityGroup<E> group) {
         if (group != null) {
             groups.add(group);
         }
     }
 
     private static <E extends LivingEntity & HiveBrainOwner<E>> Set<MemoryModuleType<?>> collectDeclaredMemories(
-            E owner,
             List<BrainActivityGroup<E>> groups,
-            List<? extends HiveSensor<? extends E>> sensors) {
+            @Nullable List<? extends HiveSensor<? extends E>> sensors) {
         Set<MemoryModuleType<?>> memories = new LinkedHashSet<>();
         // Core vanilla navigation/combat/entity memories so standard behaviours & goals never drop state
         memories.add(MemoryModuleType.LOOK_TARGET);
@@ -134,5 +180,25 @@ public final class HiveBrainFactory {
             memories.addAll(group.getWipedMemoriesOnFinish());
         }
         return memories;
+    }
+
+    private static final class CompiledBrainSpec<E extends LivingEntity & HiveBrainOwner<E>> {
+        private final WeakReference<Object> ownerRef;
+        private final List<BrainActivityGroup<E>> groups;
+        @Nullable
+        private final List<? extends HiveSensor<? extends E>> sensors;
+
+        private CompiledBrainSpec(
+                E owner,
+                List<BrainActivityGroup<E>> groups,
+                @Nullable List<? extends HiveSensor<? extends E>> sensors) {
+            this.ownerRef = new WeakReference<>(owner);
+            this.groups = groups;
+            this.sensors = sensors;
+        }
+
+        private boolean matches(Object candidate) {
+            return this.ownerRef.get() == candidate;
+        }
     }
 }

@@ -113,4 +113,65 @@ public final class HiveBrainScheduler {
         int next = currentIndex + 1;
         return next >= size ? -1 : next;
     }
+
+    /**
+     * Computes a deterministic phased next tick time for a sensor based on {@code entityId}
+     * after its initial immediate execution, preventing synchronized swarm scan spikes.
+     */
+    public static long computePhasedFirstTickTime(long gameTime, int scanRate, int entityId) {
+        int clampedRate = Math.max(1, scanRate);
+        if (clampedRate <= 1) {
+            return computeNextTickTime(gameTime, 1);
+        }
+        int offset = 1 + Math.floorMod(entityId, clampedRate);
+        if (gameTime > Long.MAX_VALUE - offset) {
+            return Long.MAX_VALUE;
+        }
+        return gameTime + offset;
+    }
+
+    /**
+     * Normalizes a world dayTime value into the canonical {@code [0, 24000)} Minecraft day tick range.
+     */
+    public static int normalizeDayTick(long dayTime) {
+        return (int) Math.floorMod(dayTime, 24000L);
+    }
+
+    /**
+     * Returns true if {@code tick} falls inside {@code [startInclusive, endInclusive]},
+     * supporting midnight wrap-around when {@code startInclusive > endInclusive}.
+     */
+    public static boolean isTickWithinWindow(int tick, int startInclusive, int endInclusive) {
+        if (startInclusive <= endInclusive) {
+            return tick >= startInclusive && tick <= endInclusive;
+        }
+        return tick >= startInclusive || tick <= endInclusive;
+    }
+
+    /**
+     * Selects the index with the highest valid utility score above {@code minThreshold}.
+     * Applies {@code hysteresisBonus} to {@code currentRunningIndex} only if its raw score
+     * already satisfies {@code >= minThreshold}, ensuring stable switching without sticky deadlocks.
+     */
+    public static int selectHighestUtilityIndex(
+            float[] scores, int currentRunningIndex, float minThreshold, float hysteresisBonus) {
+        if (scores == null || scores.length == 0) {
+            return -1;
+        }
+        float effectiveHysteresis = Math.max(0.0F, hysteresisBonus);
+        int bestIndex = -1;
+        float bestScore = Float.NEGATIVE_INFINITY;
+        for (int i = 0; i < scores.length; i++) {
+            float raw = scores[i];
+            if (Float.isNaN(raw) || raw < minThreshold) {
+                continue;
+            }
+            float effective = (i == currentRunningIndex) ? (raw + effectiveHysteresis) : raw;
+            if (bestIndex == -1 || effective > bestScore) {
+                bestIndex = i;
+                bestScore = effective;
+            }
+        }
+        return bestIndex;
+    }
 }

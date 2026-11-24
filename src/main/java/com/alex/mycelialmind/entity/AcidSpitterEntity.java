@@ -89,7 +89,8 @@ public class AcidSpitterEntity extends MycelialMob implements RangedAttackMob {
         lookAtProjectile.startCondition(mob -> !mob.isDesynced()
                 && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
 
-        var parallelReaction = new AllApplicableBehaviours<>(evadeProjectile, lookAtProjectile);
+        var parallelReaction = new AllApplicableBehaviours<>(evadeProjectile, lookAtProjectile)
+                .reEvaluateStoppedChildren(true);
         parallelReaction.cooldownFor(mob -> 25);
 
         return BrainActivityGroup.coreTasks(

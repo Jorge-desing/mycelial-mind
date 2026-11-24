@@ -21,6 +21,7 @@ public abstract class HiveSensor<E extends LivingEntity> extends Sensor<E> {
     protected Function<E, Integer> scanRate = entity -> 20;
     protected Consumer<E> scanCallback = entity -> {};
     protected long nextTickTime = HiveBrainScheduler.INITIAL_TICK_SENTINEL;
+    protected boolean phaseOffsetByEntityId = true;
 
     protected HiveSensor() {
         super(1);
@@ -29,6 +30,15 @@ public abstract class HiveSensor<E extends LivingEntity> extends Sensor<E> {
     public HiveSensor<E> setScanRate(Function<E, Integer> scanRate) {
         this.scanRate = scanRate != null ? scanRate : entity -> 20;
         return this;
+    }
+
+    public HiveSensor<E> setPhaseOffsetByEntityId(boolean phaseOffsetByEntityId) {
+        this.phaseOffsetByEntityId = phaseOffsetByEntityId;
+        return this;
+    }
+
+    public boolean isPhaseOffsetByEntityId() {
+        return this.phaseOffsetByEntityId;
     }
 
     public HiveSensor<E> afterScanning(Consumer<E> callback) {
@@ -42,10 +52,25 @@ public abstract class HiveSensor<E extends LivingEntity> extends Sensor<E> {
         if (!HiveBrainScheduler.shouldRunSensor(gameTime, this.nextTickTime)) {
             return;
         }
+        boolean initialScan = this.nextTickTime == HiveBrainScheduler.INITIAL_TICK_SENTINEL;
+        int rate = Math.max(1, this.scanRate.apply(entity));
+        this.nextTickTime = (initialScan && this.phaseOffsetByEntityId)
+                ? HiveBrainScheduler.computePhasedFirstTickTime(gameTime, rate, entity.getId())
+                : HiveBrainScheduler.computeNextTickTime(gameTime, rate);
+        scan(level, entity);
+        this.scanCallback.accept(entity);
+    }
+
+    public final void forceScan(ServerLevel level, E entity) {
+        long gameTime = level.getGameTime();
         int rate = Math.max(1, this.scanRate.apply(entity));
         this.nextTickTime = HiveBrainScheduler.computeNextTickTime(gameTime, rate);
         scan(level, entity);
         this.scanCallback.accept(entity);
+    }
+
+    public final void resetSchedule() {
+        this.nextTickTime = HiveBrainScheduler.INITIAL_TICK_SENTINEL;
     }
 
     protected abstract void scan(ServerLevel level, E entity);

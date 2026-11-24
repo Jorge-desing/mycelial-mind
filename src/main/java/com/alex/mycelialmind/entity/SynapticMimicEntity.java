@@ -11,8 +11,8 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.StrafeTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
-import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.core.UtilitySelectorBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
@@ -311,11 +311,11 @@ public class SynapticMimicEntity extends MycelialMob {
         return BrainActivityGroup.coreTasks(
                 new LookAtTarget<>(),
                 new MoveToWalkTarget<>(),
-                new FirstApplicableBehaviour<>(
-                        shockedFlee,
-                        marksmanStrafe,
-                        covertObservation
-                )
+                new UtilitySelectorBehaviour<MycelialMob>()
+                        .hysteresisBonus(0.10F)
+                        .add(shockedFlee, mob -> (isUnmasked() && getShockTicks() > 0) ? 1.0F : 0.0F)
+                        .add(marksmanStrafe, mob -> (!isDesynced() && getMimicStance() == MimicStance.SPORE_MARKSMAN) ? 0.75F : 0.0F)
+                        .add(covertObservation, mob -> (!isUnmasked() && !isDesynced()) ? 0.45F : 0.0F)
         );
     }
 

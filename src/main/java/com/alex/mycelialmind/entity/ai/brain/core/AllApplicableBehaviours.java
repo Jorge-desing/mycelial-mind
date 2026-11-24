@@ -13,6 +13,8 @@ import java.util.List;
  * Parallel composite behaviour that starts every eligible child and ticks all active children concurrently.
  */
 public final class AllApplicableBehaviours<E extends LivingEntity> extends GroupBehaviour<E> {
+    private boolean reEvaluateStoppedChildren = false;
+
     @SafeVarargs
     public AllApplicableBehaviours(Pair<HiveBehaviour<? super E>, Integer>... behaviours) {
         super(behaviours);
@@ -25,6 +27,15 @@ public final class AllApplicableBehaviours<E extends LivingEntity> extends Group
 
     public AllApplicableBehaviours(Collection<Pair<HiveBehaviour<? super E>, Integer>> behaviours) {
         super(behaviours);
+    }
+
+    public AllApplicableBehaviours<E> reEvaluateStoppedChildren(boolean reEvaluateStoppedChildren) {
+        this.reEvaluateStoppedChildren = reEvaluateStoppedChildren;
+        return this;
+    }
+
+    public boolean isReEvaluateStoppedChildren() {
+        return this.reEvaluateStoppedChildren;
     }
 
     @Override
@@ -61,13 +72,15 @@ public final class AllApplicableBehaviours<E extends LivingEntity> extends Group
     @Override
     protected void tick(ServerLevel level, E entity, long gameTime) {
         boolean anyStillRunning = false;
-        for (Pair<HiveBehaviour<? super E>, Integer> entry : this.behaviours) {
-            HiveBehaviour<? super E> child = entry.getFirst();
+        for (int i = 0, size = this.behaviours.size(); i < size; i++) {
+            HiveBehaviour<? super E> child = this.behaviours.get(i).getFirst();
             if (child.getStatus() == Behavior.Status.RUNNING) {
                 child.tickOrStop(level, entity, gameTime);
                 if (child.getStatus() == Behavior.Status.RUNNING) {
                     anyStillRunning = true;
                 }
+            } else if (this.reEvaluateStoppedChildren && child.tryStart(level, entity, gameTime)) {
+                anyStillRunning = true;
             }
         }
         if (!anyStillRunning) {

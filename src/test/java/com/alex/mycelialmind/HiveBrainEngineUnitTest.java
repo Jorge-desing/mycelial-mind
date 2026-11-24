@@ -5,7 +5,10 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.AvoidEntity;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.StrafeTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler;
+import com.alex.mycelialmind.entity.ai.brain.core.UtilitySelectorBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
@@ -150,5 +153,63 @@ class HiveBrainEngineUnitTest {
         assertEquals(1.4F, flee.getSpeedModifier(), 1.0E-4F);
 
         assertEquals(0.35D, IncomingProjectilesSensor.DEFAULT_MIN_HEADING_DOT, 1.0E-6D);
+    }
+
+    @Test
+    void phasedSensorTicksDayWindowsAndUtilitySelectionWithHysteresisWorkDeterministically() {
+        // Phased sensor offsets distribute entities across scanRate buckets without overflow
+        assertEquals(101L, HiveBrainScheduler.computePhasedFirstTickTime(100L, 1, 7));
+        assertEquals(101L, HiveBrainScheduler.computePhasedFirstTickTime(100L, 20, 0));
+        assertEquals(106L, HiveBrainScheduler.computePhasedFirstTickTime(100L, 20, 5));
+        assertEquals(118L, HiveBrainScheduler.computePhasedFirstTickTime(100L, 20, -3));
+        assertEquals(Long.MAX_VALUE, HiveBrainScheduler.computePhasedFirstTickTime(Long.MAX_VALUE - 2L, 20, 5));
+
+        // Minecraft 24000-tick day normalization and window matching (normal & overnight wrap)
+        assertEquals(0, HiveBrainScheduler.normalizeDayTick(24000L));
+        assertEquals(18000, HiveBrainScheduler.normalizeDayTick(-6000L));
+        assertTrue(HiveBrainScheduler.isTickWithinWindow(6000, 1000, 12000));
+        assertFalse(HiveBrainScheduler.isTickWithinWindow(13000, 1000, 12000));
+        assertTrue(HiveBrainScheduler.isTickWithinWindow(23000, 22000, 2000));
+        assertTrue(HiveBrainScheduler.isTickWithinWindow(500, 22000, 2000));
+        assertFalse(HiveBrainScheduler.isTickWithinWindow(12000, 22000, 2000));
+
+        // Utility selection with threshold, hysteresis bonus, NaN handling, and preemption
+        assertEquals(-1, HiveBrainScheduler.selectHighestUtilityIndex(null, -1, 0.1F, 0.1F));
+        assertEquals(-1, HiveBrainScheduler.selectHighestUtilityIndex(new float[]{0.05F, Float.NaN}, -1, 0.1F, 0.1F));
+
+        float[] scores = {0.60F, 0.65F, Float.NaN};
+        assertEquals(1, HiveBrainScheduler.selectHighestUtilityIndex(scores, -1, 0.1F, 0.10F));
+        // Running index 0 gets +0.10 hysteresis (0.70 > 0.65), so it holds against 0.65
+        assertEquals(0, HiveBrainScheduler.selectHighestUtilityIndex(scores, 0, 0.1F, 0.10F));
+        // Once index 1 exceeds 0.70 (0.75 > 0.70), it preempts index 0
+        scores[1] = 0.75F;
+        assertEquals(1, HiveBrainScheduler.selectHighestUtilityIndex(scores, 0, 0.1F, 0.10F));
+        // Running index below minThreshold gets NO hysteresis rescue
+        scores[0] = 0.05F;
+        scores[1] = 0.12F;
+        assertEquals(1, HiveBrainScheduler.selectHighestUtilityIndex(scores, 0, 0.10F, 0.50F));
+    }
+
+    @Test
+    void utilitySelectorAndReactiveAllApplicableExposeFluentConfiguration() {
+        var b1 = new CustomBehaviour<MycelialMob>(mob -> {});
+        var b2 = new CustomBehaviour<MycelialMob>(mob -> {});
+
+        var selector = new UtilitySelectorBehaviour<MycelialMob>()
+                .minScoreThreshold(0.05F)
+                .hysteresisBonus(0.15F)
+                .continuousPreemption(false)
+                .add(b1, mob -> 0.5F)
+                .add(b2, mob -> 0.8F);
+
+        assertEquals(0.05F, selector.getMinScoreThreshold(), 1.0E-5F);
+        assertEquals(0.15F, selector.getHysteresisBonus(), 1.0E-5F);
+        assertFalse(selector.isContinuousPreemption());
+        assertEquals(2, selector.getChildBehaviours().size());
+
+        var allDefault = new AllApplicableBehaviours<MycelialMob>(b1, b2);
+        assertFalse(allDefault.isReEvaluateStoppedChildren());
+        allDefault.reEvaluateStoppedChildren(true);
+        assertTrue(allDefault.isReEvaluateStoppedChildren());
     }
 }

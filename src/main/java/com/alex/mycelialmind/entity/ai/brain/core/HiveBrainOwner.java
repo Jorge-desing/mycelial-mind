@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Contract for entities powered by the native {@code HiveBrain} engine.
+ * Contract for entities powered by the native {@link HiveBrain} engine.
  */
 public interface HiveBrainOwner<T extends LivingEntity & HiveBrainOwner<T>> {
     List<? extends HiveSensor<? extends T>> getSensors();
@@ -45,7 +45,50 @@ public interface HiveBrainOwner<T extends LivingEntity & HiveBrainOwner<T>> {
         return List.of(Activity.FIGHT, Activity.IDLE);
     }
 
+    @Nullable
+    default HiveBrainSchedule getBrainSchedule() {
+        return null;
+    }
+
     default void handleAdditionalBrainSetup(Brain<? extends T> brain) {
+    }
+
+    default void handleAdditionalBrainSetup(HiveBrain<T> hiveBrain) {
+    }
+
+    default boolean shouldTickBrain(ServerLevel level, T entity) {
+        return true;
+    }
+
+    default void onBrainTickStart(ServerLevel level, T entity, HiveBrain<T> brain) {
+    }
+
+    default void onActivityChanged(
+            ServerLevel level, T entity, @Nullable Activity previousActivity, Activity nextActivity) {
+    }
+
+    default void onBrainTickEnd(ServerLevel level, T entity, HiveBrain<T> brain) {
+    }
+
+    @Nullable
+    default HiveBrain<T> getHiveBrain() {
+        return getHiveBrainRuntime();
+    }
+
+    default void setHiveBrain(@Nullable HiveBrain<T> brain) {
+        if (brain == null || brain instanceof HiveBrainRuntime<T>) {
+            setHiveBrainRuntime((HiveBrainRuntime<T>) brain);
+        } else {
+            HiveBrainRuntime<T> wrapped = new HiveBrainRuntime<>(
+                    brain.getVanillaBrain(),
+                    brain.getSensors(),
+                    brain.getActivityPriorities(),
+                    brain.getTaskGroups(),
+                    getDefaultActivity()
+            );
+            wrapped.setSchedule(brain.getSchedule());
+            setHiveBrainRuntime(wrapped);
+        }
     }
 
     @Nullable
@@ -58,9 +101,9 @@ public interface HiveBrainOwner<T extends LivingEntity & HiveBrainOwner<T>> {
         if (!(entity.level() instanceof ServerLevel serverLevel)) {
             return;
         }
-        HiveBrainRuntime<T> runtime = getHiveBrainRuntime();
-        if (runtime != null) {
-            runtime.tick(serverLevel, entity, (Brain<T>) entity.getBrain());
+        HiveBrain<T> hiveBrain = getHiveBrain();
+        if (hiveBrain != null) {
+            hiveBrain.tick(serverLevel, entity, (Brain<T>) entity.getBrain());
         } else {
             ((Brain<T>) entity.getBrain()).tick(serverLevel, entity);
         }
