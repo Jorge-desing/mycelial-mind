@@ -150,6 +150,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new com.alex.mycelialmind.entity.ai.colony.SymbiontDialectLessonGoal(this));
         this.goalSelector.addGoal(1, new SymbiontMemoryWitnessGoal(this));
         this.goalSelector.addGoal(1, new SymbiontRestAndFeedGoal(this));
         this.goalSelector.addGoal(2, new SymbiontSentinelGoal(this));
@@ -543,7 +544,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
                 ColonySiteMemory memory = colony.getSiteMemory(pendingEarlyRestSite);
                 if (memory != null) {
                     boolean learned = memory.recordTrialSuccess(ColonySiteHabit.REST_BEFORE_RETURN, 2);
-                    colony.getDialect(pendingEarlyRestSite).recordEpisode(ColonySiteHabit.REST_BEFORE_RETURN, getUUID(), level.getGameTime());
+                    colony.recordDialectEpisode(level, pendingEarlyRestSite, ColonySiteHabit.REST_BEFORE_RETURN, this);
                     if (memory.usesHabit(ColonySiteHabit.REST_BEFORE_RETURN)) {
                         rememberSiteExperience(level, pendingEarlyRestSite,
                                 ColonyWitnessMemory.Type.HABIT_REST_BEFORE_RETURN, BlockPos.ZERO);

@@ -4055,3 +4055,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos de colonia, inicio
 - Añadido estado persistente de episodios y secuencias por puesto, y registro de episodios en resultados existentes de escolta, descanso y turnos. `compileJava` pasó en modo offline.
 - Trabajo incompleto: falta implementar acuñación y demostraciones presenciales, enseñanza y viajes, respuestas a señales, interfaz, red, sonidos, localización y verificación de juego.
+
+## 2026-11-23 — Dialectos, lección persistente
+- Añadidas etapas guardadas de viaje, observación y regreso, selección validada de aprendiz y comprobación de demostraciones en el instante del episodio con ambos trabajadores presentes. La muerte del aprendiz cancela la lección. Acciones de servidor para iniciar y cancelar añadidas. `test` pasó offline.
+- Pendiente: selección de maestro, interfaz y sincronización de dialectos, emisión y respuestas, conflictos, cancelación visible, sonido/subtítulos, pruebas funcionales y revisión de los casos de descarga y destrucción. La nueva lección aún no está conectada a la interfaz.

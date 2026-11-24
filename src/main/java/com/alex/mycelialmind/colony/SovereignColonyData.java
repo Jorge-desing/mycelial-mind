@@ -134,6 +134,7 @@ public final class SovereignColonyData {
     private final ColonyOrderBoard orderBoard = new ColonyOrderBoard();
     private final Map<BlockPos, ColonySiteMemory> siteMemories = new LinkedHashMap<>();
     private final Map<BlockPos, ColonyDialect> dialects = new LinkedHashMap<>();
+    @Nullable private ColonyDialectLesson dialectLesson;
     private final Map<ColonyWitnessMemory.Key, ColonyWitnessMemory> witnessMemories = new LinkedHashMap<>();
     private final Map<BlockPos, ColonyReconstruction> reconstructions = new LinkedHashMap<>();
     private int archivedReconstructionCount;
@@ -537,6 +538,63 @@ public final class SovereignColonyData {
         return dialects.computeIfAbsent(sitePos.immutable(), ignored -> new ColonyDialect());
     }
 
+    public void recordDialectEpisode(net.minecraft.server.level.ServerLevel level, BlockPos sitePos,
+                                     ColonySiteHabit habit, com.alex.mycelialmind.entity.ColonySymbiontEntity actor) {
+        ColonyDialect dialect = getDialect(sitePos);
+        if (dialect == null) return;
+        dialect.recordEpisode(habit, actor.getUUID(), level.getGameTime());
+        if (dialectLesson != null && dialectLesson.stage() == ColonyDialectLesson.Stage.OBSERVING
+                && dialectLesson.source().equals(sitePos) && dialectLesson.meaning() == habit
+                && level.getEntity(dialectLesson.apprentice()) instanceof com.alex.mycelialmind.entity.ColonySymbiontEntity apprentice
+                && apprentice.isAlive() && !apprentice.getUUID().equals(actor.getUUID())
+                && apprentice.blockPosition().distSqr(sitePos) <= 9.0D
+                && apprentice.distanceToSqr(actor) <= 64.0D) {
+            dialectLesson.witness(dialect.episode(habit).id());
+        }
+    }
+
+    @Nullable
+    public ColonyDialectLesson getDialectLesson() {
+        return dialectLesson;
+    }
+
+    public boolean startDialectLesson(BlockPos source, BlockPos target, ColonySiteHabit habit, int call,
+                                      UUID apprentice, boolean coinage) {
+        if (dialectLesson != null || source.equals(target) || !isMemorySite(source) || !isMemorySite(target)
+                || habit == ColonySiteHabit.NONE || call < 0 || call >= 9 || apprentice == null
+                || !roster.containsKey(apprentice)) return false;
+        ColonyDialect sourceDialect = getDialect(source);
+        ColonyDialect targetDialect = getDialect(target);
+        ColonyDialect.Episode episode = sourceDialect.episode(habit);
+        if (episode == null || (!coinage && sourceDialect.call(habit) != call)
+                || (coinage && sourceDialect.call(habit) >= 0)) return false;
+        for (ColonySiteHabit other : ColonySiteHabit.values()) {
+            if (other != habit && (sourceDialect.call(other) == call || targetDialect.call(other) == call)) return false;
+        }
+        dialectLesson = new ColonyDialectLesson(source, target, habit, call, apprentice, episode.id(), coinage);
+        return true;
+    }
+
+    public boolean finishDialectLesson(UUID apprentice) {
+        if (dialectLesson == null || !dialectLesson.apprentice().equals(apprentice)
+                || dialectLesson.stage() != ColonyDialectLesson.Stage.RETURNING) return false;
+        ColonyDialect source = getDialect(dialectLesson.source());
+        ColonyDialect target = getDialect(dialectLesson.target());
+        if (source == null || target == null) return false;
+        for (ColonySiteHabit other : ColonySiteHabit.values()) {
+            if (other != dialectLesson.meaning()
+                    && (source.call(other) == dialectLesson.call() || target.call(other) == dialectLesson.call())) return false;
+        }
+        if (dialectLesson.coinage() && !source.teach(dialectLesson.meaning(), dialectLesson.call())) return false;
+        if (!target.teach(dialectLesson.meaning(), dialectLesson.call())) return false;
+        dialectLesson = null;
+        return true;
+    }
+
+    public void cancelDialectLesson() {
+        dialectLesson = null;
+    }
+
     public boolean recordWitnessMemory(ColonyWitnessMemory memory) {
         if (memory == null || !isMemorySite(memory.sitePos())) {
             return false;
@@ -801,6 +859,7 @@ public final class SovereignColonyData {
     }
 
     public void onWorkerDeath(UUID workerId) {
+        if (dialectLesson != null && dialectLesson.apprentice().equals(workerId)) cancelDialectLesson();
         removeWitnessMemories(workerId);
         removeWorker(workerId);
     }
@@ -892,6 +951,7 @@ public final class SovereignColonyData {
             dialectTag.add(site);
         }
         tag.put("Dialects", dialectTag);
+        if (dialectLesson != null) tag.put("DialectLesson", dialectLesson.save());
         ListTag witnessTag = new ListTag();
         for (ColonyWitnessMemory memory : witnessMemories.values()) {
             witnessTag.add(memory.save());
@@ -976,6 +1036,9 @@ public final class SovereignColonyData {
         for (int i = 0; i < dialectTag.size(); i++) {
             CompoundTag site = dialectTag.getCompound(i);
             data.dialects.put(BlockPos.of(site.getLong("SitePos")), ColonyDialect.load(site));
+        }
+        if (tag.contains("DialectLesson", Tag.TAG_COMPOUND)) {
+            data.dialectLesson = ColonyDialectLesson.load(tag.getCompound("DialectLesson"));
         }
         ListTag witnessTag = tag.getList("SiteWitnessMemories", Tag.TAG_COMPOUND);
         for (int i = 0; i < witnessTag.size(); i++) {

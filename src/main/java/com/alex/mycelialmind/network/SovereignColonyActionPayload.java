@@ -48,6 +48,8 @@ public record SovereignColonyActionPayload(
     public static final int ACTION_SET_RECONSTRUCTION_SUCCESSOR = 11;
     public static final int ACTION_CALL_RECONSTRUCTION_WITNESS = 12;
     public static final int ACTION_ABANDON_RECONSTRUCTION = 13;
+    public static final int ACTION_START_DIALECT_LESSON = 14;
+    public static final int ACTION_CANCEL_DIALECT_LESSON = 15;
 
     private static final UUID ZERO_UUID = new UUID(0L, 0L);
 
@@ -210,6 +212,23 @@ public record SovereignColonyActionPayload(
                 case ACTION_ABANDON_RECONSTRUCTION -> {
                     if (player.getUUID().equals(colony.getOwnerId())
                             && colony.abandonReconstruction(payload.sourceSitePos())) {
+                        SovereignColonySavedData.get(level).setDirty();
+                    }
+                }
+                case ACTION_START_DIALECT_LESSON -> {
+                    int meaningIndex = payload.param() & 3;
+                    int call = (payload.param() >> 2) & 15;
+                    boolean coinage = (payload.param() & 64) != 0;
+                    if (player.getUUID().equals(colony.getOwnerId())
+                            && colony.startDialectLesson(payload.sourceSitePos(), payload.targetSitePos(),
+                            com.alex.mycelialmind.colony.ColonySiteHabit.fromIndex(meaningIndex), call,
+                            payload.targetWorkerId(), coinage)) {
+                        SovereignColonySavedData.get(level).setDirty();
+                    }
+                }
+                case ACTION_CANCEL_DIALECT_LESSON -> {
+                    if (player.getUUID().equals(colony.getOwnerId()) && colony.getDialectLesson() != null) {
+                        colony.cancelDialectLesson();
                         SovereignColonySavedData.get(level).setDirty();
                     }
                 }
