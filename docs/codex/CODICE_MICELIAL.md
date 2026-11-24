@@ -53,7 +53,7 @@
   - [Catálogo: 25 Bloques y 56 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
   - [Recetario Total (39 Datapack)](#cap9-recetas_36_datapack) — _31 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras_
   - [Alambique, Compostaje y Comercio](#cap9-vanilla_brew_compost_trades) — _Poción Awkward, 5 compostables NeoForge y ofertas Clérigo/Albañil_
-  - [Las 50 Tablas de Botín](#cap9-botin_48_tablas) — _22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores_
+  - [Las 52 Tablas de Botín](#cap9-botin_48_tablas) — _23 bloques, 10 cofres, 17 entidades y aldea + multiplicadores_
 - **Capítulo 10 — Mundo, Estructuras y Dimensión** (`mundo_dimension`): Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis
   - [Brotes y Colmenas del Overworld](#cap10-generacion_overworld_ruido) — _MycelialOutbreak (56m), SurfaceHive (192m) y FastNoiseLite_
   - [Dimensión Micelio Profundo (3 Biomas)](#cap10-micelio_profundo_y_biomas) — _Portal mycelial_rift, WfcCavernLayout y los 3 biomas_
@@ -1150,17 +1150,17 @@ Ancla endgame post-Matriarca (`sovereign_nexus`) y herramienta de marcaje tácti
 
 #### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.2] Integración Económica Vanilla+ (2/3)
 
-• **5 Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), `bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), `latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**).
+• **Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), `bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), `reclaimed_bloom*` (**0.65**), `latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**), `antibody_cyst` (**0.50**), `hyphal_vein` (**0.30**).
 
 #### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.3] Integración Económica Vanilla+ (3/3)
 
 • **Aldeanos y Errante:** Clérigos (N2–N5) comercian `mycelial_biomass`, `spore_antidote`, `latent_spore`, `concentrated_antidote`; Albañiles y Vendedor Errante ofrecen bloques miceliales y `truce_pheromone`.
 
 <a id="cap9-botin_48_tablas"></a>
-### 4. Las 50 Tablas de Botín
+### 4. Las 52 Tablas de Botín
 
 - **ID de Entrada:** `economia_datos/botin_48_tablas` | **Ícono:** `mycelialmind:hive_heart` | **Unlock:** `always`
-- **Resumen:** 22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores
+- **Resumen:** 23 bloques, 10 cofres, 17 entidades y aldea + multiplicadores
 
 #### [Libro: Cap.9 / botin_48_tablas / Pág.1] Botín Multi-Pool (51 Tablas) (1/9)
 
@@ -1172,7 +1172,7 @@ Ancla endgame post-Matriarca (`sovereign_nexus`) y herramienta de marcaje tácti
 
 #### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (51 Tablas) (3/9)
 
-• **Bloques 3/4:** `blocks/mycelial_stone`, `blocks/mycelial_tendrils`, `blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reinforced_bio_barrier`.
+• **Bloques 3/4:** `blocks/mycelial_stone`, `blocks/mycelial_tendrils`, `blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reclaimed_bloom`, `blocks/reinforced_bio_barrier`.
 
 #### [Libro: Cap.9 / botin_48_tablas / Pág.4] Botín Multi-Pool (51 Tablas) (4/9)
 
@@ -1416,11 +1416,11 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.1] Telemetría Redstone y Compatibilidad (1/4)
 
-• **Comparadores Redstone 1/2:** `antibody_cyst` (estrés chunk 1–15), `bioluminescent_mycelial_cap` y `mycelial_tendrils` (`MATURE`), `mycelial_node`/`symbiotic_node`.
+• **Comparadores Redstone 1/2:** `antibody_cyst` (estrés chunk 1–15), `bioluminescent_mycelial_cap`, `mycelial_tendrils` y `reclaimed_bloom` (`MATURE`), `mycelial_node`/`symbiotic_node`.
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.2] Telemetría Redstone y Compatibilidad (2/4)
 
-• **Comparadores Redstone 2/2 (`MycelialRedstoneTelemetry`):** `purification_pylon` (estado/sofoco), `purification_turret` (tier/atasco) y `synaptic_research_bench` (entradas/salida).
+• **Comparadores Redstone 2/2 (`MycelialRedstoneTelemetry`):** `purification_pylon` (estado/sofoco), `purification_turret` (tier/atasco), `synaptic_research_bench` (entradas/salida) y `sovereign_nexus` (nivel/simbiontes/biomasa).
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.3] Telemetría Redstone y Compatibilidad (3/4)
 

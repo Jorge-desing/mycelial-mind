@@ -4,7 +4,7 @@
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 72,
+  "page_count": 74,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.IV"
@@ -71,10 +71,16 @@
         "raw": "Complete\nAdvancements Chain\n(4/4)\n• Recipe Unlocks (5):\n`recipes/unlock_bioma\nss_recipes`,\n`recipes/unlock_chitin\n_recipes`,\n`recipes/unlock_hive_\nheart_recipes`,\n`recipes/unlock_latent\n_spore_recipes`,\n`recipes/unlock_syna\nptic_core_recipes`."
       },
       {
-        "raw": "Cap.11: Redstone (7) &\nMod Ecosystem\nRedstone Telemetry &\nMod Compat (1/4)\n• Redstone\nComparators 1/2:\n`antibody_cyst` (chunk\nstress 1–15),\n`bioluminescent_myceli\nal_cap` &\n`mycelial_tendrils`\n(`MATURE`),\n`mycelial_node`/`symbi\notic_node`."
+        "raw": "Cap.11: Redstone (7) &\nMod Ecosystem\nRedstone Telemetry &\nMod Compat (1/4)\n• Redstone\nComparators 1/2:\n`antibody_cyst` (chunk\nstress 1–15),\n`bioluminescent_myceli\nal_cap`,\n`mycelial_tendrils` &\n`reclaimed_bloom`\n(`MATURE`),\n`mycelial_node`/`symbi"
       },
       {
-        "raw": "Redstone Telemetry &\nMod Compat (2/4)\n• Redstone\nComparators 2/2\n(`MycelialRedstoneTele\nmetry`):\n`purification_pylon`\n(state/smother),\n`purification_turret`\n(tier/jam) &\n`synaptic_research_b\nench` (inputs/output)."
+        "raw": "otic_node`."
+      },
+      {
+        "raw": "Redstone Telemetry &\nMod Compat (2/4)\n• Redstone\nComparators 2/2\n(`MycelialRedstoneTele\nmetry`):\n`purification_pylon`\n(state/smother),\n`purification_turret`\n(tier/jam),\n`synaptic_research_b\nench` (inputs/output)\n& `sovereign_nexus`"
+      },
+      {
+        "raw": "(tier/symbionts/bioma\nss)."
       },
       {
         "raw": "Redstone Telemetry &\nMod Compat (3/4)\n• AI/World Compat:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), SmartBrainLib\n(`MycelialSblBridge`),\ngdx-AI\n(`HiveTacticalTree`) &\nJade\n(`MycelialJadePlugin`)."

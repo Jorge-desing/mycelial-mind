@@ -3,6 +3,7 @@ package com.alex.mycelialmind.hive;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
@@ -82,6 +83,12 @@ public final class DamageTelemetryTracker {
         }
         if (event.getEntity() instanceof Player player) {
             handlePlayerIncomingDamage(event, player);
+            return;
+        }
+        if (event.getEntity() instanceof ColonySymbiontEntity) {
+            if (isAlliedFriendlyFireSource(event.getSource())) {
+                event.setCanceled(true);
+            }
             return;
         }
         if (!(event.getEntity() instanceof MycelialMob mob)) {
@@ -225,7 +232,9 @@ public final class DamageTelemetryTracker {
             return;
         }
         if (!(event.getEntity() instanceof MycelialMob mob)) {
-            if (event.getEntity() instanceof Mob vanillaMob && vanillaMob.level() instanceof ServerLevel serverLevel) {
+            if (event.getEntity() instanceof Mob vanillaMob
+                    && !(vanillaMob instanceof ColonySymbiontEntity)
+                    && vanillaMob.level() instanceof ServerLevel serverLevel) {
                 PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
                 if (event.getSource().getEntity() instanceof MycelialMob attackerMob) {
                     if (event.getNewDamage() > 0.0F) {
@@ -451,6 +460,7 @@ public final class DamageTelemetryTracker {
     public static boolean tryConvertInfectedMob(ServerLevel level, Mob victim, boolean discardOriginal) {
         if (victim.isRemoved()
                 || victim instanceof MycelialMob
+                || victim instanceof ColonySymbiontEntity
                 || victim instanceof MycelialChimeraEntity
                 || victim instanceof PurifierDroneEntity
                 || victim instanceof Warden
@@ -762,6 +772,19 @@ public final class DamageTelemetryTracker {
         if (announced) {
             level.playSound(null, pos, ModSounds.HIVE_MUTATE_TIER2.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
         }
+    }
+
+    private static boolean isAlliedFriendlyFireSource(DamageSource source) {
+        if (source.getDirectEntity() instanceof NeutralizingSporeProjectile
+                || source.getDirectEntity() instanceof PurifierGrenadeProjectile) {
+            return true;
+        }
+        var attacker = source.getEntity();
+        return attacker instanceof Player
+                || attacker instanceof PurifierDroneEntity
+                || attacker instanceof MycelialChimeraEntity
+                || attacker instanceof ColonySymbiontEntity
+                || (attacker instanceof MycelialMob allied && allied.isAlliedEscort());
     }
 
     public static StimulusType classifyDamage(DamageSource source) {

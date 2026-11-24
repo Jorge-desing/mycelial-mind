@@ -2136,4 +2136,32 @@ class HiveAlgorithmsUnitTest {
         assertEquals(3, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveHiveCorePhase(0.28F, true));
         assertEquals(3, com.alex.mycelialmind.hive.BossCombatArchitectureEngine.resolveMatriarchPhase(0.20F));
     }
+
+    @Test
+    void sovereignNexusRedstoneAndSblUtilityWeightsHold() {
+        assertEquals(0, com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(0, 0, 4, 0));
+        assertEquals(1, com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(0, 0, 4, 1));
+        int t1 = com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(1, 0, 4, 0);
+        int t2 = com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(2, 4, 8, 128);
+        int t3 = com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(3, 12, 12, 512);
+        assertTrue(t1 >= 1 && t1 < t2 && t2 < t3 && t3 == 15);
+        assertEquals(15, com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(9, 99, 12, 9999));
+
+        assertEquals(15, com.alex.mycelialmind.util.MycelialRedstoneTelemetry.regenerativeFloraSignal(true));
+        assertEquals(5, com.alex.mycelialmind.util.MycelialRedstoneTelemetry.regenerativeFloraSignal(false));
+
+        assertEquals(0.0F, HiveUtilityEvaluator.combatXpChargeBonus(-5), 1.0E-6F);
+        assertEquals(0.05F, HiveUtilityEvaluator.combatXpChargeBonus(50), 1.0E-6F);
+        assertEquals(0.10F, HiveUtilityEvaluator.combatXpChargeBonus(100), 1.0E-6F);
+        assertEquals(0.10F, HiveUtilityEvaluator.combatXpChargeBonus(999), 1.0E-6F);
+
+        assertEquals(0.08F, HiveUtilityEvaluator.stimulusKiteOffset(com.alex.mycelialmind.hive.StimulusType.MELEE), 1.0E-6F);
+        assertEquals(-0.05F, HiveUtilityEvaluator.stimulusKiteOffset(com.alex.mycelialmind.hive.StimulusType.PROJECTILE), 1.0E-6F);
+        assertEquals(0.0F, HiveUtilityEvaluator.stimulusKiteOffset(com.alex.mycelialmind.hive.StimulusType.MAGIC), 1.0E-6F);
+        assertEquals(0.0F, HiveUtilityEvaluator.stimulusKiteOffset(null), 1.0E-6F);
+
+        assertEquals(0.0F, HiveUtilityEvaluator.stimulusRegroupBonus(null, 0), 1.0E-6F);
+        assertEquals(0.08F, HiveUtilityEvaluator.stimulusRegroupBonus(com.alex.mycelialmind.hive.StimulusType.FIRE, 0), 1.0E-6F);
+        assertEquals(0.14F, HiveUtilityEvaluator.stimulusRegroupBonus(com.alex.mycelialmind.hive.StimulusType.EXPLOSION, 150), 1.0E-6F);
+    }
 }

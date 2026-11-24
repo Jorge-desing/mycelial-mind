@@ -2,6 +2,7 @@ package com.alex.mycelialmind.entity.ai.colony;
 
 import com.alex.mycelialmind.block.BioluminescentMycelialCapBlock;
 import com.alex.mycelialmind.block.MycelialTendrilsBlock;
+import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.colony.ColonyOrder;
 import com.alex.mycelialmind.colony.ColonyOrderBoard;
 import com.alex.mycelialmind.colony.SovereignColonyData;
@@ -216,6 +217,18 @@ public class SymbiontHarvesterGoal extends Goal {
             if (!rem.isEmpty()) {
                 Block.popResource(level, target, rem);
             }
+        } else if (state.getBlock() instanceof ReclaimedBloomBlock
+                && state.getValue(ReclaimedBloomBlock.MATURE)) {
+            int palette = state.getValue(ReclaimedBloomBlock.PALETTE);
+            level.setBlockAndUpdate(target, state.setValue(ReclaimedBloomBlock.MATURE, false));
+            level.updateNeighbourForOutputSignal(target, state.getBlock());
+            level.scheduleTick(target, state.getBlock(), 1200);
+            ItemStack drop = ReclaimedBloomBlock.itemForPalette(palette);
+            drop.setCount(bonusTrait ? 2 : 1);
+            ItemStack rem = worker.insertIntoPouch(drop);
+            if (!rem.isEmpty()) {
+                Block.popResource(level, target, rem);
+            }
         }
         worker.pickupNearbyDrops(level, 2.5D);
         level.sendParticles(ModParticles.BIO_LUME.get(),
@@ -232,6 +245,9 @@ public class SymbiontHarvesterGoal extends Goal {
         }
         if (state.getBlock() instanceof MycelialTendrilsBlock) {
             return state.getValue(MycelialTendrilsBlock.MATURE);
+        }
+        if (state.getBlock() instanceof ReclaimedBloomBlock) {
+            return state.getValue(ReclaimedBloomBlock.MATURE);
         }
         return false;
     }

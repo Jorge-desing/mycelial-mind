@@ -144,6 +144,8 @@ public class BurrowerEntity extends MycelialMob {
                 || state.is(ModBlocks.INCUBATOR_NODE.get())
                 || state.is(ModBlocks.SENTINEL_NODE.get())
                 || state.is(ModBlocks.SYMBIOTIC_NODE.get())
+                || state.is(ModBlocks.SOVEREIGN_NEXUS.get())
+                || state.is(ModBlocks.RECLAIMED_BLOOM.get())
                 || state.is(ModBlocks.EPHEMERAL_CHITIN.get())) {
             return false;
         }

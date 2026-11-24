@@ -4,7 +4,7 @@
     "economia_datos",
     "mundo_dimension"
   ],
-  "page_count": 93,
+  "page_count": 95,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.III"
@@ -200,19 +200,25 @@
         "raw": "Cap.9: Brewing,\nCompost & Trades\nVanilla+ Economy\nIntegration (1/3)\n• Brewing Stand\n(`onRegisterBrewingRe\ncipes`): `Awkward\nPotion` +\n`latent_spore` ->\n`spore_antidote`; +\nAmethyst Shard ->\n`concentrated_antidot\ne`."
       },
       {
-        "raw": "Vanilla+ Economy\nIntegration (2/3)\n• 5 Compostables\n(`compostables.json`):\n`mycelial_biomass`\n(0.65),\n`bioluminescent_myceli\nal_cap` (0.65),\n`spore_bulb` (0.65),\n`latent_spore` (0.50),\n`mycelial_tendrils`\n(0.50)."
+        "raw": "Vanilla+ Economy\nIntegration (2/3)\n• Compostables\n(`compostables.json`):\n`mycelial_biomass`\n(0.65),\n`bioluminescent_myceli\nal_cap` (0.65),\n`spore_bulb` (0.65),\n`reclaimed_bloom*`\n(0.65), `latent_spore`\n(0.50),\n`mycelial_tendrils`"
+      },
+      {
+        "raw": "(0.50), `antibody_cyst`\n(0.50), `hyphal_vein`\n(0.30)."
       },
       {
         "raw": "Vanilla+ Economy\nIntegration (3/3)\n• Villagers &\nWandering Trader:\nClerics (Lv 2–5)\ntrade\n`mycelial_biomass`,\n`spore_antidote`,\n`latent_spore`,\n`concentrated_antidot\ne`; Masons & Traders\ncarry mycelial\nstonework and\n`truce_pheromone`."
       },
       {
-        "raw": "Cap.9: All 50 Loot\nTables\nMulti-Pool Loot (51\nTables) (1/9)\n• Blocks 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
+        "raw": "Cap.9: All 52 Loot\nTables\nMulti-Pool Loot (51\nTables) (1/9)\n• Blocks 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
       },
       {
         "raw": "Multi-Pool Loot (51\nTables) (2/9)\n• Blocks 2/4:\n`blocks/hive_altar`,\n`blocks/hyphal_vein`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
       },
       {
-        "raw": "Multi-Pool Loot (51\nTables) (3/9)\n• Blocks 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reinforced_bi\no_barrier`."
+        "raw": "Multi-Pool Loot (51\nTables) (3/9)\n• Blocks 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reclaimed_blo\nom`,\n`blocks/reinforced_bi"
+      },
+      {
+        "raw": "o_barrier`."
       },
       {
         "raw": "Multi-Pool Loot (51\nTables) (4/9)\n• Blocks 4/4:\n`blocks/sentinel_node`\n,\n`blocks/sovereign_ne\nxus`,\n`blocks/spore_bulb`,\n`blocks/spore_vent`,\n`blocks/symbiotic_nod\ne`,\n`blocks/synaptic_rese\narch_bench`."

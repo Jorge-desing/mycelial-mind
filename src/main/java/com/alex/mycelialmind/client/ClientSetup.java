@@ -500,6 +500,7 @@ public final class ClientSetup {
     public static final class ClientAtmosphereHandler {
         private static final List<BlockPos> CACHED_THERMAL_CYSTS = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_TURRETS = new ArrayList<>();
+        private static final List<BlockPos> CACHED_THERMAL_NEXUSES = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_VAULTS = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_VEINS = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_BLIND_SPOTS = new ArrayList<>();
@@ -674,12 +675,14 @@ public final class ClientSetup {
                     cystScanTick = 0;
                     CACHED_THERMAL_CYSTS.clear();
                     CACHED_THERMAL_TURRETS.clear();
+                    CACHED_THERMAL_NEXUSES.clear();
                     CACHED_THERMAL_VAULTS.clear();
                     CACHED_THERMAL_VEINS.clear();
                     CACHED_THERMAL_BLIND_SPOTS.clear();
                     BlockPos origin = mc.player.blockPosition();
                     var cystBlock = ModBlocks.ANTIBODY_CYST.get();
                     var turretBlock = ModBlocks.PURIFICATION_TURRET.get();
+                    var nexusBlock = ModBlocks.SOVEREIGN_NEXUS.get();
                     var veinBlock = ModBlocks.HYPHAL_VEIN.get();
                     var bulbBlock = ModBlocks.SPORE_BULB.get();
                     for (BlockPos p : BlockPos.betweenClosed(origin.offset(-14, -6, -14), origin.offset(14, 6, 14))) {
@@ -688,6 +691,8 @@ public final class ClientSetup {
                             CACHED_THERMAL_CYSTS.add(p.immutable());
                         } else if (st.is(turretBlock) && CACHED_THERMAL_TURRETS.size() < 24) {
                             CACHED_THERMAL_TURRETS.add(p.immutable());
+                        } else if (st.is(nexusBlock) && CACHED_THERMAL_NEXUSES.size() < 8) {
+                            CACHED_THERMAL_NEXUSES.add(p.immutable());
                         } else if (st.is(net.minecraft.world.level.block.Blocks.CHEST)
                                 && CACHED_THERMAL_VAULTS.size() < 8
                                 && com.alex.mycelialmind.item.BioScannerItem.isSealedVaultChest(mc.level, p)) {
@@ -792,6 +797,7 @@ public final class ClientSetup {
                             1.0F, 0.28F * pulse, 0.16F, 0.92F);
                 } else if (entity instanceof PurifierDroneEntity
                         || entity instanceof MycelialChimeraEntity
+                        || entity instanceof com.alex.mycelialmind.entity.ColonySymbiontEntity
                         || entity instanceof Player) {
                     LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.05D),
                             0.20F, 0.95F, 0.72F, 0.85F);
@@ -841,6 +847,11 @@ public final class ClientSetup {
                     LevelRenderer.renderLineBox(poseStack, lineConsumer, new AABB(turretPos).inflate(0.04D),
                             0.20F, 0.95F, 1.0F, 0.85F);
                 }
+            }
+
+            for (BlockPos nexusPos : CACHED_THERMAL_NEXUSES) {
+                LevelRenderer.renderLineBox(poseStack, lineConsumer, new AABB(nexusPos).inflate(0.06D),
+                        0.30F, 1.0F, 0.78F * pulse, 0.92F);
             }
 
             for (BlockPos vaultPos : CACHED_THERMAL_VAULTS) {

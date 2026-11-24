@@ -7,6 +7,8 @@ import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
 import com.alex.mycelialmind.block.SporeBulbBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
+import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.network.PostMatriarchExpeditionSyncPayload;
@@ -549,6 +551,24 @@ public final class PostMatriarchExpeditionDirector {
         PostMatriarchExpeditionData.Enclave enclave = data.complete();
         if (enclave == null) {
             return;
+        }
+        SovereignColonySavedData colonySaved = SovereignColonySavedData.get(level);
+        SovereignColonyData rewardColony = colonySaved.findNearestColony(pos, null, 128.0D);
+        if (rewardColony != null) {
+            rewardColony.addDomainXp(25);
+            rewardColony.addBiomass(10);
+            rewardColony.recalculateMorale();
+            colonySaved.setDirty();
+        } else {
+            ServerLevel overworld = level.getServer().overworld();
+            SovereignColonySavedData overworldSaved = SovereignColonySavedData.get(overworld);
+            SovereignColonyData primary = overworldSaved.getAllColonies().stream().findFirst().orElse(null);
+            if (primary != null) {
+                primary.addDomainXp(25);
+                primary.addBiomass(10);
+                primary.recalculateMorale();
+                overworldSaved.setDirty();
+            }
         }
         String advancementId = outcome == PostMatriarchExpeditionData.Outcome.ROUTE ? "recovered_route" : "recovered_garden";
         String criterion = outcome == PostMatriarchExpeditionData.Outcome.ROUTE ? "recover_route" : "recover_garden";

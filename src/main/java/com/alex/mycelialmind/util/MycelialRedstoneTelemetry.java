@@ -1,5 +1,7 @@
 package com.alex.mycelialmind.util;
 
+import com.alex.mycelialmind.colony.SovereignColonyEngine;
+
 /**
  * Pure comparator analog output telemetry (0..15) for Mycelial Mind functional blocks.
  * Common-safe: zero Minecraft client/level dependencies for deterministic JUnit & Pitest coverage.
@@ -75,5 +77,16 @@ public final class MycelialRedstoneTelemetry {
     public static int hyphalVeinSignal(int strength, boolean charged) {
         int clamped = Math.max(0, Math.min(3, strength));
         return Math.min(15, clamped * 4 + (charged ? 3 : 0));
+    }
+
+    public static int sovereignNexusSignal(int tier, int activeWorkers, int popCap, int biomassStored) {
+        if (tier <= 0 && activeWorkers <= 0 && biomassStored <= 0) {
+            return 0;
+        }
+        double safeTier = Math.max(0.0D, Math.min(3.0D, tier)) / 3.0D;
+        double safeWorkers = popCap > 0 ? Math.max(0.0D, Math.min(1.0D, (double) activeWorkers / popCap)) : 0.0D;
+        double safeBiomass = Math.max(0.0D, Math.min(1.0D, biomassStored / (double) SovereignColonyEngine.MAX_BIOMASS));
+        int score = (int) Math.round(1.0D + 14.0D * (0.35D * safeTier + 0.35D * safeWorkers + 0.30D * safeBiomass));
+        return Math.max(1, Math.min(15, score));
     }
 }

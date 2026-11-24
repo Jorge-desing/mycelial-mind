@@ -822,13 +822,14 @@ public final class VisualSmokeClient {
                 data.start(node, com.alex.mycelialmind.hive.PostMatriarchExpeditionData.Outcome.GARDEN, 2);
                 player.getAbilities().flying = true;
                 player.onUpdateAbilities();
-                player.teleportTo(level, 0.5, 97.5, 0.5, 0.0F, 12.0F);
+                player.teleportTo(level, 0.5, 97.1, 2.0, 0.0F, 12.0F);
                 player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.BIO_SCANNER.get()));
                 com.alex.mycelialmind.network.PostMatriarchExpeditionSyncPayload.syncToPlayer(player);
             });
         }
         if (!mc.level.dimension().equals(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL)) return;
         expeditionTicks++;
+        if (expeditionTicks == 48) mc.options.hideGui = true;
         if (expeditionTicks == 50) {
             Screenshot.grab(mc.gameDirectory, "expedition_garden_before.png", mc.getMainRenderTarget(), msg -> MycelialMind.LOGGER.info("Expedition smoke: {}", msg.getString()));
             var playerId = mc.player.getUUID();
@@ -839,7 +840,25 @@ public final class VisualSmokeClient {
                 if (level != null && player != null) ModBlocks.RECLAIMED_BLOOM.get().harvest(level, flower, level.getBlockState(flower), player);
             });
         }
+        if (expeditionTicks == 54) {
+            var playerId = mc.player.getUUID();
+            expeditionExecute(server, () -> {
+                ServerLevel level = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
+                var player = server.getPlayerList().getPlayer(playerId);
+                if (level != null && player != null) player.teleportTo(level, 0.0, 100.5, 5.5, 0.0F, 90.0F);
+            });
+        }
+        if (expeditionTicks == 60) Screenshot.grab(mc.gameDirectory, "expedition_garden_top.png", mc.getMainRenderTarget(), msg -> MycelialMind.LOGGER.info("Expedition smoke: {}", msg.getString()));
+        if (expeditionTicks == 63) {
+            var playerId = mc.player.getUUID();
+            expeditionExecute(server, () -> {
+                ServerLevel level = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
+                var player = server.getPlayerList().getPlayer(playerId);
+                if (level != null && player != null) player.teleportTo(level, 0.5, 97.1, 2.0, 0.0F, 12.0F);
+            });
+        }
         if (expeditionTicks == 70) Screenshot.grab(mc.gameDirectory, "expedition_garden_after.png", mc.getMainRenderTarget(), msg -> MycelialMind.LOGGER.info("Expedition smoke: {}", msg.getString()));
+        if (expeditionTicks == 71) mc.options.hideGui = false;
         if (expeditionTicks == 72) {
             var inventory = mc.player.getInventory();
             inventory.setItem(0, new ItemStack(ModBlocks.RECLAIMED_BLOOM.get()));

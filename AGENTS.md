@@ -202,8 +202,9 @@ Fallback directo por consola desde la raíz del workspace (`c:\Users\Alex\Docume
 - Realiza esta revisión también en chats ya iniciados desde la siguiente pasada en que se conozca esta regla, y en todos los chats futuros. Una sesión que no haya recargado estas instrucciones debe hacerlo para conocer la regla.
 - Registra en la entrada final de `MEMORY.md` qué skills se actualizaron o que se revisó su pertinencia y no requerían cambios. Valida las skills modificadas mediante CodeMode cuando esté disponible, conforme a la política del proyecto.
 
-## 8. Commit y Push Obligatorio tras cada Sesión o Cambios Significativos
+## 8. Revisión, commit, push y merge obligatorios
 
-- **Regla permanente para todos los agentes:** Al finalizar cada sesión o tras realizar cambios significativos entre pasadas (código, configuración, documentación, reglas, skills, tests, assets o correcciones verificadas), haz **siempre** `git commit` y `git push` al remoto (`origin`), conforme a `.agents/rules/git-auto-commit.md`.
-- **Alcance limpio:** Revisa `git status` antes de añadir archivos para hacer `git add` únicamente de los archivos propios de tu tarea/pasada (sin incluir temporales, secretos ni trabajo ajeno sin relación).
-- **Excepciones:** Solo omite el commit/push si el usuario lo pide explícitamente, si hay errores de compilación/pruebas sin resolver que rompan la rama principal, o si no existe remoto configurado.
+- Para cada sesión o pasada significativa, revisa todo el diff y los archivos nuevos propios, corrige los problemas encontrados y realiza las verificaciones pertinentes; no dejes cambios propios sin revisar.
+- Haz commit descriptivo y push de los cambios propios a `origin`, comprobando su publicación. Conserva los cambios ajenos y evita commits vacíos.
+- Integra toda rama creada para la tarea en su rama de destino: actualiza la base, resuelve conflictos, revisa el diff final, comprueba los checks requeridos, haz merge y confirma el commit integrado y CI en destino. Sigue `.agents/rules/git-auto-commit.md`.
+- Respeta instrucciones explícitas del usuario. Si permisos, remoto, conflictos, checks o protección de rama impiden completar una operación, informa el bloqueo y los pasos pendientes sin declarar concluida la integración.

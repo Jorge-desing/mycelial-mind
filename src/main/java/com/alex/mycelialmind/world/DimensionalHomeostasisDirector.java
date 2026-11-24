@@ -7,7 +7,11 @@ import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonySavedData;
+import com.alex.mycelialmind.colony.SovereignTrait;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -312,6 +316,10 @@ public final class DimensionalHomeostasisDirector {
         double delta = applyProgressionStressScaling(level,
                 DimensionalHomeostasisEngine.computePeriodicStressDelta(
                         activePylons, maxPylonTier, nearbyTurrets, nearbySymbiotic));
+        SovereignColonyData nearbyColony = SovereignColonySavedData.get(level).findNearestColony(anchor, null, 24.0D);
+        if (nearbyColony != null && level.getBlockState(nearbyColony.getNexusPos()).is(ModBlocks.SOVEREIGN_NEXUS.get())) {
+            delta -= 1.5D * nearbyColony.getTier();
+        }
         double currentStress = data.getStress(chunkPos);
         if (currentStress <= 0.0 && delta <= 0.0) {
             if (data.getLastRecordedStage(chunkPos) != HomeostasisStage.STABLE) {
@@ -674,6 +682,24 @@ public final class DimensionalHomeostasisDirector {
                         chimera.hurt(level.damageSources().magic(), -delta);
                         level.sendParticles(ModParticles.ACID_DROPLET.get(),
                                 chimera.getX(), chimera.getY() + 1.0, chimera.getZ(), 4, 0.3, 0.3, 0.3, 0.01);
+                    }
+                }
+            }
+            for (ColonySymbiontEntity symbiont : level.getEntitiesOfClass(ColonySymbiontEntity.class, area)) {
+                if (symbiont.isAlive() && affectedEntities.add(symbiont.getUUID())
+                        && isExposedToCeilingAcidRain(level, symbiont.blockPosition())) {
+                    SovereignColonyData symbiontColony = symbiont.getColonyData(level);
+                    boolean protectedByColony = (symbiontColony != null
+                            && symbiontColony.hasTrait(SovereignTrait.APEX_GUARDIAN_MATRIX))
+                            || PurificationZoneTracker.get(level).hasNearbySymbioticNode(symbiont.blockPosition(), 16);
+                    if (protectedByColony) {
+                        symbiont.heal(1.0F);
+                        level.sendParticles(ModParticles.SPORE_FALL.get(),
+                                symbiont.getX(), symbiont.getY() + 0.8, symbiont.getZ(), 3, 0.25, 0.25, 0.25, 0.01);
+                    } else {
+                        symbiont.hurt(level.damageSources().magic(), 0.5F);
+                        level.sendParticles(ModParticles.ACID_DROPLET.get(),
+                                symbiont.getX(), symbiont.getY() + 0.8, symbiont.getZ(), 3, 0.25, 0.25, 0.25, 0.01);
                     }
                 }
             }

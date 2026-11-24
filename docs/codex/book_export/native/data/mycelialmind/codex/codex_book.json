@@ -2519,6 +2519,7 @@
             "blocks/mycelial_tendrils",
             "blocks/purification_pylon",
             "blocks/purification_turret",
+            "blocks/reclaimed_bloom",
             "blocks/reinforced_bio_barrier",
             "blocks/sentinel_node",
             "blocks/sovereign_nexus",
