@@ -63,6 +63,12 @@
       "description": "Keep Gradle on 8.x for ModDevGradle/Pitest compatibility",
       "matchDepNames": ["gradle"],
       "allowedVersions": "/^8\\./"
+    },
+    {
+      "description": "Keep spark pinned to Java 21 / MC 1.21.1 compatible version",
+      "matchManagers": ["gradle"],
+      "matchDepNames": ["maven.modrinth:spark"],
+      "enabled": false
     }
   ]
 }
