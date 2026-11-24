@@ -32,6 +32,7 @@ public class PurificationZoneTracker extends SavedData {
     private static final String TAG_PYLON_TIERS = "PylonTiers";
     private static final String TAG_NODES = "Nodes";
     private static final String TAG_TYPED_NODES = "TypedNodes";
+    private static final String TAG_SINKHOLES = "Sinkholes";
 
     private static final SavedData.Factory<PurificationZoneTracker> FACTORY = new SavedData.Factory<>(
             PurificationZoneTracker::new,
@@ -46,6 +47,7 @@ public class PurificationZoneTracker extends SavedData {
     private final Map<BlockPos, Integer> pylonBonusRadii = new HashMap<>();
     private final Set<BlockPos> nodePositions = new HashSet<>();
     private final Map<BlockPos, SynapticNodeType> typedNodes = new HashMap<>();
+    private final Set<BlockPos> sinkholePositions = new HashSet<>();
 
     public static PurificationZoneTracker get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
@@ -76,6 +78,7 @@ public class PurificationZoneTracker extends SavedData {
         pylonBonusRadii.clear();
         nodePositions.clear();
         typedNodes.clear();
+        sinkholePositions.clear();
         setDirty();
     }
 
@@ -95,6 +98,8 @@ public class PurificationZoneTracker extends SavedData {
         nodePositions.addAll(restored.nodePositions);
         typedNodes.clear();
         typedNodes.putAll(restored.typedNodes);
+        sinkholePositions.clear();
+        sinkholePositions.addAll(restored.sinkholePositions);
         setDirty();
     }
 
@@ -519,6 +524,34 @@ public class PurificationZoneTracker extends SavedData {
         return false;
     }
 
+    public synchronized boolean hasSinkholeWithin(BlockPos origin, int radius) {
+        double maxSq = (double) radius * radius;
+        for (BlockPos sinkhole : sinkholePositions) {
+            if (sinkhole.distSqr(origin) <= maxSq) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized boolean tryReserveSinkhole(BlockPos origin, int minSinkholeSpacing, int minNodeClearance) {
+        if (hasSinkholeWithin(origin, minSinkholeSpacing)
+                || hasSurfaceHiveWithin(origin, Math.max(minNodeClearance, minSinkholeSpacing / 2))
+                || hasAnyNodeWithin(origin, minNodeClearance)) {
+            return false;
+        }
+        if (sinkholePositions.add(origin.immutable())) {
+            setDirty();
+        }
+        return true;
+    }
+
+    public synchronized void removeSinkhole(BlockPos origin) {
+        if (sinkholePositions.remove(origin)) {
+            setDirty();
+        }
+    }
+
     public List<Map.Entry<BlockPos, SynapticNodeType>> getNodesWithin(BlockPos center, int radius, int limit) {
         double maxSq = (double) radius * radius;
         List<Map.Entry<BlockPos, SynapticNodeType>> out = new ArrayList<>();
@@ -609,6 +642,12 @@ public class PurificationZoneTracker extends SavedData {
             radiusBonuses.add(entryTag);
         }
         tag.put("PylonRadiusBonuses", radiusBonuses);
+
+        ListTag sinkholes = new ListTag();
+        for (BlockPos pos : sinkholePositions) {
+            sinkholes.add(LongTag.valueOf(pos.asLong()));
+        }
+        tag.put(TAG_SINKHOLES, sinkholes);
         return tag;
     }
 
@@ -656,6 +695,10 @@ public class PurificationZoneTracker extends SavedData {
             if (bonus > 0) {
                 tracker.pylonBonusRadii.put(pos, bonus);
             }
+        }
+        ListTag sinkholes = tag.getList(TAG_SINKHOLES, Tag.TAG_LONG);
+        for (int i = 0; i < sinkholes.size(); i++) {
+            tracker.sinkholePositions.add(BlockPos.of(((LongTag) sinkholes.get(i)).getAsLong()));
         }
         return tracker;
     }

@@ -217,6 +217,17 @@ ENTITY_SOUNDS: list[SoundSpec] = [
     _s("chimera_roar", "entity", "bellow", 0.90, 138.0, 7.2, "Mycelial Chimera roars", "Quimera Micelial ruge", species="colossal_organic", loudness_group="combat", variations=2, attenuation_distance=26, seed_offset=264, volume=0.94),
     _s("mycelial_chimera_strike", "entity", "weapon_slash", 0.44, 250.0, 11.5, "Mycelial Chimera unleashes gene", "Quimera Micelial activa gen", species="colossal_organic", loudness_group="combat", variations=2, attenuation_distance=22, seed_offset=265, volume=0.92),
 
+    # 17b. Spore Glider (Sinkhole Pollinator, bio_relic)
+    _s("spore_glider_ambient", "entity", "crystal_hum", 0.62, 540.0, 6.5, "Spore Glider flutters", "Planeador de Esporas aletea", species="bio_relic", loudness_group="ambient", variations=3, attenuation_distance=16, seed_offset=281, volume=0.72),
+    _s("spore_glider_hurt", "entity", "hurt", 0.28, 620.0, 13.0, "Spore Glider squeaks", "Planeador de Esporas herido", species="bio_relic", loudness_group="combat", variations=3, attenuation_distance=16, seed_offset=282, volume=0.82),
+    _s("spore_glider_death", "entity", "death", 0.54, 430.0, 8.5, "Spore Glider perishes", "Planeador de Esporas cae", species="bio_relic", loudness_group="death", variations=2, attenuation_distance=18, seed_offset=283, volume=0.86),
+
+    # 17c. Root Keeper (Sinkhole Guardian, colossal_organic)
+    _s("root_keeper_ambient", "entity", "bellow", 0.86, 84.0, 4.2, "Root Keeper groans", "Guardián de Raíz gime", species="colossal_organic", loudness_group="ambient", variations=3, attenuation_distance=24, seed_offset=284, volume=0.92),
+    _s("root_keeper_hurt", "entity", "hurt", 0.36, 128.0, 9.5, "Root Keeper hurts", "Guardián de Raíz herido", species="colossal_organic", loudness_group="combat", variations=3, attenuation_distance=20, seed_offset=285, volume=0.90),
+    _s("root_keeper_death", "entity", "death", 0.94, 96.0, 5.2, "Root Keeper collapses", "Guardián de Raíz se derrumba", species="colossal_organic", loudness_group="death", variations=2, attenuation_distance=24, seed_offset=286, volume=0.94),
+    _s("root_keeper_slam", "entity", "heavy_thud", 0.68, 70.0, 6.5, "Root Keeper slams roots", "Guardián de Raíz golpea raíces", species="colossal_organic", loudness_group="combat", variations=2, attenuation_distance=28, seed_offset=287, volume=0.96),
+
     # 18. Anatomical Steps (5, variations=4)
     _s("mob_step_chitin", "entity", "step_chitin", 0.19, 390.0, 11.5, "Chitinous footsteps", "Pasos quitinosos", species="insectoid_chitin", loudness_group="footstep", variations=4, attenuation_distance=12, seed_offset=271, volume=0.60),
     _s("mob_step_arachnid", "entity", "step_arachnid", 0.23, 510.0, 14.5, "Skittering footsteps", "Pasos arácnidos", species="insectoid_chitin", loudness_group="footstep", variations=4, attenuation_distance=12, seed_offset=272, volume=0.62),
@@ -259,6 +270,7 @@ BLOCK_FUNCTIONAL_SOUNDS: list[SoundSpec] = [
     _s("colony_dialect_mastered", "block_functional", "block_functional", 0.92, 440.0, 6.0, "Colony dialect mastered", "Dialecto de colonia dominado", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=20, seed_offset=521, volume=0.92),
     _s("colony_dialect_conflict", "block_functional", "block_functional", 0.58, 310.0, 11.0, "Colony dialect collision", "Colisión de dialecto de colonia", species="synaptic_eldritch", loudness_group="ui_item", variations=2, attenuation_distance=18, seed_offset=522, volume=0.88),
     _s("colony_reconstruction_pulse", "block_functional", "block_functional", 0.84, 380.0, 7.5, "Colony memory restored", "Memoria de colonia restaurada", species="bio_relic", loudness_group="ui_item", variations=2, attenuation_distance=22, seed_offset=523, volume=0.90),
+    _s("spore_updraft_vent_pulse", "block_functional", "block_functional", 0.68, 340.0, 8.0, "Spore Updraft Vent surges", "Ventilador de Corriente pulsa", species="wet_visceral", loudness_group="ambient", variations=2, attenuation_distance=18, seed_offset=524, volume=0.76),
 ]
 
 ITEM_PROJECTILE_SOUNDS: list[SoundSpec] = [

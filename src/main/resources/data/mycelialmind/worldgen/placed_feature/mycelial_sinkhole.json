@@ -1,0 +1,22 @@
+{
+  "feature": "mycelialmind:mycelial_sinkhole",
+  "placement": [
+    {
+      "type": "mycelialmind:hive_tier_rarity",
+      "dormant_chance": 280,
+      "awakened_chance": 220,
+      "adaptive_chance": 170,
+      "overmind_chance": 130
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "MOTION_BLOCKING_NO_LEAVES"
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

@@ -68,10 +68,16 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.LATENT_SPORE.get());
                         output.accept(ModItems.SYNAPTIC_CORE.get());
                         output.accept(ModItems.HIVE_HEART.get());
+                        output.accept(ModItems.ROOT_SAP_VIAL.get());
+                        output.accept(ModItems.CANOPY_MEMBRANE.get());
+                        output.accept(ModItems.ROOT_HEART_RESIN.get());
 
                         output.accept(ModBlocks.CREEPING_MYCELIUM.get());
                         output.accept(ModBlocks.HYPHAL_VEIN.get());
                         output.accept(ModBlocks.SPORE_VENT.get());
+                        output.accept(ModBlocks.SPORE_UPDRAFT_VENT.get());
+                        output.accept(ModBlocks.ROOT_SAP_MOSS.get());
+                        output.accept(ModBlocks.ROOT_CAP_SHELF.get());
                         output.accept(ModBlocks.MYCELIAL_NODE.get());
                         output.accept(ModBlocks.INCUBATOR_NODE.get());
                         output.accept(ModBlocks.SENTINEL_NODE.get());
@@ -111,6 +117,8 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.COLONY_SYMBIONT_SPAWN_EGG.get());
                         output.accept(ModItems.SPORE_BEHEMOTH_SPAWN_EGG.get());
                         output.accept(ModItems.PURIFIER_DRONE_SPAWN_EGG.get());
+                        output.accept(ModItems.SPORE_GLIDER_SPAWN_EGG.get());
+                        output.accept(ModItems.ROOT_KEEPER_SPAWN_EGG.get());
                         output.accept(ModItems.HIVE_CORE_SPAWN_EGG.get());
                         output.accept(ModItems.APEX_MATRIARCH_SPAWN_EGG.get());
                     })

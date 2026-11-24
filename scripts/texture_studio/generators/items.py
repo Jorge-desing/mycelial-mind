@@ -732,6 +732,60 @@ def _sovereign_command_staff(p: float) -> IconCanvas:
     return c
 
 
+def _root_sap_vial(p: float) -> IconCanvas:
+    c = IconCanvas(seed=142)
+    xx, yy = c.xx, c.yy
+    flask = np.minimum(
+        sdf_circle(xx, yy, 0.0, 0.22, 0.42),
+        sdf_box(xx, yy, 0.0, -0.28, 0.18, 0.26),
+    )
+    _p(c, flask, "purification_aqua", "PURIFICATION_CRYSTAL", 0.56, height=0.62)
+    sap_pool = np.maximum(
+        sdf_circle(xx, yy, 0.0, 0.24, 0.34),
+        0.04 - yy,
+    )
+    c.zone(sap_pool, "mutant_amber", "TOXIC_SPORE", tone=0.78)
+    c.glow(sap_pool <= 0.0, "mutant_amber")
+    cork = sdf_box(xx, yy, 0.0, -0.56, 0.20, 0.11)
+    _p(c, cork, "chitin_bone", "CHITIN_BONE", 0.58, height=0.68)
+    rim = sdf_box(xx, yy, 0.0, -0.43, 0.24, 0.05)
+    c.zone(rim, "abyssal_obsidian", "OBSIDIAN_CHITIN", tone=0.25)
+    c.zone(sdf_circle(xx, yy, -0.14, 0.14, 0.07), "warm_ivory", "CHITIN_BONE", tone=0.95)
+    return c
+
+
+def _canopy_membrane(p: float) -> IconCanvas:
+    c = IconCanvas(seed=143)
+    xx, yy = c.xx, c.yy
+    wing_a = sdf_polygon(xx, yy, 0.04, 0.02, 0.56, sides=5)
+    wing_b = sdf_circle(xx, yy, -0.18, 0.18, 0.34)
+    fan = np.minimum(wing_a, wing_b)
+    _p(c, fan, "biolum_cyan", "BIOLUM_CYAN", 0.68, height=0.60)
+    rib1 = sdf_capsule(xx, yy, -0.54, 0.50, 0.42, -0.46, 0.065)
+    rib2 = sdf_capsule(xx, yy, -0.46, 0.46, 0.56, 0.08, 0.055)
+    rib3 = sdf_capsule(xx, yy, -0.46, 0.46, -0.06, -0.58, 0.055)
+    ribs = np.minimum(rib1, np.minimum(rib2, rib3))
+    _p(c, ribs, "chitin_bone", "CHITIN_BONE", 0.72, height=0.78)
+    c.zone(sdf_circle(xx, yy, 0.18, -0.16, 0.12), "spore_chartreuse", "TOXIC_SPORE", tone=0.88)
+    c.glow(sdf_circle(xx, yy, 0.18, -0.16, 0.10) <= 0.0, "spore_chartreuse")
+    return c
+
+
+def _root_heart_resin(p: float) -> IconCanvas:
+    c = IconCanvas(seed=144)
+    xx, yy = c.xx, c.yy
+    gem = sdf_diamond(xx, yy, 0.0, 0.0, 0.54)
+    _p(c, gem, "mutant_amber", "LIVING_AMETHYST", 0.66, height=0.82)
+    core = sdf_diamond(xx, yy, 0.0, 0.0, 0.28)
+    c.zone(core, "royal_gold", "PURIFICATION_GOLD", tone=0.88)
+    c.glow(core <= 0.0, "royal_gold")
+    claw_l = sdf_capsule(xx, yy, -0.52, -0.22, -0.18, 0.48, 0.065)
+    claw_r = sdf_capsule(xx, yy, 0.52, -0.22, 0.18, 0.48, 0.065)
+    _p(c, np.minimum(claw_l, claw_r), "abyssal_obsidian", "OBSIDIAN_CHITIN", 0.34, height=0.72)
+    c.zone(sdf_circle(xx, yy, -0.08, -0.14, 0.08), "warm_ivory", "CHITIN_BONE", tone=0.96)
+    return c
+
+
 _ICONS = {
     "bio_scanner": (_bio_scanner, True, 4),
     "mycelial_codex": (_mycelial_codex, True, 4),
@@ -771,6 +825,9 @@ _ICONS = {
     "volatile_engram": (_volatile_engram, False, 0),
     "false_engram_injector": (_false_engram_injector, False, 0),
     "sovereign_command_staff": (_sovereign_command_staff, True, 4),
+    "root_sap_vial": (_root_sap_vial, False, 0),
+    "canopy_membrane": (_canopy_membrane, False, 0),
+    "root_heart_resin": (_root_heart_resin, False, 0),
 }
 
 

@@ -3,6 +3,7 @@ package com.alex.mycelialmind.registry;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.world.HiveTierRarityPlacement;
 import com.alex.mycelialmind.world.MycelialOutbreakFeature;
+import com.alex.mycelialmind.world.MycelialSinkholeFeature;
 import com.alex.mycelialmind.world.SurfaceHiveFeature;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -27,6 +28,9 @@ public final class ModFeatures {
 
     public static final DeferredHolder<Feature<?>, SurfaceHiveFeature> SURFACE_HIVE =
             FEATURES.register("surface_hive", () -> new SurfaceHiveFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final DeferredHolder<Feature<?>, MycelialSinkholeFeature> MYCELIAL_SINKHOLE =
+            FEATURES.register("mycelial_sinkhole", () -> new MycelialSinkholeFeature(NoneFeatureConfiguration.CODEC));
 
     public static final DeferredHolder<PlacementModifierType<?>, PlacementModifierType<HiveTierRarityPlacement>> HIVE_TIER_RARITY =
             PLACEMENT_MODIFIER_TYPES.register("hive_tier_rarity", () -> () -> HiveTierRarityPlacement.CODEC);

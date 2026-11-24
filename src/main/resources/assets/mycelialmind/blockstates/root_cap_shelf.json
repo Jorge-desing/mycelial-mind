@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mycelialmind:block/root_cap_shelf"
+    },
+    "facing=east": {
+      "model": "mycelialmind:block/root_cap_shelf",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "mycelialmind:block/root_cap_shelf",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "mycelialmind:block/root_cap_shelf",
+      "y": 270
+    }
+  }
+}

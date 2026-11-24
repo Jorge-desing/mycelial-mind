@@ -40,8 +40,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         ),
         *chunk_paired_blocks(
             "all_23_blocks",
-            "Los 24 Bloques (`ModBlocks`)",
-            "All 24 Blocks (`ModBlocks`)",
+            "Los 29 Bloques (`ModBlocks`)",
+            "All 29 Blocks (`ModBlocks`)",
             [
                 (
                     "• **Red y Contención (9):** `creeping_mycelium`, `hyphal_vein`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret`.",
@@ -54,6 +54,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 (
                     "• **Arquitectura y Dimensión (9):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`, `sovereign_nexus`.",
                     "• **Architecture & Colony (9):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`, `sovereign_nexus`.",
+                ),
+                (
+                    "• **Sima Subterránea (3):** `spore_updraft_vent` (chorro vertical), `root_sap_moss` (embotellable) y `root_cap_shelf` (repisa elástica).",
+                    "• **Sinkhole Stratum (3):** `spore_updraft_vent` (vertical updraft), `root_sap_moss` (bottlable sap), and `root_cap_shelf` (elastic shelf).",
                 ),
             ],
         ),
@@ -75,12 +79,16 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Diplomacy & Cognition (10):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`, `field_engram`.",
                 ),
                 (
-                    "• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **18** `*_spawn_egg` en Cap.5).",
-                    "• **Deception & Reagents (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **18** `*_spawn_egg` in Ch.5).",
+                    "• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **20** `*_spawn_egg` en Cap.5).",
+                    "• **Deception & Reagents (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **20** `*_spawn_egg` in Ch.5).",
                 ),
                 (
                     "• **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.",
                     "• **Reclaimed Blooms (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.",
+                ),
+                (
+                    "• **Sima Subterránea (3 + 2 Huevos):** `root_sap_vial` (embotellado de `root_sap_moss`), `canopy_membrane` (`spore_glider`) y `root_heart_resin` (`root_keeper`).",
+                    "• **Sinkhole Reagents (3 + 2 Eggs):** `root_sap_vial` (bottled from `root_sap_moss`), `canopy_membrane` (`spore_glider`), and `root_heart_resin` (`root_keeper`).",
                 ),
             ],
         ),
@@ -357,13 +365,32 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             title2_es="Báculo de Mando Soberano",
             title2_en="Sovereign Command Staff",
         ),
+        recipe_page(
+            "rec_sinkhole_1",
+            "mycelialmind:spore_updraft_vent",
+            "Ventiladero Ascendente y Repisa Raíz",
+            "Spore Updraft Vent & Root Cap Shelf",
+            "Elevador de columna térmica (`canopy_membrane` + `root_heart_resin` + `spore_vent`) y repisa elástica (`root_cap_shelf` x2).",
+            "Vertical sinkhole elevator (`canopy_membrane` + `root_heart_resin` + `spore_vent`) and elastic bounce shelf (`root_cap_shelf` 2x).",
+            recipe_id_2="mycelialmind:root_cap_shelf",
+            title2_es="Repisa Fúngica de Raíz",
+            title2_en="Root Cap Shelf",
+        ),
+        recipe_page(
+            "rec_sinkhole_2",
+            "mycelialmind:spore_antidote_from_root_sap",
+            "Antídoto Concentrado por Savia Raíz",
+            "Concentrated Antidote via Root Sap",
+            "Síntesis sin mesa usando `root_sap_vial` embotellado de `root_sap_moss`, `latent_spore` y `mycelial_biomass`.",
+            "Shapeless synthesis from `root_sap_vial` bottled off `root_sap_moss`, `latent_spore`, and `mycelial_biomass`.",
+        ),
     )
 
     ch9_entries = (
         CodexEntry(
             id="catalogo_bloques_items",
             order=1,
-            title=lt("Catálogo: 25 Bloques y 56 Ítems", "Catalog: 25 Blocks & 56 Items"),
+            title=lt("Catálogo: 29 Bloques y 66 Ítems", "Catalog: 29 Blocks & 66 Items"),
             subtitle=lt(
                 "Inventario íntegro de flora, bloques e ítems registrados",
                 "Complete registry inventory of flora, blocks & items",
@@ -436,16 +463,24 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:mycelial_codex",
                 "mycelialmind:sovereign_nexus",
                 "mycelialmind:sovereign_command_staff",
+                "mycelialmind:spore_updraft_vent",
+                "mycelialmind:root_sap_moss",
+                "mycelialmind:root_cap_shelf",
+                "mycelialmind:root_sap_vial",
+                "mycelialmind:canopy_membrane",
+                "mycelialmind:root_heart_resin",
+                "mycelialmind:spore_glider_spawn_egg",
+                "mycelialmind:root_keeper_spawn_egg",
             ),
             pages=ch9_blocks_items_pages,
         ),
         CodexEntry(
             id="recetas_36_datapack",
             order=2,
-            title=lt("Recetario Total (39 Datapack)", "Complete Recipe Book (39 Datapack)"),
+            title=lt("Recetario Total (43 Datapack)", "Complete Recipe Book (43 Datapack)"),
             subtitle=lt(
-                "31 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras",
-                "31 Crafting, 3 Smelting, 1 Smoking, 1 Blasting & 3 Stonecutting",
+                "Todas las recetas de mesa, horno, ahumador y cortapiedras",
+                "All crafting, smelting, smoking, blasting & stonecutting recipes",
             ),
             icon_item="mycelialmind:chitin_plate",
             x=grid_xy(1, 3)[0],
@@ -475,6 +510,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:quorum_seal",
                 "mycelialmind:reinforced_bio_barrier",
                 "mycelialmind:rift_catalyst",
+                "mycelialmind:root_cap_shelf",
                 "mycelialmind:schism_injector",
                 "mycelialmind:smelt_cap_to_latent_spore",
                 "mycelialmind:smelt_creeping_mycelium_to_stone",
@@ -483,6 +519,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:sovereign_command_staff",
                 "mycelialmind:sovereign_nexus",
                 "mycelialmind:spore_antidote",
+                "mycelialmind:spore_antidote_from_root_sap",
+                "mycelialmind:spore_updraft_vent",
                 "mycelialmind:stonecut_arch_brick_to_chitin_pillar",
                 "mycelialmind:stonecut_chitin_plate_to_lattice",
                 "mycelialmind:stonecut_mycelial_stone_to_arch_brick",
@@ -547,10 +585,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="botin_48_tablas",
             order=4,
-            title=lt("Las 52 Tablas de Botín", "All 52 Loot Tables"),
+            title=lt("Las 58 Tablas de Botín", "All 58 Loot Tables"),
             subtitle=lt(
-                "23 bloques, 10 cofres, 17 entidades y aldea + multiplicadores",
-                "23 blocks, 10 structure chests, 17 entities & village + multipliers",
+                "27 bloques, 11 cofres, 19 entidades y aldea + multiplicadores",
+                "27 blocks, 11 structure chests, 19 entities & village + multipliers",
             ),
             icon_item="mycelialmind:hive_heart",
             x=grid_xy(3, 3)[0],
@@ -578,9 +616,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "blocks/purification_turret",
                 "blocks/reclaimed_bloom",
                 "blocks/reinforced_bio_barrier",
+                "blocks/root_cap_shelf",
+                "blocks/root_sap_moss",
                 "blocks/sentinel_node",
                 "blocks/sovereign_nexus",
                 "blocks/spore_bulb",
+                "blocks/spore_updraft_vent",
                 "blocks/spore_vent",
                 "blocks/symbiotic_node",
                 "blocks/synaptic_research_bench",
@@ -591,6 +632,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "chests/sanctum_forbidden_lab",
                 "chests/sanctum_ossuary_crypt",
                 "chests/sanctum_spore_vault",
+                "chests/sinkhole_root_vault",
                 "chests/surface_hive_cache",
                 "chests/surface_hive_crypt",
                 "chests/surface_hive_gallery",
@@ -606,8 +648,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "entities/mycelial_stalker",
                 "entities/purifier_drone",
                 "entities/pyro_shroom",
+                "entities/root_keeper",
                 "entities/spore_architect",
                 "entities/spore_behemoth",
+                "entities/spore_glider",
                 "entities/sporeling",
                 "entities/synapse_weaver",
                 "entities/synaptic_mimic",
@@ -615,8 +659,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             pages=tuple(
                 chunk_paired_blocks(
                     "loot_tables",
-                    "Botín Multi-Pool (51 Tablas)",
-                    "Multi-Pool Loot (51 Tables)",
+                    "Botín Multi-Pool (58 Tablas)",
+                    "Multi-Pool Loot (58 Tables)",
                     [
                         (
                             "• **Bloques 1/4:** `blocks/antibody_cyst`, `blocks/bio_chitin_lattice`, "
@@ -637,21 +681,23 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reclaimed_bloom`, `blocks/reinforced_bio_barrier`.",
                         ),
                         (
-                            "• **Bloques 4/4:** `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, "
+                            "• **Bloques 4/4:** `blocks/root_cap_shelf`, `blocks/root_sap_moss`, `blocks/sentinel_node`, "
+                            "`blocks/sovereign_nexus`, `blocks/spore_bulb`, `blocks/spore_updraft_vent`, "
                             "`blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.",
-                            "• **Blocks 4/4:** `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, "
+                            "• **Blocks 4/4:** `blocks/root_cap_shelf`, `blocks/root_sap_moss`, `blocks/sentinel_node`, "
+                            "`blocks/sovereign_nexus`, `blocks/spore_bulb`, `blocks/spore_updraft_vent`, "
                             "`blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.",
                         ),
                         (
-                            "• **Cofres 1/2:** `chests/outbreak_sealed_vault`, `chests/surface_hive_cache`, "
-                            "`chests/surface_hive_crypt`, `chests/surface_hive_gallery`, `chests/sanctum_spore_vault`.",
-                            "• **Chests 1/2:** `chests/outbreak_sealed_vault`, `chests/surface_hive_cache`, "
-                            "`chests/surface_hive_crypt`, `chests/surface_hive_gallery`, `chests/sanctum_spore_vault`.",
+                            "• **Cofres 1/2:** `chests/outbreak_sealed_vault`, `chests/sinkhole_root_vault`, "
+                            "`chests/surface_hive_cache`, `chests/surface_hive_crypt`, `chests/surface_hive_gallery`.",
+                            "• **Chests 1/2:** `chests/outbreak_sealed_vault`, `chests/sinkhole_root_vault`, "
+                            "`chests/surface_hive_cache`, `chests/surface_hive_crypt`, `chests/surface_hive_gallery`.",
                         ),
                         (
-                            "• **Cofres 2/2:** `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, "
+                            "• **Cofres 2/2:** `chests/sanctum_spore_vault`, `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, "
                             "`chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.",
-                            "• **Chests 2/2:** `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, "
+                            "• **Chests 2/2:** `chests/sanctum_spore_vault`, `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, "
                             "`chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.",
                         ),
                         (
@@ -662,14 +708,16 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                         ),
                         (
                             "• **Entidades 2/3:** `entities/hive_core`, `entities/leech_parasite`, "
-                            "`entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, `entities/pyro_shroom`.",
+                            "`entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, "
+                            "`entities/pyro_shroom`, `entities/root_keeper`.",
                             "• **Entities 2/3:** `entities/hive_core`, `entities/leech_parasite`, "
-                            "`entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, `entities/pyro_shroom`.",
+                            "`entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, "
+                            "`entities/pyro_shroom`, `entities/root_keeper`.",
                         ),
                         (
-                            "• **Entidades 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, "
+                            "• **Entidades 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, `entities/spore_glider`, "
                             "`entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (escala con Saqueo/Rango/Cepa).",
-                            "• **Entities 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, "
+                            "• **Entities 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, `entities/spore_glider`, "
                             "`entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (scales via Looting/Rank/Strain).",
                         ),
                         (
@@ -701,10 +749,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="generacion_overworld_ruido",
             order=1,
-            title=lt("Brotes y Colmenas del Overworld", "Overworld Outbreaks & Hives"),
+            title=lt("Brotes, Colmenas y Simas del Overworld", "Overworld Outbreaks, Hives & Sinkholes"),
             subtitle=lt(
-                "MycelialOutbreak (56m), SurfaceHive (192m) y FastNoiseLite",
-                "MycelialOutbreak (56m), SurfaceHive (192m) & FastNoiseLite",
+                "MycelialOutbreak, SurfaceHive, MycelialSinkhole y FastNoiseLite",
+                "MycelialOutbreak, SurfaceHive, MycelialSinkhole & FastNoiseLite",
             ),
             icon_item="mycelialmind:luminescent_amber_vein",
             x=grid_xy(0, 3)[0],
@@ -714,8 +762,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             registry_refs=(
                 "mycelialmind:mycelial_outbreak",
                 "mycelialmind:surface_hive",
+                "mycelialmind:mycelial_sinkhole",
                 "mycelialmind:hive_tier_rarity",
                 "StructureProgressionPolicy",
+                "SinkholeEcosystemEngine",
                 "MycelialFastNoise",
                 "FastNoiseLite",
                 "WorldgenAuditEngine",
@@ -739,6 +789,14 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "• `surface_hive`: mega-capsule (r=8, h=16), `MIN_HIVE_SPACING = 192`, "
                             "`MIN_NODE_CLEARANCE = 64`, subterranean crypt, mezzanine gallery, conduits, "
                             "and `surface_hive_cache`/`gallery`/`crypt` chests.",
+                        ),
+                        (
+                            "• `mycelial_sinkhole`: sima de 3 estratos (Corona superficial, Garganta con repisas "
+                            "`root_cap_shelf` y Caverna Raíz en `-22..-32`), `spore_updraft_vent` central, `root_sap_moss`, "
+                            "`sinkhole_root_vault`, `root_keeper` y `spore_glider`. Colocar un Pilón calma la brecha.",
+                            "• `mycelial_sinkhole`: 3-stratum sinkhole (Surface Crown, Twilight Throat with "
+                            "`root_cap_shelf` spiral ledges, Root Cavern at `-22..-32`), central `spore_updraft_vent`, "
+                            "`root_sap_moss`, `sinkhole_root_vault`, `root_keeper` & `spore_glider`. Pylons calm the breach.",
                         ),
                         (
                             "• **Motores (`hive_tier_rarity` / `FastNoiseLite`):** filtran rareza por Acto vía "

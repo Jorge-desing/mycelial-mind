@@ -109,6 +109,14 @@ ENTITY_SYNTH_IDS: frozenset[str] = frozenset(
         "mycelial_chimera_death",
         "chimera_roar",
         "mycelial_chimera_strike",
+        # 14b. Spore Glider & Root Keeper (7)
+        "spore_glider_ambient",
+        "spore_glider_hurt",
+        "spore_glider_death",
+        "root_keeper_ambient",
+        "root_keeper_hurt",
+        "root_keeper_death",
+        "root_keeper_slam",
         # 15. Anatomical Steps (4; mob_step_colossal is in BOSS_CINEMATIC_IDS)
         "mob_step_chitin",
         "mob_step_arachnid",
@@ -788,6 +796,80 @@ def synthesize_entity_sound(
         claws = _modal_bank(t, bf * 2.6, (1.0, 1.75, 2.95, 4.4), (0.045, 0.030, 0.020, 0.012), (0.8, 0.55, 0.35, 0.2), rng)
         surge = _fm_tone(t, bf * (1.6 - 0.8 * (t / dur)), mf * 2.5, 1.8, pjit) * exp_decay(t, dur * 0.38) * 0.65
         return _cavern_reverb(np.tanh((slash + claws + surge) * 1.3), rng, wet=0.16, rt60=0.35, lp_hz=5600.0)
+
+    # =========================================================================
+    # 14b. SPORE GLIDER & ROOT KEEPER — Sinkhole Vertical Ecosystem Fauna
+    # =========================================================================
+    if sound_id.startswith("spore_glider_"):
+        action = sound_id.removeprefix("spore_glider_")
+        if action == "ambient":
+            s0 = int(rng.uniform(0.01, 0.14) * n)
+            rt = t[s0:] - t[s0]
+            flutter_hz = rng.uniform(14.0, 24.0)
+            wing = _swept_resonant_filter(pink[s0:], rng.uniform(520.0, 880.0), rng.uniform(1600.0, 2900.0), q=2.8)
+            wing *= (0.55 + 0.45 * np.sin(2.0 * np.pi * flutter_hz * rt + pjit))
+            chime = _modal_bank(rt, bf * rng.uniform(0.92, 1.12), (1.0, 1.50, 2.25), (0.16, 0.11, 0.06), (0.65, 0.42, 0.22), rng)
+            wave = np.zeros(n, dtype=np.float64)
+            wave[s0:] = (wing * 0.55 + chime * 0.72) * adsr_envelope(len(rt), 0.08, 0.22, 0.50, 0.36)
+            return _cavern_reverb(_sos_highpass(wave, 190.0), rng, wet=0.22, rt60=0.45, lp_hz=7200.0)
+        if action == "hurt":
+            s0 = int(rng.uniform(0.0, 0.08) * n)
+            rt = t[s0:] - t[s0]
+            f_up = bf * rng.uniform(1.08, 1.28) * np.exp(-1.1 * rt / max(0.08, dur))
+            squeak = _fm_tone(rt, f_up, mf * rng.uniform(0.9, 1.4), 1.6, pjit)
+            snap = _sos_bandpass(white[s0:], 2100.0, 7400.0) * exp_decay(rt, 0.03) * 0.50
+            wave = np.zeros(n, dtype=np.float64)
+            wave[s0:] = (squeak * 0.85 + snap) * adsr_envelope(len(rt), 0.02, 0.16, 0.40, 0.35)
+            return _cavern_reverb(_sos_highpass(wave, 220.0), rng, wet=0.14, rt60=0.30, lp_hz=7600.0)
+        f_down = np.maximum(140.0, bf * 1.15 * np.exp(-1.35 * t / dur))
+        sigh = _fm_tone(t, f_down, mf, 1.2, pjit) * 0.68 + _swept_resonant_filter(pink, 1800.0, 320.0, q=2.4) * 0.48
+        return _cavern_reverb(_sos_highpass(sigh * adsr_envelope(n, 0.03, 0.20, 0.46, 0.44), 160.0), rng, wet=0.24, rt60=0.52, lp_hz=6400.0)
+
+    if sound_id.startswith("root_keeper_"):
+        action = sound_id.removeprefix("root_keeper_")
+        if action == "ambient":
+            s0 = int(rng.uniform(0.01, 0.15) * n)
+            rt = t[s0:] - t[s0]
+            f_g = bf * rng.uniform(0.90, 1.12) * (1.0 - 0.18 * (rt / max(0.1, dur)) + 0.06 * np.sin(2.0 * np.pi * mf * rt + pjit))
+            src = _glottal_sub_source(rt, f_g, rng, harmonics=11, sub_weight=0.88, rattle_hz=rng.uniform(16.0, 26.0))
+            tract = _apply_formant_bank(src, [(135.0 * formant_shift, 2.3, 1.2), (340.0 * formant_shift, 2.9, 0.85)])
+            wood = _modal_bank(rt, bf * 2.1, (1.0, 1.62, 2.55), (0.12, 0.07, 0.04), (0.45, 0.28, 0.15), rng) * 0.55
+            wave = np.zeros(n, dtype=np.float64)
+            wave[s0:] = np.tanh((tract + wood) * 1.32) * adsr_envelope(len(rt), 0.10, 0.24, 0.56, 0.34)
+            return _cavern_reverb(wave, rng, wet=0.24, rt60=0.58, lp_hz=3000.0)
+        if action == "hurt":
+            s0 = int(rng.uniform(0.01, 0.17) * n)
+            rt = t[s0:] - t[s0]
+            slope = float(rng.choice((-0.42, 0.36)))
+            f_b = bf * rng.uniform(0.84, 1.24) * (1.15 + slope * (rt / max(0.08, dur)))
+            bark = _apply_formant_bank(
+                _glottal_sub_source(rt, f_b, rng, harmonics=10, sub_weight=0.82, rattle_hz=rng.uniform(18.0, 38.0)),
+                [(rng.uniform(150.0, 230.0) * formant_shift, 2.5, 1.15), (rng.uniform(410.0, 580.0) * formant_shift, 3.0, 0.85)],
+            )
+            crack = _chitin_modal_hits(len(rt), rng, bf * rng.uniform(2.2, 3.9), int(rng.integers(2, 5)), 0.025, spread_frac=0.68) * 0.65
+            wood_snap = _sos_bandpass(pink[s0:], rng.uniform(600.0, 1200.0), rng.uniform(2200.0, 4200.0)) * exp_decay(rt, 0.045) * 0.55
+            wave = np.zeros(n, dtype=np.float64)
+            wave[s0:] = np.tanh((bark * adsr_envelope(len(rt), 0.02, 0.18, 0.42, 0.36) + crack + wood_snap) * 1.3)
+            return _cavern_reverb(wave, rng, wet=0.18, rt60=0.40, lp_hz=3800.0)
+        if action == "death":
+            f_d = np.maximum(36.0, bf * 1.18 * np.exp(-1.28 * t / dur))
+            groan = _apply_formant_bank(_glottal_sub_source(t, f_d, rng, harmonics=11, sub_weight=0.90, rattle_hz=18.0), [(140.0 * formant_shift, 2.4, 1.2), (360.0, 2.9, 0.82)])
+            thud_s = int(0.52 * n)
+            thud = np.zeros(n, dtype=np.float64)
+            tt = np.arange(n - thud_s, dtype=np.float64) / SAMPLE_RATE
+            thud[thud_s:] = np.sin(2.0 * np.pi * np.cumsum(np.maximum(30.0, 105.0 * exp_decay(tt, 0.045))) / SAMPLE_RATE) * exp_decay(tt, 0.24) * 1.05
+            raw = np.tanh((groan * adsr_envelope(n, 0.04, 0.22, 0.48, 0.42) + thud) * 1.32)
+            return _cavern_reverb(raw, rng, wet=0.26, rt60=0.62, lp_hz=3200.0)
+        # root_keeper_slam
+        s0 = int(rng.uniform(0.01, 0.07) * n)
+        rt = t[s0:] - t[s0]
+        f_sub = np.maximum(32.0, bf * rng.uniform(0.9, 1.1) * (0.5 + 1.6 * np.exp(-rt / 0.036)))
+        sub = np.sin(2.0 * np.pi * np.cumsum(f_sub) / SAMPLE_RATE + pjit) * exp_decay(rt, dur * 0.42) * 1.15
+        roots = _chitin_modal_hits(len(rt), rng, bf * 3.2, 5, 0.032, spread_frac=0.72) * 0.72
+        grit = _sos_bandpass(pink[s0:], 140.0, 2600.0) * exp_decay(rt, dur * 0.34) * 0.72
+        wave = np.zeros(n, dtype=np.float64)
+        wave[s0:] = np.tanh((sub + roots + grit) * 1.35)
+        return _cavern_reverb(wave, rng, wet=0.22, rt60=0.50, lp_hz=3200.0)
 
     # =========================================================================
     # 15. ANATOMICAL STEP PROFILES (4)

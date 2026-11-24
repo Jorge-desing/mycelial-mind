@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `61` entradas y `238` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `62` entradas y `246` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -25,7 +25,7 @@
   - [Arquitectura Nativa HiveBrain](#cap4-arquitectura_hivebrain) — _HiveBrain, HiveBehaviorTree, HiveSteeringEngine y 11 ModMemoryTypes_
   - [Doctrinas, Escuadrones y Pacing](#cap4-doctrina_escuadron_pacing) — _HiveDoctrine, HiveOrder, SwarmRole, Frenesí y Desync (5s)_
   - [IA de Campo Vivo y Goals](#cap4-campo_batalla_vivo) — _Trauma, Carroña, Quitina Efímera, Atascos y Goals personalizados_
-- **Capítulo 5 — Bestiario y Quimeras** (`bestiario`): 17 especies vivas, 3 proyectiles, 17 huevos y genes 5x5
+- **Capítulo 5 — Bestiario y Quimeras** (`bestiario`): 20 especies HiveBrain, 3 proyectiles, 20 huevos y genes 5x5
   - [Rangos Evolutivos y Primordiales](#cap5-rangos_y_primordiales) — _BASE, MUTATED, ELITE, Primordiales y proyección vocal_
   - [Enjambre Ligero y Parasitario](#cap5-bestiario_enjambre_ligero) — _sporeling, leech_parasite y mycelial_stalker_
   - [Artillería Ácida y Pirófitos](#cap5-bestiario_artilleria_fuego) — _acid_spitter y pyro_shroom_
@@ -35,7 +35,8 @@
   - [Jefe Overworld: Núcleo Colmena](#cap5-bestiario_jefe_hive_core) — _hive_core (350 HP) — 3 Fases y 3 Anclas Centinela_
   - [Jefe Final: Matriarca Suprema](#cap5-bestiario_jefe_matriarca) — _apex_matriarch (600 HP) en el Micelio Profundo_
   - [Aliados Bioforjados: Dron, Quimera y Colonia](#cap5-bestiario_aliados_quimera) — _purifier_drone, mycelial_chimera y colony_symbiont (Colonia Soberana)_
-  - [Proyectiles (3) y Spawn Eggs (18)](#cap5-proyectiles_y_huevos) — _acid_spit, neutralizing_spore, purifier_grenade y los 18 huevos_
+  - [Proyectiles (3) y Spawn Eggs (20)](#cap5-proyectiles_y_huevos) — _acid_spit, neutralizing_spore, purifier_grenade y los 20 huevos_
+  - [Fauna de Sima: Planeador y Guardián](#cap5-fauna_sima_micelial) — _spore_glider (polinizador) y root_keeper (guardián de Caverna Raíz)_
 - **Capítulo 6 — Red Sináptica y Nodos** (`red_sinaptica`): 4 tipos de nodo, Injerto, Viaje Micorrizal 96m y Acústica
   - [Los 4 Nodos Sinápticos](#cap6-nodos_y_malla_sinaptica) — _SynapticNodeType: RELAY, INCUBATOR, SENTINEL y SYMBIOTIC_
   - [Injerto y Viaje Micorrizal](#cap6-injerto_y_viaje_micorrizal) — _Reprogramación nodal y salto rápido a 96m con Quimeras y Drones_
@@ -50,12 +51,12 @@
   - [Las 4 Reliquias Endgame](#cap8-reliquias_endgame) — _TideBeacon, SynapticSuppressor, RiftCatalyst y OvermindCrown_
   - [Defensa del Bastión y Torretas](#cap8-bastion_defensivo) — _Pilón (monument_focus), Torreta (3 tiers), Dron y Bio-Barrera_
 - **Capítulo 9 — Economía, Recetas y Botín** (`economia_datos`): 24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines
-  - [Catálogo: 25 Bloques y 56 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
-  - [Recetario Total (39 Datapack)](#cap9-recetas_36_datapack) — _31 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras_
+  - [Catálogo: 29 Bloques y 66 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
+  - [Recetario Total (43 Datapack)](#cap9-recetas_36_datapack) — _Todas las recetas de mesa, horno, ahumador y cortapiedras_
   - [Alambique, Compostaje y Comercio](#cap9-vanilla_brew_compost_trades) — _Poción Awkward, 5 compostables NeoForge y ofertas Clérigo/Albañil_
-  - [Las 52 Tablas de Botín](#cap9-botin_48_tablas) — _23 bloques, 10 cofres, 17 entidades y aldea + multiplicadores_
+  - [Las 58 Tablas de Botín](#cap9-botin_48_tablas) — _27 bloques, 11 cofres, 19 entidades y aldea + multiplicadores_
 - **Capítulo 10 — Mundo, Estructuras y Dimensión** (`mundo_dimension`): Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis
-  - [Brotes y Colmenas del Overworld](#cap10-generacion_overworld_ruido) — _MycelialOutbreak (56m), SurfaceHive (192m) y FastNoiseLite_
+  - [Brotes, Colmenas y Simas del Overworld](#cap10-generacion_overworld_ruido) — _MycelialOutbreak, SurfaceHive, MycelialSinkhole y FastNoiseLite_
   - [Dimensión Micelio Profundo (3 Biomas)](#cap10-micelio_profundo_y_biomas) — _Portal mycelial_rift, WfcCavernLayout y los 3 biomas_
   - [Santuario Jigsaw y Ciudadela Matriarca](#cap10-megaestructuras_santuario_ciudadela) — _hive_sanctum (11 plantillas NBT) y matriarch_citadel_
   - [Homeostasis Dimensional y Quistes](#cap10-homeostasis_dimensional) — _3 etapas STABLE/IRRITATED/IMMUNE_RESPONSE, Lluvia Ácida y Quistes_
@@ -449,7 +450,7 @@ _HiveBrain, gdx-AI, Escuadrones, Trauma, Carroña y Goals_ | Puerta recomendada:
 
 ## Capítulo 5: Bestiario y Quimeras
 
-_17 especies vivas, 3 proyectiles, 17 huevos y genes 5x5_ | Puerta recomendada: `always` | Ícono: `mycelialmind:apex_matriarch_spawn_egg`
+_20 especies HiveBrain, 3 proyectiles, 20 huevos y genes 5x5_ | Puerta recomendada: `always` | Ícono: `mycelialmind:apex_matriarch_spawn_egg`
 
 <a id="cap5-rangos_y_primordiales"></a>
 ### 1. Rangos Evolutivos y Primordiales
@@ -664,10 +665,10 @@ De `sovereign_nexus`: `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT`, `SENTINE
 • **Lluvia Ácida (Homeostasis):** con `FIRE_RESISTANT` y `MAGIC_CARAPACE` regenera **+0.8F**; con uno de ambos es inmune (**0.0F**); sin ellos sufre **-0.75F**.
 
 <a id="cap5-proyectiles_y_huevos"></a>
-### 10. Proyectiles (3) y Spawn Eggs (18)
+### 10. Proyectiles (3) y Spawn Eggs (20)
 
 - **ID de Entrada:** `bestiario/proyectiles_y_huevos` | **Ícono:** `mycelialmind:hive_core_spawn_egg` | **Unlock:** `always`
-- **Resumen:** acid_spit, neutralizing_spore, purifier_grenade y los 18 huevos
+- **Resumen:** acid_spit, neutralizing_spore, purifier_grenade y los 20 huevos
 
 #### [Libro: Cap.5 / proyectiles_y_huevos / Pág.1] Proyectiles y Huevos Generadores (1/5)
 
@@ -675,19 +676,40 @@ De `sovereign_nexus`: `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT`, `SENTINE
 
 #### [Libro: Cap.5 / proyectiles_y_huevos / Pág.2] Proyectiles y Huevos Generadores (2/5)
 
-• **Huevos 1/4:** `sporeling_spawn_egg`, `chitin_brute_spawn_egg`, `mycelial_stalker_spawn_egg`, `acid_spitter_spawn_egg`.
+• **Huevos 1/5:** `sporeling_spawn_egg`, `chitin_brute_spawn_egg`, `mycelial_stalker_spawn_egg`, `acid_spitter_spawn_egg`.
 
 #### [Libro: Cap.5 / proyectiles_y_huevos / Pág.3] Proyectiles y Huevos Generadores (3/5)
 
-• **Huevos 2/4:** `burrower_spawn_egg`, `pyro_shroom_spawn_egg`, `synapse_weaver_spawn_egg`, `goliath_carrier_spawn_egg`, `leech_parasite_spawn_egg`.
+• **Huevos 2/5:** `burrower_spawn_egg`, `pyro_shroom_spawn_egg`, `synapse_weaver_spawn_egg`, `goliath_carrier_spawn_egg`, `leech_parasite_spawn_egg`.
 
 #### [Libro: Cap.5 / proyectiles_y_huevos / Pág.4] Proyectiles y Huevos Generadores (4/5)
 
-• **Huevos 3/4:** `colony_warden_spawn_egg`, `spore_architect_spawn_egg`, `synaptic_mimic_spawn_egg`, `spore_behemoth_spawn_egg`.
+• **Huevos 3/5:** `colony_warden_spawn_egg`, `spore_architect_spawn_egg`, `synaptic_mimic_spawn_egg`, `spore_behemoth_spawn_egg`.
 
 #### [Libro: Cap.5 / proyectiles_y_huevos / Pág.5] Proyectiles y Huevos Generadores (5/5)
 
-• **Huevos 4/4:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, `purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`, `colony_symbiont_spawn_egg`.
+• **Huevos 4/5:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, `purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`, `colony_symbiont_spawn_egg`.
+• **Huevos 5/5:** `spore_glider_spawn_egg`, `root_keeper_spawn_egg`.
+
+<a id="cap5-fauna_sima_micelial"></a>
+### 11. Fauna de Sima: Planeador y Guardián
+
+- **ID de Entrada:** `bestiario/fauna_sima_micelial` | **Ícono:** `mycelialmind:root_keeper_spawn_egg` | **Unlock:** `always`
+- **Resumen:** spore_glider (polinizador) y root_keeper (guardián de Caverna Raíz)
+
+#### [Libro: Cap.5 / fauna_sima_micelial / Pág.1] Planeador de Esporas
+
+> **[Modelo 3D Entidad]** `mycelialmind:spore_glider` (Planeador de Esporas, escala `0.82`)
+
+**16 HP | 0.36 Vuelo | Pacífico**
+Planea en la sima, esquiva tiros y regenera `root_sap_moss`. Suelta `canopy_membrane`.
+
+#### [Libro: Cap.5 / fauna_sima_micelial / Pág.2] Guardián de Raíz
+
+> **[Modelo 3D Entidad]** `mycelialmind:root_keeper` (Guardián de Raíz, escala `0.72`)
+
+**54 HP | 7.5 Dmg | 6 Arm**
+Guarda la Caverna Raíz: golpe `3.5m` y rango `10–28m`. Pilón lo debilita; suelta `root_heart_resin`.
 
 ---
 
@@ -912,7 +934,7 @@ Defensa `[2, 5, 6, 2]` (Cuerpo **9**), Encant. **14**, Dureza **1.0F**, repara c
 _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recomendada: `always` | Ícono: `mycelialmind:chitin_plate`
 
 <a id="cap9-catalogo_bloques_items"></a>
-### 1. Catálogo: 25 Bloques y 56 Ítems
+### 1. Catálogo: 29 Bloques y 66 Ítems
 
 - **ID de Entrada:** `economia_datos/catalogo_bloques_items` | **Ícono:** `mycelialmind:mycelial_biomass` | **Unlock:** `always`
 - **Resumen:** Inventario íntegro de flora, bloques e ítems registrados
@@ -934,72 +956,80 @@ _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recome
 
 • `mycelial_stone`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `mycelial_rift`, `hive_altar`, `matriarch_altar`, `ephemeral_chitin`, `antibody_cyst`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.5] Los 24 Bloques (`ModBlocks`) (1/3)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.5] Los 29 Bloques (`ModBlocks`) (1/4)
 
 • **Red y Contención (9):** `creeping_mycelium`, `hyphal_vein`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.6] Los 24 Bloques (`ModBlocks`) (2/3)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.6] Los 29 Bloques (`ModBlocks`) (2/4)
 
 • **Fortificación y Flora (8):** `reinforced_bio_barrier`, `synaptic_research_bench`, `hive_altar`, `matriarch_altar`, `bioluminescent_mycelial_cap`, `spore_bulb`, `mycelial_tendrils`, `antibody_cyst`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.7] Los 24 Bloques (`ModBlocks`) (3/3)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.7] Los 29 Bloques (`ModBlocks`) (3/4)
 
 • **Arquitectura y Dimensión (9):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`, `sovereign_nexus`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.8] Ítems y Armadura (`ModItems`) (1/5)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.8] Los 29 Bloques (`ModBlocks`) (4/4)
+
+• **Sima Subterránea (3):** `spore_updraft_vent` (chorro vertical), `root_sap_moss` (embotellable) y `root_cap_shelf` (repisa elástica).
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.9] Ítems y Armadura (`ModItems`) (1/6)
 
 • **Instrumentos y Armas (11):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`, `sovereign_command_staff` (`staff_mode`).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.9] Ítems y Armadura (`ModItems`) (2/5)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.10] Ítems y Armadura (`ModItems`) (2/6)
 
 • **Armadura y Sueros (10):** `chitin_helmet`, `chitin_chestplate`, `chitin_leggings`, `chitin_boots`, `spore_antidote`, `concentrated_antidote`, `genetic_sample`, `symbiotic_mutagen`, `counter_serum`, `tide_beacon`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.10] Ítems y Armadura (`ModItems`) (3/5)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.11] Ítems y Armadura (`ModItems`) (3/6)
 
 • **Diplomacia y Cognición (10):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`, `field_engram`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.11] Ítems y Armadura (`ModItems`) (4/5)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.12] Ítems y Armadura (`ModItems`) (4/6)
 
-• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **18** `*_spawn_egg` en Cap.5).
+• **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **20** `*_spawn_egg` en Cap.5).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.12] Ítems y Armadura (`ModItems`) (5/5)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.13] Ítems y Armadura (`ModItems`) (5/6)
 
 • **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.13] Colonia Soberana Post-Matriarca (1/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Ítems y Armadura (`ModItems`) (6/6)
+
+• **Sima Subterránea (3 + 2 Huevos):** `root_sap_vial` (embotellado de `root_sap_moss`), `canopy_membrane` (`spore_glider`) y `root_heart_resin` (`root_keeper`).
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Colonia Soberana Post-Matriarca (1/7)
 
 • **Ancla y Puestos (`SovereignNexusBlock` / `SovereignNexusBlockEntity`):** tras derrotar a la Matriarca, el `sovereign_nexus` acepta `mycelial_biomass` (mano o tolvas) e integra hasta **4** `symbiotic_node` cercanos (**+8m** radio cada uno).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Colonia Soberana Post-Matriarca (2/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.16] Colonia Soberana Post-Matriarca (2/7)
 
 • **Niveles y Mando (`SovereignColonyDirector`):** Nivel **1–3** (**4/8/12** simbiontes, radio **24/36/48m**). Usa `sovereign_command_staff` (`staff_mode`) para marcar cofres `INPUT`/`OUTPUT` y zonas de trabajo; desbloquea rasgos `SovereignTrait` y rangos.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Colonia Soberana Post-Matriarca (3/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.17] Colonia Soberana Post-Matriarca (3/7)
 
 • **Castas y Sondeos Rivales:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` y `SENTINEL` operan `ColonyOrderBoard` por prioridad/reserva con descanso y humor (`SymbiontTemperament`). Repeler sondeos de la Colmena rival otorga XP de Dominio y moral.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.16] Colonia Soberana Post-Matriarca (4/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.18] Colonia Soberana Post-Matriarca (4/7)
 
 • **Memoria Territorial:** cada Nexo o puesto aprende de incidentes locales. Dos incidentes parecidos abren un ensayo; dos resultados favorables consolidan la conducta.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.17] Colonia Soberana Post-Matriarca (5/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.19] Colonia Soberana Post-Matriarca (5/7)
 
 • **Hábitos:** los puestos pueden aprender escoltas para mensajeros, descanso antes del regreso o recolección por turnos. El primer recuerdo se aprende solo; puedes adoptar un segundo ensayo en `Memoria`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.18] Colonia Soberana Post-Matriarca (6/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.20] Colonia Soberana Post-Matriarca (6/7)
 
 • **Enseñanza:** en `Memoria`, elige el puesto de origen y el destino. Un mensajero lleva el recuerdo aprendido; el destino lo prueba con sus propios trabajos.
 • **Bioescáner:** úsalo en `symbiotic_node` (dialecto/ensayos) o un simbionte (rol). Olvidar borra el historial.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.19] Colonia Soberana Post-Matriarca (7/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.21] Colonia Soberana Post-Matriarca (7/7)
 
 • **Dialecto (`ColonyDialect`):** en `Dialecto` elige maestro, aprendiz, pulsos (`1–3·1–3`), resuelve conflictos y emite vía `sovereign_command_staff`.
 
 <a id="cap9-recetas_36_datapack"></a>
-### 2. Recetario Total (39 Datapack)
+### 2. Recetario Total (43 Datapack)
 
 - **ID de Entrada:** `economia_datos/recetas_36_datapack` | **Ícono:** `mycelialmind:chitin_plate` | **Unlock:** `always`
-- **Resumen:** 31 Mesa, 3 Horno, 1 Ahumador, 1 Alto Horno y 3 Cortapiedras
+- **Resumen:** Todas las recetas de mesa, horno, ahumador y cortapiedras
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.1] Bio-Escáner y Bio-Extractor
 
@@ -1151,6 +1181,19 @@ Calcina `antibody_cyst` al doble de velocidad (`100t`, `0.2 XP`) -> `chitin_plat
 
 Ancla endgame post-Matriarca (`sovereign_nexus`) y herramienta de marcaje táctico (`sovereign_command_staff`).
 
+#### [Libro: Cap.9 / recetas_36_datapack / Pág.23] Ventiladero Ascendente y Repisa Raíz
+
+> **[Receta 1]** `[crafting_shaped]  M /RVR/SMS (M=canopy_membrane, R=root_heart_resin, S=mycelial_stone, V=spore_vent) -> 1x spore_updraft_vent`
+> **[Receta 2]** `[crafting_shaped] CMC/ B  (B=mycelial_biomass, C=bioluminescent_mycelial_cap, M=canopy_membrane) -> 2x root_cap_shelf`
+
+Elevador de columna térmica (`canopy_membrane` + `root_heart_resin` + `spore_vent`) y repisa elástica (`root_cap_shelf` x2).
+
+#### [Libro: Cap.9 / recetas_36_datapack / Pág.24] Antídoto Concentrado por Savia Raíz
+
+> **[Receta 1]** `[crafting_shapeless] root_sap_vial + latent_spore + mycelial_biomass -> 1x concentrated_antidote`
+
+Síntesis sin mesa usando `root_sap_vial` embotellado de `root_sap_moss`, `latent_spore` y `mycelial_biomass`.
+
 <a id="cap9-vanilla_brew_compost_trades"></a>
 ### 3. Alambique, Compostaje y Comercio
 
@@ -1170,46 +1213,49 @@ Ancla endgame post-Matriarca (`sovereign_nexus`) y herramienta de marcaje tácti
 • **Aldeanos y Errante:** Clérigos (N2–N5) comercian `mycelial_biomass`, `spore_antidote`, `latent_spore`, `concentrated_antidote`; Albañiles y Vendedor Errante ofrecen bloques miceliales y `truce_pheromone`.
 
 <a id="cap9-botin_48_tablas"></a>
-### 4. Las 52 Tablas de Botín
+### 4. Las 58 Tablas de Botín
 
 - **ID de Entrada:** `economia_datos/botin_48_tablas` | **Ícono:** `mycelialmind:hive_heart` | **Unlock:** `always`
-- **Resumen:** 23 bloques, 10 cofres, 17 entidades y aldea + multiplicadores
+- **Resumen:** 27 bloques, 11 cofres, 19 entidades y aldea + multiplicadores
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.1] Botín Multi-Pool (51 Tablas) (1/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.1] Botín Multi-Pool (58 Tablas) (1/10)
 
 • **Bloques 1/4:** `blocks/antibody_cyst`, `blocks/bio_chitin_lattice`, `blocks/bioluminescent_mycelial_cap`, `blocks/chitin_pillar`, `blocks/creeping_mycelium`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.2] Botín Multi-Pool (51 Tablas) (2/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.2] Botín Multi-Pool (58 Tablas) (2/10)
 
 • **Bloques 2/4:** `blocks/hive_altar`, `blocks/hyphal_vein`, `blocks/incubator_node`, `blocks/luminescent_amber_vein`, `blocks/matriarch_altar`, `blocks/mycelial_arch_brick`, `blocks/mycelial_node`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (51 Tablas) (3/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (58 Tablas) (3/10)
 
 • **Bloques 3/4:** `blocks/mycelial_stone`, `blocks/mycelial_tendrils`, `blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reclaimed_bloom`, `blocks/reinforced_bio_barrier`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.4] Botín Multi-Pool (51 Tablas) (4/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.4] Botín Multi-Pool (58 Tablas) (4/10)
 
-• **Bloques 4/4:** `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, `blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.
+• **Bloques 4/4:** `blocks/root_cap_shelf`, `blocks/root_sap_moss`, `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, `blocks/spore_updraft_vent`, `blocks/spore_vent`, `blocks/symbiotic_node`, `blocks/synaptic_research_bench`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.5] Botín Multi-Pool (51 Tablas) (5/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.5] Botín Multi-Pool (58 Tablas) (5/10)
 
-• **Cofres 1/2:** `chests/outbreak_sealed_vault`, `chests/surface_hive_cache`, `chests/surface_hive_crypt`, `chests/surface_hive_gallery`, `chests/sanctum_spore_vault`.
+• **Cofres 1/2:** `chests/outbreak_sealed_vault`, `chests/sinkhole_root_vault`, `chests/surface_hive_cache`, `chests/surface_hive_crypt`, `chests/surface_hive_gallery`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.6] Botín Multi-Pool (51 Tablas) (6/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.6] Botín Multi-Pool (58 Tablas) (6/10)
 
-• **Cofres 2/2:** `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, `chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.
+• **Cofres 2/2:** `chests/sanctum_spore_vault`, `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, `chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.7] Botín Multi-Pool (51 Tablas) (7/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.7] Botín Multi-Pool (58 Tablas) (7/10)
 
 • **Entidades 1/3:** `entities/acid_spitter`, `entities/apex_matriarch`, `entities/burrower`, `entities/chitin_brute`, `entities/colony_warden`, `entities/goliath_carrier`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.8] Botín Multi-Pool (51 Tablas) (8/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.8] Botín Multi-Pool (58 Tablas) (8/10)
 
-• **Entidades 2/3:** `entities/hive_core`, `entities/leech_parasite`, `entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, `entities/pyro_shroom`.
+• **Entidades 2/3:** `entities/hive_core`, `entities/leech_parasite`, `entities/mycelial_chimera`, `entities/mycelial_stalker`, `entities/purifier_drone`, `entities/pyro_shroom`, `entities/root_keeper`.
 
-#### [Libro: Cap.9 / botin_48_tablas / Pág.9] Botín Multi-Pool (51 Tablas) (9/9)
+#### [Libro: Cap.9 / botin_48_tablas / Pág.9] Botín Multi-Pool (58 Tablas) (9/10)
 
-• **Entidades 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, `entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (escala con Saqueo/Rango/Cepa).
+• **Entidades 3/3:** `entities/spore_architect`, `entities/spore_behemoth`, `entities/spore_glider`, `entities/sporeling`, `entities/synapse_weaver`, `entities/synaptic_mimic` (escala con Saqueo/Rango/Cepa).
+
+#### [Libro: Cap.9 / botin_48_tablas / Pág.10] Botín Multi-Pool (58 Tablas) (10/10)
+
 • **Aldea / Héroe:** `gameplay/hero_of_the_village/cleric_mycelial_gift` (regalo de Clérigo al defender aldeas).
 
 ---
@@ -1219,20 +1265,24 @@ Ancla endgame post-Matriarca (`sovereign_nexus`) y herramienta de marcaje tácti
 _Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis_ | Puerta recomendada: `always` | Ícono: `mycelialmind:rift_catalyst`
 
 <a id="cap10-generacion_overworld_ruido"></a>
-### 1. Brotes y Colmenas del Overworld
+### 1. Brotes, Colmenas y Simas del Overworld
 
 - **ID de Entrada:** `mundo_dimension/generacion_overworld_ruido` | **Ícono:** `mycelialmind:luminescent_amber_vein` | **Unlock:** `always`
-- **Resumen:** MycelialOutbreak (56m), SurfaceHive (192m) y FastNoiseLite
+- **Resumen:** MycelialOutbreak, SurfaceHive, MycelialSinkhole y FastNoiseLite
 
-#### [Libro: Cap.10 / generacion_overworld_ruido / Pág.1] Estructuras y Características Overworld (1/3)
+#### [Libro: Cap.10 / generacion_overworld_ruido / Pág.1] Estructuras y Características Overworld (1/4)
 
 • `mycelial_outbreak`: garra orgánica altura **9**, conectividad 6-vecinos estricta (0 flotantes), `MIN_OUTBREAK_SPACING = 56` y bóveda `outbreak_sealed_vault`.
 
-#### [Libro: Cap.10 / generacion_overworld_ruido / Pág.2] Estructuras y Características Overworld (2/3)
+#### [Libro: Cap.10 / generacion_overworld_ruido / Pág.2] Estructuras y Características Overworld (2/4)
 
 • `surface_hive`: megacápsula radio **8**, altura **16**, `MIN_HIVE_SPACING = 192`, `MIN_NODE_CLEARANCE = 64`, cripta subterránea, galería superior, conductos sinápticos y cofres `surface_hive_cache`/`gallery`/`crypt`.
 
-#### [Libro: Cap.10 / generacion_overworld_ruido / Pág.3] Estructuras y Características Overworld (3/3)
+#### [Libro: Cap.10 / generacion_overworld_ruido / Pág.3] Estructuras y Características Overworld (3/4)
+
+• `mycelial_sinkhole`: sima de 3 estratos (Corona superficial, Garganta con repisas `root_cap_shelf` y Caverna Raíz en `-22..-32`), `spore_updraft_vent` central, `root_sap_moss`, `sinkhole_root_vault`, `root_keeper` y `spore_glider`. Colocar un Pilón calma la brecha.
+
+#### [Libro: Cap.10 / generacion_overworld_ruido / Pág.4] Estructuras y Características Overworld (4/4)
 
 • **Motores (`hive_tier_rarity` / `FastNoiseLite`):** filtran rareza por Acto vía `StructureProgressionPolicy` usando ruido `FastNoiseLite` (`SIMPLEX_SMOOTH`, `CELLULAR`, `DOMAIN_WARP`) auditado con `WorldgenAuditEngine`.
 

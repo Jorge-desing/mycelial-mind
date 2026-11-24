@@ -129,9 +129,13 @@ ENTITY_SKINS: Dict[str, EntitySkin] = {
                                    role_overrides=(("skin", "volcanic_ember"), ("armor", "basalt_slate"), ("bone", "chitin_bone"), ("spore_sac", "venom_emerald"))),
     "colony_symbiont": EntitySkin("royal_filigree", "visor_slit", "purification_aqua", "spore_chartreuse", "none", motif_variant="mantle", lift=0.08, metal_roles=("metal",), moss_strength=0.25,
                                   role_overrides=(("skin", "mycelial_violet"), ("armor", "royal_gold"), ("bone", "chitin_bone"), ("spore_sac", "purification_aqua"), ("metal", "imperial_brass"))),
+    "spore_glider": EntitySkin("neural_weave", "beady", "biolum_cyan", "purification_aqua", "none", motif_variant="robe", lift=0.09, moss_strength=0.20,
+                               role_overrides=(("skin", "biolum_cyan"), ("armor", "abyssal_indigo"), ("bone", "chitin_bone"), ("spore_sac", "purification_aqua"))),
+    "root_keeper": EntitySkin("bark_slabs", "three_eyes", "mutant_amber", "royal_gold", "carapace_amber", motif_variant="brute", lift=0.08, contrast=1.14, edge="hard", moss_strength=0.70,
+                              role_overrides=(("skin", "predator_amethyst"), ("armor", "abyssal_obsidian"), ("bone", "chitin_bone"), ("spore_sac", "mutant_amber"))),
 }
 
-NO_RANK_ENTITIES = frozenset({"purifier_drone", "hive_core", "apex_matriarch", "colony_symbiont"})
+NO_RANK_ENTITIES = frozenset({"purifier_drone", "hive_core", "apex_matriarch", "colony_symbiont", "spore_glider"})
 
 COLONY_SYMBIONT_CASTE_SKINS: Dict[str, EntitySkin] = {
     "harvester": EntitySkin("mossy_carapace", "compound_cluster", "spore_chartreuse", "acid_lime", "none", motif_variant="acid", lift=0.08, moss_strength=0.65,
@@ -1565,6 +1569,19 @@ def _sig_colony_symbiont(ctx, rgba, dark, light, accent):
     _sig_dot(rgba, w // 2, h // 2, accent, 0.85)
 
 
+def _sig_spore_glider(ctx, rgba, dark, light, accent):
+    w, h = ctx.rect.w, ctx.rect.h
+    _sig_hline(rgba, h // 2, 1, w - 2, light, 0.50)
+    _sig_dot(rgba, w // 2, h // 3, accent, 0.80)
+
+
+def _sig_root_keeper(ctx, rgba, dark, light, accent):
+    w, h = ctx.rect.w, ctx.rect.h
+    _sig_vline(rgba, w // 3, 1, h - 2, dark, 0.65)
+    _sig_vline(rgba, (2 * w) // 3, 1, h - 2, dark, 0.65)
+    _sig_dot(rgba, w // 2, h // 2, accent, 0.85)
+
+
 SIGNATURES = {
     "sporeling": _sig_sporeling,
     "leech_parasite": _sig_leech,
@@ -1584,6 +1601,8 @@ SIGNATURES = {
     "mycelial_chimera": _sig_chimera,
     "purifier_drone": _sig_drone,
     "colony_symbiont": _sig_colony_symbiont,
+    "spore_glider": _sig_spore_glider,
+    "root_keeper": _sig_root_keeper,
 }
 
 

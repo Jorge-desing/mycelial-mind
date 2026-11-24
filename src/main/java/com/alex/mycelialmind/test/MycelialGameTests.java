@@ -5082,7 +5082,7 @@ public final class MycelialGameTests {
 
         try {
             var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-            boolean soundsOk = soundEntries.size() == 200;
+            boolean soundsOk = soundEntries.size() == 208;
             if (soundsOk) {
                 for (var holder : soundEntries) {
                     SoundEvent evt = holder.get();
@@ -5109,7 +5109,8 @@ public final class MycelialGameTests {
                     ModEntities.SPORE_BEHEMOTH.get(),
                     ModEntities.SYNAPTIC_MIMIC.get(),
                     ModEntities.HIVE_CORE.get(),
-                    ModEntities.APEX_MATRIARCH.get()
+                    ModEntities.APEX_MATRIARCH.get(),
+                    ModEntities.ROOT_KEEPER.get()
             );
 
             Set<ResourceLocation> distinctAmbient = new HashSet<>();
@@ -5227,8 +5228,8 @@ public final class MycelialGameTests {
                     && sporelingInterval >= 140
                     && matriarchBaseVol > sporelingBaseVol;
 
-            if (!soundsOk || !entityAudioOk || distinctAmbient.size() != 17
-                    || distinctHurt.size() != 17 || distinctDeath.size() != 17
+            if (!soundsOk || !entityAudioOk || distinctAmbient.size() != 18
+                    || distinctHurt.size() != 18 || distinctDeath.size() != 18
                     || !rankDynamicsOk
                     || !thresholdsOk || !belowHabitThreshold || !atHabitThreshold) {
                 helper.fail(String.format(
@@ -9783,6 +9784,9 @@ public final class MycelialGameTests {
                             && !level.getBlockState(pyroCystPos).is(ModBlocks.ANTIBODY_CYST.get()),
                     "PyroShroom detonation must cauterize adjacent Antibody Cysts.");
 
+            level.setBlockAndUpdate(pylonPos, Blocks.AIR.defaultBlockState());
+            tracker.removePylon(pylonPos);
+
             ColonyWardenEntity warden = ModEntities.COLONY_WARDEN.get().create(level);
             SporelingEntity wingman = ModEntities.SPORELING.get().create(level);
             helper.assertTrue(warden != null && wingman != null, "Warden and Sporeling must instantiate.");
@@ -10481,10 +10485,12 @@ public final class MycelialGameTests {
         var leech = helper.spawnWithNoFreeWill(ModEntities.LEECH_PARASITE.get(), 5, 1, 5);
         var architect = helper.spawnWithNoFreeWill(ModEntities.SPORE_ARCHITECT.get(), 1, 1, 6);
         var drone = helper.spawnWithNoFreeWill(ModEntities.PURIFIER_DRONE.get(), 3, 2, 6);
+        var rootKeeper = helper.spawnWithNoFreeWill(ModEntities.ROOT_KEEPER.get(), 5, 1, 6);
+        var glider = helper.spawnWithNoFreeWill(ModEntities.SPORE_GLIDER.get(), 6, 2, 6);
         try {
             List<MycelialMob> mobs = List.of(
                     brute, burrower, pyro, warden, mimic, spitter, stalker, weaver,
-                    behemoth, hiveCore, matriarch, sporeling, carrier, leech, architect);
+                    behemoth, hiveCore, matriarch, sporeling, carrier, leech, architect, rootKeeper);
             for (MycelialMob mob : mobs) {
                 helper.assertTrue(mob.getHiveBrainRuntime() != null,
                         mob.getClass().getSimpleName() + " must initialize HiveBrainRuntime.");
@@ -10497,6 +10503,9 @@ public final class MycelialGameTests {
             helper.assertTrue(drone.getHiveBrainRuntime() != null,
                     "PurifierDrone must initialize HiveBrainRuntime.");
             drone.tickBrain(drone);
+            helper.assertTrue(glider.getHiveBrainRuntime() != null,
+                    "SporeGlider must initialize HiveBrainRuntime.");
+            glider.tickBrain(glider);
 
             // ChitinBrute enters INVESTIGATE on SHARED_TARGET_POS without ATTACK_TARGET
             HiveBrainUtils.setMemory(brute, ModMemoryTypes.SHARED_TARGET_POS.get(), brute.blockPosition().offset(6, 0, 0));
@@ -10567,6 +10576,22 @@ public final class MycelialGameTests {
             helper.assertTrue(drone.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
                     "PurifierDrone must return to IDLE after jam clears.");
 
+            // RootKeeper enters INVESTIGATE near node without ATTACK_TARGET
+            HiveBrainUtils.setMemory(rootKeeper, ModMemoryTypes.NEAREST_NODE_POS.get(), rootKeeper.blockPosition().offset(2, 0, 0));
+            rootKeeper.tickBrain(rootKeeper);
+            helper.assertTrue(rootKeeper.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.INVESTIGATE),
+                    "RootKeeper must activate INVESTIGATE when NEAREST_NODE_POS is present.");
+
+            // SporeGlider switches to PANIC when HURT_BY_ENTITY is set and back to IDLE when cleared
+            HiveBrainUtils.setMemory(glider, net.minecraft.world.entity.ai.memory.MemoryModuleType.HURT_BY_ENTITY, spitter);
+            glider.tickBrain(glider);
+            helper.assertTrue(glider.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.PANIC),
+                    "SporeGlider must activate PANIC when HURT_BY_ENTITY is set.");
+            HiveBrainUtils.clearMemory(glider, net.minecraft.world.entity.ai.memory.MemoryModuleType.HURT_BY_ENTITY);
+            glider.tickBrain(glider);
+            helper.assertTrue(glider.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
+                    "SporeGlider must return to IDLE when HURT_BY_ENTITY is cleared.");
+
             helper.succeed();
         } finally {
             brute.discard();
@@ -10587,6 +10612,8 @@ public final class MycelialGameTests {
             leech.discard();
             architect.discard();
             drone.discard();
+            rootKeeper.discard();
+            glider.discard();
         }
     }
 
@@ -10801,6 +10828,140 @@ public final class MycelialGameTests {
         } finally {
             bruteA.discard();
             bruteB.discard();
+        }
+    }
+
+    @GameTest(template = "empty", batch = "sinkhole_ecosystem")
+    public static void mycelialSinkholeEcosystemBlocksEntitiesAndPurificationWorkEndToEnd(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+
+        BlockPos baseAbs = helper.absolutePos(new BlockPos(4, 0, 4));
+        int originY = Math.max(baseAbs.getY() + 44, level.getMinBuildHeight() + 42);
+        BlockPos originAbs = new BlockPos(baseAbs.getX(), originY, baseAbs.getZ());
+
+        List<net.minecraft.world.entity.Entity> cleanupEntities = new java.util.ArrayList<>();
+        BlockPos nodePos = originAbs.offset(4, -29, 0);
+        BlockPos pylonPos = originAbs.offset(-2, -30, 2);
+
+        try {
+            // Prepare sturdy subterranean column + surface cap + air headroom
+            for (int dx = -11; dx <= 11; dx++) {
+                for (int dz = -11; dz <= 11; dz++) {
+                    for (int dy = -34; dy <= -2; dy++) {
+                        level.setBlock(originAbs.offset(dx, dy, dz), Blocks.STONE.defaultBlockState(), 2);
+                    }
+                    level.setBlock(originAbs.offset(dx, -1, dz), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                    for (int dy = 0; dy <= 5; dy++) {
+                        level.setBlock(originAbs.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+
+            boolean generated = com.alex.mycelialmind.world.MycelialSinkholeFeature.generateSinkholeAt(
+                    level, originAbs, level.getRandom());
+            helper.assertTrue(generated, "MycelialSinkholeFeature.generateSinkholeAt must succeed on valid ground.");
+            helper.assertTrue(tracker.hasSinkholeWithin(originAbs, 2),
+                    "PurificationZoneTracker must persist newly reserved sinkhole origin.");
+
+            // Verify Stratum 3 blocks (Updraft Vent, Root Sap Moss, Chest Vault, Root Synaptic Node)
+            BlockPos ventPos = originAbs.below(30);
+            helper.assertTrue(level.getBlockState(ventPos).is(ModBlocks.SPORE_UPDRAFT_VENT.get()),
+                    "Central Spore Updraft Vent must be placed at origin.below(30).");
+            BlockPos sapPos = originAbs.offset(0, -31, 3);
+            helper.assertTrue(level.getBlockState(sapPos).is(ModBlocks.ROOT_SAP_MOSS.get())
+                            && level.getBlockState(sapPos).getValue(com.alex.mycelialmind.block.RootSapMossBlock.SAP_READY),
+                    "Cavern floor must contain ready Root Sap Moss.");
+            BlockPos chestPos = originAbs.offset(-4, -30, 0);
+            helper.assertTrue(level.getBlockEntity(chestPos) instanceof ChestBlockEntity,
+                    "Western Root Vault chest must be populated.");
+            helper.assertTrue(!level.getBlockState(nodePos).isAir()
+                            && tracker.findNearestEnemyNode(ventPos, 10) != null,
+                    "Eastern Root Synaptic Node must be registered as hostile node.");
+
+            // Verify Stratum 2 spiral Root Cap Shelves
+            int shelfCount = 0;
+            for (int dx = -6; dx <= 6; dx++) {
+                for (int dz = -6; dz <= 6; dz++) {
+                    for (int dy = -19; dy <= -2; dy++) {
+                        if (level.getBlockState(originAbs.offset(dx, dy, dz)).is(ModBlocks.ROOT_CAP_SHELF.get())) {
+                            shelfCount++;
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(shelfCount >= 2, "Twilight Throat must place spiral Root Cap Shelves, found " + shelfCount);
+
+            // Verify native fauna spawned (RootKeeper + 2 SporeGliders)
+            AABB searchBox = new AABB(
+                    originAbs.getX() - 14.0D, originAbs.getY() - 34.0D, originAbs.getZ() - 14.0D,
+                    originAbs.getX() + 15.0D, originAbs.getY() + 7.0D, originAbs.getZ() + 15.0D);
+            var keepers = level.getEntitiesOfClass(com.alex.mycelialmind.entity.RootKeeperEntity.class, searchBox);
+            var gliders = level.getEntitiesOfClass(com.alex.mycelialmind.entity.SporeGliderEntity.class, searchBox);
+            cleanupEntities.addAll(keepers);
+            cleanupEntities.addAll(gliders);
+            helper.assertTrue(keepers.size() == 1, "Sinkhole must spawn 1 RootKeeperEntity, found " + keepers.size());
+            helper.assertTrue(gliders.size() == 2, "Sinkhole must spawn 2 SporeGliderEntity, found " + gliders.size());
+
+            // Interact with Root Sap Moss using a Glass Bottle -> Root Sap Vial
+            var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+            ItemStack bottle = new ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bottle);
+            level.getBlockState(sapPos).useItemOn(
+                    bottle, level, player, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(sapPos), Direction.UP, sapPos, false));
+            helper.assertFalse(level.getBlockState(sapPos).getValue(com.alex.mycelialmind.block.RootSapMossBlock.SAP_READY),
+                    "Bottling Root Sap Moss must deplete SAP_READY.");
+            helper.assertTrue(player.getInventory().contains(new ItemStack(ModItems.ROOT_SAP_VIAL.get())),
+                    "Bottling Root Sap Moss must yield a Root Sap Vial.");
+
+            // Test Spore Updraft Vent lift on stepOn
+            var testMob = net.minecraft.world.entity.EntityType.COW.create(level);
+            helper.assertTrue(testMob != null, "Test cow must instantiate.");
+            cleanupEntities.add(testMob);
+            testMob.setPos(ventPos.getX() + 0.5D, ventPos.getY() + 1.0D, ventPos.getZ() + 0.5D);
+            level.addFreshEntity(testMob);
+            ModBlocks.SPORE_UPDRAFT_VENT.get().stepOn(level, ventPos, level.getBlockState(ventPos), testMob);
+            helper.assertTrue(testMob.getDeltaMovement().y > 0.30D,
+                    "Spore Updraft Vent must propel entities vertically on stepOn.");
+
+            // Test Purification Pylon calming / sealing coupling
+            helper.assertFalse(com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(
+                    true, tracker.isProtected(ventPos)),
+                    "Unpurified sinkhole with live Root Node must not be sealed.");
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            helper.assertTrue(com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(
+                    true, tracker.isProtected(ventPos)),
+                    "Purification Pylon inside Root Cavern must seal the sinkhole breach.");
+
+            var keeper = keepers.get(0);
+            keeper.tickCount = 20;
+            keeper.aiStep();
+            helper.assertTrue(keeper.hasEffect(net.minecraft.world.effect.MobEffects.WEAKNESS),
+                    "Purified RootKeeper must receive Weakness when inside Purification Pylon radius.");
+            var followRange = keeper.getAttribute(Attributes.FOLLOW_RANGE);
+            helper.assertTrue(followRange != null
+                            && Math.abs(followRange.getBaseValue() - com.alex.mycelialmind.world.SinkholeEcosystemEngine.PURIFIED_AGGRO_RANGE) < 0.05D,
+                    "Purified RootKeeper follow range must drop to PURIFIED_AGGRO_RANGE.");
+
+            helper.succeed();
+        } finally {
+            for (var e : cleanupEntities) {
+                e.discard();
+            }
+            for (int dx = -11; dx <= 11; dx++) {
+                for (int dz = -11; dz <= 11; dz++) {
+                    for (int dy = -34; dy <= 6; dy++) {
+                        level.setBlock(originAbs.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+            tracker.removeSinkhole(originAbs);
+            tracker.clearAll();
+            hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
         }
     }
 }

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=true": {
+      "model": "mycelialmind:block/spore_updraft_vent"
+    },
+    "active=false": {
+      "model": "mycelialmind:block/spore_updraft_vent_inactive"
+    }
+  }
+}

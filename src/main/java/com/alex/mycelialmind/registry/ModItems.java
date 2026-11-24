@@ -16,6 +16,7 @@ import com.alex.mycelialmind.item.OvermindCrownItem;
 import com.alex.mycelialmind.item.PurifierGrenadeItem;
 import com.alex.mycelialmind.item.ReclaimedBloomItem;
 import com.alex.mycelialmind.item.RiftCatalystItem;
+import com.alex.mycelialmind.item.RootSapVialItem;
 import com.alex.mycelialmind.item.SovereignCommandStaffItem;
 import com.alex.mycelialmind.item.SporeAntidoteItem;
 import com.alex.mycelialmind.item.SymbioticBladeItem;
@@ -244,6 +245,25 @@ public final class ModItems {
 
     public static final DeferredItem<Item> COLONY_SYMBIONT_SPAWN_EGG = ITEMS.register("colony_symbiont_spawn_egg",
             () -> new DeferredSpawnEggItem(ModEntities.COLONY_SYMBIONT, 0x1C3A2B, 0x4AD66D, new Item.Properties()));
+
+    // Sinkhole Ecosystem Expansion
+    public static final DeferredItem<Item> ROOT_SAP_VIAL = ITEMS.register("root_sap_vial",
+            () -> new RootSapVialItem(new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON)));
+
+    public static final DeferredItem<Item> CANOPY_MEMBRANE = ITEMS.register("canopy_membrane",
+            () -> new TooltipMaterialItem(new Item.Properties(),
+                    "tooltip.mycelialmind.canopy_membrane", ChatFormatting.AQUA));
+
+    public static final DeferredItem<Item> ROOT_HEART_RESIN = ITEMS.register("root_heart_resin",
+            () -> new TooltipMaterialItem(new Item.Properties().rarity(Rarity.UNCOMMON),
+                    "tooltip.mycelialmind.root_heart_resin", ChatFormatting.GOLD,
+                    "tooltip.mycelialmind.root_heart_resin.hint", ChatFormatting.GREEN));
+
+    public static final DeferredItem<Item> SPORE_GLIDER_SPAWN_EGG = ITEMS.register("spore_glider_spawn_egg",
+            () -> new DeferredSpawnEggItem(ModEntities.SPORE_GLIDER, 0x26547C, 0x72EFDD, new Item.Properties()));
+
+    public static final DeferredItem<Item> ROOT_KEEPER_SPAWN_EGG = ITEMS.register("root_keeper_spawn_egg",
+            () -> new DeferredSpawnEggItem(ModEntities.ROOT_KEEPER, 0x3A1F47, 0xFFB703, new Item.Properties()));
 
     private ModItems() {
     }

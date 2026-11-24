@@ -392,6 +392,16 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> SOVEREIGN_NEXUS_HUM = register("sovereign_nexus_hum");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOSS_COMBAT_TENSION_BED = register("boss_combat_tension_bed");
 
+    // Sinkhole Ecosystem Expansion (8)
+    public static final DeferredHolder<SoundEvent, SoundEvent> SPORE_GLIDER_AMBIENT = register("spore_glider_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SPORE_GLIDER_HURT = register("spore_glider_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SPORE_GLIDER_DEATH = register("spore_glider_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ROOT_KEEPER_AMBIENT = register("root_keeper_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ROOT_KEEPER_HURT = register("root_keeper_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ROOT_KEEPER_DEATH = register("root_keeper_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ROOT_KEEPER_SLAM = register("root_keeper_slam");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SPORE_UPDRAFT_VENT_PULSE = register("spore_updraft_vent_pulse");
+
     // =========================================================================
     // 7 DeferredSoundType Surface Families
     // =========================================================================

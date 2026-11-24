@@ -9,7 +9,7 @@
   "sampler_type": "pingpong",
   "sample_rate": 44100,
   "stem_count": 59,
-  "mapped_sound_events": 200,
+  "mapped_sound_events": 208,
   "stems": {
     "acid_spitter_wet_gurgle": {
       "group": "entity",
@@ -329,7 +329,11 @@
         "colony_warden_bellow",
         "colony_warden_hurt",
         "colony_warden_death",
-        "colony_warden_shockwave"
+        "colony_warden_shockwave",
+        "root_keeper_ambient",
+        "root_keeper_hurt",
+        "root_keeper_death",
+        "root_keeper_slam"
       ]
     },
     "env_biome_caverns_abyss": {
@@ -422,7 +426,8 @@
       "sound_ids": [
         "spore_vent_puff",
         "spore_bulb_burst",
-        "ephemeral_chitin_crumble"
+        "ephemeral_chitin_crumble",
+        "spore_updraft_vent_pulse"
       ]
     },
     "func_synaptic_symbiotic_node": {
@@ -846,7 +851,10 @@
         "synapse_weaver_hum",
         "synapse_weaver_hurt",
         "synapse_weaver_death",
-        "synapse_weaver_buff"
+        "synapse_weaver_buff",
+        "spore_glider_ambient",
+        "spore_glider_hurt",
+        "spore_glider_death"
       ]
     },
     "synaptic_mimic_vocal": {

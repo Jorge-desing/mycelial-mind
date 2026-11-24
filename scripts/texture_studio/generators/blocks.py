@@ -853,3 +853,84 @@ def generate_blocks(block_dir: str, pbr_dir: str | None = None) -> None:
     save_rgba(sn_bot, os.path.join(block_dir, "sovereign_nexus_bottom.png"))
     _save_pbr_pair(pbr_dir, "sovereign_nexus_bottom", np.minimum(d_bot_clamp, d_bot_pore), MATERIALS["OBSIDIAN_CHITIN"],
                    emissive_mask=(d_bot_pore <= 0.0), metal_mask=(d_bot_clamp <= 0.0))
+
+    # 25) spore_updraft_vent_{top, top_inactive, side}
+    uv_fbm = toroidal_value_fbm(n, n, seed=141, base_cells=4, octaves=3)
+    uv_ring = sdf_onion(sdf_circle(xx, yy, 0.0, 0.0, 0.62), 0.12)
+    uv_core = sdf_circle(xx, yy, 0.0, 0.0, 0.36)
+    uv_bg = bayer_quantize(np.clip(0.22 + 0.36 * uv_fbm, 0.0, 1.0), PALETTES["basalt_slate"], 0.16, matrix=4)
+    uv_top = uv_bg.copy()
+    uv_top = np.where((uv_ring <= 0.0)[..., None],
+                      bayer_quantize(compute_sdf_lighting_v2(uv_ring, sss_strength=0.35), PALETTES["purification_aqua"], 0.16, matrix=8),
+                      uv_top)
+    uv_top = np.where((uv_core <= 0.0)[..., None],
+                      bayer_quantize(np.clip(0.20 + 0.65 * (1.0 - np.clip(rad / 0.38, 0.0, 1.0)), 0.0, 1.0), PALETTES["biolum_cyan"], 0.14, matrix=8),
+                      uv_top)
+    uv_top = np.where((sdf_circle(xx, yy, 0.0, 0.0, 0.14) <= 0.0)[..., None], PALETTES["warm_ivory"][6], uv_top)
+    save_rgba(uv_top, os.path.join(block_dir, "spore_updraft_vent_top.png"))
+    _save_pbr_pair(pbr_dir, "spore_updraft_vent_top", np.minimum(uv_ring, uv_core), MATERIALS["BIOLUM_CYAN"],
+                   emissive_mask=(uv_ring <= 0.0) | (uv_core <= 0.0))
+
+    uv_inact = uv_bg.copy()
+    uv_inact = np.where((uv_ring <= 0.0)[..., None],
+                        bayer_quantize(compute_sdf_lighting_v2(uv_ring), PALETTES["chitin_bone"], 0.16, matrix=4),
+                        uv_inact)
+    uv_inact = np.where((uv_core <= 0.0)[..., None],
+                        bayer_quantize(np.clip(0.08 + 0.20 * uv_fbm, 0.0, 1.0), PALETTES["abyssal_obsidian"], 0.14, matrix=4),
+                        uv_inact)
+    save_rgba(uv_inact, os.path.join(block_dir, "spore_updraft_vent_top_inactive.png"))
+    _save_pbr_pair(pbr_dir, "spore_updraft_vent_top_inactive", np.minimum(uv_ring, uv_core), MATERIALS["OBSIDIAN_CHITIN"])
+
+    uv_side_fbm = toroidal_value_fbm(n, n, seed=142, base_cells=4, octaves=3)
+    uv_side = bayer_quantize(np.clip(0.20 + 0.40 * uv_side_fbm, 0.0, 1.0), PALETTES["abyssal_indigo"], 0.16, matrix=4)
+    uv_rib_v = (np.abs(np.abs(xx) - 0.68) < 0.11) | (np.abs(yy + 0.72) < 0.12)
+    uv_side = np.where(uv_rib_v[..., None],
+                       bayer_quantize(np.clip(0.45 + 0.35 * uv_side_fbm, 0.0, 1.0), PALETTES["chitin_bone"], 0.14, matrix=4),
+                       uv_side)
+    uv_slit = sdf_capsule(xx, yy, 0.0, -0.55, 0.0, 0.55, 0.13)
+    uv_side = np.where((uv_slit <= 0.0)[..., None],
+                       bayer_quantize(compute_sdf_lighting_v2(uv_slit, sss_strength=0.4), PALETTES["biolum_cyan"], 0.16, matrix=8),
+                       uv_side)
+    save_rgba(uv_side, os.path.join(block_dir, "spore_updraft_vent_side.png"))
+    _save_pbr_pair(pbr_dir, "spore_updraft_vent_side", uv_slit, MATERIALS["BASALT_SLATE"],
+                   emissive_mask=(uv_slit <= 0.0))
+
+    # 26) root_sap_moss_{ready, depleted}
+    rsm_fbm = toroidal_value_fbm(n, n, seed=143, base_cells=5, octaves=3)
+    rsm_gs = gray_scott_toroidal(n, n, feed=0.050, kill=0.062, steps=140, seed=143)
+    rsm_field = np.clip((rsm_fbm * 0.55 + rsm_gs * 0.45 - 0.15) * 1.45, 0.0, 1.0)
+    rsm_dep = bayer_quantize(rsm_field, PALETTES["venom_emerald"], 0.22, matrix=8)
+    rsm_vein = frangi_vesselness_toroidal(rsm_gs) > 0.45
+    rsm_dep = np.where(rsm_vein[..., None], PALETTES["abyssal_obsidian"][0], rsm_dep)
+    rsm_scars = (
+        (sdf_circle(xx, yy, -0.45, -0.35, 0.17) <= 0.0)
+        | (sdf_circle(xx, yy, 0.38, -0.22, 0.14) <= 0.0)
+        | (sdf_circle(xx, yy, -0.10, 0.42, 0.19) <= 0.0)
+    )
+    rsm_dep = np.where(rsm_scars[..., None], PALETTES["chitin_bone"][4], rsm_dep)
+    save_rgba(rsm_dep, os.path.join(block_dir, "root_sap_moss_depleted.png"))
+    _save_pbr_pair(pbr_dir, "root_sap_moss_depleted", rsm_gs - 0.5, MATERIALS["OBSIDIAN_CHITIN"])
+
+    rsm_ready = bayer_quantize(np.clip(0.15 + 0.80 * rsm_field, 0.0, 1.0), PALETTES["venom_emerald"], 0.20, matrix=8)
+    rsm_drops = (
+        (sdf_circle(xx, yy, -0.45, -0.35, 0.20) <= 0.0)
+        | (sdf_circle(xx, yy, 0.38, -0.22, 0.17) <= 0.0)
+        | (sdf_circle(xx, yy, -0.10, 0.42, 0.22) <= 0.0)
+    )
+    rsm_ready = np.where(rsm_vein[..., None], PALETTES["biolum_cyan"][6], rsm_ready)
+    rsm_ready = np.where(rsm_drops[..., None], PALETTES["mutant_amber"][7], rsm_ready)
+    save_rgba(rsm_ready, os.path.join(block_dir, "root_sap_moss_ready.png"))
+    _save_pbr_pair(pbr_dir, "root_sap_moss_ready", rsm_gs - 0.45, MATERIALS["TOXIC_SPORE"],
+                   emissive_mask=rsm_drops | rsm_vein)
+
+    # 27) root_cap_shelf
+    rcs_fbm = toroidal_value_fbm(n, n, seed=144, base_cells=4, octaves=3)
+    rcs_field = np.clip((rcs_fbm - 0.18) * 1.45, 0.0, 1.0)
+    rcs_img = bayer_quantize(rcs_field, PALETTES["mycelial_violet"], 0.22, matrix=8)
+    rcs_gills = (np.sin((xx + yy * 0.25) * 18.0) > 0.35) & (yy > -0.25)
+    rcs_img = np.where(rcs_gills[..., None], PALETTES["chitin_bone"][6], rcs_img)
+    rcs_rim = np.abs(yy + 0.65) < 0.16
+    rcs_img = np.where(rcs_rim[..., None], PALETTES["purification_aqua"][6], rcs_img)
+    save_rgba(rcs_img, os.path.join(block_dir, "root_cap_shelf.png"))
+    _save_pbr_pair(pbr_dir, "root_cap_shelf", yy + 0.2, MATERIALS["BIOLUM_MYCELIUM"],
+                   emissive_mask=rcs_rim)

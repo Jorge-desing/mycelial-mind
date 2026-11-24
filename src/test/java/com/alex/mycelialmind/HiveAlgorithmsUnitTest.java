@@ -2402,4 +2402,59 @@ class HiveAlgorithmsUnitTest {
         var benchReady = com.alex.mycelialmind.hive.UxJuiceEngine.computeBenchVisualState(2, true, false);
         assertTrue(benchReady.speedMultiplier() >= 2.5F);
     }
+
+    @Test
+    void sinkholeEcosystemEngineCoversUpdraftAggroThreatAndPolicy() {
+        assertEquals(14, com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftHeight(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, false));
+        assertEquals(26, com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftHeight(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND, false));
+        assertEquals(com.alex.mycelialmind.world.SinkholeEcosystemEngine.PURIFIED_UPDRAFT_HEIGHT,
+                com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftHeight(
+                        com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND, true));
+
+        double liftBase = com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftVerticalBoost(0.0D, 20, false);
+        double liftTop = com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftVerticalBoost(20.0D, 20, false);
+        double sneakDescent = com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftVerticalBoost(5.0D, 20, true);
+        assertTrue(liftBase > liftTop && liftTop > 0.0D);
+        assertEquals(-0.06D, sneakDescent, 1e-6D);
+        assertEquals(0.0D, com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftVerticalBoost(-1.0D, 20, false));
+
+        assertTrue(com.alex.mycelialmind.world.SinkholeEcosystemEngine.computePassiveThreatPulse(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND, false, true)
+                > com.alex.mycelialmind.world.SinkholeEcosystemEngine.computePassiveThreatPulse(
+                        com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT, false, true));
+        assertEquals(0.0D, com.alex.mycelialmind.world.SinkholeEcosystemEngine.computePassiveThreatPulse(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND, true, true));
+        assertEquals(0.0D, com.alex.mycelialmind.world.SinkholeEcosystemEngine.computePassiveThreatPulse(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND, false, false));
+
+        assertEquals(28.0D, com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeRootKeeperAggroRange(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND, false));
+        assertEquals(com.alex.mycelialmind.world.SinkholeEcosystemEngine.PURIFIED_AGGRO_RANGE,
+                com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeRootKeeperAggroRange(
+                        com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND, true));
+
+        assertTrue(com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeSapRegrowthChance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND)
+                > com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeSapRegrowthChance(
+                        com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+
+        assertFalse(com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(true, false));
+        assertTrue(com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(false, false));
+        assertTrue(com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(true, true));
+
+        assertTrue(com.alex.mycelialmind.world.structure.StructureProgressionPolicy.sinkholeRarityChance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT)
+                > com.alex.mycelialmind.world.structure.StructureProgressionPolicy.sinkholeRarityChance(
+                        com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND));
+        assertEquals(320, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.sinkholeMinSpacing(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+        assertEquals(128, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.sinkholeMinSpawnDistance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.DORMANT));
+        assertEquals(0, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.sinkholeMinSpawnDistance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND));
+        assertEquals(64, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.sinkholeNodeClearance(
+                com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND));
+    }
 }

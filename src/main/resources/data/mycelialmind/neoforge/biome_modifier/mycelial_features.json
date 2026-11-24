@@ -4,7 +4,8 @@
   "features": [
     "mycelialmind:mycelial_outbreak",
     "mycelialmind:surface_spore_patch",
-    "mycelialmind:surface_hive"
+    "mycelialmind:surface_hive",
+    "mycelialmind:mycelial_sinkhole"
   ],
   "step": "vegetal_decoration"
 }

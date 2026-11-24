@@ -1188,6 +1188,126 @@ def build_all_models() -> List[ModelDef]:
         ),
     ))
 
+    # 19) SporeGliderModel (256x256): Peaceful sinkhole gliding pollinator
+    models.append(ModelDef(
+        class_name="SporeGliderModel",
+        registry_id="spore_glider",
+        description="Peaceful gliding sinkhole pollinator with twin bioluminescent wing membranes and spore-tail tendrils",
+        tex_size=(256, 256),
+        palettes={
+            "skin": "biolum_cyan",
+            "armor": "abyssal_indigo",
+            "bone": "chitin_bone",
+            "spore_sac": "purification_aqua",
+            "glow_eye": "warm_ivory",
+            "glow_core": "spore_chartreuse",
+        },
+        parts=(
+            PartNode("body", pivot=(0.0, 15.0, 0.0), anim_role="float_bob", cubes=(
+                CubeSpec("body", (-3, -2, -5), (6, 4, 10), role="armor", detail_tags=("chitin_plates",)),
+                CubeSpec("belly_sac", (-2, 1, -3), (4, 2, 6), role="spore_sac"),
+                CubeSpec("dorsal_spine", (-1, -3, -4), (2, 1, 8), role="bone"),
+            ), children=(
+                PartNode("head", pivot=(0.0, -0.5, -5.0), anim_role="head", cubes=(
+                    CubeSpec("head", (-2.5, -2.5, -4), (5, 4, 4), role="skin", eye_pattern="two_eyes", detail_tags=("neural_veins",)),
+                    CubeSpec("glider_crest", (-1.5, -4, -3), (3, 2, 3), role="glow_core", emissive=True, detail_tags=("crystal_facets",)),
+                )),
+                PartNode("wing_fore_r", pivot=(-3.0, -1.0, -2.0), anim_role="mantle_wing_r", cubes=(
+                    CubeSpec("fore_membrane_r", (-9, -0.5, -3), (9, 1, 6), role="spore_sac"),
+                    CubeSpec("fore_rib_r", (-9, -1.0, -3), (9, 1, 1), role="bone"),
+                )),
+                PartNode("wing_fore_l", pivot=(3.0, -1.0, -2.0), anim_role="mantle_wing_l", cubes=(
+                    CubeSpec("fore_membrane_l", (0, -0.5, -3), (9, 1, 6), role="spore_sac", mirror=True),
+                    CubeSpec("fore_rib_l", (0, -1.0, -3), (9, 1, 1), role="bone", mirror=True),
+                )),
+                PartNode("wing_aft_r", pivot=(-2.5, 0.0, 3.0), anim_role="mantle_wing_r", anim_phase=0.8, cubes=(
+                    CubeSpec("aft_membrane_r", (-6, -0.5, -1), (6, 1, 4), role="spore_sac"),
+                )),
+                PartNode("wing_aft_l", pivot=(2.5, 0.0, 3.0), anim_role="mantle_wing_l", anim_phase=0.8, cubes=(
+                    CubeSpec("aft_membrane_l", (0, -0.5, -1), (6, 1, 4), role="spore_sac", mirror=True),
+                )),
+                PartNode("pollen_tail_r", pivot=(-1.5, 0.5, 5.0), anim_role="tendril_sway", anim_phase=0.0, cubes=(
+                    CubeSpec("pollen_tail_r", (-0.5, -0.5, 0), (1, 1, 6), role="bone"),
+                    CubeSpec("pollen_pod_r", (-1, -1, 5), (2, 2, 2), role="glow_eye", emissive=True),
+                )),
+                PartNode("pollen_tail_l", pivot=(1.5, 0.5, 5.0), anim_role="tendril_sway", anim_phase=1.4, cubes=(
+                    CubeSpec("pollen_tail_l", (-0.5, -0.5, 0), (1, 1, 6), role="bone", mirror=True),
+                    CubeSpec("pollen_pod_l", (-1, -1, 5), (2, 2, 2), role="glow_eye", emissive=True, mirror=True),
+                )),
+            )),
+        ),
+    ))
+
+    # 20) RootKeeperModel (256x256): Territorial Root Cavern guardian with MUTATED & ELITE layers
+    models.append(ModelDef(
+        class_name="RootKeeperModel",
+        registry_id="root_keeper",
+        description="Territorial Root Cavern guardian armored in gnarled chitin roots, amber crest, and heavy root mauls",
+        tex_size=(256, 256),
+        palettes={
+            "skin": "predator_amethyst",
+            "armor": "abyssal_obsidian",
+            "bone": "chitin_bone",
+            "spore_sac": "mutant_amber",
+            "glow_eye": "royal_gold",
+            "glow_core": "mutant_amber",
+        },
+        parts=(
+            PartNode("torso", pivot=(0.0, 10.0, 0.0), anim_role="breath_chest", cubes=(
+                CubeSpec("torso", (-5, -12, -3.5), (10, 12, 7), role="armor", detail_tags=("chitin_plates",)),
+                CubeSpec("root_heart_core", (-2.5, -9, -4.2), (5, 5, 1), role="glow_core", emissive=True, detail_tags=("neural_veins",)),
+                CubeSpec("root_mantle", (-6, -13, -3), (12, 3, 6), role="bone"),
+                CubeSpec("root_skirt", (-4.5, -1, -3), (9, 2, 6), role="armor"),
+            ), children=(
+                PartNode("head", pivot=(0.0, -12.0, 0.0), anim_role="head", cubes=(
+                    CubeSpec("head", (-4, -7, -4), (8, 7, 8), role="skin", eye_pattern="three_eyes", detail_tags=("neural_veins",)),
+                    CubeSpec("amber_crown", (-2.5, -10, -2.5), (5, 3, 5), role="glow_eye", emissive=True, detail_tags=("crystal_facets",)),
+                ), children=(
+                    PartNode("elite_antler_crown", pivot=(0.0, -9.0, 0.0), rank_min="ELITE", cubes=(
+                        CubeSpec("antler_spike_r", (-5, -4, -1), (2, 5, 2), role="bone"),
+                        CubeSpec("antler_spike_l", (3, -4, -1), (2, 5, 2), role="bone", mirror=True),
+                        CubeSpec("antler_tip_r", (-5.5, -6, -1), (2, 2, 2), role="glow_eye", emissive=True),
+                        CubeSpec("antler_tip_l", (3.5, -6, -1), (2, 2, 2), role="glow_eye", emissive=True, mirror=True),
+                    )),
+                )),
+                PartNode("arm_r", pivot=(-7.0, -10.0, 0.0), anim_role="combat_arm_r", cubes=(
+                    CubeSpec("arm_r", (-2, 0, -2), (4, 12, 4), role="armor"),
+                    CubeSpec("root_maul_r", (-2.5, 10, -4), (5, 4, 6), role="bone", detail_tags=("chitin_plates",)),
+                ), children=(
+                    PartNode("mutated_gauntlet_r", pivot=(0.0, 0.0, 0.0), rank_min="MUTATED", cubes=(
+                        CubeSpec("mut_pauldron_r", (-3, -2, -2.5), (5, 4, 5), role="bone"),
+                        CubeSpec("mut_maul_glow_r", (-1.5, 11, -4.5), (3, 2, 1), role="glow_core", emissive=True),
+                    )),
+                )),
+                PartNode("arm_l", pivot=(7.0, -10.0, 0.0), anim_role="combat_arm_l", cubes=(
+                    CubeSpec("arm_l", (-2, 0, -2), (4, 12, 4), role="armor", mirror=True),
+                    CubeSpec("root_maul_l", (-2.5, 10, -4), (5, 4, 6), role="bone", mirror=True, detail_tags=("chitin_plates",)),
+                ), children=(
+                    PartNode("mutated_gauntlet_l", pivot=(0.0, 0.0, 0.0), rank_min="MUTATED", cubes=(
+                        CubeSpec("mut_pauldron_l", (-2, -2, -2.5), (5, 4, 5), role="bone", mirror=True),
+                        CubeSpec("mut_maul_glow_l", (-1.5, 11, -4.5), (3, 2, 1), role="glow_core", emissive=True, mirror=True),
+                    )),
+                )),
+                PartNode("mutated_root_spines", pivot=(0.0, -7.0, 3.5), rank_min="MUTATED", cubes=(
+                    CubeSpec("mut_spine_r", (-4, -3, 0), (2, 6, 2), role="bone"),
+                    CubeSpec("mut_spine_l", (2, -3, 0), (2, 6, 2), role="bone", mirror=True),
+                    CubeSpec("mut_amber_node", (-1.5, -2, 1), (3, 4, 2), role="glow_core", emissive=True),
+                )),
+                PartNode("elite_root_halo", pivot=(0.0, -14.0, 3.5), rank_min="ELITE", anim_role="orbit_ring_a", cubes=(
+                    CubeSpec("keeper_halo_n", (-6, -1, -6), (12, 1, 1), role="glow_core", emissive=True),
+                    CubeSpec("keeper_halo_s", (-6, -1, 5), (12, 1, 1), role="glow_core", emissive=True),
+                    CubeSpec("keeper_halo_e", (5, -1, -5), (1, 1, 10), role="glow_eye", emissive=True),
+                    CubeSpec("keeper_halo_w", (-6, -1, -5), (1, 1, 10), role="glow_eye", emissive=True, mirror=True),
+                )),
+                PartNode("elite_shoulder_crests", pivot=(0.0, -13.0, 0.0), rank_min="ELITE", cubes=(
+                    CubeSpec("crest_crystal_r", (-7.5, -3, -1), (2, 4, 2), role="glow_eye", emissive=True, detail_tags=("crystal_facets",)),
+                    CubeSpec("crest_crystal_l", (5.5, -3, -1), (2, 4, 2), role="glow_eye", emissive=True, mirror=True, detail_tags=("crystal_facets",)),
+                )),
+            )),
+            *_biped_legs(y_hip=10.0, x_off=3.0, w=4, h=14, d=4, role="armor", knee_guard=True),
+        ),
+    ))
+
     from .legendary_upgrades import apply_legendary_upgrades
 
     apply_legendary_upgrades(models)

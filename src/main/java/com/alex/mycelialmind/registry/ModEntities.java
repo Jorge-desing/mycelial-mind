@@ -15,8 +15,10 @@ import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.MycelialStalkerEntity;
 import com.alex.mycelialmind.entity.PyroShroomEntity;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.entity.RootKeeperEntity;
 import com.alex.mycelialmind.entity.SporeArchitectEntity;
 import com.alex.mycelialmind.entity.SporeBehemothEntity;
+import com.alex.mycelialmind.entity.SporeGliderEntity;
 import com.alex.mycelialmind.entity.SporelingEntity;
 import com.alex.mycelialmind.entity.SynapseWeaverEntity;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
@@ -114,6 +116,14 @@ public final class ModEntities {
             ENTITY_TYPES.register("apex_matriarch", () -> EntityType.Builder.of(ApexMatriarchEntity::new, MobCategory.MONSTER)
                     .sized(3.6F, 5.6F).fireImmune().build("apex_matriarch"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<SporeGliderEntity>> SPORE_GLIDER =
+            ENTITY_TYPES.register("spore_glider", () -> EntityType.Builder.of(SporeGliderEntity::new, MobCategory.CREATURE)
+                    .sized(0.85F, 0.55F).build("spore_glider"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<RootKeeperEntity>> ROOT_KEEPER =
+            ENTITY_TYPES.register("root_keeper", () -> EntityType.Builder.of(RootKeeperEntity::new, MobCategory.MONSTER)
+                    .sized(1.15F, 2.3F).build("root_keeper"));
+
     public static final DeferredHolder<EntityType<?>, EntityType<AcidSpitProjectile>> ACID_SPIT =
             ENTITY_TYPES.register("acid_spit", () -> EntityType.Builder.<AcidSpitProjectile>of(AcidSpitProjectile::new, MobCategory.MISC)
                     .sized(0.35F, 0.35F).clientTrackingRange(4).updateInterval(10).build("acid_spit"));
@@ -138,7 +148,8 @@ public final class ModEntities {
     private static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {
         for (DeferredHolder<EntityType<?>, ? extends EntityType<? extends Monster>> holder : java.util.List.of(
                 SPORELING, CHITIN_BRUTE, MYCELIAL_STALKER, ACID_SPITTER, BURROWER,
-                PYRO_SHROOM, SYNAPSE_WEAVER, GOLIATH_CARRIER, LEECH_PARASITE, COLONY_WARDEN, SPORE_ARCHITECT, SYNAPTIC_MIMIC)) {
+                PYRO_SHROOM, SYNAPSE_WEAVER, GOLIATH_CARRIER, LEECH_PARASITE, COLONY_WARDEN,
+                SPORE_ARCHITECT, SYNAPTIC_MIMIC, ROOT_KEEPER)) {
             event.register(holder.get(), SpawnPlacementTypes.ON_GROUND,
                     Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, MycelialMob::checkMycelialSpawnRules,
                     RegisterSpawnPlacementsEvent.Operation.REPLACE);
@@ -164,5 +175,7 @@ public final class ModEntities {
         event.put(COLONY_SYMBIONT.get(), ColonySymbiontEntity.createAttributes().build());
         event.put(HIVE_CORE.get(), HiveCoreBossEntity.createAttributes().build());
         event.put(APEX_MATRIARCH.get(), ApexMatriarchEntity.createAttributes().build());
+        event.put(SPORE_GLIDER.get(), SporeGliderEntity.createAttributes().build());
+        event.put(ROOT_KEEPER.get(), RootKeeperEntity.createAttributes().build());
     }
 }

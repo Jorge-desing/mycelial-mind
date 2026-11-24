@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " M ",
+    "RVR",
+    "SMS"
+  ],
+  "key": {
+    "M": { "item": "mycelialmind:canopy_membrane" },
+    "R": { "item": "mycelialmind:root_heart_resin" },
+    "V": { "item": "mycelialmind:spore_vent" },
+    "S": { "item": "mycelialmind:mycelial_stone" }
+  },
+  "result": {
+    "id": "mycelialmind:spore_updraft_vent",
+    "count": 1
+  }
+}

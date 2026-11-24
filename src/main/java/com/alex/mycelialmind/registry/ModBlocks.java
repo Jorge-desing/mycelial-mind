@@ -21,9 +21,12 @@ import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
 import com.alex.mycelialmind.block.ReinforcedBioBarrierBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
+import com.alex.mycelialmind.block.RootCapShelfBlock;
+import com.alex.mycelialmind.block.RootSapMossBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
 import com.alex.mycelialmind.block.SovereignNexusBlock;
 import com.alex.mycelialmind.block.SporeBulbBlock;
+import com.alex.mycelialmind.block.SporeUpdraftVentBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.block.SynapticResearchBenchBlock;
@@ -263,6 +266,30 @@ public final class ModBlocks {
                     .strength(0.2F)
                     .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
                     .pushReaction(PushReaction.DESTROY)));
+
+    public static final DeferredBlock<Block> SPORE_UPDRAFT_VENT = registerBlock("spore_updraft_vent",
+            () -> new SporeUpdraftVentBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .strength(2.8F, 10.0F)
+                    .sound(ModSounds.MYCELIAL_STONE_SOUNDS)
+                    .lightLevel(s -> s.getValue(SporeUpdraftVentBlock.ACTIVE) ? 8 : 3)
+                    .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<Block> ROOT_SAP_MOSS = registerBlock("root_sap_moss",
+            () -> new RootSapMossBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
+                    .strength(1.0F, 3.0F)
+                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
+                    .randomTicks()
+                    .lightLevel(s -> s.getValue(RootSapMossBlock.SAP_READY) ? 7 : 2)));
+
+    public static final DeferredBlock<Block> ROOT_CAP_SHELF = registerBlock("root_cap_shelf",
+            () -> new RootCapShelfBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_MAGENTA)
+                    .strength(0.9F, 4.0F)
+                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
+                    .noOcclusion()
+                    .lightLevel(s -> 4)));
 
     private ModBlocks() {
     }

@@ -21,8 +21,10 @@ import com.alex.mycelialmind.client.model.MycelialChimeraModel;
 import com.alex.mycelialmind.client.model.MycelialStalkerModel;
 import com.alex.mycelialmind.client.model.PyroShroomModel;
 import com.alex.mycelialmind.client.model.PurifierDroneModel;
+import com.alex.mycelialmind.client.model.RootKeeperModel;
 import com.alex.mycelialmind.client.model.SporeArchitectModel;
 import com.alex.mycelialmind.client.model.SporeBehemothModel;
+import com.alex.mycelialmind.client.model.SporeGliderModel;
 import com.alex.mycelialmind.client.model.SporelingModel;
 import com.alex.mycelialmind.client.model.SynapseWeaverModel;
 import com.alex.mycelialmind.client.model.SynapticMimicModel;
@@ -237,6 +239,8 @@ public final class ClientSetup {
         event.registerLayerDefinition(ColonySymbiontModel.LAYER_LOCATION, ColonySymbiontModel::createBodyLayer);
         event.registerLayerDefinition(HiveCoreModel.LAYER_LOCATION, HiveCoreModel::createBodyLayer);
         event.registerLayerDefinition(ApexMatriarchModel.LAYER_LOCATION, ApexMatriarchModel::createBodyLayer);
+        event.registerLayerDefinition(SporeGliderModel.LAYER_LOCATION, SporeGliderModel::createBodyLayer);
+        event.registerLayerDefinition(RootKeeperModel.LAYER_LOCATION, RootKeeperModel::createBodyLayer);
         event.registerLayerDefinition(MonumentRenderParts.CRYSTAL_LAYER, MonumentRenderParts::createCrystalLayer);
         event.registerLayerDefinition(MonumentRenderParts.TURRET_HEAD_LAYER, MonumentRenderParts::createTurretHeadLayer);
     }
@@ -279,6 +283,10 @@ public final class ClientSetup {
                 ctx -> buildMobRenderer(ctx, new HiveCoreModel<>(ctx.bakeLayer(HiveCoreModel.LAYER_LOCATION)), 1.85F, "hive_core", false, 1.70F));
         event.registerEntityRenderer(ModEntities.APEX_MATRIARCH.get(),
                 ctx -> buildMobRenderer(ctx, new ApexMatriarchModel<>(ctx.bakeLayer(ApexMatriarchModel.LAYER_LOCATION)), 2.35F, "apex_matriarch", false, 1.90F));
+        event.registerEntityRenderer(ModEntities.SPORE_GLIDER.get(),
+                ctx -> buildMobRenderer(ctx, new SporeGliderModel<>(ctx.bakeLayer(SporeGliderModel.LAYER_LOCATION)), 0.45F, "spore_glider", false, 1.0F));
+        event.registerEntityRenderer(ModEntities.ROOT_KEEPER.get(),
+                ctx -> buildMobRenderer(ctx, new RootKeeperModel<>(ctx.bakeLayer(RootKeeperModel.LAYER_LOCATION)), 0.78F, "root_keeper", true, 1.0F));
 
         event.registerEntityRenderer(ModEntities.ACID_SPIT.get(),
                 ctx -> new GlowOrbProjectileRenderer<>(ctx, ACID_SPIT_TEX, 0.45F));

@@ -17,6 +17,7 @@ import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.entity.SporeGliderEntity;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
@@ -578,6 +579,16 @@ public class BioScannerItem extends Item {
                     DiscoverySyncPayload.syncToPlayer(serverPlayer);
                 }
                 serverLevel.playSound(null, symbiont.blockPosition(), ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.55F);
+            }
+            return InteractionResult.sidedSuccess(player.level().isClientSide());
+        }
+        if (target instanceof SporeGliderEntity glider) {
+            if (player.level() instanceof ServerLevel serverLevel) {
+                player.sendSystemMessage(Component.translatable(
+                        "message.mycelialmind.scanner_glider_inspect",
+                        String.format("%.0f/%.0f", glider.getHealth(), glider.getMaxHealth())
+                ).withStyle(ChatFormatting.AQUA));
+                serverLevel.playSound(null, glider.blockPosition(), ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.7F);
             }
             return InteractionResult.sidedSuccess(player.level().isClientSide());
         }

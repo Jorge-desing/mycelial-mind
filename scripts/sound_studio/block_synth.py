@@ -49,6 +49,7 @@ BLOCK_FUNCTIONAL_IDS: frozenset[str] = frozenset(
         "colony_dialect_mastered",
         "colony_dialect_conflict",
         "colony_reconstruction_pulse",
+        "spore_updraft_vent_pulse",
     }
 )
 
@@ -889,5 +890,17 @@ def synthesize_block_functional(
         )
         wave[pulse_s:] += chord
         return _cavern_reverb(np.tanh(wave * 1.15), rng, wet=0.28, rt60=0.64, lp_hz=6000.0)
+
+    if sound_id == "spore_updraft_vent_pulse":
+        # Ascending buoyant air column surge + resonant spore throat chime
+        onset = int(rng.uniform(0.01, 0.08) * n)
+        rt = np.arange(n - onset, dtype=np.float64) / SAMPLE_RATE
+        f_lo = rng.uniform(220.0, 380.0)
+        f_hi = rng.uniform(1800.0, 3200.0)
+        air_rush = _swept_resonant_filter(pink[onset:], f_lo, f_hi, q=2.6) * adsr_envelope(len(rt), 0.14, 0.24, 0.50, 0.38) * 0.85
+        hum = _modal_bank(rt, base_freq * rng.uniform(0.94, 1.06), (0.5, 1.0, 1.50, 2.0), (0.28, 0.24, 0.16, 0.10), (0.40, 0.72, 0.45, 0.24), rng)
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = air_rush + hum * 0.65
+        return _cavern_reverb(np.tanh(wave * 1.15), rng, wet=0.22, rt60=0.48, lp_hz=6400.0)
 
     raise ValueError(f"Unknown functional block sound_id: {sound_id}")

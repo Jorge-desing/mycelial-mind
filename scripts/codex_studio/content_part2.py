@@ -447,10 +447,10 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="proyectiles_y_huevos",
             order=10,
-            title=lt("Proyectiles (3) y Spawn Eggs (18)", "Projectiles (3) & Spawn Eggs (18)"),
+            title=lt("Proyectiles (3) y Spawn Eggs (20)", "Projectiles (3) & Spawn Eggs (20)"),
             subtitle=lt(
-                "acid_spit, neutralizing_spore, purifier_grenade y los 18 huevos",
-                "acid_spit, neutralizing_spore, purifier_grenade & 18 spawn eggs",
+                "acid_spit, neutralizing_spore, purifier_grenade y los 20 huevos",
+                "acid_spit, neutralizing_spore, purifier_grenade & 20 spawn eggs",
             ),
             icon_item="mycelialmind:hive_core_spawn_egg",
             x=grid_xy(9, 4)[0],
@@ -479,6 +479,8 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
                 "mycelialmind:purifier_drone_spawn_egg",
                 "mycelialmind:hive_core_spawn_egg",
                 "mycelialmind:apex_matriarch_spawn_egg",
+                "mycelialmind:spore_glider_spawn_egg",
+                "mycelialmind:root_keeper_spawn_egg",
             ),
             pages=tuple(
                 chunk_paired_blocks(
@@ -495,31 +497,75 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
                             "(launcher/drone ammo), and `purifier_grenade` (triggers **5s** squad Desync).",
                         ),
                         (
-                            "• **Huevos 1/4:** `sporeling_spawn_egg`, `chitin_brute_spawn_egg`, "
+                            "• **Huevos 1/5:** `sporeling_spawn_egg`, `chitin_brute_spawn_egg`, "
                             "`mycelial_stalker_spawn_egg`, `acid_spitter_spawn_egg`.",
-                            "• **Eggs 1/4:** `sporeling_spawn_egg`, `chitin_brute_spawn_egg`, "
+                            "• **Eggs 1/5:** `sporeling_spawn_egg`, `chitin_brute_spawn_egg`, "
                             "`mycelial_stalker_spawn_egg`, `acid_spitter_spawn_egg`.",
                         ),
                         (
-                            "• **Huevos 2/4:** `burrower_spawn_egg`, `pyro_shroom_spawn_egg`, "
+                            "• **Huevos 2/5:** `burrower_spawn_egg`, `pyro_shroom_spawn_egg`, "
                             "`synapse_weaver_spawn_egg`, `goliath_carrier_spawn_egg`, `leech_parasite_spawn_egg`.",
-                            "• **Eggs 2/4:** `burrower_spawn_egg`, `pyro_shroom_spawn_egg`, "
+                            "• **Eggs 2/5:** `burrower_spawn_egg`, `pyro_shroom_spawn_egg`, "
                             "`synapse_weaver_spawn_egg`, `goliath_carrier_spawn_egg`, `leech_parasite_spawn_egg`.",
                         ),
                         (
-                            "• **Huevos 3/4:** `colony_warden_spawn_egg`, `spore_architect_spawn_egg`, "
+                            "• **Huevos 3/5:** `colony_warden_spawn_egg`, `spore_architect_spawn_egg`, "
                             "`synaptic_mimic_spawn_egg`, `spore_behemoth_spawn_egg`.",
-                            "• **Eggs 3/4:** `colony_warden_spawn_egg`, `spore_architect_spawn_egg`, "
+                            "• **Eggs 3/5:** `colony_warden_spawn_egg`, `spore_architect_spawn_egg`, "
                             "`synaptic_mimic_spawn_egg`, `spore_behemoth_spawn_egg`.",
                         ),
                         (
-                            "• **Huevos 4/4:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, "
+                            "• **Huevos 4/5:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, "
                             "`purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`, `colony_symbiont_spawn_egg`.",
-                            "• **Eggs 4/4:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, "
+                            "• **Eggs 4/5:** `hive_core_spawn_egg`, `apex_matriarch_spawn_egg`, "
                             "`purifier_drone_spawn_egg`, `mycelial_chimera_spawn_egg`, `colony_symbiont_spawn_egg`.",
+                        ),
+                        (
+                            "• **Huevos 5/5:** `spore_glider_spawn_egg`, `root_keeper_spawn_egg`.",
+                            "• **Eggs 5/5:** `spore_glider_spawn_egg`, `root_keeper_spawn_egg`.",
                         ),
                     ],
                 )
+            ),
+        ),
+        CodexEntry(
+            id="fauna_sima_micelial",
+            order=11,
+            title=lt("Fauna de Sima: Planeador y Guardián", "Sinkhole Fauna: Glider & Keeper"),
+            subtitle=lt(
+                "spore_glider (polinizador) y root_keeper (guardián de Caverna Raíz)",
+                "spore_glider (pollinator) & root_keeper (Root Cavern guardian)",
+            ),
+            icon_item="mycelialmind:root_keeper_spawn_egg",
+            x=grid_xy(10, 4)[0],
+            y=grid_xy(10, 4)[1],
+            parents=("rangos_y_primordiales",),
+            unlock_gate="always",
+            registry_refs=(
+                "mycelialmind:spore_glider",
+                "mycelialmind:root_keeper",
+                "mycelialmind:spore_glider_spawn_egg",
+                "mycelialmind:root_keeper_spawn_egg",
+            ),
+            pages=(
+                entity_page(
+                    "ent_spore_glider",
+                    "mycelialmind:spore_glider",
+                    "Planeador de Esporas",
+                    "Spore Glider",
+                    "**16 HP | 0.36 Vuelo | Pacífico**\nPlanea en la sima, esquiva tiros y regenera `root_sap_moss`. Suelta `canopy_membrane`.",
+                    "**16 HP | 0.36 Fly | Peaceful**\nGlides in sinkholes, evades shots & restores `root_sap_moss`. Drops `canopy_membrane`.",
+                    scale=0.82,
+                ),
+                entity_page(
+                    "ent_root_keeper",
+                    "mycelialmind:root_keeper",
+                    "Guardián de Raíz",
+                    "Root Keeper",
+                    "**54 HP | 7.5 Dmg | 6 Arm**\nGuarda la Caverna Raíz: golpe `3.5m` y rango `10–28m`. Pilón lo debilita; suelta `root_heart_resin`.",
+                    "**54 HP | 7.5 Dmg | 6 Arm**\nGuards Root Cavern: `3.5m` slam & `10–28m` aggro. Pylons weaken it; drops `root_heart_resin`.",
+                    scale=0.72,
+                ),
             ),
         ),
     )
@@ -528,8 +574,8 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
         number=5,
         title=lt("Bestiario y Quimeras", "Bestiary & Chimeras"),
         subtitle=lt(
-            "17 especies vivas, 3 proyectiles, 17 huevos y genes 5x5",
-            "17 living species, 3 projectiles, 17 spawn eggs & 5x5 genes",
+            "20 especies HiveBrain, 3 proyectiles, 20 huevos y genes 5x5",
+            "20 HiveBrain species, 3 projectiles, 20 spawn eggs & 5x5 genes",
         ),
         icon_item="mycelialmind:apex_matriarch_spawn_egg",
         entries=ch5_entries,

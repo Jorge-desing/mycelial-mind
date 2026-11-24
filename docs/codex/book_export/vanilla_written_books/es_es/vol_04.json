@@ -4,7 +4,7 @@
     "mundo_dimension",
     "secretos_logros"
   ],
-  "page_count": 71,
+  "page_count": 73,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.IV"
@@ -14,19 +14,25 @@
     "resolved": true,
     "pages": [
       {
-        "raw": "Cap.10: Brotes y\nColmenas del\nOverworld\nEstructuras y\nCaracterísticas\nOverworld (1/3)\n• `mycelial_outbreak`:\ngarra orgánica altura\n9, conectividad\n6-vecinos estricta (0\nflotantes),\n`MIN_OUTBREAK_SPACIN\nG = 56` y bóveda\n`outbreak_sealed_vaul"
+        "raw": "Cap.10: Brotes,\nColmenas y Simas del\nOverworld\nEstructuras y\nCaracterísticas\nOverworld (1/4)\n• `mycelial_outbreak`:\ngarra orgánica altura\n9, conectividad\n6-vecinos estricta (0\nflotantes),\n`MIN_OUTBREAK_SPACIN\nG = 56` y bóveda\n`outbreak_sealed_vaul"
       },
       {
         "raw": "t`."
       },
       {
-        "raw": "Estructuras y\nCaracterísticas\nOverworld (2/3)\n• `surface_hive`:\nmegacápsula radio 8,\naltura 16,\n`MIN_HIVE_SPACING =\n192`,\n`MIN_NODE_CLEARANCE\n= 64`, cripta\nsubterránea, galería\nsuperior, conductos\nsinápticos y cofres\n`surface_hive_cache`"
+        "raw": "Estructuras y\nCaracterísticas\nOverworld (2/4)\n• `surface_hive`:\nmegacápsula radio 8,\naltura 16,\n`MIN_HIVE_SPACING =\n192`,\n`MIN_NODE_CLEARANCE\n= 64`, cripta\nsubterránea, galería\nsuperior, conductos\nsinápticos y cofres\n`surface_hive_cache`"
       },
       {
         "raw": "/`gallery`/`crypt`."
       },
       {
-        "raw": "Estructuras y\nCaracterísticas\nOverworld (3/3)\n• Motores\n(`hive_tier_rarity` /\n`FastNoiseLite`):\nfiltran rareza por\nActo vía\n`StructureProgressio\nnPolicy` usando ruido\n`FastNoiseLite`\n(`SIMPLEX_SMOOTH`,\n`CELLULAR`,\n`DOMAIN_WARP`)"
+        "raw": "Estructuras y\nCaracterísticas\nOverworld (3/4)\n• `mycelial_sinkhole`:\nsima de 3 estratos\n(Corona superficial,\nGarganta con repisas\n`root_cap_shelf` y\nCaverna Raíz en\n`-22..-32`),\n`spore_updraft_vent`\ncentral,\n`root_sap_moss`,\n`sinkhole_root_vault`,"
+      },
+      {
+        "raw": "`root_keeper` y\n`spore_glider`.\nColocar un Pilón calma\nla brecha."
+      },
+      {
+        "raw": "Estructuras y\nCaracterísticas\nOverworld (4/4)\n• Motores\n(`hive_tier_rarity` /\n`FastNoiseLite`):\nfiltran rareza por\nActo vía\n`StructureProgressio\nnPolicy` usando ruido\n`FastNoiseLite`\n(`SIMPLEX_SMOOTH`,\n`CELLULAR`,\n`DOMAIN_WARP`)"
       },
       {
         "raw": "auditado con\n`WorldgenAuditEngine`."

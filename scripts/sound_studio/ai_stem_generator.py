@@ -282,7 +282,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_lo_hz=150.0,
         band_hi_hz=7600.0,
         mix_weight=0.25,
-        sound_ids=("synapse_weaver_hum", "synapse_weaver_hurt", "synapse_weaver_death", "synapse_weaver_buff"),
+        sound_ids=("synapse_weaver_hum", "synapse_weaver_hurt", "synapse_weaver_death", "synapse_weaver_buff", "spore_glider_ambient", "spore_glider_hurt", "spore_glider_death"),
     ),
     StemArchetype(
         stem_id="goliath_carrier_hollow_thud",
@@ -312,7 +312,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_lo_hz=34.0,
         band_hi_hz=2800.0,
         mix_weight=0.28,
-        sound_ids=("colony_warden_bellow", "colony_warden_hurt", "colony_warden_death", "colony_warden_shockwave"),
+        sound_ids=("colony_warden_bellow", "colony_warden_hurt", "colony_warden_death", "colony_warden_shockwave", "root_keeper_ambient", "root_keeper_hurt", "root_keeper_death", "root_keeper_slam"),
     ),
     StemArchetype(
         stem_id="spore_architect_pulse",
@@ -476,7 +476,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_hi_hz=6400.0,
         mix_weight=0.18,
         attack_guard_ms=24.0,
-        sound_ids=("spore_vent_puff", "spore_bulb_burst", "ephemeral_chitin_crumble"),
+        sound_ids=("spore_vent_puff", "spore_bulb_burst", "ephemeral_chitin_crumble", "spore_updraft_vent_pulse"),
     ),
     StemArchetype(
         stem_id="func_purifier_turret_pylon",

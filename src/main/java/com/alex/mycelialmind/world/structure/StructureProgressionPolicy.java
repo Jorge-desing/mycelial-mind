@@ -211,4 +211,56 @@ public final class StructureProgressionPolicy {
             case OVERMIND -> 0.80F;
         };
     }
+
+    /**
+     * 1-in-N chunk rarity for Overworld MycelialSinkholeFeature.
+     */
+    public static int sinkholeRarityChance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 280;
+            case AWAKENED -> 220;
+            case ADAPTIVE -> 170;
+            case OVERMIND -> 130;
+        };
+    }
+
+    /**
+     * Minimum horizontal/3D block spacing between Mycelial Sinkholes.
+     */
+    public static int sinkholeMinSpacing(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 320;
+            case AWAKENED -> 288;
+            case ADAPTIVE -> 256;
+            case OVERMIND -> 224;
+        };
+    }
+
+    /**
+     * Minimum horizontal distance from world spawn before a natural Mycelial Sinkhole may spawn.
+     */
+    public static int sinkholeMinSpawnDistance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 128;
+            case AWAKENED -> 96;
+            case ADAPTIVE -> 64;
+            case OVERMIND -> 0;
+        };
+    }
+
+    /**
+     * Minimum clearance from any existing synaptic node before placing a Mycelial Sinkhole.
+     */
+    public static int sinkholeNodeClearance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 96;
+            case AWAKENED -> 84;
+            case ADAPTIVE -> 72;
+            case OVERMIND -> 64;
+        };
+    }
 }

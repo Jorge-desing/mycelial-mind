@@ -119,7 +119,7 @@ class TestModelStudio(unittest.TestCase):
 
     def test_all_17_models_pack_and_emit_cleanly(self):
         models = build_all_models()
-        self.assertEqual(len(models), 18)
+        self.assertEqual(len(models), 20)
         for m in models:
             cubes = pack_model_uvs(m)
             self.assertGreater(len(cubes), 4, f"{m.class_name} should have rich multi-cube silhouette")
@@ -134,7 +134,7 @@ class TestModelStudio(unittest.TestCase):
             if m.registry_id in ("goliath_carrier", "colony_warden"):
                 self.assertEqual(m.tex_size, (256, 256))
                 self.assertTrue(any(c.get("detail_tags") for c in cubes), f"{m.class_name} should define detail_tags")
-            if m.registry_id not in ("purifier_drone", "hive_core", "apex_matriarch", "colony_symbiont"):
+            if m.registry_id not in ("purifier_drone", "hive_core", "apex_matriarch", "colony_symbiont", "spore_glider"):
                 self.assertIn("getEvolutionRank()", java)
                 self.assertIn(".visible =", java)
             if m.registry_id == "colony_symbiont":

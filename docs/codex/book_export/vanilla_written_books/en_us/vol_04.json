@@ -1,10 +1,11 @@
 {
   "volume": 4,
   "chapters": [
+    "mundo_dimension",
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 75,
+  "page_count": 96,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.IV"
@@ -13,6 +14,69 @@
     "generation": 0,
     "resolved": true,
     "pages": [
+      {
+        "raw": "Cap.10: Overworld\nOutbreaks, Hives &\nSinkholes\nOverworld Worldgen\nFeatures (1/4)\n• `mycelial_outbreak`:\n9-tall fungus claw with\nstrict 6-neighbor\nphysical welding (zero\nfloaters),\n`MIN_OUTBREAK_SPACIN\nG = 56` &\n`outbreak_sealed_vaul\nt`."
+      },
+      {
+        "raw": "Overworld Worldgen\nFeatures (2/4)\n• `surface_hive`:\nmega-capsule (r=8,\nh=16),\n`MIN_HIVE_SPACING =\n192`,\n`MIN_NODE_CLEARANCE\n= 64`, subterranean\ncrypt, mezzanine\ngallery, conduits, and\n`surface_hive_cache`\n/`gallery`/`crypt`\nchests."
+      },
+      {
+        "raw": "Overworld Worldgen\nFeatures (3/4)\n• `mycelial_sinkhole`:\n3-stratum sinkhole\n(Surface Crown,\nTwilight Throat with\n`root_cap_shelf`\nspiral ledges, Root\nCavern at `-22..-32`),\ncentral\n`spore_updraft_vent`,\n`root_sap_moss`,\n`sinkhole_root_vault`,"
+      },
+      {
+        "raw": "`root_keeper` &\n`spore_glider`. Pylons\ncalm the breach."
+      },
+      {
+        "raw": "Overworld Worldgen\nFeatures (4/4)\n• Engines\n(`hive_tier_rarity` /\n`FastNoiseLite`): gate\nrarity per Act via\n`StructureProgressio\nnPolicy` and\n`FastNoiseLite`\ncellular/domain-warpe\nd fields verified by\n`WorldgenAuditEngine`."
+      },
+      {
+        "raw": "Cap.10: Deep Mycelium\n& 3 Biomes\nDimension & WFC\nTopology (1/3)\n• Dimension\n`mycelialmind:deep_myc\nelium`: entered via\n`mycelial_rift` ignited\nby `rift_catalyst`\ninside a\n`reinforced_bio_barri\ner` frame. Syncs\nOverworld Act tiers."
+      },
+      {
+        "raw": "Dimension & WFC\nTopology (2/3)\n• 3 Biomes:\n`deep_mycelium_caver\nns`,\n`hive_heart_sanctum`,\nand\n`latent_spore_forest`,\neach with dedicated\nlooping biome ambience\n& spore fog."
+      },
+      {
+        "raw": "Dimension & WFC\nTopology (3/3)\n• `WfcCavernLayout`\n(`Tile`): Wave Function\nCollapse cavern\nlayout solver\npreventing\ndisconnected pockets."
+      },
+      {
+        "raw": "Cap.10: Hive Sanctum &\nMatriarch Citadel\nEndgame\nMegastructures (1/3)\n• `hive_sanctum`\n(Jigsaw, 11 `.nbt`\ntemplates):\n`sanctum_atrium`,\n`forbidden_lab`,\n`ossuary_crypt`,\n`spore_vault`,\n`incubation_wing`,\n`ribbed_nave` with\n`sanctum_*` chests."
+      },
+      {
+        "raw": "Endgame\nMegastructures (2/3)\n• `matriarch_citadel`\n(`matriarch_citadel_pi\nece`): features\n`AMBER` & `CRIMSON`\nchapels\n(`citadel_*_chapel`),\nRoyal Apse\n(`citadel_royal_crypt`\n), and persistent\n`spore_behemoth` + 2\n`colony_warden`\nguardians."
+      },
+      {
+        "raw": "Endgame\nMegastructures (3/3)\n• `twisted_citadel`\n(`twisted_citadel_piece\n`,\n`architectural_accent`\n): twisted\narchitectural\nreflection in Deep\nMycelium using `.nbt`\ntemplates\n(`spire_tower`,\n`gallery_hall`,\n`vault_bunker`)"
+      },
+      {
+        "raw": "adapted to your block\npalette and\nproportions."
+      },
+      {
+        "raw": "Cap.10: Dimensional\nHomeostasis & Cysts\nDimension Immune\nSystem (1/2)\n• 3 Stages\n(`HomeostasisStage`):\n`STABLE` (<40),\n`IRRITATED` (>=40) &\n`IMMUNE_RESPONSE`\n(>=70; cytokine >=85).\nBlasts, Pylon spam &\nMatriarch P2 (+20)\nraise chunk"
+      },
+      {
+        "raw": "`homeostasisSensitizati\non` (0–3)."
+      },
+      {
+        "raw": "Dimension Immune\nSystem (2/2)\n• Acid Rain &\n`antibody_cyst`: under\nopen sky during\n`IMMUNE_RESPONSE`,\nacid rain deals `2.0`\ndmg. Cysts grow (cap\n`64`/chunk); covering\n>=4 faces\n(`SMOTHER_FACE_THRE\nSHOLD`) smothers\nPylons until\nharvested/sedated."
+      },
+      {
+        "raw": "Cap.10: Hive Cycle\nProtocol & Mutators\nHive Cycle Protocol &\nMutators (1/4)\n• Post-Matriarch\nActivation: After\ndefeating\n`apex_matriarch`,\ninteract with\n`matriarch_altar`\nwithout a valid\noffering to open\n`CycleProtocolScreen`,\npick 1–3 of 6"
+      },
+      {
+        "raw": "mutators, and launch\nCycle N (clears\nremission)."
+      },
+      {
+        "raw": "Hive Cycle Protocol &\nMutators (2/4)\n• Mutators I–III:\n`hyper_adaptation`\n(+45% learning, x0.85\nthresholds, +35% pts),\n`perpetual_tide` (+50%\ntide duration & lower\nend threshold, +40%\npts), and\n`acute_homeostasis`\n(+40% immune stress,\n+35% pts)."
+      },
+      {
+        "raw": "Hive Cycle Protocol &\nMutators (3/4)\n• Mutators IV–VI:\n`synaptic_swarm`\n(+wave/expedition\nattackers & elite rate,\n+40% pts),\n`primordial_apex`\n(+25% boss HP/+15%\nDMG & faster\ncooldowns, +50% pts),\nand `hyphal_overload`\n(+35% hyphal"
+      },
+      {
+        "raw": "pressure, +30% pts)."
+      },
+      {
+        "raw": "Hive Cycle Protocol &\nMutators (4/4)\n• Completion &\nRecords: Defeating\n`apex_matriarch`\nduring an active Cycle\nscores `1000 * mult +\nspeed(<=500) -\ndeaths*120` (min\n`250`), awarding rank\nS+..C, high scores, and\nthe `overmind_cycle`\nengram."
+      },
       {
         "raw": "Cap.11: The 8 Secrets:\nSpoiler-Free Hints\nDiscovery Hints (1–8)\n(1/3)\n• Secret 1 (Act II /\nLab T2): test\ncombining Genetic\nSample, Biomass &\nAmethyst.\n• Secret 2 (Lab):\nexperiment with Spore\nAntidote, Biomass &\nAmethyst Shard.\n• Secret 3 (Act II /"
       },
