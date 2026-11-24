@@ -4063,3 +4063,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, controles iniciales
 - Añadida página de dialectos en el Nexo para seleccionar origen, destino, significado, dos pulsos y aprendiz, iniciar o cancelar lección y consultar su etapa. La red sincroniza episodios y vocabulario por puesto con protocolo 25; mensajes en español e inglés.
 - JUnit pasó y GameTests aislados 179/179 pasaron antes del último ajuste de mensaje de rechazo; JUnit volvió a pasar después. Falta verificar visualmente la pantalla. Pendientes maestro seleccionado, señal audible y visual, emisión, respuestas reales, conflictos explicativos y pruebas funcionales de la lección.
+
+## 2026-11-23 — Dialectos, identidad del maestro
+- Cada lección guarda al protagonista del episodio inicial como maestro y solo acepta una demostración nueva realizada por ese trabajador ante el aprendiz. La muerte de cualquiera cancela la lección. Las lecciones previas recuperan el maestro desde el último episodio disponible.
+- Añadidos dos tests JUnit para persistencia, episodios únicos y conflictos de secuencia. `test` pasó offline. La elección explícita de maestro, las llamadas, sus respuestas, la información de conflictos y la revisión visual siguen pendientes.

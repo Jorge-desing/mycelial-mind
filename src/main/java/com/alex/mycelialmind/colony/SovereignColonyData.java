@@ -545,6 +545,7 @@ public final class SovereignColonyData {
         dialect.recordEpisode(habit, actor.getUUID(), level.getGameTime());
         if (dialectLesson != null && dialectLesson.stage() == ColonyDialectLesson.Stage.OBSERVING
                 && dialectLesson.source().equals(sitePos) && dialectLesson.meaning() == habit
+                && dialectLesson.teacher().equals(actor.getUUID())
                 && level.getEntity(dialectLesson.apprentice()) instanceof com.alex.mycelialmind.entity.ColonySymbiontEntity apprentice
                 && apprentice.isAlive() && !apprentice.getUUID().equals(actor.getUUID())
                 && apprentice.blockPosition().distSqr(sitePos) <= 9.0D
@@ -566,12 +567,13 @@ public final class SovereignColonyData {
         ColonyDialect sourceDialect = getDialect(source);
         ColonyDialect targetDialect = getDialect(target);
         ColonyDialect.Episode episode = sourceDialect.episode(habit);
-        if (episode == null || (!coinage && sourceDialect.call(habit) != call)
+        if (episode == null || episode.worker().equals(apprentice) || !roster.containsKey(episode.worker())
+                || (!coinage && sourceDialect.call(habit) != call)
                 || (coinage && sourceDialect.call(habit) >= 0)) return false;
         for (ColonySiteHabit other : ColonySiteHabit.values()) {
             if (other != habit && (sourceDialect.call(other) == call || targetDialect.call(other) == call)) return false;
         }
-        dialectLesson = new ColonyDialectLesson(source, target, habit, call, apprentice, episode.id(), coinage);
+        dialectLesson = new ColonyDialectLesson(source, target, habit, call, apprentice, episode.worker(), episode.id(), coinage);
         return true;
     }
 
@@ -859,7 +861,8 @@ public final class SovereignColonyData {
     }
 
     public void onWorkerDeath(UUID workerId) {
-        if (dialectLesson != null && dialectLesson.apprentice().equals(workerId)) cancelDialectLesson();
+        if (dialectLesson != null && (dialectLesson.apprentice().equals(workerId)
+                || dialectLesson.teacher().equals(workerId))) cancelDialectLesson();
         removeWitnessMemories(workerId);
         removeWorker(workerId);
     }
@@ -1038,7 +1041,12 @@ public final class SovereignColonyData {
             data.dialects.put(BlockPos.of(site.getLong("SitePos")), ColonyDialect.load(site));
         }
         if (tag.contains("DialectLesson", Tag.TAG_COMPOUND)) {
-            data.dialectLesson = ColonyDialectLesson.load(tag.getCompound("DialectLesson"));
+            CompoundTag lessonTag = tag.getCompound("DialectLesson");
+            ColonyDialect sourceDialect = data.dialects.get(BlockPos.of(lessonTag.getLong("Source")));
+            ColonySiteHabit meaning = ColonySiteHabit.fromIndex(lessonTag.getInt("Meaning"));
+            ColonyDialect.Episode episode = sourceDialect == null ? null : sourceDialect.episode(meaning);
+            UUID legacyTeacher = episode == null ? null : episode.worker();
+            data.dialectLesson = ColonyDialectLesson.load(lessonTag, legacyTeacher);
         }
         ListTag witnessTag = tag.getList("SiteWitnessMemories", Tag.TAG_COMPOUND);
         for (int i = 0; i < witnessTag.size(); i++) {
