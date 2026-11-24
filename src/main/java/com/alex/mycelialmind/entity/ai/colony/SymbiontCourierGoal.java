@@ -225,6 +225,8 @@ public class SymbiontCourierGoal extends Goal {
                 if (waitedForPickupTurn) {
                     if (pulled) {
                         boolean learned = memory.recordTrialSuccess(ColonySiteHabit.STAGGERED_PICKUP, 3);
+                        colony.getDialect(pickupTurnSite).recordEpisode(ColonySiteHabit.STAGGERED_PICKUP, worker.getUUID(), level.getGameTime());
+                        SovereignColonySavedData.get(level).setDirty();
                         if (memory.usesHabit(ColonySiteHabit.STAGGERED_PICKUP)) {
                             worker.rememberSuccessfulHabit(level, pickupTurnSite, ColonySiteHabit.STAGGERED_PICKUP);
                         }
@@ -335,6 +337,8 @@ public class SymbiontCourierGoal extends Goal {
                 if (memory != null) {
                     if (escortReady && !damagedDuringCurrentTrip) {
                         boolean learned = memory.recordTrialSuccess(ColonySiteHabit.ESCORTED_COURIER, 1);
+                        colony.getDialect(activeEscortSite).recordEpisode(ColonySiteHabit.ESCORTED_COURIER, worker.getUUID(), level.getGameTime());
+                        SovereignColonySavedData.get(level).setDirty();
                         if (memory.usesHabit(ColonySiteHabit.ESCORTED_COURIER)) {
                             worker.rememberSuccessfulHabit(level, activeEscortSite, ColonySiteHabit.ESCORTED_COURIER);
                         }

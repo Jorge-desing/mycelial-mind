@@ -4051,3 +4051,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `renovate.json` (`5e29305`, `588118d`), `.github/workflows/verify.yml`, `build.gradle`.
 - **Estado / Siguiente paso:** `0` PRs abiertos en GitHub. Skills revisadas sin cambios necesarios.
 >>>>>>> Stashed changes
+
+## 2026-11-23 — Dialectos de colonia, inicio
+- Añadido estado persistente de episodios y secuencias por puesto, y registro de episodios en resultados existentes de escolta, descanso y turnos. `compileJava` pasó en modo offline.
+- Trabajo incompleto: falta implementar acuñación y demostraciones presenciales, enseñanza y viajes, respuestas a señales, interfaz, red, sonidos, localización y verificación de juego.

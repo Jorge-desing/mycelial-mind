@@ -133,6 +133,7 @@ public final class SovereignColonyData {
     private final Map<UUID, WorkerRosterEntry> roster = new LinkedHashMap<>();
     private final ColonyOrderBoard orderBoard = new ColonyOrderBoard();
     private final Map<BlockPos, ColonySiteMemory> siteMemories = new LinkedHashMap<>();
+    private final Map<BlockPos, ColonyDialect> dialects = new LinkedHashMap<>();
     private final Map<ColonyWitnessMemory.Key, ColonyWitnessMemory> witnessMemories = new LinkedHashMap<>();
     private final Map<BlockPos, ColonyReconstruction> reconstructions = new LinkedHashMap<>();
     private int archivedReconstructionCount;
@@ -530,6 +531,12 @@ public final class SovereignColonyData {
         return siteMemories.get(sitePos);
     }
 
+    @Nullable
+    public ColonyDialect getDialect(BlockPos sitePos) {
+        if (!isMemorySite(sitePos)) return null;
+        return dialects.computeIfAbsent(sitePos.immutable(), ignored -> new ColonyDialect());
+    }
+
     public boolean recordWitnessMemory(ColonyWitnessMemory memory) {
         if (memory == null || !isMemorySite(memory.sitePos())) {
             return false;
@@ -878,6 +885,13 @@ public final class SovereignColonyData {
             memoriesTag.add(memoryTag);
         }
         tag.put("SiteMemories", memoriesTag);
+        ListTag dialectTag = new ListTag();
+        for (var entry : dialects.entrySet()) {
+            CompoundTag site = entry.getValue().save();
+            site.putLong("SitePos", entry.getKey().asLong());
+            dialectTag.add(site);
+        }
+        tag.put("Dialects", dialectTag);
         ListTag witnessTag = new ListTag();
         for (ColonyWitnessMemory memory : witnessMemories.values()) {
             witnessTag.add(memory.save());
@@ -957,6 +971,11 @@ public final class SovereignColonyData {
         for (int i = 0; i < memoriesTag.size(); i++) {
             CompoundTag memoryTag = memoriesTag.getCompound(i);
             data.siteMemories.put(BlockPos.of(memoryTag.getLong("SitePos")), ColonySiteMemory.load(memoryTag));
+        }
+        ListTag dialectTag = tag.getList("Dialects", Tag.TAG_COMPOUND);
+        for (int i = 0; i < dialectTag.size(); i++) {
+            CompoundTag site = dialectTag.getCompound(i);
+            data.dialects.put(BlockPos.of(site.getLong("SitePos")), ColonyDialect.load(site));
         }
         ListTag witnessTag = tag.getList("SiteWitnessMemories", Tag.TAG_COMPOUND);
         for (int i = 0; i < witnessTag.size(); i++) {

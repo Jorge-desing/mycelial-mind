@@ -543,6 +543,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
                 ColonySiteMemory memory = colony.getSiteMemory(pendingEarlyRestSite);
                 if (memory != null) {
                     boolean learned = memory.recordTrialSuccess(ColonySiteHabit.REST_BEFORE_RETURN, 2);
+                    colony.getDialect(pendingEarlyRestSite).recordEpisode(ColonySiteHabit.REST_BEFORE_RETURN, getUUID(), level.getGameTime());
                     if (memory.usesHabit(ColonySiteHabit.REST_BEFORE_RETURN)) {
                         rememberSiteExperience(level, pendingEarlyRestSite,
                                 ColonyWitnessMemory.Type.HABIT_REST_BEFORE_RETURN, BlockPos.ZERO);
