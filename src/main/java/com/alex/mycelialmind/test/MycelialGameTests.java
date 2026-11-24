@@ -7048,11 +7048,11 @@ public final class MycelialGameTests {
 
         BlockPos core1 = helper.absolutePos(new BlockPos(4, 120, 4));
         BlockPos core2 = helper.absolutePos(new BlockPos(20, 120, 20));
-        BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
+        BlockPos core3 = insetInChunk(helper.absolutePos(new BlockPos(0, 120, 0)), 6);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, core3, 8),
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, core3.east(2), 0),
                         "Expected entity-ticking chunks around the outbreak completion point to be ready."))
                 .thenExecute(() -> {
             try {
@@ -7157,6 +7157,16 @@ public final class MycelialGameTests {
             }
 
             // 3. Full completion promotes core to INCUBATOR_NODE + Elite + Spore Cloud
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    level.setBlock(core3.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
+                    for (int dy = 0; dy <= 10; dy++) {
+                        if (!level.getBlockState(core3.offset(dx, dy, dz)).isAir()) {
+                            level.setBlock(core3.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 18);
+                        }
+                    }
+                }
+            }
             var site3 = com.alex.mycelialmind.hive.HyphalSiegeDirector.createBlindSpotSiteAt(level, hive, core3);
             int guard = 0;
             while (!site3.isCompleted() && guard++ < site3.getTotalSteps() + 10) {
@@ -7490,12 +7500,11 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 120)
     public static void hyphalWallVeinLosesSupportFallsAndDisintegratesOnLanding(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         hive.resetAll();
 
-        BlockPos wallPos = helper.absolutePos(new BlockPos(10, 14, 10));
-        BlockPos veinPos = wallPos.east();
+        BlockPos veinPos = insetInChunk(helper.absolutePos(new BlockPos(0, 14, 0)), 6);
+        BlockPos wallPos = veinPos.west();
         BlockPos landingFloor = veinPos.below(5);
         BlockPos landingAir = veinPos.below(4);
 
@@ -7528,7 +7537,6 @@ public final class MycelialGameTests {
             level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, dropBounds)
                     .forEach(net.minecraft.world.entity.Entity::discard);
             hive.resetAll();
-            releaseArenaChunks(level, forcedChunks);
         };
         level.removeBlock(wallPos, false);
         helper.onEachTick(() -> {
@@ -8605,10 +8613,8 @@ public final class MycelialGameTests {
         List<ChunkPos> raidArenaChunks = forceArenaChunks(helper, -24, 32, -24, 32);
 
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(
-                        level.isPositionEntityTicking(nexusPos)
-                                && raidArenaChunks.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
-                        "Rival raid arena chunks must be entity-loaded before spawning"))
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, nexusPos, 24),
+                        "Rival raid spawn chunks must be entity-ticking before spawning"))
                 .thenExecute(() -> {
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w1 = null;
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w2 = null;
