@@ -69,6 +69,29 @@ public final class SovereignColonyData {
     ) {
     }
 
+    public record ReconstructionWitnessSnapshot(
+            UUID witnessId,
+            ColonyWitnessMemory.Type type,
+            BlockPos memoryPos,
+            ColonyReconstructionStatus status
+    ) {
+    }
+
+    public record ReconstructionSnapshot(
+            BlockPos ruinedSite,
+            @Nullable BlockPos successorSite,
+            long createdTick,
+            int requiredMask,
+            int restoredMask,
+            @Nullable UUID activeWitness,
+            int activeType,
+            @Nullable UUID lastFailedWitness,
+            int lastFailedType,
+            int lastFailure,
+            List<ReconstructionWitnessSnapshot> witnesses
+    ) {
+    }
+
     private static final class MemoryTransfer {
         private final BlockPos sourcePos;
         private final BlockPos targetPos;
@@ -102,12 +125,16 @@ public final class SovereignColonyData {
     private int activeRaidRemaining = 0;
 
     private final LinkedHashSet<BlockPos> linkedOutposts = new LinkedHashSet<>();
+    private final LinkedHashSet<BlockPos> knownOutposts = new LinkedHashSet<>();
     private final LinkedHashSet<BlockPos> inputChests = new LinkedHashSet<>();
     private final LinkedHashSet<BlockPos> outputChests = new LinkedHashSet<>();
     private final EnumMap<WorkZoneType, LinkedHashSet<BlockPos>> workZones = new EnumMap<>(WorkZoneType.class);
     private final Map<UUID, WorkerRosterEntry> roster = new LinkedHashMap<>();
     private final ColonyOrderBoard orderBoard = new ColonyOrderBoard();
     private final Map<BlockPos, ColonySiteMemory> siteMemories = new LinkedHashMap<>();
+    private final Map<ColonyWitnessMemory.Key, ColonyWitnessMemory> witnessMemories = new LinkedHashMap<>();
+    private final Map<BlockPos, ColonyReconstruction> reconstructions = new LinkedHashMap<>();
+    private int archivedReconstructionCount;
     @Nullable
     private MemoryTransfer memoryTransfer;
 
@@ -280,12 +307,17 @@ public final class SovereignColonyData {
     }
 
     public void replaceLinkedOutposts(List<BlockPos> found) {
-        this.linkedOutposts.clear();
+        List<BlockPos> selected = new ArrayList<>();
         for (BlockPos pos : found) {
-            if (this.linkedOutposts.size() >= SovereignColonyEngine.MAX_LINKED_OUTPOSTS) {
+            if (selected.size() >= SovereignColonyEngine.MAX_LINKED_OUTPOSTS) {
                 break;
             }
-            this.linkedOutposts.add(pos.immutable());
+            selected.add(pos.immutable());
+        }
+        this.linkedOutposts.clear();
+        this.linkedOutposts.addAll(selected);
+        for (BlockPos pos : selected) {
+            rememberKnownOutpost(pos);
         }
         if (memoryTransfer != null
                 && (!isMemorySite(memoryTransfer.sourcePos) || !isMemorySite(memoryTransfer.targetPos))) {
@@ -295,6 +327,22 @@ public final class SovereignColonyData {
 
     private boolean isMemorySite(BlockPos pos) {
         return nexusPos.equals(pos) || linkedOutposts.contains(pos);
+    }
+
+    public boolean isKnownOutpost(BlockPos pos) {
+        return knownOutposts.contains(pos);
+    }
+
+    private void rememberKnownOutpost(BlockPos pos) {
+        knownOutposts.add(pos.immutable());
+        while (knownOutposts.size() > 32) {
+            BlockPos removable = knownOutposts.stream().filter(known -> !linkedOutposts.contains(known))
+                    .findFirst().orElse(null);
+            if (removable == null) {
+                break;
+            }
+            knownOutposts.remove(removable);
+        }
     }
 
     public List<BlockPos> getMemorySitePositions() {
@@ -473,6 +521,177 @@ public final class SovereignColonyData {
         return siteMemories.get(sitePos);
     }
 
+    public boolean recordWitnessMemory(ColonyWitnessMemory memory) {
+        if (memory == null || !isMemorySite(memory.sitePos())) {
+            return false;
+        }
+        ColonyWitnessMemory previous = witnessMemories.put(memory.key(), memory);
+        return !memory.equals(previous);
+    }
+
+    @Nullable
+    public ColonyWitnessMemory getWitnessMemory(UUID witnessId, BlockPos sitePos, ColonyWitnessMemory.Type type) {
+        return witnessMemories.get(new ColonyWitnessMemory.Key(witnessId, sitePos, type));
+    }
+
+    public List<ColonyWitnessMemory> getWitnessMemories(BlockPos sitePos) {
+        List<ColonyWitnessMemory> memories = new ArrayList<>();
+        for (ColonyWitnessMemory memory : witnessMemories.values()) {
+            if (memory.sitePos().equals(sitePos)) {
+                memories.add(memory);
+            }
+        }
+        return List.copyOf(memories);
+    }
+
+    public boolean beginOutpostReconstruction(BlockPos ruinedSite, long gameTime) {
+        BlockPos ruined = ruinedSite.immutable();
+        if (!knownOutposts.contains(ruined) || reconstructions.containsKey(ruined)) {
+            return false;
+        }
+        int requiredMask = 0;
+        for (ColonyWitnessMemory memory : getWitnessMemories(ruined)) {
+            requiredMask |= ColonyReconstructionRules.restoreBit(memory.type());
+        }
+        if (reconstructions.size() >= 4) {
+            BlockPos closed = reconstructions.values().stream()
+                    .filter(ColonyReconstruction::isClosed)
+                    .map(ColonyReconstruction::ruinedSite)
+                    .findFirst()
+                    .orElse(null);
+            if (closed == null) {
+                return false;
+            }
+            reconstructions.remove(closed);
+            archivedReconstructionCount++;
+        }
+        linkedOutposts.remove(ruined);
+        knownOutposts.remove(ruined);
+        ColonyReconstruction entry = new ColonyReconstruction(ruined, gameTime, requiredMask);
+        reconstructions.put(ruined, entry);
+        if (memoryTransfer != null
+                && (memoryTransfer.sourcePos.equals(ruined) || memoryTransfer.targetPos.equals(ruined))) {
+            memoryTransfer = null;
+        }
+        return true;
+    }
+
+    public List<ColonyReconstruction> getReconstructionEntries() {
+        return List.copyOf(reconstructions.values());
+    }
+
+    public int getArchivedReconstructionCount() {
+        return archivedReconstructionCount;
+    }
+
+    @Nullable
+    public ColonyReconstruction getReconstruction(BlockPos ruinedSite) {
+        return reconstructions.get(ruinedSite);
+    }
+
+    public boolean setReconstructionSuccessor(BlockPos ruinedSite, BlockPos successorSite) {
+        ColonyReconstruction entry = reconstructions.get(ruinedSite);
+        if (entry == null || !ColonyReconstructionRules.isValidSuccessor(ruinedSite, successorSite, linkedOutposts)) {
+            return false;
+        }
+        return entry.setSuccessor(successorSite);
+    }
+
+    public boolean beginReconstructionTrip(BlockPos ruinedSite, UUID witnessId, ColonyWitnessMemory.Type type) {
+        ColonyReconstruction entry = reconstructions.get(ruinedSite);
+        if (entry == null || getWitnessMemory(witnessId, ruinedSite, type) == null) {
+            return false;
+        }
+        for (ColonyReconstruction other : reconstructions.values()) {
+            if (other != entry && other.isAssignedTo(witnessId)) {
+                return false;
+            }
+        }
+        return entry.beginTrip(witnessId, type);
+    }
+
+    @Nullable
+    public ColonyReconstruction findReconstructionForWitness(UUID witnessId) {
+        for (ColonyReconstruction entry : reconstructions.values()) {
+            if (entry.isAssignedTo(witnessId)) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    public void removeWitnessMemories(UUID witnessId) {
+        witnessMemories.entrySet().removeIf(entry -> entry.getKey().witnessId().equals(witnessId));
+        for (ColonyReconstruction entry : reconstructions.values()) {
+            entry.cancelTripFor(witnessId);
+        }
+    }
+
+    public boolean abandonReconstruction(BlockPos ruinedSite) {
+        return reconstructions.remove(ruinedSite) != null;
+    }
+
+    public void recordReconstructionFailure(BlockPos ruinedSite, UUID witnessId, ColonyReconstructionStatus status) {
+        ColonyReconstruction entry = reconstructions.get(ruinedSite);
+        if (entry != null) {
+            entry.failTrip(witnessId, status);
+        }
+    }
+
+    public void completeReconstructionMemory(BlockPos ruinedSite, UUID witnessId, ColonyWitnessMemory.Type type) {
+        ColonyReconstruction entry = reconstructions.get(ruinedSite);
+        if (entry != null) {
+            entry.completeTrip(witnessId, type);
+        }
+    }
+
+    @Nullable
+    public BlockPos reconstructedPatrolPoint(ColonyReconstruction entry, ColonyWitnessMemory memory) {
+        if (entry.successorSite() == null || memory.type() != ColonyWitnessMemory.Type.SENTINEL_PATROL) {
+            return null;
+        }
+        return ColonyReconstructionRules.resolvePatrolPoint(entry.successorSite(), memory.memoryPos());
+    }
+
+    public boolean addInputChestRole(BlockPos pos) {
+        BlockPos imm = pos.immutable();
+        if (inputChests.contains(imm)) {
+            return true;
+        }
+        if (!outputChests.contains(imm) && inputChests.size() >= SovereignColonyEngine.MAX_INPUT_CHESTS) {
+            return false;
+        }
+        outputChests.remove(imm);
+        inputChests.add(imm);
+        return true;
+    }
+
+    public boolean addOutputChestRole(BlockPos pos) {
+        BlockPos imm = pos.immutable();
+        if (outputChests.contains(imm)) {
+            return true;
+        }
+        if (!inputChests.contains(imm) && outputChests.size() >= SovereignColonyEngine.MAX_OUTPUT_CHESTS) {
+            return false;
+        }
+        inputChests.remove(imm);
+        outputChests.add(imm);
+        return true;
+    }
+
+    public boolean addWorkZoneIfAbsent(WorkZoneType type, BlockPos pos) {
+        LinkedHashSet<BlockPos> set = workZones.get(type);
+        BlockPos immutable = pos.immutable();
+        if (set.contains(immutable)) {
+            return true;
+        }
+        if (set.size() >= SovereignColonyEngine.MAX_WORK_ZONES) {
+            return false;
+        }
+        set.add(immutable);
+        return true;
+    }
+
     public Set<BlockPos> getInputChests() {
         return Collections.unmodifiableSet(inputChests);
     }
@@ -565,6 +784,11 @@ public final class SovereignColonyData {
         this.orderBoard.releaseWorkerReservations(workerId);
     }
 
+    public void onWorkerDeath(UUID workerId) {
+        removeWitnessMemories(workerId);
+        removeWorker(workerId);
+    }
+
     @Nullable
     public WorkerRosterEntry getWorker(UUID workerId) {
         return roster.get(workerId);
@@ -611,6 +835,7 @@ public final class SovereignColonyData {
         tag.putInt("ActiveRaidRemaining", activeRaidRemaining);
 
         tag.put("Outposts", savePosList(linkedOutposts));
+        tag.put("KnownOutposts", savePosList(knownOutposts));
         tag.put("InputChests", savePosList(inputChests));
         tag.put("OutputChests", savePosList(outputChests));
 
@@ -643,6 +868,17 @@ public final class SovereignColonyData {
             memoriesTag.add(memoryTag);
         }
         tag.put("SiteMemories", memoriesTag);
+        ListTag witnessTag = new ListTag();
+        for (ColonyWitnessMemory memory : witnessMemories.values()) {
+            witnessTag.add(memory.save());
+        }
+        tag.put("SiteWitnessMemories", witnessTag);
+        ListTag reconstructionsTag = new ListTag();
+        for (ColonyReconstruction reconstruction : reconstructions.values()) {
+            reconstructionsTag.add(reconstruction.save());
+        }
+        tag.put("SiteReconstructions", reconstructionsTag);
+        tag.putInt("ArchivedReconstructions", archivedReconstructionCount);
         if (memoryTransfer != null) {
             CompoundTag transferTag = new CompoundTag();
             transferTag.putLong("SourcePos", memoryTransfer.sourcePos.asLong());
@@ -676,6 +912,8 @@ public final class SovereignColonyData {
         data.activeRaidRemaining = Math.max(0, tag.getInt("ActiveRaidRemaining"));
 
         loadPosList(tag.getList("Outposts", Tag.TAG_LONG), data.linkedOutposts);
+        loadPosList(tag.getList("KnownOutposts", Tag.TAG_LONG), data.knownOutposts);
+        data.knownOutposts.addAll(data.linkedOutposts);
         loadPosList(tag.getList("InputChests", Tag.TAG_LONG), data.inputChests);
         loadPosList(tag.getList("OutputChests", Tag.TAG_LONG), data.outputChests);
 
@@ -709,6 +947,21 @@ public final class SovereignColonyData {
             CompoundTag memoryTag = memoriesTag.getCompound(i);
             data.siteMemories.put(BlockPos.of(memoryTag.getLong("SitePos")), ColonySiteMemory.load(memoryTag));
         }
+        ListTag witnessTag = tag.getList("SiteWitnessMemories", Tag.TAG_COMPOUND);
+        for (int i = 0; i < witnessTag.size(); i++) {
+            ColonyWitnessMemory memory = ColonyWitnessMemory.load(witnessTag.getCompound(i));
+            if (memory != null) {
+                data.witnessMemories.put(memory.key(), memory);
+            }
+        }
+        ListTag reconstructionsTag = tag.getList("SiteReconstructions", Tag.TAG_COMPOUND);
+        for (int i = 0; i < reconstructionsTag.size() && data.reconstructions.size() < 4; i++) {
+            ColonyReconstruction reconstruction = ColonyReconstruction.load(reconstructionsTag.getCompound(i));
+            if (reconstruction != null) {
+                data.reconstructions.put(reconstruction.ruinedSite(), reconstruction);
+            }
+        }
+        data.archivedReconstructionCount = Math.max(0, tag.getInt("ArchivedReconstructions"));
         if (tag.contains("MemoryTransfer", Tag.TAG_COMPOUND)) {
             CompoundTag transferTag = tag.getCompound("MemoryTransfer");
             BlockPos source = BlockPos.of(transferTag.getLong("SourcePos"));

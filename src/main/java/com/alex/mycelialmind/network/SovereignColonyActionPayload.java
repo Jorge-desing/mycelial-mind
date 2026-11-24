@@ -3,11 +3,16 @@ package com.alex.mycelialmind.network;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.colony.ColonySiteMemory;
+import com.alex.mycelialmind.colony.ColonyReconstruction;
+import com.alex.mycelialmind.colony.ColonyReconstructionStatus;
+import com.alex.mycelialmind.colony.ColonyWitnessMemory;
+import com.alex.mycelialmind.hive.ColonyReconstructionDirector;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.colony.SymbiontCaste;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -40,6 +45,9 @@ public record SovereignColonyActionPayload(
     public static final int ACTION_FORGET_SITE_MEMORY = 8;
     public static final int ACTION_TEACH_SITE_MEMORY = 9;
     public static final int ACTION_CANCEL_MEMORY_TRANSFER = 10;
+    public static final int ACTION_SET_RECONSTRUCTION_SUCCESSOR = 11;
+    public static final int ACTION_CALL_RECONSTRUCTION_WITNESS = 12;
+    public static final int ACTION_ABANDON_RECONSTRUCTION = 13;
 
     private static final UUID ZERO_UUID = new UUID(0L, 0L);
 
@@ -90,6 +98,19 @@ public record SovereignColonyActionPayload(
                 ZERO_UUID,
                 sourceSitePos != null ? sourceSitePos : BlockPos.ZERO,
                 targetSitePos != null ? targetSitePos : BlockPos.ZERO
+        ));
+    }
+
+    public static void sendReconstructionAction(int action, BlockPos nexusPos, BlockPos ruinedSite,
+                                                BlockPos successorSite, UUID witnessId,
+                                                ColonyWitnessMemory.Type memoryType) {
+        PacketDistributor.sendToServer(new SovereignColonyActionPayload(
+                action,
+                nexusPos != null ? nexusPos : BlockPos.ZERO,
+                memoryType != null ? memoryType.ordinal() : 0,
+                witnessId != null ? witnessId : ZERO_UUID,
+                ruinedSite != null ? ruinedSite : BlockPos.ZERO,
+                successorSite != null ? successorSite : BlockPos.ZERO
         ));
     }
 
@@ -150,6 +171,39 @@ public record SovereignColonyActionPayload(
                 case ACTION_CANCEL_MEMORY_TRANSFER -> {
                     if (player.getUUID().equals(colony.getOwnerId()) && colony.getMemoryTransferSnapshot() != null) {
                         colony.cancelMemoryTransfer();
+                        SovereignColonySavedData.get(level).setDirty();
+                    }
+                }
+                case ACTION_SET_RECONSTRUCTION_SUCCESSOR -> {
+                    if (player.getUUID().equals(colony.getOwnerId())
+                            && colony.setReconstructionSuccessor(payload.sourceSitePos(), payload.targetSitePos())) {
+                        SovereignColonySavedData.get(level).setDirty();
+                    }
+                }
+                case ACTION_CALL_RECONSTRUCTION_WITNESS -> {
+                    if (player.getUUID().equals(colony.getOwnerId())) {
+                        ColonyWitnessMemory.Type type = ColonyWitnessMemory.Type.fromIndex(payload.param());
+                        ColonyReconstruction entry = colony.getReconstruction(payload.sourceSitePos());
+                        ColonyWitnessMemory memory = type == null ? null
+                                : colony.getWitnessMemory(payload.targetWorkerId(), payload.sourceSitePos(), type);
+                        if (entry != null && memory != null) {
+                            ColonyReconstructionStatus status = ColonyReconstructionDirector.getCandidateStatus(
+                                    level, colony, entry, memory);
+                            if ((status == ColonyReconstructionStatus.READY || status == ColonyReconstructionStatus.NO_PATH
+                                    || status == ColonyReconstructionStatus.HABIT_ALREADY_PRESENT)
+                                    && colony.beginReconstructionTrip(payload.sourceSitePos(), payload.targetWorkerId(), type)) {
+                                SovereignColonySavedData.get(level).setDirty();
+                            } else {
+                                player.displayClientMessage(Component.translatable(
+                                        "message.mycelialmind.colony.reconstruction_unavailable",
+                                        Component.translatable(status.translationKey())), true);
+                            }
+                        }
+                    }
+                }
+                case ACTION_ABANDON_RECONSTRUCTION -> {
+                    if (player.getUUID().equals(colony.getOwnerId())
+                            && colony.abandonReconstruction(payload.sourceSitePos())) {
                         SovereignColonySavedData.get(level).setDirty();
                     }
                 }
