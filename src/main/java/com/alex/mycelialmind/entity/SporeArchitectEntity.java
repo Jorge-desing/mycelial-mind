@@ -3,7 +3,18 @@ package com.alex.mycelialmind.entity;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.block.CreepingMyceliumBlock;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AvoidEntity;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SynapticNodeType;
@@ -25,14 +36,19 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Autonomous colony builder unit that marches outward from mature nodes,
@@ -71,6 +87,49 @@ public class SporeArchitectEntity extends MycelialMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getCoreTasks() {
+        var avoidPlayers = new AvoidEntity<MycelialMob>()
+                .avoiding(candidate -> candidate instanceof Player player
+                        && !player.isCreative()
+                        && !player.isSpectator()
+                        && !MycelialMob.isFriendlyToPlayer(this, player))
+                .noCloserThan(7.0F)
+                .speedModifier(1.18F);
+        avoidPlayers.startCondition(mob -> !mob.isDesynced());
+
+        var projectileSidestep = new CustomBehaviour<MycelialMob>(
+                mob -> HiveBrainBridge.performProjectileSidestep(mob, 1.15F, true));
+        projectileSidestep.startCondition(mob -> !mob.isDesynced()
+                && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileSidestep.cooldownFor(mob -> 35);
+
+        return BrainActivityGroup.coreTasks(
+                new LookAtTarget<>(),
+                new MoveToWalkTarget<>(),
+                new FirstApplicableBehaviour<>(avoidPlayers, projectileSidestep)
+        );
+    }
+
+    @Override
+    public Map<Activity, BrainActivityGroup<? extends MycelialMob>> getAdditionalTasks() {
+        BrainActivityGroup<MycelialMob> investigate = new BrainActivityGroup<MycelialMob>(Activity.INVESTIGATE)
+                .onlyStartWithMemoryStatus(ModMemoryTypes.NEAREST_NODE_POS.get(), MemoryStatus.VALUE_PRESENT)
+                .onlyStartWithMemoryStatus(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT)
+                .behaviours(new HiveNodeRegenBehaviour());
+        return Map.of(Activity.INVESTIGATE, investigate);
+    }
+
+    @Override
+    public List<Activity> getActivityPriorities() {
+        return List.of(Activity.FIGHT, Activity.INVESTIGATE, Activity.IDLE);
     }
 
     @Override

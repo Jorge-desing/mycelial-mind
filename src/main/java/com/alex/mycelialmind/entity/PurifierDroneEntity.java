@@ -1,15 +1,33 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyPlayersSensor;
 import com.alex.mycelialmind.entity.projectile.NeutralizingSporeProjectile;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
+import com.mojang.serialization.Dynamic;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -25,15 +43,19 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -45,6 +67,7 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,7 +76,7 @@ import java.util.UUID;
  * Follows its owner or patrols nearby Pylons, fires NeutralizingSporeProjectiles
  * at MycelialMobs, and cleanses Creeping Mycelium beneath it.
  */
-public class PurifierDroneEntity extends PathfinderMob {
+public class PurifierDroneEntity extends PathfinderMob implements HiveBrainOwner<PurifierDroneEntity> {
     private static final EntityDataAccessor<Boolean> DATA_PATROL_MODE =
             SynchedEntityData.defineId(PurifierDroneEntity.class, EntityDataSerializers.BOOLEAN);
 
@@ -66,6 +89,8 @@ public class PurifierDroneEntity extends PathfinderMob {
     private int fireCooldown = 15;
     private int cleanseCooldown = 20;
     private int jammedTicks = 0;
+    @Nullable
+    private HiveBrainRuntime<PurifierDroneEntity> hiveBrainRuntime;
 
     public int getJammedTicks() {
         return jammedTicks;
@@ -95,6 +120,97 @@ public class PurifierDroneEntity extends PathfinderMob {
         super(entityType, level);
         this.moveControl = new FlyingMoveControl(this, 20, true);
         this.setNoGravity(true);
+    }
+
+    @Override
+    protected Brain.Provider<?> brainProvider() {
+        return HiveBrainFactory.createProvider(this);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
+        Brain<?> brain = super.makeBrain(dynamic);
+        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<PurifierDroneEntity>) brain);
+        return brain;
+    }
+
+    @Override
+    @Nullable
+    public HiveBrainRuntime<PurifierDroneEntity> getHiveBrainRuntime() {
+        return this.hiveBrainRuntime;
+    }
+
+    @Override
+    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<PurifierDroneEntity> runtime) {
+        this.hiveBrainRuntime = runtime;
+    }
+
+    @Override
+    public List<HiveSensor<PurifierDroneEntity>> getSensors() {
+        return List.of(
+                new NearbyLivingEntitySensor<PurifierDroneEntity>()
+                        .setRadius(18.0D)
+                        .setPredicate((target, drone) -> target instanceof MycelialMob mm && !mm.isAlliedEscort()),
+                new NearbyPlayersSensor<PurifierDroneEntity>().setRadius(16.0D),
+                new HurtBySensor<>(),
+                new IncomingProjectilesSensor<>()
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<PurifierDroneEntity> getCoreTasks() {
+        var projectileEvade = new CustomBehaviour<PurifierDroneEntity>(
+                drone -> HiveBrainBridge.performProjectileSidestep(drone, 1.2F, false));
+        projectileEvade.startCondition(drone -> !drone.isJammed()
+                && HiveBrainUtils.hasMemory(drone, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileEvade.cooldownFor(drone -> 30);
+
+        return BrainActivityGroup.coreTasks(
+                new LookAtTarget<>(),
+                projectileEvade
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<PurifierDroneEntity> getIdleTasks() {
+        return BrainActivityGroup.idleTasks(
+                new SetPlayerLookTarget<>(),
+                new Idle<PurifierDroneEntity>().runFor(drone -> 40)
+        );
+    }
+
+    @Override
+    public Map<Activity, BrainActivityGroup<? extends PurifierDroneEntity>> getAdditionalTasks() {
+        BrainActivityGroup<PurifierDroneEntity> restGroup = new BrainActivityGroup<PurifierDroneEntity>(Activity.REST)
+                .onlyStartWithMemoryStatus(MemoryModuleType.HOME, MemoryStatus.VALUE_PRESENT)
+                .behaviours(new Idle<PurifierDroneEntity>().runFor(drone -> 40));
+        return Map.of(Activity.REST, restGroup);
+    }
+
+    @Override
+    public List<Activity> getActivityPriorities() {
+        return List.of(Activity.REST, Activity.IDLE);
+    }
+
+    public void syncDroneBrainState(ServerLevel serverLevel) {
+        if (isJammed()) {
+            if (!HiveBrainUtils.hasMemory(this, MemoryModuleType.HOME)) {
+                HiveBrainUtils.setMemory(this, MemoryModuleType.HOME,
+                        GlobalPos.of(serverLevel.dimension(), this.blockPosition()));
+            }
+        } else {
+            HiveBrainUtils.clearMemory(this, MemoryModuleType.HOME);
+        }
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        if (this.level() instanceof ServerLevel serverLevel) {
+            syncDroneBrainState(serverLevel);
+        }
+        tickBrain(this);
     }
 
     @Override

@@ -1,8 +1,15 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -21,9 +28,13 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+
+import java.util.List;
 
 /**
  * Heavy brood carrier that releases Sporelings upon death.
@@ -46,6 +57,42 @@ public class GoliathCarrierEntity extends MycelialMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        var tremorTelegraph = new DelayedBehaviour<MycelialMob>(18) {
+            @Override
+            protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+                return List.of(Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
+            }
+
+            @Override
+            protected void doDelayedAction(MycelialMob entity) {
+                if (entity.level() instanceof ServerLevel level) {
+                    level.sendParticles(ModParticles.CHITIN_SHARD.get(),
+                            entity.getX(), entity.getY() + 0.2D, entity.getZ(),
+                            6, 0.8D, 0.2D, 0.8D, 0.02D);
+                }
+            }
+        };
+        tremorTelegraph.cooldownFor(mob -> 90);
+
+        return BrainActivityGroup.fightTasks(
+                new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>()
+                        .afterTicks(45L)
+                        .reaction((level, mob) -> {
+                            mob.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 40, 0, false, false));
+                            level.sendParticles(ModParticles.CHITIN_SHARD.get(),
+                                    mob.getX(), mob.getY() + 0.2D, mob.getZ(),
+                                    6, 0.8D, 0.2D, 0.8D, 0.02D);
+                            mob.playSound(ModSounds.GOLIATH_CARRIER_THUD.get(), 0.9F, 0.9F);
+                        }),
+                tremorTelegraph,
+                new SetWalkTargetToAttackTarget<>(),
+                new AnimatableMeleeAttack<>(10)
+        );
     }
 
     @Override

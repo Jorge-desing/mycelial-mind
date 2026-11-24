@@ -1,8 +1,22 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.registry.ModEffects;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.server.level.ServerLevel;
@@ -27,6 +41,8 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
+import java.util.List;
+
 /**
  * Parasitic disrupter that drains stamina (Hunger / Mining Fatigue) and leeches health on hit.
  */
@@ -49,6 +65,48 @@ public class LeechParasiteEntity extends MycelialMob {
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, PurifierDroneEntity.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, net.minecraft.world.entity.animal.IronGolem.class, true));
+    }
+
+    @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getCoreTasks() {
+        var projectileSidestep = new CustomBehaviour<MycelialMob>(
+                mob -> HiveBrainBridge.performProjectileSidestep(mob, 1.35F, true));
+        projectileSidestep.startCondition(mob -> !mob.isDesynced()
+                && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileSidestep.cooldownFor(mob -> 20);
+
+        var fleeLowHp = new FleeTarget<MycelialMob>()
+                .fleeDistance(11.0F)
+                .speedModifier(1.35F);
+        fleeLowHp.startCondition(mob -> mob.getHealth() < mob.getMaxHealth() * 0.30F && !mob.isFrenzyActive());
+
+        return BrainActivityGroup.coreTasks(
+                new LookAtTarget<>(),
+                new MoveToWalkTarget<>(),
+                new FirstApplicableBehaviour<>(projectileSidestep, fleeLowHp)
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        return BrainActivityGroup.fightTasks(
+                new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>()
+                        .afterTicks(30L)
+                        .reaction((level, mob) -> {
+                            mob.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 35, 0, false, false));
+                            level.sendParticles(ModParticles.SPORE_MOTE.get(),
+                                    mob.getX(), mob.getY() + 0.25D, mob.getZ(),
+                                    6, 0.3D, 0.2D, 0.3D, 0.02D);
+                        }),
+                new SetWalkTargetToAttackTarget<>(),
+                new AnimatableMeleeAttack<>(6)
+        );
     }
 
     @Override

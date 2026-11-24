@@ -10474,8 +10474,15 @@ public final class MycelialGameTests {
         var matriarch = helper.spawnWithNoFreeWill(ModEntities.APEX_MATRIARCH.get(), 2, 1, 6);
         var chimera = helper.spawnWithNoFreeWill(ModEntities.MYCELIAL_CHIMERA.get(), 5, 1, 3);
         var symbiont = helper.spawnWithNoFreeWill(ModEntities.COLONY_SYMBIONT.get(), 6, 1, 3);
+        var sporeling = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 1, 1, 5);
+        var carrier = helper.spawnWithNoFreeWill(ModEntities.GOLIATH_CARRIER.get(), 3, 1, 5);
+        var leech = helper.spawnWithNoFreeWill(ModEntities.LEECH_PARASITE.get(), 5, 1, 5);
+        var architect = helper.spawnWithNoFreeWill(ModEntities.SPORE_ARCHITECT.get(), 1, 1, 6);
+        var drone = helper.spawnWithNoFreeWill(ModEntities.PURIFIER_DRONE.get(), 3, 2, 6);
         try {
-            List<MycelialMob> mobs = List.of(brute, burrower, pyro, warden, mimic, spitter, stalker, weaver, behemoth, hiveCore, matriarch);
+            List<MycelialMob> mobs = List.of(
+                    brute, burrower, pyro, warden, mimic, spitter, stalker, weaver,
+                    behemoth, hiveCore, matriarch, sporeling, carrier, leech, architect);
             for (MycelialMob mob : mobs) {
                 helper.assertTrue(mob.getHiveBrainRuntime() != null,
                         mob.getClass().getSimpleName() + " must initialize HiveBrainRuntime.");
@@ -10485,6 +10492,9 @@ public final class MycelialGameTests {
                     "MycelialChimera must initialize HiveBrainRuntime.");
             helper.assertTrue(symbiont.getHiveBrainRuntime() != null,
                     "ColonySymbiont must initialize HiveBrainRuntime.");
+            helper.assertTrue(drone.getHiveBrainRuntime() != null,
+                    "PurifierDrone must initialize HiveBrainRuntime.");
+            drone.tickBrain(drone);
 
             // ChitinBrute enters INVESTIGATE on SHARED_TARGET_POS without ATTACK_TARGET
             HiveBrainUtils.setMemory(brute, ModMemoryTypes.SHARED_TARGET_POS.get(), brute.blockPosition().offset(6, 0, 0));
@@ -10531,6 +10541,30 @@ public final class MycelialGameTests {
             helper.assertTrue(symbiont.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
                     "ColonySymbiont must return to IDLE when HURT_BY_ENTITY is cleared.");
 
+            // Sporeling enters INVESTIGATE on SHARED_TARGET_POS without ATTACK_TARGET
+            HiveBrainUtils.setMemory(sporeling, ModMemoryTypes.SHARED_TARGET_POS.get(), sporeling.blockPosition().offset(6, 0, 0));
+            sporeling.tickBrain(sporeling);
+            helper.assertTrue(sporeling.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.INVESTIGATE),
+                    "Sporeling must transition to INVESTIGATE on SHARED_TARGET_POS.");
+
+            // SporeArchitect enters INVESTIGATE near node without ATTACK_TARGET
+            HiveBrainUtils.setMemory(architect, ModMemoryTypes.NEAREST_NODE_POS.get(), architect.blockPosition().offset(3, 0, 0));
+            architect.tickBrain(architect);
+            helper.assertTrue(architect.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.INVESTIGATE),
+                    "SporeArchitect must transition to INVESTIGATE on NEAREST_NODE_POS.");
+
+            // PurifierDrone switches to REST when jammed and returns to IDLE when cleared
+            drone.setJammedTicks(40);
+            drone.syncDroneBrainState(level);
+            drone.tickBrain(drone);
+            helper.assertTrue(drone.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.REST),
+                    "PurifierDrone must activate REST while jammed.");
+            drone.clearJam();
+            drone.syncDroneBrainState(level);
+            drone.tickBrain(drone);
+            helper.assertTrue(drone.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
+                    "PurifierDrone must return to IDLE after jam clears.");
+
             helper.succeed();
         } finally {
             brute.discard();
@@ -10546,6 +10580,11 @@ public final class MycelialGameTests {
             matriarch.discard();
             chimera.discard();
             symbiont.discard();
+            sporeling.discard();
+            carrier.discard();
+            leech.discard();
+            architect.discard();
+            drone.discard();
         }
     }
 }

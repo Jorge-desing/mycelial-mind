@@ -4286,3 +4286,21 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Verificación / Estado:**
   - `CodeMode` (`mycelial-mind-dev`): `test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon` -> **`BUILD SUCCESSFUL` (`28s`), `190/190` `@GameTest`s PASS (`5.629s`), `105/105` JUnit en `12` suites (`2.085s`)**, `audit_mod_assets` (`ok: true`, `2146/2146` claves EN/ES, `0` faltantes), `validate_skills` (`8/8` OK tras editar skills).
   - Auditoría cero-SBL en repo y JAR (`build/libs/mycelialmind-2.0.0.jar`, `2372` entradas): `TOML_HAS_SBL=False`, `SBL_CLASS_HITS=[]`, `git grep` libre de dependencias o menciones no intencionales.
+
+
+## [2026-11-24 12:52] — Cobertura Total 18/18 de `HiveBrain` y Reglas de Arquitectura en `mycelial-ai-hive` (`/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:**
+  1. **Integración `HiveBrain` en las 5 Entidades Restantes (Cobertura 18/18):**
+     - `SporelingEntity`: sensores con `IncomingProjectilesSensor`, `FleeTarget` en baja vida sin aliados cercanos (`< 45%` HP y `!isFrenzyActive()`), sidestep de proyectiles vía `HiveBrainBridge.performProjectileSidestep` y `Activity.INVESTIGATE` (`SHARED_TARGET_POS`, `HiveHotspotPatrolBehaviour`).
+     - `GoliathCarrierEntity`: `getFightTasks()` con `InvalidateAttackTarget`, `ReactToUnreachableTarget` (`45t`, pulso de velocidad + `CHITIN_SHARD` + sonido), `DelayedBehaviour` (`18t`) telégrafo de temblor y `AnimatableMeleeAttack(10)`.
+     - `LeechParasiteEntity`: sensores con `IncomingProjectilesSensor`, `FirstApplicableBehaviour` (sidestep de proyectiles + `FleeTarget` `< 30%` HP) y `getFightTasks()` con `ReactToUnreachableTarget` (`30t`).
+     - `SporeArchitectEntity`: sensores con `IncomingProjectilesSensor`, `FirstApplicableBehaviour` (`AvoidEntity` jugadores `< 7.0m` respetando diplomacia + sidestep) y `Activity.INVESTIGATE` (`NEAREST_NODE_POS`, `HiveNodeRegenBehaviour`).
+     - `PurifierDroneEntity`: implementa `HiveBrainOwner<PurifierDroneEntity>` con sensores dedicados (amenazas `MycelialMob`, jugadores, daño recibido y proyectiles), sidestep de proyectiles en aire cuando `!isJammed()` (`performProjectileSidestep(..., false)`), `syncDroneBrainState` + `Activity.REST` vía `MemoryModuleType.HOME` al estar atascado, preservando `FlyingMoveControl` y patrullaje/disparo.
+  2. **Pruebas y Documentación en Skill:** Ampliado `@GameTest` `hiveBrainAllIntegratedEntitiesInitializeAndTickCleanly` para inicializar y validar las 18/18 entidades (`Sporeling`/`SporeArchitect` en `INVESTIGATE`, `PurifierDrone` en `REST`/`IDLE`). Actualizada la sección 2 de `.agents/skills/mycelial-ai-hive/SKILL.md` con cobertura `18/18` y reglas/trampas obligatorias del motor nativo `HiveBrain`.
+- **Skills actualizadas / revisadas:** Actualizada `.agents/skills/mycelial-ai-hive/SKILL.md` (`18/18` cobertura + 4 reglas/trampas obligatorias de `HiveBrain`); revisadas `neoforge-gametest/SKILL.md` y `mycelial-diagnostics/SKILL.md` (vigentes, sin cambios requeridos).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/entity/{SporelingEntity,GoliathCarrierEntity,LeechParasiteEntity,SporeArchitectEntity,PurifierDroneEntity}.java`
+  - `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`, `.agents/skills/mycelial-ai-hive/SKILL.md`, `MEMORY.md`
+- **Verificación / Estado:**
+  - `CodeMode` (`mycelial-mind-dev`): `test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon` -> **`BUILD SUCCESSFUL` (`34s`), `190/190` `@GameTest`s PASS (`5.711s`), `105/105` JUnit en `12` suites (`2.119s`)**, `audit_mod_assets` (`ok: true`, `2146/2146` claves EN/ES, `0` faltantes), `validate_skills` (`8/8` OK).
