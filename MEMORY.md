@@ -4067,3 +4067,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, identidad del maestro
 - Cada lección guarda al protagonista del episodio inicial como maestro y solo acepta una demostración nueva realizada por ese trabajador ante el aprendiz. La muerte de cualquiera cancela la lección. Las lecciones previas recuperan el maestro desde el último episodio disponible.
 - Añadidos dos tests JUnit para persistencia, episodios únicos y conflictos de secuencia. `test` pasó offline. La elección explícita de maestro, las llamadas, sus respuestas, la información de conflictos y la revisión visual siguen pendientes.
+
+## 2026-11-23 — Dialectos, llamadas y respuestas iniciales
+- El bastón ofrece llamadas de escolta, descanso y recogida entre puestos enlazados que comparten secuencia. Se conectaron a solicitudes de escolta, descanso del trabajador más fatigado y concesión del turno al mensajero que más espera; enfriamiento persistente de 200 ticks y feedback traducido.
+- JUnit pasó incluyendo pruebas de enfriamiento y cola; GameTests aislados 179/179 pasaron antes de añadir las pruebas JUnit. Pendiente: maestro seleccionable, demostración y señales audiovisuales completas con pulsos secuenciales y subtítulos, resolución de conflictos en interfaz, pruebas integrales y revisión visual.

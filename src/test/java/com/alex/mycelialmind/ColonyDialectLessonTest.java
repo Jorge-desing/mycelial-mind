@@ -42,4 +42,30 @@ class ColonyDialectLessonTest {
         assertEquals(5, loaded.call(ColonySiteHabit.REST_BEFORE_RETURN));
         assertEquals(-1, loaded.call(ColonySiteHabit.STAGGERED_PICKUP));
     }
+
+    @Test
+    void callCooldownSurvivesReloadAndExpires() {
+        ColonyDialect dialect = new ColonyDialect();
+        assertTrue(dialect.tryEmit(100));
+        assertFalse(dialect.tryEmit(299));
+        ColonyDialect loaded = ColonyDialect.load(dialect.save());
+        assertFalse(loaded.tryEmit(299));
+        assertTrue(loaded.tryEmit(300));
+    }
+
+    @Test
+    void pickupCallRespectsCurrentLeaseAndTheOldestWaitingCourier() {
+        var memory = new com.alex.mycelialmind.colony.ColonySiteMemory();
+        UUID current = UUID.randomUUID();
+        UUID first = UUID.randomUUID();
+        UUID second = UUID.randomUUID();
+        assertTrue(memory.tryAcquirePickupTurn(current, 10, 20));
+        assertFalse(memory.tryAcquirePickupTurn(first, 11, 20));
+        assertFalse(memory.tryAcquirePickupTurn(second, 12, 20));
+        assertFalse(memory.givePickupTurnToOldest(15, 20));
+        memory.releasePickupTurn(current);
+        assertTrue(memory.givePickupTurnToOldest(16, 20));
+        assertFalse(memory.tryAcquirePickupTurn(second, 17, 20));
+        assertTrue(memory.tryAcquirePickupTurn(first, 17, 20));
+    }
 }

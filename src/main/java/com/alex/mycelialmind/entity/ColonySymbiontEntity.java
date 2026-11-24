@@ -115,6 +115,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
     private boolean damagedDuringCourierTrip;
     @Nullable
     private BlockPos pendingEarlyRestSite;
+    private boolean dialectRestRequested;
     private UUID witnessMemoriesSyncedToColony;
     private final Map<ColonyWitnessMemory.Key, ColonyWitnessMemory> siteWitnessMemories = new LinkedHashMap<>();
 
@@ -734,6 +735,20 @@ public class ColonySymbiontEntity extends PathfinderMob {
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return false;
+    }
+
+    public void requestDialectRest() {
+        dialectRestRequested = true;
+    }
+
+    public boolean consumeDialectRestRequest() {
+        boolean requested = dialectRestRequested;
+        dialectRestRequested = false;
+        return requested;
+    }
+
+    public boolean hasDialectRestRequest() {
+        return dialectRestRequested;
     }
 
     public boolean canRetreatToRest() {

@@ -29,6 +29,7 @@ public final class ColonySiteMemory {
     @Nullable
     private UUID pickupLeaseWorker;
     private long pickupLeaseUntil;
+    private final java.util.LinkedHashMap<UUID, Long> waitingCouriers = new java.util.LinkedHashMap<>();
 
     @Nullable
     private UUID escortCourier;
@@ -190,12 +191,33 @@ public final class ColonySiteMemory {
     }
 
     public boolean tryAcquirePickupTurn(UUID workerId, long gameTime, long leaseTicks) {
-        if (pickupLeaseWorker == null || gameTime >= pickupLeaseUntil || pickupLeaseWorker.equals(workerId)) {
+        if (workerId.equals(pickupLeaseWorker) && gameTime < pickupLeaseUntil) return true;
+        waitingCouriers.entrySet().removeIf(entry -> gameTime - entry.getValue() > 200L);
+        waitingCouriers.putIfAbsent(workerId, gameTime);
+        if (pickupLeaseWorker == null || gameTime >= pickupLeaseUntil) {
+            UUID oldest = waitingCouriers.keySet().iterator().next();
+            if (!oldest.equals(workerId)) return false;
+            waitingCouriers.remove(workerId);
             pickupLeaseWorker = workerId;
             pickupLeaseUntil = gameTime + leaseTicks;
             return true;
         }
         return false;
+    }
+
+    @Nullable
+    public UUID oldestWaitingCourier(long gameTime) {
+        waitingCouriers.entrySet().removeIf(entry -> gameTime - entry.getValue() > 200L);
+        return waitingCouriers.isEmpty() ? null : waitingCouriers.keySet().iterator().next();
+    }
+
+    public boolean givePickupTurnToOldest(long gameTime, long duration) {
+        UUID oldest = oldestWaitingCourier(gameTime);
+        if (oldest == null || (pickupLeaseWorker != null && gameTime < pickupLeaseUntil)) return false;
+        waitingCouriers.remove(oldest);
+        pickupLeaseWorker = oldest;
+        pickupLeaseUntil = gameTime + duration;
+        return true;
     }
 
     public void releasePickupTurn(UUID workerId) {

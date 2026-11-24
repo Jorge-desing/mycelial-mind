@@ -2025,5 +2025,13 @@
   "gui.mycelialmind.colony.dialect.travelling": "Aprendiz en camino",
   "gui.mycelialmind.colony.dialect.observing": "Esperando una demostración",
   "gui.mycelialmind.colony.dialect.returning": "Aprendiz de regreso",
-  "message.mycelialmind.colony.dialect_unavailable": "Lección no disponible: revisa el episodio, los conflictos de llamada, el aprendiz y la lección activa."
+  "message.mycelialmind.colony.dialect_unavailable": "Lección no disponible: revisa el episodio, los conflictos de llamada, el aprendiz y la lección activa.",
+  "staff_mode.mycelialmind.dialect_escort": "Dialecto: escolta",
+  "staff_mode.mycelialmind.dialect_rest": "Dialecto: descanso",
+  "staff_mode.mycelialmind.dialect_pickup": "Dialecto: recogida",
+  "message.mycelialmind.colony.dialect_bad_route": "Acércate a un puesto y usa el bastón sobre otro puesto enlazado.",
+  "message.mycelialmind.colony.dialect_unknown": "El destino no entiende esta llamada.",
+  "message.mycelialmind.colony.dialect_cooldown": "El puesto debe esperar antes de llamar de nuevo.",
+  "message.mycelialmind.colony.dialect_accepted": "Llamada comprendida: %s",
+  "message.mycelialmind.colony.dialect_no_worker": "No hay trabajador o turno disponible para %s."
 }

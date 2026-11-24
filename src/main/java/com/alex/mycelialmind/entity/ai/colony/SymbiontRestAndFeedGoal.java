@@ -42,7 +42,7 @@ public class SymbiontRestAndFeedGoal extends Goal {
         if (colony == null) {
             return false;
         }
-        if (worker.canRetreatToRest()) {
+        if (worker.canRetreatToRest() || worker.hasDialectRestRequest()) {
             return true;
         }
         if (worker.getTarget() != null || worker.getFatigue() < 60.0F || worker.getNutrition() <= 20.0F) {
@@ -68,6 +68,7 @@ public class SymbiontRestAndFeedGoal extends Goal {
     @Override
     public void start() {
         restTicks = 0;
+        worker.consumeDialectRestRequest();
         earlyMemoryRest = !worker.canRetreatToRest() && worker.getTarget() == null && worker.getFatigue() >= 60.0F;
         worker.setResting(true);
         worker.setTaskState("resting");

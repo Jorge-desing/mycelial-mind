@@ -43,7 +43,10 @@ public class SovereignCommandStaffItem extends Item {
         MARK_MINE_ZONE("mark_mine_zone", ChatFormatting.GOLD),
         MARK_PATROL_ZONE("mark_patrol_zone", ChatFormatting.RED),
         MARK_BUILD_ZONE("mark_build_zone", ChatFormatting.LIGHT_PURPLE),
-        RALLY_COLONY("rally_colony", ChatFormatting.WHITE);
+        RALLY_COLONY("rally_colony", ChatFormatting.WHITE),
+        DIALECT_ESCORT("dialect_escort", ChatFormatting.RED),
+        DIALECT_REST("dialect_rest", ChatFormatting.AQUA),
+        DIALECT_PICKUP("dialect_pickup", ChatFormatting.YELLOW);
 
         private final String id;
         private final ChatFormatting color;
@@ -161,6 +164,21 @@ public class SovereignCommandStaffItem extends Item {
             nexus.enableAdministrativeOverride(serverLevel);
         }
         StaffMode mode = getMode(context.getItemInHand());
+        if (mode == StaffMode.DIALECT_ESCORT || mode == StaffMode.DIALECT_REST || mode == StaffMode.DIALECT_PICKUP) {
+            BlockPos source = colony.findNearestMemorySite(player.blockPosition(), 16.0D);
+            BlockPos target = colony.findNearestMemorySite(clicked, 2.0D);
+            if (source == null || target == null) {
+                player.displayClientMessage(Component.translatable("message.mycelialmind.colony.dialect_bad_route"), true);
+                return InteractionResult.FAIL;
+            }
+            var meaning = switch (mode) {
+                case DIALECT_ESCORT -> com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER;
+                case DIALECT_REST -> com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN;
+                default -> com.alex.mycelialmind.colony.ColonySiteHabit.STAGGERED_PICKUP;
+            };
+            com.alex.mycelialmind.colony.ColonyDialectCallDirector.emit(serverLevel, colony, source, target, meaning, player);
+            return InteractionResult.CONSUME;
+        }
         if (mode == StaffMode.RALLY_COLONY) {
             if (serverLevel.getBlockEntity(colony.getNexusPos()) instanceof SovereignNexusBlockEntity nexus) {
                 int recalled = nexus.recallAllWorkers(serverLevel);

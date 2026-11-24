@@ -13,6 +13,7 @@ public final class ColonyDialect {
     public record Episode(UUID id, UUID worker, long tick) { }
 
     private final EnumMap<ColonySiteHabit, Episode> episodes = new EnumMap<>(ColonySiteHabit.class);
+    private long lastCallTick = Long.MIN_VALUE;
     private final EnumMap<ColonySiteHabit, Integer> calls = new EnumMap<>(ColonySiteHabit.class);
 
     public void recordEpisode(ColonySiteHabit habit, UUID worker, long tick) {
@@ -39,8 +40,15 @@ public final class ColonyDialect {
         return true;
     }
 
+    public boolean tryEmit(long gameTime) {
+        if (lastCallTick != Long.MIN_VALUE && gameTime >= lastCallTick && gameTime - lastCallTick < 200L) return false;
+        lastCallTick = gameTime;
+        return true;
+    }
+
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
+        tag.putLong("LastCallTick", lastCallTick);
         ListTag entries = new ListTag();
         for (ColonySiteHabit habit : ColonySiteHabit.values()) {
             if (habit == ColonySiteHabit.NONE) continue;
@@ -61,6 +69,7 @@ public final class ColonyDialect {
 
     public static ColonyDialect load(CompoundTag tag) {
         ColonyDialect dialect = new ColonyDialect();
+        if (tag.contains("LastCallTick")) dialect.lastCallTick = tag.getLong("LastCallTick");
         ListTag entries = tag.getList("Entries", Tag.TAG_COMPOUND);
         for (int i = 0; i < entries.size(); i++) {
             CompoundTag entry = entries.getCompound(i);

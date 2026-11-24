@@ -2025,5 +2025,13 @@
   "gui.mycelialmind.colony.dialect.travelling": "Apprentice travelling",
   "gui.mycelialmind.colony.dialect.observing": "Waiting for a demonstration",
   "gui.mycelialmind.colony.dialect.returning": "Apprentice returning",
-  "message.mycelialmind.colony.dialect_unavailable": "Lesson unavailable: check the episode, call conflict, apprentice, and active lesson."
+  "message.mycelialmind.colony.dialect_unavailable": "Lesson unavailable: check the episode, call conflict, apprentice, and active lesson.",
+  "staff_mode.mycelialmind.dialect_escort": "Dialect: escort",
+  "staff_mode.mycelialmind.dialect_rest": "Dialect: rest",
+  "staff_mode.mycelialmind.dialect_pickup": "Dialect: pickup",
+  "message.mycelialmind.colony.dialect_bad_route": "Stand near one outpost and use the staff on another linked outpost.",
+  "message.mycelialmind.colony.dialect_unknown": "The destination does not understand this call.",
+  "message.mycelialmind.colony.dialect_cooldown": "This outpost must wait before calling again.",
+  "message.mycelialmind.colony.dialect_accepted": "Call understood: %s",
+  "message.mycelialmind.colony.dialect_no_worker": "No suitable worker or waiting turn for %s."
 }
