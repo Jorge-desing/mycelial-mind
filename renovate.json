@@ -35,6 +35,18 @@
       "matchManagers": ["gradle"],
       "matchDepTypes": ["plugin"],
       "groupName": "Gradle plugins"
+    },
+    {
+      "description": "Keep gdx pinned to 1.9.8 to match gdx-ai 1.8.2",
+      "matchManagers": ["gradle"],
+      "matchDepNames": ["com.badlogicgames.gdx:gdx"],
+      "enabled": false
+    },
+    {
+      "description": "Keep Iris updates on the Minecraft 1.21.1 NeoForge line",
+      "matchManagers": ["gradle"],
+      "matchDepNames": ["maven.modrinth:iris"],
+      "allowedVersions": "/\\+1\\.21\\.1-neoforge$/"
     }
   ]
 }

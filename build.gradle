@@ -264,13 +264,13 @@ dependencies {
     jarJar("com.badlogicgames.gdx:gdx:1.9.8")
 
     // Unit testing & Pitest mutation testing
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.14.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Optional mod integrations (compileOnly so Mycelial Mind runs standalone or alongside any of them)
     compileOnly "maven.modrinth:jade:15.10.6+neoforge"
     compileOnly "dev.emi:emi-neoforge:1.1.24+1.21.1:api"
-    compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.21.0.247"
+    compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.76.1.481"
     compileOnly "maven.modrinth:iris:1.8.8+1.21.1-neoforge"
     compileOnly "com.klikli_dev:modonomicon-1.21.1-neoforge:1.123.1"
     compileOnly "maven.modrinth:azurelib:rzVuOJoh"
