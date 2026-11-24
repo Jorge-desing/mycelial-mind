@@ -2,15 +2,20 @@ package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.AntibodyCystBlock;
+import com.alex.mycelialmind.block.BioChitinLatticeBlock;
 import com.alex.mycelialmind.block.BioluminescentMycelialCapBlock;
+import com.alex.mycelialmind.block.ChitinPillarBlock;
 import com.alex.mycelialmind.block.CreepingMyceliumBlock;
 import com.alex.mycelialmind.block.EphemeralChitinBlock;
 import com.alex.mycelialmind.block.HiveAltarBlock;
 import com.alex.mycelialmind.block.HyphalVeinBlock;
 import com.alex.mycelialmind.block.IncubatorNodeBlock;
+import com.alex.mycelialmind.block.LuminescentAmberVeinBlock;
 import com.alex.mycelialmind.block.MatriarchAltarBlock;
+import com.alex.mycelialmind.block.MycelialArchBrickBlock;
 import com.alex.mycelialmind.block.MycelialNodeBlock;
 import com.alex.mycelialmind.block.MycelialRiftBlock;
+import com.alex.mycelialmind.block.MycelialStoneBlock;
 import com.alex.mycelialmind.block.MycelialTendrilsBlock;
 import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
@@ -22,14 +27,9 @@ import com.alex.mycelialmind.block.SporeBulbBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.block.SynapticResearchBenchBlock;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -38,7 +38,6 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -182,10 +181,11 @@ public final class ModBlocks {
                     .lightLevel(s -> s.getValue(MycelialTendrilsBlock.MATURE) ? 8 : 3)));
 
     public static final DeferredBlock<Block> MYCELIAL_STONE = registerBlock("mycelial_stone",
-            () -> new Block(BlockBehaviour.Properties.of()
+            () -> new MycelialStoneBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
                     .strength(2.5F, 8.0F)
                     .sound(ModSounds.MYCELIAL_STONE_SOUNDS)
+                    .randomTicks()
                     .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> MYCELIAL_RIFT = registerBlock("mycelial_rift",
@@ -198,7 +198,7 @@ public final class ModBlocks {
                     .lightLevel(s -> 13)));
 
     public static final DeferredBlock<Block> CHITIN_PILLAR = registerBlock("chitin_pillar",
-            () -> new StructuralRelicPillarBlock(BlockBehaviour.Properties.of()
+            () -> new ChitinPillarBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.SAND)
                     .strength(4.0F, 12.0F)
                     .sound(ModSounds.CHITIN_RELIC_SOUNDS)
@@ -206,14 +206,14 @@ public final class ModBlocks {
                     .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> MYCELIAL_ARCH_BRICK = registerBlock("mycelial_arch_brick",
-            () -> new StructuralRelicBlock(BlockBehaviour.Properties.of()
+            () -> new MycelialArchBrickBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
                     .strength(4.5F, 18.0F)
                     .sound(ModSounds.MYCELIAL_STONE_SOUNDS)
                     .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> BIO_CHITIN_LATTICE = registerBlock("bio_chitin_lattice",
-            () -> new StructuralRelicBlock(BlockBehaviour.Properties.of()
+            () -> new BioChitinLatticeBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_CYAN)
                     .strength(2.5F, 10.0F)
                     .sound(ModSounds.CHITIN_RELIC_SOUNDS)
@@ -222,10 +222,11 @@ public final class ModBlocks {
                     .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> LUMINESCENT_AMBER_VEIN = registerBlock("luminescent_amber_vein",
-            () -> new StructuralRelicBlock(BlockBehaviour.Properties.of()
+            () -> new LuminescentAmberVeinBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_ORANGE)
                     .strength(3.0F, 14.0F)
                     .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
+                    .randomTicks()
                     .lightLevel(s -> 13)
                     .requiresCorrectToolForDrops()));
 
@@ -281,27 +282,5 @@ public final class ModBlocks {
 
     public static void register(IEventBus modEventBus) {
         BLOCKS.register(modEventBus);
-    }
-
-    private static final class StructuralRelicBlock extends Block {
-        private StructuralRelicBlock(Properties properties) {
-            super(properties);
-        }
-
-        @Override
-        public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-            tooltip.add(Component.translatable("tooltip.mycelialmind.block.structural_relic").withStyle(ChatFormatting.DARK_PURPLE));
-        }
-    }
-
-    private static final class StructuralRelicPillarBlock extends RotatedPillarBlock {
-        private StructuralRelicPillarBlock(Properties properties) {
-            super(properties);
-        }
-
-        @Override
-        public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-            tooltip.add(Component.translatable("tooltip.mycelialmind.block.structural_relic").withStyle(ChatFormatting.DARK_PURPLE));
-        }
     }
 }

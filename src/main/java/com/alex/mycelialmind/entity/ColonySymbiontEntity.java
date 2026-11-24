@@ -318,6 +318,25 @@ public class ColonySymbiontEntity extends PathfinderMob {
         return workerXp;
     }
 
+    public boolean grantWorkerXp(ServerLevel level, int xpGain) {
+        if (xpGain <= 0) {
+            return false;
+        }
+        SymbiontRank before = getRank();
+        this.workerXp = Math.max(0, this.workerXp + xpGain);
+        SymbiontRank after = SymbiontRank.forXp(this.workerXp);
+        if (after != before) {
+            setRank(after);
+            level.playSound(null, this.blockPosition(), ModSounds.COLONY_SYMBIONT_PROMOTE.get(),
+                    this.getSoundSource(), 0.9F, 1.15F);
+            level.sendParticles(ModParticles.BIO_LUME.get(),
+                    this.getX(), this.getY() + 0.9, this.getZ(), 14, 0.4, 0.5, 0.4, 0.04);
+            return true;
+        }
+        syncRosterToColony();
+        return false;
+    }
+
     @Nullable
     public UUID getOwnerUuid() {
         return ownerUuid;
@@ -621,6 +640,31 @@ public class ColonySymbiontEntity extends PathfinderMob {
         ItemStack stack = player.getItemInHand(hand);
         if (stack.is(ModItems.SOVEREIGN_COMMAND_STAFF.get())) {
             return InteractionResult.PASS;
+        }
+        if (stack.is(ModItems.HIVE_HEART.get())) {
+            if (this.level() instanceof ServerLevel serverLevel) {
+                this.setHealth(this.getMaxHealth());
+                this.setFatigue(0.0F);
+                this.setNutrition(100.0F);
+                this.setMorale(100.0F);
+                this.removeEffect(com.alex.mycelialmind.registry.ModEffects.MYCELIAL_INFECTION);
+                this.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                        net.minecraft.world.effect.MobEffects.REGENERATION, 400, 1, false, true));
+                this.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                        net.minecraft.world.effect.MobEffects.DAMAGE_BOOST, 400, 0, false, true));
+                grantWorkerXp(serverLevel, 15);
+                if (!player.getAbilities().instabuild) {
+                    stack.shrink(1);
+                }
+                serverLevel.sendParticles(ModParticles.HIVE_PULSE.get(),
+                        this.getX(), this.getY() + 0.8, this.getZ(), 2, 0.25, 0.25, 0.25, 0.02);
+                serverLevel.playSound(null, this.blockPosition(), ModSounds.SOVEREIGN_NEXUS_PULSE.get(),
+                        this.getSoundSource(), 0.9F, 1.25F);
+                syncRosterToColony();
+                player.displayClientMessage(Component.translatable("message.mycelialmind.symbiont_heart_infused",
+                        Component.translatable(getCaste().nameKey())).withStyle(ChatFormatting.LIGHT_PURPLE), true);
+            }
+            return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
         if (stack.is(ModItems.MYCELIAL_BIOMASS.get())) {
             if (this.level() instanceof ServerLevel serverLevel) {

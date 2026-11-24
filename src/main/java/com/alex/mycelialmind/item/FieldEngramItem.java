@@ -1,10 +1,13 @@
 package com.alex.mycelialmind.item;
 
+import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.hive.FieldEngramId;
+import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModDataComponents;
+import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -15,6 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -67,12 +71,20 @@ public class FieldEngramItem extends Item {
                         Component.translatable(engram.titleKey())
                 ).withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), true);
             } else {
-                serverLevel.playSound(null, player.blockPosition(), ModSounds.BIO_SCANNER_PING.get(),
-                        SoundSource.PLAYERS, 0.6F, 0.95F);
+                player.giveExperiencePoints(EcosystemPurposeEngine.DUPLICATE_ENGRAM_XP);
+                player.addEffect(new MobEffectInstance(
+                        ModEffects.SYNAPTIC_INSIGHT, EcosystemPurposeEngine.DUPLICATE_ENGRAM_INSIGHT_TICKS, 0));
+                HiveMindSavedData.get(serverLevel).reduceThreat(EcosystemPurposeEngine.DUPLICATE_ENGRAM_THREAT_REDUCTION);
+                serverLevel.playSound(null, player.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(),
+                        SoundSource.PLAYERS, 0.8F, 1.3F);
+                serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
+                        player.getX(), player.getY(0.6D), player.getZ(),
+                        12, 0.3D, 0.35D, 0.3D, 0.03D);
                 player.displayClientMessage(Component.translatable(
-                        "message.mycelialmind.engram_already_archived",
-                        Component.translatable(engram.titleKey())
-                ).withStyle(ChatFormatting.GRAY), true);
+                        "message.mycelialmind.engram_absorbed_duplicate",
+                        Component.translatable(engram.titleKey()),
+                        EcosystemPurposeEngine.DUPLICATE_ENGRAM_XP
+                ).withStyle(ChatFormatting.GREEN), true);
             }
             if (!player.getAbilities().instabuild) {
                 stack.shrink(1);

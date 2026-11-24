@@ -80,8 +80,7 @@ public final class DimensionalHomeostasisEngine {
     private static final Set<String> FOREIGN_MYCELIAL_PATHS = Set.of(
             "purification_pylon",
             "purification_turret",
-            "synaptic_research_bench",
-            "reinforced_bio_barrier"
+            "synaptic_research_bench"
     );
 
     private static final Set<String> NATURAL_CEILING_MYCELIAL_PATHS = Set.of(

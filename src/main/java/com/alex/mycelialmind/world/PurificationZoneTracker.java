@@ -41,6 +41,7 @@ public class PurificationZoneTracker extends SavedData {
     private final Set<BlockPos> pylonPositions = new HashSet<>();
     private final Set<BlockPos> smotheredPylons = new HashSet<>();
     private final Map<BlockPos, Integer> pylonTiers = new HashMap<>();
+    private final Map<BlockPos, Integer> pylonBonusRadii = new HashMap<>();
     private final Set<BlockPos> nodePositions = new HashSet<>();
     private final Map<BlockPos, SynapticNodeType> typedNodes = new HashMap<>();
 
@@ -58,7 +59,8 @@ public class PurificationZoneTracker extends SavedData {
         boolean removed = pylonPositions.remove(pos);
         boolean unsmothered = smotheredPylons.remove(pos);
         boolean removedTier = pylonTiers.remove(pos) != null;
-        if (removed || unsmothered || removedTier) {
+        boolean removedBonus = pylonBonusRadii.remove(pos) != null;
+        if (removed || unsmothered || removedTier || removedBonus) {
             setDirty();
         }
     }
@@ -67,6 +69,7 @@ public class PurificationZoneTracker extends SavedData {
         pylonPositions.clear();
         smotheredPylons.clear();
         pylonTiers.clear();
+        pylonBonusRadii.clear();
         nodePositions.clear();
         typedNodes.clear();
         setDirty();
@@ -80,6 +83,8 @@ public class PurificationZoneTracker extends SavedData {
         smotheredPylons.addAll(restored.smotheredPylons);
         pylonTiers.clear();
         pylonTiers.putAll(restored.pylonTiers);
+        pylonBonusRadii.clear();
+        pylonBonusRadii.putAll(restored.pylonBonusRadii);
         nodePositions.clear();
         nodePositions.addAll(restored.nodePositions);
         typedNodes.clear();
@@ -106,10 +111,26 @@ public class PurificationZoneTracker extends SavedData {
         return pylonTiers.getOrDefault(pos, 1);
     }
 
+    public synchronized void setPylonBonusRadius(BlockPos pos, int bonus) {
+        BlockPos immutable = pos.immutable();
+        int clamped = Math.max(0, Math.min(12, bonus));
+        if (!pylonPositions.contains(immutable) || clamped == 0) {
+            if (pylonBonusRadii.remove(immutable) != null) {
+                setDirty();
+            }
+            return;
+        }
+        Integer prev = pylonBonusRadii.put(immutable, clamped);
+        if (prev == null || prev != clamped) {
+            setDirty();
+        }
+    }
+
     public synchronized int getPylonRadius(BlockPos pos) {
         int base = MycelialConfig.PYLON_PURIFICATION_RADIUS.get();
         int tier = pylonTiers.getOrDefault(pos, 1);
-        return tier >= 3 ? base + 12 : (tier == 2 ? base + 6 : base);
+        int tierRadius = tier >= 3 ? base + 12 : (tier == 2 ? base + 6 : base);
+        return tierRadius + pylonBonusRadii.getOrDefault(pos, 0);
     }
 
     public synchronized void setPylonSmothered(BlockPos pos, boolean smothered) {
@@ -549,6 +570,15 @@ public class PurificationZoneTracker extends SavedData {
             typed.add(entryTag);
         }
         tag.put(TAG_TYPED_NODES, typed);
+
+        ListTag radiusBonuses = new ListTag();
+        for (Map.Entry<BlockPos, Integer> entry : pylonBonusRadii.entrySet()) {
+            CompoundTag entryTag = new CompoundTag();
+            entryTag.putLong("Pos", entry.getKey().asLong());
+            entryTag.putInt("Bonus", entry.getValue());
+            radiusBonuses.add(entryTag);
+        }
+        tag.put("PylonRadiusBonuses", radiusBonuses);
         return tag;
     }
 
@@ -583,6 +613,15 @@ public class PurificationZoneTracker extends SavedData {
             BlockPos pos = BlockPos.of(entry.getLong("Pos"));
             tracker.nodePositions.add(pos);
             tracker.typedNodes.put(pos, SynapticNodeType.fromId(entry.getString("Type")));
+        }
+        ListTag radiusBonuses = tag.getList("PylonRadiusBonuses", Tag.TAG_COMPOUND);
+        for (int i = 0; i < radiusBonuses.size(); i++) {
+            CompoundTag entry = radiusBonuses.getCompound(i);
+            BlockPos pos = BlockPos.of(entry.getLong("Pos"));
+            int bonus = Math.max(0, Math.min(12, entry.getInt("Bonus")));
+            if (bonus > 0) {
+                tracker.pylonBonusRadii.put(pos, bonus);
+            }
         }
         return tracker;
     }

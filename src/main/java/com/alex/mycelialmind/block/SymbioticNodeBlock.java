@@ -73,6 +73,29 @@ public class SymbioticNodeBlock extends MycelialNodeBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
+        if (stack.is(ModItems.NEURAL_ECHO_CORE.get())
+                && level.getBlockEntity(pos) instanceof SynapticNodeBlockEntity be) {
+            if (level instanceof ServerLevel serverLevel) {
+                be.setSymbioticStability(100);
+                MycorrhizalAcousticTracker.setTravelCooldown(player.getUUID(), 0L);
+                if (!player.getAbilities().instabuild) {
+                    stack.shrink(1);
+                }
+                serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
+                        pos.getX() + 0.5, pos.getY() + 0.9, pos.getZ() + 0.5,
+                        10, 0.35, 0.35, 0.35, 0.03);
+                serverLevel.sendParticles(ModParticles.SYNAPSE_SPARK.get(),
+                        pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
+                        8, 0.3, 0.3, 0.3, 0.04);
+                serverLevel.playSound(null, pos, ModSounds.SYMBIOTIC_NODE_CHARGE.get(), SoundSource.BLOCKS, 0.95F, 1.25F);
+                player.displayClientMessage(
+                        Component.translatable("message.mycelialmind.neural_echo_node_harmonized")
+                                .withStyle(ChatFormatting.AQUA),
+                        true
+                );
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        }
         if (stack.is(ModItems.MYCELIAL_BIOMASS.get())
                 && !player.isSecondaryUseActive()
                 && level.getBlockEntity(pos) instanceof SynapticNodeBlockEntity be

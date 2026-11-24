@@ -139,7 +139,9 @@ public final class MycorrhizalAcousticTracker {
         }
         BlockPos pos = player.blockPosition();
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
-        if (tracker.isProtected(pos) || tracker.hasNearbySymbioticNode(pos, 16)) {
+        if (tracker.isProtected(pos)
+                || tracker.hasNearbySymbioticNode(pos, 16)
+                || com.alex.mycelialmind.block.ChitinPillarBlock.isPlayerStealthDamped(level, pos)) {
             return true;
         }
         return hasActiveDecoyNear(level, pos, DECOY_SILENCE_RANGE);

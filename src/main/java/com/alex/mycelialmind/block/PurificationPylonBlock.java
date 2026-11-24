@@ -2,10 +2,15 @@ package com.alex.mycelialmind.block;
 
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
+import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
+import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -16,8 +21,10 @@ import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -58,9 +65,47 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level instanceof ServerLevel serverLevel) {
-            PurificationZoneTracker.get(serverLevel).addPylon(pos);
+            PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
+            tracker.addPylon(pos);
+            syncAdjacentArchitectureBonus(serverLevel, pos, tracker);
             serverLevel.scheduleTick(pos, this, 40);
         }
+    }
+
+    @Override
+    protected void neighborChanged(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Block neighborBlock,
+            BlockPos neighborPos,
+            boolean movedByPiston
+    ) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (level instanceof ServerLevel serverLevel) {
+            syncAdjacentArchitectureBonus(serverLevel, pos, PurificationZoneTracker.get(serverLevel));
+        }
+    }
+
+    public static int syncAdjacentArchitectureBonus(ServerLevel level, BlockPos pos, PurificationZoneTracker tracker) {
+        boolean hasAmber = LuminescentAmberVeinBlock.hasAdjacentConduit(level, pos);
+        int barriers = countAdjacentBarriers(level, pos);
+        int bonus = (hasAmber ? EcosystemPurposeEngine.AMBER_PYLON_BONUS_RADIUS : 0)
+                + (barriers >= EcosystemPurposeEngine.BARRIER_PYLON_REQUIRED_FACES
+                ? EcosystemPurposeEngine.BARRIER_PYLON_BONUS_RADIUS : 0);
+        tracker.setPylonBonusRadius(pos, bonus);
+        return bonus;
+    }
+
+    private static int countAdjacentBarriers(Level level, BlockPos pos) {
+        Block barrier = ModBlocks.REINFORCED_BIO_BARRIER.get();
+        int count = 0;
+        for (Direction dir : Direction.values()) {
+            if (level.getBlockState(pos.relative(dir)).is(barrier)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override
@@ -89,7 +134,85 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         if (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus && focus.tryUpgrade(stack, player)) {
             return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
+        if (stack.is(ModItems.HIVE_HEART.get())) {
+            if (level instanceof ServerLevel serverLevel) {
+                triggerHiveHeartOverload(serverLevel, pos, player, stack);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (stack.is(ModItems.OVERMIND_ESSENCE.get())) {
+            if (level instanceof ServerLevel serverLevel) {
+                triggerOvermindPylonSedation(serverLevel, pos, player, stack);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    public static void triggerHiveHeartOverload(ServerLevel serverLevel, BlockPos pos, Player player, ItemStack stack) {
+        int r = EcosystemPurposeEngine.HIVE_HEART_CYST_PURGE_RADIUS;
+        int purgedCysts = 0;
+        int unjammedTurrets = 0;
+        for (BlockPos scan : BlockPos.betweenClosed(pos.offset(-r, -6, -r), pos.offset(r, 6, r))) {
+            if (scan.distSqr(pos) > (double) r * r) {
+                continue;
+            }
+            BlockState st = serverLevel.getBlockState(scan);
+            if (st.is(ModBlocks.ANTIBODY_CYST.get())) {
+                serverLevel.removeBlock(scan, false);
+                purgedCysts++;
+            } else if (serverLevel.getBlockEntity(scan) instanceof PurificationTurretBlockEntity turret && turret.isJammed()) {
+                turret.clearCorrosiveJam();
+                unjammedTurrets++;
+            }
+        }
+        AABB box = new AABB(pos).inflate(EcosystemPurposeEngine.HIVE_HEART_PULSE_RADIUS);
+        for (PurifierDroneEntity drone : serverLevel.getEntitiesOfClass(PurifierDroneEntity.class, box)) {
+            drone.clearJam();
+            drone.heal(20.0F);
+        }
+        for (MycelialChimeraEntity chimera : serverLevel.getEntitiesOfClass(MycelialChimeraEntity.class, box)) {
+            chimera.heal(20.0F);
+        }
+        HiveMindSavedData.get(serverLevel).reduceThreat(EcosystemPurposeEngine.HIVE_HEART_THREAT_CALM);
+        if (DimensionalHomeostasisDirector.isHomeostasisDimension(serverLevel)) {
+            DimensionalHomeostasisDirector.sedateArea(
+                    serverLevel, pos, 1, EcosystemPurposeEngine.HIVE_HEART_HOMEOSTASIS_CALM, 1,
+                    player instanceof ServerPlayer sp ? sp : null);
+        }
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+        serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),
+                pos.getX() + 0.5, pos.getY() + 1.15, pos.getZ() + 0.5,
+                20, 0.8, 0.6, 0.8, 0.05);
+        serverLevel.sendParticles(ModParticles.HIVE_PULSE.get(),
+                pos.getX() + 0.5, pos.getY() + 1.15, pos.getZ() + 0.5,
+                1, 0.0, 0.0, 0.0, 0.0);
+        serverLevel.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(), SoundSource.BLOCKS, 1.0F, 1.25F);
+        player.displayClientMessage(Component.translatable(
+                "message.mycelialmind.pylon_heart_pulse", purgedCysts + unjammedTurrets).withStyle(ChatFormatting.AQUA), true);
+    }
+
+    public static void triggerOvermindPylonSedation(ServerLevel serverLevel, BlockPos pos, Player player, ItemStack stack) {
+        HiveMindSavedData.get(serverLevel).reduceThreat(EcosystemPurposeEngine.OVERMIND_ESSENCE_THREAT_CALM);
+        if (DimensionalHomeostasisDirector.isHomeostasisDimension(serverLevel)) {
+            DimensionalHomeostasisDirector.sedateArea(
+                    serverLevel, pos, 1, EcosystemPurposeEngine.OVERMIND_ESSENCE_HOMEOSTASIS_CALM, 1,
+                    player instanceof ServerPlayer sp ? sp : null);
+        }
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0));
+        player.addEffect(new MobEffectInstance(ModEffects.SYNAPTIC_INSIGHT,
+                EcosystemPurposeEngine.OVERMIND_ESSENCE_INSIGHT_TICKS, 0));
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+        serverLevel.sendParticles(ModParticles.SPORE_FALL.get(),
+                pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5,
+                24, 1.2, 0.6, 1.2, 0.04);
+        serverLevel.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(), SoundSource.BLOCKS, 1.0F, 0.9F);
+        player.displayClientMessage(Component.translatable("message.mycelialmind.pylon_overmind_sedation")
+                .withStyle(ChatFormatting.LIGHT_PURPLE), true);
     }
 
     @Override
@@ -121,9 +244,18 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
             return;
         }
         int baseRadius = MycelialConfig.PYLON_PURIFICATION_RADIUS.get();
-        int radius = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus)
+        int tierRadius = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity focus)
                 ? focus.getEffectiveRadius(baseRadius)
                 : baseRadius;
+        int bonusRadius = syncAdjacentArchitectureBonus(level, pos, tracker);
+        int radius = EcosystemPurposeEngine.computePylonEffectiveRadius(
+                tierRadius,
+                LuminescentAmberVeinBlock.hasAdjacentConduit(level, pos),
+                countAdjacentBarriers(level, pos)
+        );
+        if (bonusRadius > 0 && radius < tierRadius + bonusRadius) {
+            radius = tierRadius + bonusRadius;
+        }
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         HiveProgressionTier effectiveAct = HiveProgressionTier.resolveEffectiveTier(
                 hive.getThreatLevel(), hive.getHighestTierReached());

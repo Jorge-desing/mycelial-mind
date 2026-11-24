@@ -522,6 +522,23 @@ public class MycelialChimeraEntity extends PathfinderMob {
         }
 
         if (!this.level().isClientSide()) {
+            if (stack.is(ModItems.HIVE_HEART.get())) {
+                this.setHealth(this.getMaxHealth());
+                this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 400, 1, false, true));
+                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 400, 0, false, true));
+                if (!player.isCreative()) {
+                    stack.shrink(1);
+                }
+                ((ServerLevel) this.level()).sendParticles(ModParticles.HIVE_PULSE.get(),
+                        this.getX(), this.getY(0.7), this.getZ(), 2, 0.35, 0.35, 0.35, 0.02);
+                this.level().playSound(null, this.blockPosition(), ModSounds.SOVEREIGN_NEXUS_PULSE.get(),
+                        SoundSource.NEUTRAL, 0.9F, 1.2F);
+                player.displayClientMessage(
+                        Component.translatable("message.mycelialmind.chimera_heart_empowered").withStyle(ChatFormatting.LIGHT_PURPLE),
+                        true);
+                return InteractionResult.CONSUME;
+            }
+
             // Heal with Mycelial Biomass (bounded +2s cooldown)
             if (stack.is(ModItems.MYCELIAL_BIOMASS.get()) && this.getHealth() < this.getMaxHealth()) {
                 if (this.healCooldownTicks > 0) {

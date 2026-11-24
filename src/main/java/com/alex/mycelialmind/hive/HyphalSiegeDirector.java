@@ -1720,6 +1720,8 @@ public final class HyphalSiegeDirector {
         if (state.isAir()
                 || state.liquid()
                 || level.getBlockEntity(pos) != null
+                || state.is(ModBlocks.MYCELIAL_ARCH_BRICK.get())
+                || state.is(ModBlocks.REINFORCED_BIO_BARRIER.get())
                 || state.getBlock() instanceof EntityBlock
                 || state.getBlock() instanceof DoorBlock
                 || state.getBlock() instanceof FenceGateBlock

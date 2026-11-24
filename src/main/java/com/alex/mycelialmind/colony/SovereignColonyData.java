@@ -539,6 +539,12 @@ public final class SovereignColonyData {
         return dialects.computeIfAbsent(sitePos.immutable(), ignored -> new ColonyDialect());
     }
 
+    public void clearAllDialectCooldowns() {
+        for (ColonyDialect dialect : dialects.values()) {
+            dialect.clearCooldown();
+        }
+    }
+
     public void recordDialectEpisode(net.minecraft.server.level.ServerLevel level, BlockPos sitePos,
                                      ColonySiteHabit habit, com.alex.mycelialmind.entity.ColonySymbiontEntity actor) {
         ColonyDialect dialect = getDialect(sitePos);

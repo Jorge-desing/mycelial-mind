@@ -57,6 +57,9 @@ public class ChitinBruteEntity extends MycelialMob {
     public boolean doHurtTarget(Entity target) {
         boolean hit = super.doHurtTarget(target);
         if (hit && !this.level().isClientSide()) {
+            if (target instanceof Player player && player.isBlocking()) {
+                player.disableShield();
+            }
             this.playSound(ModSounds.CHITIN_BRUTE_SMASH.get(), 0.95F, 0.9F + this.random.nextFloat() * 0.2F);
         }
         return hit;

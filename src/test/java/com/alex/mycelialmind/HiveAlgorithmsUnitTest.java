@@ -2188,4 +2188,65 @@ class HiveAlgorithmsUnitTest {
         float nexusFar = EvolutionRank.computeSovereignNexusHumVolume(400.0D, 24.0D, 1.0F, 1.0F);
         assertTrue(nexusNear > nexusFar && nexusFar > 0.05F);
     }
+
+    @Test
+    void ecosystemPurposeEngineMapsBlocksBloomsItemsAndCounterplayCleanly() {
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isAntiAssimilationBlockPath("mycelialmind", "mycelial_arch_brick"));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isAntiAssimilationBlockPath("mycelialmind", "reinforced_bio_barrier"));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isAntiAssimilationBlockPath("minecraft", "stone"));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isAntiAssimilationBlockPath("mycelialmind", "mycelial_stone"));
+
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isSeismicDamperBlockPath("mycelialmind", "chitin_pillar"));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isSeismicDamperBlockPath("mycelialmind", "mycelial_arch_brick"));
+
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isFertileSubstrateBlockPath("mycelialmind", "mycelial_stone"));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isFertileSubstrateBlockPath("mycelialmind", "luminescent_amber_vein"));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isFertileSubstrateBlockPath("mycelialmind", "chitin_pillar"));
+
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isBruteStunBarrierPath("mycelialmind", "chitin_pillar"));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isBruteStunBarrierPath("mycelialmind", "reinforced_bio_barrier"));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isPermeableEmbrasurePath("mycelialmind", "bio_chitin_lattice"));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.isAmberConduitPath("mycelialmind", "luminescent_amber_vein"));
+
+        assertEquals(24, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computePylonEffectiveRadius(24, false, 1));
+        assertEquals(28, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computePylonEffectiveRadius(24, true, 0));
+        assertEquals(27, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computePylonEffectiveRadius(24, false, 2));
+        assertEquals(31, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computePylonEffectiveRadius(24, true, 3));
+
+        assertEquals(1, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeBenchEffectiveLabTier(1, false));
+        assertEquals(2, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeBenchEffectiveLabTier(1, true));
+        assertEquals(3, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeBenchEffectiveLabTier(2, true));
+        assertEquals(3, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeBenchEffectiveLabTier(3, true));
+
+        assertEquals(com.alex.mycelialmind.hive.EcosystemPurposeEngine.BloomAuraKind.SANCTUARY_REGEN,
+                com.alex.mycelialmind.hive.EcosystemPurposeEngine.bloomAuraForPalette(0));
+        assertEquals(com.alex.mycelialmind.hive.EcosystemPurposeEngine.BloomAuraKind.STRENGTH,
+                com.alex.mycelialmind.hive.EcosystemPurposeEngine.bloomAuraForPalette(1));
+        assertEquals(com.alex.mycelialmind.hive.EcosystemPurposeEngine.BloomAuraKind.SPEED,
+                com.alex.mycelialmind.hive.EcosystemPurposeEngine.bloomAuraForPalette(2));
+        assertEquals(com.alex.mycelialmind.hive.EcosystemPurposeEngine.BloomAuraKind.FIRE_RESISTANCE,
+                com.alex.mycelialmind.hive.EcosystemPurposeEngine.bloomAuraForPalette(3));
+        assertEquals(com.alex.mycelialmind.hive.EcosystemPurposeEngine.BloomAuraKind.RESISTANCE,
+                com.alex.mycelialmind.hive.EcosystemPurposeEngine.bloomAuraForPalette(4));
+        assertEquals(com.alex.mycelialmind.hive.EcosystemPurposeEngine.BloomAuraKind.INSIGHT,
+                com.alex.mycelialmind.hive.EcosystemPurposeEngine.bloomAuraForPalette(5));
+
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectilePassThroughLattice(true, true));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectilePassThroughLattice(false, false));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectilePassThroughLattice(false, true));
+
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldDefusePyroShroom(0, true, true));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldDefusePyroShroom(15, false, false));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldDefusePyroShroom(15, true, false));
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldDefusePyroShroom(15, false, true));
+
+        assertEquals(-1, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeDowngradedInfectionAmplifier(0));
+        assertEquals(0, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeDowngradedInfectionAmplifier(1));
+        assertEquals(1, com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeDowngradedInfectionAmplifier(2));
+
+        assertTrue(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectWardenAura(true, false, false));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectWardenAura(false, false, false));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectWardenAura(true, true, false));
+        assertFalse(com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectWardenAura(true, false, true));
+    }
 }

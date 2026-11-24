@@ -9430,4 +9430,286 @@ public final class MycelialGameTests {
             owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
         }
     }
+
+    @GameTest(template = "empty", batch = "ecosystem_purpose")
+    public static void ecosystemPurposeLayersAllWorkInRuntime(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        CompoundTag owSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
+        CompoundTag colonySnapshot = saved.save(new CompoundTag(), level.registryAccess());
+
+        BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+        BlockPos latticePos = origin.offset(1, 0, 0);
+        BlockPos pillarPos = origin.offset(3, 0, 0);
+        BlockPos amberPos = origin.offset(6, 0, 0);
+        BlockPos benchPos = amberPos.east();
+        BlockPos pylonPos = origin.offset(6, 0, 4);
+        BlockPos stonePos = origin.offset(1, 0, 4);
+        BlockPos bloomPos = stonePos.above();
+        BlockPos symNodePos = origin.offset(3, 0, 4);
+        BlockPos nexusPos = origin.offset(8, 0, 4);
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, 0, 12, 0, 8);
+        List<BlockPos> placedBlocks = new java.util.ArrayList<>();
+        List<net.minecraft.world.entity.Entity> spawnedEntities = new java.util.ArrayList<>();
+
+        try {
+            owHive.resetAll();
+            hive.resetAll();
+            saved.resetAll();
+            tracker.clearAll();
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+
+            // 1. Layer 1: Living Architecture
+            level.setBlockAndUpdate(latticePos, ModBlocks.BIO_CHITIN_LATTICE.get().defaultBlockState());
+            placedBlocks.add(latticePos);
+            NeutralizingSporeProjectile spore = new NeutralizingSporeProjectile(ModEntities.NEUTRALIZING_SPORE.get(), level);
+            AcidSpitProjectile acid = new AcidSpitProjectile(ModEntities.ACID_SPIT.get(), level);
+            ChitinBruteEntity brute = ModEntities.CHITIN_BRUTE.get().create(level);
+            helper.assertTrue(brute != null, "ChitinBrute must instantiate.");
+            spawnedEntities.add(spore);
+            spawnedEntities.add(acid);
+            spawnedEntities.add(brute);
+            BlockState latticeState = level.getBlockState(latticePos);
+            helper.assertTrue(latticeState.getCollisionShape(level, latticePos,
+                            net.minecraft.world.phys.shapes.CollisionContext.of(spore)).isEmpty(),
+                    "BIO_CHITIN_LATTICE must allow purifying projectiles to pass.");
+            helper.assertFalse(latticeState.getCollisionShape(level, latticePos,
+                            net.minecraft.world.phys.shapes.CollisionContext.of(acid)).isEmpty(),
+                    "BIO_CHITIN_LATTICE must block hostile Acid Spit.");
+            helper.assertFalse(latticeState.getCollisionShape(level, latticePos,
+                            net.minecraft.world.phys.shapes.CollisionContext.of(brute)).isEmpty(),
+                    "BIO_CHITIN_LATTICE must block hostile mobs.");
+
+            helper.assertFalse(CreepingMyceliumBlock.canInfect(ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState()),
+                    "MYCELIAL_ARCH_BRICK must resist Creeping Mycelium spread.");
+            helper.assertFalse(CreepingMyceliumBlock.canInfect(ModBlocks.REINFORCED_BIO_BARRIER.get().defaultBlockState()),
+                    "REINFORCED_BIO_BARRIER must resist Creeping Mycelium spread.");
+            helper.assertFalse(com.alex.mycelialmind.world.DimensionalHomeostasisEngine.isForeignBlockId(
+                            "mycelialmind", "reinforced_bio_barrier", false, false, false),
+                    "REINFORCED_BIO_BARRIER must not be flagged as foreign tissue in deep_mycelium.");
+
+            level.setBlockAndUpdate(pillarPos, ModBlocks.CHITIN_PILLAR.get().defaultBlockState());
+            placedBlocks.add(pillarPos);
+
+            UUID testerId = UUID.randomUUID();
+            var tester = new net.neoforged.neoforge.common.util.FakePlayer(
+                    level, new com.mojang.authlib.GameProfile(testerId, "EcosystemTester")) { };
+            tester.setPos(pillarPos.getX() + 0.5D, pillarPos.getY() + 1.0D, pillarPos.getZ() + 0.5D);
+            helper.assertTrue(com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.isPlayerSilenced(level, tester),
+                    "CHITIN_PILLAR must silence nearby player mycorrhizal vibrations.");
+
+            level.setBlockAndUpdate(amberPos, ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState());
+            placedBlocks.add(amberPos);
+            int isolatedSignal = level.getBlockState(amberPos).getAnalogOutputSignal(level, amberPos);
+            level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
+            placedBlocks.add(benchPos);
+            SynapticBenchBlockEntity benchBe = (SynapticBenchBlockEntity) level.getBlockEntity(benchPos);
+            helper.assertTrue(benchBe != null && benchBe.getEffectiveLabTier() == 2,
+                    "Adjacent LUMINESCENT_AMBER_VEIN must grant +1 effective lab tier to SynapticBench.");
+            int boostedSignal = level.getBlockState(amberPos).getAnalogOutputSignal(level, amberPos);
+            helper.assertTrue(isolatedSignal == 7 && boostedSignal == 15,
+                    "LUMINESCENT_AMBER_VEIN comparator must step from 7 to 15 next to anchored stations.");
+
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            BlockPos pylonAmber = pylonPos.east();
+            BlockPos pylonBarrierA = pylonPos.west();
+            BlockPos pylonBarrierB = pylonPos.north();
+            level.setBlockAndUpdate(pylonAmber, ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState());
+            level.setBlockAndUpdate(pylonBarrierA, ModBlocks.REINFORCED_BIO_BARRIER.get().defaultBlockState());
+            level.setBlockAndUpdate(pylonBarrierB, ModBlocks.REINFORCED_BIO_BARRIER.get().defaultBlockState());
+            placedBlocks.addAll(List.of(pylonPos, pylonAmber, pylonBarrierA, pylonBarrierB));
+            com.alex.mycelialmind.block.PurificationPylonBlock.syncAdjacentArchitectureBonus(level, pylonPos, tracker);
+            int expectedPylonRadius = MycelialConfig.PYLON_PURIFICATION_RADIUS.get()
+                    + com.alex.mycelialmind.hive.EcosystemPurposeEngine.AMBER_PYLON_BONUS_RADIUS
+                    + com.alex.mycelialmind.hive.EcosystemPurposeEngine.BARRIER_PYLON_BONUS_RADIUS;
+            helper.assertTrue(tracker.getPylonRadius(pylonPos) == expectedPylonRadius,
+                    "Pylon adjacent to Amber Vein + 2 Barriers must gain +7m bonus radius.");
+
+            level.setBlockAndUpdate(stonePos, ModBlocks.MYCELIAL_STONE.get().defaultBlockState());
+            level.setBlockAndUpdate(bloomPos, ModBlocks.RECLAIMED_BLOOM.get().defaultBlockState()
+                    .setValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.PALETTE, 1)
+                    .setValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE, false));
+            placedBlocks.addAll(List.of(stonePos, bloomPos));
+            ((com.alex.mycelialmind.block.MycelialStoneBlock) ModBlocks.MYCELIAL_STONE.get())
+                    .randomTick(level.getBlockState(stonePos), level, stonePos, level.random);
+            helper.assertTrue(level.getBlockState(bloomPos).getValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE),
+                    "MYCELIAL_STONE randomTick must mature immature Reclaimed Bloom above it.");
+
+            // 2. Layer 2: Reclaimed Bloom Sanctuary Auras
+            com.alex.mycelialmind.entity.ColonySymbiontEntity worker = ModEntities.COLONY_SYMBIONT.get().create(level);
+            helper.assertTrue(worker != null, "ColonySymbiont must instantiate.");
+            spawnedEntities.add(worker);
+            worker.setPos(bloomPos.getX() + 1.0D, bloomPos.getY(), bloomPos.getZ() + 0.5D);
+            worker.setFatigue(45.0F);
+            worker.setMorale(55.0F);
+            level.addFreshEntity(worker);
+            com.alex.mycelialmind.block.ReclaimedBloomBlock.emitSanctuaryAura(level, bloomPos, 1);
+            helper.assertTrue(worker.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST),
+                    "Melee Reclaimed Bloom aura must grant Strength I to nearby ColonySymbiont.");
+            helper.assertTrue(worker.getFatigue() < 45.0F && worker.getMorale() > 55.0F,
+                    "Reclaimed Bloom aura must relieve fatigue and lift morale.");
+
+            com.alex.mycelialmind.block.ReclaimedBloomBlock.emitSanctuaryAura(level, bloomPos, 0);
+            helper.assertTrue(worker.hasEffect(net.minecraft.world.effect.MobEffects.REGENERATION),
+                    "Base Reclaimed Bloom aura must grant Regeneration I.");
+            com.alex.mycelialmind.block.ReclaimedBloomBlock.emitSanctuaryAura(level, bloomPos, 5);
+            helper.assertTrue(worker.hasEffect(ModEffects.SYNAPTIC_INSIGHT),
+                    "Magic Reclaimed Bloom aura must grant Synaptic Insight.");
+
+            // 3. Layer 3: Surplus Items Diegetic Uses
+            hive.recordStimulus(StimulusType.MELEE, 100.0D, level.getGameTime());
+            double threatBeforeEngram = hive.getThreatLevel();
+            ItemStack engramStack = com.alex.mycelialmind.item.FieldEngramItem.createStack(
+                    com.alex.mycelialmind.hive.FieldEngramId.OUTBREAK_SIGNAL);
+            tester.setItemInHand(InteractionHand.MAIN_HAND, engramStack.copyWithCount(2));
+            tester.getItemInHand(InteractionHand.MAIN_HAND).use(level, tester, InteractionHand.MAIN_HAND);
+            tester.getItemInHand(InteractionHand.MAIN_HAND).use(level, tester, InteractionHand.MAIN_HAND);
+            helper.assertTrue(tester.totalExperience >= com.alex.mycelialmind.hive.EcosystemPurposeEngine.DUPLICATE_ENGRAM_XP,
+                    "Duplicate FieldEngram must distill XP.");
+            helper.assertTrue(tester.hasEffect(ModEffects.SYNAPTIC_INSIGHT),
+                    "Duplicate FieldEngram must grant Synaptic Insight.");
+            helper.assertTrue(hive.getThreatLevel() < threatBeforeEngram,
+                    "Duplicate FieldEngram must lower Hive threat.");
+
+            level.setBlockAndUpdate(symNodePos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(symNodePos, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            placedBlocks.addAll(List.of(symNodePos.below(), symNodePos));
+            tracker.addNode(symNodePos, SynapticNodeType.SYMBIOTIC);
+            SynapticNodeBlockEntity symBe = (SynapticNodeBlockEntity) level.getBlockEntity(symNodePos);
+            helper.assertTrue(symBe != null, "SynapticNodeBlockEntity must exist.");
+            symBe.setSymbioticStability(35);
+            com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.setTravelCooldown(
+                    tester.getUUID(), level.getServer().overworld().getGameTime() + 400L);
+            ItemStack echoStack = new ItemStack(ModItems.NEURAL_ECHO_CORE.get(), 2);
+            tester.setItemInHand(InteractionHand.MAIN_HAND, echoStack);
+            level.getBlockState(symNodePos).useItemOn(
+                    echoStack, level, tester, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(symNodePos), Direction.UP, symNodePos, false));
+            helper.assertTrue(symBe.getSymbioticStability() == 100
+                            && com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.getTravelCooldownRemaining(
+                            tester.getUUID(), level.getServer().overworld().getGameTime()) == 0L,
+                    "NEURAL_ECHO_CORE must restore Symbiotic Node stability to 100% and clear travel cooldown.");
+
+            BlockPos cystSouth = pylonPos.south();
+            level.setBlockAndUpdate(cystSouth, ModBlocks.ANTIBODY_CYST.get().defaultBlockState());
+            placedBlocks.add(cystSouth);
+            com.alex.mycelialmind.block.PurificationPylonBlock.triggerHiveHeartOverload(
+                    level, pylonPos, tester, new ItemStack(ModItems.HIVE_HEART.get()));
+            helper.assertFalse(level.getBlockState(cystSouth).is(ModBlocks.ANTIBODY_CYST.get()),
+                    "HIVE_HEART overload pulse on Pylon must purge nearby Antibody Cysts.");
+
+            level.setBlockAndUpdate(nexusPos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(nexusPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            placedBlocks.addAll(List.of(nexusPos.below(), nexusPos));
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            helper.assertTrue(nexusBe != null, "Nexus BE must exist.");
+            nexusBe.enableAdministrativeOverride(level);
+            var colony = nexusBe.getOrCreateColony(level);
+            worker.setPos(nexusPos.getX() + 1.5D, nexusPos.getY(), nexusPos.getZ() + 0.5D);
+            worker.setFatigue(50.0F);
+            int xpBefore = worker.getWorkerXp();
+            ItemStack essStack = new ItemStack(ModItems.OVERMIND_ESSENCE.get(), 2);
+            tester.setItemInHand(InteractionHand.MAIN_HAND, essStack);
+            level.getBlockState(nexusPos).useItemOn(
+                    essStack, level, tester, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(nexusPos), Direction.UP, nexusPos, false));
+            helper.assertTrue(worker.getWorkerXp() >= xpBefore + com.alex.mycelialmind.hive.EcosystemPurposeEngine.OVERMIND_ESSENCE_SYMBIONT_XP
+                            && worker.getFatigue() == 0.0F
+                            && colony.getDomainXp() >= 15,
+                    "OVERMIND_ESSENCE on Sovereign Nexus must grant Sovereign Grace XP and full worker recovery.");
+
+            // 4. Layer 4: Mob Counterplay
+            brute.setPos(pillarPos.getX() - 0.9D, pillarPos.getY(), pillarPos.getZ() + 0.5D);
+            brute.setYRot(-90.0F);
+            brute.setDeltaMovement(0.6D, 0.0D, 0.0D);
+            level.addFreshEntity(brute);
+            boolean stunned = com.alex.mycelialmind.entity.ai.BruteChargeGoal.checkAndApplyBarrierCollision(level, brute);
+            helper.assertTrue(stunned
+                            && brute.hasEffect(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN)
+                            && brute.hasEffect(net.minecraft.world.effect.MobEffects.WEAKNESS),
+                    "ChitinBrute charging into CHITIN_PILLAR must suffer collision stun.");
+
+            com.alex.mycelialmind.entity.PyroShroomEntity pyro = ModEntities.PYRO_SHROOM.get().create(level);
+            helper.assertTrue(pyro != null, "PyroShroom must instantiate.");
+            spawnedEntities.add(pyro);
+            pyro.setPos(origin.getX() + 4.5D, origin.getY(), origin.getZ() + 1.5D);
+            level.addFreshEntity(pyro);
+            pyro.igniteFuse(30);
+            helper.assertTrue(pyro.tryDefuseFuse(level)
+                            && !pyro.isPrimed()
+                            && pyro.hasEffect(net.minecraft.world.effect.MobEffects.WEAKNESS),
+                    "PyroShroom tryDefuseFuse must extinguish fuse and apply Weakness.");
+            boolean droppedAmber = !level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                            pyro.getBoundingBox().inflate(3.0D),
+                            ie -> ie.getItem().is(ModBlocks.LUMINESCENT_AMBER_VEIN.get().asItem()))
+                    .isEmpty();
+            helper.assertTrue(droppedAmber, "Defusing PyroShroom must drop a luminescent_amber_vein.");
+
+            BlockPos pyroCystPos = pyro.blockPosition().east();
+            level.setBlockAndUpdate(pyroCystPos, ModBlocks.ANTIBODY_CYST.get().defaultBlockState());
+            placedBlocks.add(pyroCystPos);
+            helper.assertTrue(pyro.cauterizeNearbyTissue(level) >= 1
+                            && !level.getBlockState(pyroCystPos).is(ModBlocks.ANTIBODY_CYST.get()),
+                    "PyroShroom detonation must cauterize adjacent Antibody Cysts.");
+
+            ColonyWardenEntity warden = ModEntities.COLONY_WARDEN.get().create(level);
+            SporelingEntity wingman = ModEntities.SPORELING.get().create(level);
+            helper.assertTrue(warden != null && wingman != null, "Warden and Sporeling must instantiate.");
+            spawnedEntities.add(warden);
+            spawnedEntities.add(wingman);
+            warden.setPos(origin.getX() + 1.5D, origin.getY() + 3.0D, origin.getZ() + 1.5D);
+            wingman.setPos(origin.getX() + 3.0D, origin.getY() + 3.0D, origin.getZ() + 1.5D);
+            level.addFreshEntity(warden);
+            level.addFreshEntity(wingman);
+            warden.tickCount = com.alex.mycelialmind.hive.EcosystemPurposeEngine.WARDEN_AURA_INTERVAL_TICKS;
+            warden.aiStep();
+            helper.assertTrue(wingman.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE),
+                    "Non-desynced ColonyWarden must project Resistance I aura to nearby allies.");
+            wingman.removeEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE);
+            warden.triggerDesync(80);
+            warden.tickCount = com.alex.mycelialmind.hive.EcosystemPurposeEngine.WARDEN_AURA_INTERVAL_TICKS * 2;
+            warden.aiStep();
+            helper.assertFalse(wingman.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE),
+                    "Desynced ColonyWarden must NOT project Resistance I aura.");
+
+            LeechParasiteEntity leech1 = ModEntities.LEECH_PARASITE.get().create(level);
+            LeechParasiteEntity leech2 = ModEntities.LEECH_PARASITE.get().create(level);
+            helper.assertTrue(leech1 != null && leech2 != null, "LeechParasites must instantiate.");
+            spawnedEntities.add(leech1);
+            spawnedEntities.add(leech2);
+            tester.addEffect(new net.minecraft.world.effect.MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 300, 1));
+            leech1.die(level.damageSources().playerAttack(tester));
+            var afterOne = tester.getEffect(ModEffects.MYCELIAL_INFECTION);
+            helper.assertTrue(afterOne != null && afterOne.getAmplifier() == 0,
+                    "Killing first LeechParasite must downgrade MYCELIAL_INFECTION from amp 1 to 0.");
+            leech2.die(level.damageSources().playerAttack(tester));
+            helper.assertFalse(tester.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                    "Killing second LeechParasite must remove remaining MYCELIAL_INFECTION.");
+
+            helper.succeed();
+        } finally {
+            for (net.minecraft.world.entity.Entity e : spawnedEntities) {
+                if (e != null && !e.isRemoved()) {
+                    e.discard();
+                }
+            }
+            for (var ie : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                    new AABB(origin).inflate(16.0D))) {
+                ie.discard();
+            }
+            tracker.clearAll();
+            for (BlockPos p : placedBlocks) {
+                level.removeBlock(p, false);
+            }
+            saved.restoreFromSnapshot(colonySnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
+            owHive.restoreFromSnapshot(owSnapshot, overworld.registryAccess());
+            releaseArenaChunks(level, forcedChunks);
+        }
+    }
 }

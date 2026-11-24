@@ -1,8 +1,11 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.registry.ModEffects;
+import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -79,6 +82,31 @@ public class LeechParasiteEntity extends MycelialMob {
             }
         }
         return hit;
+    }
+
+    @Override
+    public void die(DamageSource cause) {
+        if (this.level() instanceof ServerLevel serverLevel
+                && cause.getEntity() instanceof LivingEntity killer
+                && killer.isAlive()) {
+            MobEffectInstance existing = killer.getEffect(ModEffects.MYCELIAL_INFECTION);
+            if (existing != null) {
+                int nextAmp = EcosystemPurposeEngine.computeDowngradedInfectionAmplifier(existing.getAmplifier());
+                int duration = existing.getDuration();
+                boolean ambient = existing.isAmbient();
+                boolean visible = existing.isVisible();
+                boolean showIcon = existing.showIcon();
+                killer.removeEffect(ModEffects.MYCELIAL_INFECTION);
+                if (nextAmp >= 0 && duration > 0) {
+                    killer.addEffect(new MobEffectInstance(
+                            ModEffects.MYCELIAL_INFECTION, duration, nextAmp, ambient, visible, showIcon));
+                }
+                serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),
+                        killer.getX(), killer.getY(0.75D), killer.getZ(),
+                        8, 0.3D, 0.3D, 0.3D, 0.03D);
+            }
+        }
+        super.die(cause);
     }
 
     @Override

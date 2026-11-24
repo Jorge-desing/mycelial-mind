@@ -552,8 +552,8 @@ public final class DimensionalHomeostasisDirector {
                 continue;
             }
             BlockState targetState = level.getBlockState(target);
-            if (!deterministic && targetState.is(ModBlocks.REINFORCED_BIO_BARRIER.get())
-                    && level.random.nextFloat() < 0.50F) {
+            if (targetState.is(ModBlocks.MYCELIAL_ARCH_BRICK.get())
+                    || targetState.is(ModBlocks.REINFORCED_BIO_BARRIER.get())) {
                 continue;
             }
 

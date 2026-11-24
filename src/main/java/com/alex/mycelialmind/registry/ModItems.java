@@ -108,7 +108,8 @@ public final class ModItems {
 
     public static final DeferredItem<Item> OVERMIND_ESSENCE = ITEMS.register("overmind_essence",
             () -> new TooltipMaterialItem(new Item.Properties().rarity(Rarity.EPIC).stacksTo(16),
-                    "tooltip.mycelialmind.overmind_essence", ChatFormatting.DARK_PURPLE));
+                    "tooltip.mycelialmind.overmind_essence", ChatFormatting.DARK_PURPLE,
+                    "tooltip.mycelialmind.overmind_essence.hint", ChatFormatting.AQUA));
 
     public static final DeferredItem<Item> OVERMIND_CROWN = ITEMS.register("overmind_crown",
             () -> new OvermindCrownItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
@@ -122,7 +123,8 @@ public final class ModItems {
     // Mycorrhizal Echoes & Hackable Nodes (v1.2.0)
     public static final DeferredItem<Item> NEURAL_ECHO_CORE = ITEMS.register("neural_echo_core",
             () -> new TooltipMaterialItem(new Item.Properties().stacksTo(16).rarity(Rarity.RARE),
-                    "tooltip.mycelialmind.neural_echo_core", ChatFormatting.AQUA));
+                    "tooltip.mycelialmind.neural_echo_core", ChatFormatting.AQUA,
+                    "tooltip.mycelialmind.neural_echo_core.hint", ChatFormatting.GREEN));
 
     public static final DeferredItem<Item> SYNAPTIC_GRAFT = ITEMS.register("synaptic_graft",
             () -> new SynapticGraftItem(new Item.Properties().stacksTo(8).rarity(Rarity.RARE)));
@@ -191,7 +193,8 @@ public final class ModItems {
 
     public static final DeferredItem<Item> HIVE_HEART = ITEMS.register("hive_heart",
             () -> new TooltipMaterialItem(new Item.Properties().rarity(Rarity.EPIC).stacksTo(1),
-                    "tooltip.mycelialmind.hive_heart", ChatFormatting.DARK_RED));
+                    "tooltip.mycelialmind.hive_heart", ChatFormatting.DARK_RED,
+                    "tooltip.mycelialmind.hive_heart.hint", ChatFormatting.GOLD));
 
     // Spawn Eggs
     public static final DeferredItem<Item> SPORELING_SPAWN_EGG = ITEMS.register("sporeling_spawn_egg",

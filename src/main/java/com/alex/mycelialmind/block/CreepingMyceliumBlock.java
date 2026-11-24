@@ -137,6 +137,10 @@ public class CreepingMyceliumBlock extends Block {
     }
 
     public static boolean canInfect(BlockState state) {
+        if (state.is(ModBlocks.MYCELIAL_ARCH_BRICK.get())
+                || state.is(ModBlocks.REINFORCED_BIO_BARRIER.get())) {
+            return false;
+        }
         return state.is(BlockTags.DIRT)
                 || state.is(Blocks.GRASS_BLOCK)
                 || state.is(Blocks.MOSS_BLOCK)

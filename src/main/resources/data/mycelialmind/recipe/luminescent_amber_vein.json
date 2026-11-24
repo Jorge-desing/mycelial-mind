@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MLM",
+    "LAL",
+    "MLM"
+  ],
+  "key": {
+    "M": {
+      "item": "mycelialmind:mycelial_stone"
+    },
+    "L": {
+      "item": "mycelialmind:latent_spore"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    }
+  },
+  "result": {
+    "id": "mycelialmind:luminescent_amber_vein",
+    "count": 2
+  }
+}

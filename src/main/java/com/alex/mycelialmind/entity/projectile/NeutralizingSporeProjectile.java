@@ -57,6 +57,11 @@ public class NeutralizingSporeProjectile extends ThrowableProjectile {
             Entity hitEntity = result.getEntity();
             Entity target = hitEntity instanceof PartEntity<?> part ? part.getParent() : hitEntity;
             if (target instanceof MycelialMob mob && !mob.isAlliedEscort()) {
+                if (mob instanceof com.alex.mycelialmind.entity.PyroShroomEntity pyro
+                        && com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldDefusePyroShroom(
+                                pyro.getFuseTicks(), false, true)) {
+                    pyro.tryDefuseFuse(serverLevel);
+                }
                 mob.clearAdaptations();
                 mob.triggerDesync(SynapticCommandSystem.DESYNC_DURATION_TICKS);
                 mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 160, 0));

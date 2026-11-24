@@ -3,8 +3,12 @@ package com.alex.mycelialmind.block;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
+import com.alex.mycelialmind.entity.MycelialChimeraEntity;
+import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.network.SovereignColonySyncPayload;
 import com.alex.mycelialmind.registry.ModBlockEntities;
+import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -18,6 +22,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -30,6 +36,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,6 +153,75 @@ public class SovereignNexusBlock extends Block implements EntityBlock {
                 } else {
                     player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_biomass_full")
                             .withStyle(ChatFormatting.YELLOW), true);
+                }
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (stack.is(ModItems.NEURAL_ECHO_CORE.get())
+                || stack.is(ModItems.HIVE_HEART.get())
+                || stack.is(ModItems.OVERMIND_ESSENCE.get())) {
+            if (level instanceof ServerLevel serverLevel
+                    && level.getBlockEntity(pos) instanceof SovereignNexusBlockEntity be) {
+                if (!SovereignNexusBlockEntity.isColonyActive(serverLevel, pos) && !player.isCreative()) {
+                    player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_nexus_locked"), true);
+                    return ItemInteractionResult.CONSUME;
+                }
+                if (player.isCreative()) be.enableAdministrativeOverride(serverLevel);
+                SovereignColonyData colony = be.getOrCreateColony(serverLevel);
+                AABB area = new AABB(pos).inflate(24.0D);
+                if (stack.is(ModItems.NEURAL_ECHO_CORE.get())) {
+                    colony.addBiomass(EcosystemPurposeEngine.NEURAL_ECHO_NEXUS_BIOMASS);
+                    colony.clearAllDialectCooldowns();
+                    for (ColonySymbiontEntity worker : serverLevel.getEntitiesOfClass(ColonySymbiontEntity.class, area)) {
+                        worker.setFatigue(0.0F);
+                        worker.setMorale(100.0F);
+                        worker.syncRosterToColony();
+                    }
+                    serverLevel.sendParticles(ModParticles.SYNAPSE_SPARK.get(),
+                            pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5, 12, 0.4, 0.4, 0.4, 0.04);
+                    player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_echo_harmonized")
+                            .withStyle(ChatFormatting.AQUA), true);
+                } else if (stack.is(ModItems.HIVE_HEART.get())) {
+                    colony.addBiomass(EcosystemPurposeEngine.HIVE_HEART_NEXUS_BIOMASS);
+                    for (ColonySymbiontEntity worker : serverLevel.getEntitiesOfClass(ColonySymbiontEntity.class, area)) {
+                        worker.setHealth(worker.getMaxHealth());
+                        worker.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1));
+                        worker.setMorale(100.0F);
+                        worker.syncRosterToColony();
+                    }
+                    for (MycelialChimeraEntity chimera : serverLevel.getEntitiesOfClass(MycelialChimeraEntity.class, area)) {
+                        chimera.setHealth(chimera.getMaxHealth());
+                        chimera.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1));
+                    }
+                    serverLevel.sendParticles(ModParticles.HIVE_PULSE.get(),
+                            pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5, 1, 0.0, 0.0, 0.0, 0.0);
+                    player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_heart_pulse")
+                            .withStyle(ChatFormatting.GOLD), true);
+                } else {
+                    colony.addDomainXp(15);
+                    for (ColonySymbiontEntity worker : serverLevel.getEntitiesOfClass(ColonySymbiontEntity.class, area)) {
+                        worker.setFatigue(0.0F);
+                        worker.setNutrition(100.0F);
+                        worker.setMorale(100.0F);
+                        worker.heal(10.0F);
+                        worker.grantWorkerXp(serverLevel, EcosystemPurposeEngine.OVERMIND_ESSENCE_SYMBIONT_XP);
+                    }
+                    player.addEffect(new MobEffectInstance(ModEffects.SYNAPTIC_INSIGHT,
+                            EcosystemPurposeEngine.OVERMIND_ESSENCE_INSIGHT_TICKS, 0));
+                    serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
+                            pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5, 16, 0.5, 0.5, 0.5, 0.04);
+                    player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_overmind_grace")
+                            .withStyle(ChatFormatting.LIGHT_PURPLE), true);
+                }
+                if (!player.getAbilities().instabuild) {
+                    stack.shrink(1);
+                }
+                colony.recalculateMorale();
+                SovereignColonySavedData.get(serverLevel).setDirty();
+                serverLevel.updateNeighbourForOutputSignal(pos, this);
+                serverLevel.playSound(null, pos, ModSounds.SOVEREIGN_NEXUS_PULSE.get(), SoundSource.BLOCKS, 1.0F, 1.2F);
+                if (player instanceof ServerPlayer serverPlayer) {
+                    SovereignColonySyncPayload.syncToPlayer(serverPlayer, pos, false);
                 }
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide());

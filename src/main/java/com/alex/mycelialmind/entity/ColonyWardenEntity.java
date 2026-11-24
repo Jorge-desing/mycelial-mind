@@ -49,6 +49,28 @@ public class ColonyWardenEntity extends MycelialMob {
     @Override
     public void aiStep() {
         super.aiStep();
+        if (this.level() instanceof ServerLevel serverLevel
+                && this.tickCount % com.alex.mycelialmind.hive.EcosystemPurposeEngine.WARDEN_AURA_INTERVAL_TICKS == 0
+                && com.alex.mycelialmind.hive.EcosystemPurposeEngine.shouldProjectWardenAura(
+                        this.isAlive(), this.isDesynced(), this.isAlliedEscort())) {
+            boolean shieldedAny = false;
+            for (MycelialMob ally : serverLevel.getEntitiesOfClass(MycelialMob.class,
+                    this.getBoundingBox().inflate(com.alex.mycelialmind.hive.EcosystemPurposeEngine.WARDEN_AURA_RADIUS))) {
+                if (ally != this && ally.isAlive() && !ally.isAlliedEscort() && !this.isRivalStrainTarget(ally)) {
+                    ally.addEffect(new MobEffectInstance(
+                            MobEffects.DAMAGE_RESISTANCE,
+                            com.alex.mycelialmind.hive.EcosystemPurposeEngine.WARDEN_AURA_DURATION_TICKS,
+                            0,
+                            true,
+                            false));
+                    shieldedAny = true;
+                }
+            }
+            if (shieldedAny) {
+                serverLevel.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                        this.getX(), this.getY(0.55D), this.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+        }
         LivingEntity target = this.getTarget();
         if (this.level() instanceof ServerLevel serverLevel && target != null && target.isAlive()) {
             if (this.tickCount % 60 == 0) {

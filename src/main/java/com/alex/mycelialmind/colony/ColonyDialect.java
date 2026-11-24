@@ -83,6 +83,10 @@ public final class ColonyDialect {
         return true;
     }
 
+    public void clearCooldown() {
+        lastCallTick = Long.MIN_VALUE;
+    }
+
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
         tag.putLong("LastCallTick", lastCallTick);

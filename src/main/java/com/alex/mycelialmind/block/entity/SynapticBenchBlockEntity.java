@@ -107,6 +107,12 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         return labTier;
     }
 
+    public int getEffectiveLabTier() {
+        boolean hasAmberConduit = this.level != null
+                && com.alex.mycelialmind.block.LuminescentAmberVeinBlock.hasAdjacentConduit(this.level, this.worldPosition);
+        return com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeBenchEffectiveLabTier(this.labTier, hasAmberConduit);
+    }
+
     public void setLabTier(int tier) {
         this.labTier = Math.max(1, Math.min(3, tier));
         setChanged();
@@ -177,6 +183,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
 
     public SynthesisResult computeSynthesisDetails(HiveProgressionTier effectiveAct) {
         HiveProgressionTier safeAct = effectiveAct != null ? effectiveAct : HiveProgressionTier.DORMANT;
+        int effectiveLabTier = getEffectiveLabTier();
         ItemStack s0 = inventory.getStackInSlot(SLOT_SAMPLE);
         ItemStack s1 = inventory.getStackInSlot(SLOT_BIOMASS);
         ItemStack s2 = inventory.getStackInSlot(SLOT_CATALYST);
@@ -204,7 +211,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 && (s2.is(ModItems.PURIFIER_GRENADE.get()) || s2.is(Items.AMETHYST_SHARD))) {
             AdaptationTrait trait = GeneticSampleItem.getTrait(s0);
             if (trait != null) {
-                ItemStack out = new ItemStack(ModItems.COUNTER_SERUM.get(), labTier >= 3 ? 2 : 1);
+                ItemStack out = new ItemStack(ModItems.COUNTER_SERUM.get(), effectiveLabTier >= 3 ? 2 : 1);
                 out.set(ModDataComponents.TRAIT_ID.get(), trait.id());
                 return new SynthesisResult(out, -1, null);
             }
@@ -214,7 +221,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         if (s0.is(ModItems.SPORE_ANTIDOTE.get())
                 && s1.is(ModItems.LATENT_SPORE.get())
                 && s2.is(Items.AMETHYST_SHARD)) {
-            return new SynthesisResult(new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get(), labTier >= 3 ? 2 : 1), -1, null);
+            return new SynthesisResult(new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get(), effectiveLabTier >= 3 ? 2 : 1), -1, null);
         }
 
         // Recipe D: GeneticSample (typed) + MycelialBiomass + NeuralEchoCore -> ChimeraOvum
@@ -230,7 +237,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 && GeneticSampleItem.getTrait(s0) != null
                 && s1.is(ModItems.MYCELIAL_BIOMASS.get())
                 && s2.is(Items.AMETHYST_SHARD)) {
-            if (safeAct.meetsRequiredAct(HiveProgressionTier.AWAKENED) || labTier >= 2) {
+            if (safeAct.meetsRequiredAct(HiveProgressionTier.AWAKENED) || effectiveLabTier >= 2) {
                 return new SynthesisResult(new ItemStack(ModItems.SYNAPTIC_CORE.get()),
                         ProgressionGoalEngine.SECRET_EXP_SYNAPTIC_CORE, null);
             }
@@ -242,7 +249,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         if (s0.is(ModItems.SPORE_ANTIDOTE.get())
                 && s1.is(ModItems.MYCELIAL_BIOMASS.get())
                 && s2.is(Items.AMETHYST_SHARD)) {
-            return new SynthesisResult(new ItemStack(ModItems.TRUCE_PHEROMONE.get(), labTier >= 3 ? 3 : 2),
+            return new SynthesisResult(new ItemStack(ModItems.TRUCE_PHEROMONE.get(), effectiveLabTier >= 3 ? 3 : 2),
                     ProgressionGoalEngine.SECRET_EXP_TRUCE_PHEROMONE, null);
         }
 
@@ -251,7 +258,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 && GeneticSampleItem.getTrait(s0) != null
                 && s1.is(ModItems.LATENT_SPORE.get())
                 && s2.is(ModItems.SYNAPTIC_CORE.get())) {
-            if (safeAct.meetsRequiredAct(HiveProgressionTier.AWAKENED) || labTier >= 2) {
+            if (safeAct.meetsRequiredAct(HiveProgressionTier.AWAKENED) || effectiveLabTier >= 2) {
                 return new SynthesisResult(new ItemStack(ModItems.VOLATILE_ENGRAM.get()),
                         ProgressionGoalEngine.SECRET_EXP_VOLATILE_ENGRAM, null);
             }
@@ -263,7 +270,7 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         if (s0.is(ModItems.SPORE_ANTIDOTE.get())
                 && s1.is(ModItems.LATENT_SPORE.get())
                 && s2.is(ModItems.SYNAPTIC_CORE.get())) {
-            if (safeAct.meetsRequiredAct(HiveProgressionTier.ADAPTIVE) || labTier >= 3) {
+            if (safeAct.meetsRequiredAct(HiveProgressionTier.ADAPTIVE) || effectiveLabTier >= 3) {
                 return new SynthesisResult(new ItemStack(ModItems.NEURAL_ECHO_CORE.get()),
                         ProgressionGoalEngine.SECRET_EXP_NEURAL_ECHO, null);
             }
@@ -289,7 +296,8 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
 
     private void consumeInputIngredientsOnly() {
         boolean reproducingBloom = isReclaimedBloom(inventory.getStackInSlot(SLOT_SAMPLE));
-        float preserveBiomassChance = reproducingBloom ? 0.0F : (labTier >= 3 ? 0.50F : (labTier == 2 ? 0.25F : 0.0F));
+        int effectiveLabTier = getEffectiveLabTier();
+        float preserveBiomassChance = reproducingBloom ? 0.0F : (effectiveLabTier >= 3 ? 0.50F : (effectiveLabTier == 2 ? 0.25F : 0.0F));
         consumingInputs = true;
         try {
         for (int i = 0; i < SLOT_OUTPUT; i++) {
