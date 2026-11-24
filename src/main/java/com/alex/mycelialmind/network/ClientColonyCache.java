@@ -28,11 +28,14 @@ public final class ClientColonyCache {
             int escortCall,
             int restCall,
             int pickupCall,
-            int lessonStage
+            int lessonStage,
+            UUID escortActor,
+            UUID restActor,
+            UUID pickupActor
     ) {
         public SiteMemorySnapshot(BlockPos pos, int learned, int trial, int incidents, int successes,
                                   int failures, int incidentCode, int outcomeCode) {
-            this(pos, learned, trial, incidents, successes, failures, incidentCode, outcomeCode, 0, -1, -1, -1, -1);
+            this(pos, learned, trial, incidents, successes, failures, incidentCode, outcomeCode, 0, 0, 0, 0, -1, null, null, null);
         }
     }
 

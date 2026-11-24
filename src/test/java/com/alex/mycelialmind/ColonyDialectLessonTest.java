@@ -68,4 +68,27 @@ class ColonyDialectLessonTest {
         assertFalse(memory.tryAcquirePickupTurn(second, 17, 20));
         assertTrue(memory.tryAcquirePickupTurn(first, 17, 20));
     }
+
+    @Test
+    void alternativeCallPreservesEarlierSpeakersAndLegacySave() {
+        ColonyDialect source = new ColonyDialect();
+        ColonyDialect oldListener = new ColonyDialect();
+        ColonyDialect newListener = new ColonyDialect();
+        assertTrue(source.teach(ColonySiteHabit.ESCORTED_COURIER, 1));
+        assertTrue(oldListener.teach(ColonySiteHabit.ESCORTED_COURIER, 1));
+        assertTrue(source.teach(ColonySiteHabit.ESCORTED_COURIER, 7));
+        assertTrue(newListener.teach(ColonySiteHabit.ESCORTED_COURIER, 7));
+        ColonyDialect restored = ColonyDialect.load(source.save());
+        assertEquals(1, restored.sharedCall(ColonySiteHabit.ESCORTED_COURIER, oldListener));
+        assertEquals(7, restored.sharedCall(ColonySiteHabit.ESCORTED_COURIER, newListener));
+        assertFalse(restored.teach(ColonySiteHabit.REST_BEFORE_RETURN, 7));
+        var old = new net.minecraft.nbt.CompoundTag();
+        var list = new net.minecraft.nbt.ListTag();
+        var entry = new net.minecraft.nbt.CompoundTag();
+        entry.putInt("Habit", ColonySiteHabit.ESCORTED_COURIER.ordinal());
+        entry.putInt("Call", 3);
+        list.add(entry);
+        old.put("Entries", list);
+        assertEquals(3, ColonyDialect.load(old).call(ColonySiteHabit.ESCORTED_COURIER));
+    }
 }

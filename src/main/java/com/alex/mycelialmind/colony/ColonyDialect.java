@@ -28,12 +28,22 @@ public final class ColonyDialect {
     }
 
     public int call(ColonySiteHabit habit) {
-        return calls.getOrDefault(habit, -1);
+        int mask = calls.getOrDefault(habit, 0);
+        return mask == 0 ? -1 : Integer.numberOfTrailingZeros(mask);
+    }
+
+    public int callMask(ColonySiteHabit habit) {
+        return calls.getOrDefault(habit, 0);
+    }
+
+    public int sharedCall(ColonySiteHabit habit, ColonyDialect other) {
+        int common = callMask(habit) & other.callMask(habit);
+        return common == 0 ? -1 : Integer.numberOfTrailingZeros(common);
     }
 
     public ColonySiteHabit meaningForCall(int call) {
         for (var entry : calls.entrySet()) {
-            if (entry.getValue() == call) return entry.getKey();
+            if ((entry.getValue() & (1 << call)) != 0) return entry.getKey();
         }
         return ColonySiteHabit.NONE;
     }
@@ -41,9 +51,9 @@ public final class ColonyDialect {
     public boolean teach(ColonySiteHabit habit, int call) {
         if (habit == ColonySiteHabit.NONE || call < 0 || call >= 9) return false;
         for (var entry : calls.entrySet()) {
-            if (entry.getKey() != habit && entry.getValue() == call) return false;
+            if (entry.getKey() != habit && (entry.getValue() & (1 << call)) != 0) return false;
         }
-        calls.put(habit, call);
+        calls.put(habit, callMask(habit) | (1 << call));
         return true;
     }
 
@@ -67,7 +77,7 @@ public final class ColonyDialect {
                 entry.putUUID("Worker", episode.worker());
                 entry.putLong("Tick", episode.tick());
             }
-            if (calls.containsKey(habit)) entry.putInt("Call", calls.get(habit));
+            if (calls.containsKey(habit)) entry.putInt("CallMask", calls.get(habit));
             entries.add(entry);
         }
         tag.put("Entries", entries);
@@ -85,7 +95,12 @@ public final class ColonyDialect {
             if (entry.hasUUID("Episode") && entry.hasUUID("Worker")) {
                 dialect.episodes.put(habit, new Episode(entry.getUUID("Episode"), entry.getUUID("Worker"), entry.getLong("Tick")));
             }
-            if (entry.contains("Call")) dialect.teach(habit, entry.getInt("Call"));
+            if (entry.contains("CallMask")) {
+                int mask = entry.getInt("CallMask") & 0x1ff;
+                for (int call = 0; call < 9; call++) if ((mask & (1 << call)) != 0) dialect.teach(habit, call);
+            } else if (entry.contains("Call")) {
+                dialect.teach(habit, entry.getInt("Call"));
+            }
         }
         return dialect;
     }

@@ -67,8 +67,8 @@ public final class ColonyDialectCallDirector {
         }
         ColonyDialect from = colony.getDialect(source);
         ColonyDialect to = colony.getDialect(target);
-        int call = from.call(meaning);
-        if (call < 0 || to.call(meaning) != call) {
+        int call = from.sharedCall(meaning, to);
+        if (call < 0) {
             player.displayClientMessage(Component.translatable("message.mycelialmind.colony.dialect_unknown"), true);
             return false;
         }

@@ -111,7 +111,7 @@ public record SovereignColonySyncPayload(
                         incidents, successes, failures, incidentCode, outcomeCode,
                         ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
                         ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
-                        ByteBufCodecs.VAR_INT.decode(buf)));
+                        ByteBufCodecs.VAR_INT.decode(buf), readOptionalUuid(buf), readOptionalUuid(buf), readOptionalUuid(buf)));
             }
             boolean transferActive = ByteBufCodecs.BOOL.decode(buf);
             BlockPos transferSource = BlockPos.of(buf.readLong());
@@ -207,6 +207,9 @@ public record SovereignColonySyncPayload(
                 ByteBufCodecs.VAR_INT.encode(buf, memory.restCall());
                 ByteBufCodecs.VAR_INT.encode(buf, memory.pickupCall());
                 ByteBufCodecs.VAR_INT.encode(buf, memory.lessonStage());
+                writeOptionalUuid(buf, memory.escortActor());
+                writeOptionalUuid(buf, memory.restActor());
+                writeOptionalUuid(buf, memory.pickupActor());
             }
             ByteBufCodecs.BOOL.encode(buf, payload.memoryTransferActive());
             buf.writeLong(payload.memoryTransferSource().asLong());
@@ -285,8 +288,11 @@ public record SovereignColonySyncPayload(
                     memory.sitePos(), memory.learnedHabit().ordinal(), memory.trialHabit().ordinal(),
                     memory.incidentCount(), memory.successfulTrials(), memory.failedTrials(),
                     memory.lastIncidentCode(), memory.lastOutcomeCode(), episodeMask,
-                    dialect.call(ColonySiteHabit.ESCORTED_COURIER), dialect.call(ColonySiteHabit.REST_BEFORE_RETURN),
-                    dialect.call(ColonySiteHabit.STAGGERED_PICKUP), lessonStage));
+                    dialect.callMask(ColonySiteHabit.ESCORTED_COURIER), dialect.callMask(ColonySiteHabit.REST_BEFORE_RETURN),
+                    dialect.callMask(ColonySiteHabit.STAGGERED_PICKUP), lessonStage,
+                    dialect.episode(ColonySiteHabit.ESCORTED_COURIER) == null ? null : dialect.episode(ColonySiteHabit.ESCORTED_COURIER).worker(),
+                    dialect.episode(ColonySiteHabit.REST_BEFORE_RETURN) == null ? null : dialect.episode(ColonySiteHabit.REST_BEFORE_RETURN).worker(),
+                    dialect.episode(ColonySiteHabit.STAGGERED_PICKUP) == null ? null : dialect.episode(ColonySiteHabit.STAGGERED_PICKUP).worker()));
         }
         List<ClientColonyCache.ReconstructionSnapshot> reconstructions = new ArrayList<>();
         for (ColonyReconstruction entry : colony.getReconstructionEntries()) {

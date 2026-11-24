@@ -4079,3 +4079,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, elección de maestro y aviso de conflicto
 - La pantalla permite elegir maestro y aprendiz distintos; el servidor valida ambos en el registro y exige que el protagonista del episodio inicial sea el maestro al acuñar. Los puestos de la lección deben ser puestos enlazados. Protocolo de red 26. Un rechazo por secuencia ocupada indica ambos significados.
 - JUnit y GameTests aislados 179/179 pasaron; tras un ajuste de presentación de la etapa volvió a pasar JUnit. Pendiente resolver conflictos con una secuencia alternativa conservando los hablantes previos, visualizar protagonista en la acuñación, pruebas integrales y cliente visual/audio.
+
+## 2026-11-23 — Dialectos, variantes y protagonista
+- Cada significado puede conservar varias secuencias; la enseñanza acepta una secuencia alternativa libre y las llamadas eligen una secuencia compartida entre origen y destino. Se migra el formato anterior de una llamada al cargar. El cliente recibe y muestra el protagonista del último episodio por significado; protocolo 27.
+- JUnit incluye variantes, conflicto y migración. GameTests aislados 179/179 y JUnit pasaron. Pendiente verificación integral con tres puestos y cliente real, revisión de interrupciones y efectos, y correcciones que surjan.

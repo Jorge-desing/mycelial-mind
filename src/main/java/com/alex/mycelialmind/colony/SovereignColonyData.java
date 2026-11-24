@@ -569,10 +569,10 @@ public final class SovereignColonyData {
         ColonyDialect targetDialect = getDialect(target);
         ColonyDialect.Episode episode = sourceDialect.episode(habit);
         if (episode == null || (coinage && !episode.worker().equals(teacher))
-                || (!coinage && sourceDialect.call(habit) != call)
+                || (!coinage && sourceDialect.callMask(habit) == 0)
                 || (coinage && sourceDialect.call(habit) >= 0)) return false;
         for (ColonySiteHabit other : ColonySiteHabit.values()) {
-            if (other != habit && (sourceDialect.call(other) == call || targetDialect.call(other) == call)) return false;
+            if (other != habit && ((sourceDialect.callMask(other) & (1 << call)) != 0 || (targetDialect.callMask(other) & (1 << call)) != 0)) return false;
         }
         dialectLesson = new ColonyDialectLesson(source, target, habit, call, apprentice, teacher, episode.id(), coinage);
         return true;
@@ -586,9 +586,9 @@ public final class SovereignColonyData {
         if (source == null || target == null) return false;
         for (ColonySiteHabit other : ColonySiteHabit.values()) {
             if (other != dialectLesson.meaning()
-                    && (source.call(other) == dialectLesson.call() || target.call(other) == dialectLesson.call())) return false;
+                    && ((source.callMask(other) & (1 << dialectLesson.call())) != 0 || (target.callMask(other) & (1 << dialectLesson.call())) != 0)) return false;
         }
-        if (dialectLesson.coinage() && !source.teach(dialectLesson.meaning(), dialectLesson.call())) return false;
+        if (!source.teach(dialectLesson.meaning(), dialectLesson.call())) return false;
         if (!target.teach(dialectLesson.meaning(), dialectLesson.call())) return false;
         dialectLesson = null;
         return true;

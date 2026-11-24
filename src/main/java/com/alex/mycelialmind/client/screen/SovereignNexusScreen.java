@@ -20,6 +20,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Sovereign Hive Nexus command screen displaying colony tier/radius/biomass/morale,
@@ -267,8 +268,8 @@ public class SovereignNexusScreen extends Screen {
                     case STAGGERED_PICKUP -> source.pickupCall();
                     default -> -1;
                 };
-                boolean coinage = knownCall < 0;
-                int call = coinage ? dialectCall : knownCall;
+                boolean coinage = knownCall == 0;
+                int call = dialectCall;
                 Button start = addRenderableWidget(Button.builder(Component.translatable("gui.mycelialmind.colony.dialect.start"), b -> {
                     SovereignColonyActionPayload.sendDialectLesson(nexus, source.sitePos(), target.sitePos(), worker.workerId(), teacher.workerId(), habit.ordinal(), call, coinage);
                 }).bounds(left + 10, top + 183, 170, 20).build());
@@ -578,6 +579,15 @@ public class SovereignNexusScreen extends Screen {
             if (sites.size() >= 2) {
                 var site = sites.get(Math.floorMod(dialectSource, sites.size()));
                 int stage = site.lessonStage();
+                UUID actor = switch (ColonySiteHabit.fromIndex(dialectMeaning)) {
+                    case ESCORTED_COURIER -> site.escortActor();
+                    case REST_BEFORE_RETURN -> site.restActor();
+                    case STAGGERED_PICKUP -> site.pickupActor();
+                    default -> null;
+                };
+                graphics.drawString(this.font, Component.translatable("gui.mycelialmind.colony.dialect.episode_actor",
+                                actor == null ? "—" : actor.toString().substring(0, 8)),
+                        left + 10, top + 226, 0xFFD8F3DC, false);
                 String key = stage < 0 ? "idle" : switch (stage) {
                     case 0 -> "travelling";
                     case 1 -> "observing";
