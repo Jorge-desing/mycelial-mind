@@ -48,11 +48,16 @@ class MigratedGameTestLogicTest {
         var memory = new ClientColonyCache.SiteMemorySnapshot(
                 nexus, ColonySiteHabit.ESCORTED_COURIER.ordinal(), ColonySiteHabit.NONE.ordinal(),
                 2, 2, 0, 1, 2);
+        var reconstructionWitness = new ClientColonyCache.ReconstructionWitnessSnapshot(
+                courierId, ColonySiteHabit.ESCORTED_COURIER.ordinal(), outpost, 2);
+        var reconstruction = new ClientColonyCache.ReconstructionSnapshot(
+                outpost, nexus, true, 123L, 0b101, 0b001, courierId, 1,
+                null, 0, 0, List.of(reconstructionWitness));
         SovereignColonySyncPayload original = new SovereignColonySyncPayload(
                 true, true, nexus, 2, 40, 8, 96, 250, 3, 91,
                 1, 1, 0, 2, 1, 0,
                 List.of(courier), List.of(memory), true, nexus, outpost,
-                ColonySiteHabit.ESCORTED_COURIER.ordinal(), true, true);
+                ColonySiteHabit.ESCORTED_COURIER.ordinal(), true, List.of(reconstruction), true);
         ByteBuf buf = Unpooled.buffer();
         try {
             SovereignColonySyncPayload.STREAM_CODEC.encode(buf, original);
@@ -63,6 +68,7 @@ class MigratedGameTestLogicTest {
             assertEquals(courierId, decoded.workers().get(0).workerId());
             assertEquals(SymbiontCaste.COURIER, decoded.workers().get(0).caste());
             assertEquals(ColonySiteHabit.ESCORTED_COURIER.ordinal(), decoded.memoryTransferHabit());
+            assertEquals(List.of(reconstruction), decoded.reconstructions());
         } finally {
             buf.release();
         }
