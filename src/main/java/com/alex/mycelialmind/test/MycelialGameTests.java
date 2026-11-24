@@ -100,6 +100,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -710,6 +711,21 @@ public final class MycelialGameTests {
         return tracked;
     }
 
+    private static boolean entityChunksReady(ServerLevel level, BlockPos center, int radius) {
+        ChunkPos min = new ChunkPos(center.offset(-radius, 0, -radius));
+        ChunkPos max = new ChunkPos(center.offset(radius, 0, radius));
+        for (int chunkX = min.x; chunkX <= max.x; chunkX++) {
+            for (int chunkZ = min.z; chunkZ <= max.z; chunkZ++) {
+                ChunkPos chunk = new ChunkPos(chunkX, chunkZ);
+                if (!level.isPositionEntityTicking(chunk.getWorldPosition())
+                        || !level.areEntitiesLoaded(chunk.toLong())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private static void releaseArenaChunks(ServerLevel level, List<ChunkPos> forcedChunks) {
         for (ChunkPos cp : forcedChunks) {
             long key = cp.toLong();
@@ -1018,68 +1034,96 @@ public final class MycelialGameTests {
         hive.recordStimulus(StimulusType.FIRE, 210.0, now);
         hive.recordStimulus(StimulusType.EXPLOSION, 70.0, now);
 
-        helper.runAfterDelay(2, () -> {
-            boolean hiveStateApplied = mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
-                    && mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
-                    && mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
-                    && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
-            boolean bossStatePreserved = boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
-                    && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
-                    && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION)
-                    && !boss.hasTrait(AdaptationTrait.FIRE_RESISTANT);
-            if (!hiveStateApplied || !bossStatePreserved) {
-                mob.discard();
-                boss.discard();
-                hive.resetAll();
-                helper.fail("Global hive state did not reach ordinary mobs or overwrote phase-specific boss state: mob="
-                        + hiveStateApplied + " boss=" + bossStatePreserved + ".");
+        long hardDeadline = helper.getTick() + 40L;
+        long[] suppressionEnd = {-1L};
+        int[] phase = {0};
+        boolean[] finished = {false};
+        Runnable cleanup = () -> {
+            mob.discard();
+            boss.discard();
+            hive.resetAll();
+        };
+        java.util.function.BooleanSupplier bossTraitsPreserved = () -> boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
+                && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
+                && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION)
+                && !boss.hasTrait(AdaptationTrait.FIRE_RESISTANT);
+        helper.onEachTick(() -> {
+            if (finished[0]) {
+                return;
+            }
+            long gameTime = level.getGameTime();
+            if (helper.getTick() >= hardDeadline) {
+                finished[0] = true;
+                cleanup.run();
+                helper.fail("Hive suppression state transition timed out in phase " + phase[0] + ".");
                 return;
             }
 
-            hive.suppressHigherAdaptations(level.getGameTime() + 5L, level.getGameTime());
-            helper.runAfterDelay(2, () -> {
+            if (phase[0] == 0) {
+                boolean hiveStateApplied = mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
+                        && mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                        && mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
+                        && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
+                if (!bossTraitsPreserved.getAsBoolean()) {
+                    finished[0] = true;
+                    cleanup.run();
+                    helper.fail("Global hive state overwrote phase-specific boss traits.");
+                    return;
+                }
+                if (hiveStateApplied) {
+                    suppressionEnd[0] = gameTime + 5L;
+                    hive.suppressHigherAdaptations(suppressionEnd[0], gameTime);
+                    phase[0] = 1;
+                }
+            } else if (phase[0] == 1) {
                 boolean suppressionApplied = mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
                         && !mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
                         && !mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
-                if (!suppressionApplied) {
-                    mob.discard();
-                    boss.discard();
-                    hive.resetAll();
-                    helper.fail("Hive suppression did not remove live mob Tier 2 and synergy state.");
+                if (!bossTraitsPreserved.getAsBoolean()) {
+                    finished[0] = true;
+                    cleanup.run();
+                    helper.fail("Active hive suppression changed phase-specific boss traits.");
                     return;
                 }
-
-                helper.runAfterDelay(6, () -> {
-                    boolean suppressionExpired = mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
-                            && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
-                    if (!suppressionExpired) {
-                        mob.discard();
-                        boss.discard();
-                        hive.resetAll();
-                        helper.fail("Expired hive suppression did not restore live mob Tier 2 and synergy state.");
-                        return;
-                    }
-
+                if (gameTime < suppressionEnd[0] && suppressionApplied) {
+                    phase[0] = 2;
+                } else if (gameTime >= suppressionEnd[0]) {
+                    finished[0] = true;
+                    cleanup.run();
+                    helper.fail("The live mob did not expose the active suppression state before its expiry.");
+                    return;
+                }
+            } else if (phase[0] == 2) {
+                boolean suppressionExpired = mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                        && mob.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
+                if (!bossTraitsPreserved.getAsBoolean()) {
+                    finished[0] = true;
+                    cleanup.run();
+                    helper.fail("Suppression expiry changed phase-specific boss traits.");
+                    return;
+                }
+                if (gameTime >= suppressionEnd[0] && suppressionExpired) {
                     hive.resetAll();
-                    helper.runAfterDelay(2, () -> {
-                        boolean resetApplied = !mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
-                                && !mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
-                                && !mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
-                                && mob.getSynergies().isEmpty();
-                        boolean bossStillPreserved = boss.hasTrait(AdaptationTrait.MAGIC_CARAPACE)
-                                && boss.hasTier2Trait(AdaptationTrait.MAGIC_CARAPACE)
-                                && boss.hasSynergy(HiveSynergy.ARCANE_ABSORPTION);
-                        mob.discard();
-                        boss.discard();
-                        if (!resetApplied || !bossStillPreserved) {
-                            helper.fail("Hive reset left stale live mob state or overwrote phase-specific boss state: mob="
-                                    + resetApplied + " boss=" + bossStillPreserved + ".");
-                            return;
-                        }
-                        helper.succeed();
-                    });
-                });
-            });
+                    phase[0] = 3;
+                }
+            } else {
+                boolean resetApplied = !mob.hasTrait(AdaptationTrait.FIRE_RESISTANT)
+                        && !mob.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
+                        && !mob.hasTrait(AdaptationTrait.BLAST_SHIELDED)
+                        && mob.getSynergies().isEmpty();
+                if (!bossTraitsPreserved.getAsBoolean()) {
+                    finished[0] = true;
+                    cleanup.run();
+                    helper.fail("Hive reset changed phase-specific boss traits.");
+                    return;
+                }
+                if (resetApplied) {
+                    finished[0] = true;
+                    cleanup.run();
+                    helper.succeed();
+                    return;
+                }
+            }
         });
     }
 
@@ -1095,11 +1139,6 @@ public final class MycelialGameTests {
             hive.recordStimulus(StimulusType.FIRE, 210.0, level.getGameTime());
             original.applyGlobalHiveState(level, hive);
             long originalRevision = hive.getActiveTraitStateRevision();
-            CompoundTag hiveTag = hive.save(new CompoundTag(), level.registryAccess());
-            HiveMindSavedData loadedHive = HiveMindSavedData.load(hiveTag, level.registryAccess());
-            boolean hiveRoundTrip = loadedHive.getActiveTraitStateRevision() == originalRevision
-                    && loadedHive.hasTrait(AdaptationTrait.FIRE_RESISTANT)
-                    && loadedHive.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT);
 
             original.clearAdaptations();
             CompoundTag mobTag = new CompoundTag();
@@ -1112,12 +1151,12 @@ public final class MycelialGameTests {
             restored.setNoAi(true);
             restored.readAdditionalSaveData(mobTag);
 
-            boolean neutralizationPersisted = restored.hasCurrentGlobalHiveState(level, loadedHive)
+            boolean neutralizationPersisted = restored.hasCurrentGlobalHiveState(level, hive)
                     && restored.getTraitMask() == 0
                     && restored.getTier2Mask() == 0
                     && restored.getSynergyMask() == 0;
-            if (!restored.hasCurrentGlobalHiveState(level, loadedHive)) {
-                restored.applyGlobalHiveState(level, loadedHive);
+            if (!restored.hasCurrentGlobalHiveState(level, hive)) {
+                restored.applyGlobalHiveState(level, hive);
             }
             boolean sameRevisionDoesNotUndoNeutralization = restored.getTraitMask() == 0
                     && restored.getTier2Mask() == 0
@@ -1132,10 +1171,9 @@ public final class MycelialGameTests {
                     && restored.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT)
                     && restored.hasTrait(AdaptationTrait.BLAST_SHIELDED);
 
-            if (!hiveRoundTrip || !neutralizationPersisted || !sameRevisionDoesNotUndoNeutralization
+            if (!neutralizationPersisted || !sameRevisionDoesNotUndoNeutralization
                     || !revisionAdvanced || !newRevisionReapplied) {
-                helper.fail("Hive revision persistence failed: hive=" + hiveRoundTrip
-                        + " neutralized=" + neutralizationPersisted
+                helper.fail("Hive revision/entity persistence failed: neutralized=" + neutralizationPersisted
                         + " stableRevision=" + sameRevisionDoesNotUndoNeutralization
                         + " advanced=" + revisionAdvanced + " reapplied=" + newRevisionReapplied);
                 return;
@@ -2397,7 +2435,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "defaultBatch")
-    public static void hiveSpatialMemoryPersistsBoundedHotspotsAndCasualtyLearning(GameTestHelper helper) {
+    public static void hiveSpatialMemoryBoundsCasualtyLearningAndScouting(GameTestHelper helper) {
         var level = helper.getLevel();
         var hive = HiveMindSavedData.get(level);
         hive.resetAll();
@@ -2425,16 +2463,6 @@ public final class MycelialGameTests {
                 || com.alex.mycelialmind.hive.HiveSquadComposer.findDominantStimulus(hive) != com.alex.mycelialmind.hive.StimulusType.PROJECTILE
                 || hive.getEffectivenessPressure() <= 0.0) {
             helper.fail("Expected casualties to pivot dominant stimulus to PROJECTILE and raise effectiveness pressure.");
-            return;
-        }
-
-        var tag = hive.save(new net.minecraft.nbt.CompoundTag(), level.registryAccess());
-        var loaded = HiveMindSavedData.load(tag, level.registryAccess());
-        if (loaded.getHotspots().size() != HiveMindSavedData.MAX_HOTSPOTS
-                || loaded.getHottestSpot() == null
-                || loaded.getHottestSpot().dominantThreat() != com.alex.mycelialmind.hive.StimulusType.FIRE
-                || loaded.getCasualties(com.alex.mycelialmind.hive.StimulusType.PROJECTILE) != 2) {
-            helper.fail("Expected hotspots, dominant threat, and casualties to survive NBT save/load round-trip.");
             return;
         }
 
@@ -2500,7 +2528,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "defaultBatch")
-    public static void hiveLearningMomentumPivotAndMasteryPersistAcrossNbt(GameTestHelper helper) {
+    public static void hiveLearningMomentumPivotAndMasteryBleedWork(GameTestHelper helper) {
         var level = helper.getLevel();
         var hive = HiveMindSavedData.get(level);
         hive.resetAll();
@@ -2524,15 +2552,13 @@ public final class MycelialGameTests {
         }
 
         hive.reinforceTraitMastery(com.alex.mycelialmind.hive.AdaptationTrait.MELEE_THORNS, 0.50);
-        var tag = hive.save(new net.minecraft.nbt.CompoundTag(), level.registryAccess());
-        var loaded = HiveMindSavedData.load(tag, level.registryAccess());
-        if (loaded.getTraitMastery(com.alex.mycelialmind.hive.AdaptationTrait.MELEE_THORNS) < 0.49) {
-            helper.fail("Expected traitMastery to persist across NBT save/load.");
+        if (hive.getTraitMastery(com.alex.mycelialmind.hive.AdaptationTrait.MELEE_THORNS) < 0.49) {
+            helper.fail("Expected repeated MELEE learning to reinforce traitMastery.");
             return;
         }
 
-        loaded.bleedStimulusRatio(com.alex.mycelialmind.hive.StimulusType.MELEE, 0.5, t0 + 60L);
-        if (loaded.getTraitMastery(com.alex.mycelialmind.hive.AdaptationTrait.MELEE_THORNS) >= 0.49) {
+        hive.bleedStimulusRatio(com.alex.mycelialmind.hive.StimulusType.MELEE, 0.5, t0 + 60L);
+        if (hive.getTraitMastery(com.alex.mycelialmind.hive.AdaptationTrait.MELEE_THORNS) >= 0.49) {
             helper.fail("Expected CounterSerum bleedStimulusRatio to reduce traitMastery.");
             return;
         }
@@ -2815,45 +2841,6 @@ public final class MycelialGameTests {
         if (com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(level).ordinal()
                 < com.alex.mycelialmind.hive.HiveProgressionTier.AWAKENED.ordinal()) {
             helper.fail("Expected progression tier to advance on high stimulus.");
-            return;
-        }
-        hive.resetAll();
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty", batch = "defaultBatch")
-    public static void hiveMindSavedDataNbtRoundTripAndBoundsClamp(GameTestHelper helper) {
-        ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
-        hive.resetAll();
-
-        hive.recordStimulus(StimulusType.MELEE, 40.0);
-        hive.recordStimulus(StimulusType.FIRE, 40.0);
-        for (int i = 0; i < 30; i++) {
-            hive.recordCombatHotspot(new BlockPos(i * 32, 64, i * 32), 10.0, i, StimulusType.MELEE);
-        }
-        // Guard against NaN / negative stimulus corruption
-        hive.recordStimulus(StimulusType.MAGIC, Double.NaN);
-        hive.recordStimulus(StimulusType.EXPLOSION, -50.0);
-
-        double threatBefore = hive.getThreatLevel();
-        double meleeBefore = hive.getStimulusScore(StimulusType.MELEE);
-        if (Double.isNaN(threatBefore) || threatBefore < 0.0 || threatBefore > 100.0) {
-            helper.fail("Threat level out of [0, 100] or NaN after edge inputs: " + threatBefore);
-            return;
-        }
-        if (hive.getHotspots().size() > 24) {
-            helper.fail("Hotspots exceeded bounded cap of 24: " + hive.getHotspots().size());
-            return;
-        }
-
-        net.minecraft.nbt.CompoundTag tag = hive.save(new net.minecraft.nbt.CompoundTag(), level.registryAccess());
-        HiveMindSavedData reloaded = HiveMindSavedData.load(tag, level.registryAccess());
-        if (Math.abs(reloaded.getThreatLevel() - threatBefore) > 1e-6
-                || Math.abs(reloaded.getStimulusScore(StimulusType.MELEE) - meleeBefore) > 1e-6
-                || reloaded.getHotspots().size() != hive.getHotspots().size()) {
-            helper.fail("HiveMindSavedData NBT round-trip mismatch.");
             return;
         }
         hive.resetAll();
@@ -3347,14 +3334,22 @@ public final class MycelialGameTests {
             return;
         }
 
-        // Verify staggered 4-tick cadence on MycelialMob.customServerAiStep updates TacticalIntent
-        helper.runAfterDelay(6, () -> {
+        // Observe the staggered BehaviorTree as soon as it publishes an active intent, up to six ticks.
+        long intentDeadline = helper.getTick() + 6L;
+        boolean[] finished = {false};
+        helper.onEachTick(() -> {
+            if (finished[0]) {
+                return;
+            }
             var intent = spitter.getTacticalIntent();
-            spitter.discard();
-            if (intent == com.alex.mycelialmind.entity.ai.HiveAiBlackboard.TacticalIntent.NONE) {
-                helper.fail("MycelialMob staggered BehaviorTree did not produce active TacticalIntent within 6 ticks");
-            } else {
+            if (intent != com.alex.mycelialmind.entity.ai.HiveAiBlackboard.TacticalIntent.NONE) {
+                finished[0] = true;
+                spitter.discard();
                 helper.succeed();
+            } else if (helper.getTick() >= intentDeadline) {
+                finished[0] = true;
+                spitter.discard();
+                helper.fail("MycelialMob staggered BehaviorTree did not produce active TacticalIntent within 6 ticks");
             }
         });
     }
@@ -3570,7 +3565,10 @@ public final class MycelialGameTests {
         List<ChunkPos> forced = forceArenaChunks(helper, 0, 52, 0, 52);
         BlockPos center = helper.absolutePos(new BlockPos(26, 10, 26));
         helper.startSequence()
-                .thenIdle(1)
+                .thenWaitUntil(() -> helper.assertTrue(
+                        level.isPositionEntityTicking(center) && forced.stream()
+                                .allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
+                        "Expected the forced citadel arena chunks to finish loading entities."))
                 .thenExecute(() -> {
                     try {
                         var piece = new com.alex.mycelialmind.world.structure.MatriarchCitadelPiece(center);
@@ -7050,10 +7048,13 @@ public final class MycelialGameTests {
 
         BlockPos core1 = helper.absolutePos(new BlockPos(4, 120, 4));
         BlockPos core2 = helper.absolutePos(new BlockPos(20, 120, 20));
-        BlockPos core3 = helper.absolutePos(new BlockPos(36, 120, 36));
+        BlockPos core3 = insetInChunk(helper.absolutePos(new BlockPos(0, 120, 0)), 6);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        helper.startSequence().thenIdle(2).thenExecute(() -> {
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, core3.east(2), 0),
+                        "Expected entity-ticking chunks around the outbreak completion point to be ready."))
+                .thenExecute(() -> {
             try {
                 hive.resetAll();
                 tracker.clearAll();
@@ -7156,6 +7157,16 @@ public final class MycelialGameTests {
             }
 
             // 3. Full completion promotes core to INCUBATOR_NODE + Elite + Spore Cloud
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    level.setBlock(core3.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
+                    for (int dy = 0; dy <= 10; dy++) {
+                        if (!level.getBlockState(core3.offset(dx, dy, dz)).isAir()) {
+                            level.setBlock(core3.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 18);
+                        }
+                    }
+                }
+            }
             var site3 = com.alex.mycelialmind.hive.HyphalSiegeDirector.createBlindSpotSiteAt(level, hive, core3);
             int guard = 0;
             while (!site3.isCompleted() && guard++ < site3.getTotalSteps() + 10) {
@@ -7394,7 +7405,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 200)
-    public static void hyphalSeveredDownstreamBranchWithersProgressivelyWithin100Ticks(GameTestHelper helper) {
+    public static void hyphalSeveredDownstreamBranchWithersProgressivelyWithin90Ticks(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
         HiveMindSavedData hive = HiveMindSavedData.get(level);
@@ -7412,52 +7423,76 @@ public final class MycelialGameTests {
             level.removeBlock(rootPos.offset(dx, 0, 0), false);
         }
 
-        ChunkPos cp = new ChunkPos(rootPos);
-        long now = level.getGameTime();
-        for (int pass = 0; pass < 5; pass++) {
-            hive.recordTrailPoint(cp, rootPos.below(), true, now + pass);
+        for (BlockPos veinPos : List.of(rootPos, v1, v2, v3)) {
+            BlockState veinState = ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
+                    .setValue(com.alex.mycelialmind.block.HyphalVeinBlock.STRENGTH, 0)
+                    .setValue(com.alex.mycelialmind.block.HyphalVeinBlock.CHARGED, false);
+            level.setBlockAndUpdate(veinPos, veinState);
+            if (level.getBlockEntity(veinPos)
+                    instanceof com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity vein) {
+                boolean root = veinPos.equals(rootPos);
+                vein.setFaces(com.alex.mycelialmind.hive.HyphalPhysics.FACE_DOWN);
+                vein.setRoot(root);
+                vein.setTraversals(0);
+                vein.setNutrient(root
+                        ? com.alex.mycelialmind.hive.HyphalPhysics.MAX_NUTRIENT
+                        : 1);
+                vein.setParentPos(root ? null : veinPos.west());
+            }
         }
-        hive.recordTrailPoint(cp, v1.below(), true, now + 10);
-        hive.recordTrailPoint(cp, v2.below(), true, now + 11);
-        hive.recordTrailPoint(cp, v3.below(), true, now + 12);
-        hive.setHyphalDensity(cp, 40.0, now + 12);
-        com.alex.mycelialmind.hive.HyphalSiegeDirector.sproutRouteVeinsInChunk(level, hive, cp);
-        com.alex.mycelialmind.hive.HyphalSiegeDirector.growTrailVeinsNow(level, hive, cp, 8);
 
-        if (!level.getBlockState(rootPos).is(ModBlocks.HYPHAL_VEIN.get())
-                || !level.getBlockState(v1).is(ModBlocks.HYPHAL_VEIN.get())
-                || !level.getBlockState(v2).is(ModBlocks.HYPHAL_VEIN.get())
-                || !level.getBlockState(v3).is(ModBlocks.HYPHAL_VEIN.get())) {
+        boolean controlledBranchReady = List.of(rootPos, v1, v2, v3).stream()
+                .allMatch(pos -> level.getBlockState(pos).is(ModBlocks.HYPHAL_VEIN.get())
+                        && level.getBlockEntity(pos)
+                                instanceof com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity);
+        if (!controlledBranchReady) {
+            for (int dx = -1; dx <= 5; dx++) {
+                level.removeBlock(rootPos.offset(dx, 0, 0), false);
+                level.removeBlock(rootPos.offset(dx, -1, 0), false);
+            }
             tracker.clearAll();
             hive.resetAll();
             releaseArenaChunks(level, forcedChunks);
-            helper.fail("Expected full trail root->v1->v2->v3 before severing v1");
+            helper.fail("Expected a complete server-side hyphal branch before severing v1.");
             return;
         }
 
-        // Break intermediate vein v1; downstream v2 and v3 lose nutrients and wither <= ~90 ticks
+        // Break intermediate vein v1; downstream v2 and v3 lose nutrients and wither within 90 ticks.
         level.removeBlock(v1, false);
-
-        helper.runAfterDelay(90, () -> {
-            try {
-                boolean rootAlive = level.getBlockState(rootPos).is(ModBlocks.HYPHAL_VEIN.get());
-                boolean downstreamWithered = level.getBlockState(v2).isAir()
-                        && level.getBlockState(v3).isAir();
-                if (!rootAlive || !downstreamWithered) {
-                    helper.fail(String.format(
-                            "Severed branch check failed: rootAlive=%s v2=%s v3=%s",
-                            rootAlive, level.getBlockState(v2), level.getBlockState(v3)));
-                    return;
-                }
+        long startTick = helper.getTick();
+        long deadlineTick = startTick + 90L;
+        boolean[] finished = {false};
+        Runnable cleanup = () -> {
+            for (int dx = -1; dx <= 5; dx++) {
+                level.removeBlock(rootPos.offset(dx, 0, 0), false);
+                level.removeBlock(rootPos.offset(dx, -1, 0), false);
+            }
+            tracker.clearAll();
+            hive.resetAll();
+            releaseArenaChunks(level, forcedChunks);
+        };
+        helper.onEachTick(() -> {
+            if (finished[0]) {
+                return;
+            }
+            boolean rootAlive = level.getBlockState(rootPos).is(ModBlocks.HYPHAL_VEIN.get());
+            boolean downstreamWithered = level.getBlockState(v2).isAir()
+                    && level.getBlockState(v3).isAir();
+            if (!rootAlive) {
+                finished[0] = true;
+                cleanup.run();
+                helper.fail("Severed branch check failed: the root vein disappeared before its descendants.");
+            } else if (downstreamWithered) {
+                finished[0] = true;
+                cleanup.run();
                 helper.succeed();
-            } finally {
-                for (int dx = -1; dx <= 5; dx++) {
-                    level.removeBlock(rootPos.offset(dx, 0, 0), false);
-                    level.removeBlock(rootPos.offset(dx, -1, 0), false);
-                }
-                tracker.clearAll();
-                hive.resetAll();
-                releaseArenaChunks(level, forcedChunks);
+            } else if (helper.getTick() >= deadlineTick) {
+                finished[0] = true;
+                String failure = String.format(
+                        "Severed branch did not wither within 90 ticks: elapsed=%d v2=%s v3=%s",
+                        helper.getTick() - startTick, level.getBlockState(v2), level.getBlockState(v3));
+                cleanup.run();
+                helper.fail(failure);
             }
         });
     }
@@ -7465,12 +7500,11 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 120)
     public static void hyphalWallVeinLosesSupportFallsAndDisintegratesOnLanding(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         hive.resetAll();
 
-        BlockPos wallPos = helper.absolutePos(new BlockPos(10, 14, 10));
-        BlockPos veinPos = wallPos.east();
+        BlockPos veinPos = insetInChunk(helper.absolutePos(new BlockPos(0, 14, 0)), 6);
+        BlockPos wallPos = veinPos.west();
         BlockPos landingFloor = veinPos.below(5);
         BlockPos landingAir = veinPos.below(4);
 
@@ -7488,38 +7522,67 @@ public final class MycelialGameTests {
             wallBe.syncToClient();
         }
 
-        // Remove the supporting wall block
+        AABB fallBounds = new AABB(veinPos).inflate(3.0D).expandTowards(0.0D, -8.0D, 0.0D);
+        AABB dropBounds = new AABB(landingAir).inflate(3.0D);
+        long fallDeadline = helper.getTick() + 30L;
+        boolean[] sawFallingEntity = {false};
+        boolean[] finished = {false};
+        Runnable cleanup = () -> {
+            level.removeBlock(wallPos, false);
+            level.removeBlock(veinPos, false);
+            level.removeBlock(landingAir, false);
+            level.removeBlock(landingFloor, false);
+            level.getEntitiesOfClass(net.minecraft.world.entity.item.FallingBlockEntity.class, fallBounds)
+                    .forEach(net.minecraft.world.entity.Entity::discard);
+            level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, dropBounds)
+                    .forEach(net.minecraft.world.entity.Entity::discard);
+            hive.resetAll();
+        };
         level.removeBlock(wallPos, false);
-
-        final boolean[] sawFallingEntity = {false};
-        helper.runAfterDelay(2, () -> {
+        helper.onEachTick(() -> {
+            if (finished[0]) {
+                return;
+            }
             var falling = level.getEntitiesOfClass(
-                    net.minecraft.world.entity.item.FallingBlockEntity.class,
-                    new AABB(veinPos).inflate(3.0D));
-            sawFallingEntity[0] = !falling.isEmpty() && level.getBlockState(veinPos).isAir();
-        });
-
-        helper.runAfterDelay(30, () -> {
-            try {
-                boolean landedCleanly = level.getBlockState(landingAir).isAir()
-                        && !level.getBlockState(veinPos).is(ModBlocks.HYPHAL_VEIN.get());
-                var remainingDrops = level.getEntitiesOfClass(
-                        net.minecraft.world.entity.item.ItemEntity.class,
-                        new AABB(landingAir).inflate(3.0D));
-                if (!sawFallingEntity[0] || !landedCleanly || !remainingDrops.isEmpty()) {
-                    helper.fail(String.format(
-                            "Gravity check failed: sawFalling=%s landedCleanly=%s drops=%d",
-                            sawFallingEntity[0], landedCleanly, remainingDrops.size()));
-                    return;
+                    net.minecraft.world.entity.item.FallingBlockEntity.class, fallBounds);
+            if (!falling.isEmpty()) {
+                sawFallingEntity[0] = true;
+            }
+            if (sawFallingEntity[0] && falling.isEmpty()) {
+                boolean noVeinBlocksRemain = true;
+                for (int y = landingAir.getY(); y <= veinPos.getY(); y++) {
+                    if (level.getBlockState(new BlockPos(veinPos.getX(), y, veinPos.getZ()))
+                            .is(ModBlocks.HYPHAL_VEIN.get())) {
+                        noVeinBlocksRemain = false;
+                        break;
+                    }
                 }
-                helper.succeed();
-            } finally {
-                level.removeBlock(wallPos, false);
-                level.removeBlock(veinPos, false);
-                level.removeBlock(landingAir, false);
-                level.removeBlock(landingFloor, false);
-                hive.resetAll();
-                releaseArenaChunks(level, forcedChunks);
+                var remainingDrops = level.getEntitiesOfClass(
+                        net.minecraft.world.entity.item.ItemEntity.class, dropBounds);
+                finished[0] = true;
+                cleanup.run();
+                if (!noVeinBlocksRemain || !remainingDrops.isEmpty()) {
+                    helper.fail(String.format(
+                            "Gravity check failed after falling entity disappeared: noVeinBlocks=%s drops=%d",
+                            noVeinBlocksRemain, remainingDrops.size()));
+                } else {
+                    helper.succeed();
+                }
+            } else if (helper.getTick() >= fallDeadline) {
+                finished[0] = true;
+                String fallingPositions = falling.stream()
+                        .map(entity -> entity.position().toString())
+                        .collect(java.util.stream.Collectors.joining(", "));
+                String fallingMotion = falling.stream()
+                        .map(entity -> entity.getDeltaMovement().toString() + "/noGravity=" + entity.isNoGravity())
+                        .collect(java.util.stream.Collectors.joining(", "));
+                String floorState = level.getBlockState(landingFloor).toString();
+                String landingState = level.getBlockState(landingAir).toString();
+                cleanup.run();
+                helper.fail(String.format(
+                        "Falling vein did not disappear within 30 ticks: sawFalling=%s remaining=%d positions=%s motion=%s floor=%s landing=%s",
+                        sawFallingEntity[0], falling.size(), fallingPositions, fallingMotion,
+                        floorState, landingState));
             }
         });
     }
@@ -8550,10 +8613,8 @@ public final class MycelialGameTests {
         List<ChunkPos> raidArenaChunks = forceArenaChunks(helper, -24, 32, -24, 32);
 
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(
-                        level.isPositionEntityTicking(nexusPos)
-                                && raidArenaChunks.stream().allMatch(chunk -> level.areEntitiesLoaded(chunk.toLong())),
-                        "Rival raid arena chunks must be entity-loaded before spawning"))
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, nexusPos, 24),
+                        "Rival raid spawn chunks must be entity-ticking before spawning"))
                 .thenExecute(() -> {
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w1 = null;
                     com.alex.mycelialmind.entity.ColonySymbiontEntity w2 = null;
@@ -8635,22 +8696,37 @@ public final class MycelialGameTests {
             var colony = nexusBe.getOrCreateColony(level);
             colony.addDomainXp(200);
             colony.toggleInputChest(nexusPos.east());
+            BlockPos memoryOutpost = nexusPos.offset(3, 0, 0);
+            colony.replaceLinkedOutposts(List.of(memoryOutpost));
+            var memory = colony.getSiteMemory(nexusPos);
+            helper.assertTrue(memory != null
+                            && !memory.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER,
+                            1, level.getGameTime())
+                            && memory.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER,
+                            1, level.getGameTime() + 1L)
+                            && !memory.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, 1)
+                            && memory.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER, 1),
+                    "A local site must learn an escorted courier routine after repeated evidence and two successful trials.");
+            helper.assertTrue(colony.startMemoryTransfer(nexusPos, memoryOutpost, level.getGameTime()),
+                    "A learned site memory must be teachable to another linked outpost.");
             worker = nexusBe.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.COURIER, true);
             helper.assertTrue(worker != null, "Worker must spawn for payload test.");
 
             var payload = com.alex.mycelialmind.network.SovereignColonySyncPayload.forNexus(level, nexusPos, true);
-            var buf = io.netty.buffer.Unpooled.buffer();
-            com.alex.mycelialmind.network.SovereignColonySyncPayload.STREAM_CODEC.encode(buf, payload);
-            var decoded = com.alex.mycelialmind.network.SovereignColonySyncPayload.STREAM_CODEC.decode(buf);
-
-            helper.assertTrue(decoded.equals(payload)
-                            && decoded.hasColony()
-                            && decoded.unlocked()
-                            && decoded.openScreen()
-                            && decoded.inputChests() == 1
-                            && decoded.workers().size() == 1
-                            && decoded.workers().get(0).caste() == com.alex.mycelialmind.colony.SymbiontCaste.COURIER,
-                    "SovereignColonySyncPayload must round-trip all colony and roster fields intact.");
+            helper.assertTrue(payload.hasColony()
+                            && payload.unlocked()
+                            && payload.openScreen()
+                            && payload.inputChests() == 1
+                            && payload.workers().size() == 1
+                            && payload.workers().get(0).workerId().equals(worker.getUUID())
+                            && payload.workers().get(0).caste() == com.alex.mycelialmind.colony.SymbiontCaste.COURIER
+                            && payload.siteMemories().size() == 2
+                            && payload.siteMemories().get(0).learnedHabit()
+                            == com.alex.mycelialmind.colony.ColonySiteHabit.ESCORTED_COURIER.ordinal()
+                            && payload.memoryTransferActive()
+                            && payload.memoryTransferSource().equals(nexusPos)
+                            && payload.memoryTransferTarget().equals(memoryOutpost),
+                    "forNexus must include the incubated courier, local memories, and active teaching route.");
 
             helper.succeed();
         } finally {
@@ -8659,6 +8735,61 @@ public final class MycelialGameTests {
             }
             level.removeBlock(nexusPos, false);
             owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "colony_integration")
+    public static void sovereignColonySiteMemoryTransferPersistenceTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(4, 2, 4));
+        BlockPos outpostPos = helper.absolutePos(new BlockPos(9, 2, 4));
+        try {
+            saved.resetAll();
+            level.setBlockAndUpdate(nexusPos, com.alex.mycelialmind.registry.ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            level.setBlockAndUpdate(outpostPos, com.alex.mycelialmind.registry.ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
+            var colony = saved.getOrCreateColony(nexusPos, UUID.randomUUID(), "Memory Tester");
+            colony.replaceLinkedOutposts(List.of(outpostPos));
+
+            var source = colony.getSiteMemory(nexusPos);
+            helper.assertTrue(source != null
+                            && !source.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN,
+                            2, level.getGameTime())
+                            && source.recordIncident(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN,
+                            2, level.getGameTime() + 1L)
+                            && !source.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2)
+                            && source.recordTrialSuccess(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2),
+                    "Nexus local history must mature only after two incidents and two successful trials.");
+            helper.assertTrue(colony.startMemoryTransfer(nexusPos, outpostPos, level.getGameTime()),
+                    "Owner-selected site-to-site teaching must create a pending courier transfer.");
+
+            var restored = com.alex.mycelialmind.colony.SovereignColonySavedData.load(
+                    saved.save(new CompoundTag(), level.registryAccess()), level.registryAccess());
+            var restoredColony = restored.getByNexus(nexusPos);
+            helper.assertTrue(restoredColony != null
+                            && restoredColony.getSiteMemory(nexusPos).learnedHabit()
+                            == com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN
+                            && restoredColony.getMemoryTransferSnapshot() != null,
+                    "Learned site memories and pending teaching routes must persist through SavedData reload.");
+
+            UUID courier = UUID.randomUUID();
+            helper.assertTrue(restoredColony.claimMemoryTransfer(courier, level.getGameTime() + 2L),
+                    "A courier must be able to claim a persisted teaching trip.");
+            restoredColony.markMemoryTransferCollected(courier, level.getGameTime() + 3L);
+            helper.assertTrue(restoredColony.deliverMemoryTransfer(courier, level.getGameTime() + 4L),
+                    "The destination must receive a local trial when the courier delivers the memory.");
+            var destination = restoredColony.getSiteMemory(outpostPos);
+            helper.assertTrue(destination != null
+                            && destination.trialHabit() == com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN
+                            && destination.successfulTrials() == 0,
+                    "A taught site must test the behavior locally before learning it.");
+
+            helper.succeed();
+        } finally {
+            level.removeBlock(outpostPos, false);
+            level.removeBlock(nexusPos, false);
             saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
         }
     }

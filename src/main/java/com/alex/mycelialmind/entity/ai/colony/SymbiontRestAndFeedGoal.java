@@ -1,6 +1,8 @@
 package com.alex.mycelialmind.entity.ai.colony;
 
 import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
+import com.alex.mycelialmind.colony.ColonySiteMemory;
 import com.alex.mycelialmind.colony.SovereignColonyEngine;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.entity.ColonySymbiontEntity;
@@ -21,6 +23,7 @@ public class SymbiontRestAndFeedGoal extends Goal {
     private final ColonySymbiontEntity worker;
     private BlockPos restAnchor;
     private int restTicks = 0;
+    private boolean earlyMemoryRest;
 
     public SymbiontRestAndFeedGoal(ColonySymbiontEntity worker) {
         this.worker = worker;
@@ -35,7 +38,18 @@ public class SymbiontRestAndFeedGoal extends Goal {
         if (worker.isStandby()) {
             return false;
         }
-        return worker.canRetreatToRest() && worker.getColonyData(level) != null;
+        SovereignColonyData colony = worker.getColonyData(level);
+        if (colony == null) {
+            return false;
+        }
+        if (worker.canRetreatToRest()) {
+            return true;
+        }
+        if (worker.getTarget() != null || worker.getFatigue() < 60.0F || worker.getNutrition() <= 20.0F) {
+            return false;
+        }
+        BlockPos site = colony.findNearestMemorySite(worker.blockPosition(), 16.0D);
+        return site != null && colony.usesSiteHabit(site, ColonySiteHabit.REST_BEFORE_RETURN);
     }
 
     @Override
@@ -54,6 +68,7 @@ public class SymbiontRestAndFeedGoal extends Goal {
     @Override
     public void start() {
         restTicks = 0;
+        earlyMemoryRest = !worker.canRetreatToRest() && worker.getTarget() == null && worker.getFatigue() >= 60.0F;
         worker.setResting(true);
         worker.setTaskState("resting");
         if (worker.level() instanceof ServerLevel level) {
@@ -61,6 +76,23 @@ public class SymbiontRestAndFeedGoal extends Goal {
             if (colony != null) {
                 colony.getOrderBoard().releaseWorkerReservations(worker.getUUID());
                 restAnchor = findNearestAnchor(colony);
+                BlockPos site = colony.findNearestMemorySite(worker.blockPosition(), 16.0D);
+                if (site != null) {
+                    ColonySiteMemory memory = colony.getSiteMemory(site);
+                    if (earlyMemoryRest) {
+                        worker.markEarlyRestAt(site);
+                    } else if (worker.getTarget() == null && worker.getFatigue() >= 80.0F
+                            && worker.getNutrition() > 20.0F && memory != null) {
+                        boolean startedTrial = memory.recordIncident(
+                                ColonySiteHabit.REST_BEFORE_RETURN, 2, level.getGameTime());
+                        if (startedTrial) {
+                            level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                                    site.getX() + 0.5D, site.getY() + 1.0D, site.getZ() + 0.5D,
+                                    1, 0.0D, 0.0D, 0.0D, 0.0D);
+                        }
+                        SovereignColonySavedData.get(level).setDirty();
+                    }
+                }
             } else {
                 restAnchor = worker.getHomeAnchor();
             }
@@ -72,6 +104,7 @@ public class SymbiontRestAndFeedGoal extends Goal {
         worker.setResting(false);
         worker.setTaskState("idle");
         restAnchor = null;
+        earlyMemoryRest = false;
     }
 
     @Override

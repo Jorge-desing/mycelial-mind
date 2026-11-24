@@ -1,10 +1,9 @@
 {
   "volume": 3,
   "chapters": [
-    "economia_datos",
-    "mundo_dimension"
+    "economia_datos"
   ],
-  "page_count": 97,
+  "page_count": 75,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -59,22 +58,34 @@
         "raw": "Ítems y Armadura\n(`ModItems`) (5/5)\n• Brotes Recuperados\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (1/3)\n• Ancla y Puestos\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`): tras derrotar\na la Matriarca, el\n`sovereign_nexus`\nacepta\n`mycelial_biomass`\n(mano o tolvas) e\nintegra hasta 4\n`symbiotic_node`"
+        "raw": "Colonia Soberana\nPost-Matriarca (1/6)\n• Ancla y Puestos\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`): tras derrotar\na la Matriarca, el\n`sovereign_nexus`\nacepta\n`mycelial_biomass`\n(mano o tolvas) e\nintegra hasta 4\n`symbiotic_node`"
       },
       {
         "raw": "cercanos (+8m radio\ncada uno)."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (2/3)\n• Niveles y Mando\n(`SovereignColonyDire\nctor`): Nivel 1–3\n(4/8/12 simbiontes,\nradio 24/36/48m). Usa\n`sovereign_command_s\ntaff` (`staff_mode`)\npara marcar cofres\n`INPUT`/`OUTPUT` y\nzonas de trabajo;"
+        "raw": "Colonia Soberana\nPost-Matriarca (2/6)\n• Niveles y Mando\n(`SovereignColonyDire\nctor`): Nivel 1–3\n(4/8/12 simbiontes,\nradio 24/36/48m). Usa\n`sovereign_command_s\ntaff` (`staff_mode`)\npara marcar cofres\n`INPUT`/`OUTPUT` y\nzonas de trabajo;"
       },
       {
         "raw": "desbloquea rasgos\n`SovereignTrait` y\nrangos."
       },
       {
-        "raw": "Colonia Soberana\nPost-Matriarca (3/3)\n• Castas y Sondeos\nRivales: `HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT` y\n`SENTINEL` operan\n`ColonyOrderBoard`\npor\nprioridad/reserva\ncon descanso y humor\n(`SymbiontTemperament\n`). Repeler sondeos"
+        "raw": "Colonia Soberana\nPost-Matriarca (3/6)\n• Castas y Sondeos\nRivales: `HARVESTER`,\n`EXCAVATOR`, `COURIER`,\n`ARCHITECT` y\n`SENTINEL` operan\n`ColonyOrderBoard`\npor\nprioridad/reserva\ncon descanso y humor\n(`SymbiontTemperament\n`). Repeler sondeos"
       },
       {
         "raw": "de la Colmena rival\notorga XP de Dominio y\nmoral."
+      },
+      {
+        "raw": "Colonia Soberana\nPost-Matriarca (4/6)\n• Memoria Territorial:\ncada Nexo o puesto\naprende de incidentes\nlocales. Dos incidentes\nparecidos abren un\nensayo; dos\nresultados\nfavorables consolidan\nla conducta."
+      },
+      {
+        "raw": "Colonia Soberana\nPost-Matriarca (5/6)\n• Hábitos: los puestos\npueden aprender\nescoltas para\nmensajeros, descanso\nantes del regreso o\nrecolección por\nturnos. El primer\nrecuerdo se aprende\nsolo; puedes adoptar\nun segundo ensayo en\n`Memoria`."
+      },
+      {
+        "raw": "Colonia Soberana\nPost-Matriarca (6/6)\n• Enseñanza: en\n`Memoria`, elige el\npuesto de origen y el\ndestino. Un mensajero\nlleva el recuerdo\naprendido; el destino\nlo prueba con sus\npropios trabajos.\n• Bioescáner: úsalo\nsobre un\n`symbiotic_node` para"
+      },
+      {
+        "raw": "leer incidentes y\nensayos. Olvidar\nborra el historial\nlocal del puesto."
       },
       {
         "raw": "Cap.9: Recetario Total\n(39 Datapack)\nBio-Escáner y\nBio-Extractor\n[crafting_shaped]  R\n/ICI/ S  (C=compass,\nI=copper_ingot,\nR=redstone,\nS=latent_spore) -> 1x\nbio_scanner\n[crafting_shaped]  A\n/IBI/ S \n(A=amethyst_shard,\nB=mycelial_biomass,"
@@ -225,84 +236,6 @@
       },
       {
         "raw": "`gameplay/hero_of_th\ne_village/cleric_myceli\nal_gift` (regalo de\nClérigo al defender\naldeas)."
-      },
-      {
-        "raw": "Cap.10: Brotes y\nColmenas del\nOverworld\nEstructuras y\nCaracterísticas\nOverworld (1/3)\n• `mycelial_outbreak`:\ngarra orgánica altura\n9, conectividad\n6-vecinos estricta (0\nflotantes),\n`MIN_OUTBREAK_SPACIN\nG = 56` y bóveda\n`outbreak_sealed_vaul"
-      },
-      {
-        "raw": "t`."
-      },
-      {
-        "raw": "Estructuras y\nCaracterísticas\nOverworld (2/3)\n• `surface_hive`:\nmegacápsula radio 8,\naltura 16,\n`MIN_HIVE_SPACING =\n192`,\n`MIN_NODE_CLEARANCE\n= 64`, cripta\nsubterránea, galería\nsuperior, conductos\nsinápticos y cofres\n`surface_hive_cache`"
-      },
-      {
-        "raw": "/`gallery`/`crypt`."
-      },
-      {
-        "raw": "Estructuras y\nCaracterísticas\nOverworld (3/3)\n• Motores\n(`hive_tier_rarity` /\n`FastNoiseLite`):\nfiltran rareza por\nActo vía\n`StructureProgressio\nnPolicy` usando ruido\n`FastNoiseLite`\n(`SIMPLEX_SMOOTH`,\n`CELLULAR`,\n`DOMAIN_WARP`)"
-      },
-      {
-        "raw": "auditado con\n`WorldgenAuditEngine`."
-      },
-      {
-        "raw": "Cap.10: Dimensión\nMicelio Profundo (3\nBiomas)\nDimensión y Topología\nWFC (1/3)\n• Dimensión\n`mycelialmind:deep_myc\nelium`: accede\nabriendo\n`mycelial_rift` con\n`rift_catalyst` en un\nmarco de\n`reinforced_bio_barri\ner`. Sincroniza Actos"
-      },
-      {
-        "raw": "desde el Overworld al\ninstante."
-      },
-      {
-        "raw": "Dimensión y Topología\nWFC (2/3)\n• 3 Biomas:\n`deep_mycelium_caver\nns` (cavernas\narteriales),\n`hive_heart_sanctum`\n(cámaras del\nsantuario) y\n`latent_spore_forest`\n(bosques de esporas\nlatentes). Disponen de\naudio/niebla ambiental\npropia."
-      },
-      {
-        "raw": "Dimensión y Topología\nWFC (3/3)\n• `WfcCavernLayout`\n(`Tile`): algoritmo Wave\nFunction Collapse\npara cavernas\nconectadas sin\ncallejones sellados."
-      },
-      {
-        "raw": "Cap.10: Santuario\nJigsaw y Ciudadela\nMatriarca\nMegaestructuras\nEnd-Game (1/3)\n• `hive_sanctum`\n(Jigsaw, 11 piezas\n`.nbt`):\n`sanctum_atrium`,\n`forbidden_lab`,\n`ossuary_crypt`,\n`spore_vault`,\n`incubation_wing`,\n`ribbed_nave` y"
-      },
-      {
-        "raw": "corredores con botín\n`sanctum_*`."
-      },
-      {
-        "raw": "Megaestructuras\nEnd-Game (2/3)\n• `matriarch_citadel`\n(`matriarch_citadel_pi\nece`): incluye capillas\n`AMBER` y `CRIMSON`\n(`citadel_amber_chape\nl`,\n`citadel_crimson_chap\nel`), Cripta Real\n(`citadel_royal_crypt`\n) y guardianes\npersistentes"
-      },
-      {
-        "raw": "(`spore_behemoth` + 2\n`colony_warden`)."
-      },
-      {
-        "raw": "Megaestructuras\nEnd-Game (3/3)\n• `twisted_citadel`\n(`twisted_citadel_piece\n`,\n`architectural_accent`\n): reflejo\narquitectónico en\nMicelio Profundo con\nplantillas `.nbt`\n(`spire_tower`,\n`gallery_hall`,\n`vault_bunker`)\nadaptadas a tu paleta"
-      },
-      {
-        "raw": "y proporción."
-      },
-      {
-        "raw": "Cap.10: Homeostasis\nDimensional y Quistes\nSistema Inmune de la\nDimensión (1/2)\n• 3 Etapas\n(`HomeostasisStage`):\n`STABLE` (<40),\n`IRRITATED` (>=40) e\n`IMMUNE_RESPONSE`\n(>=70; tormenta >=85).\nExplosiones, abuso de\nPilones y Fase 2\nMatriarca (+20)"
-      },
-      {
-        "raw": "sensibilizan cada\nchunk\n(`homeostasisSensitiza\ntion` 0–3)."
-      },
-      {
-        "raw": "Sistema Inmune de la\nDimensión (2/2)\n• Lluvia Ácida y\n`antibody_cyst`: en\n`IMMUNE_RESPONSE`\nbajo cielo abierto cae\nlluvia corrosiva\n(`homeostasisAcidRainD\namage = 2.0`). Brotan\nquistes (máx.\n`64`/chunk); si cubren\n>=4 caras\n(`SMOTHER_FACE_THRE"
-      },
-      {
-        "raw": "SHOLD`) sofocan\nPilones hasta\ncosecharlos."
-      },
-      {
-        "raw": "Cap.10: Protocolo de\nCiclos y Mutadores\nProtocolo de Ciclos y\nMutadores (1/4)\n• Activación\nPost-Matriarca: Tras\nderrotar a\n`apex_matriarch`, usa\n`matriarch_altar` sin\nofrenda válida para\nabrir\n`CycleProtocolScreen`,\nelegir 1–3 de los 6"
-      },
-      {
-        "raw": "mutadores e iniciar el\nCiclo N (limpia\nremisión)."
-      },
-      {
-        "raw": "Protocolo de Ciclos y\nMutadores (2/4)\n• Mutadores I–III:\n`hyper_adaptation`\n(+45% aprendizaje,\numbrales x0.85, +35%\npts), `perpetual_tide`\n(+50% marea y menor\numbral final, +40% pts)\ny `acute_homeostasis`\n(+40% estrés inmune,\n+35% pts)."
-      },
-      {
-        "raw": "Protocolo de Ciclos y\nMutadores (3/4)\n• Mutadores IV–VI:\n`synaptic_swarm`\n(+atacantes y élite en\noleadas/escuadrones,\n+40% pts),\n`primordial_apex`\n(+25% HP/+15% daño\nde jefes y cooldown\nmenor, +50% pts) y\n`hyphal_overload`\n(+35% presión hifal,"
-      },
-      {
-        "raw": "+30% pts)."
-      },
-      {
-        "raw": "Protocolo de Ciclos y\nMutadores (4/4)\n• Cierre y Récords: Al\nderrotar a\n`apex_matriarch`\ndurante el Ciclo se\ncalcula `1000 * mult +\nvelocidad(<=500) -\nmuertes*120` (mín.\n`250`) otorgando\nrango S+..C, récord y\nel engrama\n`overmind_cycle`."
       }
     ]
   }

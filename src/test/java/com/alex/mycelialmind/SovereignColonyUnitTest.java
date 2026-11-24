@@ -2,6 +2,8 @@ package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.colony.ColonyOrder;
 import com.alex.mycelialmind.colony.ColonyOrderBoard;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
+import com.alex.mycelialmind.colony.ColonySiteMemory;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonyEngine;
 import com.alex.mycelialmind.colony.SovereignTrait;
@@ -181,5 +183,74 @@ class SovereignColonyUnitTest {
         assertEquals(SymbiontRank.ADEPT, restoredWorker.rank());
         assertEquals(SymbiontTemperament.CURIOUS, restoredWorker.temperament());
         assertEquals(145, restoredWorker.xp());
+    }
+
+    @Test
+    void localMemoryRequiresRepeatedIncidentsAndTwoLocalResults() {
+        ColonySiteMemory memory = new ColonySiteMemory();
+        assertFalse(memory.recordIncident(ColonySiteHabit.ESCORTED_COURIER, 1, 100L));
+        assertTrue(memory.recordIncident(ColonySiteHabit.ESCORTED_COURIER, 1, 120L));
+        assertEquals(ColonySiteHabit.ESCORTED_COURIER, memory.trialHabit());
+        assertTrue(memory.usesHabit(ColonySiteHabit.ESCORTED_COURIER));
+
+        assertFalse(memory.recordTrialSuccess(ColonySiteHabit.ESCORTED_COURIER, 1));
+        assertTrue(memory.recordTrialSuccess(ColonySiteHabit.ESCORTED_COURIER, 1));
+        assertEquals(ColonySiteHabit.ESCORTED_COURIER, memory.learnedHabit());
+
+        assertFalse(memory.recordIncident(ColonySiteHabit.REST_BEFORE_RETURN, 2, 200L));
+        assertTrue(memory.recordIncident(ColonySiteHabit.REST_BEFORE_RETURN, 2, 220L));
+        assertFalse(memory.recordTrialSuccess(ColonySiteHabit.REST_BEFORE_RETURN, 2));
+        assertFalse(memory.recordTrialSuccess(ColonySiteHabit.REST_BEFORE_RETURN, 2));
+        assertEquals(2, memory.successfulTrials());
+        assertTrue(memory.adoptTrialHabit());
+        assertEquals(ColonySiteHabit.REST_BEFORE_RETURN, memory.learnedHabit());
+    }
+
+    @Test
+    void localMemoryPersistsAndTravelsBetweenLinkedSites() {
+        BlockPos nexus = new BlockPos(10, 64, 10);
+        BlockPos outpost = new BlockPos(30, 64, 10);
+        SovereignColonyData data = new SovereignColonyData(UUID.randomUUID(), UUID.randomUUID(), "Owner", nexus);
+        data.replaceLinkedOutposts(List.of(outpost));
+        ColonySiteMemory source = data.getSiteMemory(nexus);
+        assertNotNull(source);
+        assertFalse(source.recordIncident(ColonySiteHabit.STAGGERED_PICKUP, 3, 100L));
+        assertTrue(source.recordIncident(ColonySiteHabit.STAGGERED_PICKUP, 3, 120L));
+        assertFalse(source.recordTrialSuccess(ColonySiteHabit.STAGGERED_PICKUP, 3));
+        assertTrue(source.recordTrialSuccess(ColonySiteHabit.STAGGERED_PICKUP, 3));
+        assertTrue(data.startMemoryTransfer(nexus, outpost, 130L));
+
+        SovereignColonyData restored = SovereignColonyData.load(data.save());
+        SovereignColonyData.MemoryTransferSnapshot transfer = restored.getMemoryTransferSnapshot();
+        assertNotNull(transfer);
+        assertEquals(nexus, transfer.sourcePos());
+        assertEquals(outpost, transfer.targetPos());
+        assertEquals(ColonySiteHabit.STAGGERED_PICKUP, transfer.habit());
+
+        UUID courier = UUID.randomUUID();
+        assertTrue(restored.claimMemoryTransfer(courier, 140L));
+        restored.markMemoryTransferCollected(courier, 150L);
+        assertTrue(restored.deliverMemoryTransfer(courier, 160L));
+        assertNull(restored.getMemoryTransferSnapshot());
+
+        ColonySiteMemory destination = restored.getSiteMemory(outpost);
+        assertNotNull(destination);
+        assertEquals(ColonySiteHabit.STAGGERED_PICKUP, destination.trialHabit());
+        assertFalse(destination.recordTrialSuccess(ColonySiteHabit.STAGGERED_PICKUP, 3));
+        assertTrue(destination.recordTrialSuccess(ColonySiteHabit.STAGGERED_PICKUP, 3));
+        assertEquals(ColonySiteHabit.STAGGERED_PICKUP, destination.learnedHabit());
+        assertEquals(ColonySiteHabit.NONE, restored.getSiteMemory(nexus).trialHabit());
+    }
+
+    @Test
+    void pickupTurnLeaseIsExclusiveAndRecoverable() {
+        ColonySiteMemory memory = new ColonySiteMemory();
+        UUID firstCourier = UUID.randomUUID();
+        UUID secondCourier = UUID.randomUUID();
+        assertTrue(memory.tryAcquirePickupTurn(firstCourier, 100L, 200L));
+        assertFalse(memory.tryAcquirePickupTurn(secondCourier, 110L, 200L));
+        memory.releasePickupTurn(firstCourier);
+        assertTrue(memory.tryAcquirePickupTurn(secondCourier, 111L, 200L));
+        assertTrue(memory.tryAcquirePickupTurn(firstCourier, 312L, 200L));
     }
 }
