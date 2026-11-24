@@ -70,7 +70,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**c) Llamada real desde el modelo:** `mcp__mycelial-mind-dev__execute` con `get_bridge_health()` → `ok=true`, `tool_count=63`, `jdk21` detectado e `instance_id`/`instance_pid` (útiles cuando DSH, Codex y Antigravity tienen cada uno su proceso). `list_mcp_resources` debe mostrar 5 recursos y `get_schema(["execute"])` debe responder con su esquema.
+**c) Llamada real desde el modelo:** `mcp__mycelial-mind-dev__execute` con `get_bridge_health()` → `ok=true`, `tool_count=66`, `jdk21` detectado e `instance_id`/`instance_pid` (útiles cuando DSH, Codex y Antigravity tienen cada uno su proceso). `list_mcp_resources` debe mostrar 5 recursos y `get_schema(["execute"])` debe responder con su esquema.
 
 ## 4. Problemas conocidos y solución
 
@@ -90,3 +90,18 @@ asyncio.run(main())
 - Desactivar sin perder la entrada: `enabled: false` en el servidor.
 - Otro equipo: copiar `scripts/mcp/` (con `.venv` recreado), `requirements.txt` y esta fila YAML ajustando rutas absolutas.
 - Antes de tocar la configuración, cerrar sesiones vivas: `stop_live_session` / `stop_smoke_server` / `stop_mcpilot_client`.
+
+## 6. Otros clientes, instalación y coexistencia
+
+- **Otros clientes (Claude, Cursor, Codex, Antigravity, VS Code):** `.mcp.json` en la raíz declara `mcpServers.mycelial-mind-dev` con `command` = python del venv y `args` = `scripts/mcp/server.py`.
+- **Instalación del venv:** `python -m venv scripts/mcp/.venv` + `uv pip install --system-certs --python scripts/mcp/.venv/Scripts/python.exe -r scripts/mcp/requirements.txt`.
+- **Coexistencia entre clientes:** cada cliente lanza su propio proceso `stdio` (sin compartir puerto, caché TTL `30 s` ni estado en memoria), distinguible por `instance_id` / `instance_pid` en `get_bridge_health()`.
+
+| Cliente | Dónde se declara |
+| --- | --- |
+| DeepSeek Harness | `~/.dsh/profiles/desktop/cordis.patch.yml` (fila `mcp-manager`) |
+| Codex | `~/.codex/config.toml` → `[mcp_servers.mycelial-mind-dev]` |
+| Antigravity | `~/.gemini/config/mcp_config.json` → `mcpServers["mycelial-mind-dev"]` |
+| Otros / proyecto | `.mcp.json` en la raíz del repo |
+
+- **Regla de no interferencia y concurrencia:** no edites la configuración de otro cliente al añadir uno nuevo. Lo compartido entre instancias activas es el *workspace*, no el protocolo: evita lanzar simultáneamente desde dos clientes `run_verify_mod`, `run_gradle_task` o `start_live_session` sobre `build/`, `run/` o `artifacts/diagnostics/`.

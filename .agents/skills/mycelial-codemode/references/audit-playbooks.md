@@ -85,6 +85,32 @@ return {
 }
 ```
 
+## Playbook 5 — Colonia Soberana, Dialectos, GameTests Aislados y UI Nexo
+```python
+# 1. Enumeraciones/clases de colony/ + audio dedicado de dialectos y GameTests aislados
+ai = await call_tool("get_hive_ai_overview", {})
+snd = await call_tool("inspect_sound_event", {"sound_id": "colony_dialect_mastered"})
+gt = await call_tool("run_gradle_task", {
+    "tasks": ["test", "runGameTestServer"],
+    "isolated_gametests": True,  # inyecta -PisolatedGameTests=true
+    "timeout_secs": 300,
+})
+ui = await call_tool("run_gradle_task", {
+    "tasks": ["runVisualSmoke", "-PdialectVisualSmoke=true"],
+    "timeout_secs": 240,
+})
+return {
+    "colony_enums": {k: len(v) for k, v in ai.get("colony_enums", {}).items()},
+    "dialect_sound_ok": snd.get("ok"),
+    "gametests_ok": gt["ok"],
+    "dialect_ui_ok": ui["ok"],
+}
+```
+
+### Alternativas Reproducibles (`Taskfile.yml` + `uv`) y Fallback Gradle Offline
+- **Aliases locales (`Taskfile.yml` / CI GitHub Actions):** `task verify:assets` (usa `uv` para modelos/texturas/partículas), `task verify`, `task verify:server`, `task verify:visual`, `task verify:renovate`, `task release:dry-run`.
+- **Fallback si falla el lock del wrapper global (`C:\Users\Alex\.gradle`):** ejecuta Gradle directamente en modo offline apuntando a `.gradle-user-home` local y JDK 21 (`$env:GRADLE_USER_HOME="$PWD\.gradle-user-home"; $env:JAVA_HOME="C:\Program Files\Java\jdk-21"; .\gradlew.bat --offline --no-daemon test runGameTestServer -PisolatedGameTests=true`).
+
 ## Anti-Patrones a Evitar
 1. **Devolver logs crudos enteros:** filtra siempre con `read_diagnostic_logs(..., filter_pattern="ERROR|WARN|FAIL|Exception")` o usa `error_lines`.
 2. **Olvidar `stop_live_session`:** cierra siempre el servidor smoke/cliente al terminar el bloque `execute`.

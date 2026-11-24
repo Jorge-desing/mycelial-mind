@@ -28,6 +28,7 @@ from server import (
     _resolve_repo_path,
     _resolve_temp_dir,
     _run_subprocess,
+    _SKIP_DIAGNOSTIC_DIRS,
     mcp,
 )
 
@@ -105,6 +106,7 @@ async def verify_code_mode() -> None:
         pass
 
     assert Path(_resolve_temp_dir()).is_dir(), "Expected writable temp directory"
+    assert ".tmp" in _SKIP_DIAGNOSTIC_DIRS and "region" in _SKIP_DIAGNOSTIC_DIRS, _SKIP_DIAGNOSTIC_DIRS
 
     publish_cmd = _build_gradle_task_command(["publishMods"], 2, False, False)
     assert "-PpublishDryRun=true" in publish_cmd, publish_cmd
@@ -362,7 +364,7 @@ return {{
     "fastmcp_version": health.get("fastmcp_version"),
     "registries": {{k: len(v) for k, v in reg.items()}},
     "data_components": reg.get("ModDataComponents", []),
-    "skills_ok": skills["ok"],
+    "skills_ok": skills["ok"] and skills.get("exit_code") == 0,
     "skills_listed": all_skills["count"],
     "ai_guide_ok": ai_guide["ok"],
     "codemode_guide_ok": cm_guide["ok"],

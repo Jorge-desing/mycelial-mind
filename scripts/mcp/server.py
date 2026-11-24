@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import asyncio
 import atexit
+import contextlib
 import csv
 import fnmatch
 import functools
 import heapq
 import inspect
+import io
 import json
 import os
 import re
@@ -246,9 +248,35 @@ mcp = FastMCP(
     transforms=[MycelialCodeMode(sandbox_provider=sandbox)],
 )
 
-_CACHE_TTL_SECS = 15.0
+_CACHE_TTL_SECS = 30.0
 _CACHE: dict[str, tuple[float, Any]] = {}
 _CACHE_STATS: dict[str, int] = {"hits": 0, "misses": 0, "invalidations": 0}
+_HOST_ENV_CACHE: dict[str, Any] | None = None
+_SKIP_DIAGNOSTIC_DIRS = frozenset({
+    ".git",
+    ".gradle",
+    ".mixin.out",
+    ".tmp",
+    "advancements",
+    "assets",
+    "build",
+    "datapacks",
+    "downloads",
+    "entities",
+    "gradle-alt",
+    "libraries",
+    "mc-pilot-source",
+    "observable-5.4.4-vbo-fix-src",
+    "playerdata",
+    "poi",
+    "region",
+    "resourcepacks",
+    "saves",
+    "sbl-pilot",
+    "stats",
+    "versions",
+    "world",
+})
 _METRICS: dict[str, dict[str, Any]] = {}
 _AUDIT_SNAPSHOTS: dict[str, dict[str, Any]] = {}
 _TOOL_TAGS: dict[str, list[str]] = {}
@@ -279,8 +307,10 @@ def _cache_set(key: str, value: Any, ttl: float = _CACHE_TTL_SECS) -> Any:
 
 
 def _invalidate_cache() -> int:
+    global _HOST_ENV_CACHE
     count = len(_CACHE)
     _CACHE.clear()
+    _HOST_ENV_CACHE = None
     _CACHE_STATS["invalidations"] += 1
     return count
 
@@ -655,8 +685,39 @@ def get_memory_tail(lines: int = 80) -> dict[str, Any]:
 
 @_tool(tags={"skills"})
 async def validate_skills() -> dict[str, Any]:
-    """Run scripts/validate_agent_skills.py to verify Open Agent Skills frontmatter."""
-    return await _run_subprocess_async([sys.executable, "scripts/validate_agent_skills.py"], timeout_secs=60)
+    """Run scripts/validate_agent_skills.py in-process (cached) to verify Open Agent Skills frontmatter."""
+    cached = _cache_get("validate_skills")
+    if cached is not None:
+        return cached
+    from scripts.validate_agent_skills import validate_all
+
+    t0 = time.monotonic()
+    buf = io.StringIO()
+    ok = True
+    exit_code = 0
+    stderr_tail = ""
+    try:
+        with contextlib.redirect_stdout(buf):
+            rc = validate_all()
+        if rc != 0:
+            ok = False
+            exit_code = int(rc)
+    except (AssertionError, ValueError, OSError) as exc:
+        ok = False
+        exit_code = 1
+        stderr_tail = str(exc)
+
+    elapsed = round(time.monotonic() - t0, 4)
+    stdout_tail = "\n".join(buf.getvalue().splitlines()[-60:])
+    res: dict[str, Any] = {
+        "ok": ok,
+        "exit_code": exit_code,
+        "timed_out": False,
+        "duration_secs": elapsed,
+        "stdout_tail": stdout_tail,
+        "stderr_tail": stderr_tail,
+    }
+    return _cache_set("validate_skills", res)
 
 
 async def _run_studio_with_tests(
@@ -1237,16 +1298,30 @@ async def run_rcon_batch(
     return await asyncio.to_thread(_rcon_batch_sync, commands, host, port, password, timeout_secs)
 
 
-@_tool(tags={"meta", "observability"})
-def get_bridge_health() -> dict[str, Any]:
-    """Return instant MCP bridge runtime diagnostics (FastMCP version, Python, JDK 21 detection)."""
-    import fastmcp
-
+def _get_host_env_snapshot() -> dict[str, Any]:
+    """Resolve static host environment details (JAVA_HOME, jcmd, temp_dir) once until cache invalidation."""
+    global _HOST_ENV_CACHE
+    if _HOST_ENV_CACHE is not None:
+        return _HOST_ENV_CACHE
     env = _build_gradle_env()
     try:
         jcmd_path = str(_find_jdk21_tool("jcmd.exe"))
     except FileNotFoundError:
         jcmd_path = ""
+    _HOST_ENV_CACHE = {
+        "java_home_detected": env.get("JAVA_HOME", ""),
+        "jcmd_available": bool(jcmd_path),
+        "temp_dir": _resolve_temp_dir(),
+    }
+    return _HOST_ENV_CACHE
+
+
+@_tool(tags={"meta", "observability"})
+def get_bridge_health() -> dict[str, Any]:
+    """Return instant MCP bridge runtime diagnostics (FastMCP version, Python, JDK 21 detection)."""
+    import fastmcp
+
+    host_env = _get_host_env_snapshot()
     return {
         "ok": True,
         "server": mcp.name,
@@ -1256,9 +1331,9 @@ def get_bridge_health() -> dict[str, Any]:
         "cache_entries": len(_CACHE),
         "repo_root": str(REPO_ROOT),
         "python_executable": sys.executable,
-        "java_home_detected": env.get("JAVA_HOME", ""),
-        "jcmd_available": bool(jcmd_path),
-        "temp_dir": _resolve_temp_dir(),
+        "java_home_detected": host_env["java_home_detected"],
+        "jcmd_available": host_env["jcmd_available"],
+        "temp_dir": host_env["temp_dir"],
         "instance_id": _INSTANCE_ID,
         "instance_pid": os.getpid(),
         "instance_started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_PROCESS_STARTED_EPOCH)),
@@ -1558,6 +1633,7 @@ def list_diagnostic_artifacts(
     repo_prefix_len = len(str(REPO_ROOT)) + 1
     match_all = glob_pattern == "*"
     use_path_pattern = "/" in glob_pattern or "\\" in glob_pattern
+    prune_internal = not subdir
     target_prefix_len = len(str(target)) + 1
     matched: list[tuple[float, str]] = []
     stack = [str(target)]
@@ -1568,6 +1644,8 @@ def list_diagnostic_artifacts(
                 for entry in it:
                     try:
                         if entry.is_dir(follow_symlinks=False):
+                            if prune_internal and entry.name in _SKIP_DIAGNOSTIC_DIRS:
+                                continue
                             stack.append(entry.path)
                         elif entry.is_file(follow_symlinks=False):
                             if not match_all:
