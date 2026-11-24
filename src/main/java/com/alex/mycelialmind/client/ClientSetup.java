@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.client;
 
+import com.alex.mycelialmind.compat.curios.MycelialCuriosCompat;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.AntibodyCystBlock;
@@ -614,7 +615,8 @@ public final class ClientSetup {
                     boolean hasScanner = mc.player.isCreative()
                             || mc.player.getMainHandItem().is(ModItems.BIO_SCANNER.get())
                             || mc.player.getOffhandItem().is(ModItems.BIO_SCANNER.get())
-                            || containsScannerInInventory(mc.player);
+                            || containsScannerInInventory(mc.player)
+                            || MycelialCuriosCompat.hasEquippedScanner(mc.player);
                     if (hasScanner) {
                         ClientCodexOpener.openBioCodex();
                     } else {

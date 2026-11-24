@@ -826,6 +826,65 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty")
+    public static void curiosScannerEquippingIsOptional(GameTestHelper helper) {
+        var player = FakePlayerFactory.getMinecraft(helper.getLevel());
+        if (net.neoforged.fml.ModList.get().isLoaded("curios")) {
+            CuriosScannerTest.verify(helper, player);
+        } else if (com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.hasEquippedScanner(player)) {
+            helper.fail("Scanner reported equipped without Curios");
+            return;
+        }
+        helper.succeed();
+    }
+
+    private static final class CuriosScannerTest {
+        private static void verify(GameTestHelper helper, net.minecraft.world.entity.player.Player player) {
+            var beltTag = net.minecraft.tags.TagKey.create(Registries.ITEM,
+                    ResourceLocation.fromNamespaceAndPath("curios", "belt"));
+            if (!new ItemStack(ModItems.BIO_SCANNER.get()).is(beltTag)) {
+                helper.fail("Bio-scanner is missing from the Curios belt tag");
+                return;
+            }
+            var inventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).orElseThrow();
+            var belt = inventory.getStacksHandler("belt").orElseThrow().getStacks();
+            ItemStack previous = belt.getStackInSlot(0).copy();
+            try {
+                belt.setStackInSlot(0, new ItemStack(ModItems.BIO_SCANNER.get()));
+                if (!com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.hasEquippedScanner(player)) {
+                    helper.fail("Equipped bio-scanner was not found");
+                }
+            } finally {
+                belt.setStackInSlot(0, previous);
+            }
+        }
+    }
+
+    @GameTest(template = "empty")
+    public static void optionalCuttingRecipeLoadsOnlyWithFarmersDelight(GameTestHelper helper) {
+        var recipe = helper.getLevel().getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(
+                MycelialMind.MODID, "compat/farmersdelight/cutting_tendrils"));
+        boolean farmersDelightLoaded = net.neoforged.fml.ModList.get().isLoaded("farmersdelight");
+        if (recipe.isPresent() != farmersDelightLoaded) {
+            helper.fail("Farmer's Delight cutting recipe has unexpected availability");
+            return;
+        }
+        if (recipe.isPresent()) {
+            var ingredients = recipe.get().value().getIngredients();
+            if (ingredients.size() != 1 || !ingredients.getFirst().test(
+                    new ItemStack(ModBlocks.MYCELIAL_TENDRILS.get()))) {
+                helper.fail("Farmer's Delight cutting recipe has an unexpected ingredient");
+                return;
+            }
+            ItemStack result = recipe.get().value().getResultItem(helper.getLevel().registryAccess());
+            if (!result.is(ModItems.MYCELIAL_BIOMASS.get()) || result.getCount() != 1) {
+                helper.fail("Farmer's Delight cutting recipe has an unexpected result");
+                return;
+            }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
     public static void lootAndRecipesRegistered(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         var server = level.getServer();

@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.network;
 
+import com.alex.mycelialmind.compat.curios.MycelialCuriosCompat;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
@@ -291,7 +292,8 @@ public final class ClientDiscoveryCache {
 
     public static ProgressionGoalEngine.ResearchNextStep resolveClientResearchNextStep(@Nullable Player player) {
         boolean hasExtractor = hasItemInInventory(player, ModItems.BIO_EXTRACTOR.get());
-        boolean hasScanner = hasItemInInventory(player, ModItems.BIO_SCANNER.get());
+        boolean hasScanner = hasItemInInventory(player, ModItems.BIO_SCANNER.get())
+                || MycelialCuriosCompat.hasEquippedScanner(player);
         boolean hasProjSample = hasProjectileDeflectSample(player);
         boolean hasBiomass = hasItemInInventory(player, ModItems.MYCELIAL_BIOMASS.get());
         boolean hasLatentSpore = hasItemInInventory(player, ModItems.LATENT_SPORE.get());

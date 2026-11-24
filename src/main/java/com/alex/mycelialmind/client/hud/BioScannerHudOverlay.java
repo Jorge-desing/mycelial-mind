@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.client.hud;
 
+import com.alex.mycelialmind.compat.curios.MycelialCuriosCompat;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.config.MycelialClientConfig;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
@@ -163,7 +164,8 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         boolean hasBossTelemetry = renderNearbyBossTelemetryBar(graphics, mc, player, sw,
                 tideSec > 0, inDeepMycelium && homeoStage != HomeostasisStage.STABLE, remissionSec > 0);
 
-        boolean hasScanner = isScannerOrExtractor(player.getMainHandItem())
+        boolean hasScanner = MycelialCuriosCompat.hasEquippedScanner(player)
+                || isScannerOrExtractor(player.getMainHandItem())
                 || isScannerOrExtractor(player.getOffhandItem());
         if (!hasScanner && !MycelialClientConfig.isHudRequireHeld()) {
             for (ItemStack invStack : player.getInventory().items) {

@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.client.screen;
 
+import com.alex.mycelialmind.compat.curios.MycelialCuriosCompat;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.data.CodexBookData;
 import com.alex.mycelialmind.data.CodexReloadListener;
@@ -323,7 +324,8 @@ public class MycelialCodexBookScreen extends Screen {
 
         // Bidirectional Bio-Scanner telemetry shortcut
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null && (mc.player.isCreative() || hasItemInInventory(mc.player, ModItems.BIO_SCANNER.get()))) {
+        if (mc.player != null && (mc.player.isCreative() || hasItemInInventory(mc.player, ModItems.BIO_SCANNER.get())
+                || MycelialCuriosCompat.hasEquippedScanner(mc.player))) {
             this.addRenderableWidget(new CodexButton(left + 14, top + PANEL_H - 25, 108, 16,
                     Component.translatable("gui.mycelialmind.codex.open_scanner"),
                     b -> {

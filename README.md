@@ -33,6 +33,24 @@ A diferencia de los enemigos estáticos tradicionales, la **Mente Colmena** (*Hi
 
 ---
 
+## Compatibilidad opcional con otros mods
+
+Versiones probadas en servidor con Minecraft 1.21.1 y NeoForge 21.1.267: Curios 9.6.0, Create 6.0.10 y Farmer’s Delight 1.3.4.
+
+- **Curios API** permite equipar el bioescáner en el cinturón para consultar el HUD y abrir el Códice con `K`. El pulso y la inspección mediante clic derecho requieren sostener el escáner.
+- **Create** permite cortar piedra micelial en ladrillos de arco y placas de quitina en celosías bioquitinosas en la sierra mecánica, siempre que su opción de recetas de cortapiedras esté activada.
+- **Farmer’s Delight** permite cortar un zarcillo micelial con un cuchillo en la tabla de cortar para obtener una biomasa micelial.
+
+### Optional mod compatibility
+
+Server-tested versions on Minecraft 1.21.1 and NeoForge 21.1.267: Curios 9.6.0, Create 6.0.10 and Farmer’s Delight 1.3.4.
+
+- **Curios API** lets you equip the bio-scanner in the belt slot to view its HUD and open the Codex with `K`. Hold the scanner to use its pulse and right-click inspections.
+- **Create** can cut mycelial stone into arch bricks and chitin plates into bio-chitin lattice on the mechanical saw when stonecutting recipes are enabled in Create's configuration.
+- **Farmer’s Delight** lets you cut a mycelial tendril with a knife on the cutting board to obtain one mycelial biomass.
+
+---
+
 ## Compilación y ejecución (Desarrollo)
 
 Desde la raíz del proyecto:

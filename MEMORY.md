@@ -4237,3 +4237,9 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Verificación / Estado:**
   - `CodeMode` (`clear_bridge_cache` + `audit_mod_assets` + `validate_skills` + `get_latest_junit_report`): **`2146/2146` claves EN/ES (`0` faltantes sobre `801` claves referenciadas), `8/8` skills OK, `99/99` JUnit en `11` suites (`5.31s`)**.
   - Gradle JDK 21 (`test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon`): **`BUILD SUCCESSFUL` (`45s`), `185/185` `@GameTest`s (`6.020s`, incluyendo `uxJuiceStationSyncAndTelemetryWorkInRuntime` en `batch = "ux_juice"`)**.
+
+## [2026-11-24] — Compatibilidad opcional Curios, Create y Farmer’s Delight
+- **Tipo:** IMPLEMENTACIÓN | VERIFICACIÓN PARCIAL
+- **Cambios:** El Bio-Escáner equipado en cinturón Curios activa HUD, apertura de Códice y detección de investigación; receta condicional de corte de zarcillo a biomasa para Farmer’s Delight. La sierra de Create usa las recetas de cortapiedras existentes si su opción está habilitada. Documentación bilingüe en README.
+- **Comprobaciones:** build y JUnit OK; 187 GameTests con perfil base, Curios 9.6.0 y tres mods juntos, y últimas ejecuciones individuales de Create 6.0.10 y Farmer’s Delight 1.3.4 exitosas. Una prueba preexistente del aura del Colony Warden falló intermitentemente en tres ejecuciones y pasó en otras. Cliente con los tres mods arrancó y se comprobó HUD y apertura con K en supervivencia, así como retirada del cinturón. Skills 8/8 validadas, revisada su pertinencia y sin cambios requeridos.
+- **Pendiente:** Verificación interactiva de procesamiento en máquinas, reload y pantallas JEI/EMI. La última ejecución combinada precedió un refuerzo del test de ingrediente.

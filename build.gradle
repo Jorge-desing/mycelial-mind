@@ -271,6 +271,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Optional mod integrations (compileOnly so Mycelial Mind runs standalone or alongside any of them)
+    compileOnly "maven.modrinth:curios:KJsZIQrT"
     compileOnly "maven.modrinth:jade:15.10.6+neoforge"
     compileOnly "dev.emi:emi-neoforge:1.1.24+1.21.1:api"
     compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.76.1.481"
