@@ -69,10 +69,29 @@ public final class DiegeticToastManager {
         if (category == null || title == null) {
             return;
         }
-        if (QUEUE.size() >= MAX_QUEUE) {
-            QUEUE.pollFirst();
+        String newTitle = title.getString();
+        if (activeToast != null && activeToast.category() == category
+                && activeToast.title().getString().equals(newTitle)) {
+            return;
         }
-        QUEUE.addLast(new ToastEntry(category, title, subtitle != null ? subtitle : Component.empty(), DEFAULT_DURATION_MS));
+        for (ToastEntry existing : QUEUE) {
+            if (existing.category() == category && existing.title().getString().equals(newTitle)) {
+                return;
+            }
+        }
+        ToastEntry entry = new ToastEntry(category, title, subtitle != null ? subtitle : Component.empty(), DEFAULT_DURATION_MS);
+        boolean highPriority = category == ToastCategory.ACT_TRANSITION || category == ToastCategory.CYCLE_EVENT;
+        if (highPriority) {
+            if (QUEUE.size() >= MAX_QUEUE) {
+                QUEUE.pollLast();
+            }
+            QUEUE.addFirst(entry);
+        } else {
+            if (QUEUE.size() >= MAX_QUEUE) {
+                QUEUE.pollFirst();
+            }
+            QUEUE.addLast(entry);
+        }
     }
 
     public static synchronized int getPendingCount() {
@@ -147,6 +166,12 @@ public final class DiegeticToastManager {
         graphics.fill(x, y, x + cardW, y + cardH, bg);
         graphics.renderOutline(x, y, cardW, cardH, accent);
         graphics.fill(x, y, x + 3, y + cardH, accent);
+
+        float remainFrac = Math.max(0.0F, Math.min(1.0F, 1.0F - (float) elapsed / (float) current.durationMs()));
+        int progW = Math.round((cardW - 3) * remainFrac);
+        if (progW > 0) {
+            graphics.fill(x + 3, y + cardH - 2, x + 3 + progW, y + cardH - 1, accent);
+        }
 
         Component tag = Component.translatable(current.category().tagKey());
         drawScaled(graphics, font, tag, x + 7, y + 4, cardW - 14, accent);

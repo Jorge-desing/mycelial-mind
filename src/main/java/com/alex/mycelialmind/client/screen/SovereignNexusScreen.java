@@ -252,6 +252,7 @@ public class SovereignNexusScreen extends Screen {
                 Component.translatable("gui.mycelialmind.colony.dialect.tab"), button -> {
                     dialectPage = true;
                     memoryPage = false;
+                    com.alex.mycelialmind.client.ClientUiAudio.playTabClick();
                     rebuildColonyWidgets();
                 }).bounds(left + 145, top + 3, 78, 16).build());
         dialect.active = !dialectPage;
@@ -965,6 +966,9 @@ public class SovereignNexusScreen extends Screen {
     }
 
     private static void playClick(float pitch) {
+        if (!com.alex.mycelialmind.config.MycelialClientConfig.uiAudioFeedbackEnabled()) {
+            return;
+        }
         Minecraft.getInstance().getSoundManager().play(
                 SimpleSoundInstance.forUI(ModSounds.BIO_SCANNER_PING.get(), pitch));
     }

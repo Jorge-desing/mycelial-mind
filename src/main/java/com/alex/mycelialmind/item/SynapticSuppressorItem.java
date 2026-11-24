@@ -145,5 +145,7 @@ public class SynapticSuppressorItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.synaptic_suppressor").withStyle(ChatFormatting.AQUA));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.synaptic_suppressor.shift_backlash");
     }
 }

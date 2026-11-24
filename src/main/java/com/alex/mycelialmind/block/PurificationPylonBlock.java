@@ -351,6 +351,11 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         level.sendParticles(ModParticles.PURIFIER_CROSS.get(),
                 pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5,
                 2, 0.15, 0.2, 0.15, 0.01);
+        if (focus != null && focus.getPurificationCharge() > 0 && focus.getPurificationCharge() <= 20) {
+            level.sendParticles(ModParticles.HIVE_EMBER.get(),
+                    pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5,
+                    3, 0.2, 0.2, 0.2, 0.015);
+        }
         level.scheduleTick(pos, this, 40);
     }
 
@@ -371,5 +376,8 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.block.purification_pylon").withStyle(ChatFormatting.AQUA));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.block.purification_pylon.shift_gate",
+                "tooltip.mycelialmind.block.purification_pylon.shift_upkeep");
     }
 }

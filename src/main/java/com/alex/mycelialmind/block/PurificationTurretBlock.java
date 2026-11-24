@@ -109,5 +109,8 @@ public class PurificationTurretBlock extends Block implements EntityBlock {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.block.purification_turret").withStyle(ChatFormatting.AQUA));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.block.purification_turret.shift_gate",
+                "tooltip.mycelialmind.block.purification_turret.shift_ammo");
     }
 }

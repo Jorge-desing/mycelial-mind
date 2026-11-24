@@ -37,6 +37,10 @@ public final class MycelialClientConfig {
     public static final ModConfigSpec.BooleanValue BOSS_TENSION_BED_ENABLED;
     public static final ModConfigSpec.DoubleValue PARTICLE_DENSITY_SCALE;
     public static final ModConfigSpec.BooleanValue ENABLE_ADDITIVE_PARTICLE_GLOW;
+    public static final ModConfigSpec.DoubleValue SCREEN_SHAKE_SCALE;
+    public static final ModConfigSpec.BooleanValue STATUS_VIGNETTE_ENABLED;
+    public static final ModConfigSpec.BooleanValue UI_AUDIO_FEEDBACK_ENABLED;
+    public static final ModConfigSpec.BooleanValue SMOOTH_HUD_BARS_ENABLED;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -107,6 +111,24 @@ public final class MycelialClientConfig {
         ENABLE_ADDITIVE_PARTICLE_GLOW = builder
                 .comment("Render emissive particles with the additive glow pass; disable if a shader pack misbehaves.")
                 .define("enableAdditiveParticleGlow", true);
+        builder.pop();
+
+        builder.push("juice");
+        SCREEN_SHAKE_SCALE = builder
+                .comment("Intensity scale for tactile camera micro-shake on boss impacts, relic discharges, and sudden threat spikes (0.0 = off, 1.0 = full).")
+                .defineInRange("screenShakeScale", 0.65, 0.0, 1.0);
+
+        STATUS_VIGNETTE_ENABLED = builder
+                .comment("Render soft perimeter status vignettes during Spore Rot, Mycelial Infection, Suppressed state, or Overmind threat.")
+                .define("statusVignetteEnabled", true);
+
+        UI_AUDIO_FEEDBACK_ENABLED = builder
+                .comment("Play crisp audio micro-cues when switching tabs or confirming actions in mod screens.")
+                .define("uiAudioFeedbackEnabled", true);
+
+        SMOOTH_HUD_BARS_ENABLED = builder
+                .comment("Smooth Bio-Scanner HUD threat and homeostasis progress bars with subtle change pulses.")
+                .define("smoothHudBarsEnabled", true);
         builder.pop();
 
         SPEC = builder.build();
@@ -181,6 +203,22 @@ public final class MycelialClientConfig {
 
     public static boolean enableAdditiveParticleGlow() {
         return SPEC.isLoaded() ? ENABLE_ADDITIVE_PARTICLE_GLOW.get() : ENABLE_ADDITIVE_PARTICLE_GLOW.getDefault();
+    }
+
+    public static double screenShakeScale() {
+        return SPEC.isLoaded() ? SCREEN_SHAKE_SCALE.get() : SCREEN_SHAKE_SCALE.getDefault();
+    }
+
+    public static boolean statusVignetteEnabled() {
+        return SPEC.isLoaded() ? STATUS_VIGNETTE_ENABLED.get() : STATUS_VIGNETTE_ENABLED.getDefault();
+    }
+
+    public static boolean uiAudioFeedbackEnabled() {
+        return SPEC.isLoaded() ? UI_AUDIO_FEEDBACK_ENABLED.get() : UI_AUDIO_FEEDBACK_ENABLED.getDefault();
+    }
+
+    public static boolean smoothHudBarsEnabled() {
+        return SPEC.isLoaded() ? SMOOTH_HUD_BARS_ENABLED.get() : SMOOTH_HUD_BARS_ENABLED.getDefault();
     }
 
     public static int[] computeHudPosition(

@@ -54,8 +54,8 @@ public class RiftCatalystItem extends Item {
             boolean creative = player.isCreative() || player.getAbilities().instabuild;
             if (!com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canOpenRift(
                     effectiveAct, hiveCoreDefeated, creative)) {
-                player.sendSystemMessage(Component.translatable("message.mycelialmind.rift_gate_locked")
-                        .withStyle(ChatFormatting.YELLOW));
+                player.displayClientMessage(Component.translatable("message.mycelialmind.rift_gate_locked")
+                        .withStyle(ChatFormatting.YELLOW), true);
                 return InteractionResult.FAIL;
             }
             BlockPos riftPos = clicked.above();
@@ -96,5 +96,7 @@ public class RiftCatalystItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.rift_catalyst").withStyle(ChatFormatting.LIGHT_PURPLE));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.rift_catalyst.shift_gate");
     }
 }

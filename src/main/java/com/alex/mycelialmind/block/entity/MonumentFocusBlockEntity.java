@@ -172,10 +172,13 @@ public class MonumentFocusBlockEntity extends BlockEntity {
             return;
         }
         this.purificationCharge = clamped;
-        if (this.level instanceof ServerLevel serverLevel
-                && getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())) {
-            com.alex.mycelialmind.world.PurificationZoneTracker.get(serverLevel)
-                    .setPylonDepleted(getBlockPos(), this.purificationCharge <= 0);
+        if (this.level instanceof ServerLevel serverLevel) {
+            if (getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())) {
+                com.alex.mycelialmind.world.PurificationZoneTracker.get(serverLevel)
+                        .setPylonDepleted(getBlockPos(), this.purificationCharge <= 0);
+            }
+            BlockState state = getBlockState();
+            serverLevel.sendBlockUpdated(this.worldPosition, state, state, 3);
         }
         setChanged();
     }
@@ -220,9 +223,7 @@ public class MonumentFocusBlockEntity extends BlockEntity {
         if (this.tier > 1) {
             tag.putInt(TAG_PYLON_TIER, this.tier);
         }
-        if (this.purificationCharge != com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_INITIAL_CHARGE) {
-            tag.putInt(TAG_PURIFICATION_CHARGE, this.purificationCharge);
-        }
+        tag.putInt(TAG_PURIFICATION_CHARGE, this.purificationCharge);
     }
 
     @Override

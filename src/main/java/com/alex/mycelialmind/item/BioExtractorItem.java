@@ -61,8 +61,8 @@ public class BioExtractorItem extends Item {
                     ? 0.60F
                     : com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.EXTRACTOR_MAX_HEALTH_RATIO;
             if (mob.getHealth() > mob.getMaxHealth() * maxRatio) {
-                player.sendSystemMessage(Component.translatable("message.mycelialmind.extractor_target_too_strong")
-                        .withStyle(ChatFormatting.YELLOW));
+                player.displayClientMessage(Component.translatable("message.mycelialmind.extractor_target_too_strong")
+                        .withStyle(ChatFormatting.YELLOW), true);
                 return InteractionResult.FAIL;
             }
             List<AdaptationTrait> active = new ArrayList<>(mob.getTraits());
@@ -71,8 +71,8 @@ public class BioExtractorItem extends Item {
                 active.add(findDominantTrait(HiveMindSavedData.get(serverLevel)));
             }
             if (active.isEmpty()) {
-                player.sendSystemMessage(Component.translatable("message.mycelialmind.extractor_no_traits")
-                        .withStyle(ChatFormatting.YELLOW));
+                player.displayClientMessage(Component.translatable("message.mycelialmind.extractor_no_traits")
+                        .withStyle(ChatFormatting.YELLOW), true);
                 return InteractionResult.FAIL;
             }
             AdaptationTrait sampled = active.get(mob.getRandom().nextInt(active.size()));
@@ -251,5 +251,8 @@ public class BioExtractorItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.bio_extractor").withStyle(ChatFormatting.LIGHT_PURPLE));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.bio_extractor.shift_rule",
+                "tooltip.mycelialmind.bio_extractor.shift_risk");
     }
 }

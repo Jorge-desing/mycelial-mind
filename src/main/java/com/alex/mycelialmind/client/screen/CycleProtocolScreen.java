@@ -226,6 +226,9 @@ public class CycleProtocolScreen extends Screen {
     }
 
     private static void playUiPing(float pitch) {
+        if (!com.alex.mycelialmind.config.MycelialClientConfig.uiAudioFeedbackEnabled()) {
+            return;
+        }
         Minecraft mc = Minecraft.getInstance();
         if (mc.getSoundManager() != null) {
             mc.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.BIO_SCANNER_PING.get(), pitch, 0.75F));

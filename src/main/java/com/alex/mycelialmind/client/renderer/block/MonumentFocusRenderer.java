@@ -46,15 +46,20 @@ public class MonumentFocusRenderer implements BlockEntityRenderer<MonumentFocusB
             return;
         }
 
-        // Purification Pylon: subtle small rotating prism inside the tripod frame (no outer rings)
+        // Purification Pylon: charge-responsive rotating prism inside the tripod frame
+        var visual = com.alex.mycelialmind.hive.UxJuiceEngine.computePylonVisualState(
+                be.getPurificationCharge(),
+                com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE);
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(MonumentRenderParts.ATLAS_PURIFICATION));
         ModelPart crystal = crystalParts.getChild("crystal");
         poseStack.pushPose();
-        poseStack.translate(0.5D, 0.56D + Math.sin(time * 0.06F) * 0.025D, 0.5D);
-        poseStack.mulPose(Axis.YP.rotationDegrees(time * 1.6F));
-        poseStack.scale(0.38F, 0.42F, 0.38F);
-        crystal.render(poseStack, consumer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                FastColor.ARGB32.color(235, 130, 245, 255));
+        double bob = Math.sin(time * 0.06F) * visual.bobAmplitude();
+        poseStack.translate(0.5D, (be.isDepleted() ? 0.48D : 0.56D) + bob, 0.5D);
+        poseStack.mulPose(Axis.YP.rotationDegrees(time * visual.speedMultiplier()));
+        float s = be.isDepleted() ? 0.30F : 0.38F;
+        poseStack.scale(s, s + 0.04F, s);
+        int light = be.isDepleted() ? packedLight : LightTexture.FULL_BRIGHT;
+        crystal.render(poseStack, consumer, light, OverlayTexture.NO_OVERLAY, visual.tintArgb());
         poseStack.popPose();
     }
 

@@ -136,5 +136,7 @@ public class OvermindCrownItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.overmind_crown").withStyle(ChatFormatting.GOLD));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.overmind_crown.shift_backlash");
     }
 }

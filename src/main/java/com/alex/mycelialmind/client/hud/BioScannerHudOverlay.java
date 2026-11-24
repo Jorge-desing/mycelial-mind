@@ -49,6 +49,11 @@ import java.util.Set;
 public final class BioScannerHudOverlay implements LayeredDraw.Layer {
     private static final ResourceLocation LAYER_ID =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bio_scanner_hud");
+    private static float displayedThreat = -1.0F;
+
+    public static void resetAnimationState() {
+        displayedThreat = -1.0F;
+    }
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
@@ -68,6 +73,27 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         }
         int sw = mc.getWindow().getGuiScaledWidth();
         int sh = mc.getWindow().getGuiScaledHeight();
+
+        if (MycelialClientConfig.statusVignetteEnabled()) {
+            boolean infected = player.hasEffect(ModEffects.MYCELIAL_INFECTION);
+            boolean sporeRot = player.hasEffect(ModEffects.SPORE_ROT);
+            boolean suppressed = ClientHiveCache.getSuppressionSecondsRemaining() > 0;
+            boolean highThreat = ClientHiveCache.getThreatLevel() >= 75.0D;
+            float phase = (player.tickCount + deltaTracker.getGameTimeDeltaPartialTick(true)) * 0.14F;
+            var vig = com.alex.mycelialmind.hive.UxJuiceEngine.computeVignetteState(
+                    infected, sporeRot, suppressed, highThreat, phase, 1.0F);
+            if (vig.alpha() > 0.005F) {
+                int edge = 10;
+                int innerA = Math.max(4, Math.round(vig.alpha() * 0.45F * 255.0F)) & 0xFF;
+                int innerCol = (innerA << 24) | (vig.argb() & 0x00FFFFFF);
+                graphics.fill(0, 0, sw, edge, vig.argb());
+                graphics.fill(0, sh - edge, sw, sh, vig.argb());
+                graphics.fill(0, edge, edge, sh - edge, vig.argb());
+                graphics.fill(sw - edge, edge, sw, sh - edge, vig.argb());
+                graphics.fill(edge, edge, sw - edge, edge + 6, innerCol);
+                graphics.fill(edge, sh - edge - 6, sw - edge, sh - edge, innerCol);
+            }
+        }
 
         MobEffectInstance thermalVision = player.getEffect(ModEffects.SYNAPTIC_VISION);
         if (thermalVision != null) {
@@ -253,10 +279,27 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         int barX = x + 6;
         int barY = y + 17;
         int barW = width - 12;
+        float shownThreat = (float) threat;
+        if (MycelialClientConfig.smoothHudBarsEnabled()) {
+            if (displayedThreat < 0.0F) {
+                displayedThreat = (float) threat;
+            } else {
+                displayedThreat = com.alex.mycelialmind.hive.UxJuiceEngine.lerpBarValue(
+                        displayedThreat, (float) threat, 0.18F);
+            }
+            shownThreat = displayedThreat;
+        } else {
+            displayedThreat = (float) threat;
+        }
         graphics.fill(barX, barY, barX + barW, barY + 6, 0xFF2B193D);
-        int fillW = (int) Math.round(barW * Math.min(1.0, Math.max(0.0, threat / 100.0)));
+        int fillW = (int) Math.round(barW * Math.min(1.0, Math.max(0.0, shownThreat / 100.0)));
         int barColor = threat >= 75.0 ? 0xFFFF3366 : (threat >= 25.0 ? 0xFFE07A5F : 0xFF64DFDF);
         graphics.fill(barX, barY, barX + fillW, barY + 6, barColor);
+        float pulseAlpha = com.alex.mycelialmind.hive.UxJuiceEngine.computeBarPulseAlpha((float) threat - shownThreat);
+        if (pulseAlpha > 0.05F && fillW > 1) {
+            int pByte = Math.min(220, Math.round(pulseAlpha * 200.0F)) & 0xFF;
+            graphics.fill(barX + Math.max(0, fillW - 2), barY, barX + fillW, barY + 6, (pByte << 24) | 0x00FFFFFF);
+        }
 
         int lineY = y + 27;
         Component zoneText = Component.translatable(protectedZone

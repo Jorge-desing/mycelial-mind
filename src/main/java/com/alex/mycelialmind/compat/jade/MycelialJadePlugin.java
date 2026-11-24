@@ -257,21 +257,32 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 tooltip.add(Component.translatable("jade.mycelialmind.turret_info",
                         turret.getTier(),
                         (int) Math.round(turret.getRangeRadius())));
+                tooltip.add(Component.translatable("jade.mycelialmind.turret_ammo",
+                        turret.getAmmo(),
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO));
                 if (turret.isJammed()) {
                     tooltip.add(Component.translatable("jade.mycelialmind.turret_jammed",
                             (int) Math.ceil(turret.getJammedTicks() / 20.0)));
                 }
             } else if (accessor.getBlock() instanceof PurificationPylonBlock) {
+                MonumentFocusBlockEntity focus = accessor.getBlockEntity() instanceof MonumentFocusBlockEntity mf ? mf : null;
                 boolean smothered = AntibodyCystBlock.countAdjacentCysts(accessor.getLevel(), accessor.getPosition())
                         >= DimensionalHomeostasisEngine.SMOTHER_FACE_THRESHOLD;
+                boolean depleted = focus != null && focus.isDepleted();
                 tooltip.add(Component.translatable(smothered
                         ? "jade.mycelialmind.pylon_smothered"
-                        : "jade.mycelialmind.pylon_active"));
-                int tier = accessor.getBlockEntity() instanceof MonumentFocusBlockEntity focus ? focus.getTier() : 1;
-                int radius = accessor.getBlockEntity() instanceof MonumentFocusBlockEntity focus
+                        : (depleted ? "jade.mycelialmind.pylon_depleted" : "jade.mycelialmind.pylon_active")));
+                int tier = focus != null ? focus.getTier() : 1;
+                int radius = focus != null
                         ? focus.getEffectiveRadius(MycelialConfig.PYLON_PURIFICATION_RADIUS.get())
                         : MycelialConfig.PYLON_PURIFICATION_RADIUS.get();
                 tooltip.add(Component.translatable("jade.mycelialmind.pylon_tier", tier, radius));
+                int charge = focus != null
+                        ? focus.getPurificationCharge()
+                        : com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE;
+                tooltip.add(Component.translatable("jade.mycelialmind.pylon_charge",
+                        charge,
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE));
             } else if (accessor.getBlock() instanceof AntibodyCystBlock) {
                 boolean active = accessor.getBlockState().hasProperty(AntibodyCystBlock.ACTIVE)
                         && accessor.getBlockState().getValue(AntibodyCystBlock.ACTIVE);
@@ -315,6 +326,14 @@ public final class MycelialJadePlugin implements IWailaPlugin {
             } else if (accessor.getBlock() instanceof ReclaimedBloomBlock) {
                 tooltip.add(Component.translatable(accessor.getBlockState().getValue(ReclaimedBloomBlock.MATURE)
                         ? "jade.mycelialmind.flora_mature" : "jade.mycelialmind.flora_regrowing"));
+                boolean anchored = com.alex.mycelialmind.block.LuminescentAmberVeinBlock.hasAdjacentConduit(
+                        accessor.getLevel(), accessor.getPosition());
+                var belowState = accessor.getLevel().getBlockState(accessor.getPosition().below());
+                boolean fertileSoil = belowState.is(com.alex.mycelialmind.registry.ModBlocks.MYCELIAL_STONE.get())
+                        || belowState.is(com.alex.mycelialmind.registry.ModBlocks.CREEPING_MYCELIUM.get());
+                tooltip.add(Component.translatable(anchored
+                        ? "jade.mycelialmind.bloom_anchored"
+                        : (fertileSoil ? "jade.mycelialmind.bloom_soil_ok" : "jade.mycelialmind.bloom_needs_soil")));
             } else if (accessor.getBlock() instanceof HyphalVeinBlock) {
                 boolean charged = accessor.getBlockState().hasProperty(HyphalVeinBlock.CHARGED)
                         && accessor.getBlockState().getValue(HyphalVeinBlock.CHARGED);

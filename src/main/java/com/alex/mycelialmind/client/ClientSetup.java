@@ -513,6 +513,11 @@ public final class ClientSetup {
         }
 
         @SubscribeEvent
+        public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
+            ClientJuiceController.applyCameraShake(event);
+        }
+
+        @SubscribeEvent
         public static void onComputeFogColor(ViewportEvent.ComputeFogColor event) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.level != null && mc.player != null
@@ -590,6 +595,8 @@ public final class ClientSetup {
                     com.alex.mycelialmind.client.hud.DiegeticToastManager.clear();
                     com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.clear();
                     ClientSoundscapeDirector.resetSession();
+                    ClientJuiceController.reset();
+                    com.alex.mycelialmind.client.hud.BioScannerHudOverlay.resetAnimationState();
                     CACHED_THERMAL_CYSTS.clear();
                     CACHED_THERMAL_TURRETS.clear();
                     CACHED_THERMAL_VAULTS.clear();
@@ -632,6 +639,7 @@ public final class ClientSetup {
             if (mc.isPaused()) {
                 return;
             }
+            ClientJuiceController.tick(mc.player);
             if (mc.level.dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL)) {
                 HomeostasisStage stage = ClientHiveCache.getHomeostasisStage();
                 if (stage != HomeostasisStage.STABLE) {

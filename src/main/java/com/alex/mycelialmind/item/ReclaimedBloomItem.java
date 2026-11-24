@@ -47,5 +47,7 @@ public final class ReclaimedBloomItem extends BlockItem {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.reclaimed_bloom." + suffix()).withStyle(ChatFormatting.GREEN));
         tooltip.add(Component.translatable("tooltip.mycelialmind.reclaimed_bloom.colony_aura").withStyle(ChatFormatting.AQUA));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.reclaimed_bloom.shift_upkeep");
     }
 }

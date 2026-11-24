@@ -54,8 +54,15 @@ public class SynapticBenchScreen extends AbstractContainerScreen<SynapticBenchMe
         // Synthesis arrow
         graphics.drawString(this.font, "=>", x + 103, y + 38, 0xFF72EFDD, true);
 
-        // Output slot
-        drawSlotBox(graphics, x + 129, y + 33, 0xFF72EFDD);
+        // Output slot (subtle pulse glow when synthesis output is ready)
+        boolean ready = !this.menu.getSlot(SynapticBenchBlockEntity.SLOT_OUTPUT).getItem().isEmpty();
+        int outOutline = 0xFF72EFDD;
+        if (ready) {
+            float pulse = 0.5F + 0.5F * (float) Math.sin((System.currentTimeMillis() % 4000L) * 0.008F);
+            int g = 215 + Math.round(40 * pulse);
+            outOutline = 0xFF000000 | (120 << 16) | (g << 8) | 255;
+        }
+        drawSlotBox(graphics, x + 129, y + 33, outOutline);
 
         // Player inventory grid
         for (int row = 0; row < 3; row++) {
@@ -82,7 +89,7 @@ public class SynapticBenchScreen extends AbstractContainerScreen<SynapticBenchMe
             graphics.drawString(this.font, this.title, 8, 6, 0xFFE6C2FF, false);
         }
         graphics.drawCenteredString(this.font, "?", BADGE_REL_X + BADGE_W / 2, BADGE_REL_Y + 2, 0xFF72EFDD);
-        drawScaledLabel(graphics, Component.translatable("gui.mycelialmind.bench.tier", this.menu.getLabTier()),
+        drawScaledLabel(graphics, Component.translatable("gui.mycelialmind.bench.tier", this.menu.getEffectiveLabTier()),
                 8, 22, 18, 0xFFFFD166);
         drawScaledLabel(graphics, Component.translatable("gui.mycelialmind.bench.slots_header"), 28, 22, 86, 0xFF9DE0AD);
         drawScaledLabel(graphics, Component.translatable("gui.mycelialmind.bench.output_header"), 129, 22, 40, 0xFF72EFDD);

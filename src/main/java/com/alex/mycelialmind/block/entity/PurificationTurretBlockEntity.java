@@ -130,6 +130,10 @@ public class PurificationTurretBlockEntity extends BlockEntity {
         int clamped = Math.max(0, Math.min(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO, ammo));
         if (this.ammo != clamped) {
             this.ammo = clamped;
+            if (this.level instanceof ServerLevel serverLevel) {
+                BlockState state = getBlockState();
+                serverLevel.sendBlockUpdated(this.worldPosition, state, state, 3);
+            }
             setChanged();
         }
     }
@@ -310,6 +314,11 @@ public class PurificationTurretBlockEntity extends BlockEntity {
             }
         }
         be.fireCooldownTicks = interval;
+        if (be.ammo > 0 && be.ammo <= 6 && be.tickCounter % 15 == 0) {
+            serverLevel.sendParticles(ModParticles.HIVE_EMBER.get(),
+                    pos.getX() + 0.5, pos.getY() + 1.15, pos.getZ() + 0.5,
+                    2, 0.16, 0.14, 0.16, 0.01);
+        }
         if (!be.hasAmmo()) {
             serverLevel.sendParticles(ModParticles.SPORE_FALL.get(),
                     pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5,
@@ -372,9 +381,7 @@ public class PurificationTurretBlockEntity extends BlockEntity {
         if (this.jammedTicks > 0) {
             tag.putInt(TAG_JAMMED_TICKS, this.jammedTicks);
         }
-        if (this.ammo != com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO) {
-            tag.putInt(TAG_AMMO, this.ammo);
-        }
+        tag.putInt(TAG_AMMO, this.ammo);
     }
 
     @Override

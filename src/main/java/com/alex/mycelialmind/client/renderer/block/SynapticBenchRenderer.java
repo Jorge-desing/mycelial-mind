@@ -36,14 +36,17 @@ public class SynapticBenchRenderer implements BlockEntityRenderer<SynapticBenchB
         if (be.getLevel() == null) {
             return;
         }
+        boolean hasOutput = !be.getInventory().getStackInSlot(SynapticBenchBlockEntity.SLOT_OUTPUT).isEmpty();
+        var visual = com.alex.mycelialmind.hive.UxJuiceEngine.computeBenchVisualState(
+                be.getEffectiveLabTier(), hasOutput, false);
         float time = be.getLevel().getGameTime() + partialTick;
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(MonumentRenderParts.ATLAS_PURIFICATION));
         poseStack.pushPose();
-        poseStack.translate(0.25D, 0.96D + Math.sin(time * 0.07F) * 0.015D, 0.72D);
-        poseStack.mulPose(Axis.YP.rotationDegrees(time * 1.8F));
+        poseStack.translate(0.25D, 0.96D + Math.sin(time * 0.07F) * visual.bobAmplitude(), 0.72D);
+        poseStack.mulPose(Axis.YP.rotationDegrees(time * visual.speedMultiplier()));
         poseStack.scale(0.26F, 0.30F, 0.26F);
         crystalParts.getChild("crystal").render(poseStack, consumer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                FastColor.ARGB32.color(230, 120, 255, 220));
+                visual.tintArgb());
         poseStack.popPose();
     }
 

@@ -10133,4 +10133,64 @@ public final class MycelialGameTests {
             releaseArenaChunks(level, forcedChunks);
         }
     }
+
+    @GameTest(template = "empty", batch = "ux_juice")
+    public static void uxJuiceStationSyncAndTelemetryWorkInRuntime(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos origin = helper.absolutePos(new BlockPos(1, 2, 1));
+        BlockPos pylonPos = origin;
+        BlockPos turretPos = origin.east(2);
+        List<BlockPos> placed = List.of(pylonPos.below(), pylonPos, turretPos.below(), turretPos);
+        try {
+            level.setBlockAndUpdate(pylonPos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            level.setBlockAndUpdate(turretPos.below(), Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(turretPos, ModBlocks.PURIFICATION_TURRET.get().defaultBlockState());
+
+            var focus = (MonumentFocusBlockEntity) level.getBlockEntity(pylonPos);
+            var turret = (PurificationTurretBlockEntity) level.getBlockEntity(turretPos);
+            helper.assertTrue(focus != null && turret != null, "Pylon and Turret block entities must exist.");
+
+            focus.setPurificationCharge(15);
+            CompoundTag lowPylonTag = focus.getUpdateTag(level.registryAccess());
+            helper.assertTrue(lowPylonTag.getInt("PurificationCharge") == 15,
+                    "MonumentFocusBlockEntity update tag must sync low charge to client.");
+            focus.setPurificationCharge(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE);
+            CompoundTag fullPylonTag = focus.getUpdateTag(level.registryAccess());
+            helper.assertTrue(fullPylonTag.getInt("PurificationCharge") == com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE,
+                    "MonumentFocusBlockEntity update tag must still include default/full charge after recharge.");
+
+            turret.setAmmo(5);
+            CompoundTag lowTurretTag = turret.getUpdateTag(level.registryAccess());
+            helper.assertTrue(lowTurretTag.getInt("TurretAmmo") == 5,
+                    "PurificationTurretBlockEntity update tag must sync low ammo to client.");
+            turret.setAmmo(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO);
+            CompoundTag restockTurretTag = turret.getUpdateTag(level.registryAccess());
+            helper.assertTrue(restockTurretTag.getInt("TurretAmmo") == com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO,
+                    "PurificationTurretBlockEntity update tag must still sync default ammo count.");
+
+            var lowVisual = com.alex.mycelialmind.hive.UxJuiceEngine.computePylonVisualState(15, 100);
+            var emptyVisual = com.alex.mycelialmind.hive.UxJuiceEngine.computeTurretVisualState(0, 64, false, 2);
+            var benchVisual = com.alex.mycelialmind.hive.UxJuiceEngine.computeBenchVisualState(2, true, false);
+            helper.assertTrue(lowVisual.speedMultiplier() > 0.0F
+                            && (emptyVisual.tintArgb() & 0x00FFFFFF) == 0x00E63946
+                            && benchVisual.speedMultiplier() > 2.0F,
+                    "UxJuiceEngine station visual states must stay calibrated.");
+
+            helper.assertFalse(com.alex.mycelialmind.util.ClientTooltipHelper.isShiftDown(),
+                    "ClientTooltipHelper must safely return false on dedicated server.");
+            helper.assertTrue(com.alex.mycelialmind.config.MycelialClientConfig.screenShakeScale() >= 0.0D
+                            && com.alex.mycelialmind.config.MycelialClientConfig.statusVignetteEnabled()
+                            && com.alex.mycelialmind.config.MycelialClientConfig.uiAudioFeedbackEnabled()
+                            && com.alex.mycelialmind.config.MycelialClientConfig.smoothHudBarsEnabled(),
+                    "MycelialClientConfig [juice] defaults must be safe and accessible.");
+
+            helper.succeed();
+        } finally {
+            PurificationZoneTracker.get(level).removePylon(pylonPos);
+            for (BlockPos p : placed) {
+                level.removeBlock(p, false);
+            }
+        }
+    }
 }

@@ -48,18 +48,21 @@ public class PurificationTurretRenderer implements BlockEntityRenderer<Purificat
         if (be.clientAimTargetUpdateTick == Long.MIN_VALUE
                 || gameTime - be.clientAimTargetUpdateTick >= 5L) {
             be.clientAimTargetUpdateTick = gameTime;
-            float targetYaw = time * 1.4F;
+            boolean impaired = be.isJammed() || !be.hasAmmo();
+            float targetYaw = time * (impaired ? 0.25F : 1.4F);
             double rangeRadius = be.getRangeRadius();
             double rangeSq = rangeRadius * rangeRadius;
             List<? extends Player> nearbyPlayers = be.getLevel().players().stream()
                     .filter(player -> !player.isSpectator()
                             && player.blockPosition().distSqr(be.getBlockPos()) <= rangeSq)
                     .toList();
-            List<MycelialMob> mobs = be.getLevel().getEntitiesOfClass(
+            List<MycelialMob> mobs = impaired ? List.of() : be.getLevel().getEntitiesOfClass(
                     MycelialMob.class,
                     new AABB(be.getBlockPos()).inflate(rangeRadius),
                     MycelialMob::isAlive);
-            mobs.removeIf(mob -> !PurificationTurretBlockEntity.isEligibleTarget(mob, nearbyPlayers));
+            if (!mobs.isEmpty()) {
+                mobs.removeIf(mob -> !PurificationTurretBlockEntity.isEligibleTarget(mob, nearbyPlayers));
+            }
             MycelialMob target = PurificationTurretBlockEntity.pickPriorityTarget(be.getBlockPos(), mobs);
             if (target != null) {
                 double dx = target.getX() - (be.getBlockPos().getX() + 0.5);
@@ -68,13 +71,16 @@ public class PurificationTurretRenderer implements BlockEntityRenderer<Purificat
             }
             be.clientAimTargetYaw = targetYaw;
         }
-        be.clientAimYaw = Mth.rotLerp(0.18F, be.clientAimYaw, be.clientAimTargetYaw);
+        int tier = be.getTier();
+        var visual = com.alex.mycelialmind.hive.UxJuiceEngine.computeTurretVisualState(
+                be.getAmmo(),
+                com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO,
+                be.isJammed(),
+                tier);
+        be.clientAimYaw = Mth.rotLerp(visual.aimLerpSpeed(), be.clientAimYaw, be.clientAimTargetYaw);
 
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(MonumentRenderParts.ATLAS_PURIFICATION));
-        int tier = be.getTier();
-        int tint = tier >= 3
-                ? FastColor.ARGB32.color(245, 255, 225, 130)
-                : FastColor.ARGB32.color(245, 140, 245, 255);
+        int tint = visual.tintArgb();
 
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.72D, 0.5D);

@@ -126,5 +126,8 @@ public class SynapticResearchBenchBlock extends Block implements EntityBlock {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.block.synaptic_research_bench").withStyle(ChatFormatting.LIGHT_PURPLE));
+        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+                "tooltip.mycelialmind.block.synaptic_research_bench.shift_gate",
+                "tooltip.mycelialmind.block.synaptic_research_bench.shift_amber");
     }
 }

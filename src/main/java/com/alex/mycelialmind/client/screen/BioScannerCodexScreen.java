@@ -208,7 +208,10 @@ public class BioScannerCodexScreen extends Screen {
     }
 
     private void setActiveTab(int tab) {
-        this.activeTab = tab;
+        if (this.activeTab != tab) {
+            this.activeTab = tab;
+            com.alex.mycelialmind.client.ClientUiAudio.playTabClick();
+        }
         updateResearchButtonsVisibility();
     }
 

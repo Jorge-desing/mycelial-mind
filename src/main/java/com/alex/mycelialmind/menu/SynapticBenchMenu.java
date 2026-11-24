@@ -136,6 +136,10 @@ public class SynapticBenchMenu extends AbstractContainerMenu {
         return blockEntity.getLabTier();
     }
 
+    public int getEffectiveLabTier() {
+        return blockEntity.getEffectiveLabTier();
+    }
+
     @javax.annotation.Nullable
     public HiveProgressionTier getBlockedAct(HiveProgressionTier clientEffectiveAct) {
         return blockEntity.computeSynthesisDetails(clientEffectiveAct).blockedByAct();

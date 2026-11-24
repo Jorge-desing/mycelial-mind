@@ -507,6 +507,9 @@ public class MycelialCodexBookScreen extends Screen {
     }
 
     private static void playUiSound(SoundEvent sound, float pitch) {
+        if (!com.alex.mycelialmind.config.MycelialClientConfig.uiAudioFeedbackEnabled()) {
+            return;
+        }
         Minecraft mc = Minecraft.getInstance();
         if (mc.getSoundManager() != null) {
             mc.getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch, 0.75F));

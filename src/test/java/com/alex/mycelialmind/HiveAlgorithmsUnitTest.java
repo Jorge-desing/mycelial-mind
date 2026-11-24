@@ -2359,4 +2359,47 @@ class HiveAlgorithmsUnitTest {
         assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.shouldBloomConsumeMaturation(12, true, false));
         assertFalse(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.shouldBloomConsumeMaturation(12, false, true));
     }
+
+    @Test
+    void uxJuiceEngineCoversShakeVignetteLerpAndStationVisuals() {
+        assertEquals(0.0F, com.alex.mycelialmind.hive.UxJuiceEngine.computeShakeDecay(0.05F, 0.10F));
+        float[] zeroAngles = com.alex.mycelialmind.hive.UxJuiceEngine.computeShakeAngles(0.0F, 12.0F, 1.0F);
+        assertEquals(0.0F, zeroAngles[0]);
+        assertEquals(0.0F, zeroAngles[1]);
+        assertEquals(0.0F, zeroAngles[2]);
+
+        float[] clampedAngles = com.alex.mycelialmind.hive.UxJuiceEngine.computeShakeAngles(5.0F, 7.0F, 2.0F);
+        for (float ang : clampedAngles) {
+            assertTrue(Math.abs(ang) <= com.alex.mycelialmind.hive.UxJuiceEngine.MAX_SHAKE_DEGREES + 1e-4F);
+        }
+
+        var rotVignette = com.alex.mycelialmind.hive.UxJuiceEngine.computeVignetteState(
+                true, true, true, true, 1.2F, 1.0F);
+        assertEquals(0x9D4EDD, rotVignette.argb() & 0x00FFFFFF);
+        assertTrue(rotVignette.alpha() > 0.0F && rotVignette.alpha() <= com.alex.mycelialmind.hive.UxJuiceEngine.MAX_VIGNETTE_ALPHA);
+
+        var clearVignette = com.alex.mycelialmind.hive.UxJuiceEngine.computeVignetteState(
+                false, false, false, false, 0.5F, 1.0F);
+        assertEquals(0.0F, clearVignette.alpha());
+
+        float lerped = com.alex.mycelialmind.hive.UxJuiceEngine.lerpBarValue(10.0F, 50.0F, 0.25F);
+        assertEquals(20.0F, lerped, 1e-4F);
+        assertEquals(50.0F, com.alex.mycelialmind.hive.UxJuiceEngine.lerpBarValue(49.998F, 50.0F, 0.25F), 1e-4F);
+        assertTrue(com.alex.mycelialmind.hive.UxJuiceEngine.computeBarPulseAlpha(5.0F) > 0.0F);
+
+        var pylonDepleted = com.alex.mycelialmind.hive.UxJuiceEngine.computePylonVisualState(0, 100);
+        assertEquals(0.0F, pylonDepleted.speedMultiplier());
+        var pylonLow = com.alex.mycelialmind.hive.UxJuiceEngine.computePylonVisualState(15, 100);
+        assertEquals(0x00FFB703, pylonLow.tintArgb() & 0x00FFFFFF);
+        var pylonHealthy = com.alex.mycelialmind.hive.UxJuiceEngine.computePylonVisualState(80, 100);
+        assertTrue(pylonHealthy.speedMultiplier() > pylonLow.speedMultiplier());
+
+        var turretEmpty = com.alex.mycelialmind.hive.UxJuiceEngine.computeTurretVisualState(0, 64, false, 3);
+        assertEquals(0x00E63946, turretEmpty.tintArgb() & 0x00FFFFFF);
+        var turretLow = com.alex.mycelialmind.hive.UxJuiceEngine.computeTurretVisualState(5, 64, false, 2);
+        assertEquals(0x00FFB703, turretLow.tintArgb() & 0x00FFFFFF);
+
+        var benchReady = com.alex.mycelialmind.hive.UxJuiceEngine.computeBenchVisualState(2, true, false);
+        assertTrue(benchReady.speedMultiplier() >= 2.5F);
+    }
 }
