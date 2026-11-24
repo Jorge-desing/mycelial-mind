@@ -4007,6 +4007,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Reglas de revisión y cierre de ramas
 - Actualizadas AGENTS.md, GEMINI.md y .agents/rules/git-auto-commit.md: revisión de todos los cambios propios, commit, push y merge de ramas creadas, con comprobación de checks y destino y comunicación de bloqueos. Revisada la pertinencia de skills: ninguna requiere cambios.
 
+<<<<<<< Updated upstream
 ## 2026-11-23 — Barrera de progresión de colonia
 - El Nexo, biomasa manual y automatizada, incubación incluso con bypass o creativo, mejoras, controles de red y bastón, IA de trabajadores, director, escáner y comandos activos respetan el hito de Matriarca. La reconstrucción consulta la misma regla global que el Nexo. Los datos anteriores se conservan mientras el sistema está bloqueado.
 - El GameTest de tolvas comprueba rechazo sin crear datos, incubación y mejora bloqueadas incluso con bypass y aceptación después del hito. JUnit pasó; dos ejecuciones completas de GameTests pasaron 176/176 antes del último ajuste de sincronización; la ejecución final pasó los tests de colonia pero falló el test intermitente de brote ciego (élite ausente). Falta ampliar cobertura de las rutas de bastón y red para afirmar verificación integral.
@@ -4019,3 +4020,34 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - Un Nexo activado por un jugador creativo o por un comando administrativo guarda una excepción persistente por colonia: activa trabajadores, automatización, red, reconstrucción y director sin alterar el hito mundial de Matriarca ni desbloquear otras colonias. Un Nexo colocado en supervivencia registra sus datos pero permanece inactivo hasta la victoria o hasta una intervención administrativa.
 - Creativo puede incubar sin coste ni límite de población y mejorar sin coste; los controles de la pantalla reflejan esas posibilidades. Los comandos de incubación, mejora, biomasa, incursión y verificación ya no exigen derrotar a la Matriarca.
 - JUnit y GameTests aislados 178/178 pasaron; la prueba nueva verifica creativo, persistencia, aislamiento entre colonias, trabajadores, tolvas y el comando real de mejora. Una ejecución intermedia falló solo el test intermitente de brote ciego; la repetición completa pasó.
+=======
+## [2026-11-23 20:12] — Actualización de regla global de revisión, commit, push y merge de PRs
+- **Tipo:** `DECISIÓN`
+- **Resumen:** Se actualizó la regla global en `C:\Users\Alex\.gemini\GEMINI.md` para alinearla con las reglas del proyecto (`.agents/rules/git-auto-commit.md`, `GEMINI.md`, `AGENTS.md`): exigir revisión completa del estado y diff de cambios propios (incluidos archivos nuevos) sin dejar cambios sin revisar, commit descriptivo, push a `origin` y merge obligatorio de cualquier rama o PR que se abra tras verificar los checks requeridos y el CI en destino. Se revisó la pertinencia de las skills del proyecto y no requirieron cambios.
+- **Archivos / Símbolos:** `C:\Users\Alex\.gemini\GEMINI.md`.
+- **Estado / Siguiente paso:** Regla global y reglas del proyecto sincronizadas.
+
+## [2026-11-23 20:36] — Revisión, corrección y fusión de PRs abiertos (#12–#16)
+- **Tipo:** `VERIFICACIÓN` | `CORRECCIÓN` | `DECISIÓN`
+- **Resumen:** Se revisaron los 5 PRs abiertos en GitHub (#12–#16). Se detectó que GitHub Actions bloqueó ejecuciones recientes por límite de facturación/gasto en la cuenta, por lo que se validó todo en un worktree temporal aislado sobre `origin/main` sin alterar los cambios locales pendientes:
+  - **PR #12 (`gdx:1.14.2`):** Cerrado como incompatible (`gdx` debe mantenerse en `1.9.8` para coincidir con `gdx-ai:1.8.2`; `1.14.2` fallaba resolución en `:gameTestServerLegacyClasspath`). Se deshabilitó `com.badlogicgames.gdx:gdx` en `renovate.json`.
+  - **PR #13 (`iris:1.11.7+26.3-neoforge`):** Cerrado por apuntar a Minecraft `26.3` y romper compilación de `MycelialIrisCompat`. Se restringió `maven.modrinth:iris` en `renovate.json` a `/\+1\.21\.1-neoforge$/` y se validó con `renovate-config-validator --no-global --strict` (`cb1473c`).
+  - **PR #15 (`jei-1.21.1-neoforge-api:19.76.1.481`) y PR #16 (`junit-jupiter:5.14.4`):** Verificados juntos con `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` (`BUILD SUCCESSFUL in 3m 17s`, `All 177 required tests passed :)`, `Dry run publishGithub`) y fusionados en `main`.
+  - **PR #14 (`codex/post-matriarch-colony-memory-integration`):** Se limpió la reescritura de saltos de línea/duplicado en `MEMORY.md`, se amplió `timeoutTicks = 800` en `matriarchCitadelPieceGeneratesCryptChapelsAndGuardians` y `sovereignRivalRaidDefenseAwardsXpAndMoraleTest` para evitar timeouts multi-chunk en `GameTestServer` sin pausa de 50 ms, se verificó (`BUILD SUCCESSFUL in 29s`, `All 179 required tests passed :)`, `Dry run publishGithub`) y se fusionó en `main`.
+- **Archivos / Símbolos:** `renovate.json`, `build.gradle`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`.
+- **Estado / Siguiente paso:** `0` PRs abiertos en GitHub. Skills revisadas sin cambios necesarios. Pendiente en la cuenta de GitHub revisar la sección *Billing & plans* para reactivar los runners de GitHub Actions.
+
+## [2026-11-23 21:03] — Revisión, verificación y fusión de PRs de Renovate (#17–#27)
+- **Tipo:** `VERIFICACIÓN` | `CORRECCIÓN` | `DECISIÓN`
+- **Resumen:** Se procesaron los 11 PRs de Renovate (#17–#27) usando un worktree temporal aislado sobre `origin/main` sin tocar los cambios locales pendientes:
+  - **Cerrados como incompatibles y fijados en `renovate.json`:**
+    - **PR #21 (`java-jdk` → `v25`):** Incompatible con MC 1.21.1 / NeoForge 21.1 (`Java 21` requerido); fijado a `/^21(\b|\.)/`.
+    - **PR #22 (`gradle` → `v9`):** Incompatible con ModDevGradle 2.0.91 / Pitest 1.15.0; fijado a `/^8\./`.
+    - **PR #24 (`maven.modrinth:jade` → `v26`):** Apunta a MC 26.x en lugar de 1.21.1; restringido a `/^15\./`.
+    - **PR #26 (`maven.modrinth:spark` → `1.10.187-neoforge`):** Compilado con Java 25 (`class file version 69.0`), falla al cargar en Java 21 con `-Pdiagnostics=true`; deshabilitado en `renovate.json`.
+  - **Verificados y fusionados en `origin/main`:**
+    - **PRs #18 (`actions/checkout` v7), #19 (`actions/setup-java` v6), #20 (`astral-sh/setup-uv` v10.4.0):** Workflows de GitHub Actions revisados y fusionados.
+    - **PRs #17 (`iris:1.8.12+1.21.1-neoforge`), #23 (`mod-publish-plugin:v2`), #25 (`observable:5.4.4+neoforge`), #27 (`junit-jupiter:v6`):** Verificados juntos con `.\gradlew.bat --console=plain --max-workers=2 -Pdiagnostics=true test build runGameTestServer publishMods -PpublishDryRun=true` (`BUILD SUCCESSFUL in 49s`, `All 179 required tests passed :)`, `Dry run publishGithub`) y fusionados en `main`.
+- **Archivos / Símbolos:** `renovate.json` (`5e29305`, `588118d`), `.github/workflows/verify.yml`, `build.gradle`.
+- **Estado / Siguiente paso:** `0` PRs abiertos en GitHub. Skills revisadas sin cambios necesarios.
+>>>>>>> Stashed changes
