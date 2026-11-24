@@ -3988,20 +3988,6 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Revisión del bloqueo post-Matriarca
 - Revisión estática de la rama de integración aaebbb7: la interfaz normal y la incubación comprueban la derrota, pero la creación y ticks del Nexo, la inserción de biomasa, el bastón, el director y el manejador de paquetes no aplican una barrera global; creativo y comandos tienen excepciones explícitas. La receta exige esencia disponible también en el cofre citadel_royal_crypt, por lo que el ingrediente por sí solo no prueba el bloqueo. No se modificó código ni se ejecutaron pruebas de juego.
 
-## 2026-11-23 — Barrera de progresión de colonia
-- El Nexo, biomasa manual y automatizada, incubación incluso con bypass o creativo, mejoras, controles de red y bastón, IA de trabajadores, director, escáner y comandos activos respetan el hito de Matriarca. La reconstrucción consulta la misma regla global que el Nexo. Los datos anteriores se conservan mientras el sistema está bloqueado.
-- El GameTest de tolvas comprueba rechazo sin crear datos, incubación y mejora bloqueadas incluso con bypass y aceptación después del hito. JUnit pasó; dos ejecuciones completas de GameTests pasaron 176/176 antes del último ajuste de sincronización; la ejecución final pasó los tests de colonia pero falló el test intermitente de brote ciego (élite ausente). Falta ampliar cobertura de las rutas de bastón y red para afirmar verificación integral.
-
-## 2026-11-23 — Verificación del bloqueo de colonia
-- Se añadió un GameTest con datos de colonia conservados: antes del hito, el bastón no marca zonas, una acción de red no mejora el Nexo y el snapshot oculta la colonia; tras registrar la derrota, las tres operaciones funcionan. El manejador de red y el test comparten la misma función ejecutada en el hilo de servidor.
-- Verificación final: JUnit y GameTests aislados 177/177 correctos (`test runGameTestServer -PisolatedGameTests=true --no-daemon --offline`). Una corrida no aislada previa falló únicamente el test intermitente de brote ciego, mientras el escenario nuevo pasó.
-
-## 2026-11-23 — Control creativo y comandos de colonia
-- Un Nexo activado por un jugador creativo o por un comando administrativo guarda una excepción persistente por colonia: activa trabajadores, automatización, red, reconstrucción y director sin alterar el hito mundial de Matriarca ni desbloquear otras colonias. Un Nexo colocado en supervivencia registra sus datos pero permanece inactivo hasta la victoria o hasta una intervención administrativa.
-- Creativo puede incubar sin coste ni límite de población y mejorar sin coste; los controles de la pantalla reflejan esas posibilidades. Los comandos de incubación, mejora, biomasa, incursión y verificación ya no exigen derrotar a la Matriarca.
-- JUnit y GameTests aislados 178/178 pasaron; la prueba nueva verifica creativo, persistencia, aislamiento entre colonias, trabajadores, tolvas y el comando real de mejora. Una ejecución intermedia falló solo el test intermitente de brote ciego; la repetición completa pasó.
-- Revisión estática de la rama de integración aaebbb7: la interfaz normal y la incubación comprueban la derrota, pero la creación y ticks del Nexo, la inserción de biomasa, el bastón, el director y el manejador de paquetes no aplican una barrera global; creativo y comandos tienen excepciones explícitas. La receta exige esencia disponible también en el cofre citadel_royal_crypt, por lo que el ingrediente por sí solo no prueba el bloqueo. No se modificó código ni se ejecutaron pruebas de juego.
-
 ## 2026-11-23 — CI de Renovate
 - PR #9 (a547fed) y #10 (47be7dc) terminaron Verify Mycelial Mind con los tres jobs verdes. PR #6 y #7 ya estaban fusionados. Skill neoforge-gametest revisada sin cambios.
 
@@ -4020,3 +4006,16 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 
 ## 2026-11-23 — Reglas de revisión y cierre de ramas
 - Actualizadas AGENTS.md, GEMINI.md y .agents/rules/git-auto-commit.md: revisión de todos los cambios propios, commit, push y merge de ramas creadas, con comprobación de checks y destino y comunicación de bloqueos. Revisada la pertinencia de skills: ninguna requiere cambios.
+
+## 2026-11-23 — Barrera de progresión de colonia
+- El Nexo, biomasa manual y automatizada, incubación incluso con bypass o creativo, mejoras, controles de red y bastón, IA de trabajadores, director, escáner y comandos activos respetan el hito de Matriarca. La reconstrucción consulta la misma regla global que el Nexo. Los datos anteriores se conservan mientras el sistema está bloqueado.
+- El GameTest de tolvas comprueba rechazo sin crear datos, incubación y mejora bloqueadas incluso con bypass y aceptación después del hito. JUnit pasó; dos ejecuciones completas de GameTests pasaron 176/176 antes del último ajuste de sincronización; la ejecución final pasó los tests de colonia pero falló el test intermitente de brote ciego (élite ausente). Falta ampliar cobertura de las rutas de bastón y red para afirmar verificación integral.
+
+## 2026-11-23 — Verificación del bloqueo de colonia
+- Se añadió un GameTest con datos de colonia conservados: antes del hito, el bastón no marca zonas, una acción de red no mejora el Nexo y el snapshot oculta la colonia; tras registrar la derrota, las tres operaciones funcionan. El manejador de red y el test comparten la misma función ejecutada en el hilo de servidor.
+- Verificación final: JUnit y GameTests aislados 177/177 correctos (`test runGameTestServer -PisolatedGameTests=true --no-daemon --offline`). Una corrida no aislada previa falló únicamente el test intermitente de brote ciego, mientras el escenario nuevo pasó.
+
+## 2026-11-23 — Control creativo y comandos de colonia
+- Un Nexo activado por un jugador creativo o por un comando administrativo guarda una excepción persistente por colonia: activa trabajadores, automatización, red, reconstrucción y director sin alterar el hito mundial de Matriarca ni desbloquear otras colonias. Un Nexo colocado en supervivencia registra sus datos pero permanece inactivo hasta la victoria o hasta una intervención administrativa.
+- Creativo puede incubar sin coste ni límite de población y mejorar sin coste; los controles de la pantalla reflejan esas posibilidades. Los comandos de incubación, mejora, biomasa, incursión y verificación ya no exigen derrotar a la Matriarca.
+- JUnit y GameTests aislados 178/178 pasaron; la prueba nueva verifica creativo, persistencia, aislamiento entre colonias, trabajadores, tolvas y el comando real de mejora. Una ejecución intermedia falló solo el test intermitente de brote ciego; la repetición completa pasó.

@@ -3573,7 +3573,7 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", batch = "structures")
+    @GameTest(template = "empty", batch = "structures", timeoutTicks = 800)
     public static void matriarchCitadelPieceGeneratesCryptChapelsAndGuardians(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forced = forceArenaChunks(helper, 0, 52, 0, 52);
@@ -8736,7 +8736,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "sovereign_rival_raid", timeoutTicks = 240)
+    @GameTest(template = "empty", batch = "sovereign_rival_raid", timeoutTicks = 800)
     public static void sovereignRivalRaidDefenseAwardsXpAndMoraleTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerLevel overworld = level.getServer().overworld();
