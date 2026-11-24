@@ -247,7 +247,7 @@ def smartBrainDependency = "net.tslat.smartbrainlib:SmartBrainLib-neoforge-1.21.
 dependencies {
     // Opt-in diagnostics only; never published as mod dependencies.
     if (providers.gradleProperty('diagnostics').isPresent()) {
-        localRuntime 'maven.modrinth:spark:v5qtqRQi'
+        localRuntime 'maven.modrinth:spark:1.10.187-neoforge'
         localRuntime 'maven.modrinth:observable:5.4.4+neoforge'
         localRuntime 'maven.modrinth:kotlin-for-forge:9ZlVvei8'
         localRuntime 'maven.modrinth:architectury-api:xGfBrBzj'
