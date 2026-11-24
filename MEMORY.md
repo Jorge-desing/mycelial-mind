@@ -4091,3 +4091,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, navegación y llamadas verificadas
 - GameTest con entidades activas verifica navegación autónoma del aprendiz de ida y regreso, restaurando SavedData en ambas fases. El evento de demostración se invoca desde la prueba, sin reproducir todavía el oficio real.
 - Ampliado el escenario de tres puestos para comprobar llamada de escolta y respuesta del goal Centinela, y concesión del turno al primer mensajero en espera. JUnit y GameTests aislados 181/181 pasaron. Pendiente demostración mediante oficio autónomo, descarga real de chunks y revisión visual/audio en cliente.
+
+## 2026-11-23 — Dialectos, demostración mediante trabajo autónomo
+- El GameTest de navegación ahora espera que el maestro descanse y coseche una seta mediante sus goals reales; el aprendiz observa y regresa sin teletransporte. Se conserva en NBT el puesto del descanso pendiente y el test serializa/restaura ese NBT durante el descanso, además de restaurar SavedData en el viaje.
+- JUnit y GameTests aislados 181/181 pasaron. La prueba restaura NBT y SavedData, pero no descarga físicamente el chunk. Pendiente verificar descarga real, revisión de interfaz y audio en cliente y auditoría final del plan.

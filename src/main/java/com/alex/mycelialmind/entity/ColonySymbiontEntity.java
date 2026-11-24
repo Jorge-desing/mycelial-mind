@@ -102,6 +102,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
     private static final String TAG_POUCH = "Pouch";
     private static final String TAG_LAST_WORK_TICK = "LastWorkTick";
     private static final String TAG_LAST_REST_TICK = "LastRestTick";
+    private static final String TAG_PENDING_EARLY_REST_SITE = "PendingEarlyRestSite";
     private static final String TAG_SITE_WITNESSES = "SiteWitnessMemories";
 
     @Nullable
@@ -788,6 +789,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
         tag.putBoolean(TAG_STANDBY, isStandby());
         tag.putLong(TAG_LAST_WORK_TICK, lastWorkTick);
         tag.putLong(TAG_LAST_REST_TICK, lastRestTick);
+        if (pendingEarlyRestSite != null) tag.putLong(TAG_PENDING_EARLY_REST_SITE, pendingEarlyRestSite.asLong());
         net.minecraft.nbt.ListTag witnessTag = new net.minecraft.nbt.ListTag();
         for (ColonyWitnessMemory memory : siteWitnessMemories.values()) {
             witnessTag.add(memory.save());
@@ -811,6 +813,8 @@ public class ColonySymbiontEntity extends PathfinderMob {
         this.entityData.set(DATA_STANDBY, tag.getBoolean(TAG_STANDBY));
         this.lastWorkTick = tag.getLong(TAG_LAST_WORK_TICK);
         this.lastRestTick = tag.getLong(TAG_LAST_REST_TICK);
+        this.pendingEarlyRestSite = tag.contains(TAG_PENDING_EARLY_REST_SITE)
+                ? BlockPos.of(tag.getLong(TAG_PENDING_EARLY_REST_SITE)) : null;
         siteWitnessMemories.clear();
         net.minecraft.nbt.ListTag witnessTag = tag.getList(TAG_SITE_WITNESSES, CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < witnessTag.size(); i++) {

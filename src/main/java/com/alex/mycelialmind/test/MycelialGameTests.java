@@ -8856,12 +8856,15 @@ public final class MycelialGameTests {
         var nexus = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
         var colony = nexus.getOrCreateColony(level);
         colony.replaceLinkedOutposts(List.of(source, target));
+        PurificationZoneTracker.get(level).addNode(source, SynapticNodeType.SYMBIOTIC);
+        PurificationZoneTracker.get(level).addNode(target, SynapticNodeType.SYMBIOTIC);
         var teacher = ModEntities.COLONY_SYMBIONT.get().create(level);
         var pupil = ModEntities.COLONY_SYMBIONT.get().create(level);
         teacher.setNexusPos(nexusPos); pupil.setNexusPos(nexusPos);
         teacher.setPos(source.getX() + 1.5D, source.getY(), source.getZ() + 0.5D);
         pupil.setPos(target.getX() + 1.5D, target.getY(), target.getZ() + 0.5D);
         level.addFreshEntity(teacher); level.addFreshEntity(pupil);
+        teacher.setStandby(true);
         teacher.syncRosterToColony(); pupil.syncRosterToColony();
         var habit = com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN;
         colony.recordDialectEpisode(level, source, habit, teacher);
@@ -8874,9 +8877,26 @@ public final class MycelialGameTests {
                     "Apprentice must navigate from destination to source after reload.");
         }).thenExecute(() -> {
             var current = saved.getByNexus(nexusPos);
-            current.recordDialectEpisode(level, source, habit, teacher);
-            helper.assertTrue(current.getDialectLesson().stage() == com.alex.mycelialmind.colony.ColonyDialectLesson.Stage.RETURNING,
-                    "Present apprentice must witness a new episode.");
+            helper.assertTrue(current.getSiteMemory(source).receiveTransferredHabit(habit), "Rest habit trial must be available.");
+            BlockPos cap = source.offset(2, 0, 0);
+            level.setBlockAndUpdate(cap, ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get().defaultBlockState()
+                    .setValue(com.alex.mycelialmind.block.BioluminescentMycelialCapBlock.MATURE, true));
+            current.getOrderBoard().postOrRefreshOrder(com.alex.mycelialmind.colony.ColonyOrder.OrderType.HARVEST,
+                    cap, 100, level.getGameTime());
+            teacher.setFatigue(70.0F);
+            teacher.setStandby(false);
+        }).thenWaitUntil(() -> helper.assertTrue(teacher.isResting(), "Teacher must begin rest autonomously."))
+        .thenExecute(() -> {
+            CompoundTag workerTag = new CompoundTag();
+            teacher.addAdditionalSaveData(workerTag);
+            helper.assertTrue(workerTag.contains("PendingEarlyRestSite"), "Rest observation must persist in worker NBT.");
+            teacher.readAdditionalSaveData(workerTag);
+        }).thenWaitUntil(() -> {
+            var current = saved.getByNexus(nexusPos);
+            helper.assertTrue(current.getDialectLesson() != null && current.getDialectLesson().stage()
+                    == com.alex.mycelialmind.colony.ColonyDialectLesson.Stage.RETURNING,
+                    "The teacher must rest and complete a real harvest observed by the apprentice.");
+        }).thenExecute(() -> {
             saved.restoreFromSnapshot(saved.save(new CompoundTag(), level.registryAccess()), level.registryAccess());
         }).thenWaitUntil(() -> {
             var current = saved.getByNexus(nexusPos);
@@ -8884,6 +8904,9 @@ public final class MycelialGameTests {
                     "Apprentice must navigate home and complete lesson after reload.");
         }).thenExecute(() -> {
             teacher.discard(); pupil.discard();
+            PurificationZoneTracker.get(level).removeNode(source);
+            PurificationZoneTracker.get(level).removeNode(target);
+            level.removeBlock(source.offset(2, 0, 0), false);
             for (BlockPos pos : List.of(source, target, nexusPos)) level.removeBlock(pos, false);
             saved.restoreFromSnapshot(oldColonies, level.registryAccess());
             hive.restoreFromSnapshot(oldHive, overworld.registryAccess());
