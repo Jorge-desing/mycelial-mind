@@ -4075,3 +4075,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Pulsos de dialecto secuenciales
 - Cada llamada emite dos pulsos separados por ocho ticks, con tres partículas y tonos diferenciados y texto localizado para jugadores cercanos. Se usa el sonido existente del bastón y el segundo pulso pendiente se elimina al descargar la dimensión.
 - JUnit y GameTests aislados 179/179 pasaron. Falta verificar audiovisual en cliente y completar selección de maestro, resolución de conflictos, enseñanza funcional y pruebas integrales.
+
+## 2026-11-23 — Dialectos, elección de maestro y aviso de conflicto
+- La pantalla permite elegir maestro y aprendiz distintos; el servidor valida ambos en el registro y exige que el protagonista del episodio inicial sea el maestro al acuñar. Los puestos de la lección deben ser puestos enlazados. Protocolo de red 26. Un rechazo por secuencia ocupada indica ambos significados.
+- JUnit y GameTests aislados 179/179 pasaron; tras un ajuste de presentación de la etapa volvió a pasar JUnit. Pendiente resolver conflictos con una secuencia alternativa conservando los hablantes previos, visualizar protagonista en la acuñación, pruebas integrales y cliente visual/audio.

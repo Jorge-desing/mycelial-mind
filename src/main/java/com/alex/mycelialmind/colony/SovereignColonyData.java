@@ -560,20 +560,21 @@ public final class SovereignColonyData {
     }
 
     public boolean startDialectLesson(BlockPos source, BlockPos target, ColonySiteHabit habit, int call,
-                                      UUID apprentice, boolean coinage) {
-        if (dialectLesson != null || source.equals(target) || !isMemorySite(source) || !isMemorySite(target)
+                                      UUID apprentice, UUID teacher, boolean coinage) {
+        if (dialectLesson != null || source.equals(target) || !linkedOutposts.contains(source) || !linkedOutposts.contains(target)
                 || habit == ColonySiteHabit.NONE || call < 0 || call >= 9 || apprentice == null
-                || !roster.containsKey(apprentice)) return false;
+                || teacher == null || teacher.equals(apprentice) || !roster.containsKey(apprentice)
+                || !roster.containsKey(teacher)) return false;
         ColonyDialect sourceDialect = getDialect(source);
         ColonyDialect targetDialect = getDialect(target);
         ColonyDialect.Episode episode = sourceDialect.episode(habit);
-        if (episode == null || episode.worker().equals(apprentice) || !roster.containsKey(episode.worker())
+        if (episode == null || (coinage && !episode.worker().equals(teacher))
                 || (!coinage && sourceDialect.call(habit) != call)
                 || (coinage && sourceDialect.call(habit) >= 0)) return false;
         for (ColonySiteHabit other : ColonySiteHabit.values()) {
             if (other != habit && (sourceDialect.call(other) == call || targetDialect.call(other) == call)) return false;
         }
-        dialectLesson = new ColonyDialectLesson(source, target, habit, call, apprentice, episode.worker(), episode.id(), coinage);
+        dialectLesson = new ColonyDialectLesson(source, target, habit, call, apprentice, teacher, episode.id(), coinage);
         return true;
     }
 

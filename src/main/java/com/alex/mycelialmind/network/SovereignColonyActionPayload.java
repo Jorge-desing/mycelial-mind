@@ -33,8 +33,14 @@ public record SovereignColonyActionPayload(
         int param,
         UUID targetWorkerId,
         BlockPos sourceSitePos,
-        BlockPos targetSitePos
+        BlockPos targetSitePos,
+        UUID teacherId
 ) implements CustomPacketPayload {
+    public SovereignColonyActionPayload(int action, BlockPos nexusPos, int param, UUID targetWorkerId,
+                                       BlockPos sourceSitePos, BlockPos targetSitePos) {
+        this(action, nexusPos, param, targetWorkerId, sourceSitePos, targetSitePos, ZERO_UUID);
+    }
+
     public static final int ACTION_INCUBATE = 1;
     public static final int ACTION_UPGRADE_TIER = 2;
     public static final int ACTION_RECALL_ALL = 3;
@@ -65,7 +71,8 @@ public record SovereignColonyActionPayload(
             UUID workerId = new UUID(buf.readLong(), buf.readLong());
             BlockPos sourceSite = BlockPos.of(buf.readLong());
             BlockPos targetSite = BlockPos.of(buf.readLong());
-            return new SovereignColonyActionPayload(action, pos, param, workerId, sourceSite, targetSite);
+            UUID teacher = new UUID(buf.readLong(), buf.readLong());
+            return new SovereignColonyActionPayload(action, pos, param, workerId, sourceSite, targetSite, teacher);
         }
 
         @Override
@@ -78,6 +85,9 @@ public record SovereignColonyActionPayload(
             buf.writeLong(id.getLeastSignificantBits());
             buf.writeLong(payload.sourceSitePos().asLong());
             buf.writeLong(payload.targetSitePos().asLong());
+            UUID teacher = payload.teacherId() != null ? payload.teacherId() : ZERO_UUID;
+            buf.writeLong(teacher.getMostSignificantBits());
+            buf.writeLong(teacher.getLeastSignificantBits());
         }
     };
 
@@ -117,10 +127,10 @@ public record SovereignColonyActionPayload(
     }
 
     public static void sendDialectLesson(BlockPos nexus, BlockPos source, BlockPos target,
-                                         UUID apprentice, int meaning, int call, boolean coinage) {
+                                         UUID apprentice, UUID teacher, int meaning, int call, boolean coinage) {
         int param = meaning | (call << 2) | (coinage ? 64 : 0);
         PacketDistributor.sendToServer(new SovereignColonyActionPayload(ACTION_START_DIALECT_LESSON,
-                nexus, param, apprentice, source, target));
+                nexus, param, apprentice, source, target, teacher));
     }
 
     public static void handleOnServer(SovereignColonyActionPayload payload, IPayloadContext context) {
@@ -229,10 +239,20 @@ public record SovereignColonyActionPayload(
                     if (player.getUUID().equals(colony.getOwnerId())) {
                         if (colony.startDialectLesson(payload.sourceSitePos(), payload.targetSitePos(),
                                 com.alex.mycelialmind.colony.ColonySiteHabit.fromIndex(meaningIndex), call,
-                                payload.targetWorkerId(), coinage)) {
+                                payload.targetWorkerId(), payload.teacherId(), coinage)) {
                             SovereignColonySavedData.get(level).setDirty();
                         } else {
-                            player.displayClientMessage(Component.translatable("message.mycelialmind.colony.dialect_unavailable"), true);
+                            var meaning = com.alex.mycelialmind.colony.ColonySiteHabit.fromIndex(meaningIndex);
+                            var sourceDialect = colony.getDialect(payload.sourceSitePos());
+                            var targetDialect = colony.getDialect(payload.targetSitePos());
+                            var sourceMeaning = sourceDialect == null ? com.alex.mycelialmind.colony.ColonySiteHabit.NONE : sourceDialect.meaningForCall(call);
+                            var targetMeaning = targetDialect == null ? com.alex.mycelialmind.colony.ColonySiteHabit.NONE : targetDialect.meaningForCall(call);
+                            var conflict = targetMeaning != meaning && targetMeaning != com.alex.mycelialmind.colony.ColonySiteHabit.NONE
+                                    ? targetMeaning : sourceMeaning != meaning ? sourceMeaning : com.alex.mycelialmind.colony.ColonySiteHabit.NONE;
+                            player.displayClientMessage(conflict == com.alex.mycelialmind.colony.ColonySiteHabit.NONE
+                                    ? Component.translatable("message.mycelialmind.colony.dialect_unavailable")
+                                    : Component.translatable("message.mycelialmind.colony.dialect_conflict",
+                                            Component.translatable(meaning.translationKey()), Component.translatable(conflict.translationKey())), true);
                         }
                     }
                 }

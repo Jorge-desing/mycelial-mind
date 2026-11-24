@@ -31,6 +31,13 @@ public final class ColonyDialect {
         return calls.getOrDefault(habit, -1);
     }
 
+    public ColonySiteHabit meaningForCall(int call) {
+        for (var entry : calls.entrySet()) {
+            if (entry.getValue() == call) return entry.getKey();
+        }
+        return ColonySiteHabit.NONE;
+    }
+
     public boolean teach(ColonySiteHabit habit, int call) {
         if (habit == ColonySiteHabit.NONE || call < 0 || call >= 9) return false;
         for (var entry : calls.entrySet()) {
