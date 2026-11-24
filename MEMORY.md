@@ -3940,6 +3940,12 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 - **PRs observados:** Los checks `Build and GameTests` de #6, #7, #9 y #10 aún estaban rojos en sus heads existentes al auditarlos; esta corrección se publicará como PR separado para integrar la estabilización y permitir que esos heads se reevalúen sobre la base corregida.
 - **CI del commit de seguimiento:** pendiente de ejecutar tras publicar.
 
+## 2026-11-23 — Validación del PR de limpieza sobre main actualizado
+- **Compatibilidad de payload:** Tras integrar `main` (`866247e`), `SovereignColonySyncPayload` ya incluye reconstrucciones y testigos. El round-trip JUnit ahora serializa un obrero Courier junto con un `ReconstructionSnapshot` y su testigo, cubriendo los campos nuevos.
+- **Validación final:** Dos worktrees nuevos, cada uno ejecutando `test runGameTestServer -PisolatedGameTests=true --rerun-tasks --offline`: JUnit **87/87** y GameTests **175/175** en ambos; `MigratedGameTestLogicTest` **8/8**, sin fallos ni omitidos. `git diff --check` limpio.
+- **CI y publicación:** El workflow `Verify Mycelial Mind` run `45294708541` pasó sus tres jobs (`Build and GameTests`, `Asset checks`, `Validate automation config`) en el head `781f0db`. PR #11 quedó abierto, limpio y con checks verdes.
+- **Estado de los Renovate PR:** #6, #7, #9 y #10 aún conservan checks rojos en sus heads anteriores; requieren integración de #11 y sincronización/revalidación para que CI confirme la corrección en esas ramas.
+
 ## 2026-11-23 — Reconstrucción post-Matriarca de puestos de colonia
 
 - Añadió recuerdos persistentes por simbionte para rutas de mensajería, puntos de patrulla y hábitos locales confirmados; al perderse un puesto tras la derrota de la Matriarca, esos recuerdos pasan a una reconstrucción que el jugador dirige desde el Nexo.
