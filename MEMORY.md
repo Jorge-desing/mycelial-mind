@@ -4095,3 +4095,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, demostración mediante trabajo autónomo
 - El GameTest de navegación ahora espera que el maestro descanse y coseche una seta mediante sus goals reales; el aprendiz observa y regresa sin teletransporte. Se conserva en NBT el puesto del descanso pendiente y el test serializa/restaura ese NBT durante el descanso, además de restaurar SavedData en el viaje.
 - JUnit y GameTests aislados 181/181 pasaron. La prueba restaura NBT y SavedData, pero no descarga físicamente el chunk. Pendiente verificar descarga real, revisión de interfaz y audio en cliente y auditoría final del plan.
+
+## 2026-11-23 — Dialectos, inspección de cliente
+- Añadida escena aislada `runVisualSmoke -PdialectVisualSmoke=true` con instantánea sintética del Nexo. Captura en `artifacts/diagnostics/dialect-visual-client/screenshots/dialect_nexus.png`. Gradle terminó correctamente mediante caché local tras acceso denegado al lock del wrapper en CodeMode.
+- Hallazgo visual: el panel del Nexo de 360 unidades queda recortado arriba y abajo con la escala GUI de la escena 1600×900; pestañas y botón de cierre quedan fuera. Debe corregirse y repetirse la inspección. La escena solo comprueba presentación sintética, no sonido, red ni chunks. Pendiente descarga real y auditoría integral.
