@@ -2165,7 +2165,7 @@ class HiveAlgorithmsUnitTest {
     }
 
     @Test
-    void sovereignNexusRedstoneAndSblUtilityWeightsHold() {
+    void sovereignNexusRedstoneAndHiveBrainUtilityWeightsHold() {
         assertEquals(0, com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(0, 0, 4, 0));
         assertEquals(1, com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(0, 0, 4, 1));
         int t1 = com.alex.mycelialmind.util.MycelialRedstoneTelemetry.sovereignNexusSignal(1, 0, 4, 0);

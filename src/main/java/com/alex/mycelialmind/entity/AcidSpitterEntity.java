@@ -1,8 +1,12 @@
 package com.alex.mycelialmind.entity;
 
-import com.alex.mycelialmind.compat.sbl.AcidSpitterCombatBehaviour;
-import com.alex.mycelialmind.compat.sbl.HiveMindSensor;
-import com.alex.mycelialmind.compat.sbl.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.hive.AcidSpitterCombatBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
 import com.alex.mycelialmind.entity.ai.TacticalTerraformingGoal;
 import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.hive.EvolutionRank;
@@ -20,10 +24,6 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
-import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
-import net.tslat.smartbrainlib.api.core.sensor.vanilla.HurtBySensor;
-import net.tslat.smartbrainlib.api.core.sensor.vanilla.NearbyLivingEntitySensor;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class AcidSpitterEntity extends MycelialMob implements RangedAttackMob {
     }
 
     @Override
-    public List<ExtendedSensor<MycelialMob>> getSensors() {
+    public List<HiveSensor<MycelialMob>> getSensors() {
         return List.of(new NearbyLivingEntitySensor<MycelialMob>()
                         .setRadius(24)
                         .setPredicate((target, mob) -> target instanceof Player || mob.isRivalStrainTarget(target)),

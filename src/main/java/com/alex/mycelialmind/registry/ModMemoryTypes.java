@@ -1,7 +1,7 @@
 package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
-import com.alex.mycelialmind.compat.sbl.HiveMindSensor;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;

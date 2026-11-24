@@ -1,18 +1,18 @@
-package com.alex.mycelialmind.compat.sbl;
+package com.alex.mycelialmind.entity.ai.brain.hive;
 
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
 
 import java.util.Comparator;
 import java.util.List;
 
 /** Tracks the nearest allied unit for the weaver's support positioning. */
-public final class WeaverSupportBehaviour extends ExtendedBehaviour<MycelialMob> {
+public final class WeaverSupportBehaviour extends HiveBehaviour<MycelialMob> {
     public WeaverSupportBehaviour() {
         noTimeout();
     }

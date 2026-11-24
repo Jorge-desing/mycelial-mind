@@ -1,6 +1,6 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.hive.MobEpisodicMemory;
 import com.alex.mycelialmind.hive.TacticalEvasionEngine;
@@ -62,7 +62,7 @@ public class KitingRetreatGoal extends Goal {
     }
 
     public Vec3 computeTacticalRetreatDirection(LivingEntity target) {
-        return computeTacticalRetreatDirection(mob, target, MycelialSblBridge.getNearestNodePos(mob));
+        return computeTacticalRetreatDirection(mob, target, HiveBrainBridge.getNearestNodePos(mob));
     }
 
     public static Vec3 computeTacticalRetreatDirection(MycelialMob mob, LivingEntity target, BlockPos node) {
@@ -77,7 +77,7 @@ public class KitingRetreatGoal extends Goal {
             }
         }
 
-        BlockPos pylon = MycelialSblBridge.getNearestPylonPos(mob);
+        BlockPos pylon = HiveBrainBridge.getNearestPylonPos(mob);
         if (pylon != null) {
             Vec3 awayPylon = new Vec3(mob.getX() - (pylon.getX() + 0.5), 0.0, mob.getZ() - (pylon.getZ() + 0.5));
             if (awayPylon.lengthSqr() > 1.0E-4D) {

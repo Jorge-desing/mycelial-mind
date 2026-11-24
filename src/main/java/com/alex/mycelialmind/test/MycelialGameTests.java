@@ -58,7 +58,19 @@ import com.alex.mycelialmind.recipe.SynapticBenchRecipeDefinitions;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.world.level.block.state.BlockState;
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.core.SequentialBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveHotspotPatrolBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyPlayersSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.UnreachableTargetSensor;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.ItemTags;
@@ -363,7 +375,7 @@ public final class MycelialGameTests {
         BlockPos node = helper.absolutePos(new BlockPos(13, 1, 2));
         level.setBlockAndUpdate(node, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
         var spitter = helper.spawn(ModEntities.ACID_SPITTER.get(), 3, 1, 2);
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, spitter);
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, spitter);
         helper.assertTrue(com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator
                         .evaluateRegroupUtility(spitter) < 0.65F,
                 "Healthy spitter must remain below the regroup threshold");
@@ -413,7 +425,7 @@ public final class MycelialGameTests {
         HiveBlackboard.reportNodeLoss(level, node.east());
         var brute = helper.spawn(ModEntities.CHITIN_BRUTE.get(), 3, 1, 2);
         var sporeling = helper.spawn(ModEntities.SPORELING.get(), 3, 1, 4);
-        var sensor = new com.alex.mycelialmind.compat.sbl.HiveMindSensor();
+        var sensor = new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor();
         sensor.tick(level, brute);
         sensor.tick(level, sporeling);
         double bruteInitial = brute.distanceToSqr(Vec3.atCenterOf(node));
@@ -550,7 +562,7 @@ public final class MycelialGameTests {
         java.util.function.Function<MycelialMob, String> diag = m -> " (alive=" + m.isAlive()
                 + ", ticking=" + level.isPositionEntityTicking(m.blockPosition())
                 + ", desync=" + m.isDesynced()
-                + ", order=" + MycelialSblBridge.getHiveOrder(m)
+                + ", order=" + HiveBrainBridge.getHiveOrder(m)
                 + ", bbOrder=" + HiveBlackboard.getOrder(level)
                 + ", target=" + m.getTarget()
                 + ", pos=" + m.position() + ")";
@@ -2321,13 +2333,13 @@ public final class MycelialGameTests {
             helper.fail("Modonomicon should be optional and inactive when not installed.");
             return;
         }
-        if (!com.alex.mycelialmind.compat.sbl.MycelialSblBridge.isSblLoaded()) {
-            helper.fail("SmartBrainLib must be loaded as a required AI dependency.");
+        if (net.neoforged.fml.ModList.get().isLoaded("smartbrainlib")) {
+            helper.fail("SmartBrainLib must NOT be present; Mycelial Mind uses native HiveBrain.");
             return;
         }
         var mob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 2, 1, 2);
-        if (!(mob instanceof net.tslat.smartbrainlib.api.SmartBrainOwner<?>)) {
-            helper.fail("MycelialMob should implement SmartBrainOwner.");
+        if (!(mob instanceof HiveBrainOwner<?>) || mob.getHiveBrainRuntime() == null) {
+            helper.fail("MycelialMob should implement HiveBrainOwner with initialized HiveBrainRuntime.");
             return;
         }
         helper.succeed();
@@ -2346,11 +2358,11 @@ public final class MycelialGameTests {
         level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
 
         var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 4, 1, 2);
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, brute);
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, brute);
 
-        float alert = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getHiveAlertLevel(brute);
-        BlockPos memNode = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getNearestNodePos(brute);
-        BlockPos memPylon = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getNearestPylonPos(brute);
+        float alert = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getHiveAlertLevel(brute);
+        BlockPos memNode = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getNearestNodePos(brute);
+        BlockPos memPylon = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getNearestPylonPos(brute);
         var tracker = PurificationZoneTracker.get(level);
         tracker.removeNode(nodePos);
         tracker.removePylon(pylonPos);
@@ -2375,7 +2387,7 @@ public final class MycelialGameTests {
 
         var spitter = helper.spawnWithNoFreeWill(ModEntities.ACID_SPITTER.get(), 5, 1, 2);
         spitter.setHealth(spitter.getMaxHealth() * 0.25F);
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, spitter);
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, spitter);
 
         float regroup = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.evaluateRegroupUtility(spitter);
         var target = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
@@ -2487,11 +2499,11 @@ public final class MycelialGameTests {
 
         var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 4, 1, 2);
         var ally = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 6, 1, 2);
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, brute);
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, ally);
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, brute);
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, ally);
 
-        var order = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getHiveOrder(brute);
-        var rallyNode = MycelialSblBridge.getNearestNodePos(brute);
+        var order = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getHiveOrder(brute);
+        var rallyNode = HiveBrainBridge.getNearestNodePos(brute);
         float regroup = com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.evaluateRegroupUtility(brute);
         var regroupGoal = new com.alex.mycelialmind.entity.ai.HiveRegroupGoal(brute, 1.0);
         boolean acceptedRally = regroupGoal.canUse();
@@ -2553,8 +2565,8 @@ public final class MycelialGameTests {
         BlockPos nearSpot = helper.absolutePos(new BlockPos(8, 1, 8));
         hive.recordCombatHotspot(nearSpot, 22.0, level.getGameTime(), com.alex.mycelialmind.hive.StimulusType.EXPLOSION);
         var scout = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 2, 1, 2);
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, scout);
-        BlockPos investigated = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getSharedTargetPos(scout);
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, scout);
+        BlockPos investigated = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getSharedTargetPos(scout);
         hive.resetAll();
         com.alex.mycelialmind.hive.HiveBlackboard.clear(level);
         if (investigated == null || !investigated.equals(nearSpot)) {
@@ -2707,7 +2719,7 @@ public final class MycelialGameTests {
         hive.resetAll();
 
         var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
-        com.alex.mycelialmind.compat.sbl.MycelialSblBridge.addCombatXp(
+        com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.addCombatXp(
                 level, brute, com.alex.mycelialmind.hive.StimulusType.PROJECTILE, 100);
         if (brute.getEvolutionRank() != EvolutionRank.MUTATED || hive.getStimulusScore(com.alex.mycelialmind.hive.StimulusType.PROJECTILE) < 1.9) {
             helper.fail("Expected 100 Brain XP to self-promote ChitinBrute to MUTATED and feed +2.0 stimulus to Hive.");
@@ -2715,7 +2727,7 @@ public final class MycelialGameTests {
         }
 
         var behemoth = helper.spawnWithNoFreeWill(ModEntities.SPORE_BEHEMOTH.get(), 4, 1, 2);
-        com.alex.mycelialmind.compat.sbl.MycelialSblBridge.addCombatXp(
+        com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.addCombatXp(
                 level, behemoth, com.alex.mycelialmind.hive.StimulusType.MELEE, 250);
         if (behemoth.getEvolutionRank() != EvolutionRank.ELITE) {
             helper.fail("Expected mini-boss SporeBehemoth to self-promote to ELITE at 250 Brain XP.");
@@ -2723,7 +2735,7 @@ public final class MycelialGameTests {
         }
 
         var boss = helper.spawnWithNoFreeWill(ModEntities.HIVE_CORE.get(), 6, 1, 2);
-        com.alex.mycelialmind.compat.sbl.MycelialSblBridge.addCombatXp(
+        com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.addCombatXp(
                 level, boss, com.alex.mycelialmind.hive.StimulusType.MAGIC, 300);
         if (boss.getEvolutionRank() != EvolutionRank.BASE) {
             helper.fail("Expected main boss HiveCoreBoss to be excluded from Brain XP self-promotion.");
@@ -2752,8 +2764,8 @@ public final class MycelialGameTests {
         mob.setHealth(mob.getMaxHealth() * 0.5F);
         float hpBefore = mob.getHealth();
 
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, mob);
-        if (com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getNearbyAllyCount(mob) < 2) {
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, mob);
+        if (com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getNearbyAllyCount(mob) < 2) {
             helper.fail("Expected HiveMindSensor to count >= 2 nearby allies.");
             return;
         }
@@ -2764,8 +2776,8 @@ public final class MycelialGameTests {
             return;
         }
 
-        new com.alex.mycelialmind.compat.sbl.HiveNodeRegenBehaviour().tryStart(level, mob, level.getGameTime());
-        new com.alex.mycelialmind.compat.sbl.HiveHotspotPatrolBehaviour().tryStart(level, mob, level.getGameTime());
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour().tryStart(level, mob, level.getGameTime());
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveHotspotPatrolBehaviour().tryStart(level, mob, level.getGameTime());
 
         boolean healed = mob.getHealth() > hpBefore;
         boolean hasWalkTarget = mob.getBrain().getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET).isPresent();
@@ -3007,7 +3019,7 @@ public final class MycelialGameTests {
         var chargeGoal = new com.alex.mycelialmind.entity.ai.BruteChargeGoal(brute);
         var kiteGoal = new com.alex.mycelialmind.entity.ai.KitingRetreatGoal(spitter, 1.15D);
         var regroupGoal = new com.alex.mycelialmind.entity.ai.HiveRegroupGoal(spitter, 1.15D);
-        new com.alex.mycelialmind.compat.sbl.HiveMindSensor().tick(level, brute);
+        new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor().tick(level, brute);
 
         if (chargeGoal.canUse() || kiteGoal.canUse()) {
             helper.fail("Goals should not activate for discarded target.");
@@ -3370,11 +3382,11 @@ public final class MycelialGameTests {
             // Clear recent target set by registerDecoy so we test HiveMindSensor's decoy fallback
             com.alex.mycelialmind.hive.HiveBlackboard.clear(level);
 
-            var sensor = new com.alex.mycelialmind.compat.sbl.HiveMindSensor();
+            var sensor = new com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor();
             sensor.doTick(level, mob);
 
-            BlockPos sensedNode = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getNearestNodePos(mob);
-            BlockPos sensedShared = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getSharedTargetPos(mob);
+            BlockPos sensedNode = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getNearestNodePos(mob);
+            BlockPos sensedShared = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getSharedTargetPos(mob);
             float droneThreat = com.alex.mycelialmind.hive.HiveBlackboard.getInfluenceMap(level)
                     .sample(drone.blockPosition()).threat();
 
@@ -4431,18 +4443,18 @@ public final class MycelialGameTests {
         var consumed = com.alex.mycelialmind.hive.HiveBlackboard.consumeNearestCarrion(level, sporeling.position(), 3.0D);
         if (consumed != null) {
             sporeling.heal(com.alex.mycelialmind.hive.LivingBattlefieldSystem.CARRION_HEAL_AMOUNT);
-            com.alex.mycelialmind.compat.sbl.MycelialSblBridge.addCombatXp(level, sporeling, StimulusType.MELEE,
+            com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.addCombatXp(level, sporeling, StimulusType.MELEE,
                     com.alex.mycelialmind.hive.LivingBattlefieldSystem.CARRION_XP_REWARD);
         }
 
         boolean healed = sporeling.getHealth() >= 9.9F;
-        boolean xpGained = com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getCombatXp(sporeling) >= 20;
+        boolean xpGained = com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getCombatXp(sporeling) >= 20;
         sporeling.discard();
 
         if (!nonFireDrop || !fireSuppressed || consumed == null || !healed || !xpGained) {
             helper.fail(String.format("Carrion necrophagy failed: nonFire=%s fireSup=%s consumed=%s hp=%.1f xp=%d",
                     nonFireDrop, fireSuppressed, consumed != null, sporeling.getHealth(),
-                    com.alex.mycelialmind.compat.sbl.MycelialSblBridge.getCombatXp(sporeling)));
+                    com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.getCombatXp(sporeling)));
             return;
         }
         helper.succeed();
@@ -9329,7 +9341,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "full_endgame_integration")
-    public static void fullEndgameSymbiontImmunityGrenadeAndSblTest(GameTestHelper helper) {
+    public static void fullEndgameSymbiontImmunityGrenadeAndHiveBrainTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
@@ -9383,12 +9395,12 @@ public final class MycelialGameTests {
             level.addFreshEntity(hostileMob);
 
             hostileMob.hurt(level.damageSources().inFire(), 2.0F);
-            helper.assertTrue(MycelialSblBridge.getCombatXp(hostileMob) > 0,
-                    "DamageTelemetryTracker must populate SBL MOB_COMBAT_XP.");
-            helper.assertTrue(MycelialSblBridge.getLastAttackStimulus(hostileMob) == StimulusType.FIRE,
-                    "DamageTelemetryTracker must populate SBL LAST_ATTACK_STIMULUS.");
+            helper.assertTrue(HiveBrainBridge.getCombatXp(hostileMob) > 0,
+                    "DamageTelemetryTracker must populate HiveBrain MOB_COMBAT_XP.");
+            helper.assertTrue(HiveBrainBridge.getLastAttackStimulus(hostileMob) == StimulusType.FIRE,
+                    "DamageTelemetryTracker must populate HiveBrain LAST_ATTACK_STIMULUS.");
             helper.assertTrue(com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.evaluateRegroupUtility(hostileMob) > 0.0F,
-                    "HiveUtilityEvaluator must consume SBL combat XP and fire stimulus.");
+                    "HiveUtilityEvaluator must consume HiveBrain combat XP and fire stimulus.");
 
             helper.succeed();
         } finally {
@@ -10250,6 +10262,96 @@ public final class MycelialGameTests {
             for (BlockPos p : placed) {
                 level.removeBlock(p, false);
             }
+        }
+    }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    public static void hiveBrainCleanRoomEngineDrivesSensorsActivitiesAndComposites(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
+        var spitter = helper.spawnWithNoFreeWill(ModEntities.ACID_SPITTER.get(), 4, 1, 2);
+        try {
+            helper.assertFalse(net.neoforged.fml.ModList.get().isLoaded("smartbrainlib"),
+                    "SmartBrainLib must not be loaded in runtime.");
+            helper.assertTrue(brute.getHiveBrainRuntime() != null && spitter.getHiveBrainRuntime() != null,
+                    "HiveBrainRuntime must initialize on spawn.");
+
+            // Activity transition: IDLE when safe, FIGHT when ATTACK_TARGET is present
+            brute.tickBrain(brute);
+            helper.assertTrue(brute.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
+                    "Brain should default to IDLE when no ATTACK_TARGET exists.");
+
+            var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+            player.moveTo(brute.getX() + 3.0D, brute.getY(), brute.getZ());
+            HiveBrainUtils.setTargetOfEntity(brute, player);
+            brute.tickBrain(brute);
+            helper.assertTrue(brute.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.FIGHT),
+                    "Brain should transition to FIGHT when ATTACK_TARGET is set.");
+
+            HiveBrainUtils.clearMemory(brute, net.minecraft.world.entity.ai.memory.MemoryModuleType.ATTACK_TARGET);
+            brute.tickBrain(brute);
+            helper.assertTrue(brute.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
+                    "Brain should return to IDLE once ATTACK_TARGET is cleared.");
+
+            // Composite & timing primitives: AllApplicable + Sequential + Delayed + Custom
+            int[] counter = {0};
+            var allGroup = new AllApplicableBehaviours<>(
+                    new CustomBehaviour<MycelialMob>(m -> counter[0] += 1),
+                    new CustomBehaviour<MycelialMob>(m -> counter[0] += 10)
+            );
+            helper.assertTrue(allGroup.tryStart(level, brute, level.getGameTime()),
+                    "AllApplicableBehaviours must start eligible children.");
+            allGroup.tickOrStop(level, brute, level.getGameTime() + 1L);
+            helper.assertTrue(counter[0] == 11,
+                    "AllApplicableBehaviours must execute every eligible child, got " + counter[0]);
+
+            int[] seqOrder = {0};
+            var seq = new SequentialBehaviour<>(
+                    new CustomBehaviour<MycelialMob>(m -> seqOrder[0] = seqOrder[0] * 10 + 1),
+                    new DelayedBehaviour<MycelialMob>(1) {
+                        @Override
+                        protected java.util.List<com.mojang.datafixers.util.Pair<net.minecraft.world.entity.ai.memory.MemoryModuleType<?>, net.minecraft.world.entity.ai.memory.MemoryStatus>> getMemoryRequirements() {
+                            return java.util.List.of();
+                        }
+
+                        @Override
+                        protected void doDelayedAction(MycelialMob entity) {
+                            seqOrder[0] = seqOrder[0] * 10 + 2;
+                        }
+                    }
+            );
+            long t0 = level.getGameTime();
+            helper.assertTrue(seq.tryStart(level, brute, t0), "SequentialBehaviour must start first step.");
+            seq.tickOrStop(level, brute, t0 + 1L);
+            seq.tickOrStop(level, brute, t0 + 2L);
+            helper.assertTrue(seqOrder[0] == 12,
+                    "SequentialBehaviour + DelayedBehaviour must execute steps in strict order (expected 12, got " + seqOrder[0] + ").");
+
+            // Future-ready sensors: NearbyLivingEntitySensor + NearbyPlayersSensor + UnreachableTargetSensor
+            var livingSensor = new com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor<MycelialMob>()
+                    .setRadius(12.0D);
+            livingSensor.tick(level, spitter);
+            helper.assertTrue(HiveBrainUtils.hasMemory(spitter, net.minecraft.world.entity.ai.memory.MemoryModuleType.NEAREST_LIVING_ENTITIES),
+                    "NearbyLivingEntitySensor must populate NEAREST_LIVING_ENTITIES with nearby mobs.");
+
+            var playerSensor = new NearbyPlayersSensor<MycelialMob>().setRadius(12.0D);
+            playerSensor.tick(level, spitter);
+            helper.assertTrue(spitter.getBrain().checkMemory(
+                            net.minecraft.world.entity.ai.memory.MemoryModuleType.NEAREST_PLAYERS,
+                            net.minecraft.world.entity.ai.memory.MemoryStatus.REGISTERED),
+                    "NearbyPlayersSensor must register NEAREST_PLAYERS on Brain.");
+
+            HiveBrainUtils.setMemory(spitter, net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET,
+                    new net.minecraft.world.entity.ai.memory.WalkTarget(spitter.blockPosition().offset(6, 0, 0), 1.0F, 0));
+            spitter.getNavigation().stop();
+            new UnreachableTargetSensor<MycelialMob>().tick(level, spitter);
+            helper.assertTrue(HiveBrainUtils.hasMemory(spitter, net.minecraft.world.entity.ai.memory.MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE),
+                    "UnreachableTargetSensor must record CANT_REACH_WALK_TARGET_SINCE when navigation is idle far from WALK_TARGET.");
+
+            helper.succeed();
+        } finally {
+            brute.discard();
+            spitter.discard();
         }
     }
 }

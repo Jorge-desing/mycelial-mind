@@ -226,7 +226,7 @@ public final class DamageTelemetryTracker {
         if (event.getEntity() instanceof Player player && !player.level().isClientSide()) {
             if (event.getNewDamage() > 0.0F && event.getSource().getEntity() instanceof MycelialMob attackerMob
                     && player.level() instanceof ServerLevel sl) {
-                com.alex.mycelialmind.compat.sbl.MycelialSblBridge.addCombatXp(sl, attackerMob, null, 20);
+                com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.addCombatXp(sl, attackerMob, null, 20);
             }
             handlePlayerPostDamage(event, player);
             return;
@@ -238,7 +238,7 @@ public final class DamageTelemetryTracker {
                 PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
                 if (event.getSource().getEntity() instanceof MycelialMob attackerMob) {
                     if (event.getNewDamage() > 0.0F) {
-                        com.alex.mycelialmind.compat.sbl.MycelialSblBridge.addCombatXp(serverLevel, attackerMob, null, 20);
+                        com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.addCombatXp(serverLevel, attackerMob, null, 20);
                     }
                     if (!tracker.isProtected(vanillaMob.blockPosition())) {
                         vanillaMob.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
@@ -297,7 +297,7 @@ public final class DamageTelemetryTracker {
                 hive.recordCombatHotspot(mob.blockPosition(), Math.min(25.0, dealt * 1.5), serverLevel.getGameTime(), stimulus);
             }
             if (mob.isAlive()) {
-                com.alex.mycelialmind.compat.sbl.MycelialSblBridge.addCombatXp(serverLevel, mob, stimulus, 15);
+                com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge.addCombatXp(serverLevel, mob, stimulus, 15);
                 if (mob.getHealth() <= mob.getMaxHealth() * 0.40F
                         && source.getEntity() instanceof LivingEntity attacker) {
                     HiveSwarmCoordinator.broadcastAlertCall(serverLevel, mob, attacker);

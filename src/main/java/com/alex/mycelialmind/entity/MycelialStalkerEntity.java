@@ -23,9 +23,9 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
-import com.alex.mycelialmind.compat.sbl.HiveNodeRegenBehaviour;
-import com.alex.mycelialmind.compat.sbl.StalkerFlankBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.StalkerFlankBehaviour;
 
 /**
  * Ambush assassin that camouflages itself while standing on Creeping Mycelium.

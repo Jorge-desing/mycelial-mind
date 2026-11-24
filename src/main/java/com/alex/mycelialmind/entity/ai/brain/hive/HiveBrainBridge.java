@@ -1,52 +1,47 @@
-package com.alex.mycelialmind.compat.sbl;
+package com.alex.mycelialmind.entity.ai.brain.hive;
 
 import com.alex.mycelialmind.entity.ApexMatriarchEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetRandomLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetRandomWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.TargetOrRetaliate;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.core.OneRandomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
+import com.alex.mycelialmind.hive.HiveOrder;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.fml.ModList;
 
 import javax.annotation.Nullable;
-import net.tslat.smartbrainlib.api.SmartBrainOwner;
-import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
-import net.tslat.smartbrainlib.api.core.behaviour.FirstApplicableBehaviour;
-import net.tslat.smartbrainlib.api.core.behaviour.OneRandomBehaviour;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.attack.AnimatableMeleeAttack;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.look.LookAtTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.misc.Idle;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.move.MoveToWalkTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.path.SetRandomWalkTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.path.SetWalkTargetToAttackTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.target.InvalidateAttackTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.target.SetPlayerLookTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.target.SetRandomLookTarget;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.target.TargetOrRetaliate;
-import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
-import net.tslat.smartbrainlib.api.core.sensor.vanilla.HurtBySensor;
-import net.tslat.smartbrainlib.api.core.sensor.vanilla.NearbyLivingEntitySensor;
-
 import java.util.List;
 
 /**
- * Optional SmartBrainLib (SBL) modular AI bridge for MycelialMob.
- * Safely isolated so Mycelial Mind runs with or without SBL installed.
+ * Native HiveBrain facade for {@link MycelialMob}: provides typed blackboard memory accessors,
+ * combat XP self-promotion, and default sensor/activity presets.
  */
-public final class MycelialSblBridge {
-    private MycelialSblBridge() {
+public final class HiveBrainBridge {
+    private HiveBrainBridge() {
     }
 
-    public static boolean isSblLoaded() {
-        return ModList.get().isLoaded("smartbrainlib");
-    }
-
-    public static List<ExtendedSensor<MycelialMob>> createDefaultHiveSensors() {
+    public static List<HiveSensor<MycelialMob>> createDefaultHiveSensors() {
         return List.of(
                 new NearbyLivingEntitySensor<MycelialMob>()
                         .setPredicate((target, entity) -> target instanceof Player && !target.isSpectator()),
@@ -57,41 +52,41 @@ public final class MycelialSblBridge {
 
     @Nullable
     public static BlockPos getSharedTargetPos(MycelialMob mob) {
-        return mob.getBrain().getMemory(ModMemoryTypes.SHARED_TARGET_POS.get()).orElse(null);
+        return HiveBrainUtils.getMemory(mob, ModMemoryTypes.SHARED_TARGET_POS.get());
     }
 
     public static float getHiveAlertLevel(MycelialMob mob) {
-        return mob.getBrain().getMemory(ModMemoryTypes.HIVE_ALERT_LEVEL.get()).orElse(0.0F);
+        return HiveBrainUtils.memoryOrDefault(mob, ModMemoryTypes.HIVE_ALERT_LEVEL.get(), () -> 0.0F);
     }
 
     @Nullable
     public static BlockPos getNearestNodePos(MycelialMob mob) {
-        return mob.getBrain().getMemory(ModMemoryTypes.NEAREST_NODE_POS.get()).orElse(null);
+        return HiveBrainUtils.getMemory(mob, ModMemoryTypes.NEAREST_NODE_POS.get());
     }
 
     @Nullable
     public static BlockPos getNearestPylonPos(MycelialMob mob) {
-        return mob.getBrain().getMemory(ModMemoryTypes.NEAREST_PYLON_POS.get()).orElse(null);
+        return HiveBrainUtils.getMemory(mob, ModMemoryTypes.NEAREST_PYLON_POS.get());
     }
 
-    public static com.alex.mycelialmind.hive.HiveOrder getHiveOrder(MycelialMob mob) {
+    public static HiveOrder getHiveOrder(MycelialMob mob) {
         return mob.getBrain()
                 .getMemory(ModMemoryTypes.HIVE_ORDER.get())
-                .map(com.alex.mycelialmind.hive.HiveOrder::fromName)
-                .orElse(com.alex.mycelialmind.hive.HiveOrder.NONE);
+                .map(HiveOrder::fromName)
+                .orElse(HiveOrder.NONE);
     }
 
     public static int getNearbyAllyCount(MycelialMob mob) {
-        return mob.getBrain().getMemory(ModMemoryTypes.NEARBY_ALLY_COUNT.get()).orElse(0);
+        return HiveBrainUtils.memoryOrDefault(mob, ModMemoryTypes.NEARBY_ALLY_COUNT.get(), () -> 0);
     }
 
     public static int getCombatXp(MycelialMob mob) {
-        return mob.getBrain().getMemory(ModMemoryTypes.MOB_COMBAT_XP.get()).orElse(0);
+        return HiveBrainUtils.memoryOrDefault(mob, ModMemoryTypes.MOB_COMBAT_XP.get(), () -> 0);
     }
 
     @Nullable
     public static StimulusType getLastAttackStimulus(MycelialMob mob) {
-        String id = mob.getBrain().getMemory(ModMemoryTypes.LAST_ATTACK_STIMULUS.get()).orElse(null);
+        String id = HiveBrainUtils.getMemory(mob, ModMemoryTypes.LAST_ATTACK_STIMULUS.get());
         if (id == null || id.isBlank()) {
             return null;
         }

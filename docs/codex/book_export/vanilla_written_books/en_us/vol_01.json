@@ -193,19 +193,19 @@
         "raw": "(`suppressorCooldown\nSeconds = 120s`)."
       },
       {
-        "raw": "Cap.4: SBL + gdx-AI\nArchitecture\nSmartBrainLib,\nMemories & gdx-AI\n(1/3)\n• SBL Layer\n(`MycelialSblBridge`):\n`HiveMindSensor` + 5\nbehaviours\n(`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh\naviour`,\n`AcidSpitterCombatBeh"
+        "raw": "Cap.4: HiveBrain +\ngdx-AI Architecture\nNative HiveBrain,\nMemories & gdx-AI\n(1/3)\n• HiveBrain Engine\n(`HiveBrainBridge`):\n`HiveMindSensor` + 5\nbehaviours\n(`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh\naviour`,\n`AcidSpitterCombatBeh"
       },
       {
         "raw": "aviour`,\n`StalkerFlankBehaviou\nr`,\n`WeaverSupportBehavi\nour`)."
       },
       {
-        "raw": "SmartBrainLib,\nMemories & gdx-AI\n(2/3)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
+        "raw": "Native HiveBrain,\nMemories & gdx-AI\n(2/3)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
       },
       {
         "raw": "`nearby_ally_count`,\n`hive_mind_sensor`."
       },
       {
-        "raw": "SmartBrainLib,\nMemories & gdx-AI\n(3/3)\n• gdx-AI Layer\n(`HiveTacticalTree`):\nBehavior Tree + utility\nscoring\n(`HiveUtilityEvaluator`)\n+ tactical blackboard\n(`HiveAiBlackboard`,\n`TacticalIntent`) and\n`FastNoiseLite`\nsteering fields."
+        "raw": "Native HiveBrain,\nMemories & gdx-AI\n(3/3)\n• gdx-AI Layer\n(`HiveTacticalTree`):\nBehavior Tree + utility\nscoring\n(`HiveUtilityEvaluator`)\n+ tactical blackboard\n(`HiveAiBlackboard`,\n`TacticalIntent`) and\n`FastNoiseLite`\nsteering fields."
       },
       {
         "raw": "Cap.4: Doctrines,\nSquads & Pacing\nTactical Command &\nInfluence (1/4)\n• 5 Doctrines\n(`HiveDoctrine`) & 4\nOrders (`HiveOrder`):\n`DORMANT`->`NONE`,\n`FORAGING`->`FLANK_PE\nRIMETER`,\n`ADAPTIVE_HUNT`->`FLA\nNK_PERIMETER`,\n`SIEGE_ASSAULT`->`PRE\nSSURE_TARGET`,"

@@ -1,6 +1,6 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.SporeArchitectEntity;
 import com.alex.mycelialmind.entity.SporelingEntity;
@@ -95,7 +95,7 @@ public class TacticalShelterGoal extends Goal {
             return;
         }
         BlockPos origin = activeAlarm.origin();
-        BlockPos nearestNode = MycelialSblBridge.getNearestNodePos(mob);
+        BlockPos nearestNode = HiveBrainBridge.getNearestNodePos(mob);
         boolean safeRefugeNode = nearestNode != null
                 && nearestNode.distSqr(origin) > 64.0D
                 && nearestNode.distSqr(origin) > mob.blockPosition().distSqr(origin);

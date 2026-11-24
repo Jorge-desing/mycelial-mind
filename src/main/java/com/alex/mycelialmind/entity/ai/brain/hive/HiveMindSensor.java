@@ -1,4 +1,4 @@
-package com.alex.mycelialmind.compat.sbl;
+package com.alex.mycelialmind.entity.ai.brain.hive;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.colony.SovereignColonyData;
@@ -6,27 +6,30 @@ import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
+import com.alex.mycelialmind.hive.HiveOrder;
 import com.alex.mycelialmind.hive.MycorrhizalAcousticTracker;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
+import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
 
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * SmartBrainLib sensor synchronizing HiveMindSavedData, HiveBlackboard, and PurificationZoneTracker
- * into each MycelialMob's Brain memory modules.
+ * Native {@link HiveSensor} synchronizing {@link HiveMindSavedData}, {@link HiveBlackboard},
+ * and {@link PurificationZoneTracker} into each {@link MycelialMob}'s {@link Brain} memory modules.
  */
-public class HiveMindSensor extends ExtendedSensor<MycelialMob> {
+public class HiveMindSensor extends HiveSensor<MycelialMob> {
     private static final List<MemoryModuleType<?>> MEMORIES = List.of(
             ModMemoryTypes.SHARED_TARGET_POS.get(),
             ModMemoryTypes.HIVE_ALERT_LEVEL.get(),
@@ -48,18 +51,18 @@ public class HiveMindSensor extends ExtendedSensor<MycelialMob> {
     }
 
     @Override
-    public SensorType<? extends ExtendedSensor<?>> type() {
+    public SensorType<? extends Sensor<?>> type() {
         return ModMemoryTypes.HIVE_MIND_SENSOR.get();
     }
 
     @Override
-    public void doTick(ServerLevel level, MycelialMob entity) {
+    protected void scan(ServerLevel level, MycelialMob entity) {
         Brain<?> brain = entity.getBrain();
 
         LivingEntity currentTarget = entity.getTarget();
         if (currentTarget != null && currentTarget.isAlive()) {
             HiveBlackboard.reportTarget(level, currentTarget.blockPosition());
-            MycelialSblBridge.addCombatXp(level, entity, null, 2);
+            HiveBrainBridge.addCombatXp(level, entity, null, 2);
         }
 
         int allies = level.getEntitiesOfClass(MycelialMob.class, entity.getBoundingBox().inflate(12.0D),
@@ -124,10 +127,10 @@ public class HiveMindSensor extends ExtendedSensor<MycelialMob> {
                 }
             }
         }
-        boolean rallying = HiveBlackboard.getOrder(level) == com.alex.mycelialmind.hive.HiveOrder.RALLY_NODE;
+        boolean rallying = HiveBlackboard.getOrder(level) == HiveOrder.RALLY_NODE;
         BlockPos rallyPos = rallying ? HiveBlackboard.getRallyNodePos(level) : null;
         if (rallyPos != null && (!isLoadedNode(level, rallyPos)
-                || tracker.getNodeType(rallyPos) == com.alex.mycelialmind.world.SynapticNodeType.SYMBIOTIC
+                || tracker.getNodeType(rallyPos) == SynapticNodeType.SYMBIOTIC
                 || tracker.isProtected(rallyPos))) {
             rallyPos = null;
         }

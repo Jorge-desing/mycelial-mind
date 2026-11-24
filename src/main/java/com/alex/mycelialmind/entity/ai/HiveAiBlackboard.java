@@ -1,6 +1,6 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.AcidSpitterEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.SynapseWeaverEntity;
@@ -64,16 +64,16 @@ public final class HiveAiBlackboard {
         this.health01 = Mth.clamp(mob.getHealth() / Math.max(1.0F, mob.getMaxHealth()), 0.0F, 1.0F);
         this.hasTarget = target != null && target.isAlive();
         this.distToTarget = this.hasTarget ? (float) Math.sqrt(mob.distanceToSqr(target)) : 0.0F;
-        this.hasSharedTarget = MycelialSblBridge.getSharedTargetPos(mob) != null;
+        this.hasSharedTarget = HiveBrainBridge.getSharedTargetPos(mob) != null;
 
-        BlockPos node = MycelialSblBridge.getNearestNodePos(mob);
+        BlockPos node = HiveBrainBridge.getNearestNodePos(mob);
         this.hasNearestNode = node != null;
-        BlockPos pylon = MycelialSblBridge.getNearestPylonPos(mob);
+        BlockPos pylon = HiveBrainBridge.getNearestPylonPos(mob);
         this.nearPylon = pylon != null && mob.blockPosition().distSqr(pylon) < 400.0D;
 
-        this.hiveAlert01 = MycelialSblBridge.getHiveAlertLevel(mob);
-        this.nearbyAllies = MycelialSblBridge.getNearbyAllyCount(mob);
-        this.canRallyOrder = MycelialSblBridge.getHiveOrder(mob) == HiveOrder.RALLY_NODE;
+        this.hiveAlert01 = HiveBrainBridge.getHiveAlertLevel(mob);
+        this.nearbyAllies = HiveBrainBridge.getNearbyAllyCount(mob);
+        this.canRallyOrder = HiveBrainBridge.getHiveOrder(mob) == HiveOrder.RALLY_NODE;
         this.isRangedOrKiter = mob instanceof AcidSpitterEntity || mob instanceof SynapseWeaverEntity;
         this.desynced = mob.isDesynced();
         this.frenzyActive = mob.isFrenzyActive();

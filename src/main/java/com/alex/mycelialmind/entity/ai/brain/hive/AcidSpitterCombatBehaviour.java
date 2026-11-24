@@ -1,4 +1,4 @@
-package com.alex.mycelialmind.compat.sbl;
+package com.alex.mycelialmind.entity.ai.brain.hive;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.entity.AcidSpitterEntity;
@@ -6,6 +6,7 @@ import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.ai.EvasiveStrafeGoal;
 import com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator;
 import com.alex.mycelialmind.entity.ai.KitingRetreatGoal;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveOrder;
 import com.alex.mycelialmind.hive.MycorrhizalAcousticTracker;
@@ -24,13 +25,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
 
 import java.util.List;
 import java.util.Objects;
 
 /** Owns the spitter's target, aim, and navigation for the lifetime of its Brain. */
-public final class AcidSpitterCombatBehaviour extends ExtendedBehaviour<MycelialMob> {
+public final class AcidSpitterCombatBehaviour extends HiveBehaviour<MycelialMob> {
     private static final double SHOT_RANGE_SQR = 16 * 16;
     private static final int SHOT_INTERVAL = 35;
     private static final int ROUTE_INTERVAL = 10;
@@ -67,13 +67,13 @@ public final class AcidSpitterCombatBehaviour extends ExtendedBehaviour<Mycelial
             return;
         }
 
-        HiveOrder order = MycelialSblBridge.getHiveOrder(mob);
+        HiveOrder order = HiveBrainBridge.getHiveOrder(mob);
         if (order != HiveBlackboard.getOrder(level)) {
             order = HiveOrder.NONE;
         }
         BlockPos rally = order == HiveOrder.RALLY_NODE && !mob.isDesynced()
                 && HiveBlackboard.getRallyNodePos(level) != null
-                ? validNode(level, MycelialSblBridge.getNearestNodePos(mob)) : null;
+                ? validNode(level, HiveBrainBridge.getNearestNodePos(mob)) : null;
         if (target != null) {
             double distanceSqr = mob.distanceToSqr(target);
             mob.getLookControl().setLookAt(target, 30, 30);
@@ -84,7 +84,7 @@ public final class AcidSpitterCombatBehaviour extends ExtendedBehaviour<Mycelial
                         || currentDest == null
                         || Vec3.atBottomCenterOf(currentDest).distanceToSqr(target.position()) <= distanceSqr + 0.5D;
                 if (needsRetreatRoute && gameTime >= nextRouteAt) {
-                    BlockPos refuge = rally != null ? rally : validNode(level, MycelialSblBridge.getNearestNodePos(mob));
+                    BlockPos refuge = rally != null ? rally : validNode(level, HiveBrainBridge.getNearestNodePos(mob));
                     Vec3 direction = KitingRetreatGoal.computeTacticalRetreatDirection(mob, target, refuge);
                     Vec3 destination = findRetreatDestination(mob, target, direction, distanceSqr);
                     if (destination != null) {
@@ -127,12 +127,12 @@ public final class AcidSpitterCombatBehaviour extends ExtendedBehaviour<Mycelial
                 return;
             }
         }
-        BlockPos regroupNode = validNode(level, MycelialSblBridge.getNearestNodePos(mob));
+        BlockPos regroupNode = validNode(level, HiveBrainBridge.getNearestNodePos(mob));
         if (regroupNode != null && HiveUtilityEvaluator.evaluateRegroupUtility(mob) >= 0.65F) {
             travelTo(mob, Action.RALLY, regroupNode, gameTime);
             return;
         }
-        BlockPos pressure = MycelialSblBridge.getSharedTargetPos(mob);
+        BlockPos pressure = HiveBrainBridge.getSharedTargetPos(mob);
         if (order == HiveOrder.PRESSURE_TARGET && !mob.isDesynced() && pressure != null
                 && pressure.equals(HiveBlackboard.getRecentTarget(level))
                 && level.hasChunkAt(pressure)

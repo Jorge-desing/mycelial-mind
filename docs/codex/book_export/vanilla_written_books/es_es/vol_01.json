@@ -199,19 +199,19 @@
         "raw": "Seconds = 120s`)."
       },
       {
-        "raw": "Cap.4: Arquitectura\nHíbrida SBL + gdx-AI\nSmartBrainLib,\nMemorias y gdx-AI\n(1/3)\n• Capa SBL\n(`MycelialSblBridge`):\nsensor\n`HiveMindSensor` + 5\nconductas\n(`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh\naviour`,"
+        "raw": "Cap.4: Arquitectura\nHíbrida HiveBrain +\ngdx-AI\nHiveBrain Nativo,\nMemorias y gdx-AI\n(1/3)\n• Motor HiveBrain\n(`HiveBrainBridge`):\nsensor\n`HiveMindSensor` + 5\nconductas\n(`HiveNodeRegenBehavi\nour`,\n`HiveHotspotPatrolBeh"
       },
       {
-        "raw": "`AcidSpitterCombatBeh\naviour`,\n`StalkerFlankBehaviou\nr`,\n`WeaverSupportBehavi\nour`)."
+        "raw": "aviour`,\n`AcidSpitterCombatBeh\naviour`,\n`StalkerFlankBehaviou\nr`,\n`WeaverSupportBehavi\nour`)."
       },
       {
-        "raw": "SmartBrainLib,\nMemorias y gdx-AI\n(2/3)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
+        "raw": "HiveBrain Nativo,\nMemorias y gdx-AI\n(2/3)\n• 11\n`ModMemoryTypes`:\n`shared_target_pos`,\n`hive_alert_level`,\n`nearest_node_pos`,\n`stalker_flank_pos`,\n`weaver_support_pos`,\n`nearest_pylon_pos`,\n`hive_order`,\n`mob_combat_xp`,\n`last_attack_stimulus`,"
       },
       {
         "raw": "`nearby_ally_count`,\n`hive_mind_sensor`."
       },
       {
-        "raw": "SmartBrainLib,\nMemorias y gdx-AI\n(3/3)\n• Capa gdx-AI\n(`HiveTacticalTree`):\nÁrbol de\nComportamiento +\nevaluador de utilidad\n(`HiveUtilityEvaluator`)\n+ pizarra táctica\n(`HiveAiBlackboard`,\n`TacticalIntent`) y\ncampos orgánicos\n`FastNoiseLite`."
+        "raw": "HiveBrain Nativo,\nMemorias y gdx-AI\n(3/3)\n• Capa gdx-AI\n(`HiveTacticalTree`):\nÁrbol de\nComportamiento +\nevaluador de utilidad\n(`HiveUtilityEvaluator`)\n+ pizarra táctica\n(`HiveAiBlackboard`,\n`TacticalIntent`) y\ncampos orgánicos\n`FastNoiseLite`."
       },
       {
         "raw": "Cap.4: Doctrinas,\nEscuadrones y Pacing\nMando Táctico e\nInfluencia (1/4)\n• 5 Doctrinas\n(`HiveDoctrine`) y 4\nÓrdenes (`HiveOrder`):\n`DORMANT`->`NONE`,\n`FORAGING`->`FLANK_PE\nRIMETER`,\n`ADAPTIVE_HUNT`->`FLA\nNK_PERIMETER`,\n`SIEGE_ASSAULT`->`PRE"

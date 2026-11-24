@@ -1,21 +1,21 @@
-package com.alex.mycelialmind.compat.sbl;
+package com.alex.mycelialmind.entity.ai.brain.hive;
 
-import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
+import com.alex.mycelialmind.registry.ModParticles;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.tslat.smartbrainlib.api.core.behaviour.ExtendedBehaviour;
 
 import java.util.List;
 
 /**
- * SBL Brain behaviour: regenerates wounded MycelialMobs near a Synaptic Node when idle.
+ * Brain behaviour: regenerates wounded {@link MycelialMob}s near a Synaptic Node when idle.
  */
-public class HiveNodeRegenBehaviour extends ExtendedBehaviour<MycelialMob> {
+public class HiveNodeRegenBehaviour extends HiveBehaviour<MycelialMob> {
     private static final List<Pair<MemoryModuleType<?>, MemoryStatus>> MEMORIES = List.of(
             Pair.of(ModMemoryTypes.NEAREST_NODE_POS.get(), MemoryStatus.VALUE_PRESENT)
     );
@@ -34,7 +34,7 @@ public class HiveNodeRegenBehaviour extends ExtendedBehaviour<MycelialMob> {
         if (entity.getHealth() >= entity.getMaxHealth()) {
             return false;
         }
-        BlockPos nodePos = MycelialSblBridge.getNearestNodePos(entity);
+        BlockPos nodePos = HiveBrainBridge.getNearestNodePos(entity);
         return nodePos != null && entity.blockPosition().distSqr(nodePos) <= 100.0D;
     }
 

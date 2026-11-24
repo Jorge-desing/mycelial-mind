@@ -1,6 +1,6 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.hive.HiveBlackboard;
@@ -50,7 +50,7 @@ public class HiveRegroupGoal extends Goal {
         BlockPos node = validRallyNode();
         followingOrder = node != null;
         if (node == null) {
-            BlockPos candidate = MycelialSblBridge.getNearestNodePos(mob);
+            BlockPos candidate = HiveBrainBridge.getNearestNodePos(mob);
             node = isValidNode(candidate) ? candidate : null;
         }
         destination = node;
@@ -58,7 +58,7 @@ public class HiveRegroupGoal extends Goal {
             mob.getNavigation().moveTo(node.getX() + 0.5, node.getY(), node.getZ() + 0.5, speedModifier);
             return;
         }
-        BlockPos pylon = MycelialSblBridge.getNearestPylonPos(mob);
+        BlockPos pylon = HiveBrainBridge.getNearestPylonPos(mob);
         if (pylon != null) {
             Vec3 away = new Vec3(mob.getX() - (pylon.getX() + 0.5), 0.0, mob.getZ() - (pylon.getZ() + 0.5));
             Vec3 dir = away.lengthSqr() > 1.0E-4D ? away.normalize() : new Vec3(1.0, 0.0, 0.0);
@@ -75,12 +75,12 @@ public class HiveRegroupGoal extends Goal {
 
     private BlockPos validRallyNode() {
         if (!(mob.level() instanceof ServerLevel level) || mob.isDesynced()
-                || MycelialSblBridge.getHiveOrder(mob) != HiveOrder.RALLY_NODE
+                || HiveBrainBridge.getHiveOrder(mob) != HiveOrder.RALLY_NODE
                 || HiveBlackboard.getOrder(level) != HiveOrder.RALLY_NODE
                 || HiveBlackboard.getRallyNodePos(level) == null) {
             return null;
         }
-        BlockPos node = MycelialSblBridge.getNearestNodePos(mob);
+        BlockPos node = HiveBrainBridge.getNearestNodePos(mob);
         return isValidNode(node) ? node : null;
     }
 

@@ -1,6 +1,6 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
@@ -70,20 +70,20 @@ public final class HiveUtilityEvaluator {
             return 0.0F;
         }
         float healthRatio = responseSigmoid(mob.getHealth() / Math.max(1.0F, mob.getMaxHealth()), 6.0F, 0.35F);
-        float alert = MycelialSblBridge.getHiveAlertLevel(mob);
+        float alert = HiveBrainBridge.getHiveAlertLevel(mob);
         float traitBonus = mob.hasTrait(AdaptationTrait.BLAST_SHIELDED) ? 0.20F : 0.0F;
         float rankBonus = mob.getEvolutionRank() == EvolutionRank.ELITE ? 0.15F
                 : (mob.getEvolutionRank() == EvolutionRank.MUTATED ? 0.08F : 0.0F);
-        var order = MycelialSblBridge.getHiveOrder(mob);
+        var order = HiveBrainBridge.getHiveOrder(mob);
         float orderBonus = (order == com.alex.mycelialmind.hive.HiveOrder.PRESSURE_TARGET
                 || order == com.alex.mycelialmind.hive.HiveOrder.FLANK_PERIMETER) ? 0.18F : 0.0F;
-        float cohesionBonus = MycelialSblBridge.getNearbyAllyCount(mob) >= 2 ? 0.12F : 0.0F;
+        float cohesionBonus = HiveBrainBridge.getNearbyAllyCount(mob) >= 2 ? 0.12F : 0.0F;
         float influenceBonus = 0.0F;
         if (mob.level() instanceof ServerLevel serverLevel) {
             var cell = HiveBlackboard.getInfluenceMap(serverLevel).sample(mob.blockPosition());
             influenceBonus = 0.10F * cell.pheromone() + 0.08F * cell.control();
         }
-        float xpBonus = combatXpChargeBonus(MycelialSblBridge.getCombatXp(mob));
+        float xpBonus = combatXpChargeBonus(HiveBrainBridge.getCombatXp(mob));
         return Mth.clamp(0.35F * healthRatio + 0.30F * alert + traitBonus + rankBonus + orderBonus + cohesionBonus + influenceBonus + xpBonus, 0.0F, 1.0F);
     }
 
@@ -113,7 +113,7 @@ public final class HiveUtilityEvaluator {
         double distSq = mob.distanceToSqr(target);
         float proximity = distSq < 25.0D ? 1.0F : (distSq < 64.0D ? 0.45F : 0.0F);
         float lowHealth = responseExponential(1.0F - Mth.clamp(mob.getHealth() / Math.max(1.0F, mob.getMaxHealth()), 0.0F, 1.0F), 1.35F);
-        float alert = MycelialSblBridge.getHiveAlertLevel(mob);
+        float alert = HiveBrainBridge.getHiveAlertLevel(mob);
         float traitBonus = mob.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT) ? 0.15F : 0.0F;
         float influencePressure = 0.0F;
         float tideOffset = 0.0F;
@@ -124,15 +124,15 @@ public final class HiveUtilityEvaluator {
                 tideOffset = -0.06F;
             }
         }
-        StimulusType lastStimulus = MycelialSblBridge.getLastAttackStimulus(mob);
+        StimulusType lastStimulus = HiveBrainBridge.getLastAttackStimulus(mob);
         float stimulusOffset = stimulusKiteOffset(lastStimulus);
         return Mth.clamp(0.50F * proximity + 0.30F * lowHealth + 0.15F * alert + traitBonus + influencePressure + tideOffset + stimulusOffset, 0.0F, 1.0F);
     }
 
     public static float evaluateRegroupUtility(MycelialMob mob) {
         float healthRatio = Mth.clamp(mob.getHealth() / Math.max(1.0F, mob.getMaxHealth()), 0.0F, 1.0F);
-        BlockPos node = MycelialSblBridge.getNearestNodePos(mob);
-        BlockPos pylon = MycelialSblBridge.getNearestPylonPos(mob);
+        BlockPos node = HiveBrainBridge.getNearestNodePos(mob);
+        BlockPos pylon = HiveBrainBridge.getNearestPylonPos(mob);
 
         float score = 0.0F;
         if (healthRatio < 0.45F && node != null && mob.blockPosition().distSqr(node) > 36.0D) {
@@ -141,10 +141,10 @@ public final class HiveUtilityEvaluator {
         if (pylon != null && mob.blockPosition().distSqr(pylon) < 400.0D && mob.getTarget() == null) {
             score += 0.70F;
         }
-        if (MycelialSblBridge.getHiveOrder(mob) == com.alex.mycelialmind.hive.HiveOrder.RALLY_NODE && node != null) {
+        if (HiveBrainBridge.getHiveOrder(mob) == com.alex.mycelialmind.hive.HiveOrder.RALLY_NODE && node != null) {
             score += 0.35F;
         }
-        if (MycelialSblBridge.getNearbyAllyCount(mob) == 0 && healthRatio < 0.60F) {
+        if (HiveBrainBridge.getNearbyAllyCount(mob) == 0 && healthRatio < 0.60F) {
             score += 0.20F;
         }
         if (mob.level() instanceof ServerLevel serverLevel) {
@@ -154,8 +154,8 @@ public final class HiveUtilityEvaluator {
                 score -= 0.08F;
             }
         }
-        StimulusType lastStimulus = MycelialSblBridge.getLastAttackStimulus(mob);
-        score += stimulusRegroupBonus(lastStimulus, MycelialSblBridge.getCombatXp(mob));
+        StimulusType lastStimulus = HiveBrainBridge.getLastAttackStimulus(mob);
+        score += stimulusRegroupBonus(lastStimulus, HiveBrainBridge.getCombatXp(mob));
         return Mth.clamp(score, 0.0F, 1.0F);
     }
 }

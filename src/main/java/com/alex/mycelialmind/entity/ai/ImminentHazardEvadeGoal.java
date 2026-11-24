@@ -1,6 +1,6 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.projectile.PurifierGrenadeProjectile;
 import com.alex.mycelialmind.hive.MobEpisodicMemory;
@@ -82,7 +82,7 @@ public class ImminentHazardEvadeGoal extends Goal {
         if (activeHazard == null || !isImminentHazard(activeHazard)) {
             return;
         }
-        BlockPos nearestNode = MycelialSblBridge.getNearestNodePos(mob);
+        BlockPos nearestNode = HiveBrainBridge.getNearestNodePos(mob);
         Vec3 evadeDir = TacticalEvasionEngine.computeHazardEvadeVector(
                 mob.getX(), mob.getZ(), activeHazard.getX(), activeHazard.getZ(), nearestNode);
         mob.getNavigation().moveTo(

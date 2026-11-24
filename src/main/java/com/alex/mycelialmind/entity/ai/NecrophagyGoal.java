@@ -1,7 +1,7 @@
 package com.alex.mycelialmind.entity.ai;
 
 import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveBlackboard;
@@ -68,7 +68,7 @@ public class NecrophagyGoal extends Goal {
             Vec3 consumed = HiveBlackboard.consumeNearestCarrion(level, mob.position(), 3.0D);
             if (consumed != null) {
                 mob.heal(LivingBattlefieldSystem.CARRION_HEAL_AMOUNT);
-                MycelialSblBridge.addCombatXp(level, mob, StimulusType.MELEE, LivingBattlefieldSystem.CARRION_XP_REWARD);
+                HiveBrainBridge.addCombatXp(level, mob, StimulusType.MELEE, LivingBattlefieldSystem.CARRION_XP_REWARD);
                 level.sendParticles(ModParticles.NECROTIC_MIST.get(), mob.getX(), mob.getY(0.6), mob.getZ(),
                         10, 0.3, 0.3, 0.3, 0.03);
                 level.playSound(null, mob.blockPosition(), ModSounds.NECROPHAGY_FEAST.get(), SoundSource.HOSTILE, 0.8F, 0.9F);

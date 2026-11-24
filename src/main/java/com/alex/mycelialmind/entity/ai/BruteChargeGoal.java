@@ -1,6 +1,6 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
@@ -48,7 +48,7 @@ public class BruteChargeGoal extends Goal {
             float utility = HiveUtilityEvaluator.evaluateChargeUtility(mob, target);
             return utility >= 0.25F && distSq >= 16.0D && distSq <= maxDistSq && mob.hasLineOfSight(target);
         }
-        BlockPos sharedTarget = MycelialSblBridge.getSharedTargetPos(mob);
+        BlockPos sharedTarget = HiveBrainBridge.getSharedTargetPos(mob);
         if (sharedTarget != null) {
             double distSq = mob.blockPosition().distSqr(sharedTarget);
             return distSq >= 16.0D && distSq <= 256.0D;
@@ -61,7 +61,7 @@ public class BruteChargeGoal extends Goal {
         LivingEntity target = mob.getTarget();
         return chargeTicks > 0 && (target != null
                 ? target.isAlive()
-                : MycelialSblBridge.getSharedTargetPos(mob) != null);
+                : HiveBrainBridge.getSharedTargetPos(mob) != null);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class BruteChargeGoal extends Goal {
         if (target != null && !target.isAlive()) {
             target = null;
         }
-        BlockPos sharedTarget = target == null ? MycelialSblBridge.getSharedTargetPos(mob) : null;
+        BlockPos sharedTarget = target == null ? HiveBrainBridge.getSharedTargetPos(mob) : null;
         if (target == null && sharedTarget == null) {
             this.chargeTicks = 0;
             return;

@@ -16,15 +16,12 @@ $env:JAVA_HOME = 'C:\Program Files\Java\jdk-21'
 $env:GRADLE_OPTS = '-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT'
 Push-Location $root
 try {
-    & .\gradlew.bat build stageMcPilotDependency
+    & .\gradlew.bat build
     if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
     $version = (Get-Content gradle.properties | Where-Object { $_ -match '^mod_version\s*=' } | Select-Object -First 1) -replace '^mod_version\s*=\s*',''
     $jar = Join-Path $root "build\libs\mycelialmind-$version.jar"
     if (!(Test-Path $jar)) { throw "Missing build: $jar" }
-    $dependencyDir = Join-Path $root 'build\mc-pilot-dependencies'
-    $sbl = @(Get-ChildItem -LiteralPath $dependencyDir -Filter 'SmartBrainLib-neoforge-*.jar')
-    if ($sbl.Count -ne 1) { throw 'Expected one Gradle-resolved SmartBrainLib runtime jar.' }
     Copy-Item -LiteralPath $jar -Destination (Join-Path $mods 'mycelialmind-test.jar') -Force
-    Copy-Item -LiteralPath $sbl[0].FullName -Destination (Join-Path $mods 'smartbrainlib-test.jar') -Force
-    Write-Host "Prepared $ClientName with Mycelial Mind $version and $($sbl[0].Name)."
+    Remove-Item -LiteralPath (Join-Path $mods 'smartbrainlib-test.jar') -ErrorAction SilentlyContinue
+    Write-Host "Prepared $ClientName with Mycelial Mind $version (native HiveBrain, no SmartBrainLib required)."
 } finally { Pop-Location }

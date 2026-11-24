@@ -21,8 +21,8 @@
   - [Las 5 Sinergias (`HiveSynergy`)](#cap3-sinergias_evolutivas) — _Combinaciones compuestas al coincidir pares de rasgos_
   - [Los 4 Hábitos del Jugador](#cap3-habitos_telemetria) — _HabitTelemetryTracker: contra-adaptaciones desde 60.0_
   - [Engaño Pavloviano y Contramedidas](#cap3-engano_pavloviano) — _FalseEngramInjector, CounterSerum y SynapticSuppressor_
-- **Capítulo 4 — IA Táctica y Campo Vivo** (`ia_tactica`): SmartBrainLib, gdx-AI, Escuadrones, Trauma, Carroña y Goals
-  - [Arquitectura Híbrida SBL + gdx-AI](#cap4-arquitectura_sbl_gdxai) — _MycelialSblBridge, 11 ModMemoryTypes y HiveTacticalTree_
+- **Capítulo 4 — IA Táctica y Campo Vivo** (`ia_tactica`): HiveBrain, gdx-AI, Escuadrones, Trauma, Carroña y Goals
+  - [Arquitectura Híbrida HiveBrain + gdx-AI](#cap4-arquitectura_hivebrain_gdxai) — _HiveBrainBridge, 11 ModMemoryTypes y HiveTacticalTree_
   - [Doctrinas, Escuadrones y Pacing](#cap4-doctrina_escuadron_pacing) — _HiveDoctrine, HiveOrder, SwarmRole, Frenesí y Desync (5s)_
   - [IA de Campo Vivo y Goals](#cap4-campo_batalla_vivo) — _Trauma, Carroña, Quitina Efímera, Atascos y Goals personalizados_
 - **Capítulo 5 — Bestiario y Quimeras** (`bestiario`): 17 especies vivas, 3 proyectiles, 17 huevos y genes 5x5
@@ -64,7 +64,7 @@
   - [Los 8 Secretos: Pistas de Campo](#cap11-secretos_pistas_seguras) — _Indicios de investigación experimental y ecológica sin spoilers_
   - [Los 8 Secretos: Revelación Exacta](#cap11-secretos_revelaciones_spoiler) — _[SPOILER] Fórmulas y disparadores exactos en código_
   - [Los 32 Logros (`advancement`)](#cap11-logros_30_advancements) — _27 logros de campaña y 5 desbloqueos automáticos de recetas_
-  - [Redstone (7) y Ecosistema de Mods](#cap11-redstone_y_ecosistema_mods) — _MycelialRedstoneTelemetry + SBL, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon_
+  - [Redstone (7) y Ecosistema de Mods](#cap11-redstone_y_ecosistema_mods) — _MycelialRedstoneTelemetry + HiveBrain, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon_
   - [Engrama I: Señal de Brote](#cap11-engram_outbreak_signal) — _Registro inicial del elemento field_engram (engram_id)_
   - [Engrama II: Floración Sináptica](#cap11-engram_synaptic_bloom) — _Topología temprana de nodos y pilones_
   - [Engrama III: Resonancia Quitina](#cap11-engram_chitin_resonance) — _Eco estructural de hive_core_
@@ -372,23 +372,23 @@ _Router 40/60, 5 Rasgos, 5 Sinergias, 4 Hábitos y Engaño_ | Puerta recomendada
 
 ## Capítulo 4: IA Táctica y Campo Vivo
 
-_SmartBrainLib, gdx-AI, Escuadrones, Trauma, Carroña y Goals_ | Puerta recomendada: `always` | Ícono: `mycelialmind:neural_echo_core`
+_HiveBrain, gdx-AI, Escuadrones, Trauma, Carroña y Goals_ | Puerta recomendada: `always` | Ícono: `mycelialmind:neural_echo_core`
 
-<a id="cap4-arquitectura_sbl_gdxai"></a>
-### 1. Arquitectura Híbrida SBL + gdx-AI
+<a id="cap4-arquitectura_hivebrain_gdxai"></a>
+### 1. Arquitectura Híbrida HiveBrain + gdx-AI
 
-- **ID de Entrada:** `ia_tactica/arquitectura_sbl_gdxai` | **Ícono:** `mycelialmind:neural_echo_core` | **Unlock:** `always`
-- **Resumen:** MycelialSblBridge, 11 ModMemoryTypes y HiveTacticalTree
+- **ID de Entrada:** `ia_tactica/arquitectura_hivebrain_gdxai` | **Ícono:** `mycelialmind:neural_echo_core` | **Unlock:** `always`
+- **Resumen:** HiveBrainBridge, 11 ModMemoryTypes y HiveTacticalTree
 
-#### [Libro: Cap.4 / arquitectura_sbl_gdxai / Pág.1] SmartBrainLib, Memorias y gdx-AI (1/3)
+#### [Libro: Cap.4 / arquitectura_hivebrain_gdxai / Pág.1] HiveBrain Nativo, Memorias y gdx-AI (1/3)
 
-• **Capa SBL (`MycelialSblBridge`):** sensor `HiveMindSensor` + 5 conductas (`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, `StalkerFlankBehaviour`, `WeaverSupportBehaviour`).
+• **Motor HiveBrain (`HiveBrainBridge`):** sensor `HiveMindSensor` + 5 conductas (`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, `StalkerFlankBehaviour`, `WeaverSupportBehaviour`).
 
-#### [Libro: Cap.4 / arquitectura_sbl_gdxai / Pág.2] SmartBrainLib, Memorias y gdx-AI (2/3)
+#### [Libro: Cap.4 / arquitectura_hivebrain_gdxai / Pág.2] HiveBrain Nativo, Memorias y gdx-AI (2/3)
 
 • **11 `ModMemoryTypes`:** `shared_target_pos`, `hive_alert_level`, `nearest_node_pos`, `stalker_flank_pos`, `weaver_support_pos`, `nearest_pylon_pos`, `hive_order`, `mob_combat_xp`, `last_attack_stimulus`, `nearby_ally_count`, `hive_mind_sensor`.
 
-#### [Libro: Cap.4 / arquitectura_sbl_gdxai / Pág.3] SmartBrainLib, Memorias y gdx-AI (3/3)
+#### [Libro: Cap.4 / arquitectura_hivebrain_gdxai / Pág.3] HiveBrain Nativo, Memorias y gdx-AI (3/3)
 
 • **Capa gdx-AI (`HiveTacticalTree`):** Árbol de Comportamiento + evaluador de utilidad (`HiveUtilityEvaluator`) + pizarra táctica (`HiveAiBlackboard`, `TacticalIntent`) y campos orgánicos `FastNoiseLite`.
 
@@ -1003,27 +1003,27 @@ Telemetría inicial: Brújula, Redstone, Cobre y Espora (`bio_scanner`); Amatist
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.2] Antídoto de Esporas y Concentrado
 
 > **[Receta 1]** `[crafting_shapeless] glass_bottle + latent_spore + sugar -> 1x spore_antidote`
-> **[Receta 2]** `[crafting_shapeless] spore_antidote + latent_spore + amethyst_shard -> 1x concentrated_antidote`
+> **[Receta 2]** `[crafting_shapeless] spore_antidote + latent_spore + amethyst_shard + mycelial_biomass + glowstone_dust -> 1x concentrated_antidote`
 
 Profilaxis clínica sin mesa: Frasco + `latent_spore` + Azúcar; concentra con Amatista.
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.3] Casco y Peto de Quitina
 
-> **[Receta 1]** `[crafting_shaped] CCC/C C (C=chitin_plate) -> 1x chitin_helmet`
+> **[Receta 1]** `[crafting_shaped] CCC/CAC (A=amethyst_shard, C=chitin_plate) -> 1x chitin_helmet`
 > **[Receta 2]** `[crafting_shaped] C C/CSC/CCC (C=chitin_plate, S=synaptic_core) -> 1x chitin_chestplate`
 
 Forja con `chitin_plate`; el Peto integra un `synaptic_core` central.
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.4] Grebas y Botas de Quitina
 
-> **[Receta 1]** `[crafting_shaped] CCC/C C/C C (C=chitin_plate) -> 1x chitin_leggings`
-> **[Receta 2]** `[crafting_shaped] C C/C C (C=chitin_plate) -> 1x chitin_boots`
+> **[Receta 1]** `[crafting_shaped] CCC/CIC/C C (C=chitin_plate, I=iron_ingot) -> 1x chitin_leggings`
+> **[Receta 2]** `[crafting_shaped] C C/CLC (C=chitin_plate, L=leather) -> 1x chitin_boots`
 
 Completan el conjunto de Quitina (`[2,5,6,2]`) reduciendo infección `-20%` por pieza.
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.5] Lanza Enzimática y Hoja Simbiótica
 
-> **[Receta 1]** `[crafting_shaped]   C/ S /I   (C=chitin_plate, I=iron_ingot, S=latent_spore) -> 1x enzyme_lance`
+> **[Receta 1]** `[crafting_shaped]  CS/CSC/II  (C=chitin_plate, I=iron_ingot, S=latent_spore) -> 1x enzyme_lance`
 > **[Receta 2]** `[crafting_shaped]  H / C / D  (C=chitin_plate, D=diamond_sword, H=hive_heart) -> 1x symbiotic_blade`
 
 Armas melee progresivas: desde `chitin_plate` hasta `hive_heart` sobre Espada de Diamante.
@@ -1031,7 +1031,7 @@ Armas melee progresivas: desde `chitin_plate` hasta `hive_heart` sobre Espada de
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.6] Lanzador Neutralizante y Granada (x2)
 
 > **[Receta 1]** `[crafting_shaped] LSL/ C / B  (B=amethyst_shard, C=chitin_plate, L=latent_spore, S=synaptic_core) -> 1x neutralizing_spore_launcher`
-> **[Receta 2]** `[crafting_shaped]  A /LGL/ B  (A=amethyst_shard, B=mycelial_biomass, G=gunpowder, L=latent_spore) -> 2x purifier_grenade`
+> **[Receta 2]** `[crafting_shaped]  A /LGL/GBG (A=amethyst_shard, B=mycelial_biomass, G=gunpowder, L=latent_spore) -> 1x purifier_grenade`
 
 Artillería purificadora y granadas de área que rompen coordinación sináptica (`Desync`).
 
@@ -1044,7 +1044,7 @@ Perímetro defensivo (`pylonPurificationRadius = 24m`) y defensa automática (`p
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.8] Bio-Barrera (x4) y Núcleo de Dron
 
-> **[Receta 1]** `[crafting_shaped] CPC/PDP/CPC (C=chitin_plate, D=mycelial_biomass, P=polished_deepslate) -> 4x reinforced_bio_barrier`
+> **[Receta 1]** `[crafting_shaped] CPC/PDP/CPC (C=chitin_plate, D=mycelial_biomass, P=obsidian) -> 2x reinforced_bio_barrier`
 > **[Receta 2]** `[crafting_shaped]  G /CPC/ S  (C=chitin_plate, G=gold_ingot, P=purification_pylon, S=synaptic_core) -> 1x purifier_drone_core`
 
 Muro antibrecha + marco del portal; `purifier_drone_core` despliega soporte aéreo.
@@ -1066,7 +1066,7 @@ Contramedidas acústicas (`neural_echo_decoy`) y sobre-adaptación Pavloviana (`
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.11] Inyector de Cisma y Feromona (x2)
 
 > **[Receta 1]** `[crafting_shaped]  L /CEC/ B  (B=blaze_powder, C=chitin_plate, E=neural_echo_core, L=latent_spore) -> 1x schism_injector`
-> **[Receta 2]** `[crafting_shapeless] mycelial_biomass + latent_spore + glass_bottle + fermented_spider_eye -> 2x truce_pheromone`
+> **[Receta 2]** `[crafting_shapeless] mycelial_biomass + latent_spore + glass_bottle + fermented_spider_eye + amethyst_shard -> 1x truce_pheromone`
 
 Induce guerra civil Ámbar/Carmesí o rocía tregua química temporal.
 
@@ -1087,7 +1087,7 @@ Reliquias de Acto III+: congela aprendizaje global o abre grietas al Micelio Pro
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.14] Corona Supramente y Recarga Faro
 
 > **[Receta 1]** `[crafting_shaped]  O /DHD/ S  (D=diamond, H=hive_heart, O=overmind_essence, S=synaptic_core) -> 1x overmind_crown`
-> **[Receta 2]** `[crafting_shapeless] tide_beacon + amethyst_shard + chitin_plate -> 1x tide_beacon`
+> **[Receta 2]** `[crafting_shapeless] tide_beacon + synaptic_core + chitin_plate + chitin_plate + amethyst_shard -> 1x tide_beacon`
 
 Pináculo Acto IV (`overmind_essence` + `hive_heart`); recarga `tide_beacon` con amatista y quitina.
 
@@ -1125,13 +1125,13 @@ Calcina `antibody_cyst` al doble de velocidad (`100t`, `0.2 XP`) -> `chitin_plat
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.20] Cortapiedras: Ladrillo y Pilar
 
 > **[Receta 1]** `[stonecutting] mycelial_stone -> 1x mycelial_arch_brick`
-> **[Receta 2]** `[stonecutting] mycelial_arch_brick -> 1x chitin_pillar`
+> **[Receta 2]** `[stonecutting] reinforced_bio_barrier -> 1x chitin_pillar`
 
 `mycelial_stone` -> `mycelial_arch_brick` -> `chitin_pillar` sin desperdicio.
 
 #### [Libro: Cap.9 / recetas_36_datapack / Pág.21] Cortapiedras: Celosía Bio-Quitina
 
-> **[Receta 1]** `[stonecutting] chitin_plate -> 2x bio_chitin_lattice`
+> **[Receta 1]** `[stonecutting] chitin_plate -> 1x bio_chitin_lattice`
 
 1 `chitin_plate` se talla en **2** `bio_chitin_lattice` para galerías y ventanales.
 
@@ -1416,7 +1416,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 ### 4. Redstone (7) y Ecosistema de Mods
 
 - **ID de Entrada:** `secretos_logros/redstone_y_ecosistema_mods` | **Ícono:** `mycelialmind:purification_turret` | **Unlock:** `always`
-- **Resumen:** MycelialRedstoneTelemetry + SBL, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon
+- **Resumen:** MycelialRedstoneTelemetry + HiveBrain, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.1] Telemetría Redstone y Compatibilidad (1/4)
 
@@ -1428,7 +1428,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.3] Telemetría Redstone y Compatibilidad (3/4)
 
-• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **SmartBrainLib** (`MycelialSblBridge`), **gdx-AI** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).
+• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** (`HiveBrainBridge`), **gdx-AI** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).
 
 #### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.4] Telemetría Redstone y Compatibilidad (4/4)
 

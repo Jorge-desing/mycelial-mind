@@ -846,16 +846,16 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
     )
 
     # ==================================================================
-    # CHAPTER 4: IA TÁCTICA (SBL, GDX-AI, ESCUADRONES Y CAMPO VIVO)
+    # CHAPTER 4: IA TÁCTICA (HIVEBRAIN NATIVO, GDX-AI, ESCUADRONES Y CAMPO VIVO)
     # ==================================================================
     ch4_entries = (
         CodexEntry(
-            id="arquitectura_sbl_gdxai",
+            id="arquitectura_hivebrain_gdxai",
             order=1,
-            title=lt("Arquitectura Híbrida SBL + gdx-AI", "SBL + gdx-AI Architecture"),
+            title=lt("Arquitectura Híbrida HiveBrain + gdx-AI", "HiveBrain + gdx-AI Architecture"),
             subtitle=lt(
-                "MycelialSblBridge, 11 ModMemoryTypes y HiveTacticalTree",
-                "MycelialSblBridge, 11 ModMemoryTypes & HiveTacticalTree",
+                "HiveBrainBridge, 11 ModMemoryTypes y HiveTacticalTree",
+                "HiveBrainBridge, 11 ModMemoryTypes & HiveTacticalTree",
             ),
             icon_item="mycelialmind:neural_echo_core",
             x=grid_xy(0, 3)[0],
@@ -863,7 +863,8 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
             parents=(),
             unlock_gate="always",
             registry_refs=(
-                "MycelialSblBridge",
+                "HiveBrainBridge",
+                "HiveBrainOwner",
                 "HiveMindSensor",
                 "HiveTacticalTree",
                 "HiveUtilityEvaluator",
@@ -883,15 +884,15 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
             ),
             pages=tuple(
                 chunk_paired_blocks(
-                    "sbl_gdx",
-                    "SmartBrainLib, Memorias y gdx-AI",
-                    "SmartBrainLib, Memories & gdx-AI",
+                    "hivebrain_gdx",
+                    "HiveBrain Nativo, Memorias y gdx-AI",
+                    "Native HiveBrain, Memories & gdx-AI",
                     [
                         (
-                            "• **Capa SBL (`MycelialSblBridge`):** sensor `HiveMindSensor` + 5 conductas "
+                            "• **Motor HiveBrain (`HiveBrainBridge`):** sensor `HiveMindSensor` + 5 conductas "
                             "(`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, "
                             "`StalkerFlankBehaviour`, `WeaverSupportBehaviour`).",
-                            "• **SBL Layer (`MycelialSblBridge`):** `HiveMindSensor` + 5 behaviours "
+                            "• **HiveBrain Engine (`HiveBrainBridge`):** `HiveMindSensor` + 5 behaviours "
                             "(`HiveNodeRegenBehaviour`, `HiveHotspotPatrolBehaviour`, `AcidSpitterCombatBehaviour`, "
                             "`StalkerFlankBehaviour`, `WeaverSupportBehaviour`).",
                         ),
@@ -928,7 +929,7 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
             icon_item="mycelialmind:purifier_grenade",
             x=grid_xy(1, 3)[0],
             y=grid_xy(1, 3)[1],
-            parents=("arquitectura_sbl_gdxai",),
+            parents=("arquitectura_hivebrain_gdxai",),
             unlock_gate="always",
             registry_refs=(
                 "HiveDoctrine",
@@ -1065,8 +1066,8 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
         number=4,
         title=lt("IA Táctica y Campo Vivo", "Tactical AI & Living Field"),
         subtitle=lt(
-            "SmartBrainLib, gdx-AI, Escuadrones, Trauma, Carroña y Goals",
-            "SmartBrainLib, gdx-AI, Squads, Trauma, Carrion & Custom Goals",
+            "HiveBrain, gdx-AI, Escuadrones, Trauma, Carroña y Goals",
+            "HiveBrain, gdx-AI, Squads, Trauma, Carrion & Custom Goals",
         ),
         icon_item="mycelialmind:neural_echo_core",
         entries=ch4_entries,

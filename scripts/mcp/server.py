@@ -1773,7 +1773,7 @@ async def mcpilot_command(
 
 @_tool(tags={"mcpilot", "lifecycle"})
 async def prepare_mcpilot_client(mct_home: str = "", timeout_secs: int = 240) -> dict[str, Any]:
-    """Run scripts/Prepare-McPilotClient.ps1 to stage the mod JAR and SmartBrainLib into MC Pilot."""
+    """Run scripts/Prepare-McPilotClient.ps1 to stage the mod JAR into MC Pilot."""
     return await _run_ps1_async("scripts/Prepare-McPilotClient.ps1", mct_home=mct_home, timeout_secs=timeout_secs)
 
 
@@ -1982,7 +1982,7 @@ def _parse_java_enum_constants(path: Path, enum_name: str) -> list[str]:
 
 @_tool(tags={"code", "hive"})
 def get_hive_ai_overview() -> dict[str, Any]:
-    """Summarize Mycelial Mind Hive AI and Sovereign Colony subsystems, enum constants, and SBL memory types."""
+    """Summarize Mycelial Mind Hive AI and Sovereign Colony subsystems, enum constants, and HiveBrain memory types."""
     cached = _cache_get("hive_ai_overview")
     if cached is not None:
         return cached

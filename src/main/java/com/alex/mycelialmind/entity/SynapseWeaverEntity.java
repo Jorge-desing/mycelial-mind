@@ -3,8 +3,8 @@ package com.alex.mycelialmind.entity;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.entity.ai.EvasiveStrafeGoal;
 import com.alex.mycelialmind.entity.ai.WeaverSupportGoal;
-import com.alex.mycelialmind.compat.sbl.WeaverSupportBehaviour;
-import com.alex.mycelialmind.compat.sbl.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.WeaverSupportBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -26,8 +26,8 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import net.minecraft.world.level.Level;
-import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
 
 /**
  * Support organism that links nearby mycelial mobs with regeneration and resistance.

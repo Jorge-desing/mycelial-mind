@@ -720,17 +720,18 @@
       "unlock_gate": "always",
       "entries": [
         {
-          "id": "arquitectura_sbl_gdxai",
+          "id": "arquitectura_hivebrain_gdxai",
           "order": 1,
-          "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.name",
-          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.desc",
+          "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.name",
+          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.desc",
           "icon_item": "mycelialmind:neural_echo_core",
           "x": -2,
           "y": 0,
           "parents": [],
           "unlock_gate": "always",
           "registry_refs": [
-            "MycelialSblBridge",
+            "HiveBrainBridge",
+            "HiveBrainOwner",
             "HiveMindSensor",
             "HiveTacticalTree",
             "HiveUtilityEvaluator",
@@ -751,26 +752,26 @@
           "pages": [
             {
               "page_number": 1,
-              "id": "sbl_gdx_p1",
+              "id": "hivebrain_gdx_p1",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.1.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.1.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.1.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.1.text",
               "is_spoiler": false
             },
             {
               "page_number": 2,
-              "id": "sbl_gdx_p2",
+              "id": "hivebrain_gdx_p2",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.2.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.2.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.2.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.2.text",
               "is_spoiler": false
             },
             {
               "page_number": 3,
-              "id": "sbl_gdx_p3",
+              "id": "hivebrain_gdx_p3",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.3.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.3.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.3.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.3.text",
               "is_spoiler": false
             }
           ]
@@ -784,7 +785,7 @@
           "x": 0,
           "y": 0,
           "parents": [
-            "ia_tactica/arquitectura_sbl_gdxai"
+            "ia_tactica/arquitectura_hivebrain_gdxai"
           ],
           "unlock_gate": "always",
           "registry_refs": [

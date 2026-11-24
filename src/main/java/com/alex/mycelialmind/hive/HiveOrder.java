@@ -2,7 +2,7 @@ package com.alex.mycelialmind.hive;
 
 /**
  * Internal coordinated tactical order issued by the Hive Mind to active units
- * via HiveBlackboard and SBL Brain memory.
+ * via HiveBlackboard and HiveBrain memory.
  */
 public enum HiveOrder {
     NONE,

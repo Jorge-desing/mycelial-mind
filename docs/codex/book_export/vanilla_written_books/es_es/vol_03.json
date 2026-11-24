@@ -3,7 +3,7 @@
   "chapters": [
     "economia_datos"
   ],
-  "page_count": 78,
+  "page_count": 79,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -97,31 +97,34 @@
         "raw": "I=iron_ingot, S=stick)\n-> 1x bio_extractor\nTelemetría inicial:\nBrújula, Redstone,\nCobre y Espora\n(`bio_scanner`);\nAmatista, Hierro y\nBiomasa\n(`bio_extractor`)."
       },
       {
-        "raw": "Antídoto de Esporas\ny Concentrado\n[crafting_shapeless]\nglass_bottle +\nlatent_spore + sugar\n-> 1x spore_antidote\n[crafting_shapeless]\nspore_antidote +\nlatent_spore +\namethyst_shard -> 1x\nconcentrated_antidote\nProfilaxis clínica sin\nmesa: Frasco +"
+        "raw": "Antídoto de Esporas\ny Concentrado\n[crafting_shapeless]\nglass_bottle +\nlatent_spore + sugar\n-> 1x spore_antidote\n[crafting_shapeless]\nspore_antidote +\nlatent_spore +\namethyst_shard +\nmycelial_biomass +\nglowstone_dust -> 1x\nconcentrated_antidote"
       },
       {
-        "raw": "`latent_spore` +\nAzúcar; concentra\ncon Amatista."
+        "raw": "Profilaxis clínica sin\nmesa: Frasco +\n`latent_spore` +\nAzúcar; concentra\ncon Amatista."
       },
       {
-        "raw": "Casco y Peto de\nQuitina\n[crafting_shaped]\nCCC/C C\n(C=chitin_plate) -> 1x\nchitin_helmet\n[crafting_shaped] C\nC/CSC/CCC\n(C=chitin_plate,\nS=synaptic_core) ->\n1x chitin_chestplate\nForja con\n`chitin_plate`; el Peto\nintegra un"
+        "raw": "Casco y Peto de\nQuitina\n[crafting_shaped]\nCCC/CAC\n(A=amethyst_shard,\nC=chitin_plate) -> 1x\nchitin_helmet\n[crafting_shaped] C\nC/CSC/CCC\n(C=chitin_plate,\nS=synaptic_core) ->\n1x chitin_chestplate\nForja con\n`chitin_plate`; el Peto"
       },
       {
-        "raw": "`synaptic_core`\ncentral."
+        "raw": "integra un\n`synaptic_core`\ncentral."
       },
       {
-        "raw": "Grebas y Botas de\nQuitina\n[crafting_shaped]\nCCC/C C/C C\n(C=chitin_plate) -> 1x\nchitin_leggings\n[crafting_shaped] C\nC/C C (C=chitin_plate)\n-> 1x chitin_boots\nCompletan el conjunto\nde Quitina (`[2,5,6,2]`)\nreduciendo infección\n`-20%` por pieza."
+        "raw": "Grebas y Botas de\nQuitina\n[crafting_shaped]\nCCC/CIC/C C\n(C=chitin_plate,\nI=iron_ingot) -> 1x\nchitin_leggings\n[crafting_shaped] C\nC/CLC (C=chitin_plate,\nL=leather) -> 1x\nchitin_boots\nCompletan el conjunto\nde Quitina (`[2,5,6,2]`)\nreduciendo infección"
       },
       {
-        "raw": "Lanza Enzimática y\nHoja Simbiótica\n[crafting_shaped]  \nC/ S /I  \n(C=chitin_plate,\nI=iron_ingot,\nS=latent_spore) -> 1x\nenzyme_lance\n[crafting_shaped]  H\n/ C / D \n(C=chitin_plate,\nD=diamond_sword,\nH=hive_heart) -> 1x\nsymbiotic_blade"
+        "raw": "`-20%` por pieza."
+      },
+      {
+        "raw": "Lanza Enzimática y\nHoja Simbiótica\n[crafting_shaped] \nCS/CSC/II \n(C=chitin_plate,\nI=iron_ingot,\nS=latent_spore) -> 1x\nenzyme_lance\n[crafting_shaped]  H\n/ C / D \n(C=chitin_plate,\nD=diamond_sword,\nH=hive_heart) -> 1x\nsymbiotic_blade"
       },
       {
         "raw": "Armas melee\nprogresivas: desde\n`chitin_plate` hasta\n`hive_heart` sobre\nEspada de Diamante."
       },
       {
-        "raw": "Lanzador\nNeutralizante y\nGranada (x2)\n[crafting_shaped]\nLSL/ C / B \n(B=amethyst_shard,\nC=chitin_plate,\nL=latent_spore,\nS=synaptic_core) ->\n1x\nneutralizing_spore_la\nuncher\n[crafting_shaped]  A\n/LGL/ B "
+        "raw": "Lanzador\nNeutralizante y\nGranada (x2)\n[crafting_shaped]\nLSL/ C / B \n(B=amethyst_shard,\nC=chitin_plate,\nL=latent_spore,\nS=synaptic_core) ->\n1x\nneutralizing_spore_la\nuncher\n[crafting_shaped]  A\n/LGL/GBG"
       },
       {
-        "raw": "(A=amethyst_shard,\nB=mycelial_biomass,\nG=gunpowder,\nL=latent_spore) -> 2x\npurifier_grenade\nArtillería\npurificadora y\ngranadas de área que\nrompen coordinación\nsináptica (`Desync`)."
+        "raw": "(A=amethyst_shard,\nB=mycelial_biomass,\nG=gunpowder,\nL=latent_spore) -> 1x\npurifier_grenade\nArtillería\npurificadora y\ngranadas de área que\nrompen coordinación\nsináptica (`Desync`)."
       },
       {
         "raw": "Pilón y Torreta de\nPurificación\n[crafting_shaped]  A\n/CSC/BBB\n(A=amethyst_shard,\nB=polished_deepslate,\nC=chitin_plate,\nS=synaptic_core) ->\n1x purification_pylon\n[crafting_shaped]  A\n/ILI/ P \n(A=amethyst_shard,\nI=iron_ingot,\nL=neutralizing_spore_"
@@ -130,10 +133,10 @@
         "raw": "launcher,\nP=purification_pylon)\n-> 1x\npurification_turret\nPerímetro defensivo\n(`pylonPurificationRadi\nus = 24m`) y defensa\nautomática\n(`purification_turret`)."
       },
       {
-        "raw": "Bio-Barrera (x4) y\nNúcleo de Dron\n[crafting_shaped]\nCPC/PDP/CPC\n(C=chitin_plate,\nD=mycelial_biomass,\nP=polished_deepslate)\n-> 4x\nreinforced_bio_barrie\nr\n[crafting_shaped]  G\n/CPC/ S \n(C=chitin_plate,\nG=gold_ingot,"
+        "raw": "Bio-Barrera (x4) y\nNúcleo de Dron\n[crafting_shaped]\nCPC/PDP/CPC\n(C=chitin_plate,\nD=mycelial_biomass,\nP=obsidian) -> 2x\nreinforced_bio_barrie\nr\n[crafting_shaped]  G\n/CPC/ S \n(C=chitin_plate,\nG=gold_ingot,\nP=purification_pylon,"
       },
       {
-        "raw": "P=purification_pylon,\nS=synaptic_core) ->\n1x\npurifier_drone_core\nMuro antibrecha +\nmarco del portal;\n`purifier_drone_core`\ndespliega soporte\naéreo."
+        "raw": "S=synaptic_core) ->\n1x\npurifier_drone_core\nMuro antibrecha +\nmarco del portal;\n`purifier_drone_core`\ndespliega soporte\naéreo."
       },
       {
         "raw": "Mesa Sináptica e\nInjerto Sináptico\n[crafting_shaped]\nASA/ICI/BBB\n(A=amethyst_shard,\nB=chitin_plate,\nC=crafting_table,\nI=iron_ingot,\nS=mycelial_biomass) ->\n1x\nsynaptic_research_be\nnch\n[crafting_shaped]  E\n/CSC/ L "
@@ -151,7 +154,7 @@
         "raw": "Inyector de Cisma y\nFeromona (x2)\n[crafting_shaped]  L\n/CEC/ B \n(B=blaze_powder,\nC=chitin_plate,\nE=neural_echo_core,\nL=latent_spore) -> 1x\nschism_injector\n[crafting_shapeless]\nmycelial_biomass +\nlatent_spore +\nglass_bottle +\nfermented_spider_eye"
       },
       {
-        "raw": "-> 2x\ntruce_pheromone\nInduce guerra civil\nÁmbar/Carmesí o\nrocía tregua química\ntemporal."
+        "raw": "+ amethyst_shard ->\n1x truce_pheromone\nInduce guerra civil\nÁmbar/Carmesí o\nrocía tregua química\ntemporal."
       },
       {
         "raw": "Sello de Quórum y\nÓvulo Quimérico\n[crafting_shaped]  C\n/ESA/ C \n(A=amethyst_shard,\nC=chitin_plate,\nE=neural_echo_core,\nS=synaptic_core) ->\n1x quorum_seal\n[crafting_shaped]  B\n/GEG/ S \n(B=mycelial_biomass,\nE=neural_echo_core,\nG=genetic_sample,"
@@ -166,10 +169,10 @@
         "raw": "S=synaptic_core) ->\n1x rift_catalyst\nReliquias de Acto III+:\ncongela aprendizaje\nglobal o abre grietas\nal Micelio Profundo."
       },
       {
-        "raw": "Corona Supramente y\nRecarga Faro\n[crafting_shaped]  O\n/DHD/ S  (D=diamond,\nH=hive_heart,\nO=overmind_essence,\nS=synaptic_core) ->\n1x overmind_crown\n[crafting_shapeless]\ntide_beacon +\namethyst_shard +\nchitin_plate -> 1x\ntide_beacon\nPináculo Acto IV"
+        "raw": "Corona Supramente y\nRecarga Faro\n[crafting_shaped]  O\n/DHD/ S  (D=diamond,\nH=hive_heart,\nO=overmind_essence,\nS=synaptic_core) ->\n1x overmind_crown\n[crafting_shapeless]\ntide_beacon +\nsynaptic_core +\nchitin_plate +\nchitin_plate +\namethyst_shard -> 1x"
       },
       {
-        "raw": "(`overmind_essence` +\n`hive_heart`); recarga\n`tide_beacon` con\namatista y quitina."
+        "raw": "tide_beacon\nPináculo Acto IV\n(`overmind_essence` +\n`hive_heart`); recarga\n`tide_beacon` con\namatista y quitina."
       },
       {
         "raw": "Códice de la Colmena\nViva\n[crafting_shapeless]\nbook + latent_spore +\nmycelial_biomass -> 1x\nmycelial_codex\nManual in-game sin\nmesa: Libro +\n`latent_spore` +\n`mycelial_biomass`\n(`mycelial_codex`)."
@@ -190,10 +193,10 @@
         "raw": "Alto Horno: Quiste ->\nQuitina\n[blasting]\nantibody_cyst -> 1x\nchitin_plate\nCalcina\n`antibody_cyst` al\ndoble de velocidad\n(`100t`, `0.2 XP`) ->\n`chitin_plate`."
       },
       {
-        "raw": "Cortapiedras: Ladrillo\ny Pilar\n[stonecutting]\nmycelial_stone -> 1x\nmycelial_arch_brick\n[stonecutting]\nmycelial_arch_brick ->\n1x chitin_pillar\n`mycelial_stone` ->\n`mycelial_arch_brick`\n-> `chitin_pillar` sin\ndesperdicio."
+        "raw": "Cortapiedras: Ladrillo\ny Pilar\n[stonecutting]\nmycelial_stone -> 1x\nmycelial_arch_brick\n[stonecutting]\nreinforced_bio_barrie\nr -> 1x chitin_pillar\n`mycelial_stone` ->\n`mycelial_arch_brick`\n-> `chitin_pillar` sin\ndesperdicio."
       },
       {
-        "raw": "Cortapiedras: Celosía\nBio-Quitina\n[stonecutting]\nchitin_plate -> 2x\nbio_chitin_lattice\n1 `chitin_plate` se\ntalla en 2\n`bio_chitin_lattice`\npara galerías y\nventanales."
+        "raw": "Cortapiedras: Celosía\nBio-Quitina\n[stonecutting]\nchitin_plate -> 1x\nbio_chitin_lattice\n1 `chitin_plate` se\ntalla en 2\n`bio_chitin_lattice`\npara galerías y\nventanales."
       },
       {
         "raw": "Nexo Soberano y\nBáculo de Mando\n[crafting_shaped]\nOCO/HSN/CPC\n(C=chitin_plate,\nH=hive_heart,\nN=neural_echo_core,\nO=overmind_essence,\nP=purification_pylon,\nS=symbiotic_node) ->\n1x sovereign_nexus\n[crafting_shaped] \nOG/ NO/C  \n(C=chitin_plate,"

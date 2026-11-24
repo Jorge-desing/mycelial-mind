@@ -3,7 +3,13 @@ package com.alex.mycelialmind.entity;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.util.MycelialParticles;
 import com.alex.mycelialmind.MycelialMind;
-import com.alex.mycelialmind.compat.sbl.MycelialSblBridge;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.mojang.serialization.Dynamic;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
 import com.alex.mycelialmind.entity.ai.HiveAiBlackboard;
@@ -65,11 +71,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.joml.Vector3f;
 
-import net.tslat.smartbrainlib.api.SmartBrainOwner;
-import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
-import net.tslat.smartbrainlib.api.core.SmartBrainProvider;
-import net.tslat.smartbrainlib.api.core.sensor.ExtendedSensor;
-
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
@@ -81,7 +82,7 @@ import java.util.UUID;
  * Stores bitmasks of inherited Tier 1 & Tier 2 AdaptationTraits, HiveSynergies,
  * and EvolutionRank (BASE -> MUTATED -> ELITE) synced to clients.
  */
-public abstract class MycelialMob extends Monster implements SmartBrainOwner<MycelialMob> {
+public abstract class MycelialMob extends Monster implements HiveBrainOwner<MycelialMob> {
     private static final EntityDataAccessor<Integer> DATA_TRAIT_MASK =
             SynchedEntityData.defineId(MycelialMob.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_TIER2_MASK =
@@ -170,6 +171,8 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
     private int lastDesyncTicks = 0;
     @Nullable
     private BehaviorTree<HiveAiBlackboard> tacticalTree;
+    @Nullable
+    private HiveBrainRuntime<MycelialMob> hiveBrainRuntime;
 
     protected MycelialMob(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -1123,7 +1126,26 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
 
     @Override
     protected Brain.Provider<?> brainProvider() {
-        return new SmartBrainProvider<>(this);
+        return HiveBrainFactory.createProvider(this);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
+        Brain<?> brain = super.makeBrain(dynamic);
+        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<MycelialMob>) brain);
+        return brain;
+    }
+
+    @Override
+    @Nullable
+    public HiveBrainRuntime<MycelialMob> getHiveBrainRuntime() {
+        return this.hiveBrainRuntime;
+    }
+
+    @Override
+    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<MycelialMob> runtime) {
+        this.hiveBrainRuntime = runtime;
     }
 
     @Override
@@ -1307,23 +1329,23 @@ public abstract class MycelialMob extends Monster implements SmartBrainOwner<Myc
     }
 
     @Override
-    public List<ExtendedSensor<MycelialMob>> getSensors() {
-        return MycelialSblBridge.createDefaultHiveSensors();
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensors();
     }
 
     @Override
     public BrainActivityGroup<MycelialMob> getCoreTasks() {
-        return MycelialSblBridge.createCoreTasks();
+        return HiveBrainBridge.createCoreTasks();
     }
 
     @Override
     public BrainActivityGroup<MycelialMob> getIdleTasks() {
-        return MycelialSblBridge.createIdleTasks();
+        return HiveBrainBridge.createIdleTasks();
     }
 
     @Override
     public BrainActivityGroup<MycelialMob> getFightTasks() {
-        return MycelialSblBridge.createFightTasks(8);
+        return HiveBrainBridge.createFightTasks(8);
     }
 
     public static float computeRankVoicePitchMultiplier(EvolutionRank rank) {

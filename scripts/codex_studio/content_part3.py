@@ -1207,8 +1207,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             order=4,
             title=lt("Redstone (7) y Ecosistema de Mods", "Redstone (7) & Mod Ecosystem"),
             subtitle=lt(
-                "MycelialRedstoneTelemetry + SBL, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon",
-                "MycelialRedstoneTelemetry + SBL, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon",
+                "MycelialRedstoneTelemetry + HiveBrain, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon",
+                "MycelialRedstoneTelemetry + HiveBrain, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon",
             ),
             icon_item="mycelialmind:purification_turret",
             x=grid_xy(3, 3)[0],
@@ -1243,10 +1243,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "(state/smother), `purification_turret` (tier/jam), `synaptic_research_bench` (inputs/output) & `sovereign_nexus` (tier/symbionts/biomass).",
                         ),
                         (
-                            "• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **SmartBrainLib** "
-                            "(`MycelialSblBridge`), **gdx-AI** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).",
-                            "• **AI/World Compat:** **Vanilla+** (Trades/Brew/Compost/Loot), **SmartBrainLib** "
-                            "(`MycelialSblBridge`), **gdx-AI** (`HiveTacticalTree`) & **Jade** (`MycelialJadePlugin`).",
+                            "• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** "
+                            "(`HiveBrainBridge`), **gdx-AI** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).",
+                            "• **AI/World Compat:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** "
+                            "(`HiveBrainBridge`), **gdx-AI** (`HiveTacticalTree`) & **Jade** (`MycelialJadePlugin`).",
                         ),
                         (
                             "• **Compat UI/Render:** **JEI** (`MycelialJeiPlugin`), **EMI** (`MycelialEmiPlugin`), "

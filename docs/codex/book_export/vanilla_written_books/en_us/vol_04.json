@@ -83,7 +83,7 @@
         "raw": "(tier/symbionts/bioma\nss)."
       },
       {
-        "raw": "Redstone Telemetry &\nMod Compat (3/4)\n• AI/World Compat:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), SmartBrainLib\n(`MycelialSblBridge`),\ngdx-AI\n(`HiveTacticalTree`) &\nJade\n(`MycelialJadePlugin`)."
+        "raw": "Redstone Telemetry &\nMod Compat (3/4)\n• AI/World Compat:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), HiveBrain\n(`HiveBrainBridge`),\ngdx-AI\n(`HiveTacticalTree`) &\nJade\n(`MycelialJadePlugin`)."
       },
       {
         "raw": "Redstone Telemetry &\nMod Compat (4/4)\n• UI/Render Compat:\nJEI\n(`MycelialJeiPlugin`),\nEMI\n(`MycelialEmiPlugin`),\nIris\n(`MycelialIrisCompat`\nPBR), Modonomicon\n(`MycelialModonomiconC\nompat`) & AzureLib."

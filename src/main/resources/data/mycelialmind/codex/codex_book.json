@@ -720,17 +720,18 @@
       "unlock_gate": "always",
       "entries": [
         {
-          "id": "arquitectura_sbl_gdxai",
+          "id": "arquitectura_hivebrain_gdxai",
           "order": 1,
-          "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.name",
-          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.desc",
+          "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.name",
+          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.desc",
           "icon_item": "mycelialmind:neural_echo_core",
           "x": -2,
           "y": 0,
           "parents": [],
           "unlock_gate": "always",
           "registry_refs": [
-            "MycelialSblBridge",
+            "HiveBrainBridge",
+            "HiveBrainOwner",
             "HiveMindSensor",
             "HiveTacticalTree",
             "HiveUtilityEvaluator",
@@ -751,26 +752,26 @@
           "pages": [
             {
               "page_number": 1,
-              "id": "sbl_gdx_p1",
+              "id": "hivebrain_gdx_p1",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.1.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.1.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.1.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.1.text",
               "is_spoiler": false
             },
             {
               "page_number": 2,
-              "id": "sbl_gdx_p2",
+              "id": "hivebrain_gdx_p2",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.2.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.2.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.2.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.2.text",
               "is_spoiler": false
             },
             {
               "page_number": 3,
-              "id": "sbl_gdx_p3",
+              "id": "hivebrain_gdx_p3",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.3.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_sbl_gdxai.page.3.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.3.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.3.text",
               "is_spoiler": false
             }
           ]
@@ -784,7 +785,7 @@
           "x": 0,
           "y": 0,
           "parents": [
-            "ia_tactica/arquitectura_sbl_gdxai"
+            "ia_tactica/arquitectura_hivebrain_gdxai"
           ],
           "unlock_gate": "always",
           "registry_refs": [
@@ -1279,6 +1280,7 @@
           "registry_refs": [
             "mycelialmind:purifier_drone",
             "mycelialmind:mycelial_chimera",
+            "mycelialmind:colony_symbiont",
             "CommandMode",
             "FOLLOW",
             "PATROL",
@@ -1309,15 +1311,18 @@
             },
             {
               "page_number": 3,
-              "id": "chimera_matrix_p1",
-              "type": "text",
+              "id": "ent_colony_symbiont",
+              "type": "entity",
               "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.3.title",
               "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.3.text",
-              "is_spoiler": false
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:colony_symbiont",
+              "entity_scale": 0.82,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.3.entity"
             },
             {
               "page_number": 4,
-              "id": "chimera_matrix_p2",
+              "id": "chimera_matrix_p1",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.4.title",
               "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.4.text",
@@ -1325,10 +1330,18 @@
             },
             {
               "page_number": 5,
-              "id": "chimera_matrix_p3",
+              "id": "chimera_matrix_p2",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.5.title",
               "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.5.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 6,
+              "id": "chimera_matrix_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.6.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.bestiario_aliados_quimera.page.6.text",
               "is_spoiler": false
             }
           ]
@@ -1362,6 +1375,7 @@
             "mycelialmind:spore_architect_spawn_egg",
             "mycelialmind:synaptic_mimic_spawn_egg",
             "mycelialmind:mycelial_chimera_spawn_egg",
+            "mycelialmind:colony_symbiont_spawn_egg",
             "mycelialmind:spore_behemoth_spawn_egg",
             "mycelialmind:purifier_drone_spawn_egg",
             "mycelialmind:hive_core_spawn_egg",
@@ -1993,7 +2007,9 @@
             "mycelialmind:latent_spore",
             "mycelialmind:synaptic_core",
             "mycelialmind:hive_heart",
-            "mycelialmind:mycelial_codex"
+            "mycelialmind:mycelial_codex",
+            "mycelialmind:sovereign_nexus",
+            "mycelialmind:sovereign_command_staff"
           ],
           "pages": [
             {
@@ -2091,6 +2107,62 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 13,
+              "id": "sovereign_colony_guide_p1",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.13.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.13.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 14,
+              "id": "sovereign_colony_guide_p2",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.14.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.14.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 15,
+              "id": "sovereign_colony_guide_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 16,
+              "id": "sovereign_colony_guide_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 17,
+              "id": "sovereign_colony_guide_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 18,
+              "id": "sovereign_colony_guide_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 19,
+              "id": "sovereign_colony_guide_p7",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -2134,6 +2206,8 @@
             "mycelialmind:smelt_creeping_mycelium_to_stone",
             "mycelialmind:smelt_cyst_to_chitin_plate",
             "mycelialmind:smoke_cap_to_latent_spore",
+            "mycelialmind:sovereign_command_staff",
+            "mycelialmind:sovereign_nexus",
             "mycelialmind:spore_antidote",
             "mycelialmind:stonecut_arch_brick_to_chitin_pillar",
             "mycelialmind:stonecut_chitin_plate_to_lattice",
@@ -2366,6 +2440,17 @@
               "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.21.text",
               "is_spoiler": false,
               "recipe_id": "mycelialmind:stonecut_chitin_plate_to_lattice"
+            },
+            {
+              "page_number": 22,
+              "id": "rec_colony_1",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.22.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.22.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:sovereign_nexus",
+              "recipe_id_2": "mycelialmind:sovereign_command_staff",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.22.title2"
             }
           ]
         },
@@ -2443,8 +2528,10 @@
             "blocks/mycelial_tendrils",
             "blocks/purification_pylon",
             "blocks/purification_turret",
+            "blocks/reclaimed_bloom",
             "blocks/reinforced_bio_barrier",
             "blocks/sentinel_node",
+            "blocks/sovereign_nexus",
             "blocks/spore_bulb",
             "blocks/spore_vent",
             "blocks/symbiotic_node",
@@ -2961,6 +3048,8 @@
             "immune_homeostasis",
             "overmind_ascendant",
             "apex_matriarch_slayer",
+            "sovereign_nexus",
+            "sovereign_colony_tier3",
             "recovered_garden",
             "recovered_route",
             "recipes/unlock_biomass_recipes",
@@ -3480,6 +3569,14 @@
               "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.12.title",
               "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.12.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 13,
+              "id": "config_ref_p13",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.13.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.13.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -3503,6 +3600,8 @@
             "DiscoverySyncPayload",
             "CycleProtocolSyncPayload",
             "CycleProtocolActionPayload",
+            "SovereignColonySyncPayload",
+            "SovereignColonyActionPayload",
             "MycelialCommands",
             "projectile_adaptation",
             "pylon_containment",
@@ -3526,7 +3625,8 @@
             "homeostasis",
             "polish",
             "dimension_progression",
-            "cycles"
+            "cycles",
+            "colony"
           ],
           "pages": [
             {
@@ -3567,6 +3667,22 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.5.title",
               "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.5.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 6,
+              "id": "commands_net_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.6.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.6.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 7,
+              "id": "commands_net_p7",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.7.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.comandos_red_y_verificacion.page.7.text",
               "is_spoiler": false
             }
           ]
