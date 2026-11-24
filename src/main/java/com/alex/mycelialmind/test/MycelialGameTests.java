@@ -5699,7 +5699,7 @@ public final class MycelialGameTests {
                     && "hud.mycelialmind.squad_desynced".equals(sDesynced);
 
             BlockState ephState = ModBlocks.EPHEMERAL_CHITIN.get().defaultBlockState();
-            boolean tagsAndCompatOk = SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 25
+            boolean tagsAndCompatOk = SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 29
                     && ephState.is(BlockTags.MINEABLE_WITH_HOE)
                     && ephState.is(BlockTags.MINEABLE_WITH_PICKAXE);
 
@@ -8805,6 +8805,196 @@ public final class MycelialGameTests {
             level.removeBlock(outpostPos, false);
             level.removeBlock(nexusPos, false);
             saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "full_endgame_integration")
+    public static void fullEndgameBloomNexusRedstoneAndScannerTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel overworld = level.getServer().overworld();
+        HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
+        CompoundTag owHiveSnapshot = owHive.save(new CompoundTag(), overworld.registryAccess());
+        var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
+        CompoundTag savedSnapshot = saved.save(new CompoundTag(), level.registryAccess());
+
+        BlockPos bloomFloor = helper.absolutePos(new BlockPos(3, 1, 3));
+        BlockPos bloomPos = helper.absolutePos(new BlockPos(3, 2, 3));
+        BlockPos nexusPos = helper.absolutePos(new BlockPos(5, 2, 5));
+        com.alex.mycelialmind.entity.ColonySymbiontEntity worker = null;
+
+        try {
+            saved.resetAll();
+            owHive.recordMatriarchDefeat(overworld.getGameTime());
+
+            level.setBlockAndUpdate(bloomFloor, Blocks.MOSS_BLOCK.defaultBlockState());
+            BlockState fireBloom = ModBlocks.RECLAIMED_BLOOM.get().defaultBlockState()
+                    .setValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.PALETTE, 3)
+                    .setValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE, true);
+            level.setBlockAndUpdate(bloomPos, fireBloom);
+
+            helper.assertTrue(com.alex.mycelialmind.entity.ai.colony.SymbiontHarvesterGoal.isHarvestable(level.getBlockState(bloomPos)),
+                    "Mature ReclaimedBloomBlock must be recognized by SymbiontHarvesterGoal.");
+            helper.assertTrue(level.getBlockState(bloomPos).getAnalogOutputSignal(level, bloomPos) == 15,
+                    "Mature ReclaimedBloomBlock must emit comparator signal 15.");
+            helper.assertTrue(com.alex.mycelialmind.block.ReclaimedBloomBlock.itemForPalette(3)
+                            .is(ModItems.RECLAIMED_BLOOM_FIRE.get()),
+                    "Palette 3 must map to reclaimed_bloom_fire.");
+            helper.assertTrue(!BurrowerEntity.canBurrowerBreak(level, bloomPos, 50),
+                    "Burrowers must not break ReclaimedBloomBlock.");
+
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            ItemStack scanner = new ItemStack(ModItems.BIO_SCANNER.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, scanner);
+
+            var scanBloomResult = scanner.useOn(new net.minecraft.world.item.context.UseOnContext(
+                    player, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(bloomPos), Direction.UP, bloomPos, false)));
+            helper.assertTrue(scanBloomResult.consumesAction(),
+                    "BioScanner must inspect ReclaimedBloomBlock.");
+
+            level.setBlockAndUpdate(nexusPos, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
+            helper.assertTrue(!BurrowerEntity.canBurrowerBreak(level, nexusPos, 50),
+                    "Burrowers must not break SovereignNexusBlock.");
+            helper.assertTrue(level.getBlockState(nexusPos).getAnalogOutputSignal(level, nexusPos) == 0,
+                    "Uninitialized SovereignNexus must emit comparator signal 0.");
+
+            var nexusBe = (com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity) level.getBlockEntity(nexusPos);
+            helper.assertTrue(nexusBe != null, "SovereignNexusBlockEntity must exist.");
+            var colony = nexusBe.getOrCreateColony(level);
+            colony.addBiomass(128);
+            worker = nexusBe.incubateSymbiont(level, player, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, true);
+            helper.assertTrue(worker != null, "Harvester ColonySymbiontEntity must incubate cleanly.");
+
+            int nexusSignal = level.getBlockState(nexusPos).getAnalogOutputSignal(level, nexusPos);
+            helper.assertTrue(nexusSignal > 0 && nexusSignal <= 15,
+                    "Initialized SovereignNexus with biomass/worker must emit comparator signal 1..15.");
+
+            var scanNexusResult = scanner.useOn(new net.minecraft.world.item.context.UseOnContext(
+                    player, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(nexusPos), Direction.UP, nexusPos, false)));
+            helper.assertTrue(scanNexusResult.consumesAction(),
+                    "BioScanner must inspect SovereignNexusBlock.");
+
+            var scanSymbiontResult = ModItems.BIO_SCANNER.get().interactLivingEntity(
+                    scanner, player, worker, InteractionHand.MAIN_HAND);
+            helper.assertTrue(scanSymbiontResult.consumesAction(),
+                    "BioScanner must inspect ColonySymbiontEntity.");
+
+            worker.teleportTo(bloomPos.getX() + 0.5D, bloomPos.getY(), bloomPos.getZ() + 0.5D);
+            colony.getOrderBoard().postOrRefreshOrder(
+                    com.alex.mycelialmind.colony.ColonyOrder.OrderType.HARVEST,
+                    bloomPos,
+                    90,
+                    level.getGameTime());
+            var harvestGoal = new com.alex.mycelialmind.entity.ai.colony.SymbiontHarvesterGoal(worker);
+            for (int t = 0; t < 35; t++) {
+                harvestGoal.tick();
+            }
+
+            BlockState afterHarvest = level.getBlockState(bloomPos);
+            helper.assertTrue(afterHarvest.is(ModBlocks.RECLAIMED_BLOOM.get())
+                            && !afterHarvest.getValue(com.alex.mycelialmind.block.ReclaimedBloomBlock.MATURE),
+                    "Harvester Symbiont must harvest ReclaimedBloomBlock instead of destroying it.");
+            helper.assertTrue(afterHarvest.getAnalogOutputSignal(level, bloomPos) == 5,
+                    "Regrowing ReclaimedBloomBlock must emit comparator signal 5.");
+            boolean pouchHasFireBloom = false;
+            for (int s = 0; s < worker.getPouch().getSlots(); s++) {
+                if (worker.getPouch().getStackInSlot(s).is(ModItems.RECLAIMED_BLOOM_FIRE.get())) {
+                    pouchHasFireBloom = true;
+                    break;
+                }
+            }
+            helper.assertTrue(pouchHasFireBloom,
+                    "Harvester pouch must receive matching ReclaimedBloom Fire item.");
+
+            helper.succeed();
+        } finally {
+            if (worker != null) {
+                worker.discard();
+            }
+            level.removeBlock(nexusPos, false);
+            level.removeBlock(bloomPos, false);
+            level.removeBlock(bloomFloor, false);
+            owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
+            saved.restoreFromSnapshot(savedSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "full_endgame_integration")
+    public static void fullEndgameSymbiontImmunityGrenadeAndSblTest(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
+        BlockPos floorPos = helper.absolutePos(new BlockPos(4, 1, 4));
+        com.alex.mycelialmind.entity.ColonySymbiontEntity symbiont = null;
+        SporelingEntity hostileMob = null;
+        PurifierGrenadeProjectile grenade = null;
+
+        try {
+            level.setBlockAndUpdate(floorPos, Blocks.STONE.defaultBlockState());
+            symbiont = ModEntities.COLONY_SYMBIONT.get().create(level);
+            helper.assertTrue(symbiont != null, "ColonySymbiontEntity must construct.");
+            symbiont.moveTo(floorPos.getX() + 0.5D, floorPos.getY() + 1.0D, floorPos.getZ() + 0.5D, 0.0F, 0.0F);
+            level.addFreshEntity(symbiont);
+
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            float initialHp = symbiont.getHealth();
+            boolean playerHurt = symbiont.hurt(level.damageSources().playerAttack(player), 6.0F);
+            helper.assertTrue(!playerHurt && symbiont.getHealth() == initialHp,
+                    "Player friendly fire against ColonySymbiontEntity must be canceled.");
+
+            NeutralizingSporeProjectile spore = new NeutralizingSporeProjectile(level, player);
+            boolean sporeHurt = symbiont.hurt(level.damageSources().thrown(spore, player), 6.0F);
+            helper.assertTrue(!sporeHurt && symbiont.getHealth() == initialHp,
+                    "NeutralizingSporeProjectile friendly fire against ColonySymbiontEntity must be canceled.");
+
+            boolean sporeRotApplied = symbiont.addEffect(new MobEffectInstance(ModEffects.SPORE_ROT, 100, 0));
+            helper.assertTrue(!sporeRotApplied && !symbiont.hasEffect(ModEffects.SPORE_ROT),
+                    "ColonySymbiontEntity must resist SPORE_ROT.");
+
+            symbiont.setHealth(4.0F);
+            hive.addThreatPenalty(80.0D);
+            symbiont.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
+            boolean converted = DamageTelemetryTracker.tryConvertInfectedMob(level, symbiont, true);
+            helper.assertTrue(!converted && symbiont.isAlive(),
+                    "ColonySymbiontEntity must never undergo infection conversion.");
+
+            grenade = new PurifierGrenadeProjectile(level, player);
+            grenade.setPos(floorPos.getX() + 0.5D, floorPos.getY() + 1.15D, floorPos.getZ() + 0.5D);
+            grenade.setDeltaMovement(0.0D, -0.5D, 0.0D);
+            level.addFreshEntity(grenade);
+            for (int t = 0; t < 5 && !grenade.isRemoved(); t++) {
+                grenade.tick();
+            }
+            helper.assertTrue(symbiont.getHealth() > 4.0F && !symbiont.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                    "PurifierGrenadeProjectile pulse must heal ColonySymbiontEntity and cure MYCELIAL_INFECTION.");
+
+            hostileMob = ModEntities.SPORELING.get().create(level);
+            helper.assertTrue(hostileMob != null, "SporelingEntity must construct.");
+            hostileMob.moveTo(floorPos.getX() + 2.5D, floorPos.getY() + 1.0D, floorPos.getZ() + 0.5D, 0.0F, 0.0F);
+            level.addFreshEntity(hostileMob);
+
+            hostileMob.hurt(level.damageSources().inFire(), 2.0F);
+            helper.assertTrue(MycelialSblBridge.getCombatXp(hostileMob) > 0,
+                    "DamageTelemetryTracker must populate SBL MOB_COMBAT_XP.");
+            helper.assertTrue(MycelialSblBridge.getLastAttackStimulus(hostileMob) == StimulusType.FIRE,
+                    "DamageTelemetryTracker must populate SBL LAST_ATTACK_STIMULUS.");
+            helper.assertTrue(com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.evaluateRegroupUtility(hostileMob) > 0.0F,
+                    "HiveUtilityEvaluator must consume SBL combat XP and fire stimulus.");
+
+            helper.succeed();
+        } finally {
+            if (grenade != null && !grenade.isRemoved()) {
+                grenade.discard();
+            }
+            if (hostileMob != null) {
+                hostileMob.discard();
+            }
+            if (symbiont != null) {
+                symbiont.discard();
+            }
+            level.removeBlock(floorPos, false);
+            hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
         }
     }
 }

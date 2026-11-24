@@ -2,6 +2,7 @@ package com.alex.mycelialmind.item;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.AntibodyCystBlock;
+import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
@@ -9,8 +10,10 @@ import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.client.screen.ClientCodexOpener;
 import com.alex.mycelialmind.colony.ColonySiteHabit;
 import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonyEngine;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -32,6 +35,7 @@ import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.util.MycelialParticles;
+import com.alex.mycelialmind.util.MycelialRedstoneTelemetry;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
@@ -311,18 +315,40 @@ public class BioScannerItem extends Item {
             return InteractionResult.sidedSuccess(level.isClientSide());
         }
         if (clickedState.is(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get())
-                || clickedState.is(ModBlocks.MYCELIAL_TENDRILS.get())) {
+                || clickedState.is(ModBlocks.MYCELIAL_TENDRILS.get())
+                || clickedState.is(ModBlocks.RECLAIMED_BLOOM.get())) {
             if (level instanceof ServerLevel serverLevel) {
                 boolean mature = clickedState.is(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get())
                         ? clickedState.getValue(com.alex.mycelialmind.block.BioluminescentMycelialCapBlock.MATURE)
-                        : clickedState.getValue(com.alex.mycelialmind.block.MycelialTendrilsBlock.MATURE);
-                int redstoneSignal = com.alex.mycelialmind.util.MycelialRedstoneTelemetry.regenerativeFloraSignal(mature);
+                        : (clickedState.is(ModBlocks.RECLAIMED_BLOOM.get())
+                                ? clickedState.getValue(ReclaimedBloomBlock.MATURE)
+                                : clickedState.getValue(com.alex.mycelialmind.block.MycelialTendrilsBlock.MATURE));
+                int redstoneSignal = MycelialRedstoneTelemetry.regenerativeFloraSignal(mature);
                 player.sendSystemMessage(Component.translatable(
                         "message.mycelialmind.scanner_flora_inspect",
                         clickedState.getBlock().getName(),
                         Component.translatable(mature ? "jade.mycelialmind.flora_mature" : "jade.mycelialmind.flora_regrowing"),
                         redstoneSignal
                 ).withStyle(mature ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+                serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.45F);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (clickedState.is(ModBlocks.SOVEREIGN_NEXUS.get())) {
+            if (level instanceof ServerLevel serverLevel) {
+                SovereignColonyData colony = SovereignColonySavedData.get(serverLevel).getByNexus(pos);
+                int tier = colony != null ? colony.getTier() : 1;
+                int workers = colony != null ? colony.getRoster().size() : 0;
+                int popCap = colony != null ? colony.getPopulationCap() : SovereignColonyEngine.getPopulationCap(1);
+                int biomass = colony != null ? colony.getBiomassStored() : 0;
+                int morale = colony != null ? (int) Math.round(colony.getColonyMorale()) : 0;
+                int redstoneSignal = colony != null
+                        ? MycelialRedstoneTelemetry.sovereignNexusSignal(tier, workers, popCap, biomass)
+                        : 0;
+                player.sendSystemMessage(Component.translatable(
+                        "message.mycelialmind.scanner_nexus_inspect",
+                        tier, workers, popCap, biomass, morale, redstoneSignal
+                ).withStyle(ChatFormatting.AQUA));
                 serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.45F);
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
@@ -478,6 +504,24 @@ public class BioScannerItem extends Item {
                     DiscoverySyncPayload.syncToPlayer(serverPlayer);
                 }
                 serverLevel.playSound(null, drone.blockPosition(), ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.6F);
+            }
+            return InteractionResult.sidedSuccess(player.level().isClientSide());
+        }
+        if (target instanceof ColonySymbiontEntity symbiont) {
+            if (player.level() instanceof ServerLevel serverLevel) {
+                player.sendSystemMessage(Component.translatable(
+                        "message.mycelialmind.scanner_symbiont_inspect",
+                        String.format("%.0f/%.0f", symbiont.getHealth(), symbiont.getMaxHealth()),
+                        Component.translatable(symbiont.getCaste().nameKey()),
+                        Component.translatable(symbiont.getRank().nameKey()),
+                        Math.round(symbiont.getMorale())
+                ).withStyle(ChatFormatting.AQUA));
+                if (player instanceof ServerPlayer serverPlayer) {
+                    PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
+                    discovery.recordSpecies(symbiont.getType());
+                    DiscoverySyncPayload.syncToPlayer(serverPlayer);
+                }
+                serverLevel.playSound(null, symbiont.blockPosition(), ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.55F);
             }
             return InteractionResult.sidedSuccess(player.level().isClientSide());
         }

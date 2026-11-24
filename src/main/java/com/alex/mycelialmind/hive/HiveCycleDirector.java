@@ -1,6 +1,8 @@
 package com.alex.mycelialmind.hive;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.entity.MycelialBossMob;
 import com.alex.mycelialmind.item.FieldEngramItem;
 import com.alex.mycelialmind.network.CycleProtocolSyncPayload;
@@ -138,6 +140,11 @@ public final class HiveCycleDirector {
         syncHiveModifiersAcrossDimensions(sourceLevel);
         if (result == null) {
             return;
+        }
+        int colonyXpReward = 50 * Math.max(1, result.cycleNumber());
+        awardCycleRewardsToColonies(overworld, colonyXpReward);
+        if (sourceLevel != overworld) {
+            awardCycleRewardsToColonies(sourceLevel, colonyXpReward);
         }
 
         ItemStack cycleEngram = FieldEngramItem.createStack(FieldEngramId.OVERMIND_CYCLE);
@@ -311,6 +318,19 @@ public final class HiveCycleDirector {
             syncHiveModifiersAcrossDimensions(level);
             CycleProtocolSyncPayload.syncToPlayer(serverPlayer, false);
         }
+    }
+
+    private static void awardCycleRewardsToColonies(ServerLevel colonyLevel, int xp) {
+        SovereignColonySavedData colonySaved = SovereignColonySavedData.get(colonyLevel);
+        if (colonySaved.getAllColonies().isEmpty()) {
+            return;
+        }
+        for (SovereignColonyData colony : colonySaved.getAllColonies()) {
+            colony.addDomainXp(xp);
+            colony.addBiomass(16);
+            colony.recalculateMorale();
+        }
+        colonySaved.setDirty();
     }
 
     @SubscribeEvent

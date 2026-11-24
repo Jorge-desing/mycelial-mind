@@ -1,11 +1,13 @@
 package com.alex.mycelialmind.entity.projectile;
 
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -62,6 +64,11 @@ public class NeutralizingSporeProjectile extends ThrowableProjectile {
                 emitImpact(serverLevel, result);
             } else if (target instanceof PurifierDroneEntity drone
                     && drone.clearJam()) {
+                emitImpact(serverLevel, result);
+            } else if (target instanceof ColonySymbiontEntity symbiont) {
+                symbiont.heal(4.0F);
+                symbiont.removeEffect(ModEffects.MYCELIAL_INFECTION);
+                symbiont.removeEffect(ModEffects.SPORE_ROT);
                 emitImpact(serverLevel, result);
             }
         }

@@ -18,6 +18,24 @@
     "mycelialmind:mycelial_tendrils": {
       "chance": 0.5
     },
+    "mycelialmind:reclaimed_bloom": {
+      "chance": 0.65
+    },
+    "mycelialmind:reclaimed_bloom_explosion": {
+      "chance": 0.65
+    },
+    "mycelialmind:reclaimed_bloom_fire": {
+      "chance": 0.65
+    },
+    "mycelialmind:reclaimed_bloom_magic": {
+      "chance": 0.65
+    },
+    "mycelialmind:reclaimed_bloom_melee": {
+      "chance": 0.65
+    },
+    "mycelialmind:reclaimed_bloom_projectile": {
+      "chance": 0.65
+    },
     "mycelialmind:spore_bulb": {
       "chance": 0.65
     }

@@ -61,7 +61,13 @@ public final class ModDataGenerators {
                     .add(ModBlocks.SPORE_BULB.getId(), new Compostable(0.65F), false)
                     .add(ModBlocks.MYCELIAL_TENDRILS.getId(), new Compostable(0.50F), false)
                     .add(ModBlocks.HYPHAL_VEIN.getId(), new Compostable(0.30F), false)
-                    .add(ModBlocks.ANTIBODY_CYST.getId(), new Compostable(0.50F), false);
+                    .add(ModBlocks.ANTIBODY_CYST.getId(), new Compostable(0.50F), false)
+                    .add(ModBlocks.RECLAIMED_BLOOM.getId(), new Compostable(0.65F), false)
+                    .add(ModItems.RECLAIMED_BLOOM_MELEE.getId(), new Compostable(0.65F), false)
+                    .add(ModItems.RECLAIMED_BLOOM_PROJECTILE.getId(), new Compostable(0.65F), false)
+                    .add(ModItems.RECLAIMED_BLOOM_FIRE.getId(), new Compostable(0.65F), false)
+                    .add(ModItems.RECLAIMED_BLOOM_EXPLOSION.getId(), new Compostable(0.65F), false)
+                    .add(ModItems.RECLAIMED_BLOOM_MAGIC.getId(), new Compostable(0.65F), false);
 
             builder(NeoForgeDataMaps.FURNACE_FUELS)
                     .add(ModItems.MYCELIAL_BIOMASS.getId(), new FurnaceFuel(400), false)

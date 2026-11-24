@@ -486,7 +486,9 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
         return !state.is(ModBlocks.PURIFICATION_PYLON.get())
                 && !state.is(ModBlocks.HIVE_ALTAR.get())
                 && !state.is(ModBlocks.MATRIARCH_ALTAR.get())
-                && !state.is(ModBlocks.MYCELIAL_RIFT.get());
+                && !state.is(ModBlocks.MYCELIAL_RIFT.get())
+                && !state.is(ModBlocks.SOVEREIGN_NEXUS.get())
+                && !state.is(ModBlocks.RECLAIMED_BLOOM.get());
     }
 
     private static boolean isOpenAirOrReplaceable(WorldGenLevel level, BlockPos pos) {

@@ -1504,6 +1504,7 @@ public final class MycelialCommands {
                 && ComposterBlock.getValue(new ItemStack(ModItems.MYCELIAL_BIOMASS.get())) > 0.0F
                 && ComposterBlock.getValue(new ItemStack(ModBlocks.HYPHAL_VEIN.asItem())) > 0.0F
                 && ComposterBlock.getValue(new ItemStack(ModBlocks.ANTIBODY_CYST.asItem())) > 0.0F
+                && ComposterBlock.getValue(new ItemStack(ModBlocks.RECLAIMED_BLOOM.asItem())) > 0.0F
                 && new ItemStack(ModItems.MYCELIAL_BIOMASS.get()).getBurnTime(null) == 400
                 && new ItemStack(ModBlocks.LUMINESCENT_AMBER_VEIN.asItem()).getBurnTime(null) == 1200
                 && new ItemStack(ModItems.VOLATILE_ENGRAM.get()).getBurnTime(null) == 1600
@@ -1512,13 +1513,15 @@ public final class MycelialCommands {
                         .getData(net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps.RAID_HERO_GIFTS) != null
                 && com.alex.mycelialmind.registry.ModLootModifiers.MYCELIAL_TRACE_LOOT.isBound()
                 && ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState().hasAnalogOutputSignal()
+                && ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState().hasAnalogOutputSignal()
+                && ModBlocks.RECLAIMED_BLOOM.get().defaultBlockState().hasAnalogOutputSignal()
                 && ModBlocks.EPHEMERAL_CHITIN.get().defaultBlockState().is(BlockTags.MINEABLE_WITH_HOE)
                 && ModBlocks.EPHEMERAL_CHITIN.get().defaultBlockState().is(BlockTags.MINEABLE_WITH_PICKAXE)
                 && new ItemStack(ModItems.SYNAPTIC_SUPPRESSOR.get()).is(ItemTags.DURABILITY_ENCHANTABLE)
                 && new ItemStack(ModItems.RIFT_CATALYST.get()).is(ItemTags.DURABILITY_ENCHANTABLE)
                 && new ItemStack(ModItems.SCHISM_INJECTOR.get()).is(ItemTags.DURABILITY_ENCHANTABLE)
                 && new ItemStack(ModItems.FALSE_ENGRAM_INJECTOR.get()).is(ItemTags.DURABILITY_ENCHANTABLE)
-                && SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 25
+                && SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 29
                 && ProgressionGoalEngine.BESTIARY_SPECIES_IDS.size() == 17
                 && ProgressionGoalEngine.TOTAL_SECRETS == 8
                 && Math.abs(ModArmorMaterials.CHITIN.value().toughness() - 1.0F) < 0.01F

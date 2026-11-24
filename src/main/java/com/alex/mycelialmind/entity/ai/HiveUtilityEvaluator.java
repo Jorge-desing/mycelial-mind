@@ -6,6 +6,7 @@ import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
+import com.alex.mycelialmind.hive.StimulusType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -82,7 +83,27 @@ public final class HiveUtilityEvaluator {
             var cell = HiveBlackboard.getInfluenceMap(serverLevel).sample(mob.blockPosition());
             influenceBonus = 0.10F * cell.pheromone() + 0.08F * cell.control();
         }
-        return Mth.clamp(0.35F * healthRatio + 0.30F * alert + traitBonus + rankBonus + orderBonus + cohesionBonus + influenceBonus, 0.0F, 1.0F);
+        float xpBonus = combatXpChargeBonus(MycelialSblBridge.getCombatXp(mob));
+        return Mth.clamp(0.35F * healthRatio + 0.30F * alert + traitBonus + rankBonus + orderBonus + cohesionBonus + influenceBonus + xpBonus, 0.0F, 1.0F);
+    }
+
+    public static float combatXpChargeBonus(int combatXp) {
+        return Math.min(0.10F, Math.max(0, combatXp) / 1000.0F);
+    }
+
+    public static float stimulusKiteOffset(@Nullable StimulusType lastStimulus) {
+        if (lastStimulus == StimulusType.MELEE) {
+            return 0.08F;
+        }
+        if (lastStimulus == StimulusType.PROJECTILE) {
+            return -0.05F;
+        }
+        return 0.0F;
+    }
+
+    public static float stimulusRegroupBonus(@Nullable StimulusType lastStimulus, int combatXp) {
+        float stimBonus = (lastStimulus == StimulusType.EXPLOSION || lastStimulus == StimulusType.FIRE) ? 0.08F : 0.0F;
+        return stimBonus + Math.min(0.06F, Math.max(0, combatXp) / 1500.0F);
     }
 
     public static float evaluateKiteUtility(MycelialMob mob, @Nullable LivingEntity target) {
@@ -103,7 +124,9 @@ public final class HiveUtilityEvaluator {
                 tideOffset = -0.06F;
             }
         }
-        return Mth.clamp(0.50F * proximity + 0.30F * lowHealth + 0.15F * alert + traitBonus + influencePressure + tideOffset, 0.0F, 1.0F);
+        StimulusType lastStimulus = MycelialSblBridge.getLastAttackStimulus(mob);
+        float stimulusOffset = stimulusKiteOffset(lastStimulus);
+        return Mth.clamp(0.50F * proximity + 0.30F * lowHealth + 0.15F * alert + traitBonus + influencePressure + tideOffset + stimulusOffset, 0.0F, 1.0F);
     }
 
     public static float evaluateRegroupUtility(MycelialMob mob) {
@@ -131,6 +154,8 @@ public final class HiveUtilityEvaluator {
                 score -= 0.08F;
             }
         }
+        StimulusType lastStimulus = MycelialSblBridge.getLastAttackStimulus(mob);
+        score += stimulusRegroupBonus(lastStimulus, MycelialSblBridge.getCombatXp(mob));
         return Mth.clamp(score, 0.0F, 1.0F);
     }
 }

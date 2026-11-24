@@ -1,4 +1,4 @@
-# Memoria y Contexto Permanente Local (Solo Lectura, Consulta y Anexión)
+﻿# Memoria y Contexto Permanente Local (Solo Lectura, Consulta y Anexión)
 
 > [!CAUTION]
 > **POLÍTICA ESTRICTA — SOLO ANEXIÓN (APPEND-ONLY):**
@@ -1630,7 +1630,9 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 ## [2026-11-20 02:05] — Auditoría general: mapa de homeostasis y límite persistente de quimeras
 - **Tipo:** CORRECCIÓN | VERIFICACIÓN
 - **Resumen:** getInflamedChunksWithin ya ordena los chunks afectados por distancia antes de aplicar el límite y devuelve lista vacía con radio negativo o límite no positivo; se evita que el HashMap decida qué marcadores entran al HUD. El límite de una quimera por dueño ahora se cuenta con un SavedData del Overworld y abarca dimensiones y chunks descargados; registra propietarios al asignarlos o cargar NBT y elimina el UUID al morir o descartarse la entidad.
-- **Archivos / Símbolos:** src/main/java/com/alex/mycelialmind/world/DimensionalHomeostasisSavedData.java (getInflamedChunksWithin); src/main/java/com/alex/mycelialmind/entity/ChimeraOwnershipSavedData.java; src/main/java/com/alex/mycelialmind/entity/MycelialChimeraEntity.java (setOwnerUUID, eadAdditionalSaveData, emove, countActiveChimerasForOwner).
+- **Archivos / Símbolos:** src/main/java/com/alex/mycelialmind/world/DimensionalHomeostasisSavedData.java (getInflamedChunksWithin); src/main/java/com/alex/mycelialmind/entity/ChimeraOwnershipSavedData.java; src/main/java/com/alex/mycelialmind/entity/MycelialChimeraEntity.java (setOwnerUUID, 
+eadAdditionalSaveData, 
+emove, countActiveChimerasForOwner).
 - **Estado / Siguiente paso:**  .\gradlew.bat compileJava --no-daemon terminó en BUILD SUCCESSFUL. No se ejecutaron pruebas ni suites; mycelial-mind-dev no estaba disponible y la auditoría general sigue activa.
 
 ## [2026-11-20 02:07] — Corrección de nombres en la nota de auditoría anterior
@@ -1798,7 +1800,9 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 ## [2026-11-20 04:59] — Reset de adaptaciones globales y revalidación diagnóstica
 - **Tipo:** CORRECCIÓN | VERIFICACIÓN | DIAGNÓSTICO
 - **Resumen:** HiveMindSavedData.resetAll() ya no vacía directamente los conjuntos de rasgos globales; al recomputarlos avanza la revisión de estado y propaga el reset a mobs vivos. Se añadió globalHiveAdaptationsPropagateExpireAndResetForLivingMobs, que verifica propagación, supresión temporal, expiración, reset y que las máscaras de fase del Hive Core se conserven.
-- **Archivos / Símbolos:** src/main/java/com/alex/mycelialmind/hive/HiveMindSavedData.java (esetAll, ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java (globalHiveAdaptationsPropagateExpireAndResetForLivingMobs).
+- **Archivos / Símbolos:** src/main/java/com/alex/mycelialmind/hive/HiveMindSavedData.java (
+esetAll, 
+ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java (globalHiveAdaptationsPropagateExpireAndResetForLivingMobs).
 - **Verificación:** 	est runGameTestServer --no-daemon y scripts/Verify-Mod.ps1 -IncludeServerSmoke -NoDaemon completaron correctamente: 127/127 GameTests, 30/30 JUnit y 21/21 escenarios RCON. Verify-Mod también pasó 12 pruebas de modelos y 9 de texturas; el ciclo completo tomó 51.1 s. Los smoke visual y de estructuras se omitieron porque no se activaron sus switches. Los puertos 25577/25578 quedaron libres; solo permaneció el daemon normal de Gradle.
 - **Pruebas de diagnóstico en mundo:** MC Pilot 0.20.2 mantuvo un mundo aislado con 24 mobs del mod, 3 nodos, 1 pilón y jugador en 20 TPS; Spark y JFR capturaron control y carga. MSPT de carga p95/máximo: 10 s 4.9/8.8 ms y 60 s 5.7/41.3 ms. La comprobación interactiva final de Observable parcheado guardó perfiles de 604 ticks/0 bloques y 602 ticks/4 bloques, sin GL_INVALID_OPERATION ni hilos Profiler no daemon. El perfil Observable original con 24 mobs reveló la regresión VBO, corregida y repetida en la comprobación interactiva final; no se repitió ese perfil final con los 24 mobs, por lo que Spark/JFR son la evidencia de rendimiento bajo carga completa. La instancia MC Pilot usa NeoForge 21.1.235; el smoke dev usa 21.1.176. Esta medición es referencia, no benchmark estadístico.
 - **Artefactos:** rtifacts/diagnostics/hive-state-sync-20261120.log; rtifacts/diagnostics/verify-hive-reset-20261120.log; rtifacts/diagnostics/mcpilot-loadtest-20261120-020426/load-profile-results.md; rtifacts/diagnostics/observable-vbo-fix-20261120/observable-vbo-fix-results.md.
@@ -3890,6 +3894,34 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
   - `run_gradle_task(["compileJava", "test"], no_daemon=True)` + `get_latest_junit_report`: `BUILD SUCCESSFUL in 14s`, **`74/74`** JUnit PASS en `9` suites (`0` fallos/omitidos).
   - `validate_skills` (CodeMode): **`8/8`** OK (`ok=true`).
 
+
+## [2026-11-22 23:30] — Re-empaquetado distribuible de Mycelial Mind v2.0.0
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Se verificó la compilación de la versión más reciente (`mod_version=2.0.0`, `.\gradlew.bat build stageMcPilotDependency` con JDK 21, `BUILD SUCCESSFUL`) y se regeneró el paquete distribuible en `dist/mycelialmind-2.0.0-mc1.21.1-neoforge/` y `dist/mycelialmind-2.0.0-mc1.21.1-neoforge.zip` con `SmartBrainLib-neoforge-1.21.1-1.16.11.jar` e `INSTALACION.txt`.
+- **Archivos / Símbolos:** `dist/mycelialmind-2.0.0-mc1.21.1-neoforge/`, `dist/mycelialmind-2.0.0-mc1.21.1-neoforge.zip`.
+- **Estado / Siguiente paso:** Paquete v2.0.0 actualizado y verificado en disco.
+
+## 2026-11-23 — Atlas de flores recuperadas, trabajo parcial
+- Se añadieron seis atlas procedurales y se conectaron a los modelos. Las 11 pruebas de Model Studio pasaron. Quedan pendientes los motivos individuales previstos, la revisión UV y la verificación visual en el cliente. La suite de Texture Studio seguía en ejecución al registrar esta entrada.
+
+## 2026-11-23 — Motivos de las flores recuperadas
+- Se diferenciaron los motivos procedurales de los seis atlas y se regeneraron sus PNG. Model Studio pasó 11 pruebas. Quedan pendientes el refinamiento de geometría y UV, la guía y la revisión visual en cliente.
+
+## 2026-11-23 — Pulido de flores, en curso
+- Separados materiales de raíz, tallo y cáliz, refinados núcleos y orientación superior de UV, y actualizada guía de flores. Model Studio 11/11, Texture Studio 40/40 y regeneración determinista 6/6. Se inició runVisualSmoke y se capturó jardín e inventario; faltan inspección cercana, comprobar versión final de UV y demás criterios del plan.
+
+## 2026-11-23 — Siluetas y capturas de flores, en curso
+- Se escalonaron las corolas de las cinco variantes, con 12–18 piezas en las variantes y 42 en la base, todas dentro del bloque. Model Studio 11/11. El cliente capturó flores antes y después de cosechar, pero los avisos ocultaron la vista; se ajustó la escena para una nueva captura sin HUD.
+
+## 2026-11-23 — Vista cercana de flores, en curso
+- Corolas con puntas escalonadas, 6/6 modelos e ítems y 12 estados comprobados, partículas de rotura propias generadas y Model Studio 11/11. Capturas 1600x900 con partículas mínimas antes y después de cosecha y vista superior muestran las seis flores. La ejecución visual aún guardaba el mundo integrado. Pendiente verificar la salida final, atlas UV y partículas en la versión final.
+
+## 2026-11-23 — Validación de atlas de flores, en curso
+- Cada mosaico se dibuja aislado con margen duplicado para evitar contaminación entre regiones. Nueva prueba comprueba regeneración determinista de los 12 PNG, referencias de partículas, seis modelos e ítems y doce estados. La prueba pasa. runVisualSmoke sigue vivo y el servidor integrado está en ChunkMap.processUnloads durante el guardado; no se considera finalizado.
+
+## 2026-11-23 — Validación final de flores recuperadas
+- Model Studio 11/11, Texture Studio 41/41 y prueba específica de recursos, conectividad e interpenetración correctas. La ejecución aislada runVisualSmoke en expedition-bloom-final terminó BUILD SUCCESSFUL en 50 s, con capturas a 1600x900 antes/después, desde arriba y en inventario. La ejecución anterior falló al cerrar tras 5 minutos durante descarga de chunks. La versión aislada finalizó y guardó todas las dimensiones.
+
 ## [2026-11-23 08:06] — Auditoría GitHub y corrección del PR #4
 - **Tipo:** `VERIFICACIÓN` | `CORRECCIÓN`
 - **Resumen:** Se revisó el estado real de GitHub. `main` (`f48dabb`) tiene el pipeline completo verde: JUnit, build, dry-run de publicación y **175/175 GameTests**. Se identificó que el PR #4 fallaba desde una base antigua (`b2a4447`) con pruebas ya corregidas en `main`; su único cambio es Modonomicon `1.123.0` → `1.123.1`. Se rebasó el cambio sobre `f48dabb` y se actualizó la rama del PR a `8107416`; los tres checks terminaron verdes, incluidos **175/175 GameTests**. El PR permanece abierto, sin fusionar. Los PR #1, #2 y #5 tienen checks verdes en sus revisiones actuales.
@@ -3955,3 +3987,19 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 
 ## 2026-11-23 — Revisión del bloqueo post-Matriarca
 - Revisión estática de la rama de integración aaebbb7: la interfaz normal y la incubación comprueban la derrota, pero la creación y ticks del Nexo, la inserción de biomasa, el bastón, el director y el manejador de paquetes no aplican una barrera global; creativo y comandos tienen excepciones explícitas. La receta exige esencia disponible también en el cofre citadel_royal_crypt, por lo que el ingrediente por sí solo no prueba el bloqueo. No se modificó código ni se ejecutaron pruebas de juego.
+
+## 2026-11-23 — CI de Renovate
+- PR #9 (a547fed) y #10 (47be7dc) terminaron Verify Mycelial Mind con los tres jobs verdes. PR #6 y #7 ya estaban fusionados. Skill neoforge-gametest revisada sin cambios.
+
+
+## [2026-11-23 19:56] — Integración integral de características pendientes, Colonia Soberana, LabPBR y verificación CodeMode
+- **Tipo:** `IMPLEMENTACIÓN` | `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:** Completada la integración transversal de los subsistemas que habían quedado desconectados o parciales:
+  1. **Reclaimed Blooms 3D + LabPBR + Cosecha/Loot:** Añadida emisión LabPBR (`_n.png`/`_s.png`) en `scripts/texture_studio/generators/reclaimed_blooms.py` y `build_textures.py` (`test_reclaimed_blooms` incluido en `41/41` pruebas); implementado `ReclaimedBloomBlock` con clic derecho maduro, mapeo `itemForPalette`, señal de comparador (`15`/`5`) y tabla de botín `data/mycelialmind/loot_table/blocks/reclaimed_bloom.json`; conectado `SymbiontHarvesterGoal` para cosechar `ReclaimedBloomBlock` maduros en la bolsa de `HARVESTER`.
+  2. **Inmunidad aliada, curación y protección de bloques:** `DamageTelemetryTracker` cancela el fuego amigo sobre `ColonySymbiontEntity` en `onIncomingDamage` y evita su infección o conversión (`tryConvertInfectedMob`); `ColonySymbiontEntity.canBeAffected` bloquea `SPORE_ROT`; `NeutralizingSporeProjectile` (`+4 HP`) y `PurifierGrenadeProjectile` (`+6 HP`) curan y limpian `MYCELIAL_INFECTION`/`SPORE_ROT`; `BurrowerEntity.canBurrowerBreak`, `MycelialOutbreakFeature` y `SurfaceHiveFeature` protegen `sovereign_nexus` y `reclaimed_bloom`.
+  3. **Acoplamientos de Colonia con Homeostasis, Expediciones y Ciclos:** `DimensionalHomeostasisDirector` calma el estrés periódico cercano a un `SovereignNexusBlock` activo (`-1.5 * tier`) y protege/cura `ColonySymbiontEntity` bajo lluvia ácida junto a nodos simbióticos o con `APEX_GUARDIAN_MATRIX`; `PostMatriarchExpeditionDirector` (`+25 XP`, `+10` biomasa) y `HiveCycleDirector` (`+50 * ciclo XP`, `+16` biomasa) otorgan progreso al Nexo al completarse.
+  4. **Redstone, SmartBrainLib AI, Escáner, Visión Sináptica, Jade, JEI/EMI, DataGen y Códice:** `MycelialRedstoneTelemetry.sovereignNexusSignal` + comparador y actualizaciones en `SovereignNexusBlock`/`SovereignNexusBlockEntity`; `MycelialSblBridge.getLastAttackStimulus`, pesos puros en `HiveUtilityEvaluator` (`combatXpChargeBonus`, `stimulusKiteOffset`, `stimulusRegroupBonus`) y repulsión de colonia/simbiontes en `HiveMindSensor`; inspección en `BioScannerItem` y cajas térmicas 3D (`SYNAPTIC_VISION`) en `ClientSetup`; proveedores `NexusServerDataProvider`, `ColonySymbiontEntity` y `SovereignNexusBlock` en `MycelialJadePlugin`; `SynapticBenchRecipeDefinitions.allCompatInfoEntries()` ampliado a `29` entradas (`sovereign_nexus`, `sovereign_command_staff`, `field_engram`, `reclaimed_bloom`); `2013/2013` claves EN/ES en paridad exacta; `ModDataGenerators` + `runData` para `compostables.json` (`reclaimed_bloom*`); y cobertura actualizada en `scripts/codex_studio/content_part3.py` y `MycelialCommands.verifyPolish`.
+  5. **Empaquetado y entorno local:** Copiada la distribución `gradle-8.14.8-bin` en `.gradle-user-home` (gitignored) para destrabar Gradle en CodeMode y actualizado `dist/mycelialmind-2.0.0-mc1.21.1-neoforge/` (JAR SHA-256 `F6B8C4FBBC691A37EE9B22EE58D527A6D4B3EFE6FA246DECA1857D861C24D866` + `.zip`).
+- **Archivos / Símbolos:** `ReclaimedBloomBlock.java`, `SovereignNexusBlock.java`, `SovereignNexusBlockEntity.java`, `SymbiontHarvesterGoal.java`, `DamageTelemetryTracker.java`, `ColonySymbiontEntity.java`, `NeutralizingSporeProjectile.java`, `PurifierGrenadeProjectile.java`, `BurrowerEntity.java`, `MycelialOutbreakFeature.java`, `SurfaceHiveFeature.java`, `DimensionalHomeostasisDirector.java`, `PostMatriarchExpeditionDirector.java`, `HiveCycleDirector.java`, `MycelialRedstoneTelemetry.java`, `MycelialSblBridge.java`, `HiveUtilityEvaluator.java`, `HiveMindSensor.java`, `BioScannerItem.java`, `ClientSetup.java`, `MycelialJadePlugin.java`, `SynapticBenchRecipeDefinitions.java`, `ModDataGenerators.java`, `MycelialCommands.java`, `reclaimed_blooms.py`, `content_part3.py`, `HiveAlgorithmsUnitTest.java`, `MycelialGameTests.java`.
+- **Skills revisadas:** Actualizadas `.agents/skills/mycelial-ai-hive/SKILL.md` y `.agents/skills/mycelial-texture-studio/SKILL.md`; resto de skills revisadas sin cambios (`CodeMode validate_skills` = `8/8 OK`).
+- **Estado / Verificación:** Verificado íntegramente tras la última edición Java mediante FastMCP `CodeMode`: JUnit `88/88` (`10` suites, `2.021s`), Pitest `928/1176` (`78.91%`, `88%` strength), `runData` + `build` `BUILD SUCCESSFUL`, `@GameTest` aislado (`-PisolatedGameTests=true`) **`177/177`** (`5.138s`, incluyendo `fullEndgameBloomNexusRedstoneAndScannerTest` y `fullEndgameSymbiontImmunityGrenadeAndSblTest`), servidor headless RCON en vivo `23/23` (`ALL 23 automated scenario checks PASSED`), `run_model_studio` / `run_texture_studio` (`41/41`) / `run_particle_studio` / `run_sound_studio` / `run_codex_studio` (`5/5`) y `audit_mod_assets` todos en verde (`2013/2013` EN/ES, `0` claves faltantes).

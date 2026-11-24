@@ -518,12 +518,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`latent_spore` -> `spore_antidote`; + Amethyst Shard -> `concentrated_antidote`.",
                         ),
                         (
-                            "• **5 Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), "
-                            "`bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), "
-                            "`latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**).",
-                            "• **5 Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), "
-                            "`bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), "
-                            "`latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**).",
+                            "• **Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), "
+                            "`bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), `reclaimed_bloom*` (**0.65**), "
+                            "`latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**), `antibody_cyst` (**0.50**), `hyphal_vein` (**0.30**).",
+                            "• **Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), "
+                            "`bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), `reclaimed_bloom*` (**0.65**), "
+                            "`latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**), `antibody_cyst` (**0.50**), `hyphal_vein` (**0.30**).",
                         ),
                         (
                             "• **Aldeanos y Errante:** Clérigos (N2–N5) comercian `mycelial_biomass`, "
@@ -540,10 +540,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="botin_48_tablas",
             order=4,
-            title=lt("Las 50 Tablas de Botín", "All 50 Loot Tables"),
+            title=lt("Las 52 Tablas de Botín", "All 52 Loot Tables"),
             subtitle=lt(
-                "22 bloques, 10 cofres, 17 entidades y aldea + multiplicadores",
-                "22 blocks, 10 structure chests, 17 entities & village + multipliers",
+                "23 bloques, 10 cofres, 17 entidades y aldea + multiplicadores",
+                "23 blocks, 10 structure chests, 17 entities & village + multipliers",
             ),
             icon_item="mycelialmind:hive_heart",
             x=grid_xy(3, 3)[0],
@@ -569,6 +569,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "blocks/mycelial_tendrils",
                 "blocks/purification_pylon",
                 "blocks/purification_turret",
+                "blocks/reclaimed_bloom",
                 "blocks/reinforced_bio_barrier",
                 "blocks/sentinel_node",
                 "blocks/sovereign_nexus",
@@ -624,9 +625,9 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                         ),
                         (
                             "• **Bloques 3/4:** `blocks/mycelial_stone`, `blocks/mycelial_tendrils`, "
-                            "`blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reinforced_bio_barrier`.",
+                            "`blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reclaimed_bloom`, `blocks/reinforced_bio_barrier`.",
                             "• **Blocks 3/4:** `blocks/mycelial_stone`, `blocks/mycelial_tendrils`, "
-                            "`blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reinforced_bio_barrier`.",
+                            "`blocks/purification_pylon`, `blocks/purification_turret`, `blocks/reclaimed_bloom`, `blocks/reinforced_bio_barrier`.",
                         ),
                         (
                             "• **Bloques 4/4:** `blocks/sentinel_node`, `blocks/sovereign_nexus`, `blocks/spore_bulb`, "
@@ -1227,15 +1228,15 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     [
                         (
                             "• **Comparadores Redstone 1/2:** `antibody_cyst` (estrés chunk 1–15), "
-                            "`bioluminescent_mycelial_cap` y `mycelial_tendrils` (`MATURE`), `mycelial_node`/`symbiotic_node`.",
+                            "`bioluminescent_mycelial_cap`, `mycelial_tendrils` y `reclaimed_bloom` (`MATURE`), `mycelial_node`/`symbiotic_node`.",
                             "• **Redstone Comparators 1/2:** `antibody_cyst` (chunk stress 1–15), "
-                            "`bioluminescent_mycelial_cap` & `mycelial_tendrils` (`MATURE`), `mycelial_node`/`symbiotic_node`.",
+                            "`bioluminescent_mycelial_cap`, `mycelial_tendrils` & `reclaimed_bloom` (`MATURE`), `mycelial_node`/`symbiotic_node`.",
                         ),
                         (
                             "• **Comparadores Redstone 2/2 (`MycelialRedstoneTelemetry`):** `purification_pylon` "
-                            "(estado/sofoco), `purification_turret` (tier/atasco) y `synaptic_research_bench` (entradas/salida).",
+                            "(estado/sofoco), `purification_turret` (tier/atasco), `synaptic_research_bench` (entradas/salida) y `sovereign_nexus` (nivel/simbiontes/biomasa).",
                             "• **Redstone Comparators 2/2 (`MycelialRedstoneTelemetry`):** `purification_pylon` "
-                            "(state/smother), `purification_turret` (tier/jam) & `synaptic_research_bench` (inputs/output).",
+                            "(state/smother), `purification_turret` (tier/jam), `synaptic_research_bench` (inputs/output) & `sovereign_nexus` (tier/symbionts/biomass).",
                         ),
                         (
                             "• **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **SmartBrainLib** "

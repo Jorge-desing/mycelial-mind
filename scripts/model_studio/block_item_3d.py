@@ -690,14 +690,6 @@ def build_3d_block_models() -> Dict[str, Dict[str, Any]]:
 
 def build_reclaimed_bloom_variant(kind: str) -> Dict[str, Any]:
     """Distinct flowering structures for each stimulus, with a shared rooted stalk."""
-    profiles = {
-        "melee": (4, 4.0, 12.5, 1.2),
-        "projectile": (4, 6.0, 14.5, 0.8),
-        "fire": (4, 3.5, 14.5, 0.7),
-        "explosion": (4, 2.0, 7.5, 2.0),
-        "magic": (4, 5.0, 13.5, 1.0),
-    }
-    _, extent, height, width = profiles[kind]
     elements = [
         _tbox((5.5, 0, 5.5), (10.5, 1, 10.5), H_OBS),
         _tbox((7, 1, 7), (9, 5, 9), H_VEIN),
@@ -709,27 +701,57 @@ def build_reclaimed_bloom_variant(kind: str) -> Dict[str, Any]:
             face["tintindex"] = 0
         elements.append(part)
     petal((6, 7, 6), (10, 9, 10))
-    if kind == "explosion":
-        for frm, to in [((2, 7, 6), (6, 8.5, 10)), ((10, 7, 6), (14, 8.5, 10)),
-                        ((6, 7, 2), (10, 8.5, 6)), ((6, 7, 10), (10, 8.5, 14))]:
-            petal(frm, to)
-    else:
-        for x, z in ((extent, 8), (16-extent, 8), (8, extent), (8, 16-extent)):
-            if x != 8:
-                lo, hi = sorted((x, 6 if x < 8 else 10))
-                petal((lo, 7, 8-width), (hi, height, 8+width))
-            else:
-                lo, hi = sorted((z, 6 if z < 8 else 10))
-                petal((8-width, 7, lo), (8+width, height, hi))
-        if kind == "magic":
-            petal((7, 9, 7), (9, 15.5, 9), H_BONE)
-        elif kind == "fire":
-            petal((7, 9, 7), (9, 16, 9))
+    # Each arm is built in three connected steps, keeping the outer tip distinct.
+    def arm(turn, near, far, bottom, top, half_width, tile=H_IVORY_SCALE):
+        x1, x2, z1, z2 = 8 - half_width, 8 + half_width, near, far
+        corners = [(x1, z1), (x2, z2)]
+        for _ in range(turn):
+            corners = [(16 - z, x) for x, z in corners]
+        xs, zs = zip(*corners)
+        petal((min(xs), bottom, min(zs)), (max(xs), top, max(zs)), tile)
+
+    for turn in range(4):
+        if kind == "explosion":
+            arm(turn, 4, 6, 7, 8.5, 2)
+            arm(turn, 2, 4, 7, 8, 1.5)
         elif kind == "melee":
-            petal((6.5, 9, 6.5), (9.5, 12, 9.5), H_BONE)
-    return {"parent": "minecraft:block/block",
-            "textures": _atlas_textures("atlas_blocks_hive", "mycelialmind:block/spore_bulb"),
-            "elements": elements}
+            arm(turn, 4, 6, 7, 11.5, 1.5)
+            arm(turn, 3.5, 4, 7.5, 10, 1)
+            arm(turn, 4.5, 5.5, 11.5, 12.5, 0.8)
+        elif kind == "projectile":
+            arm(turn, 5.5, 6, 7, 12.5, 0.9)
+            arm(turn, 5.5, 6, 12.5, 14.5, 0.45)
+        elif kind == "fire":
+            arm(turn, 4, 6, 7, 11, 0.85)
+            arm(turn, 4, 5.5, 11, 13, 0.55)
+            arm(turn, 4, 5, 13, 14.5 - (turn % 2), 0.3)
+        else:
+            arm(turn, 5, 6, 7, 11.5, 1)
+            arm(turn, 5, 5.75, 11.5, 13.5, 0.55)
+
+    if kind == "magic":
+        petal((7, 9, 7), (9, 14.5, 9), H_BONE)
+        petal((7.25, 14.5, 7.25), (8.75, 15.5, 8.75), H_BONE)
+    elif kind == "fire":
+        petal((7, 9, 7), (9, 14.5, 9))
+        petal((7.25, 14.5, 7.25), (8.75, 16, 8.75))
+    elif kind == "melee":
+        petal((6.5, 9, 6.5), (9.5, 11, 9.5), H_BONE)
+        petal((7, 11, 7), (9, 12, 9), H_BONE)
+    elif kind == "projectile":
+        petal((7.25, 9, 7.25), (8.75, 13, 8.75), H_BONE)
+    for element in elements:
+        for face in element["faces"].values():
+            face.pop("tintindex", None)
+        width = element["to"][0] - element["from"][0]
+        depth = element["to"][2] - element["from"][2]
+        if width > depth:
+            element["faces"]["up"]["rotation"] = 90
+            element["faces"]["down"]["rotation"] = 90
+    textures = _atlas_textures("atlas_blocks_hive", "mycelialmind:block/spore_bulb")
+    textures["atlas"] = "mycelialmind:model_atlas/reclaimed_bloom_" + kind
+    textures["particle"] = "mycelialmind:model_atlas/reclaimed_bloom_" + kind + "_particle"
+    return {"parent": "minecraft:block/block", "textures": textures, "elements": elements}
 
 
 def build_reclaimed_bloom_model() -> Dict[str, Any]:
@@ -771,11 +793,18 @@ def build_reclaimed_bloom_model() -> Dict[str, Any]:
     radial_box(6.5, 7.25, 6.5, 9.5, 8.25, 9.5, H_BONE, 0, tinted=True)
     radial_box(7.25, 8.25, 7.25, 8.75, 9.75, 8.75, H_IVORY_SCALE, 0, tinted=True, shade=False)
     radial_box(6.75, 9.75, 6.75, 9.25, 10.75, 9.25, H_IVORY_SCALE, 0, tinted=True, shade=False)
-    return {
-        "parent": "minecraft:block/block",
-        "textures": _atlas_textures("atlas_blocks_hive", "mycelialmind:block/spore_bulb"),
-        "elements": elements,
-    }
+    for element in elements:
+        for face in element["faces"].values():
+            face.pop("tintindex", None)
+        width = element["to"][0] - element["from"][0]
+        depth = element["to"][2] - element["from"][2]
+        if width > depth:
+            element["faces"]["up"]["rotation"] = 90
+            element["faces"]["down"]["rotation"] = 90
+    textures = _atlas_textures("atlas_blocks_hive", "mycelialmind:block/spore_bulb")
+    textures["atlas"] = "mycelialmind:model_atlas/reclaimed_bloom_base"
+    textures["particle"] = "mycelialmind:model_atlas/reclaimed_bloom_base_particle"
+    return {"parent": "minecraft:block/block", "textures": textures, "elements": elements}
 
 
 # ---------------------------------------------------------------------------

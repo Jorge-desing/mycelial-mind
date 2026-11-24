@@ -15,6 +15,7 @@ import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
+import com.alex.mycelialmind.block.SovereignNexusBlock;
 import com.alex.mycelialmind.block.SporeBulbBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
@@ -22,9 +23,13 @@ import com.alex.mycelialmind.block.SynapticResearchBenchBlock;
 import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -41,15 +46,19 @@ import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IEntityComponentProvider;
+import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.IWailaClientRegistration;
+import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.WailaPlugin;
 import snownee.jade.api.config.IPluginConfig;
@@ -63,12 +72,20 @@ public final class MycelialJadePlugin implements IWailaPlugin {
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "entity_info");
     public static final ResourceLocation BLOCK_UID =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "block_info");
+    public static final ResourceLocation NEXUS_DATA_UID =
+            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "nexus_data");
+
+    @Override
+    public void register(IWailaCommonRegistration registration) {
+        registration.registerBlockDataProvider(NexusServerDataProvider.INSTANCE, SovereignNexusBlockEntity.class);
+    }
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerEntityComponent(EntityProvider.INSTANCE, MycelialMob.class);
         registration.registerEntityComponent(EntityProvider.INSTANCE, MycelialChimeraEntity.class);
         registration.registerEntityComponent(EntityProvider.INSTANCE, PurifierDroneEntity.class);
+        registration.registerEntityComponent(EntityProvider.INSTANCE, ColonySymbiontEntity.class);
 
         registration.registerBlockComponent(BlockProvider.INSTANCE, MycelialNodeBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, IncubatorNodeBlock.class);
@@ -88,6 +105,7 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(BlockProvider.INSTANCE, SporeBulbBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, HyphalVeinBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, ReclaimedBloomBlock.class);
+        registration.registerBlockComponent(BlockProvider.INSTANCE, SovereignNexusBlock.class);
     }
 
     public enum EntityProvider implements IEntityComponentProvider {
@@ -186,6 +204,15 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 if (drone.isJammed()) {
                     tooltip.add(Component.translatable("jade.mycelialmind.drone_jammed",
                             (int) Math.ceil(drone.getJammedTicks() / 20.0)));
+                }
+            } else if (accessor.getEntity() instanceof ColonySymbiontEntity symbiont) {
+                tooltip.add(Component.translatable("jade.mycelialmind.symbiont_role",
+                        Component.translatable(symbiont.getCaste().nameKey()),
+                        Component.translatable(symbiont.getRank().nameKey())));
+                tooltip.add(Component.translatable("jade.mycelialmind.symbiont_morale",
+                        Math.round(symbiont.getMorale())));
+                if (symbiont.isStandby()) {
+                    tooltip.add(Component.translatable("jade.mycelialmind.symbiont_standby"));
                 }
             }
         }
@@ -300,6 +327,19 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 tooltip.add(Component.translatable("jade.mycelialmind.matriarch_altar"));
             } else if (accessor.getBlock() instanceof SporeVentBlock) {
                 tooltip.add(Component.translatable("jade.mycelialmind.spore_vent"));
+            } else if (accessor.getBlock() instanceof SovereignNexusBlock) {
+                CompoundTag serverData = accessor.getServerData();
+                if (serverData.contains("ColonyTier")) {
+                    tooltip.add(Component.translatable("jade.mycelialmind.sovereign_nexus_info",
+                            serverData.getInt("ColonyTier"),
+                            serverData.getInt("Workers"),
+                            serverData.getInt("PopCap"),
+                            serverData.getInt("Biomass")));
+                    tooltip.add(Component.translatable("jade.mycelialmind.sovereign_nexus_morale",
+                            serverData.getInt("Morale")));
+                } else {
+                    tooltip.add(Component.translatable("jade.mycelialmind.sovereign_nexus_dormant"));
+                }
             }
             if (accessor.getLevel().dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL)
                     && ClientExpeditionCache.hasActiveExpedition()) {
@@ -323,6 +363,31 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         @Override
         public ResourceLocation getUid() {
             return BLOCK_UID;
+        }
+    }
+
+    public enum NexusServerDataProvider implements IServerDataProvider<BlockAccessor> {
+        INSTANCE;
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getLevel() instanceof ServerLevel serverLevel)) {
+                return;
+            }
+            SovereignColonyData colony = SovereignColonySavedData.get(serverLevel).getByNexus(accessor.getPosition());
+            if (colony == null) {
+                return;
+            }
+            data.putInt("ColonyTier", colony.getTier());
+            data.putInt("Workers", colony.getRoster().size());
+            data.putInt("PopCap", colony.getPopulationCap());
+            data.putInt("Biomass", colony.getBiomassStored());
+            data.putInt("Morale", (int) Math.round(colony.getColonyMorale()));
+        }
+
+        @Override
+        public ResourceLocation getUid() {
+            return NEXUS_DATA_UID;
         }
     }
 }

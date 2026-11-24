@@ -2,12 +2,14 @@ package com.alex.mycelialmind.entity.projectile;
 
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.MobEpisodicMemory;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.core.BlockPos;
@@ -88,6 +90,13 @@ public class PurifierGrenadeProjectile extends ThrowableProjectile {
             for (PurifierDroneEntity drone : serverLevel.getEntitiesOfClass(PurifierDroneEntity.class, area)) {
                 if (drone.distanceToSqr(center.getX() + 0.5D, center.getY() + 0.5D, center.getZ() + 0.5D) <= 16.0D) {
                     drone.clearJam();
+                }
+            }
+            for (ColonySymbiontEntity symbiont : serverLevel.getEntitiesOfClass(ColonySymbiontEntity.class, area)) {
+                if (symbiont.distanceToSqr(center.getX() + 0.5D, center.getY() + 0.5D, center.getZ() + 0.5D) <= 16.0D) {
+                    symbiont.heal(6.0F);
+                    symbiont.removeEffect(ModEffects.MYCELIAL_INFECTION);
+                    symbiont.removeEffect(ModEffects.SPORE_ROT);
                 }
             }
             HiveBlackboard.purgeCarrionWithin(serverLevel, Vec3.atCenterOf(center), 5.0D);

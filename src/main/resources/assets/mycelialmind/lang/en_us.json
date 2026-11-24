@@ -1999,5 +1999,17 @@
   "message.mycelialmind.colony.reconstruction_opened": "An outpost fell at (%1$d, %2$d, %3$d). Its surviving memories can be carried to a successor.",
   "message.mycelialmind.colony.reconstruction_capacity": "The colony has four open memory recoveries. Archive one before recording another.",
   "message.mycelialmind.colony.reconstruction_restored": "Restored %1$s at successor (%2$d, %3$d, %4$d).",
-  "message.mycelialmind.colony.reconstruction_unavailable": "That witness cannot recover this memory: %s"
+  "message.mycelialmind.colony.reconstruction_unavailable": "That witness cannot recover this memory: %s",
+  "message.mycelialmind.scanner_nexus_inspect": "[Bio-Scanner] Sovereign Nexus Tier %d | Symbionts: %d/%d | Biomass: %d | Morale: %d%% | Redstone Output: %d",
+  "message.mycelialmind.scanner_symbiont_inspect": "[Bio-Scanner] Colony Symbiont HP: %s | Caste: %s | Rank: %s | Morale: %d%%",
+  "jade.mycelialmind.symbiont_role": "Colony Caste: %s · %s",
+  "jade.mycelialmind.symbiont_morale": "Symbiont Morale: %d%%",
+  "jade.mycelialmind.symbiont_standby": "Status: Standby",
+  "jade.mycelialmind.sovereign_nexus_info": "Colony Tier %d | Symbionts: %d/%d | Biomass: %d",
+  "jade.mycelialmind.sovereign_nexus_morale": "Colony Morale: %d%%",
+  "jade.mycelialmind.sovereign_nexus_dormant": "Sovereign Nexus: Right-click after defeating the Apex Matriarch",
+  "compat.mycelialmind.info.sovereign_nexus": "Anchors a cooperative Sovereign Hive Colony once the Apex Matriarch falls; stores biomass, incubates Symbiont workers, emits Redstone telemetry, and calms nearby Deep Mycelium chunk stress.",
+  "compat.mycelialmind.info.sovereign_command_staff": "Configures Sovereign Colony work zones, input/output logistics chests, Symbiont castes/standby, and direct orders.",
+  "compat.mycelialmind.info.field_engram": "Unique encoded telemetry core recovered from Hive Sanctums, Fungal Tides, Deep Mycelium expeditions, and Post-Matriarch Cycles; inspect via the Bio-Scanner Codex.",
+  "compat.mycelialmind.info.reclaimed_bloom": "Regenerative symbiotic flora blooming inside recovered Deep Mycelium gardens; drops adaptive pollen essences when mature and regrows automatically."
 }

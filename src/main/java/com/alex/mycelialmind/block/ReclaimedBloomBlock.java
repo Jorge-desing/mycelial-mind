@@ -2,9 +2,17 @@ package com.alex.mycelialmind.block;
 
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.util.MycelialRedstoneTelemetry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -14,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -52,7 +61,35 @@ public final class ReclaimedBloomBlock extends Block {
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!state.getValue(MATURE)) {
             level.setBlockAndUpdate(pos, state.setValue(MATURE, true));
+            level.updateNeighbourForOutputSignal(pos, this);
         }
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(
+            ItemStack stack,
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hitResult
+    ) {
+        if (stack.is(ModItems.BIO_SCANNER.get())) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!state.getValue(MATURE)) {
+            return InteractionResult.PASS;
+        }
+        if (level instanceof ServerLevel serverLevel) {
+            harvest(serverLevel, pos, state, player);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     public void harvest(ServerLevel level, BlockPos pos, BlockState state, Player player) {
@@ -63,14 +100,25 @@ public final class ReclaimedBloomBlock extends Block {
             popResource(level, pos, itemForPalette(state.getValue(PALETTE)));
         }
         level.setBlockAndUpdate(pos, state.setValue(MATURE, false));
+        level.updateNeighbourForOutputSignal(pos, this);
         level.scheduleTick(pos, this, 1200);
+        level.sendParticles(ModParticles.BIO_LUME.get(),
+                pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 6, 0.25, 0.25, 0.25, 0.02);
+        level.playSound(null, pos, ModSounds.SPORE_ANTIDOTE_CURE.get(), SoundSource.BLOCKS, 0.75F, 1.25F);
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        return MycelialRedstoneTelemetry.regenerativeFloraSignal(state.getValue(MATURE));
     }
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (level instanceof ServerLevel serverLevel && !player.isCreative()) {
-            popResource(serverLevel, pos, itemForPalette(state.getValue(PALETTE)));
-        }
         return super.playerWillDestroy(level, pos, state, player);
     }
 
@@ -85,7 +133,7 @@ public final class ReclaimedBloomBlock extends Block {
         };
     }
 
-    private static ItemStack itemForPalette(int palette) {
+    public static ItemStack itemForPalette(int palette) {
         return switch (palette) {
             case 1 -> new ItemStack(ModItems.RECLAIMED_BLOOM_MELEE.get());
             case 2 -> new ItemStack(ModItems.RECLAIMED_BLOOM_PROJECTILE.get());

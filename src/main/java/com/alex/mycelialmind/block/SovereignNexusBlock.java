@@ -8,6 +8,7 @@ import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.util.MycelialRedstoneTelemetry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -68,7 +69,30 @@ public class SovereignNexusBlock extends Block implements EntityBlock {
         if (!level.isClientSide() && placer instanceof Player player
                 && level.getBlockEntity(pos) instanceof SovereignNexusBlockEntity be) {
             be.setOwner(player);
+            level.updateNeighbourForOutputSignal(pos, this);
         }
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return 0;
+        }
+        SovereignColonyData colony = SovereignColonySavedData.get(serverLevel).getByNexus(pos);
+        if (colony == null) {
+            return 0;
+        }
+        return MycelialRedstoneTelemetry.sovereignNexusSignal(
+                colony.getTier(),
+                colony.getRoster().size(),
+                colony.getPopulationCap(),
+                colony.getBiomassStored()
+        );
     }
 
     @Override
@@ -104,6 +128,7 @@ public class SovereignNexusBlock extends Block implements EntityBlock {
                     }
                     colony.recalculateMorale();
                     SovereignColonySavedData.get(serverLevel).setDirty();
+                    serverLevel.updateNeighbourForOutputSignal(pos, this);
                     serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
                             pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 8, 0.35, 0.35, 0.35, 0.03);
                     serverLevel.playSound(null, pos, ModSounds.SOVEREIGN_NEXUS_PULSE.get(), SoundSource.BLOCKS, 0.85F, 1.2F);

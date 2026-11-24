@@ -1,6 +1,9 @@
 package com.alex.mycelialmind.compat.sbl;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.colony.SovereignColonyData;
+import com.alex.mycelialmind.colony.SovereignColonySavedData;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.HiveBlackboard;
@@ -92,6 +95,20 @@ public class HiveMindSensor extends ExtendedSensor<MycelialMob> {
                         .addInfluence(drone.blockPosition(), -0.10F, 0.35F, 0.0F));
         if (tracker.hasNearbySymbioticNode(origin, 20)) {
             HiveBlackboard.getInfluenceMap(level).addInfluence(origin, -0.12F, 0.20F, 0.0F);
+        }
+        List<ColonySymbiontEntity> nearbySymbionts = level.getEntitiesOfClass(
+                ColonySymbiontEntity.class,
+                entity.getBoundingBox().inflate(16.0D),
+                ColonySymbiontEntity::isAlive
+        );
+        nearbySymbionts.stream()
+                .min(Comparator.comparingDouble(symbiont -> entity.distanceToSqr(symbiont)))
+                .ifPresent(symbiont -> HiveBlackboard.getInfluenceMap(level)
+                        .addInfluence(symbiont.blockPosition(), -0.10F, 0.16F, 0.0F));
+        SovereignColonyData containingColony = SovereignColonySavedData.get(level).findContainingColony(origin);
+        if (containingColony != null) {
+            HiveBlackboard.getInfluenceMap(level)
+                    .addInfluence(containingColony.getNexusPos(), -0.18F, 0.25F, 0.0F);
         }
 
         if (sharedTarget == null) {

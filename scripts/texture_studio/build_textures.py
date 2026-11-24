@@ -16,6 +16,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+from scripts.texture_studio.generators.reclaimed_blooms import generate_reclaimed_blooms
 from scripts.texture_studio.generators.atlas_3d import ATLAS_SPECS, generate_3d_atlases
 from scripts.texture_studio.generators.blocks import generate_blocks
 from scripts.texture_studio.generators.entities import (
@@ -730,6 +731,7 @@ def main() -> None:
     atlas_dir = os.path.join(TEX_ROOT, "model_atlas")
     if args.all or args.blocks or args.items:
         generate_3d_atlases(atlas_dir, emit_pbr=args.pbr)
+        generate_reclaimed_blooms(atlas_dir, emit_pbr=args.pbr)
     if args.all or args.blocks:
         generate_blocks(block_dir, pbr_dir=block_dir if args.pbr else None)
     if args.all or args.items:

@@ -1999,5 +1999,17 @@
   "message.mycelialmind.colony.reconstruction_opened": "Cayó un puesto en (%1$d, %2$d, %3$d). Sus supervivientes pueden llevar sus recuerdos a un sucesor.",
   "message.mycelialmind.colony.reconstruction_capacity": "La colonia tiene cuatro recuperaciones de memoria abiertas. Archiva una para registrar otra.",
   "message.mycelialmind.colony.reconstruction_restored": "Se restauró %1$s en el sucesor (%2$d, %3$d, %4$d).",
-  "message.mycelialmind.colony.reconstruction_unavailable": "Ese testigo no puede recuperar el recuerdo: %s"
+  "message.mycelialmind.colony.reconstruction_unavailable": "Ese testigo no puede recuperar el recuerdo: %s",
+  "message.mycelialmind.scanner_nexus_inspect": "[Bio-Escáner] Nexo Soberano Nivel %d | Simbiontes: %d/%d | Biomasa: %d | Moral: %d%% | Señal Redstone: %d",
+  "message.mycelialmind.scanner_symbiont_inspect": "[Bio-Escáner] Simbionte de Colonia PS: %s | Casta: %s | Rango: %s | Moral: %d%%",
+  "jade.mycelialmind.symbiont_role": "Casta de Colonia: %s · %s",
+  "jade.mycelialmind.symbiont_morale": "Moral del Simbionte: %d%%",
+  "jade.mycelialmind.symbiont_standby": "Estado: En espera",
+  "jade.mycelialmind.sovereign_nexus_info": "Colonia Nivel %d | Simbiontes: %d/%d | Biomasa: %d",
+  "jade.mycelialmind.sovereign_nexus_morale": "Moral de la Colonia: %d%%",
+  "jade.mycelialmind.sovereign_nexus_dormant": "Nexo Soberano: haz clic derecho tras derrotar a la Matriarca Ápex",
+  "compat.mycelialmind.info.sovereign_nexus": "Ancla una Colonia Soberana cooperativa tras vencer a la Matriarca Ápex; almacena biomasa, incuba simbiontes, emite telemetría de Redstone y calma el estrés homeostático cercano.",
+  "compat.mycelialmind.info.sovereign_command_staff": "Configura zonas de trabajo, cofres de entrada/salida, castas y estado de espera de los simbiontes, y órdenes directas de colonia.",
+  "compat.mycelialmind.info.field_engram": "Núcleo de telemetría único recuperado en santuarios, mareas fúngicas, expediciones de Micelio Profundo y ciclos post-Matriarca; se analiza con el Códice.",
+  "compat.mycelialmind.info.reclaimed_bloom": "Flora simbiótica regenerativa de los jardines recuperados en Micelio Profundo; al madurar libera esencias adaptativas y vuelve a brotar sola."
 }

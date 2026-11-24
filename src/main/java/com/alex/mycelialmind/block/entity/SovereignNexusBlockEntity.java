@@ -108,6 +108,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
             colony.recalculateMorale();
             SovereignColonySavedData.get(serverLevel).setDirty();
             setChanged();
+            serverLevel.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
         }
         ItemStack remainder = stack.copy();
         remainder.shrink(accept);
@@ -177,6 +178,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
         }
         worker.syncRosterToColony();
         SovereignColonySavedData.get(level).setDirty();
+        level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
         level.playSound(null, worldPosition, ModSounds.SOVEREIGN_NEXUS_PULSE.get(), SoundSource.BLOCKS, 1.0F, 1.15F);
         level.sendParticles(ModParticles.BIO_LUME.get(),
                 spawnX, worldPosition.getY() + 0.8D, spawnZ, 16, 0.4, 0.4, 0.4, 0.04);
@@ -205,6 +207,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
         colony.setTier(current + 1);
         colony.recalculateMorale();
         SovereignColonySavedData.get(level).setDirty();
+        level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
         level.playSound(null, worldPosition, ModSounds.COLONY_SYMBIONT_PROMOTE.get(), SoundSource.BLOCKS, 1.2F, 1.0F);
         level.sendParticles(ModParticles.PURIFIER_CROSS.get(),
                 worldPosition.getX() + 0.5, worldPosition.getY() + 1.2, worldPosition.getZ() + 0.5,
@@ -300,6 +303,7 @@ public class SovereignNexusBlockEntity extends BlockEntity {
             colony.replaceLinkedOutposts(outposts);
             be.syncLiveWorkers(serverLevel, colony);
             colony.recalculateMorale();
+            serverLevel.updateNeighbourForOutputSignal(pos, state.getBlock());
             serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
                     pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5, 2, 0.25, 0.15, 0.25, 0.01);
         }

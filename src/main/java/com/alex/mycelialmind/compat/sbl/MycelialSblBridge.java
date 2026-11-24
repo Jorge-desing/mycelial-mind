@@ -89,6 +89,20 @@ public final class MycelialSblBridge {
         return mob.getBrain().getMemory(ModMemoryTypes.MOB_COMBAT_XP.get()).orElse(0);
     }
 
+    @Nullable
+    public static StimulusType getLastAttackStimulus(MycelialMob mob) {
+        String id = mob.getBrain().getMemory(ModMemoryTypes.LAST_ATTACK_STIMULUS.get()).orElse(null);
+        if (id == null || id.isBlank()) {
+            return null;
+        }
+        for (StimulusType type : StimulusType.values()) {
+            if (type.id().equalsIgnoreCase(id) || type.name().equalsIgnoreCase(id)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
     public static void addCombatXp(ServerLevel level, MycelialMob mob, @Nullable StimulusType stimulus, int delta) {
         if (delta <= 0) {
             return;

@@ -295,6 +295,14 @@ public class ColonySymbiontEntity extends PathfinderMob {
         return hurt;
     }
 
+    @Override
+    public boolean canBeAffected(net.minecraft.world.effect.MobEffectInstance effect) {
+        if (effect.getEffect().equals(com.alex.mycelialmind.registry.ModEffects.SPORE_ROT)) {
+            return false;
+        }
+        return super.canBeAffected(effect);
+    }
+
     public int getWorkerXp() {
         return workerXp;
     }
