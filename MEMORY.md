@@ -4099,3 +4099,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-23 — Dialectos, inspección de cliente
 - Añadida escena aislada `runVisualSmoke -PdialectVisualSmoke=true` con instantánea sintética del Nexo. Captura en `artifacts/diagnostics/dialect-visual-client/screenshots/dialect_nexus.png`. Gradle terminó correctamente mediante caché local tras acceso denegado al lock del wrapper en CodeMode.
 - Hallazgo visual: el panel del Nexo de 360 unidades queda recortado arriba y abajo con la escala GUI de la escena 1600×900; pestañas y botón de cierre quedan fuera. Debe corregirse y repetirse la inspección. La escena solo comprueba presentación sintética, no sonido, red ni chunks. Pendiente descarga real y auditoría integral.
+
+## 2026-11-23 — Nexo ajustado a pantallas pequeñas
+- La pantalla del Nexo adapta su escala al ancho y alto disponibles y transforma coordenadas de clic, liberación, arrastre y rueda. La escena aislada del dialecto usa las coordenadas adaptadas y confirma que la pestaña se abre y el botón Done cierra la pantalla.
+- `test runVisualSmoke -PdialectVisualSmoke=true --offline --no-daemon` pasó; captura revisada en `artifacts/diagnostics/dialect-visual-client/screenshots/dialect_nexus.png`, con panel completo a 1600×900 y escala GUI de la escena. Pendientes descarga física de chunks, audio y auditoría funcional final.

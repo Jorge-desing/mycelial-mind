@@ -61,10 +61,38 @@ public class SovereignNexusScreen extends Screen {
         rebuildWidgets();
     }
 
+    private float panelScale() {
+        return Math.min(1.0F, Math.min((float) width / (PANEL_W + 8), (float) height / (PANEL_H + 8)));
+    }
+
+    private int logicalWidth() { return Math.round(width / panelScale()); }
+    private int logicalHeight() { return Math.round(height / panelScale()); }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return super.mouseClicked(mouseX / panelScale(), mouseY / panelScale(), button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        return super.mouseReleased(mouseX / panelScale(), mouseY / panelScale(), button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        float scale = panelScale();
+        return super.mouseDragged(mouseX / scale, mouseY / scale, button, dragX / scale, dragY / scale);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+        return super.mouseScrolled(mouseX / panelScale(), mouseY / panelScale(), horizontal, vertical);
+    }
+
     private void rebuildColonyWidgets() {
         clearWidgets();
-        int left = (this.width - PANEL_W) / 2;
-        int top = (this.height - PANEL_H) / 2;
+        int left = (logicalWidth() - PANEL_W) / 2;
+        int top = (logicalHeight() - PANEL_H) / 2;
         BlockPos nexusPos = ClientColonyCache.getNexusPos();
 
         addPageTabs(left, top);
@@ -563,8 +591,13 @@ public class SovereignNexusScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(graphics, mouseX, mouseY, partialTick);
-        int left = (this.width - PANEL_W) / 2;
-        int top = (this.height - PANEL_H) / 2;
+        float scale = panelScale();
+        graphics.pose().pushPose();
+        graphics.pose().scale(scale, scale, 1.0F);
+        mouseX = (int) (mouseX / scale);
+        mouseY = (int) (mouseY / scale);
+        int left = (logicalWidth() - PANEL_W) / 2;
+        int top = (logicalHeight() - PANEL_H) / 2;
 
         graphics.fill(left, top, left + PANEL_W, top + PANEL_H, 0xEE0F1B18);
         graphics.renderOutline(left, top, PANEL_W, PANEL_H, 0xFF4AD66D);
@@ -597,10 +630,12 @@ public class SovereignNexusScreen extends Screen {
                         left + 10, top + 212, 0xFFD8F3DC, false);
             }
             super.render(graphics, mouseX, mouseY, partialTick);
+            graphics.pose().popPose();
             return;
         } else if (memoryPage) {
             renderMemoryPage(graphics, left, top);
             super.render(graphics, mouseX, mouseY, partialTick);
+            graphics.pose().popPose();
             return;
         }
 
@@ -672,6 +707,7 @@ public class SovereignNexusScreen extends Screen {
         }
 
         super.render(graphics, mouseX, mouseY, partialTick);
+        graphics.pose().popPose();
     }
 
     private void renderMemoryPage(GuiGraphics graphics, int left, int top) {

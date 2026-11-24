@@ -693,18 +693,31 @@ public final class VisualSmokeClient {
                     new com.alex.mycelialmind.network.ClientColonyCache.SiteMemorySnapshot(new BlockPos(10, 64, 0), 0, 0, 0, 0, 0, 0, 0),
                     new com.alex.mycelialmind.network.ClientColonyCache.SiteMemorySnapshot(new BlockPos(20, 64, 0), 0, 0, 0, 0, 0, 0, 0));
             com.alex.mycelialmind.network.ClientColonyCache.update(new com.alex.mycelialmind.network.SovereignColonySyncPayload(
-                    true, true, BlockPos.ZERO, 1, 32, 4, 32, 0, 0, 70, 2, 0, 0, 0, 0, 0,
+                    true, true, new BlockPos(0, 64, 0), 1, 32, 4, 32, 0, 0, 70, 2, 0, 0, 0, 0, 0,
                     java.util.List.of(worker), sites, false, BlockPos.ZERO, BlockPos.ZERO, 0, false, java.util.List.of(), false));
             mc.setScreen(new com.alex.mycelialmind.client.screen.SovereignNexusScreen());
         }
         if (inWorldTicks == 25 && mc.screen != null) {
-            double x = (mc.getWindow().getGuiScaledWidth() - 368) / 2.0D + 160;
-            double y = (mc.getWindow().getGuiScaledHeight() - 360) / 2.0D + 10;
+            int w = mc.getWindow().getGuiScaledWidth();
+            int h = mc.getWindow().getGuiScaledHeight();
+            float scale = Math.min(1.0F, Math.min((float) w / 376, (float) h / 368));
+            double x = ((Math.round(w / scale) - 368) / 2 + 160) * scale;
+            double y = ((Math.round(h / scale) - 360) / 2 + 10) * scale;
             mc.screen.mouseClicked(x, y, 0);
         }
         if (inWorldTicks == 35) {
             Screenshot.grab(mc.gameDirectory, "dialect_nexus.png", mc.getMainRenderTarget(), msg ->
                     MycelialMind.LOGGER.info("Dialect visual smoke: {}", msg.getString()));
+        }
+        if (inWorldTicks == 40 && mc.screen != null) {
+            int w = mc.getWindow().getGuiScaledWidth();
+            int h = mc.getWindow().getGuiScaledHeight();
+            float scale = Math.min(1.0F, Math.min((float) w / 376, (float) h / 368));
+            double x = ((Math.round(w / scale) - 368) / 2 + 320) * scale;
+            double y = ((Math.round(h / scale) - 360) / 2 + 344) * scale;
+            mc.screen.mouseClicked(x, y, 0);
+            if (mc.screen != null) throw new IllegalStateException("Scaled Nexus Done button did not close the screen");
+            MycelialMind.LOGGER.info("Dialect visual smoke: scaled Done button closed the screen");
         }
         if (inWorldTicks >= 48) mc.stop();
     }
