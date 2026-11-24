@@ -1,10 +1,7 @@
-# Regla: Commit y Push Obligatorio tras cada Sesión o Cambios Significativos
+# Regla: Revisión, commit, push y merge obligatorios
 
-- **Alcance:** Aplica a cualquier agente en cualquier sesión o pasada dentro del proyecto cuando exista repositorio Git inicializado y remoto configurado (`origin`).
-- **Cuándo ejecutar:** **Siempre** al finalizar cada sesión o tras realizar **cambios significativos entre pasadas** (código, configuración, documentación, reglas, skills, tests, assets o correcciones verificadas).
-- **Qué hacer:**
-  1. Verificar `git status` para asegurarse de no incluir archivos temporales, secretos ni cambios ajenos/no relacionados con la tarea.
-  2. Hacer `git add` únicamente de los archivos correspondientes a la tarea o pasada actual.
-  3. Hacer `git commit` con un mensaje claro y descriptivo (ej. `feat(...)`, `fix(...)`, `docs(...)`, `chore(...)`).
-  4. Hacer `git push` al remoto configurado (`origin`) y confirmar que la rama queda sincronizada.
-- **Excepciones:** No hacer commit/push si el usuario pidió explícitamente no hacerlo, si hay errores de compilación/pruebas sin resolver que rompan la rama principal, o si no hay remoto configurado.
+- **Alcance:** Todos los agentes, en cada sesión y tras cambios significativos entre pasadas.
+- Revisa el estado y el diff completo de los cambios propios, incluidos archivos nuevos; corrige los problemas encontrados y realiza las verificaciones pertinentes. No dejes cambios propios sin revisar. Conserva los cambios ajenos y registra las limitaciones reales.
+- Selecciona solo los cambios propios, crea un commit descriptivo, haz push a `origin` y comprueba que el remoto contiene el commit. Si no hay cambios propios, no crees un commit vacío.
+- Toda rama creada para la tarea debe integrarse en su rama de destino: actualiza la base, resuelve conflictos, revisa el diff final, verifica los checks requeridos y haz merge. Confirma que el commit integrado está en la rama de destino y que su publicación y CI terminaron correctamente. Usa un PR cuando corresponda.
+- La instrucción explícita del usuario prevalece. Si faltan permisos o remoto, hay conflictos sin resolver, verificaciones fallidas o una protección de rama impide el merge, conserva el trabajo, informa del bloqueo y deja constancia exacta de lo pendiente; no declares completada la integración. No incluyas cambios ajenos, secretos ni temporales.
