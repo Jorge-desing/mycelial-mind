@@ -12,7 +12,7 @@ El registro de sesiones de abajo está pendiente de observaciones de jugadores.
 
 ## Preparación
 
-- Crea un perfil de Minecraft 1.21.1 con NeoForge 21.1.235. Coloca `mycelialmind-2.0.0.jar` y `smartbrainlib.jar` del paquete en su carpeta `mods`. Si compartís servidor, usa la misma versión de NeoForge y los mismos dos JAR en todos los equipos.
+- Crea un perfil de Minecraft 1.21.1 con NeoForge 21.1.235. Coloca `mycelialmind-2.0.0.jar` del paquete en su carpeta `mods` (sin dependencias externas requeridas). Si compartís servidor, usa la misma versión de NeoForge y el mismo JAR en todos los equipos.
 - Comprueba los JAR contra `SHA256SUMS.txt` y abre una copia de la partida en el perfil de prueba.
 - Registra la versión del mod y guarda una copia de cada partida antes de la prueba. Comprueba que la victoria sobre la Matriarca consta en el mundo y que el jugador puede entrar en el Micelio Profundo.
 - Usa la misma partida y el mismo inventario de cada jugador en ambas sesiones. Registra si la Remisión está activa y si el jugador juega en solitario o acompañado.

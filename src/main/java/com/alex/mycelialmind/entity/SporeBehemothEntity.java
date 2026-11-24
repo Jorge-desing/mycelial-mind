@@ -1,5 +1,15 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
@@ -8,10 +18,12 @@ import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -30,6 +42,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
@@ -37,8 +50,11 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.PartEntity;
@@ -47,6 +63,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -166,6 +183,78 @@ public class SporeBehemothEntity extends MycelialBossMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getCoreTasks() {
+        var projectileAwareness = new CustomBehaviour<MycelialMob>(mob -> {
+            BlockPos incoming = HiveBrainBridge.getIncomingProjectilePos(mob);
+            if (incoming != null && mob.level() instanceof ServerLevel level) {
+                mob.getLookControl().setLookAt(incoming.getX() + 0.5D, incoming.getY() + 0.5D, incoming.getZ() + 0.5D, 30.0F, 30.0F);
+                level.sendParticles(ModParticles.TIDE_MOTE.get(),
+                        mob.getX(), mob.getY(0.75D), mob.getZ(),
+                        6, 0.45D, 0.3D, 0.45D, 0.02D);
+            }
+        });
+        projectileAwareness.startCondition(mob -> !mob.isDesynced()
+                && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileAwareness.cooldownFor(mob -> 40);
+
+        return BrainActivityGroup.coreTasks(
+                HiveBrainBridge.createBossTargetSyncBehaviour(),
+                new LookAtTarget<>(),
+                projectileAwareness
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getIdleTasks() {
+        return BrainActivityGroup.idleTasks(
+                new SetPlayerLookTarget<>(),
+                new Idle<MycelialMob>().runFor(mob -> 40)
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        return BrainActivityGroup.fightTasks(
+                new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>()
+                        .afterTicks(50L)
+                        .reaction((level, mob) -> {
+                            mob.playSound(ModSounds.SPORE_BEHEMOTH_ROAR.get(), 1.1F, 0.9F);
+                            level.sendParticles(ModParticles.TIDE_MOTE.get(),
+                                    mob.getX(), mob.getY(0.6D), mob.getZ(),
+                                    10, 0.6D, 0.4D, 0.6D, 0.04D);
+                        })
+        );
+    }
+
+    @Override
+    public Map<Activity, BrainActivityGroup<? extends MycelialMob>> getAdditionalTasks() {
+        var orientHotspot = new CustomBehaviour<MycelialMob>(mob -> {
+            BlockPos hotspot = HiveBrainBridge.getSharedTargetPos(mob);
+            if (hotspot != null) {
+                HiveBrainUtils.setForgettableMemory(mob, MemoryModuleType.LOOK_TARGET, new BlockPosTracker(hotspot), 30);
+            }
+        });
+        orientHotspot.cooldownFor(mob -> 30);
+
+        BrainActivityGroup<MycelialMob> investigate = new BrainActivityGroup<MycelialMob>(Activity.INVESTIGATE)
+                .onlyStartWithMemoryStatus(ModMemoryTypes.SHARED_TARGET_POS.get(), MemoryStatus.VALUE_PRESENT)
+                .onlyStartWithMemoryStatus(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT)
+                .behaviours(orientHotspot);
+        return Map.of(Activity.INVESTIGATE, investigate);
+    }
+
+    @Override
+    public List<Activity> getActivityPriorities() {
+        return List.of(Activity.FIGHT, Activity.INVESTIGATE, Activity.IDLE);
     }
 
     @Override

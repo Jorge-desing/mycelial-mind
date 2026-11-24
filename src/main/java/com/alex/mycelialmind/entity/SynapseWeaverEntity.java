@@ -26,8 +26,22 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AvoidEntity;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import net.minecraft.world.level.Level;
+
+import java.util.List;
 
 /**
  * Support organism that links nearby mycelial mobs with regeneration and resistance.
@@ -52,19 +66,50 @@ public class SynapseWeaverEntity extends MycelialMob {
     }
 
     @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
     public BrainActivityGroup<MycelialMob> getCoreTasks() {
-        return BrainActivityGroup.coreTasks(new WeaverSupportBehaviour());
+        var avoidPlayers = new AvoidEntity<MycelialMob>()
+                .avoiding(candidate -> candidate instanceof Player player
+                        && !player.isCreative()
+                        && !player.isSpectator()
+                        && !MycelialMob.isFriendlyToPlayer(this, player))
+                .noCloserThan(6.5F)
+                .speedModifier(1.18F);
+        avoidPlayers.startCondition(mob -> !mob.isDesynced());
+
+        var projectileSidestep = new CustomBehaviour<MycelialMob>(
+                mob -> HiveBrainBridge.performProjectileSidestep(mob, 1.15F, true));
+        projectileSidestep.startCondition(mob -> !mob.isDesynced()
+                && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileSidestep.cooldownFor(mob -> 35);
+
+        return BrainActivityGroup.coreTasks(
+                new WeaverSupportBehaviour(),
+                new FirstApplicableBehaviour<>(avoidPlayers, projectileSidestep),
+                new LookAtTarget<>(),
+                new MoveToWalkTarget<>()
+        );
     }
 
     @Override
     public BrainActivityGroup<MycelialMob> getIdleTasks() {
-        return BrainActivityGroup.idleTasks(new HiveNodeRegenBehaviour()
-                .startCondition(mob -> mob.getTarget() == null));
+        return BrainActivityGroup.idleTasks(
+                new AllApplicableBehaviours<>(
+                        new HiveNodeRegenBehaviour().startCondition(mob -> mob.getTarget() == null),
+                        new SetPlayerLookTarget<>()
+                )
+        );
     }
 
     @Override
     public BrainActivityGroup<MycelialMob> getFightTasks() {
-        return BrainActivityGroup.fightTasks();
+        return BrainActivityGroup.fightTasks(
+                new ReactToUnreachableTarget<MycelialMob>().afterTicks(50L)
+        );
     }
 
     @Override

@@ -52,6 +52,9 @@ public final class ModMemoryTypes {
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> NEARBY_ALLY_COUNT =
             MEMORY_TYPES.register("nearby_ally_count", () -> new MemoryModuleType<>(Optional.empty()));
 
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<BlockPos>> INCOMING_PROJECTILE_POS =
+            MEMORY_TYPES.register("incoming_projectile_pos", () -> new MemoryModuleType<>(Optional.empty()));
+
     public static final DeferredHolder<SensorType<?>, SensorType<HiveMindSensor>> HIVE_MIND_SENSOR =
             SENSOR_TYPES.register("hive_mind_sensor", () -> new SensorType<>(HiveMindSensor::new));
 

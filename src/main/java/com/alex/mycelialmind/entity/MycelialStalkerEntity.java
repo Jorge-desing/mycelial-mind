@@ -23,9 +23,21 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.hive.StalkerFlankBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
+
+import java.util.List;
 
 /**
  * Ambush assassin that camouflages itself while standing on Creeping Mycelium.
@@ -53,8 +65,29 @@ public class MycelialStalkerEntity extends MycelialMob {
     }
 
     @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
     public BrainActivityGroup<MycelialMob> getCoreTasks() {
-        return BrainActivityGroup.coreTasks(new StalkerFlankBehaviour());
+        var fleeLowHp = new FleeTarget<MycelialMob>()
+                .fleeDistance(12.0F)
+                .speedModifier(1.3F);
+        fleeLowHp.startCondition(mob -> mob.getHealth() < mob.getMaxHealth() * 0.35F && !mob.isFrenzyActive());
+
+        var projectileSidestep = new CustomBehaviour<MycelialMob>(
+                mob -> HiveBrainBridge.performProjectileSidestep(mob, 1.3F, true));
+        projectileSidestep.startCondition(mob -> !mob.isDesynced()
+                && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileSidestep.cooldownFor(mob -> 30);
+
+        return BrainActivityGroup.coreTasks(
+                new StalkerFlankBehaviour(),
+                new FirstApplicableBehaviour<>(fleeLowHp, projectileSidestep),
+                new LookAtTarget<>(),
+                new MoveToWalkTarget<>()
+        );
     }
 
     @Override
@@ -65,7 +98,9 @@ public class MycelialStalkerEntity extends MycelialMob {
 
     @Override
     public BrainActivityGroup<MycelialMob> getFightTasks() {
-        return BrainActivityGroup.fightTasks();
+        return BrainActivityGroup.fightTasks(
+                new ReactToUnreachableTarget<MycelialMob>().afterTicks(40L)
+        );
     }
 
     @Override

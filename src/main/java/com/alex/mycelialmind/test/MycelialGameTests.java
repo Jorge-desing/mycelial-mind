@@ -58,6 +58,10 @@ import com.alex.mycelialmind.recipe.SynapticBenchRecipeDefinitions;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.world.level.block.state.BlockState;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AvoidEntity;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.StrafeTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
@@ -69,6 +73,7 @@ import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveHotspotPatrolBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyPlayersSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.UnreachableTargetSensor;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
@@ -10352,6 +10357,195 @@ public final class MycelialGameTests {
         } finally {
             brute.discard();
             spitter.discard();
+        }
+    }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room", timeoutTicks = 100)
+    public static void hiveBrainNewSensorsAndReactionsWorkEndToEnd(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        for (int x = 0; x <= 10; x++) {
+            for (int z = 0; z <= 10; z++) {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+                for (int y = 1; y <= 3; y++) {
+                    helper.setBlock(new BlockPos(x, y, z), Blocks.AIR);
+                }
+            }
+        }
+        var spitter = helper.spawnWithNoFreeWill(ModEntities.ACID_SPITTER.get(), 4, 1, 2);
+        var weaver = helper.spawnWithNoFreeWill(ModEntities.SYNAPSE_WEAVER.get(), 2, 1, 5);
+        var mimic = helper.spawnWithNoFreeWill(ModEntities.SYNAPTIC_MIMIC.get(), 6, 1, 5);
+        var stalker = helper.spawnWithNoFreeWill(ModEntities.MYCELIAL_STALKER.get(), 2, 1, 2);
+        var arrow = net.minecraft.world.entity.EntityType.ARROW.create(level);
+        if (arrow == null) {
+            helper.fail("Arrow entity must instantiate cleanly.");
+            return;
+        }
+        arrow.setPos(spitter.getX() - 4.0D, spitter.getY() + 0.6D, spitter.getZ());
+        arrow.setDeltaMovement(0.9D, 0.0D, 0.0D);
+        arrow.setOnGround(false);
+        level.addFreshEntity(arrow);
+
+        spitter.tickBrain(spitter);
+        helper.assertTrue(HiveBrainUtils.hasMemory(spitter, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()),
+                "IncomingProjectilesSensor must record INCOMING_PROJECTILE_POS for an approaching arrow.");
+
+        arrow.setDeltaMovement(-0.9D, 0.0D, 0.0D);
+        new IncomingProjectilesSensor<MycelialMob>().tick(level, spitter);
+        helper.assertFalse(HiveBrainUtils.hasMemory(spitter, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()),
+                "IncomingProjectilesSensor must erase INCOMING_PROJECTILE_POS when the projectile moves away.");
+
+        // Record an unreachable walk target at current gameTime, then advance 6 ticks for ReactToUnreachableTarget
+        boolean[] reacted = {false};
+        var react = new ReactToUnreachableTarget<MycelialMob>()
+                .afterTicks(5L)
+                .reaction((srv, mob) -> reacted[0] = true);
+        HiveBrainUtils.setMemory(spitter, net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET,
+                new net.minecraft.world.entity.ai.memory.WalkTarget(spitter.blockPosition().offset(6, 0, 0), 1.0F, 0));
+        spitter.getNavigation().stop();
+        new UnreachableTargetSensor<MycelialMob>().tick(level, spitter);
+        helper.assertTrue(HiveBrainUtils.hasMemory(spitter, net.minecraft.world.entity.ai.memory.MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE),
+                "UnreachableTargetSensor must record CANT_REACH_WALK_TARGET_SINCE before reaction.");
+
+        helper.startSequence()
+                .thenIdle(6)
+                .thenExecute(() -> {
+                    try {
+                        long now = level.getGameTime();
+                        helper.assertTrue(react.tryStart(level, spitter, now),
+                                "ReactToUnreachableTarget must start once unreachable duration exceeds threshold.");
+                        react.doStop(level, spitter, now + 1L);
+                        helper.assertTrue(reacted[0], "ReactToUnreachableTarget must invoke reaction callback.");
+                        helper.assertFalse(HiveBrainUtils.hasMemory(spitter, net.minecraft.world.entity.ai.memory.MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE),
+                                "ReactToUnreachableTarget must clear CANT_REACH_WALK_TARGET_SINCE.");
+                        helper.assertFalse(HiveBrainUtils.hasMemory(spitter, net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET),
+                                "ReactToUnreachableTarget must clear stale WALK_TARGET.");
+
+                        // StrafeTarget starts against visible ATTACK_TARGET and stops cleanly
+                        HiveBrainUtils.setTargetOfEntity(mimic, weaver);
+                        var strafe = new StrafeTarget<MycelialMob>().strafeDistance(6.0F).speedMod(0.9F);
+                        helper.assertTrue(strafe.tryStart(level, mimic, now),
+                                "StrafeTarget must start when ATTACK_TARGET is visible.");
+                        strafe.tickOrStop(level, mimic, now + 1L);
+                        strafe.doStop(level, mimic, now + 2L);
+
+                        // AvoidEntity & FleeTarget check nearby threat / HURT_BY_ENTITY cleanly on valid terrain
+                        HiveBrainUtils.clearMemory(weaver, net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
+                        var avoid = new AvoidEntity<MycelialMob>()
+                                .avoiding(e -> e == stalker)
+                                .noCloserThan(8.0F);
+                        new com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor<MycelialMob>()
+                                .setRadius(12.0D)
+                                .tick(level, weaver);
+                        helper.assertTrue(HiveBrainUtils.hasMemory(weaver, net.minecraft.world.entity.ai.memory.MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES),
+                                "Weaver must sense nearby visible entities for AvoidEntity.");
+                        helper.assertTrue(avoid.tryStart(level, weaver, now),
+                                "AvoidEntity must start when avoided threat is within range.");
+                        avoid.doStop(level, weaver, now + 1L);
+
+                        HiveBrainUtils.setMemory(stalker, net.minecraft.world.entity.ai.memory.MemoryModuleType.HURT_BY_ENTITY, spitter);
+                        var flee = new FleeTarget<MycelialMob>().fleeDistance(12.0F);
+                        helper.assertTrue(flee.tryStart(level, stalker, now),
+                                "FleeTarget must activate when HURT_BY_ENTITY lies within fleeDistance.");
+                        flee.doStop(level, stalker, now + 1L);
+                    } finally {
+                        arrow.discard();
+                        spitter.discard();
+                        weaver.discard();
+                        mimic.discard();
+                        stalker.discard();
+                    }
+                })
+                .thenSucceed();
+    }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    public static void hiveBrainAllIntegratedEntitiesInitializeAndTickCleanly(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 1, 1, 1);
+        var burrower = helper.spawnWithNoFreeWill(ModEntities.BURROWER.get(), 2, 1, 1);
+        var pyro = helper.spawnWithNoFreeWill(ModEntities.PYRO_SHROOM.get(), 3, 1, 1);
+        var warden = helper.spawnWithNoFreeWill(ModEntities.COLONY_WARDEN.get(), 4, 1, 1);
+        var mimic = helper.spawnWithNoFreeWill(ModEntities.SYNAPTIC_MIMIC.get(), 5, 1, 1);
+        var spitter = helper.spawnWithNoFreeWill(ModEntities.ACID_SPITTER.get(), 1, 1, 3);
+        var stalker = helper.spawnWithNoFreeWill(ModEntities.MYCELIAL_STALKER.get(), 2, 1, 3);
+        var weaver = helper.spawnWithNoFreeWill(ModEntities.SYNAPSE_WEAVER.get(), 3, 1, 3);
+        var behemoth = helper.spawnWithNoFreeWill(ModEntities.SPORE_BEHEMOTH.get(), 4, 1, 5);
+        var hiveCore = helper.spawnWithNoFreeWill(ModEntities.HIVE_CORE.get(), 6, 1, 5);
+        var matriarch = helper.spawnWithNoFreeWill(ModEntities.APEX_MATRIARCH.get(), 2, 1, 6);
+        var chimera = helper.spawnWithNoFreeWill(ModEntities.MYCELIAL_CHIMERA.get(), 5, 1, 3);
+        var symbiont = helper.spawnWithNoFreeWill(ModEntities.COLONY_SYMBIONT.get(), 6, 1, 3);
+        try {
+            List<MycelialMob> mobs = List.of(brute, burrower, pyro, warden, mimic, spitter, stalker, weaver, behemoth, hiveCore, matriarch);
+            for (MycelialMob mob : mobs) {
+                helper.assertTrue(mob.getHiveBrainRuntime() != null,
+                        mob.getClass().getSimpleName() + " must initialize HiveBrainRuntime.");
+                mob.tickBrain(mob);
+            }
+            helper.assertTrue(chimera.getHiveBrainRuntime() != null,
+                    "MycelialChimera must initialize HiveBrainRuntime.");
+            helper.assertTrue(symbiont.getHiveBrainRuntime() != null,
+                    "ColonySymbiont must initialize HiveBrainRuntime.");
+
+            // ChitinBrute enters INVESTIGATE on SHARED_TARGET_POS without ATTACK_TARGET
+            HiveBrainUtils.setMemory(brute, ModMemoryTypes.SHARED_TARGET_POS.get(), brute.blockPosition().offset(6, 0, 0));
+            HiveBrainUtils.setMemory(brute, ModMemoryTypes.HIVE_ALERT_LEVEL.get(), 0.7F);
+            brute.tickBrain(brute);
+            helper.assertTrue(brute.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.INVESTIGATE),
+                    "ChitinBrute must transition to INVESTIGATE when SHARED_TARGET_POS is set without ATTACK_TARGET.");
+            HiveBrainUtils.clearMemory(brute, ModMemoryTypes.SHARED_TARGET_POS.get());
+            brute.tickBrain(brute);
+            helper.assertTrue(brute.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
+                    "ChitinBrute must return to IDLE when SHARED_TARGET_POS is cleared.");
+
+            // ColonyWarden enters INVESTIGATE near node when idle
+            HiveBrainUtils.setMemory(warden, ModMemoryTypes.NEAREST_NODE_POS.get(), warden.blockPosition().offset(2, 0, 0));
+            warden.tickBrain(warden);
+            helper.assertTrue(warden.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.INVESTIGATE),
+                    "ColonyWarden must transition to INVESTIGATE when NEAREST_NODE_POS is present.");
+
+            // SporeBehemoth enters INVESTIGATE on hotspot without hijacking boss combat state
+            HiveBrainUtils.setMemory(behemoth, ModMemoryTypes.SHARED_TARGET_POS.get(), behemoth.blockPosition().offset(5, 0, 0));
+            behemoth.tickBrain(behemoth);
+            helper.assertTrue(behemoth.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.INVESTIGATE),
+                    "SporeBehemoth must transition to INVESTIGATE on SHARED_TARGET_POS.");
+
+            // MycelialChimera switches cleanly to REST on CommandMode.WAIT and back on FOLLOW
+            chimera.setCommandMode(MycelialChimeraEntity.CommandMode.WAIT);
+            chimera.syncCommandBrainState(level);
+            chimera.tickBrain(chimera);
+            helper.assertTrue(chimera.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.REST),
+                    "MycelialChimera must activate REST in CommandMode.WAIT.");
+            chimera.setCommandMode(MycelialChimeraEntity.CommandMode.FOLLOW);
+            chimera.syncCommandBrainState(level);
+            chimera.tickBrain(chimera);
+            helper.assertTrue(chimera.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
+                    "MycelialChimera must return to IDLE in CommandMode.FOLLOW.");
+
+            // ColonySymbiont switches to PANIC when HURT_BY_ENTITY is set and back to IDLE when cleared
+            HiveBrainUtils.setMemory(symbiont, net.minecraft.world.entity.ai.memory.MemoryModuleType.HURT_BY_ENTITY, spitter);
+            symbiont.tickBrain(symbiont);
+            helper.assertTrue(symbiont.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.PANIC),
+                    "ColonySymbiont must activate PANIC when HURT_BY_ENTITY is set.");
+            HiveBrainUtils.clearMemory(symbiont, net.minecraft.world.entity.ai.memory.MemoryModuleType.HURT_BY_ENTITY);
+            symbiont.tickBrain(symbiont);
+            helper.assertTrue(symbiont.getBrain().isActive(net.minecraft.world.entity.schedule.Activity.IDLE),
+                    "ColonySymbiont must return to IDLE when HURT_BY_ENTITY is cleared.");
+
+            helper.succeed();
+        } finally {
+            brute.discard();
+            burrower.discard();
+            pyro.discard();
+            warden.discard();
+            mimic.discard();
+            spitter.discard();
+            stalker.discard();
+            weaver.discard();
+            behemoth.discard();
+            hiveCore.discard();
+            matriarch.discard();
+            chimera.discard();
+            symbiont.discard();
         }
     }
 }

@@ -1,6 +1,21 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyPlayersSensor;
 import com.alex.mycelialmind.entity.projectile.NeutralizingSporeProjectile;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
@@ -9,10 +24,13 @@ import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.util.MycelialText;
+import com.mojang.serialization.Dynamic;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -31,6 +49,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -41,8 +60,11 @@ import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -53,6 +75,7 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -60,7 +83,7 @@ import java.util.UUID;
  * Randomizes 2 genes (Chassis + Autonomous Active Mutation) on hatch and supports
  * live re-mutation, rank evolution (BASE -> MUTATED -> ELITE), and 3 command modes.
  */
-public class MycelialChimeraEntity extends PathfinderMob {
+public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwner<MycelialChimeraEntity> {
     public enum CommandMode {
         FOLLOW(0, "FOLLOW"),
         PATROL(1, "PATROL"),
@@ -125,9 +148,103 @@ public class MycelialChimeraEntity extends PathfinderMob {
     private int mutationCooldownTicks = 40;
     private int rerollCooldownTicks = 0;
     private int healCooldownTicks = 0;
+    @Nullable
+    private HiveBrainRuntime<MycelialChimeraEntity> hiveBrainRuntime;
 
     public MycelialChimeraEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    protected Brain.Provider<?> brainProvider() {
+        return HiveBrainFactory.createProvider(this);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
+        Brain<?> brain = super.makeBrain(dynamic);
+        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<MycelialChimeraEntity>) brain);
+        return brain;
+    }
+
+    @Override
+    @Nullable
+    public HiveBrainRuntime<MycelialChimeraEntity> getHiveBrainRuntime() {
+        return this.hiveBrainRuntime;
+    }
+
+    @Override
+    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<MycelialChimeraEntity> runtime) {
+        this.hiveBrainRuntime = runtime;
+    }
+
+    @Override
+    public List<HiveSensor<MycelialChimeraEntity>> getSensors() {
+        return List.of(
+                new NearbyLivingEntitySensor<MycelialChimeraEntity>()
+                        .setRadius(20.0D)
+                        .setPredicate((target, entity) -> target instanceof Monster && entity.isValidChimeraHostile(target)),
+                new NearbyPlayersSensor<MycelialChimeraEntity>().setRadius(16.0D),
+                new HurtBySensor<>(),
+                new IncomingProjectilesSensor<>()
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialChimeraEntity> getCoreTasks() {
+        var projectileEvade = new CustomBehaviour<MycelialChimeraEntity>(
+                chimera -> HiveBrainBridge.performProjectileSidestep(chimera, 1.2F, false));
+        projectileEvade.startCondition(chimera -> !chimera.isVehicle()
+                && chimera.getCommandMode() != CommandMode.WAIT
+                && HiveBrainUtils.hasMemory(chimera, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileEvade.cooldownFor(chimera -> 30);
+
+        return BrainActivityGroup.coreTasks(
+                new LookAtTarget<>(),
+                projectileEvade
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialChimeraEntity> getIdleTasks() {
+        return BrainActivityGroup.idleTasks(
+                new SetPlayerLookTarget<>(),
+                new Idle<MycelialChimeraEntity>().runFor(chimera -> 40)
+        );
+    }
+
+    @Override
+    public Map<Activity, BrainActivityGroup<? extends MycelialChimeraEntity>> getAdditionalTasks() {
+        BrainActivityGroup<MycelialChimeraEntity> restGroup = new BrainActivityGroup<MycelialChimeraEntity>(Activity.REST)
+                .onlyStartWithMemoryStatus(MemoryModuleType.HOME, MemoryStatus.VALUE_PRESENT)
+                .behaviours(new SetPlayerLookTarget<>(), new Idle<MycelialChimeraEntity>().runFor(chimera -> 40));
+        return Map.of(Activity.REST, restGroup);
+    }
+
+    @Override
+    public List<Activity> getActivityPriorities() {
+        return List.of(Activity.REST, Activity.IDLE);
+    }
+
+    public void syncCommandBrainState(ServerLevel serverLevel) {
+        if (getCommandMode() == CommandMode.WAIT) {
+            if (!HiveBrainUtils.hasMemory(this, MemoryModuleType.HOME)) {
+                HiveBrainUtils.setMemory(this, MemoryModuleType.HOME,
+                        GlobalPos.of(serverLevel.dimension(), this.blockPosition()));
+            }
+        } else {
+            HiveBrainUtils.clearMemory(this, MemoryModuleType.HOME);
+        }
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        if (this.level() instanceof ServerLevel serverLevel) {
+            syncCommandBrainState(serverLevel);
+        }
+        tickBrain(this);
     }
 
     @Override

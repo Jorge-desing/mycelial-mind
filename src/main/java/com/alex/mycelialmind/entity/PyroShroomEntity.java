@@ -1,9 +1,21 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AvoidEntity;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.SequentialBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -24,11 +36,15 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.List;
 
 /**
  * Thermal-adapted organism that absorbs fire, cauterizes surrounding organic barriers
@@ -54,6 +70,56 @@ public class PyroShroomEntity extends MycelialMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        var retreatWhenDefused = new AvoidEntity<MycelialMob>()
+                .avoiding(target -> target instanceof Player player && !player.isCreative() && !player.isSpectator())
+                .noCloserThan(7.0F)
+                .speedModifier(1.22F);
+        retreatWhenDefused.startCondition(mob -> !isPrimed() && mob.hasEffect(MobEffects.WEAKNESS));
+
+        var thermalTelegraph = new SequentialBehaviour<>(
+                new DelayedBehaviour<MycelialMob>(10) {
+                    @Override
+                    protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+                        return List.of(Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
+                    }
+
+                    @Override
+                    protected void start(MycelialMob entity) {
+                        if (entity.level() instanceof ServerLevel level) {
+                            level.sendParticles(ModParticles.HIVE_EMBER.get(),
+                                    entity.getX(), entity.getY(0.75D), entity.getZ(),
+                                    4, 0.25D, 0.2D, 0.25D, 0.02D);
+                        }
+                    }
+
+                    @Override
+                    protected void doDelayedAction(MycelialMob entity) {
+                        entity.playSound(ModSounds.PYRO_SHROOM_CRACKLE.get(), 0.7F, 1.2F);
+                    }
+                },
+                new SetWalkTargetToAttackTarget<MycelialMob>().speedMod(1.1F)
+        );
+        thermalTelegraph.cooldownFor(mob -> 60);
+
+        return BrainActivityGroup.fightTasks(
+                new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>().afterTicks(45L),
+                new FirstApplicableBehaviour<>(
+                        retreatWhenDefused,
+                        thermalTelegraph,
+                        new SetWalkTargetToAttackTarget<>()
+                ),
+                new AnimatableMeleeAttack<>(8)
+        );
     }
 
     public boolean isPrimed() {

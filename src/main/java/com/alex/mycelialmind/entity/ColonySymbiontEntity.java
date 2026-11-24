@@ -11,6 +11,21 @@ import com.alex.mycelialmind.colony.SovereignTrait;
 import com.alex.mycelialmind.colony.SymbiontCaste;
 import com.alex.mycelialmind.colony.SymbiontRank;
 import com.alex.mycelialmind.colony.SymbiontTemperament;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyPlayersSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.UnreachableTargetSensor;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontArchitectGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontCourierGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontExcavatorGoal;
@@ -21,6 +36,7 @@ import com.alex.mycelialmind.entity.ai.colony.SymbiontSentinelGoal;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.mojang.serialization.Dynamic;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -41,14 +57,19 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -68,7 +89,7 @@ import java.util.UUID;
  * Polymorphic player-aligned Sovereign Colony worker mob specializing into 5 Castes
  * with Rank progression, Temperament modifiers, internal biological state, and spatial memory.
  */
-public class ColonySymbiontEntity extends PathfinderMob {
+public class ColonySymbiontEntity extends PathfinderMob implements HiveBrainOwner<ColonySymbiontEntity> {
     public static final int POUCH_SLOTS = 4;
 
     private static final EntityDataAccessor<Integer> DATA_CASTE =
@@ -121,10 +142,92 @@ public class ColonySymbiontEntity extends PathfinderMob {
     private final Map<ColonyWitnessMemory.Key, ColonyWitnessMemory> siteWitnessMemories = new LinkedHashMap<>();
 
     private final ItemStackHandler pouch = new ItemStackHandler(POUCH_SLOTS);
+    @Nullable
+    private HiveBrainRuntime<ColonySymbiontEntity> hiveBrainRuntime;
 
     public ColonySymbiontEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
         this.setPersistenceRequired();
+    }
+
+    @Override
+    protected Brain.Provider<?> brainProvider() {
+        return HiveBrainFactory.createProvider(this);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
+        Brain<?> brain = super.makeBrain(dynamic);
+        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<ColonySymbiontEntity>) brain);
+        return brain;
+    }
+
+    @Override
+    @Nullable
+    public HiveBrainRuntime<ColonySymbiontEntity> getHiveBrainRuntime() {
+        return this.hiveBrainRuntime;
+    }
+
+    @Override
+    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<ColonySymbiontEntity> runtime) {
+        this.hiveBrainRuntime = runtime;
+    }
+
+    @Override
+    public List<HiveSensor<ColonySymbiontEntity>> getSensors() {
+        return List.of(
+                new NearbyLivingEntitySensor<ColonySymbiontEntity>()
+                        .setRadius(16.0D)
+                        .setPredicate((target, entity) -> target instanceof Monster),
+                new NearbyPlayersSensor<ColonySymbiontEntity>().setRadius(16.0D),
+                new HurtBySensor<>(),
+                new UnreachableTargetSensor<>()
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<ColonySymbiontEntity> getCoreTasks() {
+        return BrainActivityGroup.coreTasks(
+                new LookAtTarget<>(),
+                new ReactToUnreachableTarget<ColonySymbiontEntity>().afterTicks(50L)
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<ColonySymbiontEntity> getIdleTasks() {
+        return BrainActivityGroup.idleTasks(
+                new SetPlayerLookTarget<>(),
+                new Idle<ColonySymbiontEntity>().runFor(symbiont -> 40)
+        );
+    }
+
+    @Override
+    public Map<Activity, BrainActivityGroup<? extends ColonySymbiontEntity>> getAdditionalTasks() {
+        var fleeThreat = new FleeTarget<ColonySymbiontEntity>()
+                .fleeDistance(12.0F)
+                .speedModifier(1.25F);
+        fleeThreat.startCondition(symbiont -> !symbiont.isResting()
+                && !symbiont.isStandby()
+                && symbiont.getCaste() != SymbiontCaste.SENTINEL);
+        fleeThreat.cooldownFor(symbiont -> 80);
+
+        BrainActivityGroup<ColonySymbiontEntity> panicGroup = new BrainActivityGroup<ColonySymbiontEntity>(Activity.PANIC)
+                .onlyStartWithMemoryStatus(MemoryModuleType.HURT_BY_ENTITY, MemoryStatus.VALUE_PRESENT)
+                .wipeMemoriesWhenFinished(MemoryModuleType.WALK_TARGET)
+                .behaviours(fleeThreat, new MoveToWalkTarget<>());
+        return Map.of(Activity.PANIC, panicGroup);
+    }
+
+    @Override
+    public List<Activity> getActivityPriorities() {
+        return List.of(Activity.PANIC, Activity.IDLE);
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        tickBrain(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {

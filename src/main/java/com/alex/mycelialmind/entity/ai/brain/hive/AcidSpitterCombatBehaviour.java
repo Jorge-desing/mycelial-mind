@@ -7,6 +7,7 @@ import com.alex.mycelialmind.entity.ai.EvasiveStrafeGoal;
 import com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator;
 import com.alex.mycelialmind.entity.ai.KitingRetreatGoal;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveOrder;
 import com.alex.mycelialmind.hive.MycorrhizalAcousticTracker;
@@ -182,7 +183,14 @@ public final class AcidSpitterCombatBehaviour extends HiveBehaviour<MycelialMob>
             setAction(mob, Action.HOLD, null, mob.level().getGameTime());
             mob.setTarget(chosen);
             LivingEntity accepted = mob.getTarget();
-            return isValidTarget(mob, accepted) ? accepted : null;
+            LivingEntity resolved = isValidTarget(mob, accepted) ? accepted : null;
+            HiveBrainUtils.setTargetOfEntity(mob, resolved);
+            return resolved;
+        }
+        if (chosen != null && !HiveBrainUtils.hasMemory(mob, MemoryModuleType.ATTACK_TARGET)) {
+            HiveBrainUtils.setTargetOfEntity(mob, chosen);
+        } else if (chosen == null && HiveBrainUtils.hasMemory(mob, MemoryModuleType.ATTACK_TARGET)) {
+            HiveBrainUtils.clearMemory(mob, MemoryModuleType.ATTACK_TARGET);
         }
         return chosen;
     }

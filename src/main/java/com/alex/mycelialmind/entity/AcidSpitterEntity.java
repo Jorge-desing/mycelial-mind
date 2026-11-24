@@ -1,19 +1,33 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.AcidSpitterCombatBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyPlayersSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.UnreachableTargetSensor;
 import com.alex.mycelialmind.entity.ai.TacticalTerraformingGoal;
 import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
+import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,15 +57,45 @@ public class AcidSpitterEntity extends MycelialMob implements RangedAttackMob {
 
     @Override
     public List<HiveSensor<MycelialMob>> getSensors() {
-        return List.of(new NearbyLivingEntitySensor<MycelialMob>()
+        return List.of(
+                new NearbyLivingEntitySensor<MycelialMob>()
                         .setRadius(24)
                         .setPredicate((target, mob) -> target instanceof Player || mob.isRivalStrainTarget(target)),
-                new HurtBySensor<>(), new HiveMindSensor());
+                new NearbyPlayersSensor<MycelialMob>().setRadius(24),
+                new HurtBySensor<>(),
+                new UnreachableTargetSensor<>(),
+                new IncomingProjectilesSensor<>(),
+                new HiveMindSensor()
+        );
     }
 
     @Override
     public BrainActivityGroup<MycelialMob> getCoreTasks() {
-        return BrainActivityGroup.coreTasks(new AcidSpitterCombatBehaviour(this));
+        var evadeProjectile = new CustomBehaviour<MycelialMob>(
+                mob -> HiveBrainBridge.performProjectileSidestep(mob, 1.25F, false));
+        evadeProjectile.startCondition(mob -> !mob.isDesynced()
+                && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+
+        var lookAtProjectile = new CustomBehaviour<MycelialMob>(mob -> {
+            BlockPos pos = HiveBrainBridge.getIncomingProjectilePos(mob);
+            if (pos != null) {
+                HiveBrainUtils.setForgettableMemory(mob, MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos), 20);
+                if (mob.level() instanceof ServerLevel serverLevel) {
+                    serverLevel.sendParticles(ModParticles.SYNAPSE_SPARK.get(),
+                            mob.getX(), mob.getY(0.8D), mob.getZ(), 2, 0.2D, 0.15D, 0.2D, 0.02D);
+                }
+            }
+        });
+        lookAtProjectile.startCondition(mob -> !mob.isDesynced()
+                && HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+
+        var parallelReaction = new AllApplicableBehaviours<>(evadeProjectile, lookAtProjectile);
+        parallelReaction.cooldownFor(mob -> 25);
+
+        return BrainActivityGroup.coreTasks(
+                new AcidSpitterCombatBehaviour(this),
+                parallelReaction
+        );
     }
 
     @Override
@@ -62,7 +106,9 @@ public class AcidSpitterEntity extends MycelialMob implements RangedAttackMob {
 
     @Override
     public BrainActivityGroup<MycelialMob> getFightTasks() {
-        return BrainActivityGroup.fightTasks();
+        return BrainActivityGroup.fightTasks(
+                new ReactToUnreachableTarget<MycelialMob>().afterTicks(45L)
+        );
     }
 
     @Override

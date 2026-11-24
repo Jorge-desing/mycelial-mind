@@ -1,11 +1,25 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.entity.ai.BruteChargeGoal;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.core.SequentialBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveHotspotPatrolBehaviour;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -15,9 +29,15 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Heavy frontline organism that strongly expresses defensive Hive Mind mutations.
@@ -41,6 +61,48 @@ public class ChitinBruteEntity extends MycelialMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        var lookAndPress = new SequentialBehaviour<>(
+                new CustomBehaviour<MycelialMob>(mob -> {
+                    LivingEntity target = HiveBrainUtils.getTargetOfEntity(mob, mob.getTarget());
+                    if (target != null && target.isAlive()) {
+                        mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                    }
+                }),
+                new SetWalkTargetToAttackTarget<MycelialMob>().speedMod(1.12F)
+        );
+        return BrainActivityGroup.fightTasks(
+                new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>()
+                        .afterTicks(40L)
+                        .reaction((level, mob) -> {
+                            mob.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 40, 0, false, false));
+                            if (mob.getTarget() != null) {
+                                mob.getLookControl().setLookAt(mob.getTarget(), 30.0F, 30.0F);
+                            }
+                        }),
+                lookAndPress,
+                new AnimatableMeleeAttack<>(8)
+        );
+    }
+
+    @Override
+    public Map<Activity, BrainActivityGroup<? extends MycelialMob>> getAdditionalTasks() {
+        var patrol = new HiveHotspotPatrolBehaviour();
+        patrol.startCondition(mob -> HiveBrainBridge.getHiveAlertLevel(mob) >= 0.4F);
+        BrainActivityGroup<MycelialMob> investigate = new BrainActivityGroup<MycelialMob>(Activity.INVESTIGATE)
+                .onlyStartWithMemoryStatus(ModMemoryTypes.SHARED_TARGET_POS.get(), MemoryStatus.VALUE_PRESENT)
+                .onlyStartWithMemoryStatus(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT)
+                .behaviours(patrol);
+        return Map.of(Activity.INVESTIGATE, investigate);
+    }
+
+    @Override
+    public List<Activity> getActivityPriorities() {
+        return List.of(Activity.FIGHT, Activity.INVESTIGATE, Activity.IDLE);
     }
 
     public static AttributeSupplier.Builder createAttributes() {

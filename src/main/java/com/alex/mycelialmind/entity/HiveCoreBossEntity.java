@@ -1,16 +1,27 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCarapaceProfile;
 import com.alex.mycelialmind.hive.DamageTelemetryTracker;
+import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEntities;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
@@ -223,6 +234,47 @@ public class HiveCoreBossEntity extends MycelialBossMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getCoreTasks() {
+        var projectileAlert = new CustomBehaviour<MycelialMob>(mob -> {
+            BlockPos incoming = HiveBrainBridge.getIncomingProjectilePos(mob);
+            if (incoming != null && mob.level() instanceof ServerLevel serverLevel) {
+                HiveBlackboard.reportTarget(serverLevel, incoming);
+                serverLevel.sendParticles(ModParticles.SYNAPSE_SPARK.get(),
+                        mob.getX(), mob.getY(1.0D), mob.getZ(),
+                        6, 0.5D, 0.3D, 0.5D, 0.03D);
+            }
+        });
+        projectileAlert.startCondition(mob -> HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileAlert.cooldownFor(mob -> 40);
+
+        return BrainActivityGroup.coreTasks(
+                HiveBrainBridge.createBossTargetSyncBehaviour(),
+                new AllApplicableBehaviours<>(
+                        new LookAtTarget<MycelialMob>().runFor(mob -> 15),
+                        projectileAlert
+                )
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getIdleTasks() {
+        return BrainActivityGroup.idleTasks(
+                new SetPlayerLookTarget<>(),
+                new Idle<MycelialMob>().runFor(mob -> 40)
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        return BrainActivityGroup.fightTasks();
     }
 
     @Override

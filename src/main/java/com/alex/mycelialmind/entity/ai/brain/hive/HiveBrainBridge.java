@@ -8,18 +8,24 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetRandomLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetRandomWalkTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.TargetOrRetaliate;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.core.OneRandomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyPlayersSensor;
+import com.alex.mycelialmind.entity.ai.brain.sensor.UnreachableTargetSensor;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveOrder;
@@ -28,7 +34,11 @@ import com.alex.mycelialmind.registry.ModMemoryTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -45,9 +55,66 @@ public final class HiveBrainBridge {
         return List.of(
                 new NearbyLivingEntitySensor<MycelialMob>()
                         .setPredicate((target, entity) -> target instanceof Player && !target.isSpectator()),
+                new NearbyPlayersSensor<>(),
                 new HurtBySensor<>(),
+                new UnreachableTargetSensor<>(),
                 new HiveMindSensor()
         );
+    }
+
+    public static List<HiveSensor<MycelialMob>> createDefaultHiveSensorsWithProjectiles() {
+        return List.of(
+                new NearbyLivingEntitySensor<MycelialMob>()
+                        .setPredicate((target, entity) -> target instanceof Player && !target.isSpectator()),
+                new NearbyPlayersSensor<>(),
+                new HurtBySensor<>(),
+                new UnreachableTargetSensor<>(),
+                new IncomingProjectilesSensor<>(),
+                new HiveMindSensor()
+        );
+    }
+
+    @Nullable
+    public static BlockPos getIncomingProjectilePos(LivingEntity entity) {
+        return HiveBrainUtils.getMemory(entity, ModMemoryTypes.INCOMING_PROJECTILE_POS.get());
+    }
+
+    public static void performProjectileSidestep(PathfinderMob mob, float speedModifier, boolean writeWalkTarget) {
+        BlockPos projPos = getIncomingProjectilePos(mob);
+        if (projPos == null) {
+            return;
+        }
+        double dx = mob.getX() - (projPos.getX() + 0.5D);
+        double dz = mob.getZ() - (projPos.getZ() + 0.5D);
+        double lenSq = dx * dx + dz * dz;
+        double perpX;
+        double perpZ;
+        if (lenSq > 1.0E-4D) {
+            double inv = 1.0D / Math.sqrt(lenSq);
+            double sign = mob.getRandom().nextBoolean() ? 1.0D : -1.0D;
+            perpX = -dz * inv * sign;
+            perpZ = dx * inv * sign;
+        } else {
+            Vec3 look = mob.getLookAngle();
+            perpX = -look.z;
+            perpZ = look.x;
+        }
+        Vec3 dest = new Vec3(mob.getX() + perpX * 3.5D, mob.getY(), mob.getZ() + perpZ * 3.5D);
+        if (writeWalkTarget) {
+            mob.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(dest, speedModifier, 0));
+        } else {
+            mob.getNavigation().moveTo(dest.x, dest.y, dest.z, speedModifier);
+        }
+    }
+
+    public static HiveBehaviour<MycelialMob> createBossTargetSyncBehaviour() {
+        return new CustomBehaviour<>(boss -> {
+            LivingEntity goalTarget = boss.getTarget();
+            if (goalTarget != null && goalTarget.isAlive()
+                    && HiveBrainUtils.getMemory(boss, MemoryModuleType.ATTACK_TARGET) != goalTarget) {
+                HiveBrainUtils.setTargetOfEntity(boss, goalTarget);
+            }
+        });
     }
 
     @Nullable
@@ -149,6 +216,7 @@ public final class HiveBrainBridge {
     public static BrainActivityGroup<MycelialMob> createFightTasks(int attackDelayTicks) {
         return BrainActivityGroup.fightTasks(
                 new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>().afterTicks(60L),
                 new SetWalkTargetToAttackTarget<>(),
                 new AnimatableMeleeAttack<>(attackDelayTicks)
         );

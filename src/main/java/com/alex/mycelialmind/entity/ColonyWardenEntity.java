@@ -2,6 +2,15 @@ package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.entity.ai.HiveAlertSupportGoal;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -19,9 +28,15 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Mini-boss guardian of Mycelial Nodes.
@@ -44,6 +59,45 @@ public class ColonyWardenEntity extends MycelialMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        return BrainActivityGroup.fightTasks(
+                new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>()
+                        .afterTicks(45L)
+                        .reaction((level, mob) -> {
+                            if (!mob.isDesynced()) {
+                                mob.playSound(ModSounds.COLONY_WARDEN_BELLOW.get(), 0.9F, 1.05F);
+                                for (MycelialMob ally : level.getEntitiesOfClass(
+                                        MycelialMob.class, mob.getBoundingBox().inflate(10.0D))) {
+                                    if (ally != mob && ally.isAlive() && !mob.isRivalStrainTarget(ally)) {
+                                        ally.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 60, 0, false, false));
+                                    }
+                                }
+                            }
+                        }),
+                new SetWalkTargetToAttackTarget<>(),
+                new AnimatableMeleeAttack<>(10)
+        );
+    }
+
+    @Override
+    public Map<Activity, BrainActivityGroup<? extends MycelialMob>> getAdditionalTasks() {
+        BrainActivityGroup<MycelialMob> investigate = new BrainActivityGroup<MycelialMob>(Activity.INVESTIGATE)
+                .onlyStartWithMemoryStatus(ModMemoryTypes.NEAREST_NODE_POS.get(), MemoryStatus.VALUE_PRESENT)
+                .onlyStartWithMemoryStatus(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT)
+                .behaviours(new AllApplicableBehaviours<>(
+                        new SetPlayerLookTarget<>(),
+                        new HiveNodeRegenBehaviour()
+                ));
+        return Map.of(Activity.INVESTIGATE, investigate);
+    }
+
+    @Override
+    public List<Activity> getActivityPriorities() {
+        return List.of(Activity.FIGHT, Activity.INVESTIGATE, Activity.IDLE);
     }
 
     @Override

@@ -2,7 +2,7 @@
 
 **Mycelial Mind** (`mycelialmind`) es un mod para **Minecraft 1.21.1** (**NeoForge 21.1.176**) sobre un organismo micelial subterráneo adaptativo que observa tus tácticas de combate y defensa, aprende de ellas en tiempo real y hace evolucionar a sus criaturas, su red neuronal y su territorio.
 
-> **Versión actual:** `2.0.0` · **Minecraft:** `1.21.1` · **Loader:** NeoForge `21.1.176` · **Java:** `21` · **Dependencia incluida en `dist/`:** SmartBrainLib `1.16.11` · **Licencia:** `MIT` · **Autor:** `Alex`
+> **Versión actual:** `2.0.0` · **Minecraft:** `1.21.1` · **Loader:** NeoForge `21.1.176` · **Java:** `21` · **Dependencias externas:** Ninguna (motor nativo `HiveBrain` integrado) · **Licencia:** `MIT` · **Autor:** `Alex`
 
 ---
 
@@ -11,7 +11,7 @@
 A diferencia de los enemigos estáticos tradicionales, la **Mente Colmena** (*Hive Mind*) registra cómo luchas en cada dimensión (cuerpo a cuerpo, proyectiles, fuego, explosiones o magia) y responde de forma global:
 
 - **Memoria, Evolución y Adaptación Dinámica:** Cada tipo de daño alimenta los estímulos de la Colmena y eleva el nivel de amenaza (`0–100%`), progresando por 4 actos (`DORMANT`, `AWAKENED`, `ADAPTIVE`, `OVERMIND`). Las criaturas desbloquean rasgos defensivos de **Nivel 1**, comportamientos tácticos de **Nivel 2**, **sinergias de élite** y contra-adaptaciones a hábitos del jugador (`HabitTelemetryTracker`), con memoria volátil en nodos enemigos purgable en `VolatileEngramItem` y señuelos/injertos pavlovianos (`FalseEngramInjectorItem`).
-- **IA Táctica, Campo Vivo y SmartBrainLib (`SBL`):** Las unidades coordinan escuadrones mediante doctrinas (`HiveDoctrine`), mapa de influencia `16x16` (`HiveInfluenceMap`), árbol reactivo `gdxAI` (`HiveTacticalTree`), flujo `FastNoiseLite`, evaluación de utilidad, pilotos SmartBrainLib (`AcidSpitterCombatBehaviour` con evasión/retirada directa/señuelos y `StalkerFlankBehaviour`), terraformación efímera, memoria de zonas letales y necrófagos de campo.
+- **IA Táctica, Campo Vivo y Motor Nativo `HiveBrain`:** Las unidades coordinan escuadrones mediante doctrinas (`HiveDoctrine`), mapa de influencia `16x16` (`HiveInfluenceMap`), árbol reactivo `gdxAI` (`HiveTacticalTree`), flujo `FastNoiseLite`, evaluación de utilidad, y perfiles nativos `HiveBrain` sin Access Transformers ni Mixins (sensores de entidades/jugadores/proyectiles/rutas inalcanzables, compuestos secuenciales/paralelos/temporizados y comportamientos tácticos en mobs, jefes y aliados), terraformación efímera, memoria de zonas letales y necrófagos de campo.
 - **Guerra Civil Sináptica, Diplomacia Química, Simbiosis y Bio-Forja:** Las cepas rivalizan bajo cisma (`ORTHODOX`/`AMBER`/`CRIMSON` con daño de proyectiles ácidos entre cepas rivales), el jugador gestiona reputación (`PlayerDiplomacyData`), escoltas temporales (`QuorumSealItem` / `AlliedEscortSavedData`), mutágenos simbióticos con atributos sincronizados (`SymbiosisAttributeSync`), injertos de nodos `SYMBIOTIC` (`SynapticGraftItem`) y crianza de `MycelialChimeraEntity` (`ChimeraOwnershipSavedData`).
 - **Evolución de Unidades:** Las criaturas pueden nacer o ser promovidas en vivo a rangos `BASE`, `MUTATED` y `ELITE`, con cambios de escala, estadísticas, efectos visuales y botín adaptativo multi-pool.
 - **Red Sináptica y Territorio:** El micelio se propaga y se articula mediante nodos interconectados (`mycelial_node`, `incubator_node`, `sentinel_node`) que refuerzan a las tropas y maduran de forma autónoma.
@@ -75,7 +75,7 @@ Desde la raíz del proyecto:
 .\scripts\Verify-Mod.ps1 -IncludeServerSmoke -IncludeVisualSmoke
 ```
 
-El paquete listo para distribución se genera bajo [`dist/`](dist/mycelialmind-2.0.0-mc1.21.1-neoforge/) (`mycelialmind-2.0.0.jar` + `SmartBrainLib-neoforge-1.21.1-1.16.11.jar`, hashes SHA-256 verificados en `INSTALACION.txt` y empaquetado en `dist/mycelialmind-2.0.0-mc1.21.1-neoforge.zip`).
+El paquete listo para distribución se genera bajo [`dist/`](dist/mycelialmind-2.0.0-mc1.21.1-neoforge/) (`mycelialmind-2.0.0.jar` standalone sin dependencias externas obligatorias, hash SHA-256 verificado en `INSTALACION.txt` y empaquetado en `dist/mycelialmind-2.0.0-mc1.21.1-neoforge.zip`).
 
 Dentro del juego (con permisos de operador) están disponibles comandos de diagnóstico y prueba bajo `/mycelial` (`status`, `reset`, `stimulus`, `symbiosis`, `diplomacy`, `schism`, `habits`, `homeostasis`, `verify`, `worldgen audit`).
 

@@ -1,6 +1,17 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
@@ -11,11 +22,13 @@ import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
 import com.alex.mycelialmind.world.ModDimensions;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -40,11 +53,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -183,6 +199,78 @@ public class ApexMatriarchEntity extends MycelialBossMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getCoreTasks() {
+        var multiPlayerAwareness = new CustomBehaviour<MycelialMob>(mob -> {
+            List<Player> players = HiveBrainUtils.getMemory(mob, MemoryModuleType.NEAREST_PLAYERS);
+            if (players != null && players.size() >= 2 && mob.level() instanceof ServerLevel level) {
+                Player secondary = players.get(1);
+                HiveBrainUtils.setForgettableMemory(mob, MemoryModuleType.LOOK_TARGET, new EntityTracker(secondary, true), 25);
+                level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                        mob.getX(), mob.getY(0.85D), mob.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+        });
+        multiPlayerAwareness.startCondition(mob -> {
+            List<Player> players = HiveBrainUtils.getMemory(mob, MemoryModuleType.NEAREST_PLAYERS);
+            return players != null && players.size() >= 2;
+        });
+        multiPlayerAwareness.cooldownFor(mob -> 80);
+
+        var projectileFlare = new CustomBehaviour<MycelialMob>(mob -> {
+            if (mob.level() instanceof ServerLevel level) {
+                level.sendParticles(ModParticles.SYNAPSE_SPARK.get(),
+                        mob.getX(), mob.getY(0.95D), mob.getZ(), 5, 0.45D, 0.25D, 0.45D, 0.02D);
+            }
+        });
+        projectileFlare.startCondition(mob -> HiveBrainUtils.hasMemory(mob, ModMemoryTypes.INCOMING_PROJECTILE_POS.get()));
+        projectileFlare.cooldownFor(mob -> 40);
+
+        return BrainActivityGroup.coreTasks(
+                HiveBrainBridge.createBossTargetSyncBehaviour(),
+                new LookAtTarget<>(),
+                multiPlayerAwareness,
+                projectileFlare
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getIdleTasks() {
+        return BrainActivityGroup.idleTasks(
+                new SetPlayerLookTarget<>(),
+                new Idle<MycelialMob>().runFor(mob -> 40)
+        );
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getFightTasks() {
+        var psychicPresence = new DelayedBehaviour<MycelialMob>(20) {
+            @Override
+            protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+                return List.of(Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
+            }
+
+            @Override
+            protected void doDelayedAction(MycelialMob entity) {
+                if (entity.level() instanceof ServerLevel level && !entity.isDesynced()) {
+                    level.sendParticles(ModParticles.PSYCHIC_WAVE.get(),
+                            entity.getX(), entity.getY(0.8D), entity.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                }
+            }
+        };
+        psychicPresence.cooldownFor(mob -> 100);
+
+        return BrainActivityGroup.fightTasks(
+                new InvalidateAttackTarget<>(),
+                new ReactToUnreachableTarget<MycelialMob>().afterTicks(45L),
+                psychicPresence
+        );
     }
 
     @Override

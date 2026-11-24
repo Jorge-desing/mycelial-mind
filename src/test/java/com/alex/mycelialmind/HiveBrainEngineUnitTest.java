@@ -1,6 +1,13 @@
 package com.alex.mycelialmind;
 
+import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.AvoidEntity;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.StrafeTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler;
+import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
+import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,5 +85,70 @@ class HiveBrainEngineUnitTest {
         assertEquals(1, HiveBrainScheduler.nextSequentialIndex(0, 3));
         assertEquals(2, HiveBrainScheduler.nextSequentialIndex(1, 3));
         assertEquals(-1, HiveBrainScheduler.nextSequentialIndex(2, 3));
+    }
+
+    @Test
+    void incomingProjectilesSensorHeadingHelperDistinguishesApproachingAndRecedingProjectiles() {
+        Vec3 entityPos = new Vec3(6.0D, 64.0D, 0.0D);
+        Vec3 projPos = new Vec3(0.0D, 64.0D, 0.0D);
+
+        assertTrue(IncomingProjectilesSensor.isProjectileHeadingToward(
+                projPos, new Vec3(1.5D, 0.0D, 0.0D), entityPos, IncomingProjectilesSensor.DEFAULT_MIN_HEADING_DOT));
+        assertFalse(IncomingProjectilesSensor.isProjectileHeadingToward(
+                projPos, new Vec3(0.0D, 0.0D, 1.5D), entityPos, IncomingProjectilesSensor.DEFAULT_MIN_HEADING_DOT));
+        assertFalse(IncomingProjectilesSensor.isProjectileHeadingToward(
+                projPos, new Vec3(-1.5D, 0.0D, 0.0D), entityPos, IncomingProjectilesSensor.DEFAULT_MIN_HEADING_DOT));
+        // Stationary / embedded projectile below speed squared threshold
+        assertFalse(IncomingProjectilesSensor.isProjectileHeadingToward(
+                projPos, new Vec3(0.1D, 0.0D, 0.0D), entityPos, IncomingProjectilesSensor.DEFAULT_MIN_HEADING_DOT));
+        // Coincident position while in flight
+        assertTrue(IncomingProjectilesSensor.isProjectileHeadingToward(
+                entityPos, new Vec3(0.8D, 0.0D, 0.0D), entityPos, IncomingProjectilesSensor.DEFAULT_MIN_HEADING_DOT));
+        assertFalse(IncomingProjectilesSensor.isProjectileHeadingToward(null, Vec3.ZERO, entityPos, 0.35D));
+    }
+
+    @Test
+    void reactToUnreachableWindowHelperChecksExactBoundary() {
+        assertFalse(ReactToUnreachableTarget.hasExceededUnreachableWindow(100L, 100L, 40L));
+        assertFalse(ReactToUnreachableTarget.hasExceededUnreachableWindow(139L, 100L, 40L));
+        assertTrue(ReactToUnreachableTarget.hasExceededUnreachableWindow(140L, 100L, 40L));
+        assertTrue(ReactToUnreachableTarget.hasExceededUnreachableWindow(200L, 100L, 40L));
+        assertFalse(ReactToUnreachableTarget.hasExceededUnreachableWindow(100L, -1L, 40L));
+        assertFalse(ReactToUnreachableTarget.hasExceededUnreachableWindow(100L, 50L, -1L));
+    }
+
+    @Test
+    void newBehavioursSensorsAndMemoryIdExposeConfiguredPropertiesAndFluentChains() {
+        IncomingProjectilesSensor<MycelialMob> sensor = new IncomingProjectilesSensor<MycelialMob>()
+                .setRadius(18.5D);
+        assertEquals(18.5D, sensor.getRadius(), 1.0E-4D);
+        sensor.setRadius(0.1D);
+        assertEquals(1.0D, sensor.getRadius(), 1.0E-4D);
+
+        ReactToUnreachableTarget<MycelialMob> react = new ReactToUnreachableTarget<MycelialMob>()
+                .afterTicks(25L)
+                .clearAttackTarget(true);
+        assertEquals(25L, react.getUnreachableThresholdTicks());
+        assertTrue(react.isClearAttackTarget());
+
+        StrafeTarget<MycelialMob> strafe = new StrafeTarget<MycelialMob>()
+                .strafeDistance(14.0F)
+                .speedMod(1.15F);
+        assertEquals(14.0F, strafe.getStrafeDistance(), 1.0E-4F);
+        assertEquals(1.15F, strafe.getSpeedMod(), 1.0E-4F);
+
+        AvoidEntity<MycelialMob> avoid = new AvoidEntity<MycelialMob>()
+                .noCloserThan(9.5F)
+                .speedModifier(1.3F);
+        assertEquals(9.5F, avoid.getNoCloserThan(), 1.0E-4F);
+        assertEquals(1.3F, avoid.getSpeedModifier(), 1.0E-4F);
+
+        FleeTarget<MycelialMob> flee = new FleeTarget<MycelialMob>()
+                .fleeDistance(15.0F)
+                .speedModifier(1.4F);
+        assertEquals(15.0F, flee.getFleeDistance(), 1.0E-4F);
+        assertEquals(1.4F, flee.getSpeedModifier(), 1.0E-4F);
+
+        assertEquals(0.35D, IncomingProjectilesSensor.DEFAULT_MIN_HEADING_DOT, 1.0E-6D);
     }
 }

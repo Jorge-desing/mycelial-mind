@@ -5,6 +5,16 @@ import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.entity.ai.HiveRegroupGoal;
 import com.alex.mycelialmind.entity.ai.KitingRetreatGoal;
 import com.alex.mycelialmind.entity.ai.SwarmFlankGoal;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.StrafeTarget;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveSquadComposer;
@@ -49,6 +59,8 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -58,9 +70,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import com.mojang.datafixers.util.Pair;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -254,6 +268,55 @@ public class SynapticMimicEntity extends MycelialMob {
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
+
+    @Override
+    public List<HiveSensor<MycelialMob>> getSensors() {
+        return HiveBrainBridge.createDefaultHiveSensorsWithProjectiles();
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getCoreTasks() {
+        var shockedFlee = new FleeTarget<MycelialMob>()
+                .fleeDistance(12.0F)
+                .speedModifier(1.25F);
+        shockedFlee.startCondition(mob -> isUnmasked() && getShockTicks() > 0);
+
+        var marksmanStrafe = new StrafeTarget<MycelialMob>()
+                .strafeDistance(9.0F)
+                .speedMod(0.9F)
+                .stopStrafingWhen(mob -> isDesynced() || getMimicStance() != MimicStance.SPORE_MARKSMAN);
+
+        var covertObservation = new DelayedBehaviour<MycelialMob>(25) {
+            @Override
+            protected List<Pair<MemoryModuleType<?>, MemoryStatus>> getMemoryRequirements() {
+                return List.of(Pair.of(MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryStatus.VALUE_PRESENT));
+            }
+
+            @Override
+            protected boolean checkExtraStartConditions(ServerLevel level, MycelialMob entity) {
+                return !isUnmasked() && !isDesynced();
+            }
+
+            @Override
+            protected void doDelayedAction(MycelialMob entity) {
+                LivingEntity seen = HiveBrainUtils.getMemory(entity, MemoryModuleType.NEAREST_VISIBLE_PLAYER);
+                if (seen != null && seen.isAlive()) {
+                    entity.getLookControl().setLookAt(seen, 25.0F, 25.0F);
+                }
+            }
+        };
+        covertObservation.cooldownFor(mob -> 60);
+
+        return BrainActivityGroup.coreTasks(
+                new LookAtTarget<>(),
+                new MoveToWalkTarget<>(),
+                new FirstApplicableBehaviour<>(
+                        shockedFlee,
+                        marksmanStrafe,
+                        covertObservation
+                )
+        );
     }
 
     public MimicStance evaluateTargetStance(LivingEntity target) {

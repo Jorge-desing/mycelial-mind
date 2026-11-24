@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Clean-room factory replacing SmartBrainProvider without Access Transformers.
+ * Clean-room brain factory operating without Access Transformers or Mixins.
  * Collects declared memories from sensors and behaviour trees, builds a vanilla
  * {@link Brain.Provider}, wires all {@link BrainActivityGroup}s, and returns a {@link HiveBrainRuntime}.
  */
