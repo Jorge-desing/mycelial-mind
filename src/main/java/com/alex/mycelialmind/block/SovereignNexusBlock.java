@@ -95,10 +95,11 @@ public class SovereignNexusBlock extends Block implements EntityBlock {
         if (stack.is(ModItems.MYCELIAL_BIOMASS.get())) {
             if (level instanceof ServerLevel serverLevel
                     && level.getBlockEntity(pos) instanceof SovereignNexusBlockEntity be) {
-                if (!SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+                if (!SovereignNexusBlockEntity.isColonyActive(serverLevel, pos) && !player.isCreative()) {
                     player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_nexus_locked"), true);
                     return ItemInteractionResult.CONSUME;
                 }
+                if (player.isCreative()) be.enableAdministrativeOverride(serverLevel);
                 SovereignColonyData colony = be.getOrCreateColony(serverLevel);
                 int toInsert = player.isSecondaryUseActive() ? Math.min(16, stack.getCount()) : 1;
                 int added = colony.addBiomass(toInsert);
@@ -135,12 +136,13 @@ public class SovereignNexusBlock extends Block implements EntityBlock {
         if (!(level.getBlockEntity(pos) instanceof SovereignNexusBlockEntity be)) {
             return InteractionResult.PASS;
         }
-        if (!SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+        if (!SovereignNexusBlockEntity.isColonyActive(serverLevel, pos) && !player.isCreative()) {
             player.displayClientMessage(
                     Component.translatable("message.mycelialmind.sovereign_nexus_locked").withStyle(ChatFormatting.DARK_PURPLE),
                     true);
             return InteractionResult.CONSUME;
         }
+        if (player.isCreative()) be.enableAdministrativeOverride(serverLevel);
         SovereignColonyData colony = be.getOrCreateColony(serverLevel);
         if (be.getOwnerUuid() == null) {
             be.setOwner(player);

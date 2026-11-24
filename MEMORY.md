@@ -3945,3 +3945,8 @@ Al agregar contexto al final del archivo, usar el siguiente formato:
 ## 2026-11-23 — Verificación del bloqueo de colonia
 - Se añadió un GameTest con datos de colonia conservados: antes del hito, el bastón no marca zonas, una acción de red no mejora el Nexo y el snapshot oculta la colonia; tras registrar la derrota, las tres operaciones funcionan. El manejador de red y el test comparten la misma función ejecutada en el hilo de servidor.
 - Verificación final: JUnit y GameTests aislados 177/177 correctos (`test runGameTestServer -PisolatedGameTests=true --no-daemon --offline`). Una corrida no aislada previa falló únicamente el test intermitente de brote ciego, mientras el escenario nuevo pasó.
+
+## 2026-11-23 — Control creativo y comandos de colonia
+- Un Nexo activado por un jugador creativo o por un comando administrativo guarda una excepción persistente por colonia: activa trabajadores, automatización, red, reconstrucción y director sin alterar el hito mundial de Matriarca ni desbloquear otras colonias. Un Nexo colocado en supervivencia registra sus datos pero permanece inactivo hasta la victoria o hasta una intervención administrativa.
+- Creativo puede incubar sin coste ni límite de población y mejorar sin coste; los controles de la pantalla reflejan esas posibilidades. Los comandos de incubación, mejora, biomasa, incursión y verificación ya no exigen derrotar a la Matriarca.
+- JUnit y GameTests aislados 178/178 pasaron; la prueba nueva verifica creativo, persistencia, aislamiento entre colonias, trabajadores, tolvas y el comando real de mejora. Una ejecución intermedia falló solo el test intermitente de brote ciego; la repetición completa pasó.

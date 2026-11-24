@@ -44,9 +44,6 @@ public final class SovereignColonyDirector {
         if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
-            return;
-        }
         long now = level.getGameTime();
         if (now % 100L != 0L) {
             return;
@@ -63,7 +60,7 @@ public final class SovereignColonyDirector {
         int activeCycle = cycles.isCycleActive() ? cycles.getActiveCycleNumber() : 0;
 
         for (SovereignColonyData colony : saved.getAllColonies()) {
-            if (!level.isLoaded(colony.getNexusPos())) {
+            if (!level.isLoaded(colony.getNexusPos()) || !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(level, colony.getNexusPos())) {
                 continue;
             }
             applyGuardianAura(level, colony);
@@ -114,7 +111,7 @@ public final class SovereignColonyDirector {
     }
 
     public static int triggerRivalRaid(ServerLevel level, SovereignColonyData colony, int activeCycle) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(level, colony.getNexusPos())) {
             return 0;
         }
         long now = level.getGameTime();

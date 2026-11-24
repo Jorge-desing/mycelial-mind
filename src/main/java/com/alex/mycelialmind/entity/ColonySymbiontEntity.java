@@ -173,6 +173,13 @@ public class ColonySymbiontEntity extends PathfinderMob {
         if (!level.isClientSide() && reason == MobSpawnType.SPAWN_EGG) {
             SymbiontTemperament[] temps = SymbiontTemperament.values();
             setTemperament(temps[this.random.nextInt(temps.length)]);
+            if (this.level() instanceof ServerLevel serverLevel) {
+                SovereignColonyData nearest = SovereignColonySavedData.get(serverLevel).findNearestColony(this.blockPosition(), null, 96.0D);
+                if (nearest != null && com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(serverLevel, nearest.getNexusPos())) {
+                    setNexusPos(nearest.getNexusPos());
+                    setOwnerUuid(nearest.getOwnerId());
+                }
+            }
             applyStatsFromState();
         }
         return data;
@@ -241,7 +248,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
 
     public boolean isStandby() {
         return this.entityData.get(DATA_STANDBY) || (this.level() instanceof ServerLevel serverLevel
-                && !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel));
+                && !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(serverLevel, nexusPos));
     }
 
     public void setStandby(boolean standby) {
@@ -384,7 +391,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
 
     @Nullable
     public SovereignColonyData getColonyData(ServerLevel level) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(level, nexusPos)) {
             return null;
         }
         SovereignColonySavedData saved = SovereignColonySavedData.get(level);
@@ -577,7 +584,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
         if (this.level().isClientSide() || !(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(serverLevel, nexusPos)) {
             return;
         }
         if (this.tickCount % 100 == 0) {
@@ -596,7 +603,7 @@ public class ColonySymbiontEntity extends PathfinderMob {
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (this.level() instanceof ServerLevel serverLevel
-                && !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+                && !com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(serverLevel, nexusPos) && !player.isCreative()) {
             return InteractionResult.FAIL;
         }
         ItemStack stack = player.getItemInHand(hand);

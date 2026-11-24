@@ -240,7 +240,7 @@ public record SovereignColonySyncPayload(
     };
 
     public static SovereignColonySyncPayload forNexus(ServerLevel level, @Nullable BlockPos nexusPos, boolean openScreen) {
-        boolean unlocked = SovereignNexusBlockEntity.isSovereignUnlocked(level);
+        boolean unlocked = SovereignNexusBlockEntity.isColonyActive(level, nexusPos);
         SovereignColonySavedData saved = SovereignColonySavedData.get(level);
         SovereignColonyData colony = unlocked && nexusPos != null ? saved.getByNexus(nexusPos) : null;
         if (colony == null) {

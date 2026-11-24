@@ -27,12 +27,10 @@ public final class ColonyReconstructionDirector {
     }
 
     public static void recordOutpostDestroyed(ServerLevel level, BlockPos outpostPos) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(level)) {
-            return;
-        }
         SovereignColonySavedData saved = SovereignColonySavedData.get(level);
         for (SovereignColonyData colony : saved.getAllColonies()) {
-            if (!colony.isKnownOutpost(outpostPos) || colony.getReconstruction(outpostPos) != null) {
+            if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isColonyActive(level, colony.getNexusPos())
+                    || !colony.isKnownOutpost(outpostPos) || colony.getReconstruction(outpostPos) != null) {
                 continue;
             }
             if (colony.beginOutpostReconstruction(outpostPos, level.getGameTime())) {

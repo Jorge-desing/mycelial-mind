@@ -2035,10 +2035,6 @@ public final class MycelialCommands {
     }
 
     private static int spawnColonySymbiontCmd(CommandSourceStack source, String rawCaste) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(source.getLevel())) {
-            source.sendFailure(Component.translatable("message.mycelialmind.sovereign_nexus_locked"));
-            return 0;
-        }
         var caste = com.alex.mycelialmind.colony.SymbiontCaste.byId(rawCaste);
         if (caste == null) {
             source.sendFailure(Component.literal("[Colony] Unknown caste: " + rawCaste
@@ -2066,10 +2062,6 @@ public final class MycelialCommands {
     }
 
     private static int upgradeColonyCmd(CommandSourceStack source) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(source.getLevel())) {
-            source.sendFailure(Component.translatable("message.mycelialmind.sovereign_nexus_locked"));
-            return 0;
-        }
         ServerLevel level = source.getLevel();
         BlockPos origin = BlockPos.containing(source.getPosition());
         var nearest = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).findNearestColony(origin, null, 256.0D);
@@ -2088,10 +2080,6 @@ public final class MycelialCommands {
     }
 
     private static int addColonyBiomassCmd(CommandSourceStack source, int amount) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(source.getLevel())) {
-            source.sendFailure(Component.translatable("message.mycelialmind.sovereign_nexus_locked"));
-            return 0;
-        }
         ServerLevel level = source.getLevel();
         BlockPos origin = BlockPos.containing(source.getPosition());
         var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
@@ -2100,6 +2088,7 @@ public final class MycelialCommands {
             source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
             return 0;
         }
+        nearest.enableAdministrativeOverride();
         int added = nearest.addBiomass(amount);
         saved.setDirty();
         source.sendSuccess(() -> Component.literal("[Colony] Added " + added + " biomass (Total=" + nearest.getBiomassStored() + ").")
@@ -2108,10 +2097,6 @@ public final class MycelialCommands {
     }
 
     private static int triggerColonyRaidCmd(CommandSourceStack source) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(source.getLevel())) {
-            source.sendFailure(Component.translatable("message.mycelialmind.sovereign_nexus_locked"));
-            return 0;
-        }
         ServerLevel level = source.getLevel();
         BlockPos origin = BlockPos.containing(source.getPosition());
         var nearest = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).findNearestColony(origin, null, 256.0D);
@@ -2119,6 +2104,8 @@ public final class MycelialCommands {
             source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
             return 0;
         }
+        nearest.enableAdministrativeOverride();
+        com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).setDirty();
         int spawned = com.alex.mycelialmind.colony.SovereignColonyDirector.triggerRivalRaid(level, nearest, 0);
         source.sendSuccess(() -> Component.literal("[Colony] Dispatched Rival Hive probe (" + spawned + " hostiles).")
                 .withStyle(ChatFormatting.RED), true);
@@ -2134,10 +2121,6 @@ public final class MycelialCommands {
     }
 
     private static int verifyColony(CommandSourceStack source) {
-        if (!com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity.isSovereignUnlocked(source.getLevel())) {
-            source.sendFailure(Component.translatable("message.mycelialmind.sovereign_nexus_locked"));
-            return 0;
-        }
         ServerLevel level = source.getLevel();
         BlockPos origin = BlockPos.containing(source.getPosition()).above(4);
         var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
@@ -2151,6 +2134,7 @@ public final class MycelialCommands {
                 source.sendFailure(Component.literal("[Verify:Colony] FAIL: SovereignNexusBlockEntity missing."));
                 return 0;
             }
+            nexus.enableAdministrativeOverride(level);
             var colony = nexus.getOrCreateColony(level);
             colony.addBiomass(64);
             colony.addDomainXp(160);

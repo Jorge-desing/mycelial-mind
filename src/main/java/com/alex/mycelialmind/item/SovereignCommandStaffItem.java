@@ -98,7 +98,9 @@ public class SovereignCommandStaffItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level instanceof ServerLevel serverLevel && !SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+        if (level instanceof ServerLevel serverLevel && !player.isCreative()
+                && !SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)
+                && SovereignColonySavedData.get(serverLevel).findContainingColony(player.blockPosition()) == null) {
             player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_nexus_locked"), true);
             return InteractionResultHolder.fail(stack);
         }
@@ -121,6 +123,8 @@ public class SovereignCommandStaffItem extends Item {
                 player.displayClientMessage(Component.translatable("message.mycelialmind.no_colony_nearby")
                         .withStyle(ChatFormatting.RED), true);
             } else if (serverLevel.getBlockEntity(colony.getNexusPos()) instanceof SovereignNexusBlockEntity nexus) {
+                if (player.isCreative()) nexus.enableAdministrativeOverride(serverLevel);
+                if (!SovereignNexusBlockEntity.isColonyActive(serverLevel, colony.getNexusPos())) return InteractionResultHolder.fail(stack);
                 int recalled = nexus.recallAllWorkers(serverLevel);
                 player.displayClientMessage(Component.translatable("message.mycelialmind.colony_recalled", recalled)
                         .withStyle(ChatFormatting.AQUA), true);
@@ -139,10 +143,6 @@ public class SovereignCommandStaffItem extends Item {
         if (level.isClientSide() || !(level instanceof ServerLevel serverLevel)) {
             return InteractionResult.SUCCESS;
         }
-        if (!SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
-            player.displayClientMessage(Component.translatable("message.mycelialmind.sovereign_nexus_locked"), true);
-            return InteractionResult.FAIL;
-        }
         BlockPos clicked = context.getClickedPos();
         if (serverLevel.getBlockEntity(clicked) instanceof SovereignNexusBlockEntity) {
             return InteractionResult.PASS;
@@ -156,6 +156,10 @@ public class SovereignCommandStaffItem extends Item {
             return InteractionResult.FAIL;
         }
 
+        if (!player.isCreative() && !SovereignNexusBlockEntity.isColonyActive(serverLevel, colony.getNexusPos())) return InteractionResult.FAIL;
+        if (player.isCreative() && serverLevel.getBlockEntity(colony.getNexusPos()) instanceof SovereignNexusBlockEntity nexus) {
+            nexus.enableAdministrativeOverride(serverLevel);
+        }
         StaffMode mode = getMode(context.getItemInHand());
         if (mode == StaffMode.RALLY_COLONY) {
             if (serverLevel.getBlockEntity(colony.getNexusPos()) instanceof SovereignNexusBlockEntity nexus) {
@@ -212,7 +216,7 @@ public class SovereignCommandStaffItem extends Item {
             return InteractionResult.PASS;
         }
         if (player.level() instanceof ServerLevel serverLevel) {
-            if (!SovereignNexusBlockEntity.isSovereignUnlocked(serverLevel)) {
+            if (!player.isCreative() && !SovereignNexusBlockEntity.isColonyActive(serverLevel, worker.getNexusPos())) {
                 return InteractionResult.FAIL;
             }
             SymbiontCaste nextCaste = worker.getCaste().next();

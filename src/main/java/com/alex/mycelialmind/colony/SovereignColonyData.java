@@ -113,6 +113,7 @@ public final class SovereignColonyData {
     private UUID ownerId;
     private String ownerName;
     private BlockPos nexusPos;
+    private boolean administrativeOverride;
     private int tier = 1;
     private int biomassStored = 16;
     private int domainXp = 0;
@@ -146,6 +147,14 @@ public final class SovereignColonyData {
         for (WorkZoneType type : WorkZoneType.values()) {
             this.workZones.put(type, new LinkedHashSet<>());
         }
+    }
+
+    public boolean hasAdministrativeOverride() {
+        return administrativeOverride;
+    }
+
+    public void enableAdministrativeOverride() {
+        administrativeOverride = true;
     }
 
     public UUID getColonyId() {
@@ -819,6 +828,7 @@ public final class SovereignColonyData {
 
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
+        tag.putBoolean("AdministrativeOverride", administrativeOverride);
         tag.putUUID("ColonyId", colonyId);
         tag.putUUID("OwnerId", ownerId);
         tag.putString("OwnerName", ownerName);
@@ -900,6 +910,7 @@ public final class SovereignColonyData {
         String name = tag.getString("OwnerName");
         BlockPos pos = BlockPos.of(tag.getLong("NexusPos"));
         SovereignColonyData data = new SovereignColonyData(colId, owner, name, pos);
+        data.administrativeOverride = tag.getBoolean("AdministrativeOverride");
         data.setTier(tag.getInt("Tier"));
         data.setBiomassStored(tag.getInt("Biomass"));
         data.setDomainXp(tag.getInt("DomainXp"));

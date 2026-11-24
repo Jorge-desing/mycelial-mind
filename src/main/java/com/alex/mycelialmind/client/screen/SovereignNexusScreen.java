@@ -88,9 +88,10 @@ public class SovereignNexusScreen extends Screen {
                     }
                 }
         ).bounds(left + 132, btnY, 92, 18).build());
+        boolean creative = Minecraft.getInstance().player != null && Minecraft.getInstance().player.isCreative();
         this.incubateButton.active = ClientColonyCache.hasColony()
-                && ClientColonyCache.getWorkers().size() < ClientColonyCache.getPopCap()
-                && ClientColonyCache.getBiomass() >= incCost;
+                && (creative || (ClientColonyCache.getWorkers().size() < ClientColonyCache.getPopCap()
+                && ClientColonyCache.getBiomass() >= incCost));
 
         int tier = ClientColonyCache.getTier();
         Component upgradeLabel = tier >= SovereignColonyEngine.MAX_TIER
@@ -108,8 +109,8 @@ public class SovereignNexusScreen extends Screen {
                     }
                 }
         ).bounds(left + 228, btnY, 130, 18).build());
-        this.upgradeButton.active = ClientColonyCache.hasColony()
-                && SovereignColonyEngine.canUpgradeTier(tier, ClientColonyCache.getBiomass(), ClientColonyCache.getDomainXp());
+        this.upgradeButton.active = ClientColonyCache.hasColony() && tier < SovereignColonyEngine.MAX_TIER
+                && (creative || SovereignColonyEngine.canUpgradeTier(tier, ClientColonyCache.getBiomass(), ClientColonyCache.getDomainXp()));
 
         // Worker roster rows (y = top + 102 .. top + 202)
         List<WorkerSnapshot> workers = ClientColonyCache.getWorkers();
