@@ -259,9 +259,9 @@ dependencies {
     // gdxAI (Apache-2.0): Steering behaviors, FSM/MessageDispatcher & formation AI
     implementation "com.badlogicgames.gdx:gdx-ai:1.8.2"
     additionalRuntimeClasspath "com.badlogicgames.gdx:gdx-ai:1.8.2"
-    additionalRuntimeClasspath "com.badlogicgames.gdx:gdx:1.9.8"
+    additionalRuntimeClasspath "com.badlogicgames.gdx:gdx:1.14.2"
     jarJar("com.badlogicgames.gdx:gdx-ai:1.8.2")
-    jarJar("com.badlogicgames.gdx:gdx:1.9.8")
+    jarJar("com.badlogicgames.gdx:gdx:1.14.2")
 
     // Unit testing & Pitest mutation testing
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
