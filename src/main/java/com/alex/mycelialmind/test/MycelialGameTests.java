@@ -10754,4 +10754,51 @@ public final class MycelialGameTests {
             weaver.discard();
         }
     }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    public static void hiveNativeBTreeSteeringLodAndAiCommandWorkEndToEnd(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        boolean gdxPresent;
+        try {
+            Class.forName("com.badlogic.gdx.ai.btree.BehaviorTree", false, MycelialGameTests.class.getClassLoader());
+            gdxPresent = true;
+        } catch (ClassNotFoundException ignored) {
+            gdxPresent = false;
+        }
+        helper.assertFalse(gdxPresent, "gdxAI BehaviorTree must be completely absent from runtime classpath.");
+
+        var bruteA = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
+        var bruteB = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 3);
+        var target = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        target.setPos(helper.absoluteVec(new net.minecraft.world.phys.Vec3(8.0D, 1.0D, 2.5D)));
+        try {
+            bruteA.setTarget(target);
+            bruteB.setTarget(target);
+            Vec3 slotA = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeSwarmApproachPos(bruteA, target);
+            Vec3 slotB = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeSwarmApproachPos(bruteB, target);
+            helper.assertTrue(slotA.distanceToSqr(slotB) > 0.25D,
+                    "Angular attack slots must separate concurrent FRONT_ANCHOR attackers: A=" + slotA + " B=" + slotB);
+
+            Vec3 arrive = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeTacticalArriveSteering(
+                    bruteA, target.position(), level);
+            helper.assertTrue(arrive.x > 0.0D && arrive.length() <= 2.21D,
+                    "Native steering arrive vector must point toward target within bounds: " + arrive);
+
+            // Execute /mycelial ai command against live entities
+            var server = level.getServer();
+            var src = server.createCommandSourceStack()
+                    .withLevel(level)
+                    .withPosition(bruteA.position())
+                    .withPermission(2);
+            int cmdResult = server.getCommands().getDispatcher().execute("mycelial ai 24", src);
+            helper.assertTrue(cmdResult > 0, "/mycelial ai 24 must execute cleanly and report nearby mobs.");
+
+            helper.succeed();
+        } catch (Exception ex) {
+            helper.fail("hiveNativeBTreeSteeringLodAndAiCommandWorkEndToEnd threw: " + ex.getMessage());
+        } finally {
+            bruteA.discard();
+            bruteB.discard();
+        }
+    }
 }

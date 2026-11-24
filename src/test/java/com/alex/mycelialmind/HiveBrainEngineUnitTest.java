@@ -1,15 +1,26 @@
 package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.ai.HiveAiBlackboard;
+import com.alex.mycelialmind.entity.ai.HiveTacticalTree;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.AvoidEntity;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.StrafeTarget;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBehaviorTree;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtDynamicGuardSelector;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtLeafTask;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtSelector;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtSequence;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtStatus;
 import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler;
 import com.alex.mycelialmind.entity.ai.brain.core.UtilitySelectorBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
+import com.alex.mycelialmind.entity.ai.brain.steering.HiveSteeringEngine;
+import com.alex.mycelialmind.hive.EvolutionRank;
+import com.alex.mycelialmind.hive.HiveDoctrine;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
 
@@ -211,5 +222,156 @@ class HiveBrainEngineUnitTest {
         assertFalse(allDefault.isReEvaluateStoppedChildren());
         allDefault.reEvaluateStoppedChildren(true);
         assertTrue(allDefault.isReEvaluateStoppedChildren());
+    }
+
+    @Test
+    void nativeBehaviorTreeCompositesPreemptAndTrackLifecycleWithoutExternalDeps() {
+        final class TestBb {
+            boolean highPriority = false;
+            int stepCount = 0;
+            int endedCount = 0;
+            int activeBranch = 0;
+        }
+
+        TestBb bb = new TestBb();
+        var highLeaf = new HiveBtLeafTask<TestBb>() {
+            @Override
+            protected HiveBtStatus run(TestBb state) {
+                state.activeBranch = 1;
+                state.stepCount++;
+                return HiveBtStatus.RUNNING;
+            }
+
+            @Override
+            protected void end(TestBb state) {
+                state.endedCount++;
+            }
+        }.setGuard(state -> state.highPriority);
+
+        var lowLeaf = new HiveBtLeafTask<TestBb>() {
+            @Override
+            protected HiveBtStatus run(TestBb state) {
+                state.activeBranch = 2;
+                state.stepCount++;
+                return HiveBtStatus.RUNNING;
+            }
+
+            @Override
+            protected void end(TestBb state) {
+                state.endedCount++;
+            }
+        };
+
+        var dynamic = new HiveBtDynamicGuardSelector<TestBb>()
+                .addChild(highLeaf)
+                .addChild(lowLeaf);
+        var tree = new HiveBehaviorTree<>(dynamic, bb);
+
+        assertEquals(HiveBtStatus.RUNNING, tree.step());
+        assertEquals(2, bb.activeBranch);
+        assertEquals(0, bb.endedCount);
+
+        bb.highPriority = true;
+        assertEquals(HiveBtStatus.RUNNING, tree.step());
+        assertEquals(1, bb.activeBranch);
+        assertEquals(1, bb.endedCount);
+
+        tree.reset();
+        assertEquals(2, bb.endedCount);
+        assertEquals(HiveBtStatus.FRESH, tree.getStatus());
+
+        // Sequence & Selector check
+        int[] seqOrder = {0};
+        var seq = new HiveBtSequence<TestBb>()
+                .addChild(new HiveBtLeafTask<>() {
+                    @Override
+                    protected HiveBtStatus run(TestBb state) {
+                        seqOrder[0] += 1;
+                        return HiveBtStatus.SUCCEEDED;
+                    }
+                })
+                .addChild(new HiveBtLeafTask<>() {
+                    @Override
+                    protected HiveBtStatus run(TestBb state) {
+                        seqOrder[0] += 10;
+                        return HiveBtStatus.SUCCEEDED;
+                    }
+                });
+        var selector = new HiveBtSelector<TestBb>()
+                .addChild(new HiveBtLeafTask<TestBb>() {
+                    @Override
+                    protected HiveBtStatus run(TestBb state) {
+                        return HiveBtStatus.FAILED;
+                    }
+                })
+                .addChild(seq);
+        assertEquals(HiveBtStatus.SUCCEEDED, new HiveBehaviorTree<>(selector, bb).step());
+        assertEquals(11, seqOrder[0]);
+    }
+
+    @Test
+    void nativeSteeringEngineProducesBoundedSeparationArrivePursuitRepulsionAndAttackSlots() {
+        double[] nx = {2.0D};
+        double[] nz = {0.0D};
+        Vec3 sep = HiveSteeringEngine.computeSeparation(0.0D, 0.0D, nx, nz, 1, 8.0D, 4.0D);
+        assertTrue(sep.x < 0.0D && Math.abs(sep.z) < 1.0E-6D);
+
+        Vec3 coh = HiveSteeringEngine.computeCohesion(0.0D, 0.0D, nx, nz, 1, 2.0D);
+        assertEquals(2.0D, coh.x, 1.0E-5D);
+
+        Vec3 arriveFar = HiveSteeringEngine.computeArrive(
+                0.0D, 0.0D, 0.0D, 0.0D, 10.0D, 0.0D, 0.6D, 3.5D, 2.2D, 4.0D, 0.15D);
+        assertEquals(4.0D, arriveFar.x, 1.0E-5D);
+
+        Vec3 arriveInside = HiveSteeringEngine.computeArrive(
+                0.0D, 0.0D, 0.0D, 0.0D, 0.2D, 0.0D, 0.6D, 3.5D, 2.2D, 4.0D, 0.15D);
+        assertEquals(0.0D, arriveInside.length(), 1.0E-6D);
+
+        Vec3 pursuit = HiveSteeringEngine.computePursuit(0.0D, 0.0D, 5.0D, 0.0D, 0.0D, 1.0D, 2.0D, 3.0D);
+        assertTrue(pursuit.x > 0.0D && pursuit.z > 0.0D);
+
+        Vec3 evade = HiveSteeringEngine.computeEvade(0.0D, 0.0D, 5.0D, 0.0D, 0.0D, 1.0D, 2.0D, 3.0D);
+        assertTrue(evade.x < 0.0D && evade.z < 0.0D);
+
+        Vec3 pylonRepel = HiveSteeringEngine.computePylonRepulsion(3.0D, 0.0D, 0.0D, 0.0D, 6.0D, 1.0D);
+        assertEquals(0.5D, pylonRepel.x, 1.0E-5D);
+
+        Vec3 slot0 = HiveSteeringEngine.computeAttackSlotPosition(10.0D, 64.0D, 10.0D, 0, 4, 2.0D, 0.0D);
+        Vec3 slot1 = HiveSteeringEngine.computeAttackSlotPosition(10.0D, 64.0D, 10.0D, 1, 4, 2.0D, 0.0D);
+        assertEquals(12.0D, slot0.x, 1.0E-5D);
+        assertEquals(12.0D, slot1.z, 1.0E-5D);
+
+        Vec3 blended = HiveSteeringEngine.computeBlendedSwarmSteering(
+                true, 0.0D, 0.0D, 0.0D, 0.0D, 8.0D, 0.0D,
+                nx, nz, new double[]{0.0D}, new double[]{0.0D}, 1,
+                true, 0.0D, 2.0D, 2.2D);
+        assertTrue(blended.length() <= 2.2001D);
+    }
+
+    @Test
+    void lodTickingAndTacticalTreeDoctrineTraumaAndGrudgeSignalsWorkCleanly() {
+        assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(0L, 5, 13L, false, false));
+        assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(10L, 5, 13L, true, false));
+        assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(10L, 5, 13L, false, true));
+        assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(10L, 3, 13L, false, false)); // (13+3)%4==0
+        assertFalse(HiveBrainScheduler.shouldTickBrainWithLod(10L, 2, 13L, false, false)); // (13+2)%4==1
+
+        HiveAiBlackboard bb = new HiveAiBlackboard();
+        bb.hasTarget = true;
+        bb.distToTarget = 8.0F;
+        bb.health01 = 0.80F;
+        float baseCharge = HiveTacticalTree.scoreCharge(bb);
+
+        bb.doctrine = HiveDoctrine.SIEGE_ASSAULT;
+        bb.hasTargetGrudge = true;
+        bb.evolutionRank = EvolutionRank.ELITE;
+        assertTrue(HiveTacticalTree.scoreCharge(bb) > baseCharge);
+
+        bb.hasNearestNode = true;
+        bb.health01 = 0.35F;
+        float baseRegroup = HiveTacticalTree.scoreRegroup(bb);
+        bb.doctrine = HiveDoctrine.RECOVERY;
+        bb.influenceTrauma01 = 0.80F;
+        assertTrue(HiveTacticalTree.scoreRegroup(bb) > baseRegroup);
     }
 }

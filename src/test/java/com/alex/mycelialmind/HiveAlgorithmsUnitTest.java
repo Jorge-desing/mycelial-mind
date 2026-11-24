@@ -4,12 +4,12 @@ import com.alex.mycelialmind.block.MyceliumSpreadPolicy;
 import com.alex.mycelialmind.entity.ai.HiveAiBlackboard;
 import com.alex.mycelialmind.entity.ai.HiveTacticalTree;
 import com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBehaviorTree;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveInfluenceMap;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.util.ParticleEmissionBudget;
 import com.alex.mycelialmind.world.MycelialFastNoise;
-import com.badlogic.gdx.ai.btree.BehaviorTree;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
@@ -143,7 +143,7 @@ class HiveAlgorithmsUnitTest {
     @Test
     void behaviorTreeReactivePreemptionResetsAndPreservesCooldowns() {
         HiveAiBlackboard bb = new HiveAiBlackboard();
-        BehaviorTree<HiveAiBlackboard> tree = HiveTacticalTree.create(bb);
+        HiveBehaviorTree<HiveAiBlackboard> tree = HiveTacticalTree.create(bb);
 
         bb.hasTarget = true;
         bb.distToTarget = 6.0F;
@@ -188,7 +188,7 @@ class HiveAlgorithmsUnitTest {
     @Test
     void tacticalTreeKiteScoringHysteresisAndFungalTideModulation() {
         HiveAiBlackboard bb = new HiveAiBlackboard();
-        BehaviorTree<HiveAiBlackboard> tree = HiveTacticalTree.create(bb);
+        HiveBehaviorTree<HiveAiBlackboard> tree = HiveTacticalTree.create(bb);
 
         bb.hasTarget = true;
         bb.isRangedOrKiter = true;
@@ -271,7 +271,7 @@ class HiveAlgorithmsUnitTest {
     @Test
     void tacticalTreePrioritizesDesyncOverFrenzyAndRegroup() {
         HiveAiBlackboard bb = new HiveAiBlackboard();
-        BehaviorTree<HiveAiBlackboard> tree = HiveTacticalTree.create(bb);
+        HiveBehaviorTree<HiveAiBlackboard> tree = HiveTacticalTree.create(bb);
         bb.hasTarget = true;
         bb.distToTarget = 10.0F;
         bb.health01 = 0.25F;

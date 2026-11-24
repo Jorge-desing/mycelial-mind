@@ -9,19 +9,11 @@ import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.MycelialStalkerEntity;
 import com.alex.mycelialmind.entity.SporeBehemothEntity;
 import com.alex.mycelialmind.entity.SynapseWeaverEntity;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.steering.HiveSteeringEngine;
 import com.alex.mycelialmind.world.MycelialFastNoise;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SynapticNodeType;
-import com.badlogic.gdx.ai.steer.Proximity;
-import com.badlogic.gdx.ai.steer.Steerable;
-import com.badlogic.gdx.ai.steer.SteerableAdapter;
-import com.badlogic.gdx.ai.steer.SteeringAcceleration;
-import com.badlogic.gdx.ai.steer.behaviors.Alignment;
-import com.badlogic.gdx.ai.steer.behaviors.Arrive;
-import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
-import com.badlogic.gdx.ai.steer.behaviors.Cohesion;
-import com.badlogic.gdx.ai.steer.behaviors.Separation;
-import com.badlogic.gdx.math.Vector2;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,10 +25,14 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Coordinates dynamic swarm roles, pincer flanking geometry, and 20-block AlertCalls.
+ * Coordinates dynamic swarm roles, angular attack-slot distribution, pincer flanking geometry,
+ * clean-room {@link HiveSteeringEngine} vectors, and 20-block AlertCalls.
  */
 public final class HiveSwarmCoordinator {
     public static final double ALERT_CALL_RADIUS = 20.0D;
+    private static final int MAX_STEERING_NEIGHBORS = 24;
+    private static final ThreadLocal<NeighborScratch> NEIGHBOR_SCRATCH =
+            ThreadLocal.withInitial(NeighborScratch::new);
 
     private HiveSwarmCoordinator() {
     }
@@ -72,6 +68,12 @@ public final class HiveSwarmCoordinator {
                     if (!ranged.isEmpty()) {
                         yield SynapticCommandSystem.computePhalanxGuardPos(
                                 ranged.get(0).position(), target.position(), 3.0D);
+                    }
+                }
+                if (mob.level() instanceof ServerLevel sl) {
+                    Vec3 slotted = computeSlotTargetForSquad(mob, target, sl, 1.8D);
+                    if (slotted != null) {
+                        yield slotted;
                     }
                 }
                 yield target.position();
@@ -143,142 +145,83 @@ public final class HiveSwarmCoordinator {
         return basePos;
     }
 
+    @Nullable
+    private static Vec3 computeSlotTargetForSquad(
+            MycelialMob mob, LivingEntity target, ServerLevel level, double ringRadius) {
+        AABB box = target.getBoundingBox().inflate(10.0D);
+        List<MycelialMob> peers = level.getEntitiesOfClass(MycelialMob.class, box,
+                ally -> ally.isAlive()
+                        && !mob.isRivalStrainTarget(ally)
+                        && (ally.getTarget() == target || ally == mob));
+        if (peers.size() <= 1) {
+            return null;
+        }
+        int slotIndex = 0;
+        int myId = mob.getId();
+        for (int i = 0, size = peers.size(); i < size; i++) {
+            if (peers.get(i).getId() < myId) {
+                slotIndex++;
+            }
+        }
+        double baseAngle = Math.atan2(mob.getZ() - target.getZ(), mob.getX() - target.getX());
+        return HiveSteeringEngine.computeAttackSlotPosition(
+                target.getX(), target.getY(), target.getZ(),
+                slotIndex, peers.size(), ringRadius, baseAngle);
+    }
+
     /**
-     * gdxAI Arrive + BlendedSteering (Separation, Cohesion, Alignment) producing a smooth
-     * deceleration vector toward targetPos while avoiding ally clumping.
+     * Clean-room Arrive + Blended Steering (Separation, Cohesion, Alignment, Pylon repulsion)
+     * producing a smooth deceleration vector toward targetPos while avoiding ally clumping.
      */
     public static Vec3 computeTacticalArriveSteering(MycelialMob mob, Vec3 targetPos, ServerLevel level) {
-        final double originX = mob.getX();
-        final double originZ = mob.getZ();
-        Steerable<Vector2> ownerAgent = toSteerable(mob, originX, originZ);
-        Steerable<Vector2> targetAgent = new SteerableAdapter<>() {
-            private final Vector2 pos = new Vector2((float) (targetPos.x - originX), (float) (targetPos.z - originZ));
-
-            @Override
-            public Vector2 getPosition() {
-                return pos;
-            }
-        };
-
-        Arrive<Vector2> arrive = new Arrive<>(ownerAgent, targetAgent)
-                .setArrivalTolerance(0.6F)
-                .setDecelerationRadius(3.5F)
-                .setTimeToTarget(0.15F);
-
-        BlendedSteering<Vector2> blended = new BlendedSteering<>(ownerAgent);
-        blended.add(arrive, 1.00F);
-
-        AABB box = mob.getBoundingBox().inflate(5.5D);
-        List<MycelialMob> allies = level.getEntitiesOfClass(MycelialMob.class, box,
-                ally -> ally != mob && ally.isAlive());
-        if (!allies.isEmpty()) {
-            List<Steerable<Vector2>> neighbors = new java.util.ArrayList<>(allies.size());
-            for (MycelialMob ally : allies) {
-                neighbors.add(toSteerable(ally, originX, originZ));
-            }
-            Proximity<Vector2> proximity = buildProximity(ownerAgent, neighbors);
-            Separation<Vector2> separation = new Separation<>(ownerAgent, proximity);
-            separation.setDecayCoefficient(8.0F);
-            blended.add(separation, 1.35F);
-            blended.add(new Cohesion<>(ownerAgent, proximity), 0.20F);
-            blended.add(new Alignment<>(ownerAgent, proximity), 0.20F);
-        }
-
-        SteeringAcceleration<Vector2> out = new SteeringAcceleration<>(new Vector2());
-        blended.calculateSteering(out);
-        Vec3 combined = new Vec3(out.linear.x, 0.0D, out.linear.y);
-        double len = combined.length();
-        return len > 2.2D ? combined.scale(2.2D / len) : combined;
+        return computeSwarmSteeringInternal(mob, level, true, targetPos);
     }
 
     /**
-     * gdxAI (com.badlogic.gdx.ai.steer) BlendedSteering combining Separation,
-     * Cohesion, and Alignment on a RadiusProximity to prevent swarm stacking.
+     * Clean-room Blended Steering combining Separation, Cohesion, Alignment, and Pylon repulsion
+     * without external steering libraries or neighbor-loop heap allocations.
      */
     public static Vec3 computeSteeringOffset(MycelialMob mob, ServerLevel level) {
+        return computeSwarmSteeringInternal(mob, level, false, mob.position());
+    }
+
+    private static Vec3 computeSwarmSteeringInternal(
+            MycelialMob mob, ServerLevel level, boolean includeArrive, Vec3 targetPos) {
         AABB box = mob.getBoundingBox().inflate(5.5D);
         List<MycelialMob> allies = level.getEntitiesOfClass(MycelialMob.class, box,
                 ally -> ally != mob && ally.isAlive());
-        if (allies.isEmpty()) {
+        BlockPos pylonPos = mob.isDesynced() ? null : HiveBrainBridge.getNearestPylonPos(mob);
+        boolean hasPylon = pylonPos != null && mob.blockPosition().distSqr(pylonPos) < 100.0D;
+
+        if (allies.isEmpty() && !includeArrive && !hasPylon) {
             return Vec3.ZERO;
         }
-        final double originX = mob.getX();
-        final double originZ = mob.getZ();
-        Steerable<Vector2> ownerAgent = toSteerable(mob, originX, originZ);
-        List<Steerable<Vector2>> neighbors = new java.util.ArrayList<>(allies.size());
-        for (MycelialMob ally : allies) {
-            neighbors.add(toSteerable(ally, originX, originZ));
+
+        NeighborScratch scratch = NEIGHBOR_SCRATCH.get();
+        int count = Math.min(allies.size(), MAX_STEERING_NEIGHBORS);
+        for (int i = 0; i < count; i++) {
+            MycelialMob ally = allies.get(i);
+            scratch.nx[i] = ally.getX();
+            scratch.nz[i] = ally.getZ();
+            Vec3 vel = ally.getDeltaMovement();
+            scratch.nvx[i] = vel.x;
+            scratch.nvz[i] = vel.z;
         }
 
-        Proximity<Vector2> proximity = buildProximity(ownerAgent, neighbors);
-
-        Separation<Vector2> separation = new Separation<>(ownerAgent, proximity);
-        separation.setDecayCoefficient(8.0F);
-        BlendedSteering<Vector2> blended = new BlendedSteering<>(ownerAgent);
-        blended.add(separation, 1.50F);
-        blended.add(new Cohesion<>(ownerAgent, proximity), 0.20F);
-        blended.add(new Alignment<>(ownerAgent, proximity), 0.20F);
-
-        SteeringAcceleration<Vector2> out = new SteeringAcceleration<>(new Vector2());
-        blended.calculateSteering(out);
-        Vec3 combined = new Vec3(out.linear.x, 0.0D, out.linear.y);
-        double len = combined.length();
-        return len > 2.2D ? combined.scale(2.2D / len) : combined;
-    }
-
-    private static Proximity<Vector2> buildProximity(Steerable<Vector2> ownerAgent, List<Steerable<Vector2>> neighbors) {
-        return new Proximity<>() {
-            @Override
-            public Steerable<Vector2> getOwner() {
-                return ownerAgent;
-            }
-
-            @Override
-            public void setOwner(Steerable<Vector2> owner) {
-            }
-
-            @Override
-            public int findNeighbors(ProximityCallback<Vector2> callback) {
-                int count = 0;
-                for (Steerable<Vector2> neighbor : neighbors) {
-                    if (callback.reportNeighbor(neighbor)) {
-                        count++;
-                    }
-                }
-                return count;
-            }
-        };
-    }
-
-    private static Steerable<Vector2> toSteerable(MycelialMob mob, double originX, double originZ) {
-        final Vector2 pos = new Vector2((float) (mob.getX() - originX), (float) (mob.getZ() - originZ));
-        final Vector2 vel = new Vector2((float) mob.getDeltaMovement().x, (float) mob.getDeltaMovement().z);
-        return new SteerableAdapter<>() {
-            @Override
-            public Vector2 getPosition() {
-                return pos;
-            }
-
-            @Override
-            public Vector2 getLinearVelocity() {
-                return vel;
-            }
-
-            @Override
-            public float getMaxLinearSpeed() {
-                return 2.2F;
-            }
-
-            @Override
-            public float getMaxLinearAcceleration() {
-                return 4.0F;
-            }
-
-            @Override
-            public float getBoundingRadius() {
-                return 0.6F;
-            }
-        };
+        Vec3 mobVel = mob.getDeltaMovement();
+        return HiveSteeringEngine.computeBlendedSwarmSteering(
+                includeArrive,
+                mob.getX(), mob.getZ(),
+                mobVel.x, mobVel.z,
+                targetPos.x, targetPos.z,
+                scratch.nx, scratch.nz,
+                scratch.nvx, scratch.nvz,
+                count,
+                hasPylon,
+                pylonPos != null ? pylonPos.getX() + 0.5D : 0.0D,
+                pylonPos != null ? pylonPos.getZ() + 0.5D : 0.0D,
+                2.2D
+        );
     }
 
     public static int broadcastAlertCall(ServerLevel level, MycelialMob caller, @Nullable LivingEntity attacker) {
@@ -312,5 +255,12 @@ public final class HiveSwarmCoordinator {
         double cos = Math.cos(angleRad);
         double sin = Math.sin(angleRad);
         return new Vec3(v.x * cos - v.z * sin, 0.0, v.x * sin + v.z * cos);
+    }
+
+    private static final class NeighborScratch {
+        private final double[] nx = new double[MAX_STEERING_NEIGHBORS];
+        private final double[] nz = new double[MAX_STEERING_NEIGHBORS];
+        private final double[] nvx = new double[MAX_STEERING_NEIGHBORS];
+        private final double[] nvz = new double[MAX_STEERING_NEIGHBORS];
     }
 }

@@ -1,6 +1,6 @@
 # `HiveBrain` Native AI Architecture (`com.alex.mycelialmind.entity.ai.brain`)
 
-Mycelial Mind runs its creature, boss, and ally AI on a self-contained, clean-room `HiveBrain` engine built purely on public Minecraft/NeoForge 1.21.1 `Brain`, `BehaviorControl`, and `Sensor` APIs—with **zero external brain-library dependencies**, **zero Access Transformers**, and **zero Mixins**.
+Mycelial Mind runs its creature, boss, and ally AI on a self-contained, clean-room `HiveBrain` engine built purely on public Minecraft/NeoForge 1.21.1 `Brain`, `BehaviorControl`, and `Sensor` APIs—with **zero external AI/brain-library dependencies** (no SmartBrainLib, no gdxAI), **zero Access Transformers**, and **zero Mixins**.
 
 ## Package Layout
 
@@ -12,7 +12,7 @@ com.alex.mycelialmind.entity.ai.brain
 │   ├── HiveBrainFactory.java        # Class-keyed memory caching + ThreadLocal spec handoff (single compilation)
 │   ├── HiveBrainRuntime.java        # Backwards-compatible HiveBrain subclass returned by initializeBrain
 │   ├── HiveBrainSchedule.java       # Clean-room day-tick windows, predicate rules & callbacks
-│   ├── HiveBrainScheduler.java      # Pure deterministic scheduling, phasing, hysteresis utility & weighting helpers (JUnit)
+│   ├── HiveBrainScheduler.java      # Pure deterministic scheduling, phasing, LOD, hysteresis utility & weighting helpers (JUnit)
 │   ├── HiveBrainUtils.java          # Null-safe memory & target helpers over Brain<?>
 │   ├── BrainActivityGroup.java      # Activity task group builder (CORE, IDLE, FIGHT, custom)
 │   ├── HiveBehaviour.java           # BehaviorControl<E> base with fluent conditions, cooldowns, timeouts
@@ -24,6 +24,16 @@ com.alex.mycelialmind.entity.ai.brain
 │   ├── SequentialBehaviour.java
 │   ├── DelayedBehaviour.java
 │   └── CustomBehaviour.java
+├── btree/
+│   ├── HiveBehaviorTree.java        # Clean-room tactical BehaviorTree replacing gdxAI
+│   ├── HiveBtTask.java              # Base node with guards, start/end, cancel, reset
+│   ├── HiveBtLeafTask.java
+│   ├── HiveBtDynamicGuardSelector.java
+│   ├── HiveBtSelector.java
+│   ├── HiveBtSequence.java
+│   └── HiveBtStatus.java
+├── steering/
+│   └── HiveSteeringEngine.java      # Zero-alloc 2D XZ steering (Separation, Cohesion, Alignment, Arrive, Pursuit, Evade, Pylon repulsion, attack slots)
 ├── sensor/
 │   ├── HiveSensor.java              # Sensor<E> base with per-instance scan rate & post-scan callback
 │   ├── PredicateSensor.java

@@ -4330,3 +4330,22 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `docs/HIVE_BRAIN_ARCHITECTURE.md`, `.agents/skills/mycelial-ai-hive/SKILL.md`, `MEMORY.md`
 - **Verificación / Estado:**
   - `CodeMode` (`mycelial-mind-dev`): `test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon` -> **`BUILD SUCCESSFUL` (`31s`), `192/192` `@GameTest`s PASS (`6.662s`), `107/107` JUnit en `12` suites (`2.102s`)**, `audit_mod_assets` (`ok: true`, `2146/2146` claves EN/ES, `0` faltantes), `validate_skills` (`8/8` OK).
+
+
+## [2026-11-24 14:12] — Evolución Integral del Sistema y Motor de IA 100% Nativo Clean-Room (Cero `gdxAI`) (`/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:**
+  1. **Motor Clean-Room `HiveBehaviorTree<T>` (`entity/ai/brain/btree/`):** Reemplaza por completo `com.badlogic.gdx.ai.btree.*` sin dependencias externas ni ATs: `HiveBtStatus`, `HiveBtTask`, `HiveBtLeafTask`, `HiveBtDynamicGuardSelector`, `HiveBtSelector`, `HiveBtSequence` y `HiveBehaviorTree`.
+  2. **Percepción Unificada entre Capas (`HiveAiBlackboard`, `HiveTacticalTree`):** `HiveAiBlackboard` integra `HiveDoctrine`, `influenceTrauma01` (`HiveInfluenceMap`), `EvolutionRank` y recuerdos recientes/rencores de `MobEpisodicMemory` (`hasGrenadeTrauma`, `hasPylonTrauma`, `hasTargetGrudge`); `HiveTacticalTree.create(bb)` devuelve `HiveBehaviorTree<HiveAiBlackboard>` y modula `scoreRegroup`, `scoreCharge`, `scoreKite` y `scoreFlank`.
+  3. **Motor Nativo `HiveSteeringEngine` (`entity/ai/brain/steering/`) y Slots de Ataque (`HiveSwarmCoordinator`):** Reemplaza `com.badlogic.gdx.ai.steer.*` con matemática 2D horizontal zero-alloc en bucles (`Separation`, `Cohesion`, `Alignment`, `Arrive`, `Seek`, `Flee`, `Pursuit`, `Evade`, repulsión de Pilones y `computeAttackSlotPosition` en anillo angular). `HiveSwarmCoordinator` usa buffers `ThreadLocal<NeighborScratch>` y distribuye atacantes `FRONT_ANCHOR` en slots angulares para evitar apilamiento.
+  4. **LOD Adaptativo, `/mycelial ai [radio]` y Limpieza Total de `gdx`/`gdx-ai`:** `MycelialMob.shouldTickBrain` delega en `HiveBrainScheduler.shouldTickBrainWithLod` (1t en inicio/combate/alerta/`<= 32m`, 1/4t escalonado en ociosos lejanos); `MycelialCommands` añade `/mycelial ai [radio]`; eliminadas las dependencias `com.badlogicgames.gdx:gdx` y `gdx-ai` de `build.gradle` (incl. `jarJar`), `renovate.json` y `HiveAlgorithmsUnitTest.java`.
+  5. **Pruebas, Docs y Skills:** Ampliados `HiveBrainEngineUnitTest.java` (`110` JUnit en `12` suites) y `MycelialGameTests.java` (`193` `@GameTest`s incluyendo `hiveNativeBTreeSteeringLodAndAiCommandWorkEndToEnd`); actualizados `docs/HIVE_BRAIN_ARCHITECTURE.md` y `.agents/skills/mycelial-ai-hive/SKILL.md`.
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/entity/ai/brain/btree/{HiveBtStatus,HiveBtTask,HiveBtLeafTask,HiveBtDynamicGuardSelector,HiveBtSelector,HiveBtSequence,HiveBehaviorTree}.java`
+  - `src/main/java/com/alex/mycelialmind/entity/ai/brain/steering/HiveSteeringEngine.java`
+  - `src/main/java/com/alex/mycelialmind/entity/ai/{HiveAiBlackboard,HiveTacticalTree}.java`, `src/main/java/com/alex/mycelialmind/hive/HiveSwarmCoordinator.java`
+  - `src/main/java/com/alex/mycelialmind/entity/ai/brain/core/HiveBrainScheduler.java`, `src/main/java/com/alex/mycelialmind/entity/MycelialMob.java`, `src/main/java/com/alex/mycelialmind/command/MycelialCommands.java`
+  - `build.gradle`, `renovate.json`, `docs/HIVE_BRAIN_ARCHITECTURE.md`, `.agents/skills/mycelial-ai-hive/SKILL.md`, `src/test/java/com/alex/mycelialmind/{HiveAlgorithmsUnitTest,HiveBrainEngineUnitTest}.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`, `MEMORY.md`
+- **Verificación / Estado:**
+  - `CodeMode` (`mycelial-mind-dev`): `test build runGameTestServer -PisolatedGameTests=true --offline --no-daemon` -> **`BUILD SUCCESSFUL` (`23s`), `193/193` `@GameTest`s PASS (`5.795s`), `110/110` JUnit en `12` suites (`2.041s`)**, `validate_skills` (`8/8` OK), `audit_mod_assets` (`ok: true`, `2146/2146` claves EN/ES). Nota: en una corrida intermedia previa `ecosystempurposelayersallworkinruntime` falló de forma intermitente (aura de `ColonyWarden`) y pasó al re-ejecutar `193/193`.
+  - Auditoría de JAR (`build/libs/mycelialmind-2.0.0.jar`, `2387` entradas): `0` JARs/clases de `gdx` o `smartbrainlib`.

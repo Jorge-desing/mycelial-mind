@@ -229,6 +229,12 @@ public final class MycelialCommands {
                         .executes(ctx -> reportHabits(ctx.getSource())))
                 .then(Commands.literal("routes")
                         .executes(ctx -> reportRoutesAndArchitecture(ctx.getSource())))
+                .then(Commands.literal("ai")
+                        .executes(ctx -> reportAiDiagnostics(ctx.getSource(), 24))
+                        .then(Commands.argument("radius", IntegerArgumentType.integer(4, 96))
+                                .executes(ctx -> reportAiDiagnostics(
+                                        ctx.getSource(),
+                                        IntegerArgumentType.getInteger(ctx, "radius")))))
                 .then(Commands.literal("colony")
                         .then(Commands.literal("status")
                                 .executes(ctx -> reportColonyStatus(ctx.getSource())))
@@ -847,7 +853,7 @@ public final class MycelialCommands {
                         + " flowOk=" + flowOk + " arriveOk=" + arriveOk + " btOk=" + btOk));
                 return 0;
             }
-            source.sendSuccess(() -> Component.literal("[Verify:HiveAI] PASS: gdxAI BehaviorTree, Arrive steering, FastNoiseLite flow & Tactical Utility verified.")
+            source.sendSuccess(() -> Component.literal("[Verify:HiveAI] PASS: Native HiveBehaviorTree, Arrive steering, FastNoiseLite flow & Tactical Utility verified.")
                     .withStyle(ChatFormatting.GREEN), false);
             return 1;
         } finally {
@@ -2183,5 +2189,48 @@ public final class MycelialCommands {
             level.setBlockAndUpdate(origin, prevNexusState);
             saved.restoreFromSnapshot(colonySnapshot, level.registryAccess());
         }
+    }
+
+    private static int reportAiDiagnostics(CommandSourceStack source, int radius) {
+        ServerLevel level = source.getLevel();
+        BlockPos center = BlockPos.containing(source.getPosition());
+        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(center).inflate(radius);
+        List<MycelialMob> mobs = level.getEntitiesOfClass(MycelialMob.class, box, mob -> mob.isAlive());
+        var doctrine = com.alex.mycelialmind.hive.HiveBlackboard.getDoctrine(level);
+        source.sendSuccess(() -> Component.literal(String.format(
+                Locale.ROOT,
+                "[Mycelial AI] radius=%dm | doctrine=%s | active_mobs=%d",
+                radius, doctrine.name(), mobs.size()))
+                .withStyle(ChatFormatting.AQUA), false);
+
+        int shown = 0;
+        for (MycelialMob mob : mobs) {
+            if (shown >= 8) {
+                break;
+            }
+            var brain = mob.getHiveBrain();
+            String activity = (brain != null && brain.getActiveActivity() != null)
+                    ? brain.getActiveActivity().getName()
+                    : "none";
+            String role = com.alex.mycelialmind.hive.HiveSwarmCoordinator.assignRole(mob).name();
+            String intent = mob.getTacticalIntent().name();
+            String target = mob.getTarget() != null ? mob.getTarget().getName().getString() : "-";
+            String flags = (mob.isDesynced() ? "DESYNC " : "")
+                    + (mob.isFrenzyActive() ? "FRENZY " : "")
+                    + (mob.isPhalanxActive() ? "PHALANX " : "");
+            final String line = String.format(
+                    Locale.ROOT,
+                    " - %s #%d | act=%s | intent=%s | role=%s | target=%s %s",
+                    mob.getType().getDescription().getString(),
+                    mob.getId(),
+                    activity,
+                    intent,
+                    role,
+                    target,
+                    flags.isBlank() ? "" : "[" + flags.trim() + "]");
+            source.sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GRAY), false);
+            shown++;
+        }
+        return 1;
     }
 }

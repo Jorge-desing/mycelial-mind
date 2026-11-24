@@ -1,12 +1,15 @@
 package com.alex.mycelialmind.entity.ai;
 
-import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.AcidSpitterEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.SynapseWeaverEntity;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveBlackboard;
+import com.alex.mycelialmind.hive.HiveDoctrine;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveOrder;
+import com.alex.mycelialmind.hive.MobEpisodicMemory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -15,8 +18,8 @@ import net.minecraft.world.entity.LivingEntity;
 import javax.annotation.Nullable;
 
 /**
- * Typed zero-allocation Blackboard fields class for gdxAI BehaviorTree + Utility AI.
- * Separates perception facts, persistent cooldown deadlines, and execution-local counters.
+ * Typed zero-allocation Blackboard fields class for native clean-room {@code HiveBehaviorTree} + Utility AI.
+ * Unifies spatial influence, Hive doctrine, episodic memory, persistent cooldown deadlines, and execution counters.
  */
 public final class HiveAiBlackboard {
     public enum TacticalIntent {
@@ -42,6 +45,7 @@ public final class HiveAiBlackboard {
     public float influenceThreat01 = 0.0F;
     public float influenceControl01 = 0.0F;
     public float influencePheromone01 = 0.0F;
+    public float influenceTrauma01 = 0.0F;
     public boolean fungalTideActive = false;
     public boolean isRangedOrKiter = false;
     public boolean canRallyOrder = false;
@@ -51,7 +55,14 @@ public final class HiveAiBlackboard {
     public int nearbyAllies = 0;
     public long gameTime = 0L;
 
-    // Persistent cooldown deadlines (must survive BT node Reset())
+    // Cross-layer strategic & episodic perception
+    public HiveDoctrine doctrine = HiveDoctrine.DORMANT;
+    public EvolutionRank evolutionRank = EvolutionRank.BASE;
+    public boolean hasGrenadeTrauma = false;
+    public boolean hasPylonTrauma = false;
+    public boolean hasTargetGrudge = false;
+
+    // Persistent cooldown deadlines (must survive BT node resets)
     public long chargeCooldownUntil = 0L;
     public long kiteCooldownUntil = 0L;
 
@@ -78,6 +89,7 @@ public final class HiveAiBlackboard {
         this.desynced = mob.isDesynced();
         this.frenzyActive = mob.isFrenzyActive();
         this.phalanxActive = mob.isPhalanxActive();
+        this.evolutionRank = mob.getEvolutionRank();
 
         if (mob.level() instanceof ServerLevel serverLevel) {
             this.gameTime = serverLevel.getGameTime();
@@ -85,7 +97,23 @@ public final class HiveAiBlackboard {
             this.influenceThreat01 = cell.threat();
             this.influenceControl01 = cell.control();
             this.influencePheromone01 = cell.pheromone();
+            this.influenceTrauma01 = cell.trauma();
+            this.doctrine = HiveBlackboard.getDoctrine(serverLevel);
             this.fungalTideActive = HiveMindSavedData.get(serverLevel).isFungalTideActive(this.gameTime);
+
+            MobEpisodicMemory episodic = mob.getEpisodicMemory();
+            this.hasGrenadeTrauma = episodic.hasRecentMemory(
+                    MobEpisodicMemory.KEY_TRAUMA_GRENADE, this.gameTime, 1200L);
+            this.hasPylonTrauma = episodic.hasRecentMemory(
+                    MobEpisodicMemory.KEY_TRAUMA_PYLON, this.gameTime, 1200L);
+            this.hasTargetGrudge = this.hasTarget
+                    && episodic.hasMemory(MobEpisodicMemory.grudgeKey(target.getUUID()));
+        } else {
+            this.doctrine = HiveDoctrine.DORMANT;
+            this.influenceTrauma01 = 0.0F;
+            this.hasGrenadeTrauma = false;
+            this.hasPylonTrauma = false;
+            this.hasTargetGrudge = false;
         }
     }
 }

@@ -247,12 +247,6 @@ dependencies {
     }
 
     // gdxAI (Apache-2.0): Steering behaviors, FSM/MessageDispatcher & formation AI
-    implementation "com.badlogicgames.gdx:gdx-ai:1.8.2"
-    additionalRuntimeClasspath "com.badlogicgames.gdx:gdx-ai:1.8.2"
-    additionalRuntimeClasspath "com.badlogicgames.gdx:gdx:1.9.8"
-    jarJar("com.badlogicgames.gdx:gdx-ai:1.8.2")
-    jarJar("com.badlogicgames.gdx:gdx:1.9.8")
-
     // Unit testing & Pitest mutation testing
     testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -374,7 +368,9 @@ pitest {
             'com.alex.mycelialmind.util.MycelialRedstoneTelemetry*',
             'com.alex.mycelialmind.util.ParticleEmissionBudget*',
             'com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine*',
-            'com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler*'
+            'com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler*',
+            'com.alex.mycelialmind.entity.ai.brain.btree.*',
+            'com.alex.mycelialmind.entity.ai.brain.steering.HiveSteeringEngine*'
     ]
     targetTests = ['com.alex.mycelialmind.*Test']
     threads = Math.max(2, Runtime.runtime.availableProcessors() - 1)

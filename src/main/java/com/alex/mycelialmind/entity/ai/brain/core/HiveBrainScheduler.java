@@ -174,4 +174,17 @@ public final class HiveBrainScheduler {
         }
         return bestIndex;
     }
+
+    /**
+     * Adaptive AI LOD gate for {@link HiveBrainOwner#shouldTickBrain}:
+     * ticks at full 1-tick cadence during initial setup, combat, alerts, or within player proximity,
+     * and throttles distant completely idle mobs to a staggered 1-in-4 tick cadence.
+     */
+    public static boolean shouldTickBrainWithLod(
+            long brainTickCount, int entityId, long gameTime, boolean highPriority, boolean nearPlayer) {
+        if (brainTickCount <= 0L || highPriority || nearPlayer) {
+            return true;
+        }
+        return Math.floorMod(gameTime + entityId, 4L) == 0L;
+    }
 }

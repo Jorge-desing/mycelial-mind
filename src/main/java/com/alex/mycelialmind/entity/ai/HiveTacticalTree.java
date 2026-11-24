@@ -1,16 +1,18 @@
 package com.alex.mycelialmind.entity.ai;
 
 import com.alex.mycelialmind.entity.ai.HiveAiBlackboard.TacticalIntent;
-import com.badlogic.gdx.ai.btree.BehaviorTree;
-import com.badlogic.gdx.ai.btree.LeafTask;
-import com.badlogic.gdx.ai.btree.Task;
-import com.badlogic.gdx.ai.btree.branch.DynamicGuardSelector;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBehaviorTree;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtDynamicGuardSelector;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtLeafTask;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtStatus;
+import com.alex.mycelialmind.hive.EvolutionRank;
+import com.alex.mycelialmind.hive.HiveDoctrine;
 import net.minecraft.util.Mth;
 
 /**
- * Reactive gdxAI BehaviorTree ("BT outside, utility inside") using DynamicGuardSelector
- * for top-level preemption and Dave Mark's compensated Utility AI + positive-only hysteresis
- * inside the combat branch.
+ * Clean-room reactive {@link HiveBehaviorTree} ("BT outside, utility inside") using
+ * {@link HiveBtDynamicGuardSelector} for top-level preemption and Dave Mark's compensated Utility AI
+ * enriched with Hive Doctrine, spatial trauma, and mob episodic memory.
  */
 public final class HiveTacticalTree {
     private static final float HYSTERESIS_BONUS = 0.08F;
@@ -18,26 +20,26 @@ public final class HiveTacticalTree {
     private HiveTacticalTree() {
     }
 
-    public static BehaviorTree<HiveAiBlackboard> create(HiveAiBlackboard blackboard) {
-        DynamicGuardSelector<HiveAiBlackboard> root = new DynamicGuardSelector<>();
+    public static HiveBehaviorTree<HiveAiBlackboard> create(HiveAiBlackboard blackboard) {
+        HiveBtDynamicGuardSelector<HiveAiBlackboard> root = new HiveBtDynamicGuardSelector<>();
 
         DesyncLeaf desync = new DesyncLeaf();
-        desync.setGuard(new PredicateGuard(bb -> bb.desynced));
+        desync.setGuard(bb -> bb.desynced);
 
         RegroupLeaf regroup = new RegroupLeaf();
-        regroup.setGuard(new PredicateGuard(bb -> {
+        regroup.setGuard(bb -> {
             if (bb.frenzyActive) {
                 return false;
             }
             float threshold = bb.activeIntent == TacticalIntent.REGROUP ? 0.45F : 0.65F;
             return scoreRegroup(bb) >= threshold;
-        }));
+        });
 
         UtilityCombatLeaf combat = new UtilityCombatLeaf();
-        combat.setGuard(new PredicateGuard(bb -> bb.hasTarget));
+        combat.setGuard(bb -> bb.hasTarget);
 
         PatrolLeaf patrol = new PatrolLeaf();
-        patrol.setGuard(new PredicateGuard(bb -> !bb.hasTarget && bb.hasSharedTarget));
+        patrol.setGuard(bb -> !bb.hasTarget && bb.hasSharedTarget);
 
         IdleLeaf idle = new IdleLeaf();
 
@@ -47,7 +49,7 @@ public final class HiveTacticalTree {
         root.addChild(patrol);
         root.addChild(idle);
 
-        return new BehaviorTree<>(root, blackboard);
+        return new HiveBehaviorTree<>(root, blackboard);
     }
 
     public static float scoreRegroup(HiveAiBlackboard bb) {
@@ -65,6 +67,13 @@ public final class HiveTacticalTree {
             score += 0.20F;
         }
         score += 0.15F * bb.influenceThreat01 + 0.10F * bb.influenceThreat01 * (1.0F - bb.influenceControl01);
+        if (bb.doctrine == HiveDoctrine.RECOVERY) {
+            score += 0.18F;
+        }
+        score += 0.12F * Mth.clamp(bb.influenceTrauma01, 0.0F, 1.0F);
+        if (bb.hasPylonTrauma && bb.nearPylon) {
+            score += 0.10F;
+        }
         if (bb.fungalTideActive) {
             score -= 0.08F;
         }
@@ -81,6 +90,15 @@ public final class HiveTacticalTree {
         float raw = HiveUtilityEvaluator.compensate(healthFactor * distFactor * pressureFactor, 3);
         if (bb.frenzyActive) {
             raw = Mth.clamp(raw + 0.35F, 0.0F, 1.0F);
+        }
+        if (bb.doctrine == HiveDoctrine.SIEGE_ASSAULT) {
+            raw = Mth.clamp(raw + 0.10F, 0.0F, 1.0F);
+        }
+        if (bb.hasTargetGrudge) {
+            raw = Mth.clamp(raw + 0.08F, 0.0F, 1.0F);
+        }
+        if (bb.evolutionRank == EvolutionRank.ELITE) {
+            raw = Mth.clamp(raw + 0.06F, 0.0F, 1.0F);
         }
         return HiveUtilityEvaluator.applyHysteresis(raw,
                 bb.activeIntent == TacticalIntent.CHARGE || bb.activeIntent == TacticalIntent.FRENZY_CHARGE,
@@ -103,6 +121,9 @@ public final class HiveTacticalTree {
                 1.0F
         );
         float raw = HiveUtilityEvaluator.compensate(proximityFactor * cautionFactor, 2);
+        if (bb.hasGrenadeTrauma || bb.influenceTrauma01 >= 0.55F) {
+            raw = Mth.clamp(raw + 0.12F, 0.0F, 1.0F);
+        }
         if (bb.fungalTideActive) {
             raw = Math.max(0.0F, raw - 0.06F);
         }
@@ -117,86 +138,52 @@ public final class HiveTacticalTree {
         float rangeFactor = Mth.clamp(midRange, 0.15F, 1.0F);
         float swarmFactor = Mth.clamp(0.45F + 0.15F * Math.min(3, bb.nearbyAllies) + 0.15F * bb.influenceControl01, 0.0F, 1.0F);
         float raw = HiveUtilityEvaluator.compensate(rangeFactor * swarmFactor, 2);
+        if (bb.doctrine == HiveDoctrine.ADAPTIVE_HUNT) {
+            raw = Mth.clamp(raw + 0.10F, 0.0F, 1.0F);
+        }
+        if (bb.hasGrenadeTrauma) {
+            raw = Mth.clamp(raw + 0.08F, 0.0F, 1.0F);
+        }
         return HiveUtilityEvaluator.applyHysteresis(raw, bb.activeIntent == TacticalIntent.FLANK, HYSTERESIS_BONUS);
     }
 
-    @FunctionalInterface
-    private interface BbPredicate {
-        boolean test(HiveAiBlackboard bb);
-    }
-
-    private static final class PredicateGuard extends LeafTask<HiveAiBlackboard> {
-        private final BbPredicate predicate;
-
-        private PredicateGuard(BbPredicate predicate) {
-            this.predicate = predicate;
-        }
-
+    private static final class RegroupLeaf extends HiveBtLeafTask<HiveAiBlackboard> {
         @Override
-        public Status execute() {
-            return predicate.test(getObject()) ? Status.SUCCEEDED : Status.FAILED;
-        }
-
-        @Override
-        protected Task<HiveAiBlackboard> copyTo(Task<HiveAiBlackboard> task) {
-            return task;
-        }
-    }
-
-    private static final class RegroupLeaf extends LeafTask<HiveAiBlackboard> {
-        @Override
-        public Status execute() {
-            HiveAiBlackboard bb = getObject();
+        protected HiveBtStatus run(HiveAiBlackboard bb) {
             bb.activeIntent = TacticalIntent.REGROUP;
             bb.runningTicks++;
-            return Status.RUNNING;
+            return HiveBtStatus.RUNNING;
         }
 
         @Override
-        public void end() {
-            HiveAiBlackboard bb = getObject();
+        protected void end(HiveAiBlackboard bb) {
             if (bb != null) {
                 bb.runningTicks = 0;
                 bb.resetCount++;
             }
-            super.end();
-        }
-
-        @Override
-        protected Task<HiveAiBlackboard> copyTo(Task<HiveAiBlackboard> task) {
-            return task;
         }
     }
 
-    private static final class DesyncLeaf extends LeafTask<HiveAiBlackboard> {
+    private static final class DesyncLeaf extends HiveBtLeafTask<HiveAiBlackboard> {
         @Override
-        public Status execute() {
-            HiveAiBlackboard bb = getObject();
+        protected HiveBtStatus run(HiveAiBlackboard bb) {
             bb.activeIntent = TacticalIntent.DESYNC_SCATTER;
             bb.runningTicks++;
-            return Status.RUNNING;
+            return HiveBtStatus.RUNNING;
         }
 
         @Override
-        public void end() {
-            HiveAiBlackboard bb = getObject();
+        protected void end(HiveAiBlackboard bb) {
             if (bb != null) {
                 bb.runningTicks = 0;
                 bb.resetCount++;
             }
-            super.end();
-        }
-
-        @Override
-        protected Task<HiveAiBlackboard> copyTo(Task<HiveAiBlackboard> task) {
-            return task;
         }
     }
 
-    private static final class UtilityCombatLeaf extends LeafTask<HiveAiBlackboard> {
+    private static final class UtilityCombatLeaf extends HiveBtLeafTask<HiveAiBlackboard> {
         @Override
-        public Status execute() {
-            HiveAiBlackboard bb = getObject();
+        protected HiveBtStatus run(HiveAiBlackboard bb) {
             float charge = scoreCharge(bb);
             float kite = scoreKite(bb);
             float flank = scoreFlank(bb);
@@ -213,64 +200,43 @@ public final class HiveTacticalTree {
                 bb.activeIntent = TacticalIntent.FLANK;
             } else {
                 bb.activeIntent = TacticalIntent.NONE;
-                return Status.FAILED;
+                return HiveBtStatus.FAILED;
             }
             bb.runningTicks++;
-            return Status.RUNNING;
+            return HiveBtStatus.RUNNING;
         }
 
         @Override
-        public void end() {
-            HiveAiBlackboard bb = getObject();
+        protected void end(HiveAiBlackboard bb) {
             if (bb != null) {
                 bb.runningTicks = 0;
                 bb.resetCount++;
             }
-            super.end();
-        }
-
-        @Override
-        protected Task<HiveAiBlackboard> copyTo(Task<HiveAiBlackboard> task) {
-            return task;
         }
     }
 
-    private static final class PatrolLeaf extends LeafTask<HiveAiBlackboard> {
+    private static final class PatrolLeaf extends HiveBtLeafTask<HiveAiBlackboard> {
         @Override
-        public Status execute() {
-            HiveAiBlackboard bb = getObject();
+        protected HiveBtStatus run(HiveAiBlackboard bb) {
             bb.activeIntent = TacticalIntent.PATROL;
             bb.runningTicks++;
-            return Status.RUNNING;
+            return HiveBtStatus.RUNNING;
         }
 
         @Override
-        public void end() {
-            HiveAiBlackboard bb = getObject();
+        protected void end(HiveAiBlackboard bb) {
             if (bb != null) {
                 bb.runningTicks = 0;
                 bb.resetCount++;
             }
-            super.end();
-        }
-
-        @Override
-        protected Task<HiveAiBlackboard> copyTo(Task<HiveAiBlackboard> task) {
-            return task;
         }
     }
 
-    private static final class IdleLeaf extends LeafTask<HiveAiBlackboard> {
+    private static final class IdleLeaf extends HiveBtLeafTask<HiveAiBlackboard> {
         @Override
-        public Status execute() {
-            HiveAiBlackboard bb = getObject();
+        protected HiveBtStatus run(HiveAiBlackboard bb) {
             bb.activeIntent = TacticalIntent.NONE;
-            return Status.SUCCEEDED;
-        }
-
-        @Override
-        protected Task<HiveAiBlackboard> copyTo(Task<HiveAiBlackboard> task) {
-            return task;
+            return HiveBtStatus.SUCCEEDED;
         }
     }
 }

@@ -3,12 +3,17 @@ package com.alex.mycelialmind.entity;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.util.MycelialParticles;
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.entity.ai.brain.btree.HiveBehaviorTree;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.mojang.serialization.Dynamic;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
@@ -35,7 +40,6 @@ import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.ModDimensions;
 import com.alex.mycelialmind.world.MycelialLootSystem;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
-import com.badlogic.gdx.ai.btree.BehaviorTree;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.nbt.CompoundTag;
@@ -170,7 +174,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     private int nextTacticalTreeTick = 0;
     private int lastDesyncTicks = 0;
     @Nullable
-    private BehaviorTree<HiveAiBlackboard> tacticalTree;
+    private HiveBehaviorTree<HiveAiBlackboard> tacticalTree;
     @Nullable
     private HiveBrainRuntime<MycelialMob> hiveBrainRuntime;
 
@@ -1146,6 +1150,24 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     @Override
     public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<MycelialMob> runtime) {
         this.hiveBrainRuntime = runtime;
+    }
+
+    @Override
+    public boolean shouldTickBrain(ServerLevel level, MycelialMob entity) {
+        HiveBrain<MycelialMob> brain = getHiveBrain();
+        long tickCountVal = brain != null ? brain.getBrainTickCount() : 0L;
+        boolean highPriority = this.tickCount <= 2
+                || isBossMob()
+                || getTarget() != null
+                || isDesynced()
+                || isFrenzyActive()
+                || this.hurtTime > 0
+                || HiveBrainUtils.hasMemory(this, ModMemoryTypes.SHARED_TARGET_POS.get())
+                || HiveBrainUtils.hasMemory(this, ModMemoryTypes.INCOMING_PROJECTILE_POS.get())
+                || (brain != null && brain.getActiveActivity() != getDefaultActivity());
+        boolean nearPlayer = level.getNearestPlayer(this, 32.0D) != null;
+        return HiveBrainScheduler.shouldTickBrainWithLod(
+                tickCountVal, this.getId(), level.getGameTime(), highPriority, nearPlayer);
     }
 
     @Override
