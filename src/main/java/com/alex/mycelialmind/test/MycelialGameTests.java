@@ -250,8 +250,8 @@ public final class MycelialGameTests {
                         "Weaver support arena chunks must be entity-ticking"))
                 .thenExecute(() -> {
                     var weaver = helper.spawn(ModEntities.SYNAPSE_WEAVER.get(), 2, 1, 2);
-                    var first = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 15, 1, 2);
-                    var second = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 15, 1, 5);
+                    var first = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 12, 1, 2);
+                    var second = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 12, 1, 5);
                     var enemy = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 12);
                     weaver.setHiveStrain(HiveStrain.AMBER);
                     first.setHiveStrain(HiveStrain.AMBER);
