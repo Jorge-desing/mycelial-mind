@@ -2,8 +2,10 @@ package com.alex.mycelialmind.client;
 
 import com.alex.mycelialmind.block.AntibodyCystBlock;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
+import com.alex.mycelialmind.client.audio.ClientAcousticController;
 import com.alex.mycelialmind.config.MycelialClientConfig;
 import com.alex.mycelialmind.entity.MycelialBossMob;
+import com.alex.mycelialmind.hive.AcousticPhysicsEngine;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveSynergy;
@@ -54,6 +56,8 @@ public final class ClientSoundscapeDirector {
     private static ReactiveLoopSoundInstance sovereignNexusHumLoop;
     @Nullable
     private static ReactiveLoopSoundInstance bossTensionBedLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance sinkholeUpdraftLoop;
 
     private ClientSoundscapeDirector() {
     }
@@ -82,12 +86,26 @@ public final class ClientSoundscapeDirector {
         stopLoopImmediate(mc, pylonHumLoop);
         stopLoopImmediate(mc, sovereignNexusHumLoop);
         stopLoopImmediate(mc, bossTensionBedLoop);
+        stopLoopImmediate(mc, sinkholeUpdraftLoop);
         fungalTideLoop = null;
         homeostasisHeartbeatLoop = null;
         acidRainSizzleLoop = null;
         pylonHumLoop = null;
         sovereignNexusHumLoop = null;
         bossTensionBedLoop = null;
+        sinkholeUpdraftLoop = null;
+    }
+
+    public static int getActiveLoopCount() {
+        int active = 0;
+        if (fungalTideLoop != null && !fungalTideLoop.isStopped()) active++;
+        if (homeostasisHeartbeatLoop != null && !homeostasisHeartbeatLoop.isStopped()) active++;
+        if (acidRainSizzleLoop != null && !acidRainSizzleLoop.isStopped()) active++;
+        if (pylonHumLoop != null && !pylonHumLoop.isStopped()) active++;
+        if (sovereignNexusHumLoop != null && !sovereignNexusHumLoop.isStopped()) active++;
+        if (bossTensionBedLoop != null && !bossTensionBedLoop.isStopped()) active++;
+        if (sinkholeUpdraftLoop != null && !sinkholeUpdraftLoop.isStopped()) active++;
+        return active;
     }
 
     private static void stopLoopImmediate(@Nullable Minecraft mc, @Nullable ReactiveLoopSoundInstance loop) {
@@ -393,6 +411,25 @@ public final class ClientSoundscapeDirector {
                     false, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, 0.04F
             );
         }
+
+        // 2e2. Sinkhole thermal spore-wind updraft bed (7th reactive loop near SporeUpdraftVentBlock)
+        BlockPos updraftPos = ClientAcousticController.getNearestUpdraftVentPos();
+        float updraftVol = 0.0F;
+        double ux = mc.player.getX();
+        double uy = mc.player.getY();
+        double uz = mc.player.getZ();
+        if (envVol > 0.01F && updraftPos != null && MycelialClientConfig.sinkholeUpdraftBedEnabled()) {
+            double dSq = updraftPos.distSqr(mc.player.blockPosition());
+            updraftVol = AcousticPhysicsEngine.computeSinkholeUpdraftLoopVolume(
+                    dSq, 18.0D, envVol, alertDuck, true);
+            ux = updraftPos.getX() + 0.5D;
+            uy = updraftPos.getY() + 1.0D;
+            uz = updraftPos.getZ() + 0.5D;
+        }
+        sinkholeUpdraftLoop = updateReactiveLoop(
+                mc, sinkholeUpdraftLoop, ModSounds.SINKHOLE_UPDRAFT_LOOP.get(), SoundSource.AMBIENT,
+                true, ux, uy, uz, updraftVol, 1.0F, 0.025F
+        );
 
         // 2f. Nearby Primordial Bioluminescent Mob resonance pulse (dedicated event)
         if (envVol > 0.01F

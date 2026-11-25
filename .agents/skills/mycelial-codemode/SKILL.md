@@ -4,25 +4,25 @@ description: >-
   Guía operativa maestra de FastMCP CodeMode (mycelial-mind-dev) para Mycelial
   Mind: conexión con DeepSeek Harness y otros clientes MCP, descubrimiento con
   search/get_schema, sandbox Monty en execute (50 llamadas, 600 s, 100 MB), las
-  66 herramientas del bridge (NeoForge 21.1.267, Colonia Soberana/Dialectos,
-  Ciclos, Expediciones y Sound Studio), ciclo servidor+cliente aislado,
+  67 herramientas del bridge (NeoForge 21.1.267, Colonia Soberana/Dialectos,
+  Ciclos, Expediciones y Sound Studio v4), ciclo servidor+cliente aislado,
   auditorías y fallback de consola.
 ---
 
 # Guía Maestra de FastMCP `CodeMode` (`mycelial-mind-dev`)
 
-`scripts/mcp/server.py` (**FastMCP 4.2.1** + `CodeMode`/`MontySandboxProvider`) expone **66 herramientas** para **Mycelial Mind (Minecraft 1.21.1 / NeoForge 21.1.267, JUnit 6, Observable 5, Mod Publish Plugin v2)** detrás de tres meta-herramientas: `search`, `get_schema` y `execute`. Es la interfaz obligatoria del proyecto para auditar suites, inspeccionar registros/IA/Colonia/activos y operar Minecraft/NeoForge ([.agents/rules/codemode-first.md](../../rules/codemode-first.md)).
+`scripts/mcp/server.py` (**FastMCP 4.2.1** + `CodeMode`/`MontySandboxProvider`) expone **67 herramientas** para **Mycelial Mind (Minecraft 1.21.1 / NeoForge 21.1.267, JUnit 6, Observable 5, Mod Publish Plugin v2)** detrás de tres meta-herramientas: `search`, `get_schema` y `execute`. Es la interfaz obligatoria del proyecto para auditar suites, inspeccionar registros/IA/Colonia/activos y operar Minecraft/NeoForge ([.agents/rules/codemode-first.md](../../rules/codemode-first.md)).
 
 ## 1. Conexión, salud y coexistencia
 
 - **Montaje activo:** `.mcp.json` en la raíz declara `mycelial-mind-dev` (`scripts/mcp/.venv/Scripts/python.exe` → `scripts/mcp/server.py`). En DeepSeek Harness (`mcp-manager`, `mcp__mycelial-mind-dev__{search,get_schema,execute}`), Codex y Antigravity cada cliente lanza su propio proceso `stdio` (`toolCallTimeoutMs: 1800000` en DSH) y se distingue por `instance_id`/`instance_pid`.
 - **Instalación del venv, YAML DSH y tabla de clientes:** ver [references/deepseek-harness.md](references/deepseek-harness.md) (incluye `.mcp.json`, `~/.codex/config.toml`, `~/.gemini/config/mcp_config.json` y regla de no lanzar `run_gradle_task`/`run_verify_mod` en paralelo entre clientes).
 - **Recursos MCP de solo lectura (7):** `mycelial://bridge/{health,tools,tags}`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}`.
-- **Autocomprobación:** `get_bridge_health()` devuelve en `<1 ms` `ok=true`, `tool_count=66`, `server="MycelialMindDev"`, `fastmcp_version`, `python_executable`, `java_home_detected`, `jcmd_available`, `temp_dir`, `repo_root`, `active_live_sessions`, `cache_entries` e identidad de instancia (`instance_id`, `instance_pid`, `instance_started_utc`, `instance_uptime_secs`). Es el primer `call_tool` de cualquier pasada.
+- **Autocomprobación:** `get_bridge_health()` devuelve en `<1 ms` `ok=true`, `tool_count=67`, `server="MycelialMindDev"`, `fastmcp_version`, `python_executable`, `java_home_detected`, `jcmd_available`, `temp_dir`, `repo_root`, `active_live_sessions`, `cache_entries` e identidad de instancia (`instance_id`, `instance_pid`, `instance_started_utc`, `instance_uptime_secs`). Es el primer `call_tool` de cualquier pasada.
 
 ## 2. Descubrimiento y ejecución
 
-1. **Buscar:** `search(query)` → lista ranking de herramientas con descripción corta (`N of 66 tools`).
+1. **Buscar:** `search(query)` → lista ranking de herramientas con descripción corta (`N of 67 tools`).
 2. **Confirmar contrato:** `get_schema(tools=[...], detail="brief|detailed|full")` → parámetros con tipos y defaults. También resuelve las propias meta-herramientas (`get_schema(["execute","search","get_schema"])`); solo responde `Tools not found` para nombres inexistentes.
 3. **Ejecutar:** `execute(code)` con un bloque Python `async`.
 
@@ -32,7 +32,7 @@ description: >-
 - **Límite duro:** 50 llamadas `call_tool()` por bloque, `max_feed_duration_secs=600`, `max_memory=100 MB`. Divide auditorías largas en varios `execute` y guarda lo esencial en el resultado.
 - Paraleliza comprobaciones independientes con `import asyncio` + `await asyncio.gather(...)`.
 - Devuelve siempre un **dict resumen compacto** (booleanos, conteos, rutas, primeros errores). Nunca vuelques logs completos: usa `error_lines`, `matched_lines`, `summary_markers`.
-- Los 3 meta-tools **no** son invocables dentro de `execute` (solo las 66 herramientas del bridge). `list_tool_tags()` sí es una herramienta del bridge.
+- Los 3 meta-tools **no** son invocables dentro de `execute` (solo las 67 herramientas del bridge). `list_tool_tags()` sí es una herramienta del bridge.
 - Valores por defecto conservadores: `check_only=True` y `run_tests=True` en los estudios; los mutantes regeneran activos y tardan más.
 
 ## 3. Enrutador rápido por objetivo
@@ -41,7 +41,7 @@ description: >-
 | --- | --- | --- |
 | Explorar código, registros, IA/Colonia, tests, métricas o caché del bridge | `list_tool_tags`, `get_bridge_health`, `get_bridge_metrics`, `get_registered_content`, `get_hive_ai_overview` (`hive/` + `colony/`), `list_gametests`, `list_unit_tests`, `get_memory_tail`, `capture_audit_snapshot`, `diff_audit_snapshots`, `clear_bridge_cache` | [references/catalog-and-sandbox.md](references/catalog-and-sandbox.md) |
 | Servidor aislado, RCON (`/mycelial colony`, `cycle`, `verify`), `spark`, MC Pilot, JFR y reportes en vivo | `start_smoke_server`, `start_live_session`, `run_live_scenario` (incl. `colony_and_dialects`, `cycles_and_endgame`), `get_live_hive_status`, `get_live_colony_status`, `run_live_verify_scenario`, `rcon_command`, `run_rcon_batch`, `run_rcon_verify_suite`, `collect_spark_tps`, `capture_mcpilot_screenshot`, `run_jfr`, `summarize_jfr`, `get_latest_live_report`, `compare_live_reports`, `stop_live_session` | [references/live-game-lifecycle.md](references/live-game-lifecycle.md) |
-| Auditorías de activos, modelos 3D, texturas PBR, partículas, audio Ogg, códice, GameTests aislados, UI Nexo, build | `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio` (`only`, `changed_only`, `check_baseline`, `update_baseline`), `inspect_sound_event`, `run_codex_studio`, `run_structure_studio`, `audit_mod_assets`, `run_gradle_task` (`isolated_gametests=True`, `-PdialectVisualSmoke=true`), `run_verify_mod`, `manage_verify_cache`, `check_visual_regression`, `check_structure_visual_regression`, `read_diagnostic_logs` | [references/audit-playbooks.md](references/audit-playbooks.md) |
+| Auditorías de activos, modelos 3D, texturas PBR, partículas, audio Ogg, códice, GameTests aislados, UI Nexo, build | `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio` (`only`, `changed_only`, `check_baseline`, `update_baseline`), `inspect_sound_event`, `audit_sound_masking`, `run_codex_studio`, `run_structure_studio`, `audit_mod_assets`, `run_gradle_task` (`isolated_gametests=True`, `-PdialectVisualSmoke=true`), `run_verify_mod`, `manage_verify_cache`, `check_visual_regression`, `check_structure_visual_regression`, `read_diagnostic_logs` | [references/audit-playbooks.md](references/audit-playbooks.md) |
 | Diagnosticar fallos, regresiones, Colonia/Dialectos, Expediciones/Ciclos, cuelgues o TPS/FPS (`/mycelial-diagnostics`) | `collect_diagnostic_bundle`, `diagnose_symptom` (`colony_dialects`, `expeditions_cycles`, ...), `get_diagnostics_guide`, `list_diagnostic_artifacts`, `run_live_scenario`, `compare_live_reports` | [references/audit-playbooks.md](references/audit-playbooks.md) y [../mycelial-diagnostics/SKILL.md](../mycelial-diagnostics/SKILL.md) |
 
 ## 4. Recetas esenciales
@@ -106,5 +106,5 @@ return {"status": status.get("threat_pct"), "verify_ok": verify.get("ok"), "stop
 ## 6. Mantenimiento
 
 - Al añadir/renombrar herramientas en `scripts/mcp/server.py`, actualiza [references/catalog-and-sandbox.md](references/catalog-and-sandbox.md) (conteo, etiquetas, args) y verifica con `validate_skills` + `python scripts/mcp/.venv/Scripts/python.exe scripts/mcp/test_server.py`.
-- El conteo canónico vive en `get_bridge_health()["tool_count"]` (**66**); `list_tool_tags()` da los grupos semánticos (`meta` 9, `code` 10, `gradle` 8, `lifecycle` 14, `rcon` 11, `mcpilot` 9, `jfr` 3, `diagnostics` 22, `studios` 9, `assets` 1, `structures` 3, `visual` 4, `reports` 6, `skills` 5, `registry` 2, `hive` 3, `observability` 5).
+- El conteo canónico vive en `get_bridge_health()["tool_count"]` (**67**); `list_tool_tags()` da los grupos semánticos (`meta` 9, `code` 10, `gradle` 8, `lifecycle` 14, `rcon` 11, `mcpilot` 9, `jfr` 3, `diagnostics` 23, `studios` 10, `assets` 2, `structures` 3, `visual` 4, `reports` 6, `skills` 5, `registry` 2, `hive` 3, `observability` 5).
 - Fallback por consola **solo** si el servidor no está conectado o al depurar el propio `server.py` (ver `AGENTS.md` §5).

@@ -35,6 +35,10 @@ public final class MycelialClientConfig {
     public static final ModConfigSpec.BooleanValue CAVE_SOUND_OCCLUSION;
     public static final ModConfigSpec.BooleanValue DYNAMIC_AUDIO_DUCKING;
     public static final ModConfigSpec.BooleanValue BOSS_TENSION_BED_ENABLED;
+    public static final ModConfigSpec.BooleanValue OPENAL_EFX_ACOUSTICS_ENABLED;
+    public static final ModConfigSpec.BooleanValue OPENAL_EFX_VANILLA_IN_MYCELIAL_ZONES;
+    public static final ModConfigSpec.BooleanValue SWARM_VOICE_LIMITING_ENABLED;
+    public static final ModConfigSpec.BooleanValue SINKHOLE_UPDRAFT_BED_ENABLED;
     public static final ModConfigSpec.DoubleValue PARTICLE_DENSITY_SCALE;
     public static final ModConfigSpec.BooleanValue ENABLE_ADDITIVE_PARTICLE_GLOW;
     public static final ModConfigSpec.DoubleValue SCREEN_SHAKE_SCALE;
@@ -101,6 +105,22 @@ public final class MycelialClientConfig {
         BOSS_TENSION_BED_ENABLED = builder
                 .comment("Play a reactive sub-harmonic tension drone bed when fighting Mycelial bosses.")
                 .define("bossTensionBedEnabled", true);
+
+        OPENAL_EFX_ACOUSTICS_ENABLED = builder
+                .comment("Enable native OpenAL EFX cavern/sanctum reverb, material raycast occlusion filtering, and distance air absorption (auto-yields if Sound Physics Remastered is installed).")
+                .define("openAlEfxAcousticsEnabled", true);
+
+        OPENAL_EFX_VANILLA_IN_MYCELIAL_ZONES = builder
+                .comment("Extend OpenAL EFX reverb and occlusion to vanilla Minecraft sounds while inside Deep Mycelium or near a Mycelial Sinkhole.")
+                .define("openAlEfxVanillaInMycelialZones", true);
+
+        SWARM_VOICE_LIMITING_ENABLED = builder
+                .comment("Limit redundant simultaneous swarm footsteps and chitters via a sliding-window voice budget while prioritizing bosses, alerts, and UI cues.")
+                .define("swarmVoiceLimitingEnabled", true);
+
+        SINKHOLE_UPDRAFT_BED_ENABLED = builder
+                .comment("Play a reactive vertical spore-wind chimney loop bed near active Sinkhole updraft vents.")
+                .define("sinkholeUpdraftBedEnabled", true);
         builder.pop();
 
         builder.push("particles");
@@ -195,6 +215,22 @@ public final class MycelialClientConfig {
 
     public static boolean bossTensionBedEnabled() {
         return SPEC.isLoaded() ? BOSS_TENSION_BED_ENABLED.get() : BOSS_TENSION_BED_ENABLED.getDefault();
+    }
+
+    public static boolean openAlEfxAcousticsEnabled() {
+        return SPEC.isLoaded() ? OPENAL_EFX_ACOUSTICS_ENABLED.get() : OPENAL_EFX_ACOUSTICS_ENABLED.getDefault();
+    }
+
+    public static boolean openAlEfxVanillaInMycelialZones() {
+        return SPEC.isLoaded() ? OPENAL_EFX_VANILLA_IN_MYCELIAL_ZONES.get() : OPENAL_EFX_VANILLA_IN_MYCELIAL_ZONES.getDefault();
+    }
+
+    public static boolean swarmVoiceLimitingEnabled() {
+        return SPEC.isLoaded() ? SWARM_VOICE_LIMITING_ENABLED.get() : SWARM_VOICE_LIMITING_ENABLED.getDefault();
+    }
+
+    public static boolean sinkholeUpdraftBedEnabled() {
+        return SPEC.isLoaded() ? SINKHOLE_UPDRAFT_BED_ENABLED.get() : SINKHOLE_UPDRAFT_BED_ENABLED.getDefault();
     }
 
     public static double particleDensityScale() {

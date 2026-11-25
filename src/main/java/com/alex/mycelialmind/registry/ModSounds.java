@@ -402,6 +402,20 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> ROOT_KEEPER_SLAM = register("root_keeper_slam");
     public static final DeferredHolder<SoundEvent, SoundEvent> SPORE_UPDRAFT_VENT_PULSE = register("spore_updraft_vent_pulse");
 
+    // Sound Engine & Studio v4 Expansion (12: UI, Sinkhole/Elixir, Boss Lock/Stagger, Counterplay/Upkeep)
+    public static final DeferredHolder<SoundEvent, SoundEvent> UI_CODEX_TAB = register("ui_codex_tab");
+    public static final DeferredHolder<SoundEvent, SoundEvent> UI_ACTION_CONFIRM = register("ui_action_confirm");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SINKHOLE_UPDRAFT_LOOP = register("sinkhole_updraft_loop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ROOT_SAP_HARVEST = register("root_sap_harvest");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ROOT_CAP_BOUNCE = register("root_cap_bounce");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RESONANT_ELIXIR_DRINK = register("resonant_elixir_drink");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BOSS_TELEGRAPH_LOCK = register("boss_telegraph_lock");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BOSS_STAGGER_BREAK = register("boss_stagger_break");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BRUTE_WALL_STUN = register("brute_wall_stun");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PYRO_SHROOM_DEFUSE = register("pyro_shroom_defuse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> STATION_UPKEEP_LOW = register("station_upkeep_low");
+    public static final DeferredHolder<SoundEvent, SoundEvent> AMBER_VEIN_RESONATE = register("amber_vein_resonate");
+
     // =========================================================================
     // 7 DeferredSoundType Surface Families
     // =========================================================================

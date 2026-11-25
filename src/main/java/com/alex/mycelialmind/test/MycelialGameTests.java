@@ -5074,7 +5074,7 @@ public final class MycelialGameTests {
 
         try {
             var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-            boolean soundsOk = soundEntries.size() == 208;
+            boolean soundsOk = soundEntries.size() == 220;
             if (soundsOk) {
                 for (var holder : soundEntries) {
                     SoundEvent evt = holder.get();
@@ -11137,5 +11137,52 @@ public final class MycelialGameTests {
             }
             tracker.clearAll();
         }
+    }
+
+    @GameTest(template = "empty", batch = "defaultBatch")
+    public static void audioEngineV4CuesCommandAndZeroVanillaSoundsWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        List<SoundEvent> v4Sounds = List.of(
+                ModSounds.UI_CODEX_TAB.get(),
+                ModSounds.UI_ACTION_CONFIRM.get(),
+                ModSounds.SINKHOLE_UPDRAFT_LOOP.get(),
+                ModSounds.ROOT_SAP_HARVEST.get(),
+                ModSounds.ROOT_CAP_BOUNCE.get(),
+                ModSounds.RESONANT_ELIXIR_DRINK.get(),
+                ModSounds.BOSS_TELEGRAPH_LOCK.get(),
+                ModSounds.BOSS_STAGGER_BREAK.get(),
+                ModSounds.BRUTE_WALL_STUN.get(),
+                ModSounds.PYRO_SHROOM_DEFUSE.get(),
+                ModSounds.STATION_UPKEEP_LOW.get(),
+                ModSounds.AMBER_VEIN_RESONATE.get()
+        );
+        for (SoundEvent evt : v4Sounds) {
+            helper.assertTrue(evt != null && evt.getLocation() != null
+                            && MycelialMind.MODID.equals(evt.getLocation().getNamespace()),
+                    "All 12 v4 SoundEvents must be registered under mycelialmind namespace.");
+        }
+
+        // Verify RootSapVialItem & ResonantSapElixirItem use mod-owned drinking/eating sounds (zero vanilla honey_drink)
+        SoundEvent vialDrink = ModItems.ROOT_SAP_VIAL.get().getDrinkingSound();
+        SoundEvent vialEat = ModItems.ROOT_SAP_VIAL.get().getEatingSound();
+        SoundEvent elixirDrink = ModItems.RESONANT_SAP_ELIXIR.get().getDrinkingSound();
+        helper.assertTrue(vialDrink.getLocation().equals(ModSounds.RESONANT_ELIXIR_DRINK.getId())
+                        && vialEat.getLocation().equals(ModSounds.RESONANT_ELIXIR_DRINK.getId())
+                        && elixirDrink.getLocation().equals(ModSounds.RESONANT_ELIXIR_DRINK.getId()),
+                "RootSapVialItem and ResonantSapElixirItem must use mycelialmind:resonant_elixir_drink.");
+
+        // Verify /mycelial audio status & /mycelial audio test <sound_id> execute cleanly
+        var server = level.getServer();
+        var cmdSource = server.createCommandSourceStack().withLevel(level).withSuppressedOutput();
+        try {
+            int statusRes = server.getCommands().getDispatcher().execute("mycelial audio status", cmdSource);
+            int testRes = server.getCommands().getDispatcher().execute("mycelial audio test boss_stagger_break", cmdSource);
+            helper.assertTrue(statusRes == 1, "/mycelial audio status must succeed.");
+            helper.assertTrue(testRes == 1, "/mycelial audio test boss_stagger_break must succeed.");
+        } catch (com.mojang.brigadier.exceptions.CommandSyntaxException ex) {
+            helper.fail("/mycelial audio command threw syntax exception: " + ex.getMessage());
+        }
+
+        helper.succeed();
     }
 }

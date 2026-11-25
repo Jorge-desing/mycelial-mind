@@ -1,14 +1,15 @@
-"""RTX 4060 GPU stem generator & multiband spectral hybrid mixer backed by Stable Audio Open Small.
+"""RTX 4060 GPU stem generator & 3-band HPSS spectral hybrid mixer backed by Stable Audio Open Small.
 
-Generates 59 curated acoustic archetype stems (steps=14, bfloat16 on CUDA)
-covering all 200 Mycelial Mind sound events, cached as 44.1 kHz mono 16-bit PCM
+Generates 66 curated acoustic archetype stems (steps=14, bfloat16 on CUDA)
+covering all 220 Mycelial Mind sound events, cached as 44.1 kHz mono 16-bit PCM
 `.wav` files in ``scripts/sound_studio/ai_stems/``.
 
 Combines neural stems with the 5 specialized procedural engines via:
-  - Pure DSP attack transient preservation during the initial 20–28 ms
-  - Dual-band envelope-following modulation so 3-act timing and material signatures stay crisp
-  - Circular equal-power crossfade for multi-second seamless biome ambient loops
-  - Deterministic per-variation time rotation & pitch resampling for low correlation
+  - Pure DSP attack transient preservation during the initial 14–28 ms
+  - STFT Wiener Harmonic/Percussive separation (HPSS) so neural stems enrich texture without double-hitting attacks
+  - 3-band (sub / body / air) envelope-following modulation for clean multi-act dynamics
+  - Active-body palindrome looping & circular wrap-padded crossfade for multi-second seamless loops
+  - Deterministic per-variation time rotation & pitch resampling for low correlation + automated stem QC
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ import threading
 import wave
 
 import numpy as np
-from scipy import signal
+from scipy import ndimage, signal
 
 try:
     from .cuda_dsp import (
@@ -282,7 +283,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_lo_hz=150.0,
         band_hi_hz=7600.0,
         mix_weight=0.25,
-        sound_ids=("synapse_weaver_hum", "synapse_weaver_hurt", "synapse_weaver_death", "synapse_weaver_buff", "spore_glider_ambient", "spore_glider_hurt", "spore_glider_death"),
+        sound_ids=("synapse_weaver_hum", "synapse_weaver_hurt", "synapse_weaver_death", "synapse_weaver_buff"),
     ),
     StemArchetype(
         stem_id="goliath_carrier_hollow_thud",
@@ -312,7 +313,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_lo_hz=34.0,
         band_hi_hz=2800.0,
         mix_weight=0.28,
-        sound_ids=("colony_warden_bellow", "colony_warden_hurt", "colony_warden_death", "colony_warden_shockwave", "root_keeper_ambient", "root_keeper_hurt", "root_keeper_death", "root_keeper_slam"),
+        sound_ids=("colony_warden_bellow", "colony_warden_hurt", "colony_warden_death", "colony_warden_shockwave"),
     ),
     StemArchetype(
         stem_id="spore_architect_pulse",
@@ -476,7 +477,7 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         band_hi_hz=6400.0,
         mix_weight=0.18,
         attack_guard_ms=24.0,
-        sound_ids=("spore_vent_puff", "spore_bulb_burst", "ephemeral_chitin_crumble", "spore_updraft_vent_pulse"),
+        sound_ids=("spore_vent_puff", "spore_bulb_burst", "ephemeral_chitin_crumble"),
     ),
     StemArchetype(
         stem_id="func_purifier_turret_pylon",
@@ -732,6 +733,87 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         seamless_loop=True,
         sound_ids=("boss_combat_tension_bed",),
     ),
+    # =========================================================================
+    # 7 Selective Expansion Stems (v4: Sinkhole Ecosystem, Boss Lock/Stagger, Counterplay & Bio-UI)
+    # =========================================================================
+    StemArchetype(
+        stem_id="sinkhole_glider_wing",
+        group="entity",
+        prompt="Bioluminescent cave glider membrane wing flutter, gentle airy chime trill, soft organic subterranean echo",
+        seconds_total=2.4,
+        band_lo_hz=140.0,
+        band_hi_hz=7800.0,
+        mix_weight=0.28,
+        attack_guard_ms=18.0,
+        sound_ids=("spore_glider_ambient", "spore_glider_hurt", "spore_glider_death"),
+    ),
+    StemArchetype(
+        stem_id="sinkhole_root_keeper",
+        group="entity",
+        prompt="Deep earthen root guardian growl, creaking subterranean wood-chitin impact slam, hollow cavern tremor",
+        seconds_total=2.8,
+        band_lo_hz=34.0,
+        band_hi_hz=3200.0,
+        mix_weight=0.34,
+        attack_guard_ms=20.0,
+        sound_ids=("root_keeper_ambient", "root_keeper_hurt", "root_keeper_death", "root_keeper_slam"),
+    ),
+    StemArchetype(
+        stem_id="sinkhole_updraft_column",
+        group="system_env",
+        prompt="Steady vertical subterranean wind chimney updraft, warm rushing cavern air column with gentle resonant spore hum",
+        seconds_total=5.0,
+        band_lo_hz=45.0,
+        band_hi_hz=4600.0,
+        mix_weight=0.28,
+        attack_guard_ms=28.0,
+        seamless_loop=True,
+        sound_ids=("spore_updraft_vent_pulse", "sinkhole_updraft_loop"),
+    ),
+    StemArchetype(
+        stem_id="sinkhole_sap_elixir",
+        group="item",
+        prompt="Rich thick honeyed liquid pouring into resonance crystal vial, steady warm golden chime swell, deep bouncy fungal cap thrum",
+        seconds_total=2.2,
+        band_lo_hz=120.0,
+        band_hi_hz=7600.0,
+        mix_weight=0.25,
+        attack_guard_ms=18.0,
+        sound_ids=("root_sap_harvest", "root_cap_bounce", "resonant_elixir_drink"),
+    ),
+    StemArchetype(
+        stem_id="boss_tactical_stagger",
+        group="boss",
+        prompt="Sharp metallic psychic target lock warning followed by colossal shattered chitin armor stagger collapse, dry cinematic foley",
+        seconds_total=2.6,
+        band_lo_hz=36.0,
+        band_hi_hz=6200.0,
+        mix_weight=0.30,
+        attack_guard_ms=18.0,
+        sound_ids=("boss_telegraph_lock", "boss_stagger_break"),
+    ),
+    StemArchetype(
+        stem_id="eco_counterplay_amber",
+        group="block_func",
+        prompt="Heavy armored beast slamming chitin pillar stun crunch, pressurized steam ember quench hiss, glowing amber crystal resonance",
+        seconds_total=2.4,
+        band_lo_hz=60.0,
+        band_hi_hz=7200.0,
+        mix_weight=0.26,
+        attack_guard_ms=18.0,
+        sound_ids=("brute_wall_stun", "pyro_shroom_defuse", "amber_vein_resonate"),
+    ),
+    StemArchetype(
+        stem_id="ui_bio_tactile_tech",
+        group="item",
+        prompt="Crisp bio-organic parchment tap, tactile sterile purifier confirmation chime, subtle low-power beacon warning chirp",
+        seconds_total=1.8,
+        band_lo_hz=220.0,
+        band_hi_hz=9200.0,
+        mix_weight=0.20,
+        attack_guard_ms=14.0,
+        sound_ids=("ui_codex_tab", "ui_action_confirm", "station_upkeep_low"),
+    ),
 )
 
 SOUND_TO_ARCHETYPE: dict[str, StemArchetype] = {
@@ -822,6 +904,93 @@ def _postprocess_generated_stem(raw_mono: np.ndarray, arch: StemArchetype) -> np
     return np.clip(w, -0.95, 0.95)
 
 
+def audit_stem_quality(samples: np.ndarray, sample_rate: int = SAMPLE_RATE) -> dict[str, object]:
+    """Audit a cached mono stem for silence ratio, clipping, DC offset, and active energy coverage."""
+    w = np.asarray(samples, dtype=np.float64)
+    n = len(w)
+    if n < 256:
+        return {
+            "ok": False,
+            "rms_dbfs": -96.0,
+            "peak_dbfs": -96.0,
+            "active_ratio": 0.0,
+            "silence_tail_ratio": 1.0,
+            "clipped_samples": 0,
+            "dc_offset": 0.0,
+            "issues": ["stem too short"],
+        }
+    abs_w = np.abs(w)
+    peak = float(np.max(abs_w))
+    rms = float(np.sqrt(np.mean(w * w)))
+    rms_db = float(20.0 * np.log10(max(rms, 1e-6)))
+    peak_db = float(20.0 * np.log10(max(peak, 1e-6)))
+    dc = float(np.mean(w))
+    clipped = int(np.sum(abs_w >= 0.995))
+
+    block = 2048
+    n_blocks = max(1, n // block)
+    if n >= block:
+        blocks = w[: n_blocks * block].reshape(n_blocks, block)
+        b_rms = np.sqrt(np.mean(blocks * blocks, axis=1))
+        b_peak = float(np.max(b_rms))
+        active_mask = b_rms >= (0.06 * b_peak) if b_peak > 1e-7 else np.zeros(n_blocks, dtype=bool)
+        active_ratio = float(np.mean(active_mask))
+        active_idx = np.flatnonzero(active_mask)
+        silence_tail_ratio = float((n_blocks - 1 - int(active_idx[-1])) / float(n_blocks)) if len(active_idx) > 0 else 1.0
+    else:
+        active_ratio = 1.0 if peak > 1e-4 else 0.0
+        silence_tail_ratio = 0.0
+
+    issues: list[str] = []
+    if peak_db < -18.0:
+        issues.append(f"peak too low ({peak_db:.1f} dBFS)")
+    if rms_db < -38.0:
+        issues.append(f"rms too low ({rms_db:.1f} dBFS)")
+    if active_ratio < 0.03:
+        issues.append(f"active_ratio too low ({active_ratio:.2f})")
+    if abs(dc) > 0.02:
+        issues.append(f"dc_offset too high ({dc:.4f})")
+    if clipped > 8:
+        issues.append(f"clipped_samples={clipped}")
+
+    return {
+        "ok": len(issues) == 0,
+        "rms_dbfs": round(rms_db, 2),
+        "peak_dbfs": round(peak_db, 2),
+        "active_ratio": round(active_ratio, 3),
+        "silence_tail_ratio": round(silence_tail_ratio, 3),
+        "clipped_samples": clipped,
+        "dc_offset": round(dc, 5),
+        "duration_secs": round(n / float(sample_rate), 3),
+        "issues": issues,
+    }
+
+
+def audit_all_stems(stems_dir: Path | None = None) -> dict[str, object]:
+    """Audit every registered AI stem on disk and return aggregate QC telemetry."""
+    out_dir = stems_dir or AI_STEMS_DIR
+    per_stem: dict[str, dict[str, object]] = {}
+    failed: list[str] = []
+    missing_files: list[str] = []
+    for arch in AI_STEM_ARCHETYPES:
+        wav_path = out_dir / f"{arch.stem_id}.wav"
+        if not wav_path.is_file():
+            missing_files.append(arch.stem_id)
+            continue
+        qc = audit_stem_quality(_read_wav_mono(wav_path), SAMPLE_RATE)
+        per_stem[arch.stem_id] = qc
+        if not qc["ok"]:
+            failed.append(arch.stem_id)
+    return {
+        "ok": len(missing_files) == 0 and len(failed) == 0,
+        "stem_count": len(AI_STEM_ARCHETYPES),
+        "checked_count": len(per_stem),
+        "missing_files": missing_files,
+        "failed_stems": failed,
+        "stems": per_stem,
+    }
+
+
 def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False) -> dict[str, Path]:
     """Ensure all RTX 4060 Stable Audio Open Small stems exist locally, generating missing ones via CUDA."""
     out_dir = stems_dir or AI_STEMS_DIR
@@ -843,9 +1012,13 @@ def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False)
         for arch in AI_STEM_ARCHETYPES:
             entry = stems_meta.get(arch.stem_id)
             desired_ids = list(arch.sound_ids)
-            if isinstance(entry, dict) and entry.get("sound_ids") != desired_ids:
-                entry["sound_ids"] = desired_ids
-                changed = True
+            if isinstance(entry, dict):
+                if entry.get("sound_ids") != desired_ids:
+                    entry["sound_ids"] = desired_ids
+                    changed = True
+                if "qc" not in entry:
+                    entry["qc"] = audit_stem_quality(_read_wav_mono(out_dir / f"{arch.stem_id}.wav"), SAMPLE_RATE)
+                    changed = True
         if changed:
             manifest_data["stem_count"] = len(AI_STEM_ARCHETYPES)
             manifest_data["mapped_sound_events"] = len(SOUND_TO_ARCHETYPE)
@@ -911,6 +1084,7 @@ def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False)
         _write_wav_mono(wav_path, clean)
         with _STEM_CACHE_LOCK:
             _STEM_WAVE_CACHE[arch.stem_id] = clean
+        qc = audit_stem_quality(clean, SAMPLE_RATE)
         entry = {
             "group": arch.group,
             "prompt": arch.prompt,
@@ -918,8 +1092,9 @@ def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False)
             "batch_index": idx_b,
             "seconds_total": arch.seconds_total,
             "duration_secs": round(len(clean) / float(SAMPLE_RATE), 3),
-            "rms_dbfs": round(float(20.0 * np.log10(max(float(np.sqrt(np.mean(clean * clean))), 1e-6))), 2),
-            "peak_dbfs": round(float(20.0 * np.log10(max(float(np.max(np.abs(clean))), 1e-6))), 2),
+            "rms_dbfs": qc["rms_dbfs"],
+            "peak_dbfs": qc["peak_dbfs"],
+            "qc": qc,
             "sound_ids": list(arch.sound_ids),
         }
         return arch.stem_id, entry
@@ -980,17 +1155,23 @@ def ensure_ai_stems(stems_dir: Path | None = None, *, force_regen: bool = False)
     for arch in AI_STEM_ARCHETYPES:
         wav_path = out_dir / f"{arch.stem_id}.wav"
         if arch.stem_id in stem_entries:
-            final_entries[arch.stem_id] = stem_entries[arch.stem_id]
+            ent = dict(stem_entries[arch.stem_id])
+            ent["sound_ids"] = list(arch.sound_ids)
+            if wav_path.is_file():
+                ent["qc"] = audit_stem_quality(_read_wav_mono(wav_path), SAMPLE_RATE)
+            final_entries[arch.stem_id] = ent
         elif wav_path.is_file():
             clean = _read_wav_mono(wav_path)
+            qc = audit_stem_quality(clean, SAMPLE_RATE)
             final_entries[arch.stem_id] = {
                 "group": arch.group,
                 "prompt": arch.prompt,
                 "seed": _seed_for_stem(arch.stem_id),
                 "seconds_total": arch.seconds_total,
                 "duration_secs": round(len(clean) / float(SAMPLE_RATE), 3),
-                "rms_dbfs": round(float(20.0 * np.log10(max(float(np.sqrt(np.mean(clean * clean))), 1e-6))), 2),
-                "peak_dbfs": round(float(20.0 * np.log10(max(float(np.max(np.abs(clean))), 1e-6))), 2),
+                "rms_dbfs": qc["rms_dbfs"],
+                "peak_dbfs": qc["peak_dbfs"],
+                "qc": qc,
                 "sound_ids": list(arch.sound_ids),
             }
 
@@ -1070,6 +1251,24 @@ def _circular_loop_crossfade(wave: np.ndarray, crossfade_ms: float = 120.0) -> n
     out[:cf] = head * fade_in + tail * fade_out
     out[-cf:] = tail * fade_out + head * fade_in
     return out
+
+
+def _cpu_hpss_harmonic_soft(sig: np.ndarray, sample_rate: int = SAMPLE_RATE, strength: float = 0.60) -> np.ndarray:
+    """CPU STFT Wiener Harmonic/Percussive separation matching cuda_dsp._gpu_hpss_harmonic_soft."""
+    n = len(sig)
+    if strength <= 1e-4 or n < 1024:
+        return sig
+    _, _, zxx = signal.stft(sig, fs=sample_rate, window="hann", nperseg=1024, noverlap=768)
+    mag = np.abs(zxx)
+    h_est = ndimage.uniform_filter1d(mag, size=9, axis=1, mode="constant")
+    p_est = ndimage.uniform_filter1d(mag, size=9, axis=0, mode="constant")
+    h2 = h_est * h_est
+    p2 = p_est * p_est
+    mask_h = h2 / (h2 + p2 + 1e-9)
+    _, out = signal.istft(zxx * ((1.0 - float(strength)) + float(strength) * mask_h), fs=sample_rate, window="hann", nperseg=1024, noverlap=768)
+    if len(out) >= n:
+        return np.asarray(out[:n], dtype=np.float64)
+    return np.pad(np.asarray(out, dtype=np.float64), (0, n - len(out)))
 
 
 def _prepare_seamless_stem_body(stem: np.ndarray, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
@@ -1175,27 +1374,45 @@ def blend_with_ai_stem(
         res_in = resampled
         dsp_in = dsp_wave
 
-    # Try batched RTX CUDA FFT dual-band filtering & envelope following; fall back to CPU SciPy cleanly
+    # Try batched RTX CUDA FFT 3-band filtering, HPSS & envelope following; fall back to CPU SciPy cleanly
     shaped = _gpu_dualband_blend_shape(
         res_in,
         dsp_in,
         sample_rate=SAMPLE_RATE,
         band_lo_hz=arch.band_lo_hz,
         band_hi_hz=arch.band_hi_hz,
+        apply_hpss=not arch.seamless_loop,
     )
     if shaped is None:
-        # Dual-band spectral split + dual envelope following so body weight & upper shimmer never smear each other
+        src_in = _cpu_hpss_harmonic_soft(res_in, SAMPLE_RATE, strength=0.60) if not arch.seamless_loop else res_in
+        s1 = min(240.0, max(arch.band_lo_hz * 1.45, arch.band_hi_hz * 0.12))
+        s2 = min(1800.0, max(s1 * 2.2, arch.band_hi_hz * 0.42))
+        tri = (s1 > arch.band_lo_hz + 25.0) and (s2 > s1 + 140.0) and (arch.band_hi_hz > s2 + 220.0)
         split_hz = min(420.0, max(arch.band_lo_hz * 1.4, arch.band_hi_hz * 0.38))
-        if split_hz > arch.band_lo_hz + 25.0 and arch.band_hi_hz > split_hz + 80.0:
-            stem_lo = _bandpass(res_in, arch.band_lo_hz, split_hz)
-            stem_hi = _bandpass(res_in, max(arch.band_lo_hz, split_hz * 0.85), arch.band_hi_hz)
+        if tri:
+            b2_lo = max(arch.band_lo_hz, s1 * 0.85)
+            b3_lo = max(b2_lo + 40.0, s2 * 0.85)
+            stem_sub = _bandpass(src_in, arch.band_lo_hz, s1)
+            stem_body = _bandpass(src_in, b2_lo, s2)
+            stem_air = _bandpass(src_in, b3_lo, arch.band_hi_hz)
+            dsp_sub = _bandpass(dsp_in, arch.band_lo_hz, s1)
+            dsp_body = _bandpass(dsp_in, b2_lo, s2)
+            dsp_air = _bandpass(dsp_in, b3_lo, arch.band_hi_hz)
+            shaped = (
+                stem_sub * _envelope_follower(dsp_sub, window_ms=28.0)
+                + stem_body * _envelope_follower(dsp_body, window_ms=18.0)
+                + stem_air * _envelope_follower(dsp_air, window_ms=11.0)
+            )
+        elif split_hz > arch.band_lo_hz + 25.0 and arch.band_hi_hz > split_hz + 80.0:
+            stem_lo = _bandpass(src_in, arch.band_lo_hz, split_hz)
+            stem_hi = _bandpass(src_in, max(arch.band_lo_hz, split_hz * 0.85), arch.band_hi_hz)
             dsp_lo = _bandpass(dsp_in, arch.band_lo_hz, split_hz)
             dsp_hi = _bandpass(dsp_in, max(arch.band_lo_hz, split_hz * 0.85), arch.band_hi_hz)
             env_lo = _envelope_follower(dsp_lo, window_ms=22.0)
             env_hi = _envelope_follower(dsp_hi, window_ms=14.0)
             shaped = stem_lo * env_lo + stem_hi * env_hi
         else:
-            filtered = _bandpass(res_in, arch.band_lo_hz, arch.band_hi_hz)
+            filtered = _bandpass(src_in, arch.band_lo_hz, arch.band_hi_hz)
             shaped = filtered * _envelope_follower(dsp_in, window_ms=18.0)
     if wrap > 0:
         shaped = shaped[wrap : wrap + n]

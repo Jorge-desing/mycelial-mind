@@ -7,6 +7,7 @@ import com.alex.mycelialmind.block.AntibodyCystBlock;
 import com.alex.mycelialmind.block.HyphalVeinBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.client.audio.ClientAcousticController;
 import com.alex.mycelialmind.client.model.HyphalVeinDynamicModel;
 import com.alex.mycelialmind.client.model.AcidSpitterModel;
 import com.alex.mycelialmind.client.model.ApexMatriarchModel;
@@ -100,6 +101,10 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.sound.PlaySoundEvent;
+import net.neoforged.neoforge.client.event.sound.PlaySoundSourceEvent;
+import net.neoforged.neoforge.client.event.sound.PlayStreamingSourceEvent;
+import net.neoforged.neoforge.client.event.sound.SoundEngineLoadEvent;
 
 /**
  * Client-side custom 3D model layers, entity/projectile renderers, and emissive glow layers.
@@ -122,6 +127,11 @@ public final class ClientSetup {
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "hyphal_vein");
 
     private ClientSetup() {
+    }
+
+    @SubscribeEvent
+    public static void onSoundEngineLoad(SoundEngineLoadEvent event) {
+        ClientAcousticController.onSoundEngineLoad(event);
     }
 
     @SubscribeEvent
@@ -523,6 +533,21 @@ public final class ClientSetup {
         }
 
         @SubscribeEvent
+        public static void onPlaySound(PlaySoundEvent event) {
+            ClientAcousticController.onPlaySound(event);
+        }
+
+        @SubscribeEvent
+        public static void onPlaySoundSource(PlaySoundSourceEvent event) {
+            ClientAcousticController.onPlaySoundSource(event);
+        }
+
+        @SubscribeEvent
+        public static void onPlayStreamingSource(PlayStreamingSourceEvent event) {
+            ClientAcousticController.onPlayStreamingSource(event);
+        }
+
+        @SubscribeEvent
         public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
             ClientJuiceController.applyCameraShake(event);
         }
@@ -605,6 +630,7 @@ public final class ClientSetup {
                     com.alex.mycelialmind.client.hud.DiegeticToastManager.clear();
                     com.alex.mycelialmind.client.screen.ClientUnreadCodexTracker.clear();
                     ClientSoundscapeDirector.resetSession();
+                    ClientAcousticController.resetSession();
                     ClientJuiceController.reset();
                     com.alex.mycelialmind.client.hud.BioScannerHudOverlay.resetAnimationState();
                     CACHED_THERMAL_CYSTS.clear();
@@ -619,6 +645,7 @@ public final class ClientSetup {
                 return;
             }
             clientSessionActive = true;
+            ClientAcousticController.onClientTick(mc);
             ClientSoundscapeDirector.onClientTick(mc);
             if (mc.screen == null) {
                 while (MycelialKeyBindings.OPEN_CODEX.consumeClick()) {

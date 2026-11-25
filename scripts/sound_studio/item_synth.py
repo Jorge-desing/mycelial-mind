@@ -36,6 +36,9 @@ from scripts.sound_studio.dsp_engine import (
     _wet_squelch_layer,
     adsr_envelope,
     exp_decay,
+    fdn4_hadamard_diffuser,
+    granular_bio_cloud,
+    karplus_strong_chitin,
 )
 
 ITEM_PROJECTILE_IDS: frozenset[str] = frozenset(
@@ -67,6 +70,9 @@ ITEM_PROJECTILE_IDS: frozenset[str] = frozenset(
         "rift_catalyst_ignite",
         "overmind_crown_surge",
         "command_staff_mark",
+        "ui_codex_tab",
+        "ui_action_confirm",
+        "resonant_elixir_drink",
     }
 )
 
@@ -425,5 +431,52 @@ def synthesize_item_sound(
         snap = np.zeros(n, dtype=np.float64)
         snap[tap_s:] = _sos_bandpass(white[tap_s:], 2400.0, 10500.0) * exp_decay(rt, 0.010) * 0.45
         return _cavern_reverb(_sos_highpass(tap + lock + snap, 180.0), rng, wet=0.14, rt60=0.34, lp_hz=7200.0)
+
+    if sound_id == "ui_codex_tab":
+        # Tactile organic parchment leaf flick + warm micro-chitin waveguide tap (low fatigue)
+        onset = int(rng.uniform(0.01, 0.06) * n)
+        rem = max(32, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        leaf = _swept_resonant_filter(pink[onset:], 1100.0, 3800.0, q=1.8) * exp_decay(rt, 0.036) * 0.62
+        tap = karplus_strong_chitin(rem, bf * rng.uniform(0.94, 1.08), rng, damping=0.972, brightness=0.72, stiffness=0.06, excitation="click") * exp_decay(rt, 0.048) * 0.78
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = leaf + tap
+        return _cavern_reverb(_sos_highpass(wave, 220.0), rng, wet=0.06, rt60=0.16, lp_hz=7800.0)
+
+    if sound_id == "ui_action_confirm":
+        # Two-step crisp purifier seal confirm: tactile waveguide latch -> warm ascending fifth chime
+        wave = np.zeros(n, dtype=np.float64)
+        s1 = int(rng.uniform(0.01, 0.04) * n)
+        s2 = min(n - 64, s1 + int(rng.uniform(0.055, 0.085) * SAMPLE_RATE))
+        rem1 = max(32, n - s1)
+        rem2 = max(32, n - s2)
+        t1 = np.arange(rem1, dtype=np.float64) / SAMPLE_RATE
+        t2 = np.arange(rem2, dtype=np.float64) / SAMPLE_RATE
+        f1 = bf * rng.uniform(0.86, 0.92)
+        f2 = bf * rng.uniform(1.30, 1.38)
+        latch = karplus_strong_chitin(rem1, f1, rng, damping=0.980, brightness=0.72, stiffness=0.07, excitation="click") * exp_decay(t1, 0.085) * 0.65
+        tone1 = np.sin(2.0 * np.pi * f1 * t1 + pjit) * adsr_envelope(rem1, 0.03, 0.25, 0.35, 0.35) * 0.48
+        chime2 = (
+            np.sin(2.0 * np.pi * f2 * t2 + rng.uniform(0.0, 2.0 * np.pi)) * 0.76
+            + np.sin(2.0 * np.pi * (f2 * 1.5) * t2) * 0.30
+        ) * adsr_envelope(rem2, 0.04, 0.22, 0.58, 0.38)
+        wave[s1:] += latch + tone1
+        wave[s2:] += chime2
+        return _cavern_reverb(_sos_highpass(np.tanh(wave * 1.25), 240.0), rng, wet=0.09, rt60=0.22, lp_hz=8400.0)
+
+    if sound_id == "resonant_elixir_drink":
+        # Bioluminescent subterranean elixir gulp: viscous liquid cloud -> rising harmonic crystalline resonance
+        gulps = granular_bio_cloud(n, rng, freq_range=(260.0, 1700.0), density_hz=44.0, grain_ms=26.0, organic_mode="viscous") * adsr_envelope(n, 0.04, 0.28, 0.45, 0.36) * 0.85
+        shimmer_s = int(0.24 * n)
+        rem = max(32, n - shimmer_s)
+        st = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        chime = (
+            karplus_strong_chitin(rem, bf, rng, damping=0.992, brightness=0.76, stiffness=0.09, excitation="pluck") * 0.60
+            + karplus_strong_chitin(rem, bf * 1.498, rng, damping=0.992, brightness=0.78, stiffness=0.10, excitation="pluck") * 0.48
+        ) * adsr_envelope(rem, 0.08, 0.22, 0.50, 0.42)
+        swell = _swept_resonant_filter(pink[shimmer_s:], 420.0, 2800.0, q=2.6) * exp_decay(st, 0.24) * 0.35
+        wave = gulps
+        wave[shimmer_s:] += chime + swell
+        return fdn4_hadamard_diffuser(np.tanh(wave * 1.14), rng, rt60=0.52, wet=0.24, damping_hz=6400.0)
 
     raise ValueError(f"Unhandled item/projectile sound_id in item_synth: {sound_id}")

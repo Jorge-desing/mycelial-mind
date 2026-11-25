@@ -306,8 +306,8 @@ public abstract class MycelialBossMob extends MycelialMob {
                             flashPos.x, flashPos.y + 0.6D, flashPos.z, 4, 0.35, 0.2, 0.35, 0.02);
                     level.sendParticles(ModParticles.IMPACT.get(),
                             this.getX(), this.getY(0.65), this.getZ(), 1, 0.1, 0.1, 0.1, 0.05);
-                    level.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(),
-                            SoundSource.HOSTILE, 1.05F, 1.55F);
+                    level.playSound(null, this.blockPosition(), ModSounds.BOSS_TELEGRAPH_LOCK.get(),
+                            SoundSource.HOSTILE, 1.15F, 1.0F);
                 }
                 if (!lockedNow && target != null && target.isAlive()) {
                     this.getLookControl().setLookAt(target, 30.0F, 30.0F);
@@ -448,6 +448,8 @@ public abstract class MycelialBossMob extends MycelialMob {
         setCombatState(BossCombatState.STAGGERED, ticks);
         this.getNavigation().stop();
         this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, ticks, 1, false, true));
+        level.playSound(null, this.blockPosition(), ModSounds.BOSS_STAGGER_BREAK.get(),
+                SoundSource.HOSTILE, 1.35F, 1.0F);
     }
 
     protected void onBossPhaseTransition(ServerLevel level) {

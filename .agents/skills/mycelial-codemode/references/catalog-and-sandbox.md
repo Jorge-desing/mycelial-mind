@@ -2,9 +2,9 @@
 
 ## 0. Identidad y nombres
 
-- El bridge registra **66 herramientas** (`get_bridge_health()["tool_count"]`) y las expone con CodeMode detrás de **3 meta-herramientas**: `search`, `get_schema`, `execute`.
+- El bridge registra **67 herramientas** (`get_bridge_health()["tool_count"]`) y las expone con CodeMode detrás de **3 meta-herramientas**: `search`, `get_schema`, `execute`.
 - En DSH cada herramienta pública se llama `mcp__mycelial-mind-dev__<rawName>` (el sufijo `rawName` es idéntico al nombre del catálogo, p. ej. `mcp__mycelial-mind-dev__run_gradle_task`).
-- `get_schema` resuelve las 66 del catálogo **y** las 3 meta-herramientas (un `get_schema` propio, `MycelialCodeMode`, fusiona ambas listas); solo responde `Tools not found` para nombres inexistentes. Dentro de `execute` solo existe `call_tool`, no los meta-tools.
+- `get_schema` resuelve las 67 del catálogo **y** las 3 meta-herramientas (un `get_schema` propio, `MycelialCodeMode`, fusiona ambas listas); solo responde `Tools not found` para nombres inexistentes. Dentro de `execute` solo existe `call_tool`, no los meta-tools.
 - `list_tool_tags()` devuelve `{"ok", "tags", "tagged_tools"}`; un tool puede pertenecer a varias etiquetas.
 
 ## 1. Etiquetas semánticas (miembros reales)
@@ -17,8 +17,8 @@
 | `registry` | 2 | `get_registered_content`, `list_datapack_content` |
 | `hive` | 3 | `get_hive_ai_overview`, `get_live_hive_status`, `get_live_colony_status` |
 | `skills` | 5 | `list_skills`, `get_skill_guide`, `validate_skills`, `diagnose_symptom`, `get_diagnostics_guide` |
-| `studios` | 9 | `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio`, `inspect_sound_event`, `run_codex_studio`, `run_structure_studio`, `get_uv_manifest`, `audit_mod_assets` |
-| `assets` | 1 | `inspect_sound_event` |
+| `studios` | 10 | `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio`, `inspect_sound_event`, `audit_sound_masking`, `run_codex_studio`, `run_structure_studio`, `get_uv_manifest`, `audit_mod_assets` |
+| `assets` | 2 | `inspect_sound_event`, `audit_sound_masking` |
 | `structures` | 3 | `run_structure_studio`, `check_structure_visual_regression`, `get_latest_structure_visual_smoke` |
 | `visual` | 4 | `check_visual_regression`, `check_structure_visual_regression`, `get_latest_structure_visual_smoke`, `capture_mcpilot_screenshot` |
 | `gradle` | 8 | `run_gradle_task`, `run_verify_mod`, `manage_verify_cache`, `get_latest_junit_report`, `get_latest_pitest_report`, `list_gametests`, `list_unit_tests`, `get_gradle_config` |
@@ -27,7 +27,7 @@
 | `rcon` | 11 | `rcon_command`, `run_rcon_batch`, `run_rcon_verify_suite`, `get_live_hive_status`, `get_live_colony_status`, `run_live_verify_scenario`, `run_live_scenario`, `start_smoke_server`, `start_live_session`, `stop_smoke_server`, `stop_live_session` |
 | `mcpilot` | 9 | `mcpilot_command`, `prepare_mcpilot_client`, `build_mcpilot_compat`, `install_mcpilot_compat`, `stop_mcpilot_client`, `collect_spark_tps`, `capture_mcpilot_screenshot`, `start_live_session`, `stop_live_session` |
 | `jfr` | 3 | `list_java_processes`, `run_jfr`, `summarize_jfr` |
-| `diagnostics` | 22 | `collect_diagnostic_bundle`, `diagnose_symptom`, `get_diagnostics_guide`, `list_diagnostic_artifacts`, `read_diagnostic_logs`, `run_live_scenario`, `run_live_verify_scenario`, `run_rcon_verify_suite`, `get_latest_live_report`, `compare_live_reports`, `start_smoke_server`, `smoke_server_status`, `run_jfr`, `summarize_jfr`, `list_java_processes`, `audit_mod_assets`, `check_visual_regression`, `capture_audit_snapshot`, `diff_audit_snapshots`, `get_latest_worldgen_audit`, `collect_spark_tps`, `run_verify_mod` |
+| `diagnostics` | 23 | `collect_diagnostic_bundle`, `diagnose_symptom`, `get_diagnostics_guide`, `list_diagnostic_artifacts`, `read_diagnostic_logs`, `run_live_scenario`, `run_live_verify_scenario`, `run_rcon_verify_suite`, `get_latest_live_report`, `compare_live_reports`, `start_smoke_server`, `smoke_server_status`, `run_jfr`, `summarize_jfr`, `list_java_processes`, `audit_mod_assets`, `audit_sound_masking`, `check_visual_regression`, `capture_audit_snapshot`, `diff_audit_snapshots`, `get_latest_worldgen_audit`, `collect_spark_tps`, `run_verify_mod` |
 
 ## 2. Argumentos con defaults que importan (verificados con `get_schema`)
 
@@ -43,7 +43,8 @@
 | `run_particle_studio` | `check_only=true`, `export_extras=false`, `run_tests=true`; valida sprites/descriptores/registro y paridad con `particles.json`. |
 | `run_texture_studio` | `check_only=true`, **`pbr=true`**, `export_extras=false`, `run_tests=true`. |
 | `run_sound_studio` | `check_only=true`, `run_tests=true`, `only=None`, `changed_only=false`, `check_baseline=false`, `update_baseline=false`; no expone `--regen-ai-stems` (hazlo por consola con `build_sounds.py --regen-ai-stems`). |
-| `inspect_sound_event` | `sound_id` obligatorio; inspecciona telemetría acústica, IR room, stem IA, `.ogg` y delta respecto a `sound_baseline.json`. |
+| `inspect_sound_event` | `sound_id` obligatorio; inspecciona telemetría acústica + QA v4 (`lra_lu`, `short_term_lufs_max`, `mud_ratio`, `harshness_ratio`, `bark_peak_band`, `timbral_diversity`), IR room, stem IA, `.ogg` y delta respecto a `sound_baseline.json`. |
+| `audit_sound_masking` | `top_n=12`; audita enmascaramiento espectral Bark 24-bandas entre camas y primer plano, headroom dB, LRA, diversidad tímbrica y QC de los 66 stems RTX. |
 | `run_codex_studio` | `check_only=true`, `report=false`, `run_tests=true`; valida cobertura/refs/presupuesto del códice o exporta con `check_only=false`. |
 | `get_hive_ai_overview` | Sin args; resume `hive/` (`enums`, `hive_files`), **`colony/` (`colony_enums`, `colony_files`)**, `entity/ai/**` (`ai_files`) y `ModMemoryTypes`. |
 | `get_live_colony_status` | `host="127.0.0.1"`, `port=25575`, `password="mycelialtest"`, `include_cycle=true`; parsa `/mycelial colony status` y `/mycelial cycle status`. |
@@ -89,7 +90,7 @@ return await call_tool("diff_audit_snapshots", {"before_label": "before", "after
 | Recurso | Tipo | Contenido |
 | --- | --- | --- |
 | `mycelial://bridge/health` | JSON | `get_bridge_health()` (incluye `instance_id`/`pid`/uptime) |
-| `mycelial://bridge/tools` | JSON | `{count, tools:[{name, tags}]}` de las 66 herramientas |
+| `mycelial://bridge/tools` | JSON | `{count, tools:[{name, tags}]}` de las 67 herramientas |
 | `mycelial://bridge/tags` | JSON | `list_tool_tags()` |
 | `mycelial://memory/tail` | Markdown | últimas 60 líneas de `MEMORY.md` |
 | `mycelial://skills` | JSON | índice de skills y sus referencias |

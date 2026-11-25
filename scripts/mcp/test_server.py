@@ -495,11 +495,12 @@ import asyncio
     call_tool("run_sound_studio", {{"check_only": True, "run_tests": True}}),
     call_tool("run_codex_studio", {{"check_only": True, "run_tests": True}}),
 )
-latest_live, diag_bundle, missing_artifacts, sound_inspect, live_colony, diag_colony = await asyncio.gather(
+latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony = await asyncio.gather(
     call_tool("get_latest_live_report", {{}}),
     call_tool("collect_diagnostic_bundle", {{"log_tail_lines": 20, "max_artifacts": 5}}),
     call_tool("list_diagnostic_artifacts", {{"subdir": "nonexistent_subdir_12345"}}),
-    call_tool("inspect_sound_event", {{"sound_id": "boss_weakpoint_crit"}}),
+    call_tool("inspect_sound_event", {{"sound_id": "boss_stagger_break"}}),
+    call_tool("audit_sound_masking", {{"top_n": 8}}),
     call_tool("get_live_colony_status", {{"port": {rcon_port}, "password": "secret"}}),
     call_tool("diagnose_symptom", {{"symptom": "dialecto", "include_live_state": False}}),
 )
@@ -525,7 +526,16 @@ return {{
         and missing_artifacts.get("returned_count") == 0
     ),
     "sound_studio_ok": sound_chk.get("ok"),
-    "sound_inspect_ok": sound_inspect.get("ok") and sound_inspect.get("sound_id") == "boss_weakpoint_crit",
+    "sound_inspect_ok": (
+        sound_inspect.get("ok")
+        and sound_inspect.get("sound_id") == "boss_stagger_break"
+        and "psychoacoustic_v4" in sound_inspect
+    ),
+    "sound_masking_ok": (
+        sound_masking.get("ok") is True
+        and sound_masking.get("beds_checked") == 9
+        and sound_masking.get("high_risk_count") == 0
+    ),
     "codex_studio_ok": codex_chk.get("ok"),
     "live_colony_ok": (
         live_colony.get("ok") is True
@@ -577,13 +587,14 @@ return {{
             assert payload["asset_lang"].get("referenced_keys_count", 0) >= 100
             assert payload["asset_lang"].get("missing_referenced_keys") == []
             assert payload["blockstates_count"] >= 20
-            assert payload["sounds_json_count"] == 208
-            assert payload["ogg_files_count"] == 552
+            assert payload["sounds_json_count"] == 220
+            assert payload["ogg_files_count"] == 580
             assert payload["missing_sound_files"] == []
             assert payload["vanilla_event_redirects"] == 0
             assert payload["audio_quality_ok"] is True
             assert payload["sound_studio_ok"] is True
             assert payload["sound_inspect_ok"] is True
+            assert payload["sound_masking_ok"] is True
             assert payload["codex_studio_ok"] is True
             assert payload["live_colony_ok"] is True
             assert payload["diag_colony_ok"] is True
@@ -639,7 +650,7 @@ return {{
             assert payload["rcon_closed_ok"] is False
             assert payload["struct_studio_ok"] is True
             assert payload["tags_ok"] is True
-            assert payload["tagged_tools_count"] >= 66
+            assert payload["tagged_tools_count"] >= 67
             assert payload["metrics_tracked_tools"] >= 20
             assert payload["cache_hits"] >= 1
             assert payload["cleared_ok"] is True

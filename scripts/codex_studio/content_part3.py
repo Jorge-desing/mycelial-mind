@@ -1732,19 +1732,26 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         "reclaimed_bloom_pulse", "primordial_presence_pulse", "colony_dialect_mastered",
         "colony_dialect_conflict", "colony_raid_horn", "colony_reconstruction_pulse",
         "sovereign_nexus_hum", "boss_combat_tension_bed",
+        "spore_glider_ambient", "spore_glider_hurt", "spore_glider_death",
+        "root_keeper_ambient", "root_keeper_hurt", "root_keeper_death",
+        "root_keeper_slam", "spore_updraft_vent_pulse",
+        "ui_codex_tab", "ui_action_confirm", "sinkhole_updraft_loop",
+        "root_sap_harvest", "root_cap_bounce", "resonant_elixir_drink",
+        "boss_telegraph_lock", "boss_stagger_break", "brute_wall_stun",
+        "pyro_shroom_defuse", "station_upkeep_low", "amber_vein_resonate",
     ]
     sound_blocks = [
         (
-            "• **Estudio Visual y Audio:** 18 `Model` multi-articulados (UV manifests), texturas LabPBR "
-            "`_n`/`_s`, `ClientSoundscapeDirector` y **200 eventos `ModSounds`** (**532** `.ogg` mono `44.1kHz`).",
-            "• **Visual & Audio Studio:** 18 articulated 3D models (UV manifests), LabPBR `_n`/`_s` "
-            "maps, `ClientSoundscapeDirector`, and **200 `ModSounds`** (**532** mono `44.1kHz` `.ogg`).",
+            "• **Estudio Visual y Audio v4:** 20 `Model` multi-articulados (UV manifests), LabPBR `_n`/`_s`, "
+            "OpenAL EFX (`OpenAlEfxBridge`, `ClientAcousticController`), 7 camas reactivas y **220 `ModSounds`** (**580** `.ogg`, 66 stems).",
+            "• **Visual & Audio Studio v4:** 20 articulated 3D models (UV manifests), LabPBR `_n`/`_s`, "
+            "OpenAL EFX (`OpenAlEfxBridge`, `ClientAcousticController`), 7 reactive beds, and **220 `ModSounds`** (**580** `.ogg`, 66 stems).",
         ),
         (
-            "• **Dinámica Vocal:** tono modulable (`0.45–1.85`) según Rango (`BASE/MUTATED/ELITE`), Cepa "
-            "(`AMBER x1.06`, `CRIMSON x0.93`), Frenesí (`x1.10`), Líder (`x0.94`), `Desync` (`x0.86`) u Oclusión (`x0.92`).",
-            "• **Vocal Pitch Formula:** dynamic multiplier (`0.45–1.85`) by Rank, Strain (`AMBER x1.06`, "
-            "`CRIMSON x0.93`), Frenzy (`x1.10`), Leader (`x0.94`), `Desync` (`x0.86`) & Occlusion (`x0.92`).",
+            "• **Dinámica Vocal y OpenAL EFX:** tono (`0.45–1.85`) por Rango/Cepa/Frenesí/Líder/`Desync`; "
+            "raycast de materiales + EAXReverb (`AcousticPhysicsEngine`) por oyente y límite anti-cacofonía.",
+            "• **Vocal Pitch & OpenAL EFX:** pitch (`0.45–1.85`) by Rank/Strain/Frenzy/Leader/`Desync`; "
+            "per-listener material raycast + EAXReverb (`AcousticPhysicsEngine`) & swarm anti-cacophony.",
         ),
     ]
     for i in range(0, len(all_181_sounds), 6):
@@ -1761,8 +1768,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[hud] hudCompactMode` = `false`; `hudContextualCombat` = `true`; `hudRequireHeld` = `true`; `showSynapticVisionBorder` = `true`."),
         ("• `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`).",
          "• `[atmosphere] sporeFogDensityScale` = `1.0` (`0.25..1.0`)."),
-        ("• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`.",
-         "• `[audio] ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`."),
+        ("• `[audio]` `ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`.",
+         "• `[audio]` `ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`."),
+        ("• `[audio] (v4)` `openAlEfxAcousticsEnabled` = `true`; `openAlEfxVanillaInMycelialZones` = `true`; `swarmVoiceLimitingEnabled` = `true`; `sinkholeUpdraftBedEnabled` = `true`.",
+         "• `[audio] (v4)` `openAlEfxAcousticsEnabled` = `true`; `openAlEfxVanillaInMycelialZones` = `true`; `swarmVoiceLimitingEnabled` = `true`; `sinkholeUpdraftBedEnabled` = `true`."),
         ("• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.",
          "• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`."),
         ("• `[juice]` `screenShakeScale` = `0.65` (`0..1.5`); `statusVignetteEnabled` = `true`; `uiAudioFeedbackEnabled` = `true`; `smoothHudBarsEnabled` = `true`.",
@@ -1908,10 +1917,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`/mycelial symbiosis <status|clear|grant <mutagen>>`.",
                         ),
                         (
-                            "• **Ciclos, Homeostasis y Mundo:** `/mycelial cycle <status|start|abort|reset>`, "
-                            "`/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
-                            "• **Cycles, Homeostasis & World:** `/mycelial cycle <status|start|abort|reset>`, "
-                            "`/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial worldgen audit [radius] [grid]`.",
+                            "• **Ciclos, Homeostasis, Audio y Mundo:** `/mycelial cycle <status|start|abort|reset>`, "
+                            "`/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial audio <status|test <sound_id>>`, "
+                            "`/mycelial worldgen audit [radius] [grid]`.",
+                            "• **Cycles, Homeostasis, Audio & World:** `/mycelial cycle <status|start|abort|reset>`, "
+                            "`/mycelial homeostasis <status|stress <0..100>|sedate>`, `/mycelial audio <status|test <sound_id>>`, "
+                            "`/mycelial worldgen audit [radius] [grid]`.",
                         ),
                         (
                             "• **`/mycelial verify <escenario|worldgen|all>` (1–11):** `projectile_adaptation`, "
@@ -1939,8 +1950,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         number=12,
         title=lt("Técnica, Config y Comandos", "Tech, Configs & Commands"),
         subtitle=lt(
-            "208 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 24 Verify",
-            "208 Sounds, LabPBR, 49 Configs, Net v23, /mycelial & 24 Verify",
+            "220 Sonidos, OpenAL EFX, 53 Configs, Red v23, /mycelial y 24 Verify",
+            "220 Sounds, OpenAL EFX, 53 Configs, Net v23, /mycelial & 24 Verify",
         ),
         icon_item="mycelialmind:bio_scanner",
         entries=ch12_entries,

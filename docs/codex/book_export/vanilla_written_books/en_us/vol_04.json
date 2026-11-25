@@ -5,7 +5,7 @@
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 95,
+  "page_count": 97,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.IV"
@@ -210,61 +210,64 @@
         "raw": "Engram X: Overmind\nCycle (2/2)\n• Tactical Note\n(Cycles): Stack up to\n3 high-risk mutators\n(`primordial_apex` +\n`perpetual_tide` +\n`synaptic_swarm`) with\nzero deaths to reach\nS+."
       },
       {
-        "raw": "Cap.12: Config Catalog\n(13 Client / 43\nServer)\nTOML Configuration\nKeys (1/14)\n• `[hud] hudAnchor` =\n`TOP_LEFT`\n(`TOP_LEFT`,\n`TOP_RIGHT`,\n`BOTTOM_LEFT`,\n`BOTTOM_RIGHT`).\n• `[hud] hudOffsetX` =\n`0` (`-200..200`);\n`hudOffsetY` = `0`"
+        "raw": "Cap.12: Config Catalog\n(13 Client / 43\nServer)\nTOML Configuration\nKeys (1/15)\n• `[hud] hudAnchor` =\n`TOP_LEFT`\n(`TOP_LEFT`,\n`TOP_RIGHT`,\n`BOTTOM_LEFT`,\n`BOTTOM_RIGHT`).\n• `[hud] hudOffsetX` =\n`0` (`-200..200`);\n`hudOffsetY` = `0`"
       },
       {
         "raw": "(`-200..200`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (2/14)\n• `[hud]\nhudCompactMode` =\n`false`;\n`hudContextualCombat`\n= `true`;\n`hudRequireHeld` =\n`true`;\n`showSynapticVisionBo\nrder` = `true`.\n• `[atmosphere]\nsporeFogDensityScale`\n= `1.0` (`0.25..1.0`)."
+        "raw": "TOML Configuration\nKeys (2/15)\n• `[hud]\nhudCompactMode` =\n`false`;\n`hudContextualCombat`\n= `true`;\n`hudRequireHeld` =\n`true`;\n`showSynapticVisionBo\nrder` = `true`.\n• `[atmosphere]\nsporeFogDensityScale`\n= `1.0` (`0.25..1.0`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (3/14)\n• `[audio]\nambientSoundscapeVol\nume` = `1.0` (`0..1`);\n`hiveAdaptationAudioAl\nerts` = `true`;\n`caveSoundOcclusion`\n= `true`;\n`dynamicAudioDucking`\n= `true`;\n`bossTensionBedEnabl\ned` = `true`."
+        "raw": "TOML Configuration\nKeys (3/15)\n• `[audio]`\n`ambientSoundscapeVol\nume` = `1.0` (`0..1`);\n`hiveAdaptationAudioAl\nerts` = `true`;\n`caveSoundOcclusion`\n= `true`;\n`dynamicAudioDucking`\n= `true`;\n`bossTensionBedEnabl\ned` = `true`."
       },
       {
-        "raw": "TOML Configuration\nKeys (4/14)\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle\nGlow` = `true`."
+        "raw": "TOML Configuration\nKeys (4/15)\n• `[audio] (v4)`\n`openAlEfxAcousticsEn\nabled` = `true`;\n`openAlEfxVanillaInMyc\nelialZones` = `true`;\n`swarmVoiceLimitingEna\nbled` = `true`;\n`sinkholeUpdraftBedEn\nabled` = `true`."
       },
       {
-        "raw": "TOML Configuration\nKeys (5/14)\n• `[juice]`\n`screenShakeScale` =\n`0.65` (`0..1.5`);\n`statusVignetteEnabled\n` = `true`;\n`uiAudioFeedbackEnabl\ned` = `true`;\n`smoothHudBarsEnable\nd` = `true`."
+        "raw": "TOML Configuration\nKeys (5/15)\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle\nGlow` = `true`."
       },
       {
-        "raw": "TOML Configuration\nKeys (6/14)\n• `[hive_memory]`\n`learningMultiplier`=`1.0\n` (`0.1..10`),\n`decayPerMinute`=`2.0`\n(`0..50`),\n`traitActivationThresh\nold`=`70.0` (`5..500`).\n• `[hive_memory]`\n`tier2ActivationThresh\nold`=`200.0` (`25..500`),"
+        "raw": "TOML Configuration\nKeys (6/15)\n• `[juice]`\n`screenShakeScale` =\n`0.65` (`0..1.5`);\n`statusVignetteEnabled\n` = `true`;\n`uiAudioFeedbackEnabl\ned` = `true`;\n`smoothHudBarsEnable\nd` = `true`."
+      },
+      {
+        "raw": "TOML Configuration\nKeys (7/15)\n• `[hive_memory]`\n`learningMultiplier`=`1.0\n` (`0.1..10`),\n`decayPerMinute`=`2.0`\n(`0..50`),\n`traitActivationThresh\nold`=`70.0` (`5..500`).\n• `[hive_memory]`\n`tier2ActivationThresh\nold`=`200.0` (`25..500`),"
       },
       {
         "raw": "`tier2DecayMultiplier`=`\n1.75` (`1..5`),\n`synergiesEnabled`=`tr\nue`."
       },
       {
-        "raw": "TOML Configuration\nKeys (7/14)\n• `[hive_memory]`\n`suppressorCooldownS\neconds`=`120`\n(`15..600`),\n`projectileDeflectChan\nce`=`0.30` (`0..0.95`),\n`symbiosisThreatMultipl\nierPerSlot`=`0.15`\n(`0..1`).\n• `[hive_memory]`\n`maxMutagenSlots`=`2`\n(`1..5`),"
+        "raw": "TOML Configuration\nKeys (8/15)\n• `[hive_memory]`\n`suppressorCooldownS\neconds`=`120`\n(`15..600`),\n`projectileDeflectChan\nce`=`0.30` (`0..0.95`),\n`symbiosisThreatMultipl\nierPerSlot`=`0.15`\n(`0..1`).\n• `[hive_memory]`\n`maxMutagenSlots`=`2`\n(`1..5`),"
       },
       {
         "raw": "`counterSerumBleedRa\ntio`=`0.50` (`0.1..0.95`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (8/14)\n• `[territory]`\n`myceliumSpreadEnable\nd`=`true`,\n`myceliumSpreadChanc\ne`=`0.12` (`0..1`),\n`pylonPurificationRadiu\ns`=`24` (`4..64`),\n`pylonTier3ChunkLoadi\nngEnabled`=`true`."
+        "raw": "TOML Configuration\nKeys (9/15)\n• `[territory]`\n`myceliumSpreadEnable\nd`=`true`,\n`myceliumSpreadChanc\ne`=`0.12` (`0..1`),\n`pylonPurificationRadiu\ns`=`24` (`4..64`),\n`pylonTier3ChunkLoadi\nngEnabled`=`true`."
       },
       {
-        "raw": "TOML Configuration\nKeys (9/14)\n• `[territory]`\n`synapticNodeLinkRadiu\ns`=`28` (`8..64`),\n`nodeDestructionStimul\nusBleed`=`18.0`\n(`0..100`),\n`burrowerBlockBreakin\ng`=`true`.\n• `[territory]`\n`playerCountScaling`=`\n0.15` (`0..1`),\n`wavesEnabled`=`true`,"
+        "raw": "TOML Configuration\nKeys (10/15)\n• `[territory]`\n`synapticNodeLinkRadiu\ns`=`28` (`8..64`),\n`nodeDestructionStimul\nusBleed`=`18.0`\n(`0..100`),\n`burrowerBlockBreakin\ng`=`true`.\n• `[territory]`\n`playerCountScaling`=`\n0.15` (`0..1`),"
       },
       {
-        "raw": "`waveCooldownTicks`=`\n3600` (`200..72000`)."
+        "raw": "`wavesEnabled`=`true`,\n`waveCooldownTicks`=`\n3600` (`200..72000`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (10/14)\n• `[territory]`\n`autonomousExpansion\nEnabled`=`true`,\n`aggressiveVillageAssi\nmilation`=`true`,\n`maxAutonomousNodes`\n=`32` (`4..128`),\n`minNodeSpacing`=`18`\n(`8..48`)."
+        "raw": "TOML Configuration\nKeys (11/15)\n• `[territory]`\n`autonomousExpansion\nEnabled`=`true`,\n`aggressiveVillageAssi\nmilation`=`true`,\n`maxAutonomousNodes`\n=`32` (`4..128`),\n`minNodeSpacing`=`18`\n(`8..48`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (11/14)\n• `[territory]`\n`infectionConversionEn\nabled`=`true`,\n`fungalTideEnabled`=`t\nrue`,\n`fungalTideDurationTic\nks`=`6000`\n(`600..24000`).\n• `[territory]`\n`fungalTideCooldownTic\nks`=`24000`\n(`1200..72000`),"
+        "raw": "TOML Configuration\nKeys (12/15)\n• `[territory]`\n`infectionConversionEn\nabled`=`true`,\n`fungalTideEnabled`=`t\nrue`,\n`fungalTideDurationTic\nks`=`6000`\n(`600..24000`).\n• `[territory]`\n`fungalTideCooldownTic\nks`=`24000`\n(`1200..72000`),"
       },
       {
         "raw": "`mycorrhizalAcoustics\nEnabled`=`true`,\n`maxSymbioticNodes`=`4\n` (`1..16`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (12/14)\n• `[territory]`\n`mycorrhizalTravelRan\nge`=`96` (`16..256`),\n`mycorrhizalTravelCoo\nldownTicks`=`1500`\n(`100..6000`).\n• `[territory]`\n`progressiveThreatSc\naling`=`true`,\n`deathThreatPenalty`=`\n5.0` (`0..25`)."
+        "raw": "TOML Configuration\nKeys (13/15)\n• `[territory]`\n`mycorrhizalTravelRan\nge`=`96` (`16..256`),\n`mycorrhizalTravelCoo\nldownTicks`=`1500`\n(`100..6000`).\n• `[territory]`\n`progressiveThreatSc\naling`=`true`,\n`deathThreatPenalty`=`\n5.0` (`0..25`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (13/14)\n•\n`[dimensional_homeosta\nsis]`\n`homeostasisEnabled`=`\ntrue`,\n`homeostasisExplosion\nStressScale`=`1.0`\n(`0.1..5`),\n`homeostasisAcidRainD\namage`=`2.0` (`0.5..10`)."
+        "raw": "TOML Configuration\nKeys (14/15)\n•\n`[dimensional_homeosta\nsis]`\n`homeostasisEnabled`=`\ntrue`,\n`homeostasisExplosion\nStressScale`=`1.0`\n(`0.1..5`),\n`homeostasisAcidRainD\namage`=`2.0` (`0.5..10`)."
       },
       {
-        "raw": "TOML Configuration\nKeys (14/14)\n•\n`[dimensional_homeosta\nsis]`\n`homeostasisAntibodyE\nncapsulationEnabled`=`\ntrue`,\n`homeostasisMaxCysts\nPerChunk`=`64`\n(`8..256`).\n• `[hyphal_network]`\n`rootTraversalThresh\nold`=`5` (`2..32`),"
+        "raw": "TOML Configuration\nKeys (15/15)\n•\n`[dimensional_homeosta\nsis]`\n`homeostasisAntibodyE\nncapsulationEnabled`=`\ntrue`,\n`homeostasisMaxCysts\nPerChunk`=`64`\n(`8..256`).\n• `[hyphal_network]`\n`rootTraversalThresh\nold`=`5` (`2..32`),"
       },
       {
         "raw": "`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
@@ -288,7 +291,10 @@
         "raw": "Admin Commands,\nPayloads & Verify\n(4/7)\n• Colony & Symbiosis:\n`/mycelial colony\n<status|incubate|upgra\nde|raid>`, `/mycelial\nsymbiosis\n<status|clear|grant\n<mutagen>>`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(5/7)\n• Cycles, Homeostasis\n& World: `/mycelial\ncycle\n<status|start|abort|re\nset>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,\n`/mycelial worldgen\naudit [radius] [grid]`."
+        "raw": "Admin Commands,\nPayloads & Verify\n(5/7)\n• Cycles, Homeostasis,\nAudio & World:\n`/mycelial cycle\n<status|start|abort|re\nset>`, `/mycelial\nhomeostasis\n<status|stress\n<0..100>|sedate>`,\n`/mycelial audio\n<status|test\n<sound_id>>`,"
+      },
+      {
+        "raw": "`/mycelial worldgen\naudit [radius] [grid]`."
       },
       {
         "raw": "Admin Commands,\nPayloads & Verify\n(6/7)\n• `/mycelial verify\n<scenario|worldgen|all\n>` (1–11):\n`projectile_adaptation\n`, `pylon_containment`,\n`boss_encounter`,\n`tier2_synergy`,\n`synaptic_network`,\n`symbiosis`, `units`,\n`expansion`, `tide`,"

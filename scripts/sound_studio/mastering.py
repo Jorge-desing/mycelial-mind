@@ -57,6 +57,7 @@ SEAMLESS_LOOP_IDS: frozenset[str] = frozenset(
         "mycelial_rift_hum",
         "sovereign_nexus_hum",
         "boss_combat_tension_bed",
+        "sinkhole_updraft_loop",
     }
 )
 

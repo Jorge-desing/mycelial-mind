@@ -10,7 +10,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -88,8 +87,8 @@ public class RootSapMossBlock extends Block {
             serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
                     pos.getX() + 0.5D, pos.getY() + 1.05D, pos.getZ() + 0.5D,
                     12, 0.3D, 0.2D, 0.3D, 0.03D);
-            serverLevel.playSound(null, pos, isExtractor ? ModSounds.BIO_EXTRACTOR_DRAW.get() : SoundEvents.BOTTLE_FILL,
-                    SoundSource.BLOCKS, 0.85F, 1.1F);
+            serverLevel.playSound(null, pos, isExtractor ? ModSounds.BIO_EXTRACTOR_DRAW.get() : ModSounds.ROOT_SAP_HARVEST.get(),
+                    SoundSource.BLOCKS, 0.85F, 1.05F);
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }

@@ -412,6 +412,234 @@ def _cavern_reverb(sig: np.ndarray, rng: np.random.Generator, *, wet: float = 0.
     return sig * (1.0 - wet * 0.35) + wet_sig * wet
 
 
+def rosenberg_glottal_pulse(
+    phase_cycles: np.ndarray,
+    *,
+    open_quotient: float = 0.56,
+    speed_quotient: float = 2.2,
+) -> np.ndarray:
+    """Physically modeled Rosenberg glottal pulse (differentiated for lip radiation)."""
+    n = len(phase_cycles)
+    if n == 0:
+        return np.zeros(0, dtype=np.float64)
+    p = np.mod(phase_cycles, 1.0)
+    oq = float(np.clip(open_quotient, 0.25, 0.85))
+    sq = float(np.clip(speed_quotient, 1.1, 4.0))
+    tp = oq * (sq / (sq + 1.0))
+    tn = max(1e-4, oq - tp)
+
+    pulse = np.zeros(n, dtype=np.float64)
+    open_mask = p < tp
+    close_mask = (p >= tp) & (p < oq)
+    if np.any(open_mask):
+        pulse[open_mask] = 0.5 * (1.0 - np.cos(np.pi * p[open_mask] / max(1e-4, tp)))
+    if np.any(close_mask):
+        pulse[close_mask] = np.cos(0.5 * np.pi * (p[close_mask] - tp) / tn)
+    # Differentiated glottal flow models lip radiation (+6 dB/oct brilliance)
+    diff = np.diff(pulse, prepend=pulse[0])
+    peak = float(np.max(np.abs(diff)))
+    return diff / max(peak, 1e-6)
+
+
+def articulated_vocal_tract(
+    t: np.ndarray,
+    freq_curve: np.ndarray,
+    formant_trajectories: list[tuple[float, float, float, float]],
+    rng: np.random.Generator,
+    *,
+    open_quotient: float = 0.55,
+    sub_weight: float = 0.45,
+    breath_noise: float = 0.14,
+) -> np.ndarray:
+    """Bio-organic vocal tract combining Rosenberg glottal excitation with time-varying formant glides."""
+    n = len(t)
+    if n == 0:
+        return np.zeros(0, dtype=np.float64)
+    f_safe = np.maximum(24.0, np.asarray(freq_curve, dtype=np.float64))
+    phase_cycles = np.cumsum(f_safe) / float(SAMPLE_RATE) + rng.uniform(0.0, 1.0)
+    glottal = rosenberg_glottal_pulse(phase_cycles, open_quotient=open_quotient)
+    sub = np.sin(2.0 * np.pi * (phase_cycles * 0.5) + rng.uniform(0.0, 6.28)) * sub_weight
+    breath = _sos_bandpass(_pink_noise(rng, n), 650.0, 4800.0) * breath_noise
+    excitation = glottal + sub + breath
+
+    out = np.zeros(n, dtype=np.float64)
+    for f_start, f_end, q, gain in formant_trajectories:
+        out += gain * _swept_resonant_filter(excitation, float(f_start), float(f_end), q=float(q), n_bands=10)
+    return out
+
+
+def granular_bio_cloud(
+    n: int,
+    rng: np.random.Generator,
+    *,
+    freq_range: tuple[float, float] = (280.0, 2400.0),
+    density_hz: float = 45.0,
+    grain_ms: float = 26.0,
+    organic_mode: str = "spore",
+) -> np.ndarray:
+    """Deterministic Hann-windowed granular bio-texture cloud (spore | chitin | viscous)."""
+    if n <= 32:
+        return np.zeros(max(0, n), dtype=np.float64)
+    dur = n / float(SAMPLE_RATE)
+    grain_count = max(4, min(320, int(round(dur * max(4.0, density_hz)))))
+    lo_hz, hi_hz = float(freq_range[0]), max(float(freq_range[0]) + 40.0, float(freq_range[1]))
+    base_glen = max(48, int(SAMPLE_RATE * grain_ms / 1000.0))
+    out = np.zeros(n, dtype=np.float64)
+
+    for _ in range(grain_count):
+        glen = min(n, max(32, int(base_glen * rng.uniform(0.65, 1.45))))
+        pos = int(rng.integers(0, max(1, n - glen + 1)))
+        gt = np.arange(glen, dtype=np.float64) / float(SAMPLE_RATE)
+        win = np.hanning(glen)
+        f0 = float(rng.uniform(lo_hz, hi_hz))
+        amp = float(rng.uniform(0.35, 1.0))
+        phase = float(rng.uniform(0.0, 2.0 * np.pi))
+
+        if organic_mode == "chitin":
+            grain = (
+                np.sin(2.0 * np.pi * f0 * gt + phase) * 0.65
+                + np.sin(2.0 * np.pi * min(15500.0, f0 * 2.41) * gt + phase) * 0.35
+            ) * np.exp(-gt / max(0.004, (glen / SAMPLE_RATE) * 0.35))
+        elif organic_mode == "viscous":
+            f_curve = f0 * (0.72 + 0.68 * (gt / max(1e-4, gt[-1])))
+            grain = np.sin(2.0 * np.pi * np.cumsum(f_curve) / float(SAMPLE_RATE) + phase)
+        else:  # spore
+            grain = (
+                np.sin(2.0 * np.pi * f0 * gt + phase) * 0.58
+                + np.sin(2.0 * np.pi * min(14000.0, f0 * 1.498) * gt + phase * 0.7) * 0.25
+                + rng.normal(0.0, 0.22, glen)
+            )
+        out[pos : pos + glen] += grain * win * amp
+
+    rms = float(np.sqrt(np.mean(out * out)))
+    return out / max(rms, 1e-6) * 0.45 if rms > 1e-8 else out
+
+
+def karplus_strong_chitin(
+    n: int,
+    freq_hz: float,
+    rng: np.random.Generator,
+    *,
+    damping: float = 0.988,
+    brightness: float = 0.65,
+    stiffness: float = 0.10,
+    excitation: str = "pluck",
+) -> np.ndarray:
+    """Block-vectorized Karplus-Strong physical waveguide for chitin plates, elastic caps & amber chimes."""
+    if n <= 16:
+        return np.zeros(max(0, n), dtype=np.float64)
+    period = max(8, min(n // 2, int(round(SAMPLE_RATE / max(32.0, float(freq_hz))))))
+    out = np.zeros(n, dtype=np.float64)
+
+    exc = rng.normal(0.0, 1.0, period)
+    if excitation == "bounce":
+        et = np.linspace(0.0, 1.0, period, endpoint=False)
+        exc = np.sin(np.pi * et) * 0.85 + exc * 0.22
+    elif excitation == "click":
+        exc *= np.exp(-np.linspace(0.0, 4.5, period))
+    elif excitation == "strike":
+        exc = _sos_lowpass(exc, min(12000.0, float(freq_hz) * 6.5))
+    exc = exc - np.mean(exc)
+    peak_e = float(np.max(np.abs(exc)))
+    if peak_e > 1e-8:
+        exc /= peak_e
+    out[:period] = exc
+
+    damp = float(np.clip(damping, 0.80, 0.9985))
+    b_hi = float(np.clip(brightness, 0.15, 0.95))
+    b_lo = 1.0 - b_hi
+    stiff = float(np.clip(stiffness, 0.0, 0.35))
+
+    pos = period
+    while pos < n:
+        end = min(n, pos + period)
+        chunk = end - pos
+        prev = out[pos - period : pos - period + chunk]
+        prev_shift = np.empty(chunk, dtype=np.float64)
+        prev_shift[0] = out[pos - period - 1] if (pos - period - 1) >= 0 else prev[0]
+        if chunk > 1:
+            prev_shift[1:] = prev[:-1]
+        lp = b_hi * prev + b_lo * prev_shift
+        if stiff > 1e-4 and chunk > 2:
+            # Light 2nd-order dispersion approximates rigid chitin / crystalline overtone stretch
+            disp = np.roll(lp, 1)
+            disp[0] = lp[0]
+            lp = (1.0 - stiff) * lp + stiff * (0.5 * (lp + disp))
+        out[pos:end] = damp * lp
+        pos = end
+
+    out = out - np.mean(out)
+    peak = float(np.max(np.abs(out)))
+    return out / max(peak, 1e-6) if peak > 1e-8 else out
+
+
+def fdn4_hadamard_diffuser(
+    sig: np.ndarray,
+    rng: np.random.Generator,
+    *,
+    base_delays_ms: tuple[float, float, float, float] = (17.3, 23.9, 31.7, 43.1),
+    rt60: float = 0.55,
+    wet: float = 0.26,
+    damping_hz: float = 4200.0,
+) -> np.ndarray:
+    """Block-vectorized 4x4 Hadamard Feedback Delay Network for lush, non-metallic organic tails."""
+    n = len(sig)
+    if wet <= 1e-4 or n < 128:
+        return sig
+    delays = [
+        max(64, int(round((ms + float(rng.uniform(-1.1, 1.1))) * SAMPLE_RATE / 1000.0)))
+        for ms in base_delays_ms
+    ]
+    d_min = min(delays)
+    d_max = max(delays)
+    buf_len = n + d_max
+    bufs = np.zeros((4, buf_len), dtype=np.float64)
+
+    rt = max(0.08, float(rt60))
+    gains = np.array([10.0 ** (-3.0 * (d / float(SAMPLE_RATE)) / rt) for d in delays], dtype=np.float64)
+    gains = np.clip(gains, 0.15, 0.94)
+    lp_a = float(np.clip(np.exp(-2.0 * np.pi * max(400.0, damping_hz) / float(SAMPLE_RATE)), 0.05, 0.92))
+    lp_b = 1.0 - lp_a
+
+    # Orthogonal 4x4 Hadamard mixing matrix (unitary: H @ H.T = I)
+    hadamard = 0.5 * np.array(
+        [
+            [1.0, 1.0, 1.0, 1.0],
+            [1.0, -1.0, 1.0, -1.0],
+            [1.0, 1.0, -1.0, -1.0],
+            [1.0, -1.0, -1.0, 1.0],
+        ],
+        dtype=np.float64,
+    )
+    wet_out = np.zeros(n, dtype=np.float64)
+    lp_state = np.zeros(4, dtype=np.float64)
+    in_scale = np.array([0.52, -0.48, 0.50, -0.50], dtype=np.float64)
+
+    pos = 0
+    while pos < n:
+        block = min(d_min, n - pos)
+        w_idx = d_max + pos
+        read = np.empty((4, block), dtype=np.float64)
+        for ch in range(4):
+            r_start = w_idx - delays[ch]
+            read[ch] = bufs[ch, r_start : r_start + block]
+        wet_out[pos : pos + block] = 0.5 * (read[0] + read[1] + read[2] + read[3])
+
+        # Vectorized one-pole damping along each channel block
+        damped = np.empty_like(read)
+        for ch in range(4):
+            y_ch, zf = signal.lfilter([lp_b], [1.0, -lp_a], read[ch], zi=[lp_state[ch] * lp_a])
+            damped[ch] = y_ch * gains[ch]
+            lp_state[ch] = float(y_ch[-1])
+
+        mixed = hadamard @ damped
+        x_blk = sig[pos : pos + block]
+        bufs[:, w_idx : w_idx + block] = mixed + np.outer(in_scale, x_blk)
+        pos += block
+
+    return sig * (1.0 - wet * 0.30) + wet_out * wet
+
+
 def active_rms(wave: np.ndarray, gate_ratio: float = 0.05) -> float:
     """Compute RMS over the active signal envelope so reverb tails don't skew loudness."""
     if len(wave) == 0:

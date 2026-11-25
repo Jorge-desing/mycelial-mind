@@ -3,7 +3,7 @@
   "stats": {
     "chapters": 12,
     "entries": 62,
-    "pages": 248
+    "pages": 249
   },
   "summary": {
     "blocks": {
@@ -77,8 +77,8 @@
       "missing": 0
     },
     "advancements": {
-      "expected": 36,
-      "covered": 36,
+      "expected": 31,
+      "covered": 31,
       "missing": 0
     },
     "loot_tables": {
@@ -97,8 +97,8 @@
       "missing": 0
     },
     "compostables": {
-      "expected": 13,
-      "covered": 13,
+      "expected": 16,
+      "covered": 16,
       "missing": 0
     },
     "server_configs": {
@@ -107,8 +107,8 @@
       "missing": 0
     },
     "client_configs": {
-      "expected": 19,
-      "covered": 19,
+      "expected": 23,
+      "covered": 23,
       "missing": 0
     },
     "keybindings": {

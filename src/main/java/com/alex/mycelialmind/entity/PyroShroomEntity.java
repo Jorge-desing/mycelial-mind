@@ -146,8 +146,8 @@ public class PyroShroomEntity extends MycelialMob {
         level.sendParticles(ModParticles.PURIFIER_CROSS.get(),
                 this.getX(), this.getY(0.6D), this.getZ(),
                 10, 0.35D, 0.35D, 0.35D, 0.03D);
-        level.playSound(null, this.blockPosition(), ModSounds.PURIFIER_GRENADE_DETONATE.get(),
-                SoundSource.NEUTRAL, 0.6F, 1.55F);
+        level.playSound(null, this.blockPosition(), ModSounds.PYRO_SHROOM_DEFUSE.get(),
+                SoundSource.NEUTRAL, 0.85F, 1.05F);
         if (!this.defusedDropClaimed) {
             this.defusedDropClaimed = true;
             this.spawnAtLocation(new ItemStack(ModBlocks.LUMINESCENT_AMBER_VEIN.get().asItem()));

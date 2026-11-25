@@ -79,7 +79,7 @@ public class LuminescentAmberVeinBlock extends Block {
             level.sendParticles(ModParticles.AMBER_GLINT.get(),
                     pos.getX() + 0.5D, pos.getY() + 0.7D, pos.getZ() + 0.5D,
                     8, 0.45D, 0.35D, 0.45D, 0.02D);
-            level.playSound(null, pos, ModSounds.RECLAIMED_BLOOM_PULSE.get(), SoundSource.BLOCKS, 0.4F, 1.3F);
+            level.playSound(null, pos, ModSounds.AMBER_VEIN_RESONATE.get(), SoundSource.BLOCKS, 0.55F, 1.05F);
         }
     }
 

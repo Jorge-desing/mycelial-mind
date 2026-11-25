@@ -150,7 +150,7 @@ public class BruteChargeGoal extends Goal {
         level.sendParticles(ModParticles.CHITIN_SHARD.get(),
                 mob.getX(), mob.getY(0.6D), mob.getZ(),
                 12, 0.45D, 0.35D, 0.45D, 0.06D);
-        mob.playSound(ModSounds.CHITIN_BRUTE_HURT.get(), 1.0F, 0.72F);
+        mob.playSound(ModSounds.BRUTE_WALL_STUN.get(), 1.05F, 0.95F);
         return true;
     }
 }

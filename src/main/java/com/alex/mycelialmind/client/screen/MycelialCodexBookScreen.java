@@ -27,7 +27,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -485,7 +484,7 @@ public class MycelialCodexBookScreen extends Screen {
         }
         persistReadingPosition();
         updatePageButtonStates();
-        playUiSound(SoundEvents.BOOK_PAGE_TURN, 1.04F);
+        playUiSound(ModSounds.UI_CODEX_TAB.get(), 1.04F);
     }
 
     private void turnPage(int delta) {
@@ -504,7 +503,7 @@ public class MycelialCodexBookScreen extends Screen {
             this.textScrollOffset = 0;
             persistReadingPosition();
             updatePageButtonStates();
-            playUiSound(SoundEvents.BOOK_PAGE_TURN, delta > 0 ? 1.02F : 0.96F);
+            playUiSound(ModSounds.UI_CODEX_TAB.get(), delta > 0 ? 1.02F : 0.96F);
         }
     }
 

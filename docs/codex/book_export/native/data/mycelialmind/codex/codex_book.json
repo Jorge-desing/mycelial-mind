@@ -3744,6 +3744,14 @@
               "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.14.title",
               "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.14.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 15,
+              "id": "config_ref_p15",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.text",
+              "is_spoiler": false
             }
           ]
         },

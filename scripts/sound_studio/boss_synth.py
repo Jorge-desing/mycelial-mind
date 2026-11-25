@@ -40,7 +40,11 @@ from scripts.sound_studio.dsp_engine import (
     _swept_resonant_filter,
     _wet_squelch_layer,
     adsr_envelope,
+    articulated_vocal_tract,
     exp_decay,
+    fdn4_hadamard_diffuser,
+    granular_bio_cloud,
+    karplus_strong_chitin,
     modal_resonator_bank,
 )
 
@@ -75,6 +79,8 @@ BOSS_PART_IMPACT_IDS: frozenset[str] = frozenset(
     {
         "boss_weakpoint_crit",
         "boss_carapace_ricochet",
+        "boss_telegraph_lock",
+        "boss_stagger_break",
     }
 )
 
@@ -902,6 +908,69 @@ def synthesize_boss_sound(
         snap = _sos_bandpass(rng.normal(0.0, 1.0, n), 1800.0, 9600.0) * exp_decay(np.maximum(0.0, t - t[onset]), 0.018) * 0.52
         raw = np.tanh((modal + zip_up + snap) * 1.22)
         return _cavern_reverb(_sos_highpass(raw, 120.0), rng, wet=0.18, rt60=0.40, lp_hz=6800.0)
+
+    elif sound_id == "boss_telegraph_lock":
+        # Razor-sharp dodge-window lock cue: reverse vacuum suck -> metallic psychic pin -> chitin snap
+        lock_idx = int(rng.uniform(0.26, 0.36) * n)
+        suck = _reverse_suction(n, 0, max(32, lock_idx), rng, f_lo=320.0, f_hi=4600.0) * 0.82
+        rem = max(32, n - lock_idx)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        pin = np.zeros(n, dtype=np.float64)
+        pin[lock_idx:] = (
+            modal_resonator_bank(
+                rem,
+                (bf * 1.0, bf * 1.414, bf * 2.12, bf * 3.18),
+                (0.20, 0.14, 0.09, 0.05),
+                rng,
+                amplitudes=(0.82, 0.72, 0.52, 0.32),
+            )
+            + karplus_strong_chitin(rem, bf * 1.5, rng, damping=0.985, brightness=0.78, stiffness=0.18, excitation="strike")
+            * exp_decay(rt, 0.16)
+            * 0.55
+        )
+        pulse = np.zeros(n, dtype=np.float64)
+        pulse[lock_idx:] = _fm_tone(rt, bf * (1.25 - 0.35 * (rt / max(1e-4, rt[-1]))), bf * 0.5, 2.1, pjit) * exp_decay(rt, 0.18) * 0.62
+        raw = np.tanh((suck + pin + pulse) * 1.22)
+        return fdn4_hadamard_diffuser(_sos_highpass(raw, 140.0), rng, rt60=0.42, wet=0.22, damping_hz=5800.0)
+
+    elif sound_id == "boss_stagger_break":
+        # Colossal carapace shatter + hollow stagger collapse: chitin fracture cloud -> Rosenberg groan -> sub drop
+        shatter_idx = int(rng.uniform(0.02, 0.14) * n)
+        bomb = _sub_bomb(
+            t,
+            shatter_idx,
+            f_start=rng.uniform(135.0, 184.0),
+            f_end=rng.uniform(28.0, 42.0),
+            drop_tau=rng.uniform(0.052, 0.088),
+            sustain_tau=dur * 0.36,
+            punch_gain=0.80,
+        )
+        shards = np.zeros(n, dtype=np.float64)
+        for pos in _bounce_train(n, rng, 7, start_frac=0.03, end_frac=0.52, accelerate=False):
+            slen = min(n - pos, int(SAMPLE_RATE * 0.14))
+            if slen > 32:
+                shards[pos : pos + slen] += (
+                    karplus_strong_chitin(slen, bf * rng.uniform(2.5, 5.8), rng, damping=0.982, brightness=0.76, stiffness=0.22, excitation="strike")
+                    * exp_decay(np.arange(slen, dtype=np.float64) / SAMPLE_RATE, 0.055)
+                    * 0.85
+                )
+        cloud = granular_bio_cloud(n, rng, freq_range=(380.0, 4400.0), density_hz=64.0, grain_ms=17.0, organic_mode="chitin") * adsr_envelope(n, 0.03, 0.22, 0.38, 0.42) * 0.95
+        f_groan = bf * rng.uniform(0.92, 1.14) * (1.18 - 0.46 * ((t / dur) ** 0.85))
+        groan = articulated_vocal_tract(
+            t,
+            f_groan,
+            [
+                (310.0 * formant_shift, 160.0 * formant_shift, 2.8, 1.05),
+                (860.0 * formant_shift, 460.0 * formant_shift, 3.2, 0.90),
+                (1850.0 * formant_shift, 1020.0 * formant_shift, 3.8, 0.56),
+            ],
+            rng,
+            open_quotient=0.58,
+            sub_weight=0.58,
+            breath_noise=0.22,
+        ) * adsr_envelope(n, 0.08, 0.24, 0.48, 0.42) * 1.05
+        raw = np.tanh((bomb * 0.82 + shards + cloud + groan) * 1.25)
+        return fdn4_hadamard_diffuser(raw, rng, base_delays_ms=(19.1, 27.3, 37.9, 51.7), rt60=0.88, wet=0.30, damping_hz=3800.0)
 
     elif sound_id == "colony_raid_horn":
         # Urgent rival-swarm bronze/chitin siege warhorn: staggered dual-blast + dissonant swarm drone

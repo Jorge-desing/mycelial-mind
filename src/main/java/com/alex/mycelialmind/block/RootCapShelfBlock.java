@@ -1,10 +1,12 @@
 package com.alex.mycelialmind.block;
 
+import com.alex.mycelialmind.registry.ModSounds;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -71,6 +73,10 @@ public class RootCapShelfBlock extends HorizontalDirectionalBlock {
     @Override
     public void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, float fallDistance) {
         entity.causeFallDamage(fallDistance, 0.2F, level.damageSources().fall());
+        if (!level.isClientSide() && !entity.isSuppressingBounce() && fallDistance >= 1.0F) {
+            float pitch = 0.90F + Math.min(0.28F, fallDistance * 0.03F);
+            level.playSound(null, pos, ModSounds.ROOT_CAP_BOUNCE.get(), SoundSource.BLOCKS, 0.85F, pitch);
+        }
     }
 
     @Override

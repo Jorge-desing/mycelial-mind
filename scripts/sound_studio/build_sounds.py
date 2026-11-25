@@ -33,10 +33,13 @@ from scripts.sound_studio.dsp_engine import (
     synthesize_waveform,
 )
 from scripts.sound_studio.metrics import (
+    BARK_CENTERS_HZ,
     analyze_event_variations,
     analyze_waveform,
+    audit_spectral_masking,
     build_audition_html,
     compare_against_baseline,
+    compute_timbral_diversity,
     evaluate_quality,
     load_acoustic_baseline,
     max_pairwise_correlation,
@@ -135,10 +138,19 @@ def _synthesize_and_encode_spec(
         file_names.append(ogg_path.name)
         file_sizes.append(int(info["size_bytes"]))
 
-    mean_metrics = {
-        k: round(sum(fm[k] for fm in file_metrics) / len(file_metrics), 3)
-        for k in file_metrics[0]
-    }
+    mean_metrics: dict[str, Any] = {}
+    for k in file_metrics[0]:
+        sample_val = file_metrics[0][k]
+        if isinstance(sample_val, list):
+            arr = np.mean([np.asarray(fm[k], dtype=np.float64) for fm in file_metrics], axis=0)
+            mean_metrics[k] = [round(float(x), 4) for x in arr]
+        else:
+            mean_metrics[k] = round(sum(float(fm[k]) for fm in file_metrics) / len(file_metrics), 3)
+    if isinstance(mean_metrics.get("bark_profile"), list) and len(mean_metrics["bark_profile"]) == 24:
+        peak_b = int(np.argmax(mean_metrics["bark_profile"]))
+        mean_metrics["bark_peak_band"] = peak_b
+        mean_metrics["bark_peak_hz"] = BARK_CENTERS_HZ[peak_b]
+    timbral_diversity = compute_timbral_diversity(file_metrics, max_corr)
     from scripts.sound_studio.ai_stem_generator import get_stem_id, is_ai_hybrid
     from scripts.sound_studio.ir_bank import select_ir_space
 
@@ -161,6 +173,7 @@ def _synthesize_and_encode_spec(
         "channels": 1,
         "total_bytes": sum(file_sizes),
         "max_variant_corr": max_corr,
+        "timbral_diversity": timbral_diversity,
         "metrics": mean_metrics,
         "variant_issues": variant_issues,
     }
@@ -222,7 +235,13 @@ def _can_reuse_cached_entry(
     if prev_entry.get("files") != expected_names:
         return False
     metrics = prev_entry.get("metrics")
-    if not isinstance(metrics, dict) or "true_peak_dbfs" not in metrics or "loop_seam_delta" not in metrics:
+    if (
+        not isinstance(metrics, dict)
+        or "true_peak_dbfs" not in metrics
+        or "loop_seam_delta" not in metrics
+        or "bark_profile" not in metrics
+        or "lra_lu" not in metrics
+    ):
         return False
     for fname in expected_names:
         p = SOUNDS_DIR / fname
@@ -417,6 +436,20 @@ def generate_all(
             "mean_centroid_hz": round(sum(i["spectral_centroid_hz"] for i in items) / len(items), 1),
         }
 
+    from scripts.sound_studio.ai_stem_generator import audit_all_stems
+
+    stem_qc_full = audit_all_stems()
+    stem_qc_summary = {
+        "ok": bool(stem_qc_full["ok"]),
+        "stem_count": int(stem_qc_full["stem_count"]),
+        "checked_count": int(stem_qc_full["checked_count"]),
+        "missing_files": list(stem_qc_full["missing_files"]),
+        "failed_stems": list(stem_qc_full["failed_stems"]),
+    }
+    masking_report = audit_spectral_masking(manifest_entries)
+    multi_divs = [float(e.get("timbral_diversity", 0.0)) for e in manifest_entries if int(e.get("variations", 1)) > 1]
+    mean_timbral_diversity = round(sum(multi_divs) / len(multi_divs), 4) if multi_divs else 0.0
+
     worst_corr = round(max(event_correlations.values(), default=0.0), 4)
     max_true_peak = round(
         max((float(e["metrics"].get("true_peak_dbfs", e["metrics"]["peak_dbfs"])) for e in manifest_entries), default=-96.0),  # type: ignore[index]
@@ -426,7 +459,13 @@ def generate_all(
     backend_label = f"CUDA: {gpu_name}" if gpu_name else ("Incremental Cache" if not specs_to_build else "CPU SciPy")
 
     quality_report: dict[str, object] = {
-        "ok": len(failed_files) == 0 and len(failed_corr_events) == 0 and len(loop_seam_failures) == 0,
+        "ok": (
+            len(failed_files) == 0
+            and len(failed_corr_events) == 0
+            and len(loop_seam_failures) == 0
+            and bool(masking_report["ok"])
+            and bool(stem_qc_summary["ok"])
+        ),
         "sample_rate": SAMPLE_RATE,
         "channels": 1,
         "vorbis_quality": VORBIS_QUALITY,
@@ -436,9 +475,12 @@ def generate_all(
         "cached_events": len(reused_entries),
         "max_correlation_threshold": MAX_VARIATION_CORR,
         "worst_correlation": worst_corr,
+        "mean_timbral_diversity": mean_timbral_diversity,
         "max_true_peak_dbfs": max_true_peak,
         "loop_seam_ok": len(loop_seam_failures) == 0,
         "loop_seam_failures": loop_seam_failures,
+        "stem_qc_summary": stem_qc_summary,
+        "psychoacoustic_masking": masking_report,
         "build_duration_secs": build_secs,
         "acceleration_backend": backend_label,
         "failed_files": failed_files,
@@ -647,8 +689,10 @@ def main(argv: list[str] | None = None) -> int:
             f"in {qr['build_duration_secs']}s [{qr['acceleration_backend']}]."
         )
         print(
-            f"[Sound Studio] Acoustic QA ok={qr['ok']} | worst_corr={qr['worst_correlation']} | max_tp={qr['max_true_peak_dbfs']} dBFS "
-            f"| seam_ok={qr['loop_seam_ok']} | failed_files={len(qr['failed_files'])}"
+            f"[Sound Studio] Acoustic QA ok={qr['ok']} | worst_corr={qr['worst_correlation']} | div={qr.get('mean_timbral_diversity')} "
+            f"| max_tp={qr['max_true_peak_dbfs']} dBFS | seam_ok={qr['loop_seam_ok']} "
+            f"| masking_ok={(qr.get('psychoacoustic_masking') or {}).get('ok')} | stems_ok={(qr.get('stem_qc_summary') or {}).get('ok')} "
+            f"| failed_files={len(qr['failed_files'])}"
         )
     elif args.update_baseline:
         if not MANIFEST_PATH.is_file() or not QUALITY_REPORT_PATH.is_file():

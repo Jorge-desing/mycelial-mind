@@ -1398,19 +1398,13 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
         return EvolutionRank.computeTacticalSoundVolumeMultiplier(rank, frenzy, role, occluded);
     }
 
+    /**
+     * Per-listener wall occlusion is handled client-side via {@code ClientAcousticController} and
+     * {@code OpenAlEfxBridge} (OpenAL EFX direct low-pass filtering) so multiplayer listeners each hear
+     * accurate occlusion without reading client config on the server thread.
+     */
     protected boolean isAudioOccludedToNearestPlayer() {
-        if (!com.alex.mycelialmind.config.MycelialClientConfig.caveSoundOcclusion()) {
-            return false;
-        }
-        Level lvl = this.level();
-        if (lvl == null) {
-            return false;
-        }
-        Player nearest = lvl.getNearestPlayer(this, 24.0D);
-        if (nearest == null || nearest.distanceToSqr(this) < 16.0D) {
-            return false;
-        }
-        return !this.hasLineOfSight(nearest);
+        return false;
     }
 
     protected float getBaseSoundVolume() {

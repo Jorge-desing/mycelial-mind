@@ -165,11 +165,18 @@ public class MonumentFocusBlockEntity extends BlockEntity {
         if (this.purificationCharge == clamped) {
             return;
         }
+        int previous = this.purificationCharge;
         this.purificationCharge = clamped;
         if (this.level instanceof ServerLevel serverLevel) {
             if (getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())) {
                 com.alex.mycelialmind.world.PurificationZoneTracker.get(serverLevel)
                         .setPylonDepleted(getBlockPos(), this.purificationCharge <= 0);
+                boolean crossedLow = previous > 15 && clamped <= 15 && clamped > 0;
+                boolean crossedEmpty = previous > 0 && clamped == 0;
+                if (crossedLow || crossedEmpty) {
+                    serverLevel.playSound(null, this.worldPosition, ModSounds.STATION_UPKEEP_LOW.get(),
+                            SoundSource.BLOCKS, crossedEmpty ? 0.90F : 0.65F, crossedEmpty ? 0.86F : 1.0F);
+                }
             }
             BlockState state = getBlockState();
             serverLevel.sendBlockUpdated(this.worldPosition, state, state, 3);

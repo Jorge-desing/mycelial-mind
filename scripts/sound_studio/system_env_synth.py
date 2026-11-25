@@ -34,8 +34,12 @@ from scripts.sound_studio.dsp_engine import (
     _swept_resonant_filter,
     _wet_squelch_layer,
     adsr_envelope,
+    articulated_vocal_tract,
     exp_decay,
+    fdn4_hadamard_diffuser,
     fold_seamless_loop,
+    granular_bio_cloud,
+    karplus_strong_chitin,
     modal_resonator_bank,
 )
 
@@ -59,6 +63,8 @@ SYSTEM_ENV_IDS: frozenset[str] = frozenset(
         "necrophagy_feast",
         "swarm_flank_call",
         "primordial_presence_pulse",
+        "brute_wall_stun",
+        "pyro_shroom_defuse",
         # Biome Soundscapes (9)
         "biome_caverns_loop",
         "biome_caverns_mood",
@@ -69,11 +75,12 @@ SYSTEM_ENV_IDS: frozenset[str] = frozenset(
         "biome_forest_loop",
         "biome_forest_mood",
         "biome_forest_additions",
-        # Positional Loops & Hive Adaptation Alerts (7)
+        # Positional Loops & Hive Adaptation Alerts (8)
         "fungal_tide_ambience",
         "purification_pylon_hum",
         "sovereign_nexus_hum",
         "boss_combat_tension_bed",
+        "sinkhole_updraft_loop",
         "hive_trait_adapt",
         "hive_synergy_unlock",
         "hive_threat_milestone",
@@ -531,5 +538,84 @@ def synthesize_system_env_sound(
             preroll : preroll + ext_n
         ]
         return fold_seamless_loop(raw, n, crossfade_ms=280.0)
+
+    if sound_id == "brute_wall_stun":
+        # Heavy armored impact on chitin pillar -> rattling shell fracture (mid/upper Bark clarity) -> dazed Rosenberg vocal huff
+        imp_idx = int(rng.uniform(0.015, 0.105) * n)
+        thud = _sub_bomb(
+            t,
+            imp_idx,
+            f_start=rng.uniform(135.0, 185.0),
+            f_end=rng.uniform(42.0, 58.0),
+            drop_tau=rng.uniform(0.032, 0.052),
+            sustain_tau=dur * 0.13,
+            punch_gain=0.82,
+        )
+        rem = max(32, n - imp_idx)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        shell = np.zeros(n, dtype=np.float64)
+        shell[imp_idx:] = (
+            karplus_strong_chitin(rem, bf * rng.uniform(2.3, 3.6), rng, damping=0.982, brightness=0.76, stiffness=0.24, excitation="strike")
+            * exp_decay(rt, 0.16)
+            * 1.25
+            + karplus_strong_chitin(rem, bf * rng.uniform(4.1, 6.2), rng, damping=0.976, brightness=0.82, stiffness=0.28, excitation="strike")
+            * exp_decay(rt, 0.11)
+            * 0.85
+            + granular_bio_cloud(rem, rng, freq_range=(420.0, 3800.0), density_hz=64.0, grain_ms=15.0, organic_mode="chitin")
+            * exp_decay(rt, 0.24)
+            * 1.05
+        )
+        daze_s = int(rng.uniform(0.16, 0.26) * n)
+        dt = np.arange(max(32, n - daze_s), dtype=np.float64) / SAMPLE_RATE
+        f_huff = bf * rng.uniform(1.15, 1.48) * (1.05 - 0.35 * (dt / max(1e-4, dt[-1])))
+        huff = np.zeros(n, dtype=np.float64)
+        huff[daze_s : daze_s + len(dt)] = articulated_vocal_tract(
+            dt,
+            f_huff,
+            [
+                (380.0 * formant_shift, 220.0 * formant_shift, 2.6, 1.05),
+                (960.0 * formant_shift, 560.0 * formant_shift, 3.2, 0.95),
+                (2150.0 * formant_shift, 1280.0 * formant_shift, 3.8, 0.65),
+            ],
+            rng,
+            open_quotient=0.56,
+            sub_weight=0.32,
+            breath_noise=0.28,
+        ) * adsr_envelope(len(dt), 0.08, 0.24, 0.48, 0.38) * 1.15
+        raw = np.tanh((thud * 0.46 + shell + huff) * 1.22)
+        return fdn4_hadamard_diffuser(_sos_highpass(raw, 72.0), rng, rt60=0.44, wet=0.20, damping_hz=4400.0)
+
+    if sound_id == "pyro_shroom_defuse":
+        # Pressurized steam ember quench: falling resonant hiss -> spore granular cool-down -> amber chime drop
+        steam = _swept_resonant_filter(pink * 0.75 + white * 0.45, 5800.0, 480.0, q=2.2) * adsr_envelope(n, 0.03, 0.24, 0.48, 0.42) * 0.92
+        cool = granular_bio_cloud(n, rng, freq_range=(900.0, 5600.0), density_hz=64.0, grain_ms=18.0, organic_mode="spore") * exp_decay(t, dur * 0.40) * 0.62
+        drop_s = int(0.32 * n)
+        rem = max(32, n - drop_s)
+        chime = np.zeros(n, dtype=np.float64)
+        chime[drop_s:] = karplus_strong_chitin(rem, bf * 1.5, rng, damping=0.990, brightness=0.76, stiffness=0.10, excitation="pluck") * exp_decay(np.arange(rem, dtype=np.float64) / SAMPLE_RATE, 0.18) * 0.52
+        return fdn4_hadamard_diffuser(np.tanh((steam + cool + chime) * 1.16), rng, rt60=0.38, wet=0.18, damping_hz=6800.0)
+
+    if sound_id == "sinkhole_updraft_loop":
+        # 9th seamless loop: vertical subterranean thermal-spore wind chimney (even-cycle column + granular spores + circular FDN)
+        cf = int(SAMPLE_RATE * 0.26)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        f0 = max(56.0, 2.0 * round(0.5 * bf * dur) / dur)
+        lfo_hz = max(0.25, round(0.5 * dur) / dur)
+        column = (
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.48
+            + np.sin(2.0 * np.pi * (f0 * 1.5) * ext_t + rng.uniform(0, 6.28)) * 0.30
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.20
+        ) * (0.88 + 0.12 * np.sin(2.0 * np.pi * lfo_hz * ext_t + pjit))
+        wind = _sos_bandpass(ext_pink, 140.0, 1450.0) * (0.86 + 0.14 * np.sin(2.0 * np.pi * lfo_hz * ext_t + pjit)) * 0.68
+        spores = granular_bio_cloud(ext_n, rng, freq_range=(380.0, 2400.0), density_hz=32.0, grain_ms=34.0, organic_mode="spore") * 0.42
+        dry = np.tanh((column + wind + spores) * 1.12)
+        preroll = min(ext_n // 2, int(SAMPLE_RATE * 0.90))
+        reverb_in = np.concatenate([dry[-preroll:], dry])
+        raw = fdn4_hadamard_diffuser(reverb_in, rng, base_delays_ms=(19.3, 27.1, 35.9, 47.3), rt60=0.68, wet=0.28, damping_hz=3200.0)[
+            preroll : preroll + ext_n
+        ]
+        return fold_seamless_loop(raw, n, crossfade_ms=260.0)
 
     raise ValueError(f"Unhandled system/environment sound_id in system_env_synth: {sound_id}")

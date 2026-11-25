@@ -906,6 +906,7 @@ def inspect_sound_event(sound_id: str) -> dict[str, Any]:
                 "centroid_delta_hz": round(float(m.get("spectral_centroid_hz", 0.0)) - float(base_entry.get("spectral_centroid_hz", 0.0)), 1),
             }
 
+    m_dict = entry.get("metrics", {}) or {}
     return {
         "ok": True,
         "sound_id": sid,
@@ -918,9 +919,59 @@ def inspect_sound_event(sound_id: str) -> dict[str, Any]:
         "attenuation_distance": entry.get("attenuation_distance"),
         "files": entry.get("files", []),
         "max_variant_corr": corr,
-        "metrics": entry.get("metrics", {}),
+        "timbral_diversity": entry.get("timbral_diversity", 0.0),
+        "psychoacoustic_v4": {
+            "short_term_lufs_max": m_dict.get("short_term_lufs_max"),
+            "momentary_lufs_max": m_dict.get("momentary_lufs_max"),
+            "lra_lu": m_dict.get("lra_lu"),
+            "mud_ratio": m_dict.get("mud_ratio"),
+            "harshness_ratio": m_dict.get("harshness_ratio"),
+            "bark_peak_band": m_dict.get("bark_peak_band"),
+            "bark_peak_hz": m_dict.get("bark_peak_hz"),
+        },
+        "metrics": m_dict,
         "baseline": base_entry,
         "baseline_delta": delta,
+    }
+
+
+@_tool(tags={"studios", "assets", "diagnostics"})
+def audit_sound_masking(top_n: int = 12) -> dict[str, Any]:
+    """Audit Bark 24-band concurrent spectral masking, headroom, EBU R128 LRA, timbral diversity & RTX stem QC."""
+    exports_dir = REPO_ROOT / "scripts" / "sound_studio" / "exports"
+    qr_path = exports_dir / "sound_quality_report.json"
+    manifest_path = exports_dir / "sound_manifest.json"
+    if not qr_path.is_file():
+        return {"ok": False, "error": f"Missing quality report at {qr_path}"}
+    qr = json.loads(qr_path.read_text(encoding="utf-8"))
+    masking = qr.get("psychoacoustic_masking")
+    if not isinstance(masking, dict) and manifest_path.is_file():
+        from scripts.sound_studio.metrics import audit_spectral_masking
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        masking = audit_spectral_masking(manifest.get("sounds", []))
+    masking = masking or {}
+    limit = max(1, min(50, int(top_n)))
+    top_pairs = list(masking.get("top_overlap_pairs", []))[:limit]
+    stem_qc = qr.get("stem_qc_summary") or {}
+    return {
+        "ok": bool(masking.get("ok", False)) and bool(stem_qc.get("ok", True)) and bool(qr.get("ok", False)),
+        "total_events": qr.get("total_events"),
+        "total_ogg_files": qr.get("total_ogg_files"),
+        "worst_correlation": qr.get("worst_correlation"),
+        "mean_timbral_diversity": qr.get("mean_timbral_diversity"),
+        "max_true_peak_dbfs": qr.get("max_true_peak_dbfs"),
+        "loop_seam_ok": qr.get("loop_seam_ok"),
+        "stem_qc_summary": stem_qc,
+        "beds_checked": masking.get("beds_checked", 0),
+        "foregrounds_checked": masking.get("foregrounds_checked", 0),
+        "pairs_evaluated": masking.get("pairs_evaluated", 0),
+        "mean_bark_overlap": masking.get("mean_bark_overlap"),
+        "mean_headroom_db": masking.get("mean_headroom_db"),
+        "max_masking_risk": masking.get("max_masking_risk"),
+        "high_risk_count": masking.get("high_risk_count", 0),
+        "high_risk_pairs": masking.get("high_risk_pairs", []),
+        "top_overlap_pairs": top_pairs,
     }
 
 

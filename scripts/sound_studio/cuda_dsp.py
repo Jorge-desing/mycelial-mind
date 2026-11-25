@@ -300,6 +300,25 @@ def _gpu_envelope_batch(torch, sigs, windows: list[int]):
     )
 
 
+def _gpu_hpss_harmonic_soft(torch, sig_t, sample_rate: int, strength: float = 0.60):
+    """Fast batched CUDA STFT Wiener Harmonic/Percussive separation preserving harmonic body & texture."""
+    n = int(sig_t.numel())
+    if strength <= 1e-4 or n < 1024:
+        return sig_t
+    n_fft = 1024
+    hop = 256
+    win = torch.hann_window(n_fft, device="cuda", dtype=torch.float32)
+    stft = torch.stft(sig_t, n_fft=n_fft, hop_length=hop, win_length=n_fft, window=win, return_complex=True)
+    mag = stft.abs().unsqueeze(0).unsqueeze(0)
+    h_est = torch.nn.functional.avg_pool2d(mag, kernel_size=(1, 9), stride=1, padding=(0, 4))
+    p_est = torch.nn.functional.avg_pool2d(mag, kernel_size=(9, 1), stride=1, padding=(4, 0))
+    h2 = h_est * h_est
+    p2 = p_est * p_est
+    mask_h = (h2 / (h2 + p2 + 1e-9)).squeeze(0).squeeze(0)
+    blended = stft * ((1.0 - float(strength)) + float(strength) * mask_h)
+    return torch.istft(blended, n_fft=n_fft, hop_length=hop, win_length=n_fft, window=win, length=n)
+
+
 def _apply_bandpass_and_envelope_gpu(
     torch,
     resampled_t,
@@ -308,17 +327,41 @@ def _apply_bandpass_and_envelope_gpu(
     sample_rate: int,
     band_lo_hz: float,
     band_hi_hz: float,
+    apply_hpss: bool = False,
 ):
-    """Shared GPU dual-band / single-band zero-phase FFT filtering + envelope follower."""
+    """Shared GPU 3-band / 2-band / 1-band zero-phase FFT filtering + HPSS + envelope follower."""
     n = int(dsp_t.numel())
+    src_t = _gpu_hpss_harmonic_soft(torch, resampled_t, sample_rate, strength=0.60) if apply_hpss else resampled_t
+    s1 = min(240.0, max(band_lo_hz * 1.45, band_hi_hz * 0.12))
+    s2 = min(1800.0, max(s1 * 2.2, band_hi_hz * 0.42))
+    tri = (s1 > band_lo_hz + 25.0) and (s2 > s1 + 140.0) and (band_hi_hz > s2 + 220.0)
     split_hz = min(420.0, max(band_lo_hz * 1.4, band_hi_hz * 0.38))
-    dual = (split_hz > band_lo_hz + 25.0) and (band_hi_hz > split_hz + 80.0)
+    dual = (not tri) and (split_hz > band_lo_hz + 25.0) and (band_hi_hz > split_hz + 80.0)
+
     pad = min(4096, max(1024, n // 2))
     n_fft_bp = _next_pow2(n + pad)
 
-    pair_t = torch.stack([resampled_t, dsp_t], dim=0)
+    pair_t = torch.stack([src_t, dsp_t], dim=0)
     spec_pair = torch.fft.rfft(pair_t, n=n_fft_bp, dim=-1)
     freqs = _get_freqs_tensor(torch, n_fft_bp, sample_rate)
+
+    if tri:
+        b2_lo = max(band_lo_hz, s1 * 0.85)
+        b3_lo = max(b2_lo + 40.0, s2 * 0.85)
+        m_sub = _bandpass_mask_torch(torch, freqs, band_lo_hz, s1, sample_rate)
+        m_body = _bandpass_mask_torch(torch, freqs, b2_lo, s2, sample_rate)
+        m_air = _bandpass_mask_torch(torch, freqs, b3_lo, band_hi_hz, sample_rate)
+        masks = torch.stack([m_sub, m_body, m_air], dim=0).unsqueeze(1)
+        bands = torch.fft.irfft(spec_pair.unsqueeze(0) * masks, n=n_fft_bp, dim=-1)[..., :n]
+        win_sub = max(8, int(sample_rate * 28.0 / 1000.0))
+        win_body = max(8, int(sample_rate * 18.0 / 1000.0))
+        win_air = max(8, int(sample_rate * 11.0 / 1000.0))
+        envs = _gpu_envelope_batch(
+            torch,
+            torch.stack([bands[0, 1], bands[1, 1], bands[2, 1]], dim=0),
+            [win_sub, win_body, win_air],
+        )
+        return (bands[0, 0] * envs[0]) + (bands[1, 0] * envs[1]) + (bands[2, 0] * envs[2])
 
     if dual:
         hi_start = max(band_lo_hz, split_hz * 0.85)
@@ -347,9 +390,10 @@ def gpu_dualband_blend_shape(
     sample_rate: int,
     band_lo_hz: float,
     band_hi_hz: float,
+    apply_hpss: bool = False,
     min_cuda_len: int = 2048,
 ) -> np.ndarray | None:
-    """Compute shaped AI stem waveform via batched CUDA FFT bandpass & envelope following."""
+    """Compute shaped AI stem waveform via batched CUDA 3-band FFT bandpass, HPSS & envelope following."""
     n = len(dsp_wave)
     if n < min_cuda_len or len(resampled) != n:
         return None
@@ -368,6 +412,7 @@ def gpu_dualband_blend_shape(
             sample_rate=sample_rate,
             band_lo_hz=band_lo_hz,
             band_hi_hz=band_hi_hz,
+            apply_hpss=apply_hpss,
         )
         return np.asarray(shaped_t.cpu().numpy(), dtype=np.float64)
 
@@ -452,6 +497,7 @@ def gpu_blend_ai_stem(
                 sample_rate=sample_rate,
                 band_lo_hz=band_lo_hz,
                 band_hi_hz=band_hi_hz,
+                apply_hpss=False,
             )[wrap : wrap + n]
         else:
             shaped_t = _apply_bandpass_and_envelope_gpu(
@@ -461,6 +507,7 @@ def gpu_blend_ai_stem(
                 sample_rate=sample_rate,
                 band_lo_hz=band_lo_hz,
                 band_hi_hz=band_hi_hz,
+                apply_hpss=not seamless_loop,
             )
 
         if not seamless_loop:

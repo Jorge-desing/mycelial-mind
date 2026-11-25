@@ -20,7 +20,10 @@ from scripts.sound_studio.dsp_engine import (
     _wet_squelch_layer,
     adsr_envelope,
     exp_decay,
+    fdn4_hadamard_diffuser,
     fold_seamless_loop,
+    granular_bio_cloud,
+    karplus_strong_chitin,
     modal_resonator_bank,
 )
 
@@ -50,6 +53,10 @@ BLOCK_FUNCTIONAL_IDS: frozenset[str] = frozenset(
         "colony_dialect_conflict",
         "colony_reconstruction_pulse",
         "spore_updraft_vent_pulse",
+        "root_sap_harvest",
+        "root_cap_bounce",
+        "amber_vein_resonate",
+        "station_upkeep_low",
     }
 )
 
@@ -902,5 +909,62 @@ def synthesize_block_functional(
         wave = np.zeros(n, dtype=np.float64)
         wave[onset:] = air_rush + hum * 0.65
         return _cavern_reverb(np.tanh(wave * 1.15), rng, wet=0.22, rt60=0.48, lp_hz=6400.0)
+
+    if sound_id == "root_sap_harvest":
+        # Viscous luminous sap bottle draw: hollow glass-neck pop -> viscous granular draw -> warm bio-chime
+        onset = int(rng.uniform(0.01, 0.06) * n)
+        rem = max(32, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        pop_f = base_freq * (0.75 + 1.35 * np.exp(-rt / 0.045))
+        pop = np.sin(2.0 * np.pi * np.cumsum(pop_f) / SAMPLE_RATE + pjit) * exp_decay(rt, 0.075) * 0.82
+        syphon = granular_bio_cloud(rem, rng, freq_range=(280.0, 1950.0), density_hz=54.0, grain_ms=22.0, organic_mode="viscous") * adsr_envelope(rem, 0.06, 0.25, 0.55, 0.35) * 0.95
+        glow = karplus_strong_chitin(rem, base_freq * 1.5, rng, damping=0.988, brightness=0.68, stiffness=0.08, excitation="pluck") * exp_decay(rt, 0.22) * 0.42
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = pop + syphon + glow
+        return fdn4_hadamard_diffuser(np.tanh(wave * 1.15), rng, rt60=0.42, wet=0.22, damping_hz=5400.0)
+
+    if sound_id == "root_cap_bounce":
+        # Elastic fungal cap shelf rebound: rubbery upward waveguide boing + mossy air thump
+        onset = int(rng.uniform(0.008, 0.045) * n)
+        rem = max(32, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        f_boing = base_freq * (0.72 + 1.15 * (1.0 - np.exp(-rt / 0.065))) * (1.0 + 0.08 * np.sin(2.0 * np.pi * 16.0 * rt))
+        membrane = np.sin(2.0 * np.pi * np.cumsum(f_boing) / SAMPLE_RATE + pjit) * exp_decay(rt, 0.19) * 0.92
+        wg = karplus_strong_chitin(rem, base_freq * rng.uniform(1.15, 1.35), rng, damping=0.985, brightness=0.52, stiffness=0.06, excitation="bounce") * exp_decay(rt, 0.16) * 0.65
+        puff = _swept_resonant_filter(pink[onset:], 240.0, 1200.0, q=2.2) * exp_decay(rt, 0.09) * 0.45
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = membrane + wg + puff
+        return _cavern_reverb(np.tanh(wave * 1.18), rng, wet=0.18, rt60=0.38, lp_hz=4400.0)
+
+    if sound_id == "amber_vein_resonate":
+        # Luminescent amber conduit harmonic chord: waveguide fifth + spore crystalline sparkle + FDN diffusion
+        onset = int(rng.uniform(0.02, 0.08) * n)
+        rem = max(32, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        root = base_freq * rng.uniform(0.96, 1.04)
+        c1 = karplus_strong_chitin(rem, root, rng, damping=0.994, brightness=0.72, stiffness=0.10, excitation="pluck") * 0.62
+        c2 = karplus_strong_chitin(rem, root * 1.498, rng, damping=0.993, brightness=0.74, stiffness=0.12, excitation="pluck") * 0.50
+        c3 = karplus_strong_chitin(rem, root * 2.0, rng, damping=0.991, brightness=0.78, stiffness=0.10, excitation="pluck") * 0.34
+        sparkle = granular_bio_cloud(rem, rng, freq_range=(1200.0, 5200.0), density_hz=36.0, grain_ms=28.0, organic_mode="spore") * adsr_envelope(rem, 0.12, 0.25, 0.45, 0.40) * 0.38
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = (c1 + c2 + c3) * adsr_envelope(rem, 0.06, 0.22, 0.52, 0.42) + sparkle
+        return fdn4_hadamard_diffuser(np.tanh(wave * 1.12), rng, rt60=0.62, wet=0.28, damping_hz=6400.0)
+
+    if sound_id == "station_upkeep_low":
+        # Diegetic purifier power-sag / empty-ammo alert: 2 descending clinical pulses + relay drop click
+        wave = np.zeros(n, dtype=np.float64)
+        for idx_p, (frac, mult) in enumerate(((0.03, 1.00), (0.42, 0.74))):
+            pos = int(frac * n)
+            plen = min(n - pos, int(SAMPLE_RATE * 0.16))
+            if plen > 32:
+                pt = np.arange(plen, dtype=np.float64) / SAMPLE_RATE
+                f_sag = base_freq * mult * (1.0 - 0.14 * (pt / max(1e-4, pt[-1])))
+                tone = (
+                    np.sin(2.0 * np.pi * np.cumsum(f_sag) / SAMPLE_RATE + pjit) * 0.72
+                    + np.sin(4.0 * np.pi * np.cumsum(f_sag) / SAMPLE_RATE) * 0.24
+                ) * adsr_envelope(plen, 0.06, 0.20, 0.55, 0.35)
+                click = karplus_strong_chitin(plen, base_freq * 2.2, rng, damping=0.96, brightness=0.80, excitation="click") * exp_decay(pt, 0.018) * 0.32
+                wave[pos : pos + plen] += tone + click
+        return _cavern_reverb(_sos_highpass(wave, 190.0), rng, wet=0.10, rt60=0.24, lp_hz=7600.0)
 
     raise ValueError(f"Unknown functional block sound_id: {sound_id}")

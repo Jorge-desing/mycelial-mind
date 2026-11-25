@@ -194,6 +194,21 @@ public final class MycelialCommands {
                                                 DoubleArgumentType.getDouble(ctx, "amount")))))
                         .then(Commands.literal("sedate")
                                 .executes(ctx -> sedateHomeostasis(ctx.getSource()))))
+                .then(Commands.literal("audio")
+                        .executes(ctx -> reportAudioStatus(ctx.getSource()))
+                        .then(Commands.literal("status")
+                                .executes(ctx -> reportAudioStatus(ctx.getSource())))
+                        .then(Commands.literal("test")
+                                .then(Commands.argument("sound_id", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> {
+                                            for (var holder : ModSounds.SOUND_EVENTS.getEntries()) {
+                                                builder.suggest(holder.getId().getPath());
+                                            }
+                                            return builder.buildFuture();
+                                        })
+                                        .executes(ctx -> playAudioTest(
+                                                ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "sound_id"))))))
                 .then(Commands.literal("worldgen")
                         .then(Commands.literal("audit")
                                 .executes(ctx -> runWorldgenAudit(ctx.getSource(), 8, 64))
@@ -1398,7 +1413,7 @@ public final class MycelialCommands {
     private static int verifyPolish(CommandSourceStack source) {
         ServerLevel level = source.getLevel();
         var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-        boolean soundsOk = soundEntries.size() == 208;
+        boolean soundsOk = soundEntries.size() == 220;
         if (soundsOk) {
             for (var holder : soundEntries) {
                 SoundEvent evt = holder.get();
@@ -2321,5 +2336,46 @@ public final class MycelialCommands {
             tracker.restoreFromSnapshot(trackerSnapshot, level.registryAccess());
             hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
         }
+    }
+
+    private static int reportAudioStatus(CommandSourceStack source) {
+        int soundCount = ModSounds.SOUND_EVENTS.getEntries().size();
+        int envCount = com.alex.mycelialmind.hive.AcousticPhysicsEngine.AcousticEnvironment.values().length;
+        int matCount = com.alex.mycelialmind.hive.AcousticPhysicsEngine.MaterialAbsorption.values().length;
+        String baseLine = "[Mycelial Audio v4] RegisteredSounds=" + soundCount
+                + " | AcousticEnvironments=" + envCount
+                + " | MaterialTiers=" + matCount;
+        String clientLine;
+        if (net.neoforged.fml.loading.FMLEnvironment.dist.isClient()) {
+            clientLine = " | " + com.alex.mycelialmind.client.audio.ClientAudioDiagnostics.formatClientTelemetry();
+        } else {
+            clientLine = " | Dist=DEDICATED_SERVER (OpenAL EFX runs per-client)";
+        }
+        source.sendSuccess(() -> Component.literal(baseLine + clientLine).withStyle(ChatFormatting.AQUA), false);
+        return 1;
+    }
+
+    private static int playAudioTest(CommandSourceStack source, String soundId) {
+        String normalized = soundId.startsWith(MycelialMind.MODID + ":")
+                ? soundId.substring((MycelialMind.MODID + ":").length())
+                : soundId;
+        SoundEvent matched = null;
+        for (var holder : ModSounds.SOUND_EVENTS.getEntries()) {
+            if (holder.getId().getPath().equals(normalized)) {
+                matched = holder.get();
+                break;
+            }
+        }
+        if (matched == null) {
+            source.sendFailure(Component.literal("[Mycelial Audio] Unknown sound_id: " + soundId));
+            return 0;
+        }
+        ServerLevel level = source.getLevel();
+        BlockPos pos = BlockPos.containing(source.getPosition());
+        level.playSound(null, pos, matched, net.minecraft.sounds.SoundSource.MASTER, 1.0F, 1.0F);
+        final String playedPath = normalized;
+        source.sendSuccess(() -> Component.literal("[Mycelial Audio] Played mycelialmind:" + playedPath
+                + " @ " + pos.toShortString()).withStyle(ChatFormatting.GREEN), false);
+        return 1;
     }
 }

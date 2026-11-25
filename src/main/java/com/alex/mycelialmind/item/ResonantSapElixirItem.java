@@ -48,8 +48,8 @@ public class ResonantSapElixirItem extends Item {
             serverLevel.sendParticles(ModParticles.BIO_LUME.get(),
                     entity.getX(), entity.getY(0.5D), entity.getZ(),
                     14, 0.35D, 0.35D, 0.35D, 0.04D);
-            serverLevel.playSound(null, entity.blockPosition(), ModSounds.SPORE_ANTIDOTE_CURE.get(),
-                    SoundSource.PLAYERS, 0.90F, 1.15F);
+            serverLevel.playSound(null, entity.blockPosition(), ModSounds.RESONANT_ELIXIR_DRINK.get(),
+                    SoundSource.PLAYERS, 0.90F, 1.05F);
         }
 
         if (entity instanceof Player player && !player.getAbilities().instabuild) {
@@ -79,12 +79,12 @@ public class ResonantSapElixirItem extends Item {
 
     @Override
     public SoundEvent getDrinkingSound() {
-        return ModSounds.SPORE_ANTIDOTE_CURE.get();
+        return ModSounds.RESONANT_ELIXIR_DRINK.get();
     }
 
     @Override
     public SoundEvent getEatingSound() {
-        return ModSounds.SPORE_ANTIDOTE_CURE.get();
+        return ModSounds.RESONANT_ELIXIR_DRINK.get();
     }
 
     @Override

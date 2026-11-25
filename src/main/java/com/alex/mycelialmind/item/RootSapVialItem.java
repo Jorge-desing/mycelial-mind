@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -53,8 +52,8 @@ public class RootSapVialItem extends Item {
                 }
             }
             MycelialParticles.antidote(serverLevel, entity, false);
-            serverLevel.playSound(null, entity.blockPosition(), ModSounds.SPORE_ANTIDOTE_CURE.get(),
-                    SoundSource.PLAYERS, 0.75F, 1.25F);
+            serverLevel.playSound(null, entity.blockPosition(), ModSounds.RESONANT_ELIXIR_DRINK.get(),
+                    SoundSource.PLAYERS, 0.78F, 1.12F);
         }
 
         if (entity instanceof Player player) {
@@ -84,12 +83,12 @@ public class RootSapVialItem extends Item {
 
     @Override
     public SoundEvent getDrinkingSound() {
-        return SoundEvents.HONEY_DRINK;
+        return ModSounds.RESONANT_ELIXIR_DRINK.get();
     }
 
     @Override
     public SoundEvent getEatingSound() {
-        return SoundEvents.HONEY_DRINK;
+        return ModSounds.RESONANT_ELIXIR_DRINK.get();
     }
 
     @Override

@@ -8,8 +8,8 @@
   "vae_sliced_decode": true,
   "sampler_type": "pingpong",
   "sample_rate": 44100,
-  "stem_count": 59,
-  "mapped_sound_events": 208,
+  "stem_count": 66,
+  "mapped_sound_events": 220,
   "stems": {
     "acid_spitter_wet_gurgle": {
       "group": "entity",
@@ -25,7 +25,18 @@
         "acid_spitter_hurt",
         "acid_spitter_death",
         "acid_spitter_spit"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -24.3,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.382,
+        "silence_tail_ratio": 0.545,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "anatomical_chitin_footsteps": {
       "group": "entity",
@@ -41,7 +52,18 @@
         "mob_step_arachnid",
         "mob_step_heavy",
         "mob_step_hover"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -30.58,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.064,
+        "silence_tail_ratio": 0.83,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      }
     },
     "boss_behemoth_death": {
       "group": "boss",
@@ -54,7 +76,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "spore_behemoth_death"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.08,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.494,
+        "silence_tail_ratio": 0.457,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 3.8,
+        "issues": []
+      }
     },
     "boss_behemoth_hurt": {
       "group": "boss",
@@ -67,7 +100,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "spore_behemoth_hurt"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.72,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.353,
+        "silence_tail_ratio": 0.627,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "boss_behemoth_roar": {
       "group": "boss",
@@ -80,7 +124,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "spore_behemoth_roar"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -16.13,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.597,
+        "silence_tail_ratio": 0.377,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 3.6,
+        "issues": []
+      }
     },
     "boss_behemoth_slam": {
       "group": "boss",
@@ -94,7 +149,18 @@
       "sound_ids": [
         "spore_behemoth_slam",
         "mob_step_colossal"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.18,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.221,
+        "silence_tail_ratio": 0.559,
+        "clipped_samples": 0,
+        "dc_offset": 1e-05,
+        "duration_secs": 3.2,
+        "issues": []
+      }
     },
     "boss_hive_core_death": {
       "group": "boss",
@@ -107,7 +173,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "hive_core_death"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.04,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.674,
+        "silence_tail_ratio": 0.314,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 4.0,
+        "issues": []
+      }
     },
     "boss_hive_core_hurt": {
       "group": "boss",
@@ -120,7 +197,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "hive_core_hurt"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.7,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.765,
+        "silence_tail_ratio": 0.235,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "boss_hive_core_resonance": {
       "group": "boss",
@@ -133,7 +221,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "hive_core_resonance"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.46,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.584,
+        "silence_tail_ratio": 0.403,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 3.6,
+        "issues": []
+      }
     },
     "boss_hive_core_shield": {
       "group": "boss",
@@ -146,7 +245,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "hive_core_shield"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -16.29,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.517,
+        "silence_tail_ratio": 0.483,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "boss_matriarch_barrage": {
       "group": "boss",
@@ -159,7 +269,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "apex_matriarch_barrage"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -16.89,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.5,
+        "silence_tail_ratio": 0.5,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "boss_matriarch_death": {
       "group": "boss",
@@ -172,7 +293,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "apex_matriarch_death"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -16.12,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.558,
+        "silence_tail_ratio": 0.43,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 4.0,
+        "issues": []
+      }
     },
     "boss_matriarch_hurt": {
       "group": "boss",
@@ -185,7 +317,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "apex_matriarch_hurt"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -35.27,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.098,
+        "silence_tail_ratio": 0.882,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "boss_matriarch_wail": {
       "group": "boss",
@@ -198,6 +341,42 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "apex_matriarch_wail"
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.36,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.831,
+        "silence_tail_ratio": 0.156,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 3.6,
+        "issues": []
+      }
+    },
+    "boss_tactical_stagger": {
+      "group": "boss",
+      "prompt": "Sharp metallic psychic target lock warning followed by colossal shattered chitin armor stagger collapse, dry cinematic foley",
+      "seed": 308307838,
+      "batch_index": 4,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -21.59,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -21.59,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.4,
+        "silence_tail_ratio": 0.582,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      },
+      "sound_ids": [
+        "boss_telegraph_lock",
+        "boss_stagger_break"
       ]
     },
     "boss_tension_bed": {
@@ -211,7 +390,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "boss_combat_tension_bed"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -12.66,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.901,
+        "silence_tail_ratio": 0.063,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 5.2,
+        "issues": []
+      }
     },
     "boss_weakpoint_impact": {
       "group": "boss",
@@ -225,7 +415,18 @@
       "sound_ids": [
         "boss_weakpoint_crit",
         "boss_carapace_ricochet"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.49,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.426,
+        "silence_tail_ratio": 0.574,
+        "clipped_samples": 0,
+        "dc_offset": 3e-05,
+        "duration_secs": 2.2,
+        "issues": []
+      }
     },
     "burrower_chitin_grind": {
       "group": "entity",
@@ -241,7 +442,18 @@
         "burrower_hurt",
         "burrower_death",
         "burrower_tunnel"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.69,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.633,
+        "silence_tail_ratio": 0.283,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "chimera_alpha_roar": {
       "group": "entity",
@@ -254,7 +466,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "chimera_roar"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.68,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.367,
+        "silence_tail_ratio": 0.617,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "chimera_beast_growl": {
       "group": "entity",
@@ -270,7 +493,18 @@
         "mycelial_chimera_hurt",
         "mycelial_chimera_death",
         "mycelial_chimera_strike"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -20.03,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.333,
+        "silence_tail_ratio": 0.667,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "chitin_brute_growl_heavy": {
       "group": "entity",
@@ -286,7 +520,18 @@
         "chitin_brute_hurt",
         "chitin_brute_death",
         "chitin_brute_smash"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.11,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.65,
+        "silence_tail_ratio": 0.35,
+        "clipped_samples": 0,
+        "dc_offset": -2e-05,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "colony_dialect_resonance": {
       "group": "block_func",
@@ -301,7 +546,18 @@
         "colony_dialect_mastered",
         "colony_dialect_conflict",
         "colony_reconstruction_pulse"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -12.09,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.51,
+        "silence_tail_ratio": 0.49,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "colony_raid_signal": {
       "group": "boss",
@@ -314,7 +570,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "colony_raid_horn"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.83,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.515,
+        "silence_tail_ratio": 0.485,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 3.2,
+        "issues": []
+      }
     },
     "colony_warden_deep_bellow": {
       "group": "entity",
@@ -329,11 +596,44 @@
         "colony_warden_bellow",
         "colony_warden_hurt",
         "colony_warden_death",
-        "colony_warden_shockwave",
-        "root_keeper_ambient",
-        "root_keeper_hurt",
-        "root_keeper_death",
-        "root_keeper_slam"
+        "colony_warden_shockwave"
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.59,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.484,
+        "silence_tail_ratio": 0.5,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 3.0,
+        "issues": []
+      }
+    },
+    "eco_counterplay_amber": {
+      "group": "block_func",
+      "prompt": "Heavy armored beast slamming chitin pillar stun crunch, pressurized steam ember quench hiss, glowing amber crystal resonance",
+      "seed": 308307838,
+      "batch_index": 2,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -23.76,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -23.77,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.373,
+        "silence_tail_ratio": 0.627,
+        "clipped_samples": 0,
+        "dc_offset": 2e-05,
+        "duration_secs": 2.4,
+        "issues": []
+      },
+      "sound_ids": [
+        "brute_wall_stun",
+        "pyro_shroom_defuse",
+        "amber_vein_resonate"
       ]
     },
     "env_biome_caverns_abyss": {
@@ -350,7 +650,18 @@
         "biome_caverns_mood",
         "biome_caverns_additions",
         "fungal_tide_ambience"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.85,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.556,
+        "silence_tail_ratio": 0.421,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 6.2,
+        "issues": []
+      }
     },
     "env_biome_forest_canopy": {
       "group": "system_env",
@@ -366,7 +677,18 @@
         "biome_forest_mood",
         "biome_forest_additions",
         "mycorrhizal_tremor"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.77,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.714,
+        "silence_tail_ratio": 0.278,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 6.2,
+        "issues": []
+      }
     },
     "env_biome_sanctum_arterial": {
       "group": "system_env",
@@ -382,7 +704,18 @@
         "biome_sanctum_mood",
         "biome_sanctum_additions",
         "homeostasis_heartbeat"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -17.93,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.421,
+        "silence_tail_ratio": 0.579,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 6.2,
+        "issues": []
+      }
     },
     "func_mycelial_rift_portal": {
       "group": "block_func",
@@ -395,7 +728,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "mycelial_rift_hum"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -10.89,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.956,
+        "silence_tail_ratio": 0.044,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 3.2,
+        "issues": []
+      }
     },
     "func_purifier_turret_pylon": {
       "group": "block_func",
@@ -412,7 +756,18 @@
         "purification_turret_upgrade",
         "purification_turret_repair",
         "synaptic_bench_synthesize"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.59,
+        "peak_dbfs": -1.62,
+        "active_ratio": 0.527,
+        "silence_tail_ratio": 0.473,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "func_spore_vent_bulb": {
       "group": "block_func",
@@ -426,9 +781,19 @@
       "sound_ids": [
         "spore_vent_puff",
         "spore_bulb_burst",
-        "ephemeral_chitin_crumble",
-        "spore_updraft_vent_pulse"
-      ]
+        "ephemeral_chitin_crumble"
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.44,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.382,
+        "silence_tail_ratio": 0.473,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "func_synaptic_symbiotic_node": {
       "group": "block_func",
@@ -447,7 +812,18 @@
         "colony_dialect_tone_1",
         "colony_dialect_tone_2",
         "colony_dialect_tone_3"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.47,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.683,
+        "silence_tail_ratio": 0.317,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "goliath_carrier_hollow_thud": {
       "group": "entity",
@@ -463,7 +839,18 @@
         "goliath_carrier_hurt",
         "goliath_carrier_death",
         "goliath_carrier_spawn"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -21.98,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.531,
+        "silence_tail_ratio": 0.453,
+        "clipped_samples": 0,
+        "dc_offset": -2e-05,
+        "duration_secs": 3.0,
+        "issues": []
+      }
     },
     "item_ballistic_launcher_grenade": {
       "group": "item",
@@ -480,7 +867,18 @@
         "purifier_grenade_detonate",
         "acid_spit_impact",
         "neutralizing_spore_impact"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.79,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.491,
+        "silence_tail_ratio": 0.418,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "item_eldritch_relic_catalyst": {
       "group": "item",
@@ -499,7 +897,18 @@
         "tide_beacon_activate",
         "rift_catalyst_ignite",
         "overmind_crown_surge"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -19.21,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.562,
+        "silence_tail_ratio": 0.438,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 3.0,
+        "issues": []
+      }
     },
     "item_purifier_scanner_tech": {
       "group": "item",
@@ -517,7 +926,18 @@
         "neural_decoy_deploy",
         "purifier_drone_deploy",
         "command_staff_mark"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -17.36,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.333,
+        "silence_tail_ratio": 0.667,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "item_symbiotic_melee_blades": {
       "group": "item",
@@ -533,7 +953,18 @@
         "enzyme_lance_thrust",
         "chitin_armor_equip",
         "chitin_armor_evolve"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -25.44,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.235,
+        "silence_tail_ratio": 0.745,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "item_visceral_mutagen_serum": {
       "group": "item",
@@ -550,7 +981,18 @@
         "symbiotic_mutagen_implant",
         "truce_pheromone_spray",
         "chimera_ovum_hatch"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -32.04,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.382,
+        "silence_tail_ratio": 0.582,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "leech_parasite_shriek": {
       "group": "entity",
@@ -566,7 +1008,18 @@
         "leech_parasite_hurt",
         "leech_parasite_death",
         "leech_parasite_siphon"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.01,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.686,
+        "silence_tail_ratio": 0.314,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "primordial_biolum_pulse": {
       "group": "system_env",
@@ -579,7 +1032,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "primordial_presence_pulse"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -9.24,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.9,
+        "silence_tail_ratio": 0.1,
+        "clipped_samples": 0,
+        "dc_offset": -4e-05,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "purifier_drone_servo_thruster": {
       "group": "entity",
@@ -598,7 +1062,18 @@
         "colony_symbiont_ambient",
         "colony_symbiont_work",
         "colony_symbiont_promote"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.42,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.588,
+        "silence_tail_ratio": 0.412,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "pyro_shroom_ember_sizzle": {
       "group": "entity",
@@ -614,7 +1089,18 @@
         "pyro_shroom_hurt",
         "pyro_shroom_death",
         "pyro_shroom_ignite"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -29.38,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.483,
+        "silence_tail_ratio": 0.2,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "reclaimed_bloom_chime": {
       "group": "block_func",
@@ -628,7 +1114,18 @@
       "sound_ids": [
         "reclaimed_bloom_harvest",
         "reclaimed_bloom_pulse"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.55,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.326,
+        "silence_tail_ratio": 0.674,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.0,
+        "issues": []
+      }
     },
     "ritual_dimensional_rift": {
       "group": "boss",
@@ -642,7 +1139,18 @@
       "sound_ids": [
         "matriarch_altar_awaken",
         "boss_phase_shift"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.29,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.468,
+        "silence_tail_ratio": 0.506,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 3.6,
+        "issues": []
+      }
     },
     "ritual_monolith_awaken": {
       "group": "boss",
@@ -656,6 +1164,121 @@
       "sound_ids": [
         "hive_altar_awaken",
         "fungal_tide_horn"
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -11.0,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.877,
+        "silence_tail_ratio": 0.123,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 3.8,
+        "issues": []
+      }
+    },
+    "sinkhole_glider_wing": {
+      "group": "entity",
+      "prompt": "Bioluminescent cave glider membrane wing flutter, gentle airy chime trill, soft organic subterranean echo",
+      "seed": 308307838,
+      "batch_index": 3,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -19.28,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -19.28,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.373,
+        "silence_tail_ratio": 0.51,
+        "clipped_samples": 0,
+        "dc_offset": 2e-05,
+        "duration_secs": 2.4,
+        "issues": []
+      },
+      "sound_ids": [
+        "spore_glider_ambient",
+        "spore_glider_hurt",
+        "spore_glider_death"
+      ]
+    },
+    "sinkhole_root_keeper": {
+      "group": "entity",
+      "prompt": "Deep earthen root guardian growl, creaking subterranean wood-chitin impact slam, hollow cavern tremor",
+      "seed": 308307838,
+      "batch_index": 5,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -18.63,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.63,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.583,
+        "silence_tail_ratio": 0.4,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "root_keeper_ambient",
+        "root_keeper_hurt",
+        "root_keeper_death",
+        "root_keeper_slam"
+      ]
+    },
+    "sinkhole_sap_elixir": {
+      "group": "item",
+      "prompt": "Rich thick honeyed liquid pouring into resonance crystal vial, steady warm golden chime swell, deep bouncy fungal cap thrum",
+      "seed": 2012336952,
+      "batch_index": 0,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -28.76,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -28.76,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.638,
+        "silence_tail_ratio": 0.319,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "root_sap_harvest",
+        "root_cap_bounce",
+        "resonant_elixir_drink"
+      ]
+    },
+    "sinkhole_updraft_column": {
+      "group": "system_env",
+      "prompt": "Steady vertical subterranean wind chimney updraft, warm rushing cavern air column with gentle resonant spore hum",
+      "seed": 308307838,
+      "batch_index": 6,
+      "seconds_total": 5.0,
+      "duration_secs": 5.0,
+      "rms_dbfs": -19.47,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -19.47,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.738,
+        "silence_tail_ratio": 0.224,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 5.0,
+        "issues": []
+      },
+      "sound_ids": [
+        "spore_updraft_vent_pulse",
+        "sinkhole_updraft_loop"
       ]
     },
     "sovereign_nexus_bed": {
@@ -669,7 +1292,18 @@
       "peak_dbfs": -0.92,
       "sound_ids": [
         "sovereign_nexus_hum"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -7.53,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.981,
+        "silence_tail_ratio": 0.019,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 5.0,
+        "issues": []
+      }
     },
     "spore_architect_pulse": {
       "group": "entity",
@@ -685,7 +1319,18 @@
         "spore_architect_hurt",
         "spore_architect_death",
         "spore_architect_construct"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -20.27,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.291,
+        "silence_tail_ratio": 0.709,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "sporeling_chitter_insect": {
       "group": "entity",
@@ -701,7 +1346,18 @@
         "sporeling_hurt",
         "sporeling_death",
         "sporeling_burst"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -25.37,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.275,
+        "silence_tail_ratio": 0.216,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "stalker_predator_hiss": {
       "group": "entity",
@@ -717,7 +1373,18 @@
         "stalker_hurt",
         "stalker_death",
         "stalker_pounce"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.6,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.218,
+        "silence_tail_ratio": 0.782,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "surf_antibody_cyst_visceral": {
       "group": "surface",
@@ -734,7 +1401,18 @@
         "block_antibody_cyst_place",
         "block_antibody_cyst_hit",
         "block_antibody_cyst_fall"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -26.26,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.235,
+        "silence_tail_ratio": 0.725,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "surf_chitin_hollow_shell": {
       "group": "surface",
@@ -751,7 +1429,18 @@
         "block_chitin_place",
         "block_chitin_hit",
         "block_chitin_fall"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -34.99,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.392,
+        "silence_tail_ratio": 0.294,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "surf_hive_altar_monolith": {
       "group": "surface",
@@ -768,7 +1457,18 @@
         "block_hive_altar_place",
         "block_hive_altar_hit",
         "block_hive_altar_fall"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -19.73,
+        "peak_dbfs": -2.26,
+        "active_ratio": 0.4,
+        "silence_tail_ratio": 0.582,
+        "clipped_samples": 0,
+        "dc_offset": 9e-05,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "surf_mycelial_stone_basalt": {
       "group": "surface",
@@ -785,7 +1485,18 @@
         "block_mycelial_stone_place",
         "block_mycelial_stone_hit",
         "block_mycelial_stone_fall"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.37,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.529,
+        "silence_tail_ratio": 0.431,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "surf_mycelium_wet_moss": {
       "group": "surface",
@@ -802,7 +1513,18 @@
         "block_mycelium_place",
         "block_mycelium_hit",
         "block_mycelium_fall"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -29.84,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.725,
+        "silence_tail_ratio": 0.275,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "surf_purification_alloy_plate": {
       "group": "surface",
@@ -819,7 +1541,18 @@
         "block_purification_tech_place",
         "block_purification_tech_hit",
         "block_purification_tech_fall"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -26.08,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.294,
+        "silence_tail_ratio": 0.471,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "surf_synaptic_quartz_chime": {
       "group": "surface",
@@ -836,7 +1569,18 @@
         "block_synaptic_node_place",
         "block_synaptic_node_hit",
         "block_synaptic_node_fall"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -30.56,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.412,
+        "silence_tail_ratio": 0.588,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      }
     },
     "synapse_weaver_crystal_hum": {
       "group": "entity",
@@ -851,11 +1595,19 @@
         "synapse_weaver_hum",
         "synapse_weaver_hurt",
         "synapse_weaver_death",
-        "synapse_weaver_buff",
-        "spore_glider_ambient",
-        "spore_glider_hurt",
-        "spore_glider_death"
-      ]
+        "synapse_weaver_buff"
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -12.33,
+        "peak_dbfs": -0.92,
+        "active_ratio": 1.0,
+        "silence_tail_ratio": 0.0,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "synaptic_mimic_vocal": {
       "group": "entity",
@@ -871,7 +1623,18 @@
         "synaptic_mimic_hurt",
         "synaptic_mimic_death",
         "synaptic_mimic_strike"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.45,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.582,
+        "silence_tail_ratio": 0.382,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
     },
     "sys_hive_evolution_surge": {
       "group": "system_env",
@@ -891,7 +1654,18 @@
         "hive_trait_adapt",
         "hive_synergy_unlock",
         "hive_threat_milestone"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.16,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.456,
+        "silence_tail_ratio": 0.529,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 3.2,
+        "issues": []
+      }
     },
     "sys_purifier_emp_suppression": {
       "group": "system_env",
@@ -907,7 +1681,18 @@
         "squad_desync",
         "corrosive_jam",
         "purification_pylon_hum"
-      ]
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.76,
+        "peak_dbfs": -2.47,
+        "active_ratio": 0.55,
+        "silence_tail_ratio": 0.45,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      }
     },
     "sys_visceral_assimilation": {
       "group": "system_env",
@@ -925,6 +1710,43 @@
         "acid_rain_sizzle",
         "necrophagy_feast",
         "swarm_flank_call"
+      ],
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -21.13,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.473,
+        "silence_tail_ratio": 0.382,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      }
+    },
+    "ui_bio_tactile_tech": {
+      "group": "item",
+      "prompt": "Crisp bio-organic parchment tap, tactile sterile purifier confirmation chime, subtle low-power beacon warning chirp",
+      "seed": 308307838,
+      "batch_index": 0,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -14.41,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.41,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.158,
+        "silence_tail_ratio": 0.711,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 1.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "ui_codex_tab",
+        "ui_action_confirm",
+        "station_upkeep_low"
       ]
     }
   }

@@ -129,8 +129,15 @@ public class PurificationTurretBlockEntity extends BlockEntity {
     public void setAmmo(int ammo) {
         int clamped = Math.max(0, Math.min(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_MAX_AMMO, ammo));
         if (this.ammo != clamped) {
+            int previous = this.ammo;
             this.ammo = clamped;
             if (this.level instanceof ServerLevel serverLevel) {
+                boolean crossedLow = previous > 8 && clamped <= 8 && clamped > 0;
+                boolean crossedEmpty = previous > 0 && clamped == 0;
+                if (crossedLow || crossedEmpty) {
+                    serverLevel.playSound(null, this.worldPosition, ModSounds.STATION_UPKEEP_LOW.get(),
+                            SoundSource.BLOCKS, crossedEmpty ? 0.90F : 0.65F, crossedEmpty ? 0.88F : 1.04F);
+                }
                 BlockState state = getBlockState();
                 serverLevel.sendBlockUpdated(this.worldPosition, state, state, 3);
             }
