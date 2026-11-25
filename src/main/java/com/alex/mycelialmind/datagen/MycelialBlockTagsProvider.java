@@ -4,7 +4,11 @@ import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.registry.ModBlocks;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +19,9 @@ import java.util.concurrent.CompletableFuture;
  * Generates block tags (boss immunities, tool tier requirements, and mineable tools).
  */
 public final class MycelialBlockTagsProvider extends BlockTagsProvider {
+    private static final TagKey<Block> CARRYON_BLOCK_BLACKLIST =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("carryon", "block_blacklist"));
+
     public MycelialBlockTagsProvider(
             PackOutput output,
             CompletableFuture<HolderLookup.Provider> lookupProvider,
@@ -89,5 +96,21 @@ public final class MycelialBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_SHOVEL).add(
                 ModBlocks.CREEPING_MYCELIUM.get()
         );
+
+        Block[] immovableBlocks = {
+                ModBlocks.MYCELIAL_NODE.get(),
+                ModBlocks.INCUBATOR_NODE.get(),
+                ModBlocks.SENTINEL_NODE.get(),
+                ModBlocks.SYMBIOTIC_NODE.get(),
+                ModBlocks.SOVEREIGN_NEXUS.get(),
+                ModBlocks.PURIFICATION_PYLON.get(),
+                ModBlocks.PURIFICATION_TURRET.get(),
+                ModBlocks.SYNAPTIC_RESEARCH_BENCH.get(),
+                ModBlocks.HIVE_ALTAR.get(),
+                ModBlocks.MATRIARCH_ALTAR.get(),
+                ModBlocks.MYCELIAL_RIFT.get()
+        };
+        tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED).add(immovableBlocks);
+        tag(CARRYON_BLOCK_BLACKLIST).add(immovableBlocks);
     }
 }

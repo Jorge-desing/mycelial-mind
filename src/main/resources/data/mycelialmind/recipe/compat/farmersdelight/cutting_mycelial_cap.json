@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "farmersdelight"
+    }
+  ],
+  "type": "farmersdelight:cutting",
+  "ingredients": [
+    {
+      "item": "mycelialmind:bioluminescent_mycelial_cap"
+    }
+  ],
+  "tool": {
+    "tag": "c:tools/knife"
+  },
+  "result": [
+    {
+      "item": {
+        "id": "mycelialmind:mycelial_biomass",
+        "count": 2
+      }
+    },
+    {
+      "item": {
+        "id": "mycelialmind:latent_spore",
+        "count": 1
+      },
+      "chance": 0.5
+    }
+  ]
+}

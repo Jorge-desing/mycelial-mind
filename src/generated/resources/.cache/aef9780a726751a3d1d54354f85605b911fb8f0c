@@ -1,4 +1,6 @@
-// 1.21.1	2026-11-24T22:55:54.2453685	Tags for minecraft:block mod id mycelialmind
+// 1.21.1	2026-11-25T11:36:45.3096837	Tags for minecraft:block mod id mycelialmind
+c59930297c5efdc490d1a8b6d5683b251229b6bb data/carryon/tags/block/block_blacklist.json
+c59930297c5efdc490d1a8b6d5683b251229b6bb data/c/tags/block/relocation_not_supported.json
 c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/dragon_immune.json
 533d12b13479ac6820bb5b94bd4ae514c8d99875 data/minecraft/tags/block/mineable/hoe.json
 4c659bb3725a7cdb9258c7e198932a050a71bccf data/minecraft/tags/block/mineable/pickaxe.json

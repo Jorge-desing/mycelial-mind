@@ -1733,6 +1733,8 @@
   "mycelialmind.configuration.progressiveThreatScaling": "Progressive Tier Scaling",
   "mycelialmind.configuration.projectileDeflectChance": "Projectile Deflect Chance",
   "mycelialmind.configuration.pylonPurificationRadius": "Pylon Purification Radius",
+  "mycelialmind.configuration.respectClaimedChunks": "Respect Claimed Chunks",
+  "mycelialmind.configuration.respectClaimedChunks.tooltip": "Block destructive Burrower tunneling and Acid Spit block corrosion inside FTB Chunks and Open Parties & Claims territories.",
   "mycelialmind.configuration.screenShakeScale": "Camera Micro-Shake Scale",
   "mycelialmind.configuration.screenShakeScale.tooltip": "Intensity scale for camera micro-shake on boss strikes, relic discharges, and sudden threat spikes (0.0 = off).",
   "mycelialmind.configuration.section.mycelialmind.client.toml": "Client Settings",

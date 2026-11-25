@@ -2,6 +2,7 @@ package com.alex.mycelialmind.entity.projectile;
 
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.compat.claims.ClaimProtectionCompat;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.LivingBattlefieldSystem;
@@ -103,6 +104,9 @@ public class AcidSpitProjectile extends ThrowableProjectile {
     }
 
     private static void tryCorrode(ServerLevel level, BlockPos pos) {
+        if (ClaimProtectionCompat.isClaimProtected(level, pos)) {
+            return;
+        }
         BlockState state = level.getBlockState(pos);
         if (state.is(ModBlocks.REINFORCED_BIO_BARRIER.get())) {
             return;

@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "item": "mycelialmind:creeping_mycelium"
+    }
+  ],
+  "processing_time": 150,
+  "results": [
+    {
+      "id": "mycelialmind:mycelial_biomass",
+      "count": 1
+    },
+    {
+      "id": "mycelialmind:latent_spore",
+      "chance": 0.4
+    }
+  ]
+}

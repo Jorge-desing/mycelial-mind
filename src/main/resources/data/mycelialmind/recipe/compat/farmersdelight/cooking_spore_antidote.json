@@ -1,0 +1,31 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "farmersdelight"
+    }
+  ],
+  "type": "farmersdelight:cooking",
+  "recipe_book_tab": "drinks",
+  "ingredients": [
+    {
+      "item": "mycelialmind:mycelial_biomass"
+    },
+    {
+      "item": "mycelialmind:latent_spore"
+    },
+    {
+      "item": "minecraft:sugar"
+    }
+  ],
+  "container": {
+    "id": "minecraft:glass_bottle",
+    "count": 1
+  },
+  "result": {
+    "id": "mycelialmind:spore_antidote",
+    "count": 1
+  },
+  "cookingtime": 200,
+  "experience": 1.0
+}

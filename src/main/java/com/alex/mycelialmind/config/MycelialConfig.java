@@ -28,6 +28,7 @@ public final class MycelialConfig {
     public static final ModConfigSpec.IntValue SYNAPTIC_NODE_LINK_RADIUS;
     public static final ModConfigSpec.DoubleValue NODE_DESTRUCTION_STIMULUS_BLEED;
     public static final ModConfigSpec.BooleanValue BURROWER_BLOCK_BREAKING;
+    public static final ModConfigSpec.BooleanValue RESPECT_CLAIMED_CHUNKS;
     public static final ModConfigSpec.DoubleValue PLAYER_COUNT_SCALING;
     public static final ModConfigSpec.BooleanValue WAVES_ENABLED;
     public static final ModConfigSpec.IntValue WAVE_COOLDOWN_TICKS;
@@ -133,6 +134,10 @@ public final class MycelialConfig {
         BURROWER_BLOCK_BREAKING = builder
                 .comment("Whether Burrower siege mobs can break non-reinforced blocks to reach targets.")
                 .define("burrowerBlockBreaking", true);
+
+        RESPECT_CLAIMED_CHUNKS = builder
+                .comment("Whether destructive block griefing (Burrower tunneling and Acid Spit corrosion) is blocked inside FTB Chunks or Open Parties & Claims territories.")
+                .define("respectClaimedChunks", true);
 
         PLAYER_COUNT_SCALING = builder
                 .comment("Additional threat/health scaling factor per online player in multiplayer.")

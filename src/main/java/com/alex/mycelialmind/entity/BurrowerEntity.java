@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.compat.claims.ClaimProtectionCompat;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.ai.HiveAlertSupportGoal;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
@@ -125,7 +126,8 @@ public class BurrowerEntity extends MycelialMob {
             for (int dy = 0; dy <= 1 && broken < (siegeBoost ? 2 : 1); dy++) {
                 for (int lat = 0; lat <= lateralLimit && broken < (siegeBoost ? 2 : 1); lat++) {
                     BlockPos targetPos = front.above(dy).relative(this.getDirection().getClockWise(), lat);
-                    if (canBurrowerBreak(serverLevel, targetPos, maxHardness)) {
+                    if (!ClaimProtectionCompat.isClaimProtected(serverLevel, targetPos)
+                            && canBurrowerBreak(serverLevel, targetPos, maxHardness)) {
                         serverLevel.destroyBlock(targetPos, true, this);
                         broken++;
                     }

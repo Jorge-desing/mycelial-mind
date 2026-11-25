@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.hive;
 
 import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.compat.combat.ModdedDamageClassifier;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
 import com.alex.mycelialmind.entity.ColonySymbiontEntity;
@@ -31,6 +32,7 @@ import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -824,6 +826,11 @@ public final class DamageTelemetryTracker {
         }
         if (source.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
             return StimulusType.MAGIC;
+        }
+        StimulusType moddedType = ModdedDamageClassifier.classifyModdedDamageType(
+                source.typeHolder().unwrapKey().map(ResourceKey::location).orElse(null));
+        if (moddedType != null) {
+            return moddedType;
         }
         if (source.getDirectEntity() instanceof LivingEntity) {
             return StimulusType.MELEE;

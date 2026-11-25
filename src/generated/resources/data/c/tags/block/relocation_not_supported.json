@@ -1,0 +1,15 @@
+{
+  "values": [
+    "mycelialmind:mycelial_node",
+    "mycelialmind:incubator_node",
+    "mycelialmind:sentinel_node",
+    "mycelialmind:symbiotic_node",
+    "mycelialmind:sovereign_nexus",
+    "mycelialmind:purification_pylon",
+    "mycelialmind:purification_turret",
+    "mycelialmind:synaptic_research_bench",
+    "mycelialmind:hive_altar",
+    "mycelialmind:matriarch_altar",
+    "mycelialmind:mycelial_rift"
+  ]
+}

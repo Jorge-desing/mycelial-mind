@@ -1733,6 +1733,8 @@
   "mycelialmind.configuration.progressiveThreatScaling": "Escala Progresiva por Etapa",
   "mycelialmind.configuration.projectileDeflectChance": "Probabilidad de Desvío",
   "mycelialmind.configuration.pylonPurificationRadius": "Radio de Purificación de Pilón",
+  "mycelialmind.configuration.respectClaimedChunks": "Respetar Chunks Reclamados",
+  "mycelialmind.configuration.respectClaimedChunks.tooltip": "Bloquea la destrucción de bloques por Excavadores y corrosión de Salivazo Ácido dentro de territorios reclamados en FTB Chunks y Open Parties & Claims.",
   "mycelialmind.configuration.screenShakeScale": "Escala de Micro-Vibración",
   "mycelialmind.configuration.screenShakeScale.tooltip": "Intensidad de la vibración sutil de cámara ante golpes de jefes, reliquias y picos de amenaza (0.0 = desactivado).",
   "mycelialmind.configuration.section.mycelialmind.client.toml": "Ajustes de Cliente",

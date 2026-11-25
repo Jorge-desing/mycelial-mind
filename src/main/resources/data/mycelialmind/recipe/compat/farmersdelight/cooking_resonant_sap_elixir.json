@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "farmersdelight"
+    }
+  ],
+  "type": "farmersdelight:cooking",
+  "recipe_book_tab": "drinks",
+  "ingredients": [
+    {
+      "item": "mycelialmind:root_sap_vial"
+    },
+    {
+      "item": "mycelialmind:latent_spore"
+    },
+    {
+      "item": "minecraft:honey_bottle"
+    }
+  ],
+  "result": {
+    "id": "mycelialmind:resonant_sap_elixir",
+    "count": 1
+  },
+  "cookingtime": 200,
+  "experience": 1.5
+}

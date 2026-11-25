@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "type": "create:milling",
+  "ingredients": [
+    {
+      "item": "mycelialmind:spore_bulb"
+    }
+  ],
+  "processing_time": 100,
+  "results": [
+    {
+      "id": "mycelialmind:latent_spore",
+      "count": 2
+    },
+    {
+      "id": "mycelialmind:mycelial_biomass",
+      "chance": 0.35
+    }
+  ]
+}

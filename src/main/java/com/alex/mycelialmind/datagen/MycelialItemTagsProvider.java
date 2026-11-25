@@ -10,6 +10,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +22,8 @@ import java.util.concurrent.CompletableFuture;
 public final class MycelialItemTagsProvider extends ItemTagsProvider {
     private static final TagKey<Item> CURIOS_BELT =
             ItemTags.create(ResourceLocation.fromNamespaceAndPath("curios", "belt"));
+    private static final TagKey<Item> COMMON_DRINKS =
+            ItemTags.create(ResourceLocation.fromNamespaceAndPath("c", "drinks"));
 
     public MycelialItemTagsProvider(
             PackOutput output,
@@ -59,5 +62,28 @@ public final class MycelialItemTagsProvider extends ItemTagsProvider {
         );
 
         tag(CURIOS_BELT).add(ModItems.BIO_SCANNER.get());
+
+        tag(Tags.Items.MUSHROOMS).add(
+                com.alex.mycelialmind.registry.ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.asItem(),
+                com.alex.mycelialmind.registry.ModBlocks.SPORE_BULB.asItem()
+        );
+
+        tag(Tags.Items.MELEE_WEAPON_TOOLS).add(
+                ModItems.SYMBIOTIC_BLADE.get(),
+                ModItems.ENZYME_LANCE.get()
+        );
+
+        tag(Tags.Items.ARMORS).add(
+                ModItems.CHITIN_HELMET.get(),
+                ModItems.CHITIN_CHESTPLATE.get(),
+                ModItems.CHITIN_LEGGINGS.get(),
+                ModItems.CHITIN_BOOTS.get()
+        );
+
+        tag(COMMON_DRINKS).add(
+                ModItems.SPORE_ANTIDOTE.get(),
+                ModItems.CONCENTRATED_ANTIDOTE.get(),
+                ModItems.RESONANT_SAP_ELIXIR.get()
+        );
     }
 }

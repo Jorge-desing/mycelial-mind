@@ -1,5 +1,9 @@
-// 1.21.1	2026-11-24T22:55:54.2473695	Tags for minecraft:item mod id mycelialmind
+// 1.21.1	2026-11-25T11:36:45.3106842	Tags for minecraft:item mod id mycelialmind
 6b2c4fe2025d16849eb4e23380ec8f84089cdfa6 data/curios/tags/item/belt.json
+53ce6862c0adc1c9c63840e573d68cf1fd0afb63 data/c/tags/item/armors.json
+335c8c1fbc4ae75dca372371e2883b5f4326e5c7 data/c/tags/item/drinks.json
+56deaace843431c62da2d65d3364df906a4be4ea data/c/tags/item/mushrooms.json
+3c8063a8a1be323ae6f8a4cf88059e4b2676cd3a data/c/tags/item/tools/melee_weapon.json
 8365f8509e313a6bf80d3020d92a1e8bc32b59cb data/minecraft/tags/item/chest_armor.json
 a4fbb77bd76630072c940af281e6c17544e6d6c4 data/minecraft/tags/item/enchantable/durability.json
 573cb142ccbbc7556429ceed6ac8b0803fd01b06 data/minecraft/tags/item/foot_armor.json
