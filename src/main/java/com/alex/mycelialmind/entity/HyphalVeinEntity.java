@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.config.MycelialClientConfig;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HyphalPhysics;
@@ -96,14 +97,18 @@ public class HyphalVeinEntity extends Entity {
     private static final String TAG_NODES = "Nodes";
     private static final String TAG_VERSION = "Ver";
 
+    public static final double PICK_TOLERANCE = 0.45D;
+
     private Vec3[] verletPos = new Vec3[0];
     private Vec3[] verletPrevPos = new Vec3[0];
+    private Vec3[] renderPrevPos = new Vec3[0];
     private int localNodeVersion = -1;
     private int trailIndex = -1;
     private int freeFallTicks = 0;
     private int waveDirection = 1;
     private long lastWaveTick = -100L;
     private long lastStepWaveTick = -100L;
+    private long lastCreakTick = -100L;
     private long nextGrowthTick = 0L;
 
     public HyphalVeinEntity(EntityType<? extends HyphalVeinEntity> type, Level level) {
@@ -189,6 +194,7 @@ public class HyphalVeinEntity extends Entity {
     ) {
         this.verletPos = nodes.clone();
         this.verletPrevPos = nodes.clone();
+        this.renderPrevPos = nodes.clone();
         entityData.set(DATA_ROOT_ANCHOR, rootAnchor.immutable());
         entityData.set(DATA_TIP_ANCHOR, tipAnchor.immutable());
         entityData.set(DATA_PIN_START, pinStart);
@@ -232,8 +238,27 @@ public class HyphalVeinEntity extends Entity {
                                 list.getDouble(i * 3 + 1),
                                 list.getDouble(i * 3 + 2));
                     }
+                    if (this.verletPos.length == count) {
+                        double maxDeltaSq = 0.0D;
+                        for (int i = 0; i < count; i++) {
+                            maxDeltaSq = Math.max(maxDeltaSq, this.verletPos[i].distanceToSqr(loaded[i]));
+                        }
+                        if (maxDeltaSq <= 2.25D) {
+                            for (int i = 0; i < count; i++) {
+                                Vec3 blended = this.verletPos[i].lerp(loaded[i], 0.65D);
+                                Vec3 shift = blended.subtract(this.verletPos[i]);
+                                this.verletPos[i] = blended;
+                                if (this.verletPrevPos.length == count) {
+                                    this.verletPrevPos[i] = this.verletPrevPos[i].add(shift);
+                                }
+                            }
+                            this.localNodeVersion = ver;
+                            return;
+                        }
+                    }
                     this.verletPos = loaded;
                     this.verletPrevPos = loaded.clone();
+                    this.renderPrevPos = loaded.clone();
                     this.localNodeVersion = ver;
                     return;
                 }
@@ -244,6 +269,7 @@ public class HyphalVeinEntity extends Entity {
             Vec3 pB = computeAnchorVec(level(), getTipAnchor());
             this.verletPos = HyphalVerletRope.initLine(pA, pB, HyphalVerletRope.DEFAULT_NODE_COUNT);
             this.verletPrevPos = this.verletPos.clone();
+            this.renderPrevPos = this.verletPos.clone();
         }
     }
 
@@ -382,6 +408,20 @@ public class HyphalVeinEntity extends Entity {
         return verletPos.clone();
     }
 
+    public Vec3[] getInterpolatedNodePositions(float partialTick) {
+        syncNodesFromClientDataIfNeeded();
+        int n = verletPos.length;
+        if (n == 0 || renderPrevPos.length != n) {
+            return verletPos.clone();
+        }
+        float alpha = Math.max(0.0F, Math.min(1.0F, partialTick));
+        Vec3[] out = new Vec3[n];
+        for (int i = 0; i < n; i++) {
+            out[i] = renderPrevPos[i].lerp(verletPos[i], alpha);
+        }
+        return out;
+    }
+
     public Vec3 getMidpointNode() {
         syncNodesFromClientDataIfNeeded();
         return verletPos[verletPos.length / 2];
@@ -435,6 +475,7 @@ public class HyphalVeinEntity extends Entity {
         double addedLen = oldTip.distanceTo(newTip);
         this.verletPos = HyphalVerletRope.extendRope(this.verletPos, newTip, HyphalVerletRope.MAX_NODE_COUNT);
         this.verletPrevPos = HyphalVerletRope.extendRope(this.verletPrevPos, newTip, HyphalVerletRope.MAX_NODE_COUNT);
+        this.renderPrevPos = this.verletPos.clone();
         entityData.set(DATA_TIP_ANCHOR, newTipAnchor.immutable());
         entityData.set(DATA_PIN_END, Boolean.TRUE);
         entityData.set(DATA_REST_LENGTH, (float) Math.max(getRestLength() + addedLen * 1.03D,
@@ -471,6 +512,11 @@ public class HyphalVeinEntity extends Entity {
         this.lastWaveTick = now;
         entityData.set(DATA_WAVE_POS, (float) clampedIdx);
         entityData.set(DATA_WAVE_AMP, Math.min(1.0F, amplitude));
+        if (amplitude >= 0.65F && level() instanceof ServerLevel serverLevel) {
+            Vec3 origin = verletPos[clampedIdx];
+            serverLevel.playSound(null, origin.x, origin.y, origin.z,
+                    ModSounds.MYCORRHIZAL_TREMOR.get(), SoundSource.BLOCKS, 0.35F, 1.30F);
+        }
         return true;
     }
 
@@ -537,14 +583,32 @@ public class HyphalVeinEntity extends Entity {
             return;
         }
 
+        if (this.renderPrevPos.length != this.verletPos.length) {
+            this.renderPrevPos = this.verletPos.clone();
+        } else {
+            System.arraycopy(this.verletPos, 0, this.renderPrevPos, 0, this.verletPos.length);
+        }
+
         BlockPos rootA = getRootAnchor();
         BlockPos tipB = getTipAnchor();
         if (!level().isClientSide()) {
+            boolean unpinned = false;
             if (isPinStart() && !isAnchorSupported(level(), rootA)) {
                 setPinStart(false);
+                unpinned = true;
+                Vec3 lost = computeAnchorVec(level(), rootA);
+                level().playSound(null, lost.x, lost.y, lost.z,
+                        ModSounds.SUBTERRANEAN_HYPHAL_CREAK.get(), SoundSource.BLOCKS, 0.40F, 1.15F);
             }
             if (isPinEnd() && !isAnchorSupported(level(), tipB)) {
                 setPinEnd(false);
+                unpinned = true;
+                Vec3 lost = computeAnchorVec(level(), tipB);
+                level().playSound(null, lost.x, lost.y, lost.z,
+                        ModSounds.SUBTERRANEAN_HYPHAL_CREAK.get(), SoundSource.BLOCKS, 0.40F, 1.15F);
+            }
+            if (unpinned) {
+                pushNodesToSynchedData();
             }
         }
 
@@ -554,6 +618,7 @@ public class HyphalVeinEntity extends Entity {
         Vec3 pB = computeAnchorVec(level(), tipB);
         double restLen = Math.max(0.5D, getRestLength());
         double segLen = Math.max(0.08D, restLen / (double) (verletPos.length - 1));
+        float currentTurgor = getTurgor();
 
         double phase = (tickCount + getId() * 7) * 0.08D;
         Vec3 wind = new Vec3(Math.sin(phase) * 0.0022D, 0.0D, Math.cos(phase * 0.7D) * 0.0022D);
@@ -577,10 +642,10 @@ public class HyphalVeinEntity extends Entity {
                 pinA,
                 pinB,
                 segLen,
-                HyphalVerletRope.DEFAULT_GRAVITY,
+                HyphalVerletRope.effectiveGravityForTurgor(currentTurgor),
                 HyphalVerletRope.DEFAULT_DAMPING,
                 wind,
-                HyphalVerletRope.DEFAULT_CONSTRAINT_ITERATIONS,
+                HyphalVerletRope.constraintIterationsForTurgor(currentTurgor),
                 bp -> !(pinA && bp.equals(rootA))
                         && !(pinB && bp.equals(tipB))
                         && level().isLoaded(bp)
@@ -598,9 +663,40 @@ public class HyphalVeinEntity extends Entity {
             freeFallTicks = 0;
         }
 
+        if (level().isClientSide()) {
+            if (currentTurgor >= 0.70F && hasRoot() && verletPos.length >= HyphalVerletRope.MIN_NODE_COUNT) {
+                double densityScale = MycelialClientConfig.particleDensityScale();
+                if (random.nextDouble() < 0.035D * densityScale) {
+                    Vec3 n = verletPos[random.nextInt(verletPos.length)];
+                    level().addParticle(ModParticles.SPORE_MOTE.get(),
+                            n.x + (random.nextDouble() - 0.5D) * 0.08D,
+                            n.y - 0.04D,
+                            n.z + (random.nextDouble() - 0.5D) * 0.08D,
+                            0.0D, -0.025D, 0.0D);
+                }
+                if (random.nextDouble() < 0.004D * densityScale) {
+                    Vec3 mid = getMidpointNode();
+                    level().playLocalSound(mid.x, mid.y, mid.z,
+                            ModSounds.CAVERN_SPORE_DRIP.get(), SoundSource.BLOCKS,
+                            0.18F, 1.1F + random.nextFloat() * 0.3F, false);
+                }
+            }
+            return;
+        }
+
         if (level() instanceof ServerLevel serverLevel) {
             double tension = HyphalVerletRope.computeTensionRatio(verletPos, restLen);
             entityData.set(DATA_TENSION_RATIO, (float) tension);
+            if (pinA && pinB && tension > 1.25D) {
+                long now = serverLevel.getGameTime();
+                if ((now - lastCreakTick) >= 50L) {
+                    lastCreakTick = now;
+                    Vec3 mid = getMidpointNode();
+                    float creakPitch = 0.95F + (float) Math.min(0.45D, (tension - 1.25D) * 0.4D);
+                    serverLevel.playSound(null, mid.x, mid.y, mid.z,
+                            ModSounds.SUBTERRANEAN_HYPHAL_CREAK.get(), SoundSource.BLOCKS, 0.30F, creakPitch);
+                }
+            }
             if (pinA && pinB && HyphalVerletRope.shouldSnap(tension, HyphalVerletRope.DEFAULT_MAX_TENSION_RATIO)) {
                 disintegrateWithSpores();
                 return;
@@ -748,6 +844,11 @@ public class HyphalVeinEntity extends Entity {
             HyphalSiegeDirector.triggerPressurizedSpray(serverLevel, BlockPos.containing(hitPos), getTurgor());
         }
 
+        serverLevel.sendParticles(ModParticles.SPORE_MOTE.get(),
+                hitPos.x, hitPos.y + 0.05D, hitPos.z, 5, 0.14D, 0.10D, 0.14D, 0.04D);
+        serverLevel.playSound(null, hitPos.x, hitPos.y, hitPos.z,
+                ModSounds.SPORE_VENT_PUFF.get(), SoundSource.BLOCKS, 0.45F, 1.25F);
+
         int splitIdx = HyphalVerletRope.findClosestNodeIndex(verletPos, hitPos);
         HyphalVerletRope.SplitResult split = HyphalVerletRope.splitRope(verletPos, splitIdx);
         if (split != null && hasRoot()) {
@@ -757,7 +858,7 @@ public class HyphalVeinEntity extends Entity {
             boolean oldPinEnd = isPinEnd();
             float oldTurgor = getTurgor();
 
-            // Rooted half remains alive, cut end hangs free
+            // Rooted half remains alive, cut end hangs free with outward snapback recoil
             BlockPos newRootTip = BlockPos.containing(split.rootSegment()[split.rootSegment().length - 1]);
             configureStrand(
                     split.rootSegment(),
@@ -770,6 +871,8 @@ public class HyphalVeinEntity extends Entity {
                     oldTurgor,
                     Math.max(0.6D, HyphalVerletRope.computeTotalLength(split.rootSegment())) * 1.03D
             );
+            HyphalVerletRope.applySeverRecoil(this.verletPos, this.verletPrevPos, true, hitPos, 0.14D);
+            pushNodesToSynchedData();
 
             // Disconnected half spawns unrooted with cut end free and withers progressively
             BlockPos severedStart = BlockPos.containing(split.severedSegment()[0]);
@@ -784,6 +887,7 @@ public class HyphalVeinEntity extends Entity {
                     0,
                     oldTurgor * 0.5F
             );
+            severedHalf.applyCutRecoil(false, hitPos, 0.16D);
             serverLevel.addFreshEntity(severedHalf);
             if (serverLevel.random.nextFloat() < 0.35F) {
                 Block.popResource(serverLevel, BlockPos.containing(hitPos),
@@ -818,6 +922,19 @@ public class HyphalVeinEntity extends Entity {
         discard();
     }
 
+    public void applyCutRecoil(boolean atEnd, Vec3 cutPoint, double magnitude) {
+        syncNodesFromClientDataIfNeeded();
+        HyphalVerletRope.applySeverRecoil(this.verletPos, this.verletPrevPos, atEnd, cutPoint, magnitude);
+        pushNodesToSynchedData();
+    }
+
+    @Nullable
+    public HyphalVerletRope.RaycastHit raycastFromPlayer(Player player) {
+        syncNodesFromClientDataIfNeeded();
+        return HyphalVerletRope.raycastClosestSegment(
+                this.verletPos, player.getEyePosition(), player.getLookAngle(), 6.0D, PICK_TOLERANCE);
+    }
+
     @Override
     public boolean isPickable() {
         return true;
@@ -826,6 +943,10 @@ public class HyphalVeinEntity extends Entity {
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         ItemStack held = player.getItemInHand(hand);
+        HyphalVerletRope.RaycastHit hit = raycastFromPlayer(player);
+        if (hit == null) {
+            return InteractionResult.PASS;
+        }
         if (held.is(ModItems.BIO_SCANNER.get())) {
             if (level() instanceof ServerLevel serverLevel) {
                 HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
@@ -838,13 +959,15 @@ public class HyphalVeinEntity extends Entity {
                         net.minecraft.network.chat.Component.translatable(hive.isTrackedHyphalVein(pos)
                                 ? "message.mycelialmind.yes" : "message.mycelialmind.no")
                 ).withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
-                serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.45F);
+                Vec3 hp = hit.hitPoint();
+                serverLevel.playSound(null, hp.x, hp.y, hp.z,
+                        ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.45F);
             }
             return InteractionResult.sidedSuccess(level().isClientSide());
         }
         if (held.is(Items.SHEARS) || HyphalSiegeDirector.isRightClickSeveringTool(held)) {
             if (level() instanceof ServerLevel serverLevel) {
-                int severed = severAt(player.getEyePosition().add(player.getLookAngle().scale(2.0D)), player, held);
+                int severed = severAt(hit.hitPoint(), player, held);
                 if (severed > 0) {
                     held.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
                     HiveMindSavedData.get(serverLevel).severHyphalVein(
@@ -863,11 +986,20 @@ public class HyphalVeinEntity extends Entity {
         if (isInvulnerableTo(source)) {
             return false;
         }
+        Vec3 hitPos;
+        if (source.getEntity() instanceof Player player && source.isDirect()) {
+            HyphalVerletRope.RaycastHit hit = raycastFromPlayer(player);
+            if (hit == null) {
+                return false;
+            }
+            hitPos = hit.hitPoint();
+        } else {
+            hitPos = source.getSourcePosition() != null ? source.getSourcePosition() : getMidpointNode();
+        }
         if (level() instanceof ServerLevel) {
             Player player = source.getEntity() instanceof Player p ? p : null;
             ItemStack tool = player != null ? player.getMainHandItem() : ItemStack.EMPTY;
-            Vec3 hit = source.getSourcePosition() != null ? source.getSourcePosition() : getMidpointNode();
-            severAt(hit, player, tool);
+            severAt(hitPos, player, tool);
         }
         return true;
     }

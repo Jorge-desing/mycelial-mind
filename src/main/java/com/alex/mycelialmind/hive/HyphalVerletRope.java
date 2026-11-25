@@ -32,6 +32,9 @@ public final class HyphalVerletRope {
         }
     }
 
+    public record RaycastHit(int segmentIndex, int closestNodeIndex, Vec3 hitPoint, double distance) {
+    }
+
     private HyphalVerletRope() {
     }
 
@@ -305,5 +308,169 @@ public final class HyphalVerletRope {
             return 2;
         }
         return 3;
+    }
+
+    /**
+     * Turgidity modulates effective gravitational sag: turgid veins resist sag,
+     * dry veins droop more noticeably.
+     */
+    public static double effectiveGravityForTurgor(float turgor) {
+        float t = Float.isFinite(turgor) ? Mth.clamp(turgor, 0.0F, 1.0F) : 0.5F;
+        return Mth.lerp(t, (float) (DEFAULT_GRAVITY * 1.35D), (float) (DEFAULT_GRAVITY * 0.72D));
+    }
+
+    /**
+     * Turgidity modulates constraint solver stiffness (iterations per Verlet step).
+     */
+    public static int constraintIterationsForTurgor(float turgor) {
+        float t = Float.isFinite(turgor) ? Mth.clamp(turgor, 0.0F, 1.0F) : 0.5F;
+        return Math.round(Mth.lerp(t, 3.0F, 7.0F));
+    }
+
+    /**
+     * Imparts an outward/upward recoil impulse to the 1-2 nodes adjacent to a severed end
+     * by shifting {@code prevPos} so the next Verlet integration creates organic snapback.
+     */
+    public static void applySeverRecoil(
+            Vec3[] pos,
+            Vec3[] prevPos,
+            boolean recoilAtEnd,
+            Vec3 cutPoint,
+            double impulseMagnitude
+    ) {
+        int n = pos.length;
+        if (n < MIN_NODE_COUNT || prevPos.length != n || impulseMagnitude <= 0.0D) {
+            return;
+        }
+        int tipIdx = recoilAtEnd ? n - 1 : 0;
+        int innerIdx = recoilAtEnd ? Math.max(0, n - 2) : Math.min(n - 1, 1);
+        int neighborRef = recoilAtEnd ? Math.max(0, n - 2) : Math.min(n - 1, 1);
+
+        Vec3 dir = pos[tipIdx].subtract(cutPoint);
+        if (dir.lengthSqr() < 1.0E-6D) {
+            dir = pos[tipIdx].subtract(pos[neighborRef]);
+        }
+        if (dir.lengthSqr() < 1.0E-6D) {
+            dir = new Vec3(0.0D, 1.0D, 0.0D);
+        } else {
+            dir = dir.normalize().add(0.0D, 0.15D, 0.0D).normalize();
+        }
+        Vec3 impulse = dir.scale(impulseMagnitude);
+        // Move prevPos opposite to desired velocity (cur - prev = desired velocity)
+        prevPos[tipIdx] = prevPos[tipIdx].subtract(impulse);
+        if (innerIdx != tipIdx) {
+            prevPos[innerIdx] = prevPos[innerIdx].subtract(impulse.scale(0.5D));
+        }
+    }
+
+    /**
+     * Desaturates and fades strand RGBA toward dry ash gray as {@code witherProgress} approaches 1.0.
+     */
+    public static StrandRgba applyWitherTint(StrandRgba base, float witherProgress) {
+        float w = Float.isFinite(witherProgress) ? Mth.clamp(witherProgress, 0.0F, 0.90F) : 0.0F;
+        if (w <= 1.0E-4F) {
+            return base;
+        }
+        int r = Math.round(Mth.lerp(w * 0.85F, base.r(), 0x7A));
+        int g = Math.round(Mth.lerp(w * 0.85F, base.g(), 0x78));
+        int b = Math.round(Mth.lerp(w * 0.85F, base.b(), 0x76));
+        int a = Math.max(24, Math.round(base.a() * (1.0F - w)));
+        return new StrandRgba(r, g, b, a);
+    }
+
+    /**
+     * Finds the closest segment in {@code pos} intersected within {@code maxPerpDistance}
+     * by the bounded ray {@code rayOrigin + rayDir * s} ({@code s in [0, maxRayDistance]}).
+     */
+    @Nullable
+    public static RaycastHit raycastClosestSegment(
+            Vec3[] pos,
+            Vec3 rayOrigin,
+            Vec3 rayDir,
+            double maxRayDistance,
+            double maxPerpDistance
+    ) {
+        if (pos == null || pos.length < MIN_NODE_COUNT || rayOrigin == null || rayDir == null
+                || maxRayDistance <= 0.0D || maxPerpDistance < 0.0D) {
+            return null;
+        }
+        double dirLenSq = rayDir.lengthSqr();
+        if (dirLenSq < 1.0E-8D) {
+            return null;
+        }
+        Vec3 normDir = rayDir.scale(1.0D / Math.sqrt(dirLenSq));
+        Vec3 rayEnd = rayOrigin.add(normDir.scale(maxRayDistance));
+
+        RaycastHit bestHit = null;
+        double bestDistSq = maxPerpDistance * maxPerpDistance;
+        double bestRayParam = Double.MAX_VALUE;
+
+        for (int i = 0; i < pos.length - 1; i++) {
+            Vec3 p0 = pos[i];
+            Vec3 p1 = pos[i + 1];
+            double[] st = closestParamsBetweenSegments(rayOrigin, rayEnd, p0, p1);
+            double s = st[0];
+            double t = st[1];
+            Vec3 onRay = rayOrigin.lerp(rayEnd, s);
+            Vec3 onSeg = p0.lerp(p1, t);
+            double dSq = onRay.distanceToSqr(onSeg);
+            if (dSq <= bestDistSq + 1.0E-9D) {
+                boolean strictlyCloser = dSq < bestDistSq - 1.0E-5D;
+                boolean tieNearerCamera = Math.abs(dSq - bestDistSq) <= 1.0E-5D && s < bestRayParam;
+                if (bestHit == null || strictlyCloser || tieNearerCamera) {
+                    bestDistSq = dSq;
+                    bestRayParam = s;
+                    int closestNode = t < 0.5D ? i : i + 1;
+                    bestHit = new RaycastHit(i, closestNode, onSeg, Math.sqrt(dSq));
+                }
+            }
+        }
+        return bestHit;
+    }
+
+    /**
+     * Standard bounded segment-segment closest parameters (s, t in [0, 1]) for P1->Q1 and P2->Q2.
+     */
+    private static double[] closestParamsBetweenSegments(Vec3 p1, Vec3 q1, Vec3 p2, Vec3 q2) {
+        Vec3 d1 = q1.subtract(p1);
+        Vec3 d2 = q2.subtract(p2);
+        Vec3 r = p1.subtract(p2);
+        double a = d1.lengthSqr();
+        double e = d2.lengthSqr();
+        double f = d2.dot(r);
+
+        double s;
+        double t;
+        final double eps = 1.0E-8D;
+        if (a <= eps && e <= eps) {
+            return new double[]{0.0D, 0.0D};
+        }
+        if (a <= eps) {
+            s = 0.0D;
+            t = Mth.clamp(f / e, 0.0D, 1.0D);
+        } else {
+            double c = d1.dot(r);
+            if (e <= eps) {
+                t = 0.0D;
+                s = Mth.clamp(-c / a, 0.0D, 1.0D);
+            } else {
+                double b = d1.dot(d2);
+                double denom = a * e - b * b;
+                if (denom != 0.0D) {
+                    s = Mth.clamp((b * f - c * e) / denom, 0.0D, 1.0D);
+                } else {
+                    s = 0.0D;
+                }
+                t = (b * s + f) / e;
+                if (t < 0.0D) {
+                    t = 0.0D;
+                    s = Mth.clamp(-c / a, 0.0D, 1.0D);
+                } else if (t > 1.0D) {
+                    t = 1.0D;
+                    s = Mth.clamp((b - c) / a, 0.0D, 1.0D);
+                }
+            }
+        }
+        return new double[]{s, t};
     }
 }

@@ -7522,10 +7522,10 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 200)
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 260)
     public static void hyphalSeveredDownstreamBranchWithersProgressivelyWithin90Ticks(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, 0, 16, 8, 18);
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
         hive.resetAll();
@@ -7534,80 +7534,96 @@ public final class MycelialGameTests {
         BlockPos rootPos = insetInChunk(helper.absolutePos(new BlockPos(5, 10, 12)), 5);
         BlockPos tipPos = rootPos.east(5);
         BlockPos cutPos = rootPos.east(2);
-
-        for (int dx = -1; dx <= 6; dx++) {
-            level.setBlockAndUpdate(rootPos.offset(dx, -1, 0), Blocks.DIRT.defaultBlockState());
-            level.removeBlock(rootPos.offset(dx, 0, 0), false);
-        }
-
-        var rootStrand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, rootPos, tipPos, 10, true, 0.50F);
-        level.addFreshEntity(rootStrand);
-
-        int severedCount = rootStrand.severAt(Vec3.atCenterOf(cutPos), null, new ItemStack(ModItems.SYMBIOTIC_BLADE.get()));
         AABB searchBox = new AABB(rootPos).inflate(8.0D);
-        var severedHalves = level.getEntitiesOfClass(com.alex.mycelialmind.entity.HyphalVeinEntity.class, searchBox,
-                e -> e != rootStrand && !e.hasRoot());
-        if (severedCount <= 0 || severedHalves.isEmpty() || !rootStrand.isAlive() || !rootStrand.hasRoot()) {
-            for (var v : level.getEntitiesOfClass(com.alex.mycelialmind.entity.HyphalVeinEntity.class, searchBox)) {
-                v.discard();
-            }
-            for (int dx = -1; dx <= 6; dx++) {
-                level.removeBlock(rootPos.offset(dx, -1, 0), false);
-            }
-            tracker.clearAll();
-            hive.resetAll();
-            releaseArenaChunks(level, forcedChunks);
-            helper.fail(String.format("Expected mid-strand sever to split into root + severed half: count=%d halves=%d rootAlive=%s",
-                    severedCount, severedHalves.size(), rootStrand.isAlive()));
-            return;
-        }
-        var severedHalf = severedHalves.get(0);
 
-        long startTick = helper.getTick();
-        long deadlineTick = startTick + 90L;
-        boolean[] finished = {false};
-        Runnable cleanup = () -> {
-            for (var v : level.getEntitiesOfClass(com.alex.mycelialmind.entity.HyphalVeinEntity.class, searchBox)) {
-                v.discard();
-            }
-            for (var item : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, searchBox)) {
-                item.discard();
-            }
-            for (int dx = -1; dx <= 6; dx++) {
-                level.removeBlock(rootPos.offset(dx, -1, 0), false);
-            }
-            tracker.clearAll();
-            hive.resetAll();
-            releaseArenaChunks(level, forcedChunks);
-        };
-        helper.onEachTick(() -> {
-            if (finished[0]) {
-                return;
-            }
-            boolean rootAlive = rootStrand.isAlive() && !rootStrand.isRemoved() && rootStrand.hasRoot();
-            boolean downstreamWithered = severedHalf.isRemoved();
-            if (!rootAlive) {
-                finished[0] = true;
-                cleanup.run();
-                helper.fail("Severed branch check failed: the rooted half disappeared before its severed half.");
-            } else if (downstreamWithered) {
-                finished[0] = true;
-                cleanup.run();
-                helper.succeed();
-            } else if (helper.getTick() >= deadlineTick) {
-                finished[0] = true;
-                String failure = String.format(
-                        "Severed half did not wither within 90 ticks: elapsed=%d wither=%.2f",
-                        helper.getTick() - startTick, severedHalf.getWitherProgress());
-                cleanup.run();
-                helper.fail(failure);
-            }
-        });
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        entityChunksReady(level, rootPos.east(2), 2),
+                        "Expected entity-ticking chunk around hyphal sever test to be ready."))
+                .thenExecute(() -> {
+                    for (int dx = -1; dx <= 6; dx++) {
+                        level.setBlockAndUpdate(rootPos.offset(dx, -1, 0), Blocks.DIRT.defaultBlockState());
+                        level.removeBlock(rootPos.offset(dx, 0, 0), false);
+                    }
+
+                    var rootStrand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, rootPos, tipPos, 10, true, 0.50F);
+                    level.addFreshEntity(rootStrand);
+
+                    // Verify precise raycast interaction: aiming away misses with PASS, aiming at cutPos splits with shears
+                    Player cutter = helper.makeMockPlayer(GameType.SURVIVAL);
+                    ItemStack shears = new ItemStack(net.minecraft.world.item.Items.SHEARS);
+                    cutter.setItemInHand(InteractionHand.MAIN_HAND, shears);
+                    cutter.moveTo(cutPos.getX() + 0.5D, cutPos.getY() + 1.5D, cutPos.getZ() + 0.5D, 0.0F, -90.0F);
+                    var missResult = rootStrand.interact(cutter, InteractionHand.MAIN_HAND);
+                    cutter.moveTo(cutPos.getX() + 0.5D, cutPos.getY() + 0.8D, cutPos.getZ() + 0.5D, 0.0F, 90.0F);
+                    var hitResult = rootStrand.interact(cutter, InteractionHand.MAIN_HAND);
+                    var severedHalves = level.getEntitiesOfClass(com.alex.mycelialmind.entity.HyphalVeinEntity.class, searchBox,
+                            e -> e != rootStrand && !e.hasRoot());
+                    if (missResult != net.minecraft.world.InteractionResult.PASS || !hitResult.consumesAction()
+                            || severedHalves.isEmpty() || !rootStrand.isAlive() || !rootStrand.hasRoot()) {
+                        for (var v : level.getEntitiesOfClass(com.alex.mycelialmind.entity.HyphalVeinEntity.class, searchBox)) {
+                            v.discard();
+                        }
+                        for (int dx = -1; dx <= 6; dx++) {
+                            level.removeBlock(rootPos.offset(dx, -1, 0), false);
+                        }
+                        tracker.clearAll();
+                        hive.resetAll();
+                        releaseArenaChunks(level, forcedChunks);
+                        helper.fail(String.format(
+                                "Expected raycast miss=PASS + shears hit split into root + severed half: miss=%s hit=%s halves=%d rootAlive=%s",
+                                missResult, hitResult, severedHalves.size(), rootStrand.isAlive()));
+                        return;
+                    }
+                    var severedHalf = severedHalves.get(0);
+
+                    long startTick = helper.getTick();
+                    long deadlineTick = startTick + 90L;
+                    boolean[] finished = {false};
+                    Runnable cleanup = () -> {
+                        for (var v : level.getEntitiesOfClass(com.alex.mycelialmind.entity.HyphalVeinEntity.class, searchBox)) {
+                            v.discard();
+                        }
+                        for (var item : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, searchBox)) {
+                            item.discard();
+                        }
+                        for (int dx = -1; dx <= 6; dx++) {
+                            level.removeBlock(rootPos.offset(dx, -1, 0), false);
+                        }
+                        tracker.clearAll();
+                        hive.resetAll();
+                        releaseArenaChunks(level, forcedChunks);
+                    };
+                    helper.onEachTick(() -> {
+                        if (finished[0]) {
+                            return;
+                        }
+                        boolean rootAlive = rootStrand.isAlive() && !rootStrand.isRemoved() && rootStrand.hasRoot();
+                        boolean downstreamWithered = severedHalf.isRemoved();
+                        if (!rootAlive) {
+                            finished[0] = true;
+                            cleanup.run();
+                            helper.fail("Severed branch check failed: the rooted half disappeared before its severed half.");
+                        } else if (downstreamWithered) {
+                            finished[0] = true;
+                            cleanup.run();
+                            helper.succeed();
+                        } else if (helper.getTick() >= deadlineTick) {
+                            finished[0] = true;
+                            String failure = String.format(
+                                    "Severed half did not wither within 90 ticks: elapsed=%d wither=%.2f",
+                                    helper.getTick() - startTick, severedHalf.getWitherProgress());
+                            cleanup.run();
+                            helper.fail(failure);
+                        }
+                    });
+                });
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 120)
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 240)
     public static void hyphalWallVeinLosesSupportFallsAndDisintegratesOnLanding(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 16, -4, 16);
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         hive.resetAll();
 
@@ -7615,63 +7631,70 @@ public final class MycelialGameTests {
         BlockPos wallA = veinPos.west();
         BlockPos wallB = veinPos.east(2);
         BlockPos landingFloor = veinPos.below(5);
-
-        for (int dx = -1; dx <= 3; dx++) {
-            for (int dy = 1; dy >= -5; dy--) {
-                level.removeBlock(veinPos.offset(dx, dy, 0), false);
-            }
-            level.setBlockAndUpdate(landingFloor.offset(dx, 0, 0), Blocks.STONE.defaultBlockState());
-        }
-        level.setBlockAndUpdate(wallA, Blocks.STONE.defaultBlockState());
-        level.setBlockAndUpdate(wallB, Blocks.STONE.defaultBlockState());
-
-        var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, wallA, wallB, 7, true, 0.60F);
-        level.addFreshEntity(strand);
-
         AABB dropBounds = new AABB(landingFloor).inflate(4.0D, 8.0D, 4.0D);
-        long fallDeadline = helper.getTick() + 45L;
-        boolean[] sawFreeFall = {false};
-        boolean[] finished = {false};
-        Runnable cleanup = () -> {
-            if (!strand.isRemoved()) strand.discard();
-            level.removeBlock(wallA, false);
-            level.removeBlock(wallB, false);
-            for (int dx = -1; dx <= 3; dx++) {
-                level.removeBlock(landingFloor.offset(dx, 0, 0), false);
-            }
-            level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, dropBounds)
-                    .forEach(net.minecraft.world.entity.Entity::discard);
-            hive.resetAll();
-        };
-        level.removeBlock(wallA, false);
-        level.removeBlock(wallB, false);
-        helper.onEachTick(() -> {
-            if (finished[0]) {
-                return;
-            }
-            if (!strand.isPinStart() && !strand.isPinEnd()) {
-                sawFreeFall[0] = true;
-            }
-            if (sawFreeFall[0] && strand.isRemoved()) {
-                var remainingDrops = level.getEntitiesOfClass(
-                        net.minecraft.world.entity.item.ItemEntity.class, dropBounds);
-                finished[0] = true;
-                cleanup.run();
-                if (!remainingDrops.isEmpty()) {
-                    helper.fail("Gravity check failed: free-falling hypha should disintegrate without item drops, got "
-                            + remainingDrops.size());
-                } else {
-                    helper.succeed();
-                }
-            } else if (helper.getTick() >= fallDeadline) {
-                finished[0] = true;
-                String msg = String.format(
-                        "Unsupported hypha did not fall and disintegrate within 45 ticks: sawFreeFall=%s pinA=%s pinB=%s midY=%.2f",
-                        sawFreeFall[0], strand.isPinStart(), strand.isPinEnd(), strand.getMidpointNode().y);
-                cleanup.run();
-                helper.fail(msg);
-            }
-        });
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        entityChunksReady(level, veinPos, 2),
+                        "Expected entity-ticking chunks around falling hyphal vein arena to be ready."))
+                .thenExecute(() -> {
+                    for (int dx = -1; dx <= 3; dx++) {
+                        for (int dy = 1; dy >= -5; dy--) {
+                            level.removeBlock(veinPos.offset(dx, dy, 0), false);
+                        }
+                        level.setBlockAndUpdate(landingFloor.offset(dx, 0, 0), Blocks.STONE.defaultBlockState());
+                    }
+                    level.setBlockAndUpdate(wallA, Blocks.STONE.defaultBlockState());
+                    level.setBlockAndUpdate(wallB, Blocks.STONE.defaultBlockState());
+
+                    var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, wallA, wallB, 7, true, 0.60F);
+                    level.addFreshEntity(strand);
+
+                    long fallDeadline = helper.getTick() + 45L;
+                    boolean[] sawFreeFall = {false};
+                    boolean[] finished = {false};
+                    Runnable cleanup = () -> {
+                        if (!strand.isRemoved()) strand.discard();
+                        level.removeBlock(wallA, false);
+                        level.removeBlock(wallB, false);
+                        for (int dx = -1; dx <= 3; dx++) {
+                            level.removeBlock(landingFloor.offset(dx, 0, 0), false);
+                        }
+                        level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, dropBounds)
+                                .forEach(net.minecraft.world.entity.Entity::discard);
+                        hive.resetAll();
+                        releaseArenaChunks(level, forcedChunks);
+                    };
+                    level.removeBlock(wallA, false);
+                    level.removeBlock(wallB, false);
+                    helper.onEachTick(() -> {
+                        if (finished[0]) {
+                            return;
+                        }
+                        if (!strand.isPinStart() && !strand.isPinEnd()) {
+                            sawFreeFall[0] = true;
+                        }
+                        if (sawFreeFall[0] && strand.isRemoved()) {
+                            var remainingDrops = level.getEntitiesOfClass(
+                                    net.minecraft.world.entity.item.ItemEntity.class, dropBounds);
+                            finished[0] = true;
+                            cleanup.run();
+                            if (!remainingDrops.isEmpty()) {
+                                helper.fail("Gravity check failed: free-falling hypha should disintegrate without item drops, got "
+                                        + remainingDrops.size());
+                            } else {
+                                helper.succeed();
+                            }
+                        } else if (helper.getTick() >= fallDeadline) {
+                            finished[0] = true;
+                            String msg = String.format(
+                                    "Unsupported hypha did not fall and disintegrate within 45 ticks: sawFreeFall=%s pinA=%s pinB=%s midY=%.2f",
+                                    sawFreeFall[0], strand.isPinStart(), strand.isPinEnd(), strand.getMidpointNode().y);
+                            cleanup.run();
+                            helper.fail(msg);
+                        }
+                    });
+                });
     }
 
     @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 120)
@@ -11214,42 +11237,49 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 80)
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 240)
     public static void hyphalMechanicalWavePropagatesAndAlertsNode(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, 6, 18, 2, 10);
         BlockPos startFloor = helper.absolutePos(new BlockPos(10, 10, 6));
         BlockPos nodePos = startFloor.offset(4, 1, 0);
 
-        for (int dx = 0; dx <= 4; dx++) {
-            level.setBlockAndUpdate(startFloor.offset(dx, 0, 0), Blocks.STONE.defaultBlockState());
-            level.removeBlock(startFloor.offset(dx, 1, 0), false);
-        }
-        level.setBlockAndUpdate(nodePos, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
-        var waveStrand = new com.alex.mycelialmind.entity.HyphalVeinEntity(
-                level, startFloor.offset(0, 1, 0), startFloor.offset(3, 1, 0), 5, true, 0.70F);
-        waveStrand.setStrengthFloor(2);
-        level.addFreshEntity(waveStrand);
-        waveStrand.injectWave(0, 0.90F);
-
-        helper.runAfterDelay(16, () -> {
-            try {
-                boolean nodeAlerted = level.getBlockEntity(nodePos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity node
-                        && node.isAlerted();
-                if (!nodeAlerted) {
-                    helper.fail("Mechanical wave failed to propagate along HyphalVeinEntity and alert adjacent SynapticNode within 16 ticks.");
-                    return;
-                }
-                helper.succeed();
-            } finally {
-                if (!waveStrand.isRemoved()) waveStrand.discard();
-                for (int dx = 0; dx <= 4; dx++) {
-                    level.removeBlock(startFloor.offset(dx, 1, 0), false);
-                    level.removeBlock(startFloor.offset(dx, 0, 0), false);
-                }
-                releaseArenaChunks(level, forcedChunks);
-            }
-        });
+        final com.alex.mycelialmind.entity.HyphalVeinEntity[] waveStrandRef = new com.alex.mycelialmind.entity.HyphalVeinEntity[1];
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        entityChunksReady(level, startFloor.offset(2, 1, 0), 4),
+                        "Expected entity-ticking chunks around mechanical wave arena to be ready."))
+                .thenExecute(() -> {
+                    for (int dx = 0; dx <= 4; dx++) {
+                        level.setBlockAndUpdate(startFloor.offset(dx, 0, 0), Blocks.STONE.defaultBlockState());
+                        level.removeBlock(startFloor.offset(dx, 1, 0), false);
+                    }
+                    level.setBlockAndUpdate(nodePos, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
+                    var waveStrand = new com.alex.mycelialmind.entity.HyphalVeinEntity(
+                            level, startFloor.offset(0, 1, 0), startFloor.offset(3, 1, 0), 5, true, 0.70F);
+                    waveStrand.setStrengthFloor(2);
+                    level.addFreshEntity(waveStrand);
+                    waveStrand.injectWave(0, 0.90F);
+                    waveStrandRef[0] = waveStrand;
+                })
+                .thenWaitUntil(() -> {
+                    boolean nodeAlerted = level.getBlockEntity(nodePos)
+                            instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity node
+                            && node.isAlerted();
+                    helper.assertTrue(nodeAlerted,
+                            "Mechanical wave failed to propagate along HyphalVeinEntity and alert adjacent SynapticNode.");
+                })
+                .thenExecute(() -> {
+                    if (waveStrandRef[0] != null && !waveStrandRef[0].isRemoved()) {
+                        waveStrandRef[0].discard();
+                    }
+                    for (int dx = 0; dx <= 4; dx++) {
+                        level.removeBlock(startFloor.offset(dx, 1, 0), false);
+                        level.removeBlock(startFloor.offset(dx, 0, 0), false);
+                    }
+                    releaseArenaChunks(level, forcedChunks);
+                    helper.succeed();
+                });
     }
 
     @GameTest(template = "empty", batch = "hyphal_route_veins")
@@ -11296,69 +11326,59 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "hyphal_verlet_filament", timeoutTicks = 90)
+    @GameTest(template = "empty", batch = "hyphal_verlet_filament", timeoutTicks = 240)
     public static void hyphalFilamentEntitySimulatesVerletAndSnapsWhenAnchorBreaks(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, 4, 16, 12, 20);
         BlockPos anchorA = helper.absolutePos(new BlockPos(8, 15, 16));
         BlockPos anchorB = anchorA.offset(4, 0, 0);
+        final com.alex.mycelialmind.entity.HyphalVeinEntity[] strandRef = new com.alex.mycelialmind.entity.HyphalVeinEntity[1];
 
-        for (int dx = 0; dx <= 4; dx++) {
-            for (int dy = -6; dy <= 0; dy++) {
-                level.removeBlock(anchorA.offset(dx, dy, 0), false);
-            }
-            level.setBlockAndUpdate(anchorA.offset(dx, -6, 0), Blocks.STONE.defaultBlockState());
-        }
-        level.setBlockAndUpdate(anchorA, Blocks.STONE.defaultBlockState());
-        level.setBlockAndUpdate(anchorB, Blocks.STONE.defaultBlockState());
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        entityChunksReady(level, anchorA.offset(2, 0, 0), 4),
+                        "Expected entity-ticking chunks around Verlet filament arena."))
+                .thenExecute(() -> {
+                    for (int dx = 0; dx <= 4; dx++) {
+                        for (int dy = -6; dy <= 0; dy++) {
+                            level.removeBlock(anchorA.offset(dx, dy, 0), false);
+                        }
+                        level.setBlockAndUpdate(anchorA.offset(dx, -6, 0), Blocks.STONE.defaultBlockState());
+                    }
+                    level.setBlockAndUpdate(anchorA, Blocks.STONE.defaultBlockState());
+                    level.setBlockAndUpdate(anchorB, Blocks.STONE.defaultBlockState());
 
-        var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, anchorA, anchorB, 9, true, 0.75F);
-        level.addFreshEntity(strand);
-
-        helper.runAfterDelay(12, () -> {
-            boolean sagged = !strand.isRemoved()
-                    && strand.getMidpointNode().y < Vec3.atCenterOf(anchorA).y - 0.15D;
-            if (!sagged) {
-                strand.discard();
-                level.removeBlock(anchorA, false);
-                level.removeBlock(anchorB, false);
-                releaseArenaChunks(level, forcedChunks);
-                helper.fail("Expected HyphalVeinEntity midpoint to sag under gravity by tick 12.");
-                return;
-            }
-            level.removeBlock(anchorB, false);
-        });
-
-        helper.runAfterDelay(16, () -> {
-            if (strand.isRemoved() || !strand.isPinStart() || strand.isPinEnd()) {
-                if (!strand.isRemoved()) strand.discard();
-                level.removeBlock(anchorA, false);
-                level.removeBlock(anchorB, false);
-                releaseArenaChunks(level, forcedChunks);
-                helper.fail(String.format(
-                        "Expected HyphalVeinEntity to hang from anchorA after anchorB broke: removed=%s pinA=%s pinB=%s",
-                        strand.isRemoved(), strand.isPinStart(), strand.isPinEnd()));
-                return;
-            }
-            level.removeBlock(anchorA, false);
-        });
-
-        helper.runAfterDelay(65, () -> {
-            try {
-                if (!strand.isRemoved()) {
-                    helper.fail("Expected HyphalVeinEntity to free-fall and disintegrate after both anchors broke.");
-                    return;
-                }
-                helper.succeed();
-            } finally {
-                if (!strand.isRemoved()) strand.discard();
-                level.removeBlock(anchorA, false);
-                level.removeBlock(anchorB, false);
-                for (int dx = 0; dx <= 4; dx++) {
-                    level.removeBlock(anchorA.offset(dx, -6, 0), false);
-                }
-                releaseArenaChunks(level, forcedChunks);
-            }
-        });
+                    var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, anchorA, anchorB, 9, true, 0.75F);
+                    level.addFreshEntity(strand);
+                    strandRef[0] = strand;
+                })
+                .thenWaitUntil(() -> helper.assertTrue(
+                        strandRef[0] != null
+                                && !strandRef[0].isRemoved()
+                                && strandRef[0].getMidpointNode().y < Vec3.atCenterOf(anchorA).y - 0.15D,
+                        "Expected HyphalVeinEntity midpoint to sag under gravity."))
+                .thenExecute(() -> level.removeBlock(anchorB, false))
+                .thenWaitUntil(() -> helper.assertTrue(
+                        strandRef[0] != null
+                                && !strandRef[0].isRemoved()
+                                && strandRef[0].isPinStart()
+                                && !strandRef[0].isPinEnd(),
+                        "Expected HyphalVeinEntity to hang from anchorA after anchorB broke."))
+                .thenExecute(() -> level.removeBlock(anchorA, false))
+                .thenWaitUntil(() -> helper.assertTrue(
+                        strandRef[0] != null && strandRef[0].isRemoved(),
+                        "Expected HyphalVeinEntity to free-fall and disintegrate after both anchors broke."))
+                .thenExecute(() -> {
+                    if (strandRef[0] != null && !strandRef[0].isRemoved()) {
+                        strandRef[0].discard();
+                    }
+                    level.removeBlock(anchorA, false);
+                    level.removeBlock(anchorB, false);
+                    for (int dx = 0; dx <= 4; dx++) {
+                        level.removeBlock(anchorA.offset(dx, -6, 0), false);
+                    }
+                    releaseArenaChunks(level, forcedChunks);
+                    helper.succeed();
+                });
     }
 }

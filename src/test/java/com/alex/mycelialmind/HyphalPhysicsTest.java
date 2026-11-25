@@ -175,4 +175,52 @@ class HyphalPhysicsTest {
         assertEquals(2, HyphalVerletRope.strengthForLength(15));
         assertEquals(3, HyphalVerletRope.strengthForLength(24));
     }
+
+    @Test
+    void verletRaycastHitsClosestSegmentAndMissesDiagonalEmptySpace() {
+        Vec3[] diagonal = HyphalVerletRope.initLine(new Vec3(0.5D, 10.06D, 0.5D), new Vec3(4.5D, 10.06D, 4.5D), 9);
+
+        // Aim directly down onto the midpoint (2.5, 10.06, 2.5)
+        HyphalVerletRope.RaycastHit midHit = HyphalVerletRope.raycastClosestSegment(
+                diagonal, new Vec3(2.5D, 11.8D, 2.5D), new Vec3(0.0D, -1.0D, 0.0D), 6.0D, 0.45D);
+        assertNotNull(midHit, "Ray aimed directly at diagonal midpoint must hit");
+        assertTrue(midHit.distance() < 0.05D, "Midpoint raycast distance should be near zero, got " + midHit.distance());
+        assertEquals(4, midHit.closestNodeIndex());
+
+        // Aim into the empty corner of the diagonal AABB (4.2, 10.06, 0.8) -> >2.3m away from strand
+        HyphalVerletRope.RaycastHit missHit = HyphalVerletRope.raycastClosestSegment(
+                diagonal, new Vec3(4.2D, 11.8D, 0.8D), new Vec3(0.0D, -1.0D, 0.0D), 6.0D, 0.45D);
+        assertNull(missHit, "Ray aimed into empty space inside diagonal AABB must return null");
+    }
+
+    @Test
+    void turgorModulatesEffectiveGravityAndConstraintStiffness() {
+        double lowTurgorGrav = HyphalVerletRope.effectiveGravityForTurgor(0.0F);
+        double highTurgorGrav = HyphalVerletRope.effectiveGravityForTurgor(1.0F);
+        int lowTurgorIters = HyphalVerletRope.constraintIterationsForTurgor(0.0F);
+        int highTurgorIters = HyphalVerletRope.constraintIterationsForTurgor(1.0F);
+
+        assertTrue(highTurgorGrav < lowTurgorGrav, "High turgor should resist gravitational sag more than dry strand");
+        assertTrue(highTurgorIters > lowTurgorIters, "High turgor should yield stiffer constraint iterations");
+    }
+
+    @Test
+    void severRecoilImpartsOutwardVelocityAndWitherDesaturatesColor() {
+        Vec3[] pos = HyphalVerletRope.initLine(new Vec3(0.5D, 10.0D, 0.5D), new Vec3(3.5D, 10.0D, 0.5D), 5);
+        Vec3[] prev = pos.clone();
+        Vec3 posBefore = pos[4];
+
+        HyphalVerletRope.applySeverRecoil(pos, prev, true, new Vec3(4.0D, 10.0D, 0.5D), 0.16D);
+        assertEquals(posBefore, pos[4], "Recoil impulse must not teleport pos directly");
+        Vec3 impliedVelocity = pos[4].subtract(prev[4]);
+        assertTrue(impliedVelocity.x < -0.05D, "Recoil at tip facing +X cutPoint should accelerate backward (-X)");
+        assertTrue(impliedVelocity.y > 0.0D, "Recoil should add slight upward snapback velocity");
+
+        HyphalVerletRope.StrandRgba healthy = HyphalVerletRope.computeColorAndAlphaForLength(24, 12.0D);
+        HyphalVerletRope.StrandRgba withering = HyphalVerletRope.applyWitherTint(healthy, 0.70F);
+        assertTrue(withering.a() < healthy.a(), "Withering must reduce opacity");
+        int healthySpread = Math.abs(healthy.b() - healthy.g());
+        int witherSpread = Math.abs(withering.b() - withering.g());
+        assertTrue(witherSpread < healthySpread, "Withering must desaturate violet hue toward dry ash gray");
+    }
 }
