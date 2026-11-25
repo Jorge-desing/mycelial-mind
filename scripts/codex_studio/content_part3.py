@@ -21,8 +21,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• `creeping_mycelium`: spreads mycelium and acoustic tremors (**32m**); smelts into `mycelial_stone`.",
                 ),
                 (
-                    "• `hyphal_vein`: vena negra en forma de rayo sobre tus rutas habituales (`CHARGED` si densidad >=60%). Cortable con Tijeras, Azada o Hoja Simbiótica.",
-                    "• `hyphal_vein`: lightning-black overlay vein crawling over player routes (`CHARGED` >=60% density). Sever cleanly with Shears, Hoes, or Symbiotic Blade.",
+                    "• `hyphal_vein` (entidad física Verlet): filamento negro en forma de rayo sobre tus rutas habituales (más opaco/oscuro al alargarse, turgencia, ondas sísmicas y corte en dos mitades con Tijeras, Azada o Hoja Simbiótica).",
+                    "• `hyphal_vein` (Verlet physics entity): lightning-black filament strand crawling over player routes (scales darker/more opaque with length, fluid turgor, seismic waves, and mid-strand split with Shears, Hoes, or Symbiotic Blade).",
                 ),
                 (
                     "• `spore_vent`: emite gases de infección/podredumbre; purificable con `spore_antidote` (Secreto #5).",
@@ -40,12 +40,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         ),
         *chunk_paired_blocks(
             "all_23_blocks",
-            "Los 29 Bloques (`ModBlocks`)",
-            "All 29 Blocks (`ModBlocks`)",
+            "Los 28 Bloques (`ModBlocks`)",
+            "All 28 Blocks (`ModBlocks`)",
             [
                 (
-                    "• **Red y Contención (9):** `creeping_mycelium`, `hyphal_vein`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret`.",
-                    "• **Network & Containment (9):** `creeping_mycelium`, `hyphal_vein`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret`.",
+                    "• **Red y Contención (8):** `creeping_mycelium`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret` (más la entidad física `hyphal_vein`).",
+                    "• **Network & Containment (8):** `creeping_mycelium`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret` (plus the physical `hyphal_vein` entity).",
                 ),
                 (
                     "• **Fortificación y Flora (8):** `reinforced_bio_barrier`, `synaptic_research_bench`, `hive_altar`, `matriarch_altar`, `bioluminescent_mycelial_cap`, `spore_bulb`, `mycelial_tendrils`, `antibody_cyst`.",
@@ -609,7 +609,6 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "blocks/chitin_pillar",
                 "blocks/creeping_mycelium",
                 "blocks/hive_altar",
-                "blocks/hyphal_vein",
                 "blocks/incubator_node",
                 "blocks/luminescent_amber_vein",
                 "blocks/matriarch_altar",
@@ -674,9 +673,9 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`blocks/bioluminescent_mycelial_cap`, `blocks/chitin_pillar`, `blocks/creeping_mycelium`.",
                         ),
                         (
-                            "• **Bloques 2/4:** `blocks/hive_altar`, `blocks/hyphal_vein`, `blocks/incubator_node`, "
+                            "• **Bloques 2/4:** `blocks/hive_altar`, `blocks/incubator_node`, "
                             "`blocks/luminescent_amber_vein`, `blocks/matriarch_altar`, `blocks/mycelial_arch_brick`, `blocks/mycelial_node`.",
-                            "• **Blocks 2/4:** `blocks/hive_altar`, `blocks/hyphal_vein`, `blocks/incubator_node`, "
+                            "• **Blocks 2/4:** `blocks/hive_altar`, `blocks/incubator_node`, "
                             "`blocks/luminescent_amber_vein`, `blocks/matriarch_altar`, `blocks/mycelial_arch_brick`, `blocks/mycelial_node`.",
                         ),
                         (

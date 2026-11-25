@@ -376,8 +376,7 @@ public class PurifierDroneEntity extends PathfinderMob implements HiveBrainOwner
                         8, 0.25, 0.15, 0.25, 0.02);
                 return true;
             }
-            if (state.is(ModBlocks.HYPHAL_VEIN.get())
-                    && com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(level, check, 5.0D)) {
+            if (com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(level, check, 5.0D)) {
                 level.sendParticles(ModParticles.PURIFIER_CROSS.get(),
                         check.getX() + 0.5, check.getY() + 0.2, check.getZ() + 0.5,
                         8, 0.25, 0.15, 0.25, 0.02);

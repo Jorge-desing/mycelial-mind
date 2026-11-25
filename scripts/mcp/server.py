@@ -2238,7 +2238,7 @@ def audit_mod_assets() -> dict[str, Any]:
         e
         for e in reg_entities
         if e not in uv_models
-        and e not in ("acid_spit", "neutralizing_spore", "purifier_grenade", "hyphal_filament")
+        and e not in ("acid_spit", "neutralizing_spore", "purifier_grenade", "hyphal_vein")
     )
 
     particles_dir = assets_root / "particles"

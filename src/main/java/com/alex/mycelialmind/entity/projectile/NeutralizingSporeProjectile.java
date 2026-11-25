@@ -75,6 +75,12 @@ public class NeutralizingSporeProjectile extends ThrowableProjectile {
                 symbiont.removeEffect(ModEffects.MYCELIAL_INFECTION);
                 symbiont.removeEffect(ModEffects.SPORE_ROT);
                 emitImpact(serverLevel, result);
+            } else if (target instanceof com.alex.mycelialmind.entity.HyphalVeinEntity vein) {
+                if (!com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(
+                        serverLevel, vein.getRootAnchor(), 5.0D)) {
+                    vein.disintegrateWithSpores();
+                }
+                emitImpact(serverLevel, result);
             }
         }
     }
@@ -87,8 +93,8 @@ public class NeutralizingSporeProjectile extends ThrowableProjectile {
             if (serverLevel.getBlockState(pos).is(ModBlocks.EPHEMERAL_CHITIN.get())) {
                 serverLevel.removeBlock(pos, false);
                 emitImpact(serverLevel, result);
-            } else if (serverLevel.getBlockState(pos).is(ModBlocks.HYPHAL_VEIN.get())
-                    && com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(serverLevel, pos, 5.0D)) {
+            } else if (com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(serverLevel, pos.above(), 5.0D)
+                    || com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(serverLevel, pos, 5.0D)) {
                 emitImpact(serverLevel, result);
             }
             if (serverLevel.getBlockEntity(pos) instanceof PurificationTurretBlockEntity turret && turret.isJammed()) {

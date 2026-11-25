@@ -472,9 +472,8 @@ public class SynapticMimicEntity extends MycelialMob {
         }
 
         BlockState below = level.getBlockState(origin.below());
-        BlockState here = level.getBlockState(origin);
         boolean onMyceliumOrDecoy = below.is(ModBlocks.CREEPING_MYCELIUM.get())
-                || here.is(ModBlocks.HYPHAL_VEIN.get())
+                || !level.getEntitiesOfClass(HyphalVeinEntity.class, new AABB(origin).inflate(1.5D)).isEmpty()
                 || MycorrhizalAcousticTracker.hasActiveDecoyNear(level, origin, 16);
 
         Player inspectPlayer = target instanceof Player p ? p : level.getNearestPlayer(this, 24.0D);

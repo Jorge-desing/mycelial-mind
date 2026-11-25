@@ -5,7 +5,6 @@ import com.alex.mycelialmind.block.AntibodyCystBlock;
 import com.alex.mycelialmind.block.BioluminescentMycelialCapBlock;
 import com.alex.mycelialmind.block.EphemeralChitinBlock;
 import com.alex.mycelialmind.block.HiveAltarBlock;
-import com.alex.mycelialmind.block.HyphalVeinBlock;
 import com.alex.mycelialmind.block.IncubatorNodeBlock;
 import com.alex.mycelialmind.block.MatriarchAltarBlock;
 import com.alex.mycelialmind.block.MycelialNodeBlock;
@@ -23,7 +22,6 @@ import com.alex.mycelialmind.block.SporeUpdraftVentBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.block.SynapticResearchBenchBlock;
-import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
@@ -33,6 +31,7 @@ import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.ColonySymbiontEntity;
+import com.alex.mycelialmind.entity.HyphalVeinEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -91,6 +90,7 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         registration.registerEntityComponent(EntityProvider.INSTANCE, PurifierDroneEntity.class);
         registration.registerEntityComponent(EntityProvider.INSTANCE, ColonySymbiontEntity.class);
         registration.registerEntityComponent(EntityProvider.INSTANCE, SporeGliderEntity.class);
+        registration.registerEntityComponent(EntityProvider.INSTANCE, HyphalVeinEntity.class);
 
         registration.registerBlockComponent(BlockProvider.INSTANCE, MycelialNodeBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, IncubatorNodeBlock.class);
@@ -108,7 +108,6 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(BlockProvider.INSTANCE, BioluminescentMycelialCapBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, MycelialTendrilsBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, SporeBulbBlock.class);
-        registration.registerBlockComponent(BlockProvider.INSTANCE, HyphalVeinBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, ReclaimedBloomBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, SovereignNexusBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, SporeUpdraftVentBlock.class);
@@ -227,6 +226,20 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 }
             } else if (accessor.getEntity() instanceof SporeGliderEntity) {
                 tooltip.add(Component.translatable("jade.mycelialmind.spore_glider_pollinator"));
+            } else if (accessor.getEntity() instanceof HyphalVeinEntity vein) {
+                tooltip.add(Component.translatable(vein.isCharged()
+                        ? "jade.mycelialmind.hyphal_vein_charged"
+                        : "jade.mycelialmind.hyphal_vein_dormant"));
+                tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_strength",
+                        vein.getEffectiveStrength() + 1));
+                tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_nutrient",
+                        vein.getNutrient()));
+                tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_turgor",
+                        Math.round(vein.getTurgor() * 100.0F)));
+                tooltip.add(Component.translatable(vein.hasRoot()
+                        ? "jade.mycelialmind.hyphal_vein_root_yes"
+                        : "jade.mycelialmind.hyphal_vein_root_no",
+                        vein.getNodeCount()));
             }
         }
 
@@ -344,26 +357,6 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 tooltip.add(Component.translatable(anchored
                         ? "jade.mycelialmind.bloom_anchored"
                         : (fertileSoil ? "jade.mycelialmind.bloom_soil_ok" : "jade.mycelialmind.bloom_needs_soil")));
-            } else if (accessor.getBlock() instanceof HyphalVeinBlock) {
-                boolean charged = accessor.getBlockState().hasProperty(HyphalVeinBlock.CHARGED)
-                        && accessor.getBlockState().getValue(HyphalVeinBlock.CHARGED);
-                int strength = accessor.getBlockState().hasProperty(HyphalVeinBlock.STRENGTH)
-                        ? accessor.getBlockState().getValue(HyphalVeinBlock.STRENGTH)
-                        : 0;
-                tooltip.add(Component.translatable(charged
-                        ? "jade.mycelialmind.hyphal_vein_charged"
-                        : "jade.mycelialmind.hyphal_vein_dormant"));
-                tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_strength", strength + 1));
-                if (accessor.getBlockEntity() instanceof HyphalVeinBlockEntity veinBe) {
-                    tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_nutrient",
-                            veinBe.getNutrient()));
-                    tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_turgor",
-                            Math.round(veinBe.getTurgor() * 100.0F)));
-                    tooltip.add(Component.translatable(veinBe.isRoot()
-                            ? "jade.mycelialmind.hyphal_vein_root_yes"
-                            : "jade.mycelialmind.hyphal_vein_root_no",
-                            veinBe.getDistanceToRoot()));
-                }
             } else if (accessor.getBlock() instanceof EphemeralChitinBlock) {
                 tooltip.add(Component.translatable("jade.mycelialmind.ephemeral_chitin"));
             } else if (accessor.getBlock() instanceof MycelialRiftBlock) {

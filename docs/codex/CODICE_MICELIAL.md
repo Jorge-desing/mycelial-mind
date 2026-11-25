@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `62` entradas y `249` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `62` entradas y `250` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -943,89 +943,92 @@ _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recome
 - **ID de Entrada:** `economia_datos/catalogo_bloques_items` | **Ícono:** `mycelialmind:mycelial_biomass` | **Unlock:** `always`
 - **Resumen:** Inventario íntegro de flora, bloques e ítems registrados
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.1] Flora, Geología y Bloques Estructurales (1/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.1] Flora, Geología y Bloques Estructurales (1/5)
 
 • `creeping_mycelium`: propaga micelio y transmisiones acústicas (**32m**); horneable a `mycelial_stone`.
-• `hyphal_vein`: vena negra en forma de rayo sobre tus rutas habituales (`CHARGED` si densidad >=60%). Cortable con Tijeras, Azada o Hoja Simbiótica.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.2] Flora, Geología y Bloques Estructurales (2/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.2] Flora, Geología y Bloques Estructurales (2/5)
+
+• `hyphal_vein` (entidad física Verlet): filamento negro en forma de rayo sobre tus rutas habituales (más opaco/oscuro al alargarse, turgencia, ondas sísmicas y corte en dos mitades con Tijeras, Azada o Hoja Simbiótica).
+
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.3] Flora, Geología y Bloques Estructurales (3/5)
 
 • `spore_vent`: emite gases de infección/podredumbre; purificable con `spore_antidote` (Secreto #5).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.3] Flora, Geología y Bloques Estructurales (3/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.4] Flora, Geología y Bloques Estructurales (4/5)
 
 • `bioluminescent_mycelial_cap`, `spore_bulb`, `mycelial_tendrils`: flora regenerativa con estado `MATURE` y señal Redstone; fertilizable para revelar Bóvedas (Secreto #8).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.4] Flora, Geología y Bloques Estructurales (4/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.5] Flora, Geología y Bloques Estructurales (5/5)
 
 • `mycelial_stone`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `mycelial_rift`, `hive_altar`, `matriarch_altar`, `ephemeral_chitin`, `antibody_cyst`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.5] Los 29 Bloques (`ModBlocks`) (1/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.6] Los 28 Bloques (`ModBlocks`) (1/4)
 
-• **Red y Contención (9):** `creeping_mycelium`, `hyphal_vein`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret`.
+• **Red y Contención (8):** `creeping_mycelium`, `spore_vent`, `mycelial_node`, `incubator_node`, `sentinel_node`, `symbiotic_node`, `purification_pylon`, `purification_turret` (más la entidad física `hyphal_vein`).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.6] Los 29 Bloques (`ModBlocks`) (2/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.7] Los 28 Bloques (`ModBlocks`) (2/4)
 
 • **Fortificación y Flora (8):** `reinforced_bio_barrier`, `synaptic_research_bench`, `hive_altar`, `matriarch_altar`, `bioluminescent_mycelial_cap`, `spore_bulb`, `mycelial_tendrils`, `antibody_cyst`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.7] Los 29 Bloques (`ModBlocks`) (3/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.8] Los 28 Bloques (`ModBlocks`) (3/4)
 
 • **Arquitectura y Dimensión (9):** `mycelial_stone`, `mycelial_rift`, `chitin_pillar`, `mycelial_arch_brick`, `bio_chitin_lattice`, `luminescent_amber_vein`, `ephemeral_chitin`, `reclaimed_bloom`, `sovereign_nexus`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.8] Los 29 Bloques (`ModBlocks`) (4/4)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.9] Los 28 Bloques (`ModBlocks`) (4/4)
 
 • **Sima Subterránea (3):** `spore_updraft_vent` (chorro vertical), `root_sap_moss` (embotellable) y `root_cap_shelf` (repisa elástica).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.9] Ítems y Armadura (`ModItems`) (1/6)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.10] Ítems y Armadura (`ModItems`) (1/6)
 
 • **Instrumentos y Armas (11):** `bio_scanner`, `bio_extractor`, `enzyme_lance`, `neutralizing_spore_launcher`, `symbiotic_blade`, `purifier_grenade`, `synaptic_suppressor`, `overmind_crown`, `rift_catalyst`, `mycelial_codex`, `sovereign_command_staff` (`staff_mode`).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.10] Ítems y Armadura (`ModItems`) (2/6)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.11] Ítems y Armadura (`ModItems`) (2/6)
 
 • **Armadura y Sueros (10):** `chitin_helmet`, `chitin_chestplate`, `chitin_leggings`, `chitin_boots`, `spore_antidote`, `concentrated_antidote`, `genetic_sample`, `symbiotic_mutagen`, `counter_serum`, `tide_beacon`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.11] Ítems y Armadura (`ModItems`) (3/6)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.12] Ítems y Armadura (`ModItems`) (3/6)
 
 • **Diplomacia y Cognición (10):** `purifier_drone_core`, `neural_echo_core`, `synaptic_graft`, `neural_echo_decoy`, `schism_injector`, `truce_pheromone`, `quorum_seal`, `chimera_ovum`, `volatile_engram`, `field_engram`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.12] Ítems y Armadura (`ModItems`) (4/6)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.13] Ítems y Armadura (`ModItems`) (4/6)
 
 • **Inyección y Reactivos (7):** `false_engram_injector`, `mycelial_biomass`, `chitin_plate`, `latent_spore`, `synaptic_core`, `hive_heart`, `overmind_essence` (+ **20** `*_spawn_egg` en Cap.5).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.13] Ítems y Armadura (`ModItems`) (5/6)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Ítems y Armadura (`ModItems`) (5/6)
 
 • **Brotes Recuperados (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Ítems y Armadura (`ModItems`) (6/6)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Ítems y Armadura (`ModItems`) (6/6)
 
 • **Sima Subterránea (4 + 2 Huevos):** `root_sap_vial`, `resonant_sap_elixir` (Mesa Sináptica), `canopy_membrane` (`spore_glider`) y `root_heart_resin` (`root_keeper`).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Colonia Soberana Post-Matriarca (1/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.16] Colonia Soberana Post-Matriarca (1/7)
 
 • **Ancla y Puestos (`SovereignNexusBlock` / `SovereignNexusBlockEntity`):** tras derrotar a la Matriarca, el `sovereign_nexus` acepta `mycelial_biomass` (mano o tolvas) e integra hasta **4** `symbiotic_node` cercanos (**+8m** radio cada uno).
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.16] Colonia Soberana Post-Matriarca (2/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.17] Colonia Soberana Post-Matriarca (2/7)
 
 • **Niveles y Mando (`SovereignColonyDirector`):** Nivel **1–3** (**4/8/12** simbiontes, radio **24/36/48m**). Usa `sovereign_command_staff` (`staff_mode`) para marcar cofres `INPUT`/`OUTPUT` y zonas de trabajo; desbloquea rasgos `SovereignTrait` y rangos.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.17] Colonia Soberana Post-Matriarca (3/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.18] Colonia Soberana Post-Matriarca (3/7)
 
 • **Castas y Sondeos Rivales:** `HARVESTER`, `EXCAVATOR`, `COURIER`, `ARCHITECT` y `SENTINEL` operan `ColonyOrderBoard` por prioridad/reserva con descanso y humor (`SymbiontTemperament`). Repeler sondeos de la Colmena rival otorga XP de Dominio y moral.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.18] Colonia Soberana Post-Matriarca (4/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.19] Colonia Soberana Post-Matriarca (4/7)
 
 • **Memoria Territorial:** cada Nexo o puesto aprende de incidentes locales. Dos incidentes parecidos abren un ensayo; dos resultados favorables consolidan la conducta.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.19] Colonia Soberana Post-Matriarca (5/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.20] Colonia Soberana Post-Matriarca (5/7)
 
 • **Hábitos:** los puestos pueden aprender escoltas para mensajeros, descanso antes del regreso o recolección por turnos. El primer recuerdo se aprende solo; puedes adoptar un segundo ensayo en `Memoria`.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.20] Colonia Soberana Post-Matriarca (6/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.21] Colonia Soberana Post-Matriarca (6/7)
 
 • **Enseñanza:** en `Memoria`, elige el puesto de origen y el destino. Un mensajero lleva el recuerdo aprendido; el destino lo prueba con sus propios trabajos.
 • **Bioescáner:** úsalo en `symbiotic_node` (dialecto/ensayos) o un simbionte (rol). Olvidar borra el historial.
 
-#### [Libro: Cap.9 / catalogo_bloques_items / Pág.21] Colonia Soberana Post-Matriarca (7/7)
+#### [Libro: Cap.9 / catalogo_bloques_items / Pág.22] Colonia Soberana Post-Matriarca (7/7)
 
 • **Dialecto (`ColonyDialect`):** en `Dialecto` elige maestro, aprendiz, pulsos (`1–3·1–3`), resuelve conflictos y emite vía `sovereign_command_staff`.
 
@@ -1232,7 +1235,7 @@ Síntesis sin mesa usando `root_sap_vial` embotellado de `root_sap_moss`, `laten
 
 #### [Libro: Cap.9 / botin_48_tablas / Pág.2] Botín Multi-Pool (58 Tablas) (2/10)
 
-• **Bloques 2/4:** `blocks/hive_altar`, `blocks/hyphal_vein`, `blocks/incubator_node`, `blocks/luminescent_amber_vein`, `blocks/matriarch_altar`, `blocks/mycelial_arch_brick`, `blocks/mycelial_node`.
+• **Bloques 2/4:** `blocks/hive_altar`, `blocks/incubator_node`, `blocks/luminescent_amber_vein`, `blocks/matriarch_altar`, `blocks/mycelial_arch_brick`, `blocks/mycelial_node`.
 
 #### [Libro: Cap.9 / botin_48_tablas / Pág.3] Botín Multi-Pool (58 Tablas) (3/10)
 

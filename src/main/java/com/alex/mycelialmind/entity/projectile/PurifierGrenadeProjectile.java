@@ -63,13 +63,18 @@ public class PurifierGrenadeProjectile extends ThrowableProjectile {
                         serverLevel.destroyBlock(pos, false);
                     } else if (state.is(ModBlocks.EPHEMERAL_CHITIN.get()) || state.is(ModBlocks.ANTIBODY_CYST.get())) {
                         serverLevel.removeBlock(pos, false);
-                    } else if (state.is(ModBlocks.HYPHAL_VEIN.get())) {
-                        com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(serverLevel, pos, 6.0D);
                     }
                     if (serverLevel.getBlockEntity(pos) instanceof PurificationTurretBlockEntity turret) {
                         turret.clearCorrosiveJam();
                     }
                 }
+            }
+            com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(serverLevel, center, 6.0D);
+            for (com.alex.mycelialmind.entity.HyphalVeinEntity strand : serverLevel.getEntitiesOfClass(
+                    com.alex.mycelialmind.entity.HyphalVeinEntity.class, new AABB(center).inflate(4.5D))) {
+                strand.disintegrateWithSpores();
+                com.alex.mycelialmind.hive.HiveMindSavedData.get(serverLevel)
+                        .severHyphalVein(center, 6.0D, serverLevel.getGameTime());
             }
             AABB area = new AABB(center).inflate(4.5D);
             for (MycelialMob mob : serverLevel.getEntitiesOfClass(MycelialMob.class, area)) {

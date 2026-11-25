@@ -98,8 +98,8 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
         BlockState sporeVent = ModBlocks.SPORE_VENT.get().defaultBlockState();
         BlockState sapMoss = ModBlocks.ROOT_SAP_MOSS.get().defaultBlockState().setValue(RootSapMossBlock.SAP_READY, true);
         BlockState updraftVent = ModBlocks.SPORE_UPDRAFT_VENT.get().defaultBlockState();
-        BlockState hyphalVein = ModBlocks.HYPHAL_VEIN.get().defaultBlockState();
         BlockState water = Blocks.WATER.defaultBlockState();
+        int spawnedRimStrands = 0;
 
         long noiseSeed = origin.asLong() ^ 0x53494E4B484F4C45L;
 
@@ -148,8 +148,14 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                     }
                     BlockPos top = floorPos.above();
                     if (isOpenAirOrReplaceable(level, top)) {
-                        if (dist > 6.8D && random.nextFloat() < 0.28F) {
-                            safeSetBlock(level, top, ModBlocks.HYPHAL_VEIN.get().defaultBlockState());
+                        if (dist > 6.8D && spawnedRimStrands < 6 && random.nextFloat() < 0.14F) {
+                            BlockPos inward = top.offset(Integer.compare(origin.getX(), top.getX()) * 2, 0,
+                                    Integer.compare(origin.getZ(), top.getZ()) * 2);
+                            var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(
+                                    level.getLevel(), top, inward, 5, true, 0.72F);
+                            strand.setStrengthFloor(2);
+                            level.addFreshEntity(strand);
+                            spawnedRimStrands++;
                         } else if (dist <= 7.0D && random.nextFloat() < 0.08F) {
                             safeSetBlock(level, top, sporeVent);
                         }
@@ -350,7 +356,10 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
             if (!southMouth && (dz == 12 || dz == 18)) {
                 BlockPos veinPos = origin.offset(cx, -30, dz);
                 if (level.getBlockState(veinPos.below()).isSolid()) {
-                    safeSetBlock(level, veinPos, hyphalVein);
+                    var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(
+                            level.getLevel(), veinPos, veinPos.south(2), 5, true, 0.72F);
+                    strand.setStrengthFloor(2);
+                    level.addFreshEntity(strand);
                 }
             }
             if (dz == 15) {

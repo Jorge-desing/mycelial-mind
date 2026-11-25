@@ -8,7 +8,6 @@ import com.alex.mycelialmind.block.ChitinPillarBlock;
 import com.alex.mycelialmind.block.CreepingMyceliumBlock;
 import com.alex.mycelialmind.block.EphemeralChitinBlock;
 import com.alex.mycelialmind.block.HiveAltarBlock;
-import com.alex.mycelialmind.block.HyphalVeinBlock;
 import com.alex.mycelialmind.block.IncubatorNodeBlock;
 import com.alex.mycelialmind.block.LuminescentAmberVeinBlock;
 import com.alex.mycelialmind.block.MatriarchAltarBlock;
@@ -257,15 +256,6 @@ public final class ModBlocks {
                     .sound(ModSounds.ANTIBODY_CYST_SOUNDS)
                     .randomTicks()
                     .lightLevel(s -> s.getValue(AntibodyCystBlock.ACTIVE) ? 5 : 2)));
-
-    public static final DeferredBlock<Block> HYPHAL_VEIN = registerBlock("hyphal_vein",
-            () -> new HyphalVeinBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_BLACK)
-                    .noCollission()
-                    .replaceable()
-                    .strength(0.2F)
-                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
-                    .pushReaction(PushReaction.DESTROY)));
 
     public static final DeferredBlock<Block> SPORE_UPDRAFT_VENT = registerBlock("spore_updraft_vent",
             () -> new SporeUpdraftVentBlock(BlockBehaviour.Properties.of()

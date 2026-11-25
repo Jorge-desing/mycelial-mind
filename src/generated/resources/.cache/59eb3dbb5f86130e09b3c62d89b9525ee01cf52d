@@ -1,11 +1,10 @@
-// 1.21.1	2026-11-24T22:55:54.2483703	Loot Tables
+// 1.21.1	2026-11-25T14:04:06.3652723	Loot Tables
 2a6f69018a0c88ddbebe2ae3182e9b5f0274d589 data/mycelialmind/loot_table/blocks/antibody_cyst.json
 89be14cddb48d8cd1fcdcd8696958e5ed61ebcd1 data/mycelialmind/loot_table/blocks/bioluminescent_mycelial_cap.json
 44dd048b5441f34a91a621994ce422e12410f983 data/mycelialmind/loot_table/blocks/bio_chitin_lattice.json
 89484d6ecc0d8f979490e6057cad937f32edd2f7 data/mycelialmind/loot_table/blocks/chitin_pillar.json
 a04599b25ec6425d3ad4e9f8631dcbbae953990b data/mycelialmind/loot_table/blocks/creeping_mycelium.json
 86e5c9855c7cee435f34946c75500b8b6dce6922 data/mycelialmind/loot_table/blocks/hive_altar.json
-4da40647b0a22f56325311768228a14776b41792 data/mycelialmind/loot_table/blocks/hyphal_vein.json
 304c08ab63e0fad3b0bbbc6d735f3080f9d170b0 data/mycelialmind/loot_table/blocks/incubator_node.json
 6a42242e0e50d5d65cd1dfd2a1f139452948f8b7 data/mycelialmind/loot_table/blocks/luminescent_amber_vein.json
 b54f89fdcce91c0146495f22b914621226303bfd data/mycelialmind/loot_table/blocks/matriarch_altar.json

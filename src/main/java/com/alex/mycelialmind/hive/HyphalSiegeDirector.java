@@ -1,10 +1,8 @@
 package com.alex.mycelialmind.hive;
 
 import com.alex.mycelialmind.block.CreepingMyceliumBlock;
-import com.alex.mycelialmind.block.HyphalVeinBlock;
 import com.alex.mycelialmind.block.MycelialNodeBlock;
-import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
-import com.alex.mycelialmind.entity.HyphalFilamentEntity;
+import com.alex.mycelialmind.entity.HyphalVeinEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
@@ -104,8 +102,7 @@ public final class HyphalSiegeDirector {
     }
 
     private static boolean hasForeignBlockEntity(LevelReader level, BlockPos pos) {
-        BlockEntity be = level.getBlockEntity(pos);
-        return be != null && !(be instanceof HyphalVeinBlockEntity);
+        return level.getBlockEntity(pos) != null;
     }
 
     @SubscribeEvent
@@ -206,12 +203,11 @@ public final class HyphalSiegeDirector {
             return;
         }
 
-        if (state.is(ModBlocks.HYPHAL_VEIN.get())
-                || state.is(ModBlocks.CREEPING_MYCELIUM.get())
+        if (state.is(ModBlocks.CREEPING_MYCELIUM.get())
                 || state.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())) {
             Player player = event.getPlayer();
             ItemStack tool = player != null ? player.getMainHandItem() : ItemStack.EMPTY;
-            if (isSeveringTool(tool) || state.is(ModBlocks.HYPHAL_VEIN.get()) || hive.isTrackedHyphalVein(pos)) {
+            if (isSeveringTool(tool) || hive.isTrackedHyphalVein(pos)) {
                 trySeverHyphalVein(serverLevel, pos, player, tool);
             }
         }
@@ -231,13 +227,15 @@ public final class HyphalSiegeDirector {
         }
         BlockPos pos = event.getPos();
         BlockState state = serverLevel.getBlockState(pos);
-        if (!state.is(ModBlocks.HYPHAL_VEIN.get())
+        boolean hasNearbyStrand = !serverLevel.getEntitiesOfClass(
+                HyphalVeinEntity.class, new AABB(pos).inflate(1.5D)).isEmpty();
+        if (!hasNearbyStrand
                 && !state.is(ModBlocks.CREEPING_MYCELIUM.get())
                 && !state.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())) {
             return;
         }
         HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
-        if (state.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()) && !hive.isTrackedHyphalVein(pos)) {
+        if (!hasNearbyStrand && state.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()) && !hive.isTrackedHyphalVein(pos)) {
             return;
         }
         if (trySeverHyphalVein(serverLevel, pos, player, tool) > 0) {
@@ -253,17 +251,12 @@ public final class HyphalSiegeDirector {
             return;
         }
         Vec3 center = event.getExplosion().center();
-        BlockPos origin = BlockPos.containing(center);
-        for (BlockPos p : BlockPos.betweenClosed(origin.offset(-6, -4, -6), origin.offset(6, 4, 6))) {
-            if (!serverLevel.isLoaded(p)) {
-                continue;
-            }
-            if (serverLevel.getBlockState(p).is(ModBlocks.HYPHAL_VEIN.get())) {
-                double dist = Math.sqrt(p.distToCenterSqr(center.x, center.y, center.z));
-                if (dist <= 6.5D) {
-                    float amp = Mth.clamp(1.0F - (float) (dist / 7.0D), 0.15F, 1.0F);
-                    HyphalVeinBlock.injectMechanicalWave(serverLevel, p.immutable(), amp);
-                }
+        AABB box = new AABB(center, center).inflate(6.5D);
+        for (HyphalVeinEntity strand : serverLevel.getEntitiesOfClass(HyphalVeinEntity.class, box)) {
+            double dist = Math.sqrt(strand.getMidpointNode().distanceToSqr(center));
+            if (dist <= 6.5D) {
+                float amp = Mth.clamp(1.0F - (float) (dist / 7.0D), 0.15F, 1.0F);
+                strand.injectWaveNear(center, amp);
             }
         }
     }
@@ -352,6 +345,16 @@ public final class HyphalSiegeDirector {
     public record VeinPlacement(BlockPos veinPos, byte faceBit, BlockPos supportPos) {
     }
 
+    private static final int MAX_STRANDS_PER_CHUNK = 8;
+
+    public static List<HyphalVeinEntity> getChunkHyphalStrands(ServerLevel level, ChunkPos chunkPos) {
+        AABB chunkBox = new AABB(
+                chunkPos.getMinBlockX() - 1, level.getMinBuildHeight(), chunkPos.getMinBlockZ() - 1,
+                chunkPos.getMaxBlockX() + 2, level.getMaxBuildHeight(), chunkPos.getMaxBlockZ() + 2
+        );
+        return level.getEntitiesOfClass(HyphalVeinEntity.class, chunkBox);
+    }
+
     public static int sproutRouteVeinsInChunk(ServerLevel level, HiveMindSavedData hive, ChunkPos chunkPos) {
         double density = hive.getHyphalDensity(chunkPos);
         int rootThreshold = HyphalPhysics.getRootTraversalThreshold();
@@ -369,13 +372,10 @@ public final class HyphalSiegeDirector {
 
         List<BlockPos> orderedTrail = hive.getOrderedTrail(chunkPos);
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        List<HyphalVeinEntity> existingStrands = new ArrayList<>(getChunkHyphalStrands(level, chunkPos));
         int placed = 0;
-        final int maxNewPerPass = 8;
 
         for (Map.Entry<BlockPos, Integer> entry : traversalsMap.entrySet()) {
-            if (placed >= maxNewPerPass) {
-                break;
-            }
             int count = entry.getValue();
             if (!HyphalPhysics.isRootCandidate(count, rootThreshold)) {
                 continue;
@@ -406,139 +406,85 @@ public final class HyphalSiegeDirector {
             if (trailIndex < 0) {
                 trailIndex = orderedTrail.lastIndexOf(supportPos);
             }
-            BlockState existing = level.getBlockState(veinPos);
-            if (existing.is(ModBlocks.HYPHAL_VEIN.get())) {
-                int nextStrength = Math.max(existing.getValue(HyphalVeinBlock.STRENGTH), strength);
-                BlockState refreshed = HyphalVeinBlock.recomputeConnections(
-                        level,
-                        veinPos,
-                        existing.setValue(HyphalVeinBlock.CHARGED, Boolean.TRUE)
-                                .setValue(HyphalVeinBlock.STRENGTH, nextStrength));
-                if (!refreshed.equals(existing)) {
-                    level.setBlockAndUpdate(veinPos, refreshed);
+
+            HyphalVeinEntity covering = null;
+            for (HyphalVeinEntity s : existingStrands) {
+                if (!s.isRemoved() && (s.getRootAnchor().equals(veinPos) || s.touchesBlockPos(veinPos, 1.35D))) {
+                    covering = s;
+                    break;
                 }
-                if (level.getBlockEntity(veinPos) instanceof HyphalVeinBlockEntity be) {
-                    be.setRoot(true);
-                    be.addFace(placement.faceBit());
-                    be.setTraversals(Math.max(be.getTraversals(), count));
-                    if (trailIndex >= 0) {
-                        be.setTrailIndex(trailIndex);
-                    }
-                    linkAdjacentTrailDiagonals(level, orderedTrail, trailIndex, veinPos, be);
-                    be.syncToClient();
+            }
+            if (covering != null) {
+                covering.setHasRoot(true);
+                covering.setStrengthFloor(Math.max(covering.getStrengthFloor(), strength));
+                if (trailIndex >= 0 && covering.getTrailIndex() < 0) {
+                    covering.setTrailIndex(trailIndex);
                 }
+                covering.recomputeTurgor(level);
                 hive.registerHyphalVein(veinPos);
-                level.scheduleTick(veinPos, ModBlocks.HYPHAL_VEIN.get(), HyphalPhysics.getGrowthIntervalTicks());
                 continue;
             }
 
-            if (hive.getActiveVeins(chunkPos).size() >= HyphalAdaptiveArchitectureEngine.MAX_VEINS_PER_CHUNK) {
+            if (existingStrands.size() >= MAX_STRANDS_PER_CHUNK) {
                 break;
             }
             BlockState supportState = level.getBlockState(supportPos);
-            if (canSproutVeinOver(level, supportPos, supportState)
-                    && canPlaceVeinOverlayAt(existing)) {
-                BlockState veinState = HyphalVeinBlock.recomputeConnections(
-                        level,
-                        veinPos,
-                        ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
-                                .setValue(HyphalVeinBlock.CHARGED, Boolean.TRUE)
-                                .setValue(HyphalVeinBlock.STRENGTH, strength)
-                );
-                level.setBlockAndUpdate(veinPos, veinState);
-                if (level.getBlockEntity(veinPos) instanceof HyphalVeinBlockEntity be) {
-                    be.setRoot(true);
-                    be.setFaces(placement.faceBit());
-                    be.setTraversals(count);
-                    be.setTrailIndex(trailIndex);
-                    be.setNextGrowthTick(level.getGameTime() + HyphalPhysics.getGrowthIntervalTicks());
-                    linkAdjacentTrailDiagonals(level, orderedTrail, trailIndex, veinPos, be);
-                    HyphalVeinBlock.recomputeAndSyncTurgor(level, veinPos, be);
-                    be.syncToClient();
-                    tryAutoSpawnHyphalFilament(level, veinPos, be);
+            BlockState existingState = level.getBlockState(veinPos);
+            if (canSproutVeinOver(level, supportPos, supportState) && canPlaceVeinOverlayAt(existingState)) {
+                BlockPos initialTip = veinPos;
+                if (trailIndex >= 0) {
+                    for (int delta : new int[]{1, -1}) {
+                        int adjIdx = trailIndex + delta;
+                        if (adjIdx >= 0 && adjIdx < orderedTrail.size()) {
+                            VeinPlacement nextP = resolveVeinPlacementForGround(level, orderedTrail.get(adjIdx));
+                            if (nextP != null && !tracker.isProtected(nextP.veinPos())) {
+                                initialTip = nextP.veinPos();
+                                break;
+                            }
+                        }
+                    }
                 }
-                HyphalVeinBlock.refreshLocalNeighborhood(level, veinPos);
-                hive.registerHyphalVein(veinPos);
-                level.scheduleTick(veinPos, ModBlocks.HYPHAL_VEIN.get(), HyphalPhysics.getGrowthIntervalTicks());
-                placed++;
-            }
-        }
+                if (initialTip.equals(veinPos)) {
+                    initialTip = veinPos.east();
+                }
 
-        // Refresh strength and trail indices on existing non-root veins in this chunk
-        for (BlockPos activePos : hive.getActiveVeins(chunkPos)) {
-            if (!level.isLoaded(activePos)) {
-                continue;
-            }
-            BlockState st = level.getBlockState(activePos);
-            if (!st.is(ModBlocks.HYPHAL_VEIN.get())) {
-                continue;
-            }
-            if (level.getBlockEntity(activePos) instanceof HyphalVeinBlockEntity be) {
-                BlockPos groundPos = resolveGroundFromVein(level, activePos, be);
-                int count = hive.getBlockTraversals(groundPos);
-                int minStrength = Math.max(
-                        HyphalPhysics.strengthForTraversals(Math.max(count, be.getTraversals())),
-                        HyphalAdaptiveArchitectureEngine.computeVeinStrength(density));
-                boolean charged = HyphalPhysics.chargedForNutrient(be.getNutrient());
-                if (count > be.getTraversals()) {
-                    be.setTraversals(count);
-                }
-                if (st.getValue(HyphalVeinBlock.STRENGTH) < minStrength
-                        || st.getValue(HyphalVeinBlock.CHARGED) != charged) {
-                    BlockState refreshed = HyphalVeinBlock.recomputeConnections(
-                            level,
-                            activePos,
-                            st.setValue(HyphalVeinBlock.STRENGTH, Math.max(st.getValue(HyphalVeinBlock.STRENGTH), minStrength))
-                                    .setValue(HyphalVeinBlock.CHARGED, charged));
-                    level.setBlockAndUpdate(activePos, refreshed);
-                }
-                if (be.isRoot() || be.getNutrient() > 1) {
-                    level.scheduleTick(activePos, ModBlocks.HYPHAL_VEIN.get(), HyphalPhysics.getGrowthIntervalTicks());
-                }
+                HyphalVeinEntity strand = new HyphalVeinEntity(level, veinPos, initialTip, 3, true, 0.65F);
+                strand.setStrengthFloor(strength);
+                strand.setTrailIndex(trailIndex);
+                strand.recomputeTurgor(level);
+                level.addFreshEntity(strand);
+                existingStrands.add(strand);
+                hive.registerHyphalVein(veinPos);
+                placed++;
             }
         }
         return placed;
     }
 
-    public static boolean growOneTrailStepFromVein(
-            ServerLevel level,
-            BlockPos veinPos,
-            HyphalVeinBlockEntity be
-    ) {
-        if (!be.isRoot() && be.getNutrient() <= 1) {
+    public static boolean growStrandOneStep(ServerLevel level, HyphalVeinEntity strand) {
+        if (!strand.hasRoot() || strand.getNodeCount() >= HyphalVerletRope.MAX_NODE_COUNT) {
             return false;
         }
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         if (hive.isMatriarchRemissionActive(level.getGameTime())) {
             return false;
         }
-        ChunkPos chunkPos = new ChunkPos(veinPos);
-        if (hive.getActiveVeins(chunkPos).size() >= HyphalAdaptiveArchitectureEngine.MAX_VEINS_PER_CHUNK) {
-            return false;
-        }
-
+        BlockPos tipPos = strand.getTipAnchor();
+        ChunkPos chunkPos = new ChunkPos(tipPos);
         List<BlockPos> trail = hive.getOrderedTrail(chunkPos);
         if (trail.isEmpty()) {
             return false;
         }
-        BlockPos groundPos = resolveGroundFromVein(level, veinPos, be);
-        int idx = be.getTrailIndex();
-        if (idx < 0 || idx >= trail.size() || !trail.get(idx).equals(groundPos)) {
-            idx = trail.lastIndexOf(groundPos);
-            if (idx < 0) {
-                idx = findNearestTrailIndex(trail, groundPos);
-            }
+        int idx = strand.getTrailIndex();
+        if (idx < 0 || idx >= trail.size()) {
+            idx = findNearestTrailIndex(trail, tipPos.below());
             if (idx < 0) {
                 return false;
             }
-            be.setTrailIndex(idx);
+            strand.setTrailIndex(idx);
         }
 
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
-        double density = hive.getHyphalDensity(chunkPos);
-        boolean grew = false;
-        boolean hasSecondDirection = false;
-
         for (int delta : new int[]{1, -1}) {
             int candidateIdx = idx + delta;
             if (candidateIdx < 0 || candidateIdx >= trail.size()) {
@@ -562,74 +508,21 @@ public final class HyphalSiegeDirector {
                     || hasForeignBlockEntity(level, nextSupport)) {
                 continue;
             }
-
-            BlockState existing = level.getBlockState(nextVeinPos);
-            if (existing.is(ModBlocks.HYPHAL_VEIN.get())) {
-                if (level.getBlockEntity(nextVeinPos) instanceof HyphalVeinBlockEntity otherBe) {
-                    if (linkDiagonalPair(veinPos, be, nextVeinPos, otherBe)) {
-                        be.syncToClient();
-                        otherBe.syncToClient();
-                    }
-                }
+            if (strand.touchesBlockPos(nextVeinPos, 0.70D)) {
                 continue;
             }
-
-            if (grew) {
-                hasSecondDirection = true;
-                continue;
-            }
-
             BlockState supportState = level.getBlockState(nextSupport);
-            if (canSproutVeinOver(level, nextSupport, supportState)
-                    && canPlaceVeinOverlayAt(existing)) {
-                int traversals = hive.getBlockTraversals(nextGround);
-                int childNutrient = HyphalPhysics.nextNutrient(be.getNutrient(), false);
-                boolean childIsRoot = HyphalPhysics.isRootCandidate(traversals);
-                if (childIsRoot) {
-                    childNutrient = HyphalPhysics.MAX_NUTRIENT;
+            BlockState targetState = level.getBlockState(nextVeinPos);
+            if (canSproutVeinOver(level, nextSupport, supportState) && canPlaceVeinOverlayAt(targetState)) {
+                if (strand.extendTipTo(nextVeinPos)) {
+                    strand.setTrailIndex(candidateIdx);
+                    strand.recomputeTurgor(level);
+                    hive.registerHyphalVein(nextVeinPos);
+                    return true;
                 }
-                int strength = Math.max(
-                        HyphalPhysics.strengthForTraversals(traversals),
-                        HyphalAdaptiveArchitectureEngine.computeVeinStrength(density));
-                boolean charged = HyphalPhysics.chargedForNutrient(childNutrient);
-
-                BlockState veinState = HyphalVeinBlock.recomputeConnections(
-                        level,
-                        nextVeinPos,
-                        ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
-                                .setValue(HyphalVeinBlock.CHARGED, charged)
-                                .setValue(HyphalVeinBlock.STRENGTH, strength));
-                level.setBlockAndUpdate(nextVeinPos, veinState);
-
-                if (level.getBlockEntity(nextVeinPos) instanceof HyphalVeinBlockEntity childBe) {
-                    childBe.setFaces(placement.faceBit());
-                    childBe.setTraversals(traversals);
-                    childBe.setTrailIndex(candidateIdx);
-                    if (childIsRoot) {
-                        childBe.setRoot(true);
-                    } else {
-                        childBe.setNutrient(childNutrient);
-                        childBe.setDistanceToRoot(be.getDistanceToRoot() + 1);
-                        childBe.setParentPos(veinPos);
-                    }
-                    linkDiagonalPair(veinPos, be, nextVeinPos, childBe);
-                    linkAdjacentTrailDiagonals(level, trail, candidateIdx, nextVeinPos, childBe);
-                    childBe.setNextGrowthTick(level.getGameTime() + HyphalPhysics.getGrowthIntervalTicks());
-                    HyphalVeinBlock.recomputeAndSyncTurgor(level, nextVeinPos, childBe);
-                    childBe.syncToClient();
-                    tryAutoSpawnHyphalFilament(level, nextVeinPos, childBe);
-                }
-                be.syncToClient();
-                HyphalVeinBlock.refreshLocalNeighborhood(level, nextVeinPos);
-                hive.registerHyphalVein(nextVeinPos);
-                level.scheduleTick(nextVeinPos, ModBlocks.HYPHAL_VEIN.get(), HyphalPhysics.getGrowthIntervalTicks());
-                grew = true;
             }
         }
-        if (grew && hasSecondDirection) {
-            level.scheduleTick(veinPos, ModBlocks.HYPHAL_VEIN.get(), HyphalPhysics.getGrowthIntervalTicks());
-        }
-        return grew;
+        return false;
     }
 
     public static int growTrailVeinsNow(
@@ -642,17 +535,13 @@ public final class HyphalSiegeDirector {
         int limit = Math.max(1, maxSteps);
         for (int step = 0; step < limit; step++) {
             boolean anyGrownThisStep = false;
-            List<BlockPos> currentVeins = hive.getActiveVeins(chunkPos);
-            for (BlockPos veinPos : currentVeins) {
+            for (HyphalVeinEntity strand : getChunkHyphalStrands(level, chunkPos)) {
                 if (grownTotal >= limit) {
                     break;
                 }
-                if (level.isLoaded(veinPos)
-                        && level.getBlockEntity(veinPos) instanceof HyphalVeinBlockEntity be) {
-                    if (growOneTrailStepFromVein(level, veinPos, be)) {
-                        grownTotal++;
-                        anyGrownThisStep = true;
-                    }
+                if (!strand.isRemoved() && growStrandOneStep(level, strand)) {
+                    grownTotal++;
+                    anyGrownThisStep = true;
                 }
             }
             if (!anyGrownThisStep || grownTotal >= limit) {
@@ -662,74 +551,16 @@ public final class HyphalSiegeDirector {
         return grownTotal;
     }
 
-    private static boolean linkDiagonalPair(
-            BlockPos aPos,
-            HyphalVeinBlockEntity aBe,
-            BlockPos bPos,
-            HyphalVeinBlockEntity bBe
-    ) {
-        int dx = bPos.getX() - aPos.getX();
-        int dy = bPos.getY() - aPos.getY();
-        int dz = bPos.getZ() - aPos.getZ();
-        if (Math.abs(dx) == 1 && Math.abs(dz) == 1 && Math.abs(dy) <= 1) {
-            byte aBit = HyphalPhysics.diagonalBit(dx, dz);
-            byte bBit = HyphalPhysics.oppositeDiagonalBit(dx, dz);
-            boolean changedA = aBe.addDiagonal(aBit);
-            boolean changedB = bBe.addDiagonal(bBit);
-            return changedA || changedB;
-        }
-        return false;
-    }
-
-    private static void linkAdjacentTrailDiagonals(
-            ServerLevel level,
-            List<BlockPos> trail,
-            int trailIdx,
-            BlockPos veinPos,
-            HyphalVeinBlockEntity be
-    ) {
-        if (trailIdx < 0 || trailIdx >= trail.size()) {
-            return;
-        }
-        for (int delta : new int[]{-1, 1}) {
-            int adjIdx = trailIdx + delta;
-            if (adjIdx < 0 || adjIdx >= trail.size()) {
-                continue;
-            }
-            VeinPlacement adjPlacement = resolveVeinPlacementForGround(level, trail.get(adjIdx));
-            if (adjPlacement != null
-                    && level.isLoaded(adjPlacement.veinPos())
-                    && level.getBlockEntity(adjPlacement.veinPos()) instanceof HyphalVeinBlockEntity adjBe) {
-                if (linkDiagonalPair(veinPos, be, adjPlacement.veinPos(), adjBe)) {
-                    adjBe.syncToClient();
-                }
-            }
-        }
-    }
-
     private static int findNearestTrailIndex(List<BlockPos> trail, BlockPos groundPos) {
         for (int i = trail.size() - 1; i >= 0; i--) {
             BlockPos tp = trail.get(i);
-            if (Math.abs(tp.getX() - groundPos.getX()) <= 1
-                    && Math.abs(tp.getY() - groundPos.getY()) <= 1
-                    && Math.abs(tp.getZ() - groundPos.getZ()) <= 1) {
+            if (Math.abs(tp.getX() - groundPos.getX()) <= 2
+                    && Math.abs(tp.getY() - groundPos.getY()) <= 2
+                    && Math.abs(tp.getZ() - groundPos.getZ()) <= 2) {
                 return i;
             }
         }
         return -1;
-    }
-
-    private static BlockPos resolveGroundFromVein(ServerLevel level, BlockPos veinPos, HyphalVeinBlockEntity be) {
-        byte faces = be.getFaces();
-        if (HyphalPhysics.hasFace(faces, HyphalPhysics.FACE_DOWN)) {
-            return veinPos.below();
-        }
-        for (Direction dir : Direction.values()) {
-            if (HyphalPhysics.hasFace(faces, HyphalPhysics.faceBit(dir))) {
-                return veinPos.relative(dir);
-            }
-        }
-        return veinPos.below();
     }
 
     @Nullable
@@ -745,8 +576,7 @@ public final class HyphalSiegeDirector {
                     if (hintState.isFaceSturdy(level, hintPos, dir)) {
                         BlockPos wallVeinPos = hintPos.relative(dir);
                         if (level.isInWorldBounds(wallVeinPos) && level.isLoaded(wallVeinPos)) {
-                            BlockState wallExisting = level.getBlockState(wallVeinPos);
-                            if (wallExisting.is(ModBlocks.HYPHAL_VEIN.get()) || canPlaceVeinOverlayAt(wallExisting)) {
+                            if (canPlaceVeinOverlayAt(level.getBlockState(wallVeinPos))) {
                                 return new VeinPlacement(wallVeinPos, HyphalPhysics.faceBit(dir.getOpposite()), hintPos);
                             }
                         }
@@ -755,8 +585,7 @@ public final class HyphalSiegeDirector {
                 if (hintState.isFaceSturdy(level, hintPos, Direction.DOWN)) {
                     BlockPos ceilVeinPos = hintPos.below();
                     if (level.isInWorldBounds(ceilVeinPos) && level.isLoaded(ceilVeinPos)) {
-                        BlockState ceilExisting = level.getBlockState(ceilVeinPos);
-                        if (ceilExisting.is(ModBlocks.HYPHAL_VEIN.get()) || canPlaceVeinOverlayAt(ceilExisting)) {
+                        if (canPlaceVeinOverlayAt(level.getBlockState(ceilVeinPos))) {
                             return new VeinPlacement(ceilVeinPos, HyphalPhysics.FACE_UP, hintPos);
                         }
                     }
@@ -881,27 +710,26 @@ public final class HyphalSiegeDirector {
                 }
             }
         }
-        if (targets.isEmpty()) {
+        int severedCount = 0;
+        Vec3 hitCenter = Vec3.atCenterOf(pos);
+        List<HyphalVeinEntity> strands = level.getEntitiesOfClass(
+                HyphalVeinEntity.class, new AABB(pos).inflate(2.2D));
+        for (HyphalVeinEntity strand : strands) {
+            if (!strand.isRemoved() && strand.touchesBlockPos(pos, 2.2D)) {
+                severedCount += strand.severAt(hitCenter, player, tool);
+            }
+        }
+
+        if (targets.isEmpty() && severedCount == 0) {
             return 0;
         }
 
         boolean specialized = isSpecializedMycelialTool(tool);
         boolean cutting = isRightClickSeveringTool(tool) || isSeveringTool(tool);
-        int severedCount = 0;
-        float maxSeveredTurgor = 0.0F;
 
         for (BlockPos target : targets) {
             BlockState st = level.getBlockState(target);
-            if (st.is(ModBlocks.HYPHAL_VEIN.get())) {
-                if (level.getBlockEntity(target) instanceof HyphalVeinBlockEntity vbe) {
-                    maxSeveredTurgor = Math.max(maxSeveredTurgor, vbe.getTurgor());
-                }
-                level.removeBlock(target, false);
-                HyphalVeinBlock.refreshLocalNeighborhood(level, target);
-                if (level.random.nextFloat() < 0.35F) {
-                    Block.popResource(level, target, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
-                }
-            } else if (st.is(ModBlocks.CREEPING_MYCELIUM.get()) || st.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())) {
+            if (st.is(ModBlocks.CREEPING_MYCELIUM.get()) || st.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())) {
                 level.setBlockAndUpdate(target, Blocks.COARSE_DIRT.defaultBlockState());
                 if (level.random.nextFloat() < 0.35F) {
                     Block.popResource(level, target.above(), new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
@@ -913,26 +741,8 @@ public final class HyphalSiegeDirector {
             severedCount++;
         }
 
-        if (HyphalPhysics.isPressurizedForSpray(maxSeveredTurgor)) {
-            triggerPressurizedSpray(level, pos, maxSeveredTurgor);
-        }
-
         double densityDrop = HyphalAdaptiveArchitectureEngine.computeVeinSeverDensityDrop(specialized, cutting, severedCount);
         double remaining = hive.severHyphalVein(pos, densityDrop, level.getGameTime());
-        int updatedStrength = HyphalAdaptiveArchitectureEngine.computeVeinStrength(remaining);
-        boolean updatedCharged = remaining >= HyphalAdaptiveArchitectureEngine.HIGH_DENSITY_VEIN_THRESHOLD;
-        for (BlockPos nearby : BlockPos.betweenClosed(pos.offset(-3, -2, -3), pos.offset(3, 2, 3))) {
-            if (level.isLoaded(nearby)) {
-                BlockState nearbySt = level.getBlockState(nearby);
-                if (nearbySt.is(ModBlocks.HYPHAL_VEIN.get())
-                        && (nearbySt.getValue(HyphalVeinBlock.STRENGTH) != updatedStrength
-                        || nearbySt.getValue(HyphalVeinBlock.CHARGED) != updatedCharged)) {
-                    level.setBlockAndUpdate(nearby, nearbySt
-                            .setValue(HyphalVeinBlock.STRENGTH, updatedStrength)
-                            .setValue(HyphalVeinBlock.CHARGED, updatedCharged));
-                }
-            }
-        }
 
         level.sendParticles(ModParticles.PURGE.get(),
                 pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
@@ -953,11 +763,18 @@ public final class HyphalSiegeDirector {
     }
 
     public static boolean cleanseHyphalVeinAt(ServerLevel level, BlockPos pos, double densityDrop) {
-        if (!level.getBlockState(pos).is(ModBlocks.HYPHAL_VEIN.get())) {
+        List<HyphalVeinEntity> strands = level.getEntitiesOfClass(
+                HyphalVeinEntity.class, new AABB(pos).inflate(1.8D));
+        boolean cleansed = false;
+        for (HyphalVeinEntity strand : strands) {
+            if (!strand.isRemoved() && strand.touchesBlockPos(pos, 1.8D)) {
+                strand.disintegrateWithSpores();
+                cleansed = true;
+            }
+        }
+        if (!cleansed) {
             return false;
         }
-        level.removeBlock(pos, false);
-        HyphalVeinBlock.refreshLocalNeighborhood(level, pos);
         HiveMindSavedData.get(level).severHyphalVein(pos, Math.max(0.0D, densityDrop), level.getGameTime());
         return true;
     }
@@ -1183,23 +1000,14 @@ public final class HyphalSiegeDirector {
             BlockState belowSt = level.getBlockState(tendrilPos.below());
             BlockState curSt = level.getBlockState(tendrilPos);
             if (belowSt.isFaceSturdy(level, tendrilPos.below(), Direction.UP) && canPlaceVeinOverlayAt(curSt)) {
-                BlockState veinState = HyphalVeinBlock.recomputeConnections(
-                        level, tendrilPos, ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
-                                .setValue(HyphalVeinBlock.CHARGED, true)
-                                .setValue(HyphalVeinBlock.STRENGTH, 2));
-                level.setBlockAndUpdate(tendrilPos, veinState);
-                if (level.getBlockEntity(tendrilPos) instanceof HyphalVeinBlockEntity tendrilBe) {
-                    tendrilBe.setRoot(true);
-                    tendrilBe.setFaces(HyphalPhysics.FACE_DOWN);
-                    tendrilBe.syncToClient();
-                }
+                HyphalVeinEntity haloStrand = new HyphalVeinEntity(
+                        level, corePos, tendrilPos, 4, true, 0.70F);
+                haloStrand.setStrengthFloor(2);
+                level.addFreshEntity(haloStrand);
                 hive.registerHyphalVein(tendrilPos);
                 site.addPlacedBlock(tendrilPos);
                 haloVeins++;
             }
-        }
-        if (haloVeins > 0) {
-            HyphalVeinBlock.refreshLocalNeighborhood(level, corePos);
         }
 
         hive.registerBlindSpotSite(site);
@@ -1423,13 +1231,14 @@ public final class HyphalSiegeDirector {
                     level.setBlockAndUpdate(placed, Blocks.COARSE_DIRT.defaultBlockState());
                 }
             } else if (!placed.equals(corePos)) {
-                if (level.getBlockState(placed).is(ModBlocks.HYPHAL_VEIN.get())) {
-                    hive.severHyphalVein(placed, 0.0, level.getGameTime());
-                }
                 level.removeBlock(placed, false);
             }
         }
-        HyphalVeinBlock.refreshLocalNeighborhood(level, corePos);
+        for (HyphalVeinEntity strand : level.getEntitiesOfClass(
+                HyphalVeinEntity.class, new AABB(corePos).inflate(4.5D))) {
+            hive.severHyphalVein(strand.getRootAnchor(), 0.0, level.getGameTime());
+            strand.disintegrateWithSpores();
+        }
         hive.removeBlindSpotSite(corePos);
         hive.severHyphalVein(corePos, 25.0, level.getGameTime());
         hive.reduceThreat(2.0);
@@ -1469,13 +1278,14 @@ public final class HyphalSiegeDirector {
                     level.setBlockAndUpdate(placed, Blocks.COARSE_DIRT.defaultBlockState());
                 }
             } else {
-                if (level.getBlockState(placed).is(ModBlocks.HYPHAL_VEIN.get())) {
-                    hive.severHyphalVein(placed, 0.0, level.getGameTime());
-                }
                 level.removeBlock(placed, false);
             }
         }
-        HyphalVeinBlock.refreshLocalNeighborhood(level, corePos);
+        for (HyphalVeinEntity strand : level.getEntitiesOfClass(
+                HyphalVeinEntity.class, new AABB(corePos).inflate(4.5D))) {
+            hive.severHyphalVein(strand.getRootAnchor(), 0.0, level.getGameTime());
+            strand.disintegrateWithSpores();
+        }
         hive.removeBlindSpotSite(corePos);
 
         if (level.isLoaded(corePos)) {
@@ -1624,7 +1434,6 @@ public final class HyphalSiegeDirector {
     private static boolean isHiveOrNaturalNoiseBlock(BlockState state) {
         Block block = state.getBlock();
         return block instanceof MycelialNodeBlock
-                || state.is(ModBlocks.HYPHAL_VEIN.get())
                 || state.is(ModBlocks.CREEPING_MYCELIUM.get())
                 || state.is(ModBlocks.SPORE_VENT.get())
                 || state.is(ModBlocks.SPORE_BULB.get())
@@ -1648,8 +1457,7 @@ public final class HyphalSiegeDirector {
         if (hive.isBlindSpotCore(pos)) {
             return false;
         }
-        return state.is(ModBlocks.HYPHAL_VEIN.get())
-                || state.is(ModBlocks.CREEPING_MYCELIUM.get())
+        return state.is(ModBlocks.CREEPING_MYCELIUM.get())
                 || (state.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()) && hive.isTrackedHyphalVein(pos))
                 || state.is(ModBlocks.SPORE_BULB.get())
                 || state.is(ModBlocks.MYCELIAL_TENDRILS.get())
@@ -1740,12 +1548,14 @@ public final class HyphalSiegeDirector {
     }
 
     private static boolean isNearHyphalVein(ServerLevel level, HiveMindSavedData hive, BlockPos pos) {
+        if (!level.getEntitiesOfClass(HyphalVeinEntity.class, new AABB(pos).inflate(1.8D)).isEmpty()) {
+            return true;
+        }
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
                 for (int dy = -1; dy <= 1; dy++) {
                     BlockPos p = pos.offset(dx, dy, dz);
                     if (level.isLoaded(p) && (hive.isTrackedHyphalVein(p)
-                            || level.getBlockState(p).is(ModBlocks.HYPHAL_VEIN.get())
                             || level.getBlockState(p).is(ModBlocks.CREEPING_MYCELIUM.get()))) {
                         return true;
                     }
@@ -1834,7 +1644,7 @@ public final class HyphalSiegeDirector {
                 if (!state.isAir()
                         && !state.liquid()
                         && state.isFaceSturdy(level, candidate, Direction.UP)
-                        && (above.is(ModBlocks.HYPHAL_VEIN.get()) || canPlaceVeinOverlayAt(above))) {
+                        && canPlaceVeinOverlayAt(above)) {
                     return candidate.immutable();
                 }
             }
@@ -1946,77 +1756,5 @@ public final class HyphalSiegeDirector {
                 living.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 60, 0, false, true));
             }
         }
-    }
-
-    public static void tryAutoSpawnHyphalFilament(
-            ServerLevel level,
-            BlockPos veinPos,
-            HyphalVeinBlockEntity be
-    ) {
-        byte faces = be.getFaces();
-        boolean elevatedSurface = (faces & (HyphalPhysics.FACE_UP
-                | HyphalPhysics.FACE_NORTH
-                | HyphalPhysics.FACE_EAST
-                | HyphalPhysics.FACE_SOUTH
-                | HyphalPhysics.FACE_WEST)) != 0;
-        if (!elevatedSurface) {
-            return;
-        }
-
-        List<HyphalFilamentEntity> nearbyFilaments = level.getEntitiesOfClass(
-                HyphalFilamentEntity.class, new AABB(veinPos).inflate(16.0D));
-        if (nearbyFilaments.size() >= 8) {
-            return;
-        }
-
-        final int[][] dirs = {
-                {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1},
-                {0, 1, 0}, {0, -1, 0},
-                {1, 0, 1}, {1, 0, -1}, {-1, 0, 1}, {-1, 0, -1}
-        };
-        for (int[] d : dirs) {
-            for (int dist = 2; dist <= 6; dist++) {
-                BlockPos targetPos = veinPos.offset(d[0] * dist, d[1] * dist, d[2] * dist);
-                if (!level.isLoaded(targetPos)) {
-                    break;
-                }
-                BlockState targetState = level.getBlockState(targetPos);
-                if (targetState.is(ModBlocks.HYPHAL_VEIN.get())) {
-                    if (hasClearFilamentSpan(level, veinPos, targetPos)) {
-                        boolean alreadyLinked = false;
-                        for (HyphalFilamentEntity existing : nearbyFilaments) {
-                            BlockPos a = existing.getAnchorA();
-                            BlockPos b = existing.getAnchorB();
-                            if ((a.equals(veinPos) && b.equals(targetPos))
-                                    || (a.equals(targetPos) && b.equals(veinPos))) {
-                                alreadyLinked = true;
-                                break;
-                            }
-                        }
-                        if (!alreadyLinked) {
-                            HyphalFilamentEntity filament = new HyphalFilamentEntity(
-                                    level, veinPos, targetPos, be.getTurgor());
-                            level.addFreshEntity(filament);
-                            return;
-                        }
-                    }
-                    break;
-                }
-                if (targetState.blocksMotion()) {
-                    break;
-                }
-            }
-        }
-    }
-
-    private static boolean hasClearFilamentSpan(ServerLevel level, BlockPos from, BlockPos to) {
-        List<BlockPos> line = HyphalPhysics.supercoverLine(from, to, 8);
-        for (int i = 1; i < line.size() - 1; i++) {
-            BlockPos mid = line.get(i);
-            if (!level.isLoaded(mid) || level.getBlockState(mid).blocksMotion()) {
-                return false;
-            }
-        }
-        return true;
     }
 }

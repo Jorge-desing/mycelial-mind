@@ -74,7 +74,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.ROOT_HEART_RESIN.get());
 
                         output.accept(ModBlocks.CREEPING_MYCELIUM.get());
-                        output.accept(ModBlocks.HYPHAL_VEIN.get());
+                        output.accept(ModItems.HYPHAL_VEIN.get());
                         output.accept(ModBlocks.SPORE_VENT.get());
                         output.accept(ModBlocks.SPORE_UPDRAFT_VENT.get());
                         output.accept(ModBlocks.ROOT_SAP_MOSS.get());

@@ -94,7 +94,7 @@ public final class MycelialItemModelProvider extends ItemModelProvider {
             String path = block.getId().getPath();
             generatedItem(path, "block/" + path);
         }
-        generatedItem(ModBlocks.HYPHAL_VEIN.getId().getPath(), "block/hyphal_vein_dot");
+        generatedItem(ModItems.HYPHAL_VEIN.getId().getPath(), "block/hyphal_vein_dot");
 
         handheldItem(ModItems.SOVEREIGN_COMMAND_STAFF.get());
     }

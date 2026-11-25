@@ -131,7 +131,7 @@ public final class ModDataGenerators {
                     .add(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.getId(), new Compostable(0.65F), false)
                     .add(ModBlocks.SPORE_BULB.getId(), new Compostable(0.65F), false)
                     .add(ModBlocks.MYCELIAL_TENDRILS.getId(), new Compostable(0.50F), false)
-                    .add(ModBlocks.HYPHAL_VEIN.getId(), new Compostable(0.30F), false)
+                    .add(ModItems.HYPHAL_VEIN.getId(), new Compostable(0.30F), false)
                     .add(ModBlocks.ANTIBODY_CYST.getId(), new Compostable(0.50F), false)
                     .add(ModBlocks.ROOT_SAP_MOSS.getId(), new Compostable(0.65F), false)
                     .add(ModBlocks.ROOT_CAP_SHELF.getId(), new Compostable(0.50F), false)

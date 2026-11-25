@@ -3,8 +3,6 @@ package com.alex.mycelialmind.datagen;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.AntibodyCystBlock;
 import com.alex.mycelialmind.block.BioluminescentMycelialCapBlock;
-import com.alex.mycelialmind.block.HyphalVeinBlock;
-import com.alex.mycelialmind.block.HyphalVeinBlock.VeinConnection;
 import com.alex.mycelialmind.block.MycelialTendrilsBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.RootCapShelfBlock;
@@ -16,10 +14,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.client.model.generators.VariantBlockStateBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -77,7 +73,6 @@ public final class MycelialBlockStateProvider extends BlockStateProvider {
         registerChitinPillar();
         registerRootCapShelf();
         registerReclaimedBloom();
-        registerHyphalVein();
     }
 
     private void registerSimpleExistingBlock(DeferredBlock<?> block) {
@@ -150,45 +145,6 @@ public final class MycelialBlockStateProvider extends BlockStateProvider {
                         .modelForState().modelFile(model).addModel();
             }
         }
-    }
-
-    private void registerHyphalVein() {
-        ModelFile dot = existingBlockModel("hyphal_vein_dot");
-        ModelFile side = existingBlockModel("hyphal_vein_side");
-        ModelFile up = existingBlockModel("hyphal_vein_up");
-
-        MultiPartBlockStateBuilder builder = getMultipartBuilder(ModBlocks.HYPHAL_VEIN.get());
-        builder.part().modelFile(dot).addModel().end();
-
-        addHyphalArm(builder, HyphalVeinBlock.NORTH, side, 0, true);
-        addHyphalArm(builder, HyphalVeinBlock.EAST, side, 90, true);
-        addHyphalArm(builder, HyphalVeinBlock.SOUTH, side, 180, true);
-        addHyphalArm(builder, HyphalVeinBlock.WEST, side, 270, true);
-
-        addHyphalArm(builder, HyphalVeinBlock.NORTH, up, 0, false);
-        addHyphalArm(builder, HyphalVeinBlock.EAST, up, 90, false);
-        addHyphalArm(builder, HyphalVeinBlock.SOUTH, up, 180, false);
-        addHyphalArm(builder, HyphalVeinBlock.WEST, up, 270, false);
-    }
-
-    private static void addHyphalArm(
-            MultiPartBlockStateBuilder builder,
-            EnumProperty<VeinConnection> property,
-            ModelFile model,
-            int rotationY,
-            boolean includeSide
-    ) {
-        var configured = builder.part().modelFile(model);
-        if (rotationY != 0) {
-            configured.rotationY(rotationY);
-        }
-        var part = configured.addModel();
-        if (includeSide) {
-            part.condition(property, VeinConnection.SIDE, VeinConnection.UP);
-        } else {
-            part.condition(property, VeinConnection.UP);
-        }
-        part.end();
     }
 
     private ModelFile existingBlockModel(String name) {

@@ -113,6 +113,10 @@ public final class ModItems {
                     "tooltip.mycelialmind.overmind_essence", ChatFormatting.DARK_PURPLE,
                     "tooltip.mycelialmind.overmind_essence.hint", ChatFormatting.AQUA));
 
+    public static final DeferredItem<Item> HYPHAL_VEIN = ITEMS.register("hyphal_vein",
+            () -> new TooltipMaterialItem(new Item.Properties().stacksTo(64),
+                    "tooltip.mycelialmind.hyphal_vein", ChatFormatting.DARK_PURPLE));
+
     public static final DeferredItem<Item> OVERMIND_CROWN = ITEMS.register("overmind_crown",
             () -> new OvermindCrownItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 

@@ -297,8 +297,9 @@ def run_coverage_audit(book: CodexBook, repo_root: Path) -> CoverageReport:
         "missing": len(missing_recipe_widgets),
     }
 
-    # Check all 17 living entities have explicit entity preview pages
-    living_entities = [e for e in inv["entities"] if e not in ("acid_spit", "neutralizing_spore", "purifier_grenade")]
+    # Check all living entities have explicit entity preview pages
+    living_entities = [e for e in inv["entities"]
+                       if e not in ("acid_spit", "neutralizing_spore", "purifier_grenade", "hyphal_vein")]
     missing_entity_widgets = sorted(set(living_entities) - covered_entity_widgets)
     if missing_entity_widgets:
         missing["entity_widgets"] = missing_entity_widgets

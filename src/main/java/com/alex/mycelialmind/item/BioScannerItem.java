@@ -332,7 +332,9 @@ public class BioScannerItem extends Item {
                 return InteractionResult.sidedSuccess(true);
             }
         }
-        if (clickedState.is(ModBlocks.HYPHAL_VEIN.get()) || clickedState.is(ModBlocks.CREEPING_MYCELIUM.get())) {
+        if (clickedState.is(ModBlocks.CREEPING_MYCELIUM.get())
+                || !level.getEntitiesOfClass(com.alex.mycelialmind.entity.HyphalVeinEntity.class,
+                        new net.minecraft.world.phys.AABB(pos).inflate(1.25D)).isEmpty()) {
             if (level instanceof ServerLevel serverLevel) {
                 HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
                 ChunkPos cp = new ChunkPos(pos);

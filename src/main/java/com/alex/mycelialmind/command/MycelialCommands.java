@@ -6,7 +6,7 @@ import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.ChitinBruteEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
-import com.alex.mycelialmind.entity.HyphalFilamentEntity;
+import com.alex.mycelialmind.entity.HyphalVeinEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -284,7 +284,7 @@ public final class MycelialCommands {
 
     private static int spawnFilamentCmd(CommandSourceStack source, BlockPos anchorA, BlockPos anchorB) {
         ServerLevel level = source.getLevel();
-        HyphalFilamentEntity filament = new HyphalFilamentEntity(level, anchorA, anchorB, 0.70F);
+        HyphalVeinEntity filament = new HyphalVeinEntity(level, anchorA, anchorB, 9, true, 0.70F);
         level.addFreshEntity(filament);
         source.sendSuccess(() -> Component.translatable(
                 "message.mycelialmind.filament_spawned",
@@ -1097,7 +1097,8 @@ public final class MycelialCommands {
             hive.setHyphalDensity(cp, 68.0, now + 200L);
             int sprouted = HyphalSiegeDirector.sproutRouteVeinsInChunk(level, hive, cp);
             sprouted += HyphalSiegeDirector.growTrailVeinsNow(level, hive, cp, 8);
-            boolean veinOverlayOnIntactDirt = level.getBlockState(r0).is(ModBlocks.HYPHAL_VEIN.get())
+            boolean veinOverlayOnIntactDirt = !level.getEntitiesOfClass(
+                    HyphalVeinEntity.class, new net.minecraft.world.phys.AABB(r0).inflate(2.5D)).isEmpty()
                     && level.getBlockState(r0.below()).is(Blocks.DIRT);
 
             var fakePlayer = net.neoforged.neoforge.common.util.FakePlayerFactory.getMinecraft(level);
@@ -1146,13 +1147,8 @@ public final class MycelialCommands {
                 }
             }
             var site1 = HyphalSiegeDirector.createBlindSpotSiteAt(level, hive, blindCore1);
-            boolean coreHasVeinHalo = false;
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                if (level.getBlockState(blindCore1.relative(dir)).is(ModBlocks.HYPHAL_VEIN.get())) {
-                    coreHasVeinHalo = true;
-                    break;
-                }
-            }
+            boolean coreHasVeinHalo = !level.getEntitiesOfClass(
+                    HyphalVeinEntity.class, new net.minecraft.world.phys.AABB(blindCore1).inflate(2.5D)).isEmpty();
             boolean grew1 = HyphalSiegeDirector.advanceBlindSpotGrowthStep(level, hive, site1, true);
             boolean grew2 = HyphalSiegeDirector.advanceBlindSpotGrowthStep(level, hive, site1, true);
 
@@ -1548,7 +1544,7 @@ public final class MycelialCommands {
                 && SynapticBenchBlockEntity.isValidSlotInput(SynapticBenchBlockEntity.SLOT_CATALYST, new ItemStack(Items.AMETHYST_SHARD))
                 && !SynapticBenchBlockEntity.isValidSlotInput(SynapticBenchBlockEntity.SLOT_SAMPLE, new ItemStack(Items.DIRT))
                 && ComposterBlock.getValue(new ItemStack(ModItems.MYCELIAL_BIOMASS.get())) > 0.0F
-                && ComposterBlock.getValue(new ItemStack(ModBlocks.HYPHAL_VEIN.asItem())) > 0.0F
+                && ComposterBlock.getValue(new ItemStack(ModItems.HYPHAL_VEIN.get())) > 0.0F
                 && ComposterBlock.getValue(new ItemStack(ModBlocks.ANTIBODY_CYST.asItem())) > 0.0F
                 && ComposterBlock.getValue(new ItemStack(ModBlocks.RECLAIMED_BLOOM.asItem())) > 0.0F
                 && new ItemStack(ModItems.MYCELIAL_BIOMASS.get()).getBurnTime(null) == 400

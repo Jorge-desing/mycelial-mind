@@ -3,7 +3,7 @@
   "chapters": [
     "economia_datos"
   ],
-  "page_count": 88,
+  "page_count": 90,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.III"
@@ -13,31 +13,37 @@
     "resolved": true,
     "pages": [
       {
-        "raw": "Cap.9: Catalog: 29\nBlocks & 67 Items\nFlora, Geology &\nStructural Blocks\n(1/4)\n• `creeping_mycelium`:\nspreads mycelium and\nacoustic tremors\n(32m); smelts into\n`mycelial_stone`.\n• `hyphal_vein`:\nlightning-black\noverlay vein crawling\nover player routes"
+        "raw": "Cap.9: Catalog: 29\nBlocks & 67 Items\nFlora, Geology &\nStructural Blocks\n(1/5)\n• `creeping_mycelium`:\nspreads mycelium and\nacoustic tremors\n(32m); smelts into\n`mycelial_stone`."
       },
       {
-        "raw": "(`CHARGED` >=60%\ndensity). Sever\ncleanly with Shears,\nHoes, or Symbiotic\nBlade."
+        "raw": "Flora, Geology &\nStructural Blocks\n(2/5)\n• `hyphal_vein`\n(Verlet physics\nentity): lightning-black\nfilament strand\ncrawling over player\nroutes (scales\ndarker/more opaque\nwith length, fluid\nturgor, seismic waves,\nand mid-strand split"
       },
       {
-        "raw": "Flora, Geology &\nStructural Blocks\n(2/4)\n• `spore_vent`: vents\ntoxic\nspores/infection;\npurified with\n`spore_antidote`\n(Secret #5)."
+        "raw": "with Shears, Hoes, or\nSymbiotic Blade)."
       },
       {
-        "raw": "Flora, Geology &\nStructural Blocks\n(3/4)\n•\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`:\nregenerative flora\n(`MATURE` comparator\nsignal);\nbone-mealing/pulsing\nuncovers Vaults\n(Secret #8)."
+        "raw": "Flora, Geology &\nStructural Blocks\n(3/5)\n• `spore_vent`: vents\ntoxic\nspores/infection;\npurified with\n`spore_antidote`\n(Secret #5)."
       },
       {
-        "raw": "Flora, Geology &\nStructural Blocks\n(4/4)\n• `mycelial_stone`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `mycelial_rift`,\n`hive_altar`,\n`matriarch_altar`,\n`ephemeral_chitin`,\n`antibody_cyst`."
+        "raw": "Flora, Geology &\nStructural Blocks\n(4/5)\n•\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`:\nregenerative flora\n(`MATURE` comparator\nsignal);\nbone-mealing/pulsing\nuncovers Vaults\n(Secret #8)."
       },
       {
-        "raw": "All 29 Blocks\n(`ModBlocks`) (1/4)\n• Network &\nContainment (9):\n`creeping_mycelium`,\n`hyphal_vein`,\n`spore_vent`,\n`mycelial_node`,\n`incubator_node`,\n`sentinel_node`,\n`symbiotic_node`,\n`purification_pylon`,\n`purification_turret`."
+        "raw": "Flora, Geology &\nStructural Blocks\n(5/5)\n• `mycelial_stone`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `mycelial_rift`,\n`hive_altar`,\n`matriarch_altar`,\n`ephemeral_chitin`,\n`antibody_cyst`."
       },
       {
-        "raw": "All 29 Blocks\n(`ModBlocks`) (2/4)\n• Bastion & Flora (8):\n`reinforced_bio_barri\ner`,\n`synaptic_research_b\nench`, `hive_altar`,\n`matriarch_altar`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`,\n`antibody_cyst`."
+        "raw": "All 28 Blocks\n(`ModBlocks`) (1/4)\n• Network &\nContainment (8):\n`creeping_mycelium`,\n`spore_vent`,\n`mycelial_node`,\n`incubator_node`,\n`sentinel_node`,\n`symbiotic_node`,\n`purification_pylon`,\n`purification_turret`\n(plus the physical"
       },
       {
-        "raw": "All 29 Blocks\n(`ModBlocks`) (3/4)\n• Architecture &\nColony (9):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`,\n`sovereign_nexus`."
+        "raw": "`hyphal_vein` entity)."
       },
       {
-        "raw": "All 29 Blocks\n(`ModBlocks`) (4/4)\n• Sinkhole Stratum (3):\n`spore_updraft_vent`\n(vertical updraft),\n`root_sap_moss`\n(bottlable sap), and\n`root_cap_shelf`\n(elastic shelf)."
+        "raw": "All 28 Blocks\n(`ModBlocks`) (2/4)\n• Bastion & Flora (8):\n`reinforced_bio_barri\ner`,\n`synaptic_research_b\nench`, `hive_altar`,\n`matriarch_altar`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`,\n`antibody_cyst`."
+      },
+      {
+        "raw": "All 28 Blocks\n(`ModBlocks`) (3/4)\n• Architecture &\nColony (9):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`,\n`sovereign_nexus`."
+      },
+      {
+        "raw": "All 28 Blocks\n(`ModBlocks`) (4/4)\n• Sinkhole Stratum (3):\n`spore_updraft_vent`\n(vertical updraft),\n`root_sap_moss`\n(bottlable sap), and\n`root_cap_shelf`\n(elastic shelf)."
       },
       {
         "raw": "Items & Armor\n(`ModItems`) (1/6)\n• Tools & Weapons\n(11): `bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,\n`rift_catalyst`,"
@@ -238,7 +244,7 @@
         "raw": "Cap.9: All 58 Loot\nTables\nMulti-Pool Loot (58\nTables) (1/10)\n• Blocks 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
       },
       {
-        "raw": "Multi-Pool Loot (58\nTables) (2/10)\n• Blocks 2/4:\n`blocks/hive_altar`,\n`blocks/hyphal_vein`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
+        "raw": "Multi-Pool Loot (58\nTables) (2/10)\n• Blocks 2/4:\n`blocks/hive_altar`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
       },
       {
         "raw": "Multi-Pool Loot (58\nTables) (3/10)\n• Blocks 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reclaimed_blo\nom`,\n`blocks/reinforced_bi"

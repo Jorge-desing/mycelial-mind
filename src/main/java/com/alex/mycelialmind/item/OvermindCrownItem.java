@@ -123,8 +123,17 @@ public class OvermindCrownItem extends Item {
                 } else if (state.is(ModBlocks.EPHEMERAL_CHITIN.get()) || state.is(ModBlocks.ANTIBODY_CYST.get())) {
                     level.removeBlock(p, false);
                     cleansed++;
-                } else if (state.is(ModBlocks.HYPHAL_VEIN.get())
-                        && com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(level, p, 8.0D)) {
+                }
+            }
+        }
+        for (com.alex.mycelialmind.entity.HyphalVeinEntity vein : level.getEntitiesOfClass(
+                com.alex.mycelialmind.entity.HyphalVeinEntity.class,
+                new net.minecraft.world.phys.AABB(center).inflate(radius + 1.0D))) {
+            if (vein.isAlive() && vein.getRootAnchor().distSqr(center) <= rSq) {
+                if (com.alex.mycelialmind.hive.HyphalSiegeDirector.cleanseHyphalVeinAt(level, vein.getRootAnchor(), 8.0D)) {
+                    cleansed++;
+                } else {
+                    vein.disintegrateWithSpores();
                     cleansed++;
                 }
             }

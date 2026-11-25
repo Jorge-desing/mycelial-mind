@@ -101,4 +101,78 @@ class HyphalPhysicsTest {
         assertTrue(HyphalVerletRope.shouldSnap(tension, HyphalVerletRope.DEFAULT_MAX_TENSION_RATIO),
                 "Overstretched rope should exceed tension snap threshold");
     }
+
+    @Test
+    void verletSingleEndpointPinHangsAndCollidesWithSolidTerrain() {
+        Vec3 anchorA = new Vec3(0.5D, 11.0D, 0.5D);
+        Vec3 anchorB = new Vec3(4.5D, 11.0D, 0.5D);
+        int n = 9;
+        Vec3[] pos = HyphalVerletRope.initLine(anchorA, anchorB, n);
+        Vec3[] prev = pos.clone();
+        double segLen = anchorA.distanceTo(anchorB) / (double) (n - 1);
+
+        boolean touchedAny = false;
+        for (int step = 0; step < 30; step++) {
+            boolean hit = HyphalVerletRope.stepVerlet(
+                    pos, prev, anchorA, anchorB,
+                    true, false,
+                    segLen,
+                    HyphalVerletRope.DEFAULT_GRAVITY,
+                    HyphalVerletRope.DEFAULT_DAMPING,
+                    Vec3.ZERO,
+                    HyphalVerletRope.DEFAULT_CONSTRAINT_ITERATIONS,
+                    bp -> bp.getY() <= 9);
+            touchedAny |= hit;
+        }
+
+        assertEquals(anchorA, pos[0], "Pinned root endpoint must stay fixed");
+        assertTrue(pos[n - 1].y < anchorB.y - 0.5D, "Unpinned tip endpoint should hang under gravity");
+        assertTrue(touchedAny, "Hanging rope should collide with solid floor at y <= 9");
+        for (Vec3 node : pos) {
+            assertTrue(node.y >= 10.0D, "Solid terrain collision must keep nodes above y=9 floor, got " + node.y);
+        }
+    }
+
+    @Test
+    void verletSplitAndExtendRespectNodeBoundsAndSplitContinuously() {
+        Vec3[] shortRope = HyphalVerletRope.initLine(new Vec3(0, 10, 0), new Vec3(2, 10, 0), 3);
+        assertNull(HyphalVerletRope.splitRope(shortRope, 1), "Strands with < 4 nodes must not split");
+
+        Vec3[] longRope = HyphalVerletRope.initLine(new Vec3(0, 10, 0), new Vec3(7, 10, 0), 8);
+        HyphalVerletRope.SplitResult split = HyphalVerletRope.splitRope(longRope, 3);
+        assertNotNull(split);
+        assertEquals(4, split.rootSegment().length);
+        assertEquals(4, split.severedSegment().length);
+        assertEquals(longRope[0], split.rootSegment()[0]);
+        assertEquals(longRope[7], split.severedSegment()[3]);
+
+        Vec3[] grown = HyphalVerletRope.extendRope(shortRope, new Vec3(3, 10, 0), HyphalVerletRope.MAX_NODE_COUNT);
+        assertEquals(4, grown.length);
+        assertEquals(new Vec3(3, 10, 0), grown[3]);
+        assertEquals(3, HyphalVerletRope.findClosestNodeIndex(grown, new Vec3(3.1, 10, 0)));
+
+        Vec3[] capped = HyphalVerletRope.initLine(new Vec3(0, 10, 0), new Vec3(15, 10, 0), HyphalVerletRope.MAX_NODE_COUNT);
+        Vec3[] afterCap = HyphalVerletRope.extendRope(capped, new Vec3(16, 10, 0), HyphalVerletRope.MAX_NODE_COUNT);
+        assertEquals(HyphalVerletRope.MAX_NODE_COUNT, afterCap.length, "extendRope must not exceed MAX_NODE_COUNT");
+    }
+
+    @Test
+    void lengthScalingDarkensAndIncreasesOpacityFromShortToLongStrands() {
+        HyphalVerletRope.StrandRgba tiny = HyphalVerletRope.computeColorAndAlphaForLength(2, 0.5D);
+        HyphalVerletRope.StrandRgba medium = HyphalVerletRope.computeColorAndAlphaForLength(12, 6.0D);
+        HyphalVerletRope.StrandRgba mature = HyphalVerletRope.computeColorAndAlphaForLength(24, 12.0D);
+
+        assertTrue(tiny.a() <= 70, "Very short strands must be nearly transparent, got alpha=" + tiny.a());
+        assertTrue(medium.a() > tiny.a() && medium.a() < mature.a(), "Opacity must increase monotonically with length");
+        assertEquals(255, mature.a(), "Mature long strands (>=24 nodes / >=12m) must be fully opaque");
+
+        int tinyLuma = tiny.r() + tiny.g() + tiny.b();
+        int matureLuma = mature.r() + mature.g() + mature.b();
+        assertTrue(matureLuma < tinyLuma / 2, "Long strands must be significantly darker than short strands");
+
+        assertEquals(0, HyphalVerletRope.strengthForLength(3));
+        assertEquals(1, HyphalVerletRope.strengthForLength(8));
+        assertEquals(2, HyphalVerletRope.strengthForLength(15));
+        assertEquals(3, HyphalVerletRope.strengthForLength(24));
+    }
 }

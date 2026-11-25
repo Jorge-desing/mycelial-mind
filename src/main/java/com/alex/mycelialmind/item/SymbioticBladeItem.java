@@ -77,14 +77,31 @@ public class SymbioticBladeItem extends SwordItem {
                     if (dSq > 1.0E-4D && dSq <= 10.5D && look.dot(toBlock.normalize()) >= 0.45D) {
                         serverLevel.removeBlock(p, false);
                     }
-                } else if (!severedVein && (stateAtP.is(ModBlocks.HYPHAL_VEIN.get())
-                        || stateAtP.is(ModBlocks.CREEPING_MYCELIUM.get())
+                } else if (!severedVein && (stateAtP.is(ModBlocks.CREEPING_MYCELIUM.get())
                         || stateAtP.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()))) {
                     Vec3 toBlock = Vec3.atCenterOf(p).subtract(player.getEyePosition());
                     double dSq = toBlock.lengthSqr();
                     if (dSq > 1.0E-4D && dSq <= 12.25D && look.dot(toBlock.normalize()) >= 0.40D) {
                         if (HyphalSiegeDirector.trySeverHyphalVein(serverLevel, p.immutable(), player, stack) > 0) {
                             severedVein = true;
+                        }
+                    }
+                }
+            }
+            if (!severedVein) {
+                for (com.alex.mycelialmind.entity.HyphalVeinEntity vein : serverLevel.getEntitiesOfClass(
+                        com.alex.mycelialmind.entity.HyphalVeinEntity.class,
+                        player.getBoundingBox().inflate(3.5D))) {
+                    if (!vein.isAlive()) {
+                        continue;
+                    }
+                    Vec3 toVein = vein.getMidpointNode().subtract(player.getEyePosition());
+                    double dSq = toVein.lengthSqr();
+                    if (dSq > 1.0E-4D && dSq <= 12.25D && look.dot(toVein.normalize()) >= 0.35D) {
+                        if (HyphalSiegeDirector.trySeverHyphalVein(
+                                serverLevel, BlockPos.containing(vein.getMidpointNode()), player, stack) > 0) {
+                            severedVein = true;
+                            break;
                         }
                     }
                 }

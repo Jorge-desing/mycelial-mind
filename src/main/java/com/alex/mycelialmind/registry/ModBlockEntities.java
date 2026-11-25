@@ -1,7 +1,6 @@
 package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
-import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
@@ -47,12 +46,6 @@ public final class ModBlockEntities {
                     ModBlocks.PURIFICATION_PYLON.get(),
                     ModBlocks.HIVE_ALTAR.get(),
                     ModBlocks.MATRIARCH_ALTAR.get()
-            ).build(null));
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HyphalVeinBlockEntity>> HYPHAL_VEIN =
-            BLOCK_ENTITIES.register("hyphal_vein", () -> BlockEntityType.Builder.of(
-                    HyphalVeinBlockEntity::new,
-                    ModBlocks.HYPHAL_VEIN.get()
             ).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SovereignNexusBlockEntity>> SOVEREIGN_NEXUS =

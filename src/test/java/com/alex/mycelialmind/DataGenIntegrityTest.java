@@ -57,10 +57,10 @@ class DataGenIntegrityTest {
     @Test
     void allBlockstatesReferenceExistingBlockModels() throws IOException {
         Map<String, Path> blockstates = collectJsonByName("assets/mycelialmind/blockstates");
-        assertEquals(29, blockstates.size(), "Expected 29 blockstate files across main + generated resources");
+        assertEquals(28, blockstates.size(), "Expected 28 blockstate files across main + generated resources");
 
         Set<String> blockModels = collectJsonByName("assets/mycelialmind/models/block").keySet();
-        assertEquals(43, blockModels.size(), "Expected 43 static block model files in models/block");
+        assertEquals(37, blockModels.size(), "Expected 37 static block model files in models/block");
 
         for (Map.Entry<String, Path> entry : blockstates.entrySet()) {
             JsonElement parsed = parseJson(entry.getValue());
@@ -135,7 +135,7 @@ class DataGenIntegrityTest {
     @Test
     void allRegisteredBlocksHaveBlockstatesAndExpectedLootTables() throws IOException {
         Set<String> registeredBlocks = extractMatches(REGISTRY_ROOT.resolve("ModBlocks.java"), REGISTER_BLOCK_PATTERN);
-        assertEquals(29, registeredBlocks.size(), "Expected 29 registered blocks in ModBlocks.java");
+        assertEquals(28, registeredBlocks.size(), "Expected 28 registered blocks in ModBlocks.java");
 
         Set<String> blockstates = collectJsonByName("assets/mycelialmind/blockstates").keySet();
         Set<String> missingBlockstates = new TreeSet<>(registeredBlocks);
@@ -194,7 +194,7 @@ class DataGenIntegrityTest {
             }
         }
 
-        assertEquals(128, parsedFiles, "Expected 128 generated JSON files across recipes/loot/worldgen/dimension/neoforge");
+        assertEquals(127, parsedFiles, "Expected 127 generated JSON files across recipes/loot/worldgen/dimension/neoforge");
     }
 
     private static Set<String> extractMatches(Path sourceFile, Pattern pattern) throws IOException {

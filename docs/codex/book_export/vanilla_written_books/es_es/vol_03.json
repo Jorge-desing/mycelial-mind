@@ -3,7 +3,7 @@
   "chapters": [
     "economia_datos"
   ],
-  "page_count": 89,
+  "page_count": 90,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -13,31 +13,34 @@
     "resolved": true,
     "pages": [
       {
-        "raw": "Cap.9: Catálogo: 29\nBloques y 67 Ítems\nFlora, Geología y\nBloques Estructurales\n(1/4)\n• `creeping_mycelium`:\npropaga micelio y\ntransmisiones\nacústicas (32m);\nhorneable a\n`mycelial_stone`.\n• `hyphal_vein`: vena\nnegra en forma de\nrayo sobre tus rutas"
+        "raw": "Cap.9: Catálogo: 29\nBloques y 67 Ítems\nFlora, Geología y\nBloques Estructurales\n(1/5)\n• `creeping_mycelium`:\npropaga micelio y\ntransmisiones\nacústicas (32m);\nhorneable a\n`mycelial_stone`."
       },
       {
-        "raw": "habituales (`CHARGED`\nsi densidad >=60%).\nCortable con Tijeras,\nAzada o Hoja\nSimbiótica."
+        "raw": "Flora, Geología y\nBloques Estructurales\n(2/5)\n• `hyphal_vein`\n(entidad física\nVerlet): filamento\nnegro en forma de\nrayo sobre tus rutas\nhabituales (más\nopaco/oscuro al\nalargarse, turgencia,\nondas sísmicas y\ncorte en dos mitades\ncon Tijeras, Azada o"
       },
       {
-        "raw": "Flora, Geología y\nBloques Estructurales\n(2/4)\n• `spore_vent`: emite\ngases de\ninfección/podredumbr\ne; purificable con\n`spore_antidote`\n(Secreto #5)."
+        "raw": "Hoja Simbiótica)."
       },
       {
-        "raw": "Flora, Geología y\nBloques Estructurales\n(3/4)\n•\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`:\nflora regenerativa\ncon estado `MATURE` y\nseñal Redstone;\nfertilizable para\nrevelar Bóvedas\n(Secreto #8)."
+        "raw": "Flora, Geología y\nBloques Estructurales\n(3/5)\n• `spore_vent`: emite\ngases de\ninfección/podredumbr\ne; purificable con\n`spore_antidote`\n(Secreto #5)."
       },
       {
-        "raw": "Flora, Geología y\nBloques Estructurales\n(4/4)\n• `mycelial_stone`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `mycelial_rift`,\n`hive_altar`,\n`matriarch_altar`,\n`ephemeral_chitin`,\n`antibody_cyst`."
+        "raw": "Flora, Geología y\nBloques Estructurales\n(4/5)\n•\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`:\nflora regenerativa\ncon estado `MATURE` y\nseñal Redstone;\nfertilizable para\nrevelar Bóvedas\n(Secreto #8)."
       },
       {
-        "raw": "Los 29 Bloques\n(`ModBlocks`) (1/4)\n• Red y Contención\n(9):\n`creeping_mycelium`,\n`hyphal_vein`,\n`spore_vent`,\n`mycelial_node`,\n`incubator_node`,\n`sentinel_node`,\n`symbiotic_node`,\n`purification_pylon`,\n`purification_turret`."
+        "raw": "Flora, Geología y\nBloques Estructurales\n(5/5)\n• `mycelial_stone`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `mycelial_rift`,\n`hive_altar`,\n`matriarch_altar`,\n`ephemeral_chitin`,\n`antibody_cyst`."
       },
       {
-        "raw": "Los 29 Bloques\n(`ModBlocks`) (2/4)\n• Fortificación y Flora\n(8):\n`reinforced_bio_barri\ner`,\n`synaptic_research_b\nench`, `hive_altar`,\n`matriarch_altar`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`,\n`antibody_cyst`."
+        "raw": "Los 28 Bloques\n(`ModBlocks`) (1/4)\n• Red y Contención\n(8):\n`creeping_mycelium`,\n`spore_vent`,\n`mycelial_node`,\n`incubator_node`,\n`sentinel_node`,\n`symbiotic_node`,\n`purification_pylon`,\n`purification_turret`\n(más la entidad física\n`hyphal_vein`)."
       },
       {
-        "raw": "Los 29 Bloques\n(`ModBlocks`) (3/4)\n• Arquitectura y\nDimensión (9):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`,\n`sovereign_nexus`."
+        "raw": "Los 28 Bloques\n(`ModBlocks`) (2/4)\n• Fortificación y Flora\n(8):\n`reinforced_bio_barri\ner`,\n`synaptic_research_b\nench`, `hive_altar`,\n`matriarch_altar`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`,\n`mycelial_tendrils`,\n`antibody_cyst`."
       },
       {
-        "raw": "Los 29 Bloques\n(`ModBlocks`) (4/4)\n• Sima Subterránea\n(3):\n`spore_updraft_vent`\n(chorro vertical),\n`root_sap_moss`\n(embotellable) y\n`root_cap_shelf`\n(repisa elástica)."
+        "raw": "Los 28 Bloques\n(`ModBlocks`) (3/4)\n• Arquitectura y\nDimensión (9):\n`mycelial_stone`,\n`mycelial_rift`,\n`chitin_pillar`,\n`mycelial_arch_brick`,\n`bio_chitin_lattice`,\n`luminescent_amber_ve\nin`, `ephemeral_chitin`,\n`reclaimed_bloom`,\n`sovereign_nexus`."
+      },
+      {
+        "raw": "Los 28 Bloques\n(`ModBlocks`) (4/4)\n• Sima Subterránea\n(3):\n`spore_updraft_vent`\n(chorro vertical),\n`root_sap_moss`\n(embotellable) y\n`root_cap_shelf`\n(repisa elástica)."
       },
       {
         "raw": "Ítems y Armadura\n(`ModItems`) (1/6)\n• Instrumentos y\nArmas (11):\n`bio_scanner`,\n`bio_extractor`,\n`enzyme_lance`,\n`neutralizing_spore_la\nuncher`,\n`symbiotic_blade`,\n`purifier_grenade`,\n`synaptic_suppressor`\n, `overmind_crown`,\n`rift_catalyst`,"
@@ -241,7 +244,7 @@
         "raw": "Cap.9: Las 58 Tablas\nde Botín\nBotín Multi-Pool (58\nTablas) (1/10)\n• Bloques 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."
       },
       {
-        "raw": "Botín Multi-Pool (58\nTablas) (2/10)\n• Bloques 2/4:\n`blocks/hive_altar`,\n`blocks/hyphal_vein`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
+        "raw": "Botín Multi-Pool (58\nTablas) (2/10)\n• Bloques 2/4:\n`blocks/hive_altar`,\n`blocks/incubator_nod\ne`,\n`blocks/luminescent_a\nmber_vein`,\n`blocks/matriarch_alta\nr`,\n`blocks/mycelial_arch\n_brick`,\n`blocks/mycelial_node`."
       },
       {
         "raw": "Botín Multi-Pool (58\nTablas) (3/10)\n• Bloques 3/4:\n`blocks/mycelial_stone\n`,\n`blocks/mycelial_tendr\nils`,\n`blocks/purification_p\nylon`,\n`blocks/purification_tu\nrret`,\n`blocks/reclaimed_blo\nom`,\n`blocks/reinforced_bi"

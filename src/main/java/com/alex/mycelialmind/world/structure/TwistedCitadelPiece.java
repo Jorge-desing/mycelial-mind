@@ -1,8 +1,7 @@
 package com.alex.mycelialmind.world.structure;
 
 import com.alex.mycelialmind.MycelialMind;
-import com.alex.mycelialmind.block.HyphalVeinBlock;
-import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
+import com.alex.mycelialmind.entity.HyphalVeinEntity;
 import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine.ArchitecturalAccentSnapshot;
 import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine.ArchitecturalProportion;
 import com.alex.mycelialmind.registry.ModBlocks;
@@ -200,20 +199,19 @@ public class TwistedCitadelPiece extends StructurePiece {
         int lo = Math.min(minX, maxX);
         int hi = Math.max(minX, maxX);
         BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
-        BlockState vein = ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
-                .setValue(HyphalVeinBlock.CHARGED, true)
-                .setValue(HyphalVeinBlock.STRENGTH, 3);
+        BlockPos startTop = null;
+        BlockPos endTop = null;
         for (int x = lo; x <= hi; x++) {
             for (int dz = -1; dz <= 1; dz++) {
                 BlockPos floor = new BlockPos(x, y, centerZ + dz);
                 if (box.isInside(floor)) {
                     level.setBlock(floor, (dz == 0 && Math.floorMod(x, 2) == 0) ? mycelium : palette.primaryWall(), 2);
                 }
-                if (dz == 0) {
-                    BlockPos top = floor.above();
-                    if (box.isInside(top)) {
-                        level.setBlock(top, HyphalVeinBlock.recomputeConnections(level, top, vein), 2);
+                if (dz == 0 && box.isInside(floor.above())) {
+                    if (startTop == null) {
+                        startTop = floor.above();
                     }
+                    endTop = floor.above();
                 }
             }
             for (int wallZ : new int[]{-1, 1}) {
@@ -223,14 +221,11 @@ public class TwistedCitadelPiece extends StructurePiece {
                 }
             }
         }
-        for (int x = lo; x <= hi; x++) {
-            BlockPos top = new BlockPos(x, y + 1, centerZ);
-            if (box.isInside(top) && level.getBlockState(top).is(ModBlocks.HYPHAL_VEIN.get())) {
-                level.setBlock(top, HyphalVeinBlock.recomputeConnections(level, top, vein), 2);
-                if (level.getBlockEntity(top) instanceof HyphalVeinBlockEntity veinBe) {
-                    veinBe.setRoot(true);
-                }
-            }
+        if (startTop != null && endTop != null && !startTop.equals(endTop)) {
+            int nodes = Math.max(4, Math.min(24, (hi - lo) + 2));
+            HyphalVeinEntity strand = new HyphalVeinEntity(level.getLevel(), startTop, endTop, nodes, true, 0.80F);
+            strand.setStrengthFloor(3);
+            level.addFreshEntity(strand);
         }
     }
 
@@ -246,20 +241,19 @@ public class TwistedCitadelPiece extends StructurePiece {
         int lo = Math.min(minZ, maxZ);
         int hi = Math.max(minZ, maxZ);
         BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
-        BlockState vein = ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
-                .setValue(HyphalVeinBlock.CHARGED, true)
-                .setValue(HyphalVeinBlock.STRENGTH, 3);
+        BlockPos startTop = null;
+        BlockPos endTop = null;
         for (int z = lo; z <= hi; z++) {
             for (int dx = -1; dx <= 1; dx++) {
                 BlockPos floor = new BlockPos(centerX + dx, y, z);
                 if (box.isInside(floor)) {
                     level.setBlock(floor, (dx == 0 && Math.floorMod(z, 2) == 0) ? mycelium : palette.primaryWall(), 2);
                 }
-                if (dx == 0) {
-                    BlockPos top = floor.above();
-                    if (box.isInside(top)) {
-                        level.setBlock(top, HyphalVeinBlock.recomputeConnections(level, top, vein), 2);
+                if (dx == 0 && box.isInside(floor.above())) {
+                    if (startTop == null) {
+                        startTop = floor.above();
                     }
+                    endTop = floor.above();
                 }
             }
             for (int wallX : new int[]{-1, 1}) {
@@ -269,14 +263,11 @@ public class TwistedCitadelPiece extends StructurePiece {
                 }
             }
         }
-        for (int z = lo; z <= hi; z++) {
-            BlockPos top = new BlockPos(centerX, y + 1, z);
-            if (box.isInside(top) && level.getBlockState(top).is(ModBlocks.HYPHAL_VEIN.get())) {
-                level.setBlock(top, HyphalVeinBlock.recomputeConnections(level, top, vein), 2);
-                if (level.getBlockEntity(top) instanceof HyphalVeinBlockEntity veinBe) {
-                    veinBe.setRoot(true);
-                }
-            }
+        if (startTop != null && endTop != null && !startTop.equals(endTop)) {
+            int nodes = Math.max(4, Math.min(24, (hi - lo) + 2));
+            HyphalVeinEntity strand = new HyphalVeinEntity(level.getLevel(), startTop, endTop, nodes, true, 0.80F);
+            strand.setStrengthFloor(3);
+            level.addFreshEntity(strand);
         }
     }
 }

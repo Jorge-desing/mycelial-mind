@@ -147,10 +147,19 @@ public final class MycorrhizalAcousticTracker {
         return hasActiveDecoyNear(level, pos, DECOY_SILENCE_RANGE);
     }
 
-    public static boolean isChargedHyphalVein(net.minecraft.world.level.block.state.BlockState state) {
-        return state.is(ModBlocks.HYPHAL_VEIN.get())
-                && (state.getValue(com.alex.mycelialmind.block.HyphalVeinBlock.CHARGED)
-                || state.getValue(com.alex.mycelialmind.block.HyphalVeinBlock.STRENGTH) >= 2);
+    public static boolean isChargedHyphalVein(com.alex.mycelialmind.entity.HyphalVeinEntity vein) {
+        return vein != null && vein.isAlive() && (vein.isCharged() || vein.getEffectiveStrength() >= 2);
+    }
+
+    public static boolean hasChargedHyphalVeinAt(ServerLevel level, BlockPos pos) {
+        AABB box = new AABB(pos).inflate(1.25D);
+        for (com.alex.mycelialmind.entity.HyphalVeinEntity vein : level.getEntitiesOfClass(
+                com.alex.mycelialmind.entity.HyphalVeinEntity.class, box)) {
+            if (isChargedHyphalVein(vein)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean tryEmitSeismicPulse(ServerLevel level, BlockPos origin, @Nullable Player sourcePlayer) {
@@ -241,7 +250,7 @@ public final class MycorrhizalAcousticTracker {
         var belowFeet = serverLevel.getBlockState(pos.below());
         boolean onMycelium = belowFeet.is(ModBlocks.CREEPING_MYCELIUM.get())
                 || atFeet.is(ModBlocks.CREEPING_MYCELIUM.get());
-        boolean onChargedVein = isChargedHyphalVein(atFeet) || isChargedHyphalVein(belowFeet);
+        boolean onChargedVein = hasChargedHyphalVeinAt(serverLevel, pos);
         if (!onMycelium && !onChargedVein) {
             return;
         }

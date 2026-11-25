@@ -1,24 +1,24 @@
 {
-  "ok": true,
+  "ok": false,
   "stats": {
     "chapters": 12,
     "entries": 62,
-    "pages": 249
+    "pages": 250
   },
   "summary": {
     "blocks": {
-      "expected": 29,
-      "covered": 29,
+      "expected": 28,
+      "covered": 28,
       "missing": 0
     },
     "items": {
-      "expected": 67,
-      "covered": 67,
+      "expected": 68,
+      "covered": 68,
       "missing": 0
     },
     "entities": {
-      "expected": 23,
-      "covered": 23,
+      "expected": 24,
+      "covered": 24,
       "missing": 0
     },
     "effects": {
@@ -47,8 +47,8 @@
       "missing": 0
     },
     "block_entities": {
-      "expected": 6,
-      "covered": 6,
+      "expected": 5,
+      "covered": 5,
       "missing": 0
     },
     "menu_types": {
@@ -82,8 +82,8 @@
       "missing": 0
     },
     "loot_tables": {
-      "expected": 58,
-      "covered": 58,
+      "expected": 57,
+      "covered": 57,
       "missing": 0
     },
     "biomes": {
@@ -102,9 +102,9 @@
       "missing": 0
     },
     "server_configs": {
-      "expected": 43,
+      "expected": 44,
       "covered": 43,
-      "missing": 0
+      "missing": 1
     },
     "client_configs": {
       "expected": 26,
@@ -202,7 +202,11 @@
       "missing": 0
     }
   },
-  "missing": {},
+  "missing": {
+    "server_configs": [
+      "respectClaimedChunks"
+    ]
+  },
   "invalid_refs": [],
   "recipe_pair_errors": [],
   "budget_issues": []

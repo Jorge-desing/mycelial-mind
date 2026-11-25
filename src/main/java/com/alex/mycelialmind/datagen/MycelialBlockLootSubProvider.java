@@ -114,15 +114,6 @@ public final class MycelialBlockLootSubProvider extends BlockLootSubProvider {
                                         .apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 2.0F)))
                                         .apply(ApplyExplosionDecay.explosionDecay())))));
 
-        add(ModBlocks.HYPHAL_VEIN.get(), block -> LootTable.lootTable()
-                .withPool(LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1.0F))
-                        .when(ExplosionCondition.survivesExplosion())
-                        .add(LootItem.lootTableItem(block)
-                                .when(hasSilkTouch())
-                                .otherwise(LootItem.lootTableItem(ModItems.MYCELIAL_BIOMASS.get())
-                                        .when(LootItemRandomChanceCondition.randomChance(0.35F))))));
-
         // Silk-touch flora & veins with Fortune + rare bonus pool (5 blocks)
         addFloraWithBonus(
                 ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get(),

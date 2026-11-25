@@ -1073,9 +1073,9 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
                 && serverLevel != null
                 && serverLevel.dimension().equals(Level.OVERWORLD)) {
             HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
-            boolean onMycelial = levelAccessor.getBlockState(pos).is(ModBlocks.HYPHAL_VEIN.get())
-                    || levelAccessor.getBlockState(pos.below()).is(ModBlocks.CREEPING_MYCELIUM.get())
-                    || levelAccessor.getBlockState(pos.below()).is(ModBlocks.HYPHAL_VEIN.get());
+            boolean onMycelial = levelAccessor.getBlockState(pos.below()).is(ModBlocks.CREEPING_MYCELIUM.get())
+                    || !serverLevel.getEntitiesOfClass(HyphalVeinEntity.class,
+                            new net.minecraft.world.phys.AABB(pos).inflate(1.5D)).isEmpty();
             boolean tideActive = hive.isFungalTideActive(serverLevel.getGameTime());
             if (isOverworldSurface(levelAccessor, pos) && serverLevel.isDay()) {
                 boolean highThreat = hive.getThreatLevel() >= SURFACE_DAY_SPAWN_THREAT_THRESHOLD || tideActive;

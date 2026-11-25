@@ -4,11 +4,9 @@ import com.alex.mycelialmind.compat.curios.MycelialCuriosCompat;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.AntibodyCystBlock;
-import com.alex.mycelialmind.block.HyphalVeinBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.client.audio.ClientAcousticController;
-import com.alex.mycelialmind.client.model.HyphalVeinDynamicModel;
 import com.alex.mycelialmind.client.model.AcidSpitterModel;
 import com.alex.mycelialmind.client.model.ApexMatriarchModel;
 import com.alex.mycelialmind.client.model.BurrowerModel;
@@ -30,7 +28,7 @@ import com.alex.mycelialmind.client.model.SporelingModel;
 import com.alex.mycelialmind.client.model.SynapseWeaverModel;
 import com.alex.mycelialmind.client.model.SynapticMimicModel;
 import com.alex.mycelialmind.client.renderer.GlowOrbProjectileRenderer;
-import com.alex.mycelialmind.client.renderer.HyphalFilamentRenderer;
+import com.alex.mycelialmind.client.renderer.HyphalVeinRenderer;
 import com.alex.mycelialmind.client.renderer.block.MonumentFocusRenderer;
 import com.alex.mycelialmind.client.renderer.block.MonumentRenderParts;
 import com.alex.mycelialmind.client.renderer.block.PurificationTurretRenderer;
@@ -41,6 +39,7 @@ import com.alex.mycelialmind.client.screen.SynapticBenchScreen;
 import com.alex.mycelialmind.colony.SymbiontCaste;
 import com.alex.mycelialmind.config.MycelialClientConfig;
 import com.alex.mycelialmind.entity.ColonySymbiontEntity;
+import com.alex.mycelialmind.entity.HyphalVeinEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -74,13 +73,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -118,14 +114,6 @@ public final class ClientSetup {
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "textures/item/latent_spore.png");
     private static final ResourceLocation PURIFIER_GRENADE_TEX =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "textures/item/purifier_grenade.png");
-    private static final ModelResourceLocation HYPHAL_VEIN_DIAG_MODEL = ModelResourceLocation.standalone(
-            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "block/hyphal_vein_diagonal"));
-    private static final ModelResourceLocation HYPHAL_VEIN_WALL_MODEL = ModelResourceLocation.standalone(
-            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "block/hyphal_vein_wall"));
-    private static final ModelResourceLocation HYPHAL_VEIN_CEILING_MODEL = ModelResourceLocation.standalone(
-            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "block/hyphal_vein_ceiling"));
-    private static final ResourceLocation HYPHAL_VEIN_ID =
-            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "hyphal_vein");
 
     private ClientSetup() {
     }
@@ -133,27 +121,6 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void onSoundEngineLoad(SoundEngineLoadEvent event) {
         ClientAcousticController.onSoundEngineLoad(event);
-    }
-
-    @SubscribeEvent
-    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(HYPHAL_VEIN_DIAG_MODEL);
-        event.register(HYPHAL_VEIN_WALL_MODEL);
-        event.register(HYPHAL_VEIN_CEILING_MODEL);
-    }
-
-    @SubscribeEvent
-    public static void modifyBakingResult(ModelEvent.ModifyBakingResult event) {
-        var models = event.getModels();
-        BakedModel diagModel = models.get(HYPHAL_VEIN_DIAG_MODEL);
-        BakedModel wallModel = models.get(HYPHAL_VEIN_WALL_MODEL);
-        BakedModel ceilingModel = models.get(HYPHAL_VEIN_CEILING_MODEL);
-        for (var entry : models.entrySet()) {
-            ModelResourceLocation loc = entry.getKey();
-            if (loc.id().equals(HYPHAL_VEIN_ID) && !"inventory".equals(loc.variant())) {
-                entry.setValue(new HyphalVeinDynamicModel(entry.getValue(), diagModel, wallModel, ceilingModel));
-            }
-        }
     }
 
     private static ResourceLocation entityTex(String name) {
@@ -166,18 +133,6 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
-        event.register(
-                (state, level, pos, tintIndex) -> {
-                    if (tintIndex != 0) {
-                        return 0xFFFFFFFF;
-                    }
-                    int strength = state.hasProperty(HyphalVeinBlock.STRENGTH)
-                            ? state.getValue(HyphalVeinBlock.STRENGTH)
-                            : 0;
-                    return HyphalVeinBlock.colorForStrength(strength);
-                },
-                ModBlocks.HYPHAL_VEIN.get()
-        );
         event.register(
                 (state, level, pos, tintIndex) -> tintIndex == 0
                         ? ReclaimedBloomBlock.colorForPalette(state.getValue(ReclaimedBloomBlock.PALETTE))
@@ -305,7 +260,7 @@ public final class ClientSetup {
                 ctx -> new GlowOrbProjectileRenderer<>(ctx, NEUTRALIZING_SPORE_TEX, 0.45F));
         event.registerEntityRenderer(ModEntities.PURIFIER_GRENADE.get(),
                 ctx -> new GlowOrbProjectileRenderer<>(ctx, PURIFIER_GRENADE_TEX, 0.55F));
-        event.registerEntityRenderer(ModEntities.HYPHAL_FILAMENT.get(), HyphalFilamentRenderer::new);
+        event.registerEntityRenderer(ModEntities.HYPHAL_VEIN.get(), HyphalVeinRenderer::new);
 
         event.registerBlockEntityRenderer(ModBlockEntities.SYNAPTIC_NODE.get(), SynapticNodeRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.PURIFICATION_TURRET.get(), PurificationTurretRenderer::new);
@@ -733,9 +688,17 @@ public final class ClientSetup {
                     var cystBlock = ModBlocks.ANTIBODY_CYST.get();
                     var turretBlock = ModBlocks.PURIFICATION_TURRET.get();
                     var nexusBlock = ModBlocks.SOVEREIGN_NEXUS.get();
-                    var veinBlock = ModBlocks.HYPHAL_VEIN.get();
                     var bulbBlock = ModBlocks.SPORE_BULB.get();
                     var updraftBlock = ModBlocks.SPORE_UPDRAFT_VENT.get();
+                    for (HyphalVeinEntity veinEntity : mc.level.getEntitiesOfClass(
+                            HyphalVeinEntity.class, new AABB(origin).inflate(14.0D))) {
+                        if (CACHED_THERMAL_VEINS.size() >= 32) {
+                            break;
+                        }
+                        if (veinEntity.isCharged() || veinEntity.getEffectiveStrength() >= 2) {
+                            CACHED_THERMAL_VEINS.add(BlockPos.containing(veinEntity.getMidpointNode()).immutable());
+                        }
+                    }
                     for (BlockPos p : BlockPos.betweenClosed(origin.offset(-14, -6, -14), origin.offset(14, 6, 14))) {
                         var st = mc.level.getBlockState(p);
                         if (st.is(cystBlock) && CACHED_THERMAL_CYSTS.size() < 48) {
@@ -750,11 +713,6 @@ public final class ClientSetup {
                                 && CACHED_THERMAL_VAULTS.size() < 8
                                 && com.alex.mycelialmind.item.BioScannerItem.isSealedVaultChest(mc.level, p)) {
                             CACHED_THERMAL_VAULTS.add(p.immutable());
-                        } else if (st.is(veinBlock)
-                                && CACHED_THERMAL_VEINS.size() < 32
-                                && (st.getValue(com.alex.mycelialmind.block.HyphalVeinBlock.CHARGED)
-                                || st.getValue(com.alex.mycelialmind.block.HyphalVeinBlock.STRENGTH) >= 2)) {
-                            CACHED_THERMAL_VEINS.add(p.immutable());
                         } else if (st.is(bulbBlock)
                                 && CACHED_THERMAL_BLIND_SPOTS.size() < 8
                                 && isBlindSpotThermalCore(mc.level, p)) {
@@ -954,13 +912,7 @@ public final class ClientSetup {
         }
 
         private static boolean isBlindSpotThermalCore(net.minecraft.world.level.Level level, BlockPos pos) {
-            var veinBlock = ModBlocks.HYPHAL_VEIN.get();
-            for (net.minecraft.core.Direction dir : net.minecraft.core.Direction.Plane.HORIZONTAL) {
-                if (level.getBlockState(pos.relative(dir)).is(veinBlock)) {
-                    return true;
-                }
-            }
-            return false;
+            return !level.getEntitiesOfClass(HyphalVeinEntity.class, new AABB(pos).inflate(2.2D)).isEmpty();
         }
 
         private static boolean containsScannerInInventory(Player player) {

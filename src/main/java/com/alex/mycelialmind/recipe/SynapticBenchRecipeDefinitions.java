@@ -154,7 +154,7 @@ public final class SynapticBenchRecipeDefinitions {
                 new CompatInfoEntry("mycelial_tendrils", ModBlocks.MYCELIAL_TENDRILS.get(), "compat.mycelialmind.info.mycelial_tendrils"),
                 new CompatInfoEntry("spore_bulb", ModBlocks.SPORE_BULB.get(), "compat.mycelialmind.info.spore_bulb"),
                 new CompatInfoEntry("luminescent_amber_vein", ModBlocks.LUMINESCENT_AMBER_VEIN.get(), "compat.mycelialmind.info.luminescent_amber_vein"),
-                new CompatInfoEntry("hyphal_vein", ModBlocks.HYPHAL_VEIN.get(), "compat.mycelialmind.info.hyphal_vein"),
+                new CompatInfoEntry("hyphal_vein", ModItems.HYPHAL_VEIN.get(), "compat.mycelialmind.info.hyphal_vein"),
                 new CompatInfoEntry("mycelial_codex", ModItems.MYCELIAL_CODEX.get(), "compat.mycelialmind.info.mycelial_codex"),
                 new CompatInfoEntry("sovereign_nexus", ModBlocks.SOVEREIGN_NEXUS.get(), "compat.mycelialmind.info.sovereign_nexus"),
                 new CompatInfoEntry("sovereign_command_staff", ModItems.SOVEREIGN_COMMAND_STAFF.get(), "compat.mycelialmind.info.sovereign_command_staff"),

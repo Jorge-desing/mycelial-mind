@@ -2130,7 +2130,7 @@
             },
             {
               "page_number": 5,
-              "id": "all_23_blocks_p1",
+              "id": "flora_eco_p5",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.5.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.5.text",
@@ -2138,7 +2138,7 @@
             },
             {
               "page_number": 6,
-              "id": "all_23_blocks_p2",
+              "id": "all_23_blocks_p1",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.6.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.6.text",
@@ -2146,7 +2146,7 @@
             },
             {
               "page_number": 7,
-              "id": "all_23_blocks_p3",
+              "id": "all_23_blocks_p2",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.7.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.7.text",
@@ -2154,7 +2154,7 @@
             },
             {
               "page_number": 8,
-              "id": "all_23_blocks_p4",
+              "id": "all_23_blocks_p3",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.8.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.8.text",
@@ -2162,7 +2162,7 @@
             },
             {
               "page_number": 9,
-              "id": "all_35_items_p1",
+              "id": "all_23_blocks_p4",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.9.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.9.text",
@@ -2170,7 +2170,7 @@
             },
             {
               "page_number": 10,
-              "id": "all_35_items_p2",
+              "id": "all_35_items_p1",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.10.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.10.text",
@@ -2178,7 +2178,7 @@
             },
             {
               "page_number": 11,
-              "id": "all_35_items_p3",
+              "id": "all_35_items_p2",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.text",
@@ -2186,7 +2186,7 @@
             },
             {
               "page_number": 12,
-              "id": "all_35_items_p4",
+              "id": "all_35_items_p3",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.text",
@@ -2194,7 +2194,7 @@
             },
             {
               "page_number": 13,
-              "id": "all_35_items_p5",
+              "id": "all_35_items_p4",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.13.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.13.text",
@@ -2202,7 +2202,7 @@
             },
             {
               "page_number": 14,
-              "id": "all_35_items_p6",
+              "id": "all_35_items_p5",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.14.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.14.text",
@@ -2210,7 +2210,7 @@
             },
             {
               "page_number": 15,
-              "id": "sovereign_colony_guide_p1",
+              "id": "all_35_items_p6",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.text",
@@ -2218,7 +2218,7 @@
             },
             {
               "page_number": 16,
-              "id": "sovereign_colony_guide_p2",
+              "id": "sovereign_colony_guide_p1",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.text",
@@ -2226,7 +2226,7 @@
             },
             {
               "page_number": 17,
-              "id": "sovereign_colony_guide_p3",
+              "id": "sovereign_colony_guide_p2",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.text",
@@ -2234,7 +2234,7 @@
             },
             {
               "page_number": 18,
-              "id": "sovereign_colony_guide_p4",
+              "id": "sovereign_colony_guide_p3",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.text",
@@ -2242,7 +2242,7 @@
             },
             {
               "page_number": 19,
-              "id": "sovereign_colony_guide_p5",
+              "id": "sovereign_colony_guide_p4",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.text",
@@ -2250,7 +2250,7 @@
             },
             {
               "page_number": 20,
-              "id": "sovereign_colony_guide_p6",
+              "id": "sovereign_colony_guide_p5",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.20.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.20.text",
@@ -2258,10 +2258,18 @@
             },
             {
               "page_number": 21,
-              "id": "sovereign_colony_guide_p7",
+              "id": "sovereign_colony_guide_p6",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.21.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.21.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 22,
+              "id": "sovereign_colony_guide_p7",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.22.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.22.text",
               "is_spoiler": false
             }
           ]
@@ -2651,7 +2659,6 @@
             "blocks/chitin_pillar",
             "blocks/creeping_mycelium",
             "blocks/hive_altar",
-            "blocks/hyphal_vein",
             "blocks/incubator_node",
             "blocks/luminescent_amber_vein",
             "blocks/matriarch_altar",

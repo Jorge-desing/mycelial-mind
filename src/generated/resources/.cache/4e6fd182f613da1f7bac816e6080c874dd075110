@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-25T00:13:08.5693408	Block States: mycelialmind
+// 1.21.1	2026-11-25T14:04:06.367381	Block States: mycelialmind
 3f4aeb2214bf83fa0b6dcda399c7a1c708a374c8 assets/mycelialmind/blockstates/antibody_cyst.json
 a0960640b0c2ed424c6d96da4485cfb863b52ffb assets/mycelialmind/blockstates/bioluminescent_mycelial_cap.json
 f70d79830d160885321bbe3a93b3effcd3c2b9c9 assets/mycelialmind/blockstates/bio_chitin_lattice.json
@@ -6,7 +6,6 @@ ee807711c71c9cc50f582c671cc490010fe9ec73 assets/mycelialmind/blockstates/chitin_
 05b0ea5f7ca4e8c1d4398f3457fc3eb61d772112 assets/mycelialmind/blockstates/creeping_mycelium.json
 2d532aa3424aec2030103f1fe52ef222d0866057 assets/mycelialmind/blockstates/ephemeral_chitin.json
 faa434b9de1834fe876ffaab5990d75ed5842d88 assets/mycelialmind/blockstates/hive_altar.json
-bed074d6ff2c8ce0d6f49aec2c356dd2dd9bdaa3 assets/mycelialmind/blockstates/hyphal_vein.json
 f3eae8f25907d920667cd5e36c39944207d36f99 assets/mycelialmind/blockstates/incubator_node.json
 18066b447ffb3b298d130b37a6c674349ecbacad assets/mycelialmind/blockstates/luminescent_amber_vein.json
 cc7cb493bc44fa3fc74e0dc01512030afb4f347b assets/mycelialmind/blockstates/matriarch_altar.json
