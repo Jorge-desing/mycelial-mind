@@ -191,6 +191,8 @@ MASKING_BED_IDS: tuple[str, ...] = (
     "sovereign_nexus_hum",
     "boss_combat_tension_bed",
     "sinkhole_updraft_loop",
+    "hive_tension_bed_low",
+    "hive_swarm_combat_bed",
 )
 MASKING_FOREGROUND_GROUPS: dict[str, tuple[str, ...]] = {
     "alerts_ui": (
@@ -283,6 +285,8 @@ def audit_spectral_masking(manifest_entries: list[dict[str, Any]]) -> dict[str, 
     for layer_name in MASKING_FOREGROUND_GROUPS:
         layer_barks[layer_name] = _avg_bark([fg for ln, fg in fg_entries if ln == layer_name])
 
+    from scripts.sound_studio.mastering import BARK_UNMASK_CARVE_BANDS_HZ
+
     return {
         "ok": len(high_risk) == 0,
         "beds_checked": len(beds),
@@ -295,6 +299,8 @@ def audit_spectral_masking(manifest_entries: list[dict[str, Any]]) -> dict[str, 
         "high_risk_pairs": high_risk,
         "top_overlap_pairs": pairs[:12],
         "bark_centers_hz": list(BARK_CENTERS_HZ),
+        "bark_unmasking_applied": True,
+        "unmasking_carve_bands_hz": list(BARK_UNMASK_CARVE_BANDS_HZ),
         "layer_bark_averages": layer_barks,
     }
 
@@ -580,7 +586,7 @@ def save_acoustic_baseline(
             "max_variant_corr": corrs.get(sid, entry.get("max_variant_corr", 0.0)),
         }
     baseline = {
-        "schema_version": 4,
+        "schema_version": 5,
         "total_events": len(events_snap),
         "total_ogg_files": manifest.get("ogg_count", 0),
         "worst_correlation": quality_report.get("worst_correlation", 0.0),
@@ -722,6 +728,8 @@ def build_audition_html(
         "sovereign_nexus_hum",
         "boss_combat_tension_bed",
         "sinkhole_updraft_loop",
+        "hive_tension_bed_low",
+        "hive_swarm_combat_bed",
     ]
     mix_bed_sources = {
         bid: next((e["files"][0] for e in rows if e["sound_id"] == bid and e["files"]), "")
@@ -756,7 +764,7 @@ def build_audition_html(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mycelial Mind — Sound Studio Audition Console v4 ({len(rows)} eventos)</title>
+  <title>Mycelial Mind — Sound Studio Audition Console v5 ({len(rows)} eventos)</title>
   <style>
     :root {{
       --bg: #0c0d12;
@@ -851,8 +859,8 @@ def build_audition_html(
 <body>
   <header>
     <div>
-      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v4 (DSP v4 + 3-Band HPSS + OpenAL EFX Sim + Bark QA)")}</h1>
-      <div class="sub">Audita los 5 motores DSP v4, 66 stems RTX 4060, EBU R128 LRA/ST-LUFS, enmascaramiento espectral Bark 24-bandas y simulador OpenAL EFX/Oclusión.</div>
+      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v5 (DSP v5 + HPSS Alineado + Bark Unmasking + EFX Sim)")}</h1>
+      <div class="sub">Audita los 5 motores DSP v5, 69 stems RTX 4060, Bark Unmasking (1450/3200 Hz), EBU R128 LRA/ST-LUFS y simulador OpenAL EFX / Inmersión.</div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
@@ -906,6 +914,30 @@ def build_audition_html(
       <input type="range" id="occSlider" min="0" max="100" value="0" />
     </div>
     <div class="mix-item">
+      <label><span>Inmersión</span><span id="submersionLabel">NONE</span></label>
+      <select id="submersionSelect">
+        <option value="NONE">Aire Normal</option>
+        <option value="SPORE_FOG">Niebla de Esporas (Marea/Homeostasis)</option>
+        <option value="WATER">Bajo el Agua</option>
+      </select>
+    </div>
+    <div class="mix-item">
+      <label><span>Crossfader Adaptativo</span><span id="adaptiveXfadeVal">0% (Reposo)</span></label>
+      <input type="range" id="adaptiveXfade" min="0" max="100" value="0" />
+    </div>
+    <div class="mix-item">
+      <label><span>hive_tension_bed_low</span><span id="mixVal_hive_tension_bed_low">0%</span></label>
+      <input type="range" min="0" max="100" value="0" data-mix="hive_tension_bed_low" />
+    </div>
+    <div class="mix-item">
+      <label><span>hive_swarm_combat_bed</span><span id="mixVal_hive_swarm_combat_bed">0%</span></label>
+      <input type="range" min="0" max="100" value="0" data-mix="hive_swarm_combat_bed" />
+    </div>
+    <div class="mix-item">
+      <label><span>boss_combat_tension_bed</span><span id="mixVal_boss_combat_tension_bed">0%</span></label>
+      <input type="range" min="0" max="100" value="0" data-mix="boss_combat_tension_bed" />
+    </div>
+    <div class="mix-item">
       <label><span>biome_caverns_loop</span><span id="mixVal_biome_caverns_loop">0%</span></label>
       <input type="range" min="0" max="100" value="0" data-mix="biome_caverns_loop" />
     </div>
@@ -916,10 +948,6 @@ def build_audition_html(
     <div class="mix-item">
       <label><span>sovereign_nexus_hum</span><span id="mixVal_sovereign_nexus_hum">0%</span></label>
       <input type="range" min="0" max="100" value="0" data-mix="sovereign_nexus_hum" />
-    </div>
-    <div class="mix-item">
-      <label><span>boss_combat_tension_bed</span><span id="mixVal_boss_combat_tension_bed">0%</span></label>
-      <input type="range" min="0" max="100" value="0" data-mix="boss_combat_tension_bed" />
     </div>
     <div class="mix-item">
       <label><span>sinkhole_updraft_loop</span><span id="mixVal_sinkhole_updraft_loop">0%</span></label>
@@ -1009,6 +1037,7 @@ def build_audition_html(
     let frenzyOn = false;
     let leaderOn = false;
     let occlusionFactor = 0.0;
+    let submersionMode = "NONE";
     let efxEnv = "OPEN_AIR";
     let duckingOn = true;
     let activeAudio = null;
@@ -1038,7 +1067,8 @@ def build_audition_html(
     const tpBadge = DATA.max_true_peak_dbfs != null ? `<span class="badge">TP 4x ≤ ${{DATA.max_true_peak_dbfs}} dBFS</span>` : "";
     const seamBadge = `<span class="badge ${{DATA.loop_seam_ok ? 'ok' : 'warn'}}">Seam ${{DATA.loop_seam_ok ? 'SEAMLESS' : 'CHECK'}}</span>`;
     const maskOk = DATA.masking ? Boolean(DATA.masking.ok) : true;
-    const maskBadge = `<span class="badge ${{maskOk ? 'ok' : 'warn'}}">Bark Masking ${{maskOk ? 'CLEAR' : 'REVIEW'}}</span>`;
+    const unmaskActive = DATA.masking && DATA.masking.bark_unmasking_applied ? " · Carve 1450/3200Hz" : "";
+    const maskBadge = `<span class="badge ${{maskOk ? 'ok' : 'warn'}}">Bark Masking ${{maskOk ? 'CLEAR' : 'REVIEW'}}${{unmaskActive}}</span>`;
     const divBadge = `<span class="badge">Diversidad μ=${{DATA.mean_timbral_diversity ?? 0}}</span>`;
     statsEl.innerHTML = [
       `<span class="badge">${{DATA.total_events}} eventos ModSounds</span>`,
@@ -1048,7 +1078,7 @@ def build_audition_html(
       seamBadge,
       maskBadge,
       divBadge,
-      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v4 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
+      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v5 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
     ].join("");
 
     // Populate Bark Masking matrix & layer chart
@@ -1088,6 +1118,17 @@ def build_audition_html(
         }});
         bCtx.stroke();
       }});
+      // Highlight Bark unmasking carve pockets (Bands 11 ~1450 Hz and 16 ~3200 Hz)
+      [10.8, 15.8].forEach(bandIdx => {{
+        const x = 10 + (bandIdx / 23.0) * (bCanvas.width - 20);
+        bCtx.strokeStyle = "rgba(251, 191, 36, 0.55)";
+        bCtx.setLineDash([3, 3]);
+        bCtx.beginPath();
+        bCtx.moveTo(x, 6);
+        bCtx.lineTo(x, bCanvas.height - 6);
+        bCtx.stroke();
+        bCtx.setLineDash([]);
+      }});
     }}
     if (DATA.stem_qc && DATA.stem_qc.stem_count) {{
       stemQcLabelEl.textContent = `Stems RTX: ${{DATA.stem_qc.checked_count}}/${{DATA.stem_qc.stem_count}} (${{DATA.stem_qc.ok ? 'PASS' : 'CHECK'}})`;
@@ -1104,6 +1145,10 @@ def build_audition_html(
     const seamStatusEl = document.getElementById("seamStatus");
     const occSlider = document.getElementById("occSlider");
     const occSliderVal = document.getElementById("occSliderVal");
+    const submersionSelect = document.getElementById("submersionSelect");
+    const submersionLabel = document.getElementById("submersionLabel");
+    const adaptiveXfade = document.getElementById("adaptiveXfade");
+    const adaptiveXfadeVal = document.getElementById("adaptiveXfadeVal");
     const efxSelect = document.getElementById("efxEnvSelect");
     const efxPresetLabel = document.getElementById("efxPresetLabel");
 
@@ -1117,15 +1162,20 @@ def build_audition_html(
     const BIOME_IDS = new Set(DATA.biome_ambient_ids || []);
     let quickCat = "";
 
+    function computeEffectiveOcc() {{
+      const subFloor = submersionMode === "WATER" ? 0.65 : (submersionMode === "SPORE_FOG" ? 0.30 : 0.0);
+      return Math.max(occlusionFactor, subFloor);
+    }}
+
     function computeOcclusionCutoffHz() {{
-      return Math.round(20000 * Math.pow(520 / 20000, occlusionFactor));
+      return Math.round(20000 * Math.pow(520 / 20000, computeEffectiveOcc()));
     }}
 
     function computeEffectiveRate() {{
       let r = rankRate * strainRate;
       if (frenzyOn) r *= 1.10;
       if (leaderOn) r *= 0.94;
-      r *= (1.0 - 0.08 * occlusionFactor);
+      r *= (1.0 - 0.08 * computeEffectiveOcc());
       return Math.max(0.45, Math.min(2.0, r));
     }}
 
@@ -1133,7 +1183,7 @@ def build_audition_html(
       let g = 1.0;
       if (frenzyOn) g *= 1.08;
       if (leaderOn) g *= 1.12;
-      g *= (1.0 - 0.56 * occlusionFactor);
+      g *= (1.0 - 0.56 * computeEffectiveOcc());
       return Math.max(0.2, Math.min(1.5, g));
     }}
 
@@ -1203,6 +1253,46 @@ def build_audition_html(
       occlusionFactor = (parseInt(occSlider.value, 10) || 0) / 100.0;
       document.getElementById("occludedToggle").classList.toggle("active", occlusionFactor >= 0.5);
       updateRateLabel();
+    }});
+
+    submersionSelect.addEventListener("change", () => {{
+      submersionMode = submersionSelect.value;
+      submersionLabel.textContent = submersionMode;
+      updateRateLabel();
+    }});
+
+    function setMixBedPct(bid, pct) {{
+      const clamped = Math.max(0, Math.min(100, Math.round(pct)));
+      const inp = document.querySelector(`[data-mix="${{bid}}"]`);
+      const lbl = document.getElementById(`mixVal_${{bid}}`);
+      if (inp) inp.value = String(clamped);
+      if (lbl) lbl.textContent = `${{clamped}}%`;
+      const src = (DATA.mix_bed_sources || {{}})[bid];
+      if (!src) return;
+      if (!mixBeds[bid]) {{
+        const a = new Audio(src);
+        a.loop = true;
+        mixBeds[bid] = {{ audio: a, sliderVal: clamped }};
+      }}
+      mixBeds[bid].sliderVal = clamped;
+      updateMixVolumes();
+      if (clamped > 0 && mixBeds[bid].audio.paused) {{
+        mixBeds[bid].audio.play().catch(() => {{}});
+      }} else if (clamped === 0 && !mixBeds[bid].audio.paused) {{
+        mixBeds[bid].audio.pause();
+      }}
+    }}
+
+    adaptiveXfade.addEventListener("input", () => {{
+      const v = (parseInt(adaptiveXfade.value, 10) || 0) / 100.0;
+      const stage = v < 0.05 ? "Reposo" : (v < 0.40 ? "Exploración" : (v < 0.78 ? "Enjambre" : "Jefe"));
+      adaptiveXfadeVal.textContent = `${{Math.round(v * 100)}}% (${{stage}})`;
+      const lowPct = v < 0.05 ? 0 : (v < 0.50 ? 60 * (v / 0.50) : Math.max(0, 60 * (1.0 - (v - 0.50) / 0.35)));
+      const swarmPct = v < 0.25 ? 0 : (v < 0.70 ? 70 * ((v - 0.25) / 0.45) : Math.max(0, 70 * (1.0 - (v - 0.70) / 0.30)));
+      const bossPct = v < 0.65 ? 0 : 85 * ((v - 0.65) / 0.35);
+      setMixBedPct("hive_tension_bed_low", lowPct);
+      setMixBedPct("hive_swarm_combat_bed", swarmPct);
+      setMixBedPct("boss_combat_tension_bed", bossPct);
     }});
 
     efxSelect.addEventListener("change", () => {{

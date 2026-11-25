@@ -533,7 +533,8 @@ return {{
     ),
     "sound_masking_ok": (
         sound_masking.get("ok") is True
-        and sound_masking.get("beds_checked") == 9
+        and sound_masking.get("beds_checked") == 11
+        and sound_masking.get("bark_unmasking_applied") is True
         and sound_masking.get("high_risk_count") == 0
     ),
     "codex_studio_ok": codex_chk.get("ok"),
@@ -587,8 +588,8 @@ return {{
             assert payload["asset_lang"].get("referenced_keys_count", 0) >= 100
             assert payload["asset_lang"].get("missing_referenced_keys") == []
             assert payload["blockstates_count"] >= 20
-            assert payload["sounds_json_count"] == 220
-            assert payload["ogg_files_count"] == 580
+            assert payload["sounds_json_count"] == 226
+            assert payload["ogg_files_count"] == 596
             assert payload["missing_sound_files"] == []
             assert payload["vanilla_event_redirects"] == 0
             assert payload["audio_quality_ok"] is True

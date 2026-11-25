@@ -40,7 +40,9 @@ from scripts.sound_studio.dsp_engine import (
     fold_seamless_loop,
     granular_bio_cloud,
     karplus_strong_chitin,
+    modal_dispersed_impact,
     modal_resonator_bank,
+    morphing_formant_tract,
 )
 
 SYSTEM_ENV_IDS: frozenset[str] = frozenset(
@@ -75,12 +77,18 @@ SYSTEM_ENV_IDS: frozenset[str] = frozenset(
         "biome_forest_loop",
         "biome_forest_mood",
         "biome_forest_additions",
-        # Positional Loops & Hive Adaptation Alerts (8)
+        # Positional Loops, Adaptive Beds, Micro-Emitters & Hive Alerts (14)
         "fungal_tide_ambience",
         "purification_pylon_hum",
         "sovereign_nexus_hum",
         "boss_combat_tension_bed",
         "sinkhole_updraft_loop",
+        "hive_tension_bed_low",
+        "hive_swarm_combat_bed",
+        "cavern_spore_drip",
+        "subterranean_hyphal_creak",
+        "deep_mycelium_whisper",
+        "sanctum_harmonic_chime",
         "hive_trait_adapt",
         "hive_synergy_unlock",
         "hive_threat_milestone",
@@ -617,5 +625,139 @@ def synthesize_system_env_sound(
             preroll : preroll + ext_n
         ]
         return fold_seamless_loop(raw, n, crossfade_ms=260.0)
+
+    if sound_id == "hive_tension_bed_low":
+        # 10th seamless loop: low-intensity subterranean Hive exploration & vigilance drone bed
+        cf = int(SAMPLE_RATE * 0.28)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_pink = _pink_noise(rng, ext_n)
+        f0 = max(124.0, 2.0 * round(0.5 * max(132.0, bf * 2.15) * dur) / dur)
+        pulse_hz = max(0.25, round(0.5 * dur) / dur)
+        pad = (
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.50
+            + np.sin(2.0 * np.pi * (f0 * 1.498) * ext_t + rng.uniform(0, 6.28)) * 0.36
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.26
+        ) * (0.88 + 0.12 * np.sin(2.0 * np.pi * pulse_hz * ext_t + pjit))
+        whisper_bed = morphing_formant_tract(
+            ext_t,
+            f0 * 1.25,
+            [
+                (0.0, [(280.0, 2.6, 0.75), (720.0, 3.2, 0.52)]),
+                (0.5, [(380.0, 2.8, 0.80), (910.0, 3.0, 0.56)]),
+                (1.0, [(280.0, 2.6, 0.75), (720.0, 3.2, 0.52)]),
+            ],
+            rng,
+            sub_weight=0.14,
+            breath_noise=0.20,
+        ) * 0.44
+        air = _sos_bandpass(ext_pink, 220.0, 980.0) * 0.65
+        dry = _sos_bandpass(np.tanh((pad + whisper_bed + air) * 1.12), 110.0, 2600.0)
+        preroll = min(ext_n // 2, int(SAMPLE_RATE * 0.90))
+        reverb_in = np.concatenate([dry[-preroll:], dry])
+        raw = fdn4_hadamard_diffuser(reverb_in, rng, base_delays_ms=(23.1, 31.7, 41.9, 57.3), rt60=0.82, wet=0.32, damping_hz=2600.0)[
+            preroll : preroll + ext_n
+        ]
+        return fold_seamless_loop(raw, n, crossfade_ms=280.0)
+
+    if sound_id == "hive_swarm_combat_bed":
+        # 11th seamless loop: rhythmic adaptive skirmish pulse under sustained threat or active swarm waves
+        cf = int(SAMPLE_RATE * 0.26)
+        ext_n = n + cf
+        ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
+        ext_brown = _brown_noise(rng, ext_n)
+        f0 = max(144.0, 2.0 * round(0.5 * max(164.0, bf * 2.0) * dur) / dur)
+        bpm_hz = max(1.0, round(2.0 * dur) / dur)
+        throb_env = 0.52 + 0.48 * np.maximum(0.0, np.sin(2.0 * np.pi * bpm_hz * ext_t + pjit)) ** 2.2
+        mid_pulse = (
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.46
+            + np.sin(2.0 * np.pi * (f0 * 1.498) * ext_t + rng.uniform(0, 6.28)) * 0.34
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.24
+        ) * throb_env
+        chitin_pulse = _sos_bandpass(ext_brown, 165.0, 960.0) * throb_env * 0.85
+        tension_harm = _fm_tone(ext_t, f0 * 2.0, f0 * 0.75, 1.35, pjit) * 0.30 * (0.7 + 0.3 * np.sin(2.0 * np.pi * 0.5 * bpm_hz * ext_t))
+        skirmish_grains = granular_bio_cloud(ext_n, rng, freq_range=(280.0, 940.0), density_hz=24.0, grain_ms=26.0, organic_mode="chitin") * 0.46
+        dry = _sos_bandpass(np.tanh((mid_pulse + chitin_pulse + tension_harm + skirmish_grains) * 1.14), 120.0, 2900.0)
+        preroll = min(ext_n // 2, int(SAMPLE_RATE * 0.85))
+        reverb_in = np.concatenate([dry[-preroll:], dry])
+        raw = fdn4_hadamard_diffuser(reverb_in, rng, base_delays_ms=(17.9, 25.3, 35.1, 46.7), rt60=0.68, wet=0.28, damping_hz=2800.0)[
+            preroll : preroll + ext_n
+        ]
+        return fold_seamless_loop(raw, n, crossfade_ms=260.0)
+
+    if sound_id == "cavern_spore_drip":
+        # Spatial micro-emitter: echoing liquid bioluminescent spore droplet ping + dispersed cavern ring
+        onset = int(rng.uniform(0.02, 0.14) * n)
+        rem = max(64, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        f_drop = bf * rng.uniform(0.90, 1.25) * (1.0 + 0.52 * (1.0 - np.exp(-rt / 0.032)))
+        ping = np.sin(2.0 * np.pi * np.cumsum(f_drop) / SAMPLE_RATE + pjit) * exp_decay(rt, 0.11) * 0.92
+        ring = modal_dispersed_impact(rem, bf * rng.uniform(1.4, 1.9), rng, num_modes=6, hardness=0.78, dispersion=0.08, decay_secs=0.28) * 0.58
+        splash = granular_bio_cloud(rem, rng, freq_range=(680.0, 4200.0), density_hz=36.0, grain_ms=14.0, organic_mode="viscous") * exp_decay(rt, 0.14) * 0.42
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = ping + ring + splash
+        return fdn4_hadamard_diffuser(np.tanh(wave * 1.18), rng, rt60=0.74, wet=0.34, damping_hz=5600.0)
+
+    if sound_id == "subterranean_hyphal_creak":
+        # Spatial micro-emitter: deep strained chitinous root fiber groan + sticky tear grains
+        onset = int(rng.uniform(0.01, 0.08) * n)
+        rem = max(64, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        f_creak = bf * rng.uniform(0.86, 1.18) * (1.0 - 0.24 * (rt / max(1e-4, rt[-1]))) * (1.0 + 0.07 * np.sin(2.0 * np.pi * 11.0 * rt))
+        groan = morphing_formant_tract(
+            rt,
+            f_creak,
+            [
+                (0.0, [(210.0 * formant_shift, 2.8, 1.0), (540.0 * formant_shift, 3.2, 0.80)]),
+                (0.55, [(320.0 * formant_shift, 3.0, 1.05), (780.0 * formant_shift, 3.4, 0.85)]),
+                (1.0, [(165.0 * formant_shift, 2.6, 0.90), (430.0 * formant_shift, 3.0, 0.65)]),
+            ],
+            rng,
+            open_quotient=0.48,
+            sub_weight=0.65,
+            breath_noise=0.16,
+        ) * adsr_envelope(rem, 0.10, 0.25, 0.55, 0.35)
+        snaps = modal_dispersed_impact(rem, bf * 2.1, rng, num_modes=7, hardness=0.48, dispersion=0.19, decay_secs=0.30) * 0.45
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = groan + snaps
+        return fdn4_hadamard_diffuser(np.tanh(wave * 1.22), rng, rt60=0.62, wet=0.26, damping_hz=3200.0)
+
+    if sound_id == "deep_mycelium_whisper":
+        # Spatial micro-emitter: morphing formant alien whisper across abyssal mycelium threads
+        onset = int(rng.uniform(0.02, 0.10) * n)
+        rem = max(64, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        f_wh = bf * rng.uniform(0.90, 1.16) * (0.95 + 0.12 * np.sin(2.0 * np.pi * mf * rt))
+        whisper = morphing_formant_tract(
+            rt,
+            f_wh,
+            [
+                (0.0, [(340.0 * formant_shift, 3.0, 0.85), (1120.0 * formant_shift, 3.5, 0.90)]),
+                (0.45, [(480.0 * formant_shift, 3.2, 0.95), (1680.0 * formant_shift, 3.8, 0.95)]),
+                (1.0, [(280.0 * formant_shift, 2.8, 0.80), (960.0 * formant_shift, 3.2, 0.70)]),
+            ],
+            rng,
+            open_quotient=0.66,
+            sub_weight=0.35,
+            breath_noise=0.34,
+        ) * adsr_envelope(rem, 0.16, 0.22, 0.52, 0.40)
+        spores = granular_bio_cloud(rem, rng, freq_range=(520.0, 3400.0), density_hz=42.0, grain_ms=26.0, organic_mode="spore") * 0.46
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = whisper + spores
+        return fdn4_hadamard_diffuser(np.tanh(wave * 1.16), rng, rt60=0.78, wet=0.34, damping_hz=4800.0)
+
+    if sound_id == "sanctum_harmonic_chime":
+        # Spatial micro-emitter: resonant crystal monolith overtone triad using dispersed modal resonators
+        onset = int(rng.uniform(0.01, 0.08) * n)
+        rem = max(64, n - onset)
+        rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        root = bf * rng.uniform(0.92, 1.12)
+        c1 = modal_dispersed_impact(rem, root, rng, num_modes=6, hardness=0.72, dispersion=0.06, decay_secs=0.72) * 0.65
+        c2 = modal_dispersed_impact(rem, root * 1.498, rng, num_modes=5, hardness=0.76, dispersion=0.05, decay_secs=0.64) * 0.52
+        c3 = modal_dispersed_impact(rem, root * 2.0, rng, num_modes=4, hardness=0.80, dispersion=0.04, decay_secs=0.52) * 0.36
+        shimmer = granular_bio_cloud(rem, rng, freq_range=(1100.0, 4800.0), density_hz=28.0, grain_ms=30.0, organic_mode="spore") * exp_decay(rt, 0.48) * 0.30
+        wave = np.zeros(n, dtype=np.float64)
+        wave[onset:] = (c1 + c2 + c3 + shimmer) * adsr_envelope(rem, 0.02, 0.22, 0.55, 0.42)
+        return fdn4_hadamard_diffuser(np.tanh(wave * 1.12), rng, base_delays_ms=(21.3, 31.1, 43.7, 59.9), rt60=0.86, wet=0.36, damping_hz=6400.0)
 
     raise ValueError(f"Unhandled system/environment sound_id in system_env_synth: {sound_id}")

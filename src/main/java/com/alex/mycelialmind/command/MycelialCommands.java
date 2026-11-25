@@ -1413,7 +1413,7 @@ public final class MycelialCommands {
     private static int verifyPolish(CommandSourceStack source) {
         ServerLevel level = source.getLevel();
         var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-        boolean soundsOk = soundEntries.size() == 220;
+        boolean soundsOk = soundEntries.size() == 226;
         if (soundsOk) {
             for (var holder : soundEntries) {
                 SoundEvent evt = holder.get();

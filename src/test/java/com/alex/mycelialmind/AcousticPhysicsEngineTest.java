@@ -140,5 +140,46 @@ public class AcousticPhysicsEngineTest {
         assertTrue(MycelialClientConfig.openAlEfxVanillaInMycelialZones());
         assertTrue(MycelialClientConfig.swarmVoiceLimitingEnabled());
         assertTrue(MycelialClientConfig.sinkholeUpdraftBedEnabled());
+        assertTrue(MycelialClientConfig.openAlEfxDynamicTrackingEnabled());
+        assertTrue(MycelialClientConfig.adaptiveAmbientLayersEnabled());
+        assertTrue(MycelialClientConfig.spatialMicroAmbienceEnabled());
+    }
+
+    @Test
+    void v5SubmersionSmoothingAdaptiveBedsAndLayeredDuckingAreMonotonic() {
+        float clearOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(0.0F, AcousticPhysicsEngine.SubmersionState.NONE);
+        float fogOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(0.0F, AcousticPhysicsEngine.SubmersionState.SPORE_FOG);
+        float waterOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(0.0F, AcousticPhysicsEngine.SubmersionState.WATER);
+        assertTrue(clearOcc < fogOcc && fogOcc < waterOcc && waterOcc <= 1.0F);
+        assertTrue(AcousticPhysicsEngine.computeEffectiveOcclusion(0.5F, AcousticPhysicsEngine.SubmersionState.SPORE_FOG)
+                < AcousticPhysicsEngine.computeEffectiveOcclusion(0.5F, AcousticPhysicsEngine.SubmersionState.WATER));
+
+        float smoothed = AcousticPhysicsEngine.smoothOcclusion(0.0F, 0.80F, 0.50F);
+        assertEquals(0.40F, smoothed, 1e-5F);
+        assertEquals(0.0F, AcousticPhysicsEngine.smoothOcclusion(Float.NaN, -1.0F, 0.5F), 1e-5F);
+
+        float normalDuck = AcousticPhysicsEngine.computeLayerDuckMultiplier(false, 1.0F, true);
+        float bossDuck = AcousticPhysicsEngine.computeLayerDuckMultiplier(true, 1.0F, true);
+        float stackedDuck = AcousticPhysicsEngine.computeLayerDuckMultiplier(true, 0.5F, true);
+        assertEquals(1.0F, normalDuck, 1e-5F);
+        assertTrue(bossDuck < normalDuck && stackedDuck < bossDuck && stackedDuck >= 0.15F);
+        assertEquals(1.0F, AcousticPhysicsEngine.computeLayerDuckMultiplier(true, 0.4F, false), 1e-5F);
+
+        assertEquals(0.0F, AcousticPhysicsEngine.computeAdaptiveExplorationBedVolume(5.0D, false, 1.0F, 1.0F, true), 1e-6F);
+        float expLow = AcousticPhysicsEngine.computeAdaptiveExplorationBedVolume(20.0D, false, 1.0F, 1.0F, true);
+        float expHigh = AcousticPhysicsEngine.computeAdaptiveExplorationBedVolume(75.0D, false, 1.0F, 1.0F, true);
+        assertTrue(expLow > 0.0F && expHigh > expLow);
+        assertEquals(0.0F, AcousticPhysicsEngine.computeAdaptiveExplorationBedVolume(75.0D, true, 1.0F, 1.0F, true), 1e-6F);
+
+        assertEquals(0.0F, AcousticPhysicsEngine.computeSwarmCombatBedVolume(1, 50.0D, false, 1.0F, 1.0F, true), 1e-6F);
+        float swarmSmall = AcousticPhysicsEngine.computeSwarmCombatBedVolume(2, 30.0D, false, 1.0F, 1.0F, true);
+        float swarmHeavy = AcousticPhysicsEngine.computeSwarmCombatBedVolume(7, 80.0D, false, 1.0F, 1.0F, true);
+        assertTrue(swarmSmall > 0.0F && swarmHeavy > swarmSmall);
+        assertEquals(0.0F, AcousticPhysicsEngine.computeSwarmCombatBedVolume(7, 80.0D, true, 1.0F, 1.0F, true), 1e-6F);
+
+        assertEquals(VoicePriority.LOW, AcousticPhysicsEngine.classifySoundPriority("cavern_spore_drip", false, false));
+        assertEquals(VoicePriority.LOW, AcousticPhysicsEngine.classifySoundPriority("sanctum_harmonic_chime", false, false));
+        assertEquals(VoicePriority.CRITICAL, AcousticPhysicsEngine.classifySoundPriority("hive_tension_bed_low", true, false));
+        assertEquals(VoicePriority.CRITICAL, AcousticPhysicsEngine.classifySoundPriority("hive_swarm_combat_bed", true, false));
     }
 }

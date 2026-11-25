@@ -107,8 +107,8 @@
       "missing": 0
     },
     "client_configs": {
-      "expected": 23,
-      "covered": 23,
+      "expected": 26,
+      "covered": 26,
       "missing": 0
     },
     "keybindings": {

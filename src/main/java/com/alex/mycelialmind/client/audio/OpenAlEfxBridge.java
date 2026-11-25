@@ -3,6 +3,7 @@ package com.alex.mycelialmind.client.audio;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.AcousticEnvironment;
+import com.alex.mycelialmind.hive.AcousticPhysicsEngine.SubmersionState;
 import com.mojang.blaze3d.audio.Channel;
 import net.neoforged.fml.ModList;
 import org.lwjgl.openal.AL10;
@@ -26,6 +27,7 @@ public final class OpenAlEfxBridge {
 
     private static final AtomicBoolean REINIT_REQUESTED = new AtomicBoolean(true);
     private static final AtomicLong APPLIED_SOURCES = new AtomicLong(0L);
+    private static final AtomicLong DYNAMIC_UPDATES = new AtomicLong(0L);
 
     private static volatile boolean externalModConflict = false;
     private static volatile boolean efxSupported = false;
@@ -47,10 +49,29 @@ public final class OpenAlEfxBridge {
     public record SourceAcousticSnapshot(
             AcousticEnvironment environment,
             float occlusionFactor,
-            boolean underwater,
+            SubmersionState submersion,
             boolean applyReverb,
             long createdAtMs
     ) {
+        public SourceAcousticSnapshot(
+                AcousticEnvironment environment,
+                float occlusionFactor,
+                boolean underwater,
+                boolean applyReverb,
+                long createdAtMs
+        ) {
+            this(
+                    environment,
+                    occlusionFactor,
+                    underwater ? SubmersionState.WATER : SubmersionState.NONE,
+                    applyReverb,
+                    createdAtMs
+            );
+        }
+
+        public boolean underwater() {
+            return submersion == SubmersionState.WATER;
+        }
     }
 
     /**
@@ -80,6 +101,76 @@ public final class OpenAlEfxBridge {
     }
 
     /**
+     * Checks on the active OpenAL audio thread whether a channel is currently bound to a playing AL source.
+     */
+    public static synchronized boolean isChannelPlaying(Channel channel) {
+        if (channel == null || !initialized || !efxSupported) {
+            return false;
+        }
+        long ctx = safeGetCurrentContext();
+        if (ctx == 0L || ctx != boundContext || !resolveChannelReflection()) {
+            return false;
+        }
+        int sourceId = extractSourceId(channel);
+        if (sourceId <= 0 || !AL10.alIsSource(sourceId)) {
+            return false;
+        }
+        return AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING;
+    }
+
+    /**
+     * Re-applies dynamic room EFX, smoothed occlusion, and fluid submersion to an already-playing OpenAL channel
+     * on the audio thread without restarting playback.
+     */
+    public static synchronized boolean updateActiveChannel(Channel channel, SourceAcousticSnapshot snapshot) {
+        if (channel == null || snapshot == null) {
+            return false;
+        }
+        if (safeGetCurrentContext() == 0L) {
+            return false;
+        }
+        if (!ensureInitializedOnAudioThread()) {
+            return false;
+        }
+        if (!resolveChannelReflection()) {
+            return false;
+        }
+        int sourceId = extractSourceId(channel);
+        return updateActiveSource(sourceId, snapshot);
+    }
+
+    /**
+     * Updates an already-playing OpenAL source handle live without restarting playback.
+     */
+    public static synchronized boolean updateActiveSource(int sourceId, SourceAcousticSnapshot snapshot) {
+        if (sourceId <= 0 || snapshot == null || safeGetCurrentContext() == 0L) {
+            return false;
+        }
+        if (!ensureInitializedOnAudioThread()) {
+            return false;
+        }
+        if (!AL10.alIsSource(sourceId)) {
+            return false;
+        }
+        if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) {
+            return false;
+        }
+        boolean applied = applyToSource(sourceId, snapshot);
+        if (applied) {
+            DYNAMIC_UPDATES.incrementAndGet();
+        }
+        return applied;
+    }
+
+    private static long safeGetCurrentContext() {
+        try {
+            return ALC10.alcGetCurrentContext();
+        } catch (Throwable ignored) {
+            return 0L;
+        }
+    }
+
+    /**
      * Applies precomputed environment reverb, direct occlusion low-pass filter, and air absorption
      * directly to a raw OpenAL source handle on the active OpenAL audio thread.
      */
@@ -94,10 +185,11 @@ public final class OpenAlEfxBridge {
             return false;
         }
         try {
-            float occ = Math.max(0.0F, Math.min(1.0F, snapshot.occlusionFactor()));
-            int bucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(occ * (OCCLUSION_BUCKETS - 1))));
+            float effectiveOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(
+                    snapshot.occlusionFactor(), snapshot.submersion());
+            int bucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(effectiveOcc * (OCCLUSION_BUCKETS - 1))));
 
-            // 1) Direct path material occlusion low-pass filter
+            // 1) Direct path material occlusion & submersion low-pass filter
             int directFilter = (bucket > 0) ? DIRECT_LPF_POOL[bucket] : EXTEfx.AL_FILTER_NULL;
             AL10.alSourcei(sourceId, EXTEfx.AL_DIRECT_FILTER, directFilter);
 
@@ -114,7 +206,8 @@ public final class OpenAlEfxBridge {
             }
 
             // 3) Distance-based high-frequency air absorption
-            float airAbs = AcousticPhysicsEngine.computeAirAbsorptionFactor(env, snapshot.underwater());
+            float airAbs = AcousticPhysicsEngine.computeAirAbsorptionFactor(
+                    env, snapshot.submersion() == SubmersionState.WATER);
             AL10.alSourcef(sourceId, EXTEfx.AL_AIR_ABSORPTION_FACTOR, airAbs);
 
             int err = AL10.alGetError();
@@ -404,6 +497,10 @@ public final class OpenAlEfxBridge {
 
     public static long getAppliedSourcesCount() {
         return APPLIED_SOURCES.get();
+    }
+
+    public static long getDynamicUpdatesCount() {
+        return DYNAMIC_UPDATES.get();
     }
 
     public static int getActiveSlotCount() {

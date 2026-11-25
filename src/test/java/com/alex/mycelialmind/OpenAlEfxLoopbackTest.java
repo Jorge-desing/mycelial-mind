@@ -2,6 +2,7 @@ package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.client.audio.OpenAlEfxBridge;
 import com.alex.mycelialmind.client.audio.OpenAlEfxBridge.SourceAcousticSnapshot;
+import com.alex.mycelialmind.hive.AcousticPhysicsEngine;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.AcousticEnvironment;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -243,6 +244,137 @@ public class OpenAlEfxLoopbackTest {
                 AL10.alSourceStop(sourceId);
                 AL10.alDeleteSources(sourceId);
             }
+        } finally {
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
+    @Test
+    void dynamicOcclusionTransitionOnActiveSourceUpdatesSpectrumLive() {
+        short[] pcm = synthesizeMultiTonePcm(
+                SAMPLE_RATE * 2,
+                new double[]{220.0D, 440.0D, 3500.0D, 6200.0D},
+                0.22D
+        );
+        int bufferId = createMono16Buffer(pcm);
+        int sourceId = createUnitSource(bufferId);
+        try {
+            assertTrue(
+                    OpenAlEfxBridge.applyToSource(
+                            sourceId,
+                            new SourceAcousticSnapshot(
+                                    AcousticEnvironment.OPEN_AIR,
+                                    0.0F,
+                                    AcousticPhysicsEngine.SubmersionState.NONE,
+                                    false,
+                                    0L
+                            )
+                    ),
+                    "Initial applyToSource should succeed"
+            );
+            AL10.alSourcePlay(sourceId);
+            renderStereoFrames(2048);
+
+            float[] clearRendered = renderStereoFrames(FFT_SIZE);
+            double[] clearSpec = computeStereoPowerSpectrum(clearRendered, 0, FFT_SIZE);
+            double clearHighPower = bandPower(clearSpec, 2000.0D, 16000.0D);
+            assertEquals(AL10.AL_PLAYING, AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE));
+
+            long updatesBefore = OpenAlEfxBridge.getDynamicUpdatesCount();
+            assertTrue(
+                    OpenAlEfxBridge.updateActiveSource(
+                            sourceId,
+                            new SourceAcousticSnapshot(
+                                    AcousticEnvironment.OPEN_AIR,
+                                    0.85F,
+                                    AcousticPhysicsEngine.SubmersionState.NONE,
+                                    false,
+                                    1L
+                            )
+                    ),
+                    "Live updateActiveSource must succeed on actively playing source"
+            );
+            assertTrue(OpenAlEfxBridge.getDynamicUpdatesCount() > updatesBefore);
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError(), "Live EFX update must leave AL_NO_ERROR");
+
+            renderStereoFrames(2048);
+            float[] occRendered = renderStereoFrames(FFT_SIZE);
+            double[] occSpec = computeStereoPowerSpectrum(occRendered, 0, FFT_SIZE);
+            double occHighPower = bandPower(occSpec, 2000.0D, 16000.0D);
+
+            assertEquals(AL10.AL_PLAYING, AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE));
+            assertTrue(clearHighPower > 1e-6D, "Clear spectrum must preserve >2 kHz energy");
+            double dropDb = 10.0D * Math.log10(clearHighPower / Math.max(occHighPower, 1e-12D));
+            assertTrue(dropDb >= 8.0D, "Live transition to 0.85 occlusion must attenuate >2 kHz by >= 8 dB, got " + dropDb);
+        } finally {
+            AL10.alSourceStop(sourceId);
+            AL10.alDeleteSources(sourceId);
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
+    @Test
+    void waterAndSporeFogSubmersionApplyProgressiveLowPassDamping() {
+        short[] pcm = synthesizeMultiTonePcm(
+                SAMPLE_RATE,
+                new double[]{220.0D, 440.0D, 3200.0D, 6500.0D},
+                0.22D
+        );
+        int bufferId = createMono16Buffer(pcm);
+        try {
+            SpectralMeasurement clear = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(AcousticEnvironment.OPEN_AIR, 0.0F, AcousticPhysicsEngine.SubmersionState.NONE, false, 0L)
+            );
+            SpectralMeasurement sporeFog = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(AcousticEnvironment.OPEN_AIR, 0.0F, AcousticPhysicsEngine.SubmersionState.SPORE_FOG, false, 0L)
+            );
+            SpectralMeasurement water = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(AcousticEnvironment.OPEN_AIR, 0.0F, AcousticPhysicsEngine.SubmersionState.WATER, false, 0L)
+            );
+
+            assertTrue(clear.highPower() > sporeFog.highPower() * 2.0D,
+                    "SPORE_FOG must noticeably damp >2 kHz energy vs clear air");
+            assertTrue(sporeFog.highPower() > water.highPower() * 2.5D,
+                    "WATER must heavily damp >2 kHz energy vs SPORE_FOG");
+
+            double clearRatio = clear.highPower() / Math.max(clear.lowPower(), 1e-12D);
+            double fogRatio = sporeFog.highPower() / Math.max(sporeFog.lowPower(), 1e-12D);
+            double waterRatio = water.highPower() / Math.max(water.lowPower(), 1e-12D);
+            assertTrue(clearRatio > fogRatio && fogRatio > waterRatio,
+                    "Expected strictly progressive HF/LF tilt reduction NONE > SPORE_FOG > WATER");
+        } finally {
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
+    @Test
+    void reverbTailDecayOrdersAcrossEnvironmentsFromCanopyToAbyss() {
+        short[] impulseBurst = synthesizeMultiTonePcm(
+                8820,
+                new double[]{280.0D, 640.0D, 1320.0D},
+                0.28D
+        );
+        int bufferId = createMono16Buffer(impulseBurst);
+        try {
+            TailMeasurement canopy = measurePostCutoffTail(bufferId, AcousticEnvironment.FOREST_CANOPY, true);
+            renderStereoFrames(8192);
+            TailMeasurement cavern = measurePostCutoffTail(bufferId, AcousticEnvironment.CAVERN_SINKHOLE, true);
+            renderStereoFrames(8192);
+            TailMeasurement abyss = measurePostCutoffTail(bufferId, AcousticEnvironment.DEEP_MYCELIUM_ABYSS, true);
+
+            assertTrue(canopy.earlyRms() > 1e-4D,
+                    "FOREST_CANOPY must produce audible early reverb tail, got " + canopy.earlyRms());
+            assertTrue(canopy.earlyRms() < cavern.earlyRms() && cavern.earlyRms() < abyss.earlyRms(),
+                    "Expected early reverb RMS ordering CANOPY < CAVERN < ABYSS, got canopy="
+                            + canopy.earlyRms() + " cavern=" + cavern.earlyRms() + " abyss=" + abyss.earlyRms());
+            assertTrue(canopy.earlyFftPower() < cavern.earlyFftPower() && cavern.earlyFftPower() < abyss.earlyFftPower(),
+                    "Expected early FFT power ordering CANOPY < CAVERN < ABYSS");
+            assertTrue(canopy.lateRms() < abyss.lateRms() && cavern.lateRms() < abyss.lateRms(),
+                    "Expected late tail energy to sustain longer in DEEP_MYCELIUM_ABYSS, got canopy="
+                            + canopy.lateRms() + " cavern=" + cavern.lateRms() + " abyss=" + abyss.lateRms());
         } finally {
             AL10.alDeleteBuffers(bufferId);
         }

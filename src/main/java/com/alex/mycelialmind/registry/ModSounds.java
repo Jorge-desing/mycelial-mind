@@ -416,6 +416,14 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> STATION_UPKEEP_LOW = register("station_upkeep_low");
     public static final DeferredHolder<SoundEvent, SoundEvent> AMBER_VEIN_RESONATE = register("amber_vein_resonate");
 
+    // Sound Engine & Studio v5 Expansion (6: Adaptive Beds & Spatial Micro-Emitters)
+    public static final DeferredHolder<SoundEvent, SoundEvent> HIVE_TENSION_BED_LOW = register("hive_tension_bed_low");
+    public static final DeferredHolder<SoundEvent, SoundEvent> HIVE_SWARM_COMBAT_BED = register("hive_swarm_combat_bed");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CAVERN_SPORE_DRIP = register("cavern_spore_drip");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SUBTERRANEAN_HYPHAL_CREAK = register("subterranean_hyphal_creak");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DEEP_MYCELIUM_WHISPER = register("deep_mycelium_whisper");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SANCTUM_HARMONIC_CHIME = register("sanctum_harmonic_chime");
+
     // =========================================================================
     // 7 DeferredSoundType Surface Families
     // =========================================================================

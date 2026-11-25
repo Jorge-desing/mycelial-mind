@@ -5,7 +5,7 @@
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 97,
+  "page_count": 98,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.IV"
@@ -225,7 +225,10 @@
         "raw": "TOML Configuration\nKeys (4/15)\n• `[audio] (v4)`\n`openAlEfxAcousticsEn\nabled` = `true`;\n`openAlEfxVanillaInMyc\nelialZones` = `true`;\n`swarmVoiceLimitingEna\nbled` = `true`;\n`sinkholeUpdraftBedEn\nabled` = `true`."
       },
       {
-        "raw": "TOML Configuration\nKeys (5/15)\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);\n`enableAdditiveParticle\nGlow` = `true`."
+        "raw": "TOML Configuration\nKeys (5/15)\n• `[audio] (v5)`\n`openAlEfxDynamicTra\nckingEnabled` = `true`;\n`adaptiveAmbientLayer\nsEnabled` = `true`;\n`spatialMicroAmbienceE\nnabled` = `true`.\n• `[particles]`\n`particleDensityScale`\n= `1.0` (`0.25..1.5`);"
+      },
+      {
+        "raw": "`enableAdditiveParticle\nGlow` = `true`."
       },
       {
         "raw": "TOML Configuration\nKeys (6/15)\n• `[juice]`\n`screenShakeScale` =\n`0.65` (`0..1.5`);\n`statusVignetteEnabled\n` = `true`;\n`uiAudioFeedbackEnabl\ned` = `true`;\n`smoothHudBarsEnable\nd` = `true`."

@@ -1739,13 +1739,15 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         "root_sap_harvest", "root_cap_bounce", "resonant_elixir_drink",
         "boss_telegraph_lock", "boss_stagger_break", "brute_wall_stun",
         "pyro_shroom_defuse", "station_upkeep_low", "amber_vein_resonate",
+        "hive_tension_bed_low", "hive_swarm_combat_bed", "cavern_spore_drip",
+        "subterranean_hyphal_creak", "deep_mycelium_whisper", "sanctum_harmonic_chime",
     ]
     sound_blocks = [
         (
-            "• **Estudio Visual y Audio v4:** 20 `Model` multi-articulados (UV manifests), LabPBR `_n`/`_s`, "
-            "OpenAL EFX (`OpenAlEfxBridge`, `ClientAcousticController`), 7 camas reactivas y **220 `ModSounds`** (**580** `.ogg`, 66 stems).",
-            "• **Visual & Audio Studio v4:** 20 articulated 3D models (UV manifests), LabPBR `_n`/`_s`, "
-            "OpenAL EFX (`OpenAlEfxBridge`, `ClientAcousticController`), 7 reactive beds, and **220 `ModSounds`** (**580** `.ogg`, 66 stems).",
+            "• **Estudio Visual y Audio v5:** 20 `Model` multi-articulados, LabPBR `_n`/`_s`, "
+            "OpenAL EFX en vivo (inmersión/oclusión), 9 camas reactivas y **226 `ModSounds`** (**596** `.ogg`, 69 stems).",
+            "• **Visual & Audio Studio v5:** 20 articulated 3D models, LabPBR `_n`/`_s`, "
+            "live OpenAL EFX (submersion/occlusion), 9 reactive beds, and **226 `ModSounds`** (**596** `.ogg`, 69 stems).",
         ),
         (
             "• **Dinámica Vocal y OpenAL EFX:** tono (`0.45–1.85`) por Rango/Cepa/Frenesí/Líder/`Desync`; "
@@ -1772,6 +1774,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[audio]` `ambientSoundscapeVolume` = `1.0` (`0..1`); `hiveAdaptationAudioAlerts` = `true`; `caveSoundOcclusion` = `true`; `dynamicAudioDucking` = `true`; `bossTensionBedEnabled` = `true`."),
         ("• `[audio] (v4)` `openAlEfxAcousticsEnabled` = `true`; `openAlEfxVanillaInMycelialZones` = `true`; `swarmVoiceLimitingEnabled` = `true`; `sinkholeUpdraftBedEnabled` = `true`.",
          "• `[audio] (v4)` `openAlEfxAcousticsEnabled` = `true`; `openAlEfxVanillaInMycelialZones` = `true`; `swarmVoiceLimitingEnabled` = `true`; `sinkholeUpdraftBedEnabled` = `true`."),
+        ("• `[audio] (v5)` `openAlEfxDynamicTrackingEnabled` = `true`; `adaptiveAmbientLayersEnabled` = `true`; `spatialMicroAmbienceEnabled` = `true`.",
+         "• `[audio] (v5)` `openAlEfxDynamicTrackingEnabled` = `true`; `adaptiveAmbientLayersEnabled` = `true`; `spatialMicroAmbienceEnabled` = `true`."),
         ("• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.",
          "• `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`."),
         ("• `[juice]` `screenShakeScale` = `0.65` (`0..1.5`); `statusVignetteEnabled` = `true`; `uiAudioFeedbackEnabled` = `true`; `smoothHudBarsEnabled` = `true`.",
@@ -1950,8 +1954,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         number=12,
         title=lt("Técnica, Config y Comandos", "Tech, Configs & Commands"),
         subtitle=lt(
-            "220 Sonidos, OpenAL EFX, 53 Configs, Red v23, /mycelial y 24 Verify",
-            "220 Sounds, OpenAL EFX, 53 Configs, Net v23, /mycelial & 24 Verify",
+            "226 Sonidos, OpenAL EFX en Vivo, 56 Configs, Red v23, /mycelial y 24 Verify",
+            "226 Sounds, Live OpenAL EFX, 56 Configs, Net v23, /mycelial & 24 Verify",
         ),
         icon_item="mycelialmind:bio_scanner",
         entries=ch12_entries,

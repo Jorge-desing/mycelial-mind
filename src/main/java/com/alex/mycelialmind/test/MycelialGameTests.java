@@ -5074,7 +5074,7 @@ public final class MycelialGameTests {
 
         try {
             var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-            boolean soundsOk = soundEntries.size() == 220;
+            boolean soundsOk = soundEntries.size() == 226;
             if (soundsOk) {
                 for (var holder : soundEntries) {
                     SoundEvent evt = holder.get();
@@ -11142,7 +11142,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void audioEngineV4CuesCommandAndZeroVanillaSoundsWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<SoundEvent> v4Sounds = List.of(
+        List<SoundEvent> v5Sounds = List.of(
                 ModSounds.UI_CODEX_TAB.get(),
                 ModSounds.UI_ACTION_CONFIRM.get(),
                 ModSounds.SINKHOLE_UPDRAFT_LOOP.get(),
@@ -11154,12 +11154,18 @@ public final class MycelialGameTests {
                 ModSounds.BRUTE_WALL_STUN.get(),
                 ModSounds.PYRO_SHROOM_DEFUSE.get(),
                 ModSounds.STATION_UPKEEP_LOW.get(),
-                ModSounds.AMBER_VEIN_RESONATE.get()
+                ModSounds.AMBER_VEIN_RESONATE.get(),
+                ModSounds.HIVE_TENSION_BED_LOW.get(),
+                ModSounds.HIVE_SWARM_COMBAT_BED.get(),
+                ModSounds.CAVERN_SPORE_DRIP.get(),
+                ModSounds.SUBTERRANEAN_HYPHAL_CREAK.get(),
+                ModSounds.DEEP_MYCELIUM_WHISPER.get(),
+                ModSounds.SANCTUM_HARMONIC_CHIME.get()
         );
-        for (SoundEvent evt : v4Sounds) {
+        for (SoundEvent evt : v5Sounds) {
             helper.assertTrue(evt != null && evt.getLocation() != null
                             && MycelialMind.MODID.equals(evt.getLocation().getNamespace()),
-                    "All 12 v4 SoundEvents must be registered under mycelialmind namespace.");
+                    "All 18 v4/v5 SoundEvents must be registered under mycelialmind namespace.");
         }
 
         // Verify RootSapVialItem & ResonantSapElixirItem use mod-owned drinking/eating sounds (zero vanilla honey_drink)

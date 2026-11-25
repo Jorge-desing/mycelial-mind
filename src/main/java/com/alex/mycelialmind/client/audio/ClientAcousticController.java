@@ -5,12 +5,19 @@ import com.alex.mycelialmind.config.MycelialClientConfig;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.AcousticEnvironment;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.MaterialAbsorption;
+import com.alex.mycelialmind.hive.AcousticPhysicsEngine.SubmersionState;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.SwarmVoiceBudget;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.VoicePriority;
+import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.alex.mycelialmind.world.ModDimensions;
+import com.mojang.blaze3d.audio.Channel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.client.resources.sounds.TickableSoundInstance;
+import net.minecraft.client.sounds.SoundEngine;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -27,28 +34,39 @@ import net.neoforged.neoforge.client.event.sound.PlaySoundSourceEvent;
 import net.neoforged.neoforge.client.event.sound.PlayStreamingSourceEvent;
 import net.neoforged.neoforge.client.event.sound.SoundEngineLoadEvent;
 
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
 /**
  * Client-side acoustic coordinator combining:
  * 1) Per-listener 6-direction room geometry classification & Sinkhole proximity scan;
- * 2) Main-thread multi-block material occlusion raycasting;
+ * 2) Main-thread multi-block material occlusion raycasting & medium submersion tracking;
  * 3) Sliding-window swarm anti-cacophony voice budget limiting;
- * 4) Thread-safe handoff of precomputed acoustic snapshots to {@link OpenAlEfxBridge}.
+ * 4) Thread-safe initial handoff & live periodic updates on active channels via {@link OpenAlEfxBridge}.
  */
 public final class ClientAcousticController {
     private static final int ROOM_PROBE_INTERVAL_TICKS = 5;
     private static final int SINKHOLE_SCAN_INTERVAL_TICKS = 20;
+    private static final int DYNAMIC_TRACKING_INTERVAL_TICKS = 4;
     private static final int MAX_RAY_DIST = 14;
     private static final int MAX_OCCLUSION_SAMPLES = 24;
     private static final int MAX_PENDING_SNAPSHOTS = 256;
+    private static final int MAX_TRACKED_CHANNELS = 32;
+    private static final long TRACKED_CHANNEL_TTL_MS = 18_000L;
 
     private static final SwarmVoiceBudget VOICE_BUDGET = new SwarmVoiceBudget();
     private static final Map<SoundInstance, OpenAlEfxBridge.SourceAcousticSnapshot> PENDING_SNAPSHOTS =
             new ConcurrentHashMap<>();
+    private static final Map<Channel, TrackedChannel> TRACKED_CHANNELS = new ConcurrentHashMap<>();
 
     private static volatile AcousticEnvironment currentEnvironment = AcousticEnvironment.OPEN_AIR;
+    private static volatile SubmersionState currentSubmersion = SubmersionState.NONE;
     private static volatile float lastEnclosureRatio = 0.0F;
     private static volatile float lastAverageWallDistance = MAX_RAY_DIST;
     private static volatile float lastComputedOcclusion = 0.0F;
@@ -57,18 +75,54 @@ public final class ClientAcousticController {
 
     private static int roomProbeTicks = 0;
     private static int sinkholeScanTicks = 0;
+    private static int dynamicTrackingTicks = 0;
+    private static Executor cachedAudioExecutor;
+    private static boolean audioExecutorResolved = false;
+
+    private static final class TrackedChannel {
+        final WeakReference<SoundInstance> soundRef;
+        volatile double x;
+        volatile double y;
+        volatile double z;
+        volatile float smoothedOcclusion;
+        final boolean applyReverb;
+        final long createdAtMs;
+
+        TrackedChannel(
+                SoundInstance sound,
+                double x,
+                double y,
+                double z,
+                float smoothedOcclusion,
+                boolean applyReverb,
+                long createdAtMs
+        ) {
+            this.soundRef = new WeakReference<>(sound);
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.smoothedOcclusion = smoothedOcclusion;
+            this.applyReverb = applyReverb;
+            this.createdAtMs = createdAtMs;
+        }
+    }
 
     private ClientAcousticController() {
     }
 
     public static void onSoundEngineLoad(SoundEngineLoadEvent event) {
+        TRACKED_CHANNELS.clear();
+        audioExecutorResolved = false;
+        cachedAudioExecutor = null;
         OpenAlEfxBridge.markNeedsReinit();
     }
 
     public static void resetSession() {
         VOICE_BUDGET.reset();
         PENDING_SNAPSHOTS.clear();
+        TRACKED_CHANNELS.clear();
         currentEnvironment = AcousticEnvironment.OPEN_AIR;
+        currentSubmersion = SubmersionState.NONE;
         lastEnclosureRatio = 0.0F;
         lastAverageWallDistance = MAX_RAY_DIST;
         lastComputedOcclusion = 0.0F;
@@ -76,12 +130,28 @@ public final class ClientAcousticController {
         nearestUpdraftVentPos = null;
         roomProbeTicks = 0;
         sinkholeScanTicks = 0;
+        dynamicTrackingTicks = 0;
+    }
+
+    public static SubmersionState resolvePlayerSubmersion(Minecraft mc) {
+        if (mc == null || mc.player == null || mc.level == null) {
+            return SubmersionState.NONE;
+        }
+        if (mc.player.isUnderWater()) {
+            return SubmersionState.WATER;
+        }
+        boolean inDeepMycelium = mc.level.dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL);
+        boolean denseHomeostasisFog = inDeepMycelium
+                && ClientHiveCache.getHomeostasisStage() != DimensionalHomeostasisEngine.HomeostasisStage.STABLE;
+        boolean tideFog = ClientHiveCache.getFungalTideSecondsRemaining() > 0 && !ClientHiveCache.isInProtectedZone();
+        return (denseHomeostasisFog || tideFog) ? SubmersionState.SPORE_FOG : SubmersionState.NONE;
     }
 
     public static void onClientTick(Minecraft mc) {
         if (mc.level == null || mc.player == null || mc.isPaused()) {
             return;
         }
+        currentSubmersion = resolvePlayerSubmersion(mc);
         if (++sinkholeScanTicks >= SINKHOLE_SCAN_INTERVAL_TICKS) {
             sinkholeScanTicks = 0;
             scanSinkholeProximity(mc.level, mc.player);
@@ -89,6 +159,10 @@ public final class ClientAcousticController {
         if (++roomProbeTicks >= ROOM_PROBE_INTERVAL_TICKS) {
             roomProbeTicks = 0;
             updateRoomEnvironment(mc.level, mc.player);
+        }
+        if (++dynamicTrackingTicks >= DYNAMIC_TRACKING_INTERVAL_TICKS) {
+            dynamicTrackingTicks = 0;
+            dispatchDynamicChannelUpdates(mc);
         }
         if (PENDING_SNAPSHOTS.size() > MAX_PENDING_SNAPSHOTS) {
             long cutoff = System.currentTimeMillis() - 2500L;
@@ -157,13 +231,15 @@ public final class ClientAcousticController {
         }
 
         AcousticEnvironment env = currentEnvironment;
+        SubmersionState submersion = resolvePlayerSubmersion(mc);
+        currentSubmersion = submersion;
         boolean applyReverb = !sound.isLooping() || MycelialMind.MODID.equals(namespace);
         PENDING_SNAPSHOTS.put(
                 sound,
                 new OpenAlEfxBridge.SourceAcousticSnapshot(
                         env,
                         occlusion,
-                        player.isUnderWater(),
+                        submersion,
                         applyReverb,
                         System.currentTimeMillis()
                 )
@@ -175,8 +251,8 @@ public final class ClientAcousticController {
      */
     public static void onPlaySoundSource(PlaySoundSourceEvent event) {
         OpenAlEfxBridge.SourceAcousticSnapshot snap = PENDING_SNAPSHOTS.remove(event.getSound());
-        if (snap != null) {
-            OpenAlEfxBridge.applyToChannel(event.getChannel(), snap);
+        if (snap != null && OpenAlEfxBridge.applyToChannel(event.getChannel(), snap)) {
+            trackActiveChannel(event.getChannel(), event.getSound(), snap);
         }
     }
 
@@ -185,9 +261,127 @@ public final class ClientAcousticController {
      */
     public static void onPlayStreamingSource(PlayStreamingSourceEvent event) {
         OpenAlEfxBridge.SourceAcousticSnapshot snap = PENDING_SNAPSHOTS.remove(event.getSound());
-        if (snap != null) {
-            OpenAlEfxBridge.applyToChannel(event.getChannel(), snap);
+        if (snap != null && OpenAlEfxBridge.applyToChannel(event.getChannel(), snap)) {
+            trackActiveChannel(event.getChannel(), event.getSound(), snap);
         }
+    }
+
+    private static void trackActiveChannel(
+            Channel channel,
+            SoundInstance sound,
+            OpenAlEfxBridge.SourceAcousticSnapshot snap
+    ) {
+        if (channel == null || sound == null || sound.isRelative()
+                || !MycelialClientConfig.openAlEfxDynamicTrackingEnabled()
+                || TRACKED_CHANNELS.size() >= MAX_TRACKED_CHANNELS) {
+            return;
+        }
+        TRACKED_CHANNELS.put(
+                channel,
+                new TrackedChannel(
+                        sound,
+                        sound.getX(),
+                        sound.getY(),
+                        sound.getZ(),
+                        snap.occlusionFactor(),
+                        snap.applyReverb(),
+                        System.currentTimeMillis()
+                )
+        );
+    }
+
+    private static void dispatchDynamicChannelUpdates(Minecraft mc) {
+        if (!MycelialClientConfig.openAlEfxAcousticsEnabled()
+                || !MycelialClientConfig.openAlEfxDynamicTrackingEnabled()) {
+            TRACKED_CHANNELS.clear();
+            return;
+        }
+        if (TRACKED_CHANNELS.isEmpty()) {
+            return;
+        }
+        Executor audioExecutor = resolveAudioExecutor(mc.getSoundManager());
+        if (audioExecutor == null) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        Vec3 listenerEye = mc.player.getEyePosition();
+        AcousticEnvironment env = currentEnvironment;
+        SubmersionState submersion = currentSubmersion;
+        boolean occlusionEnabled = MycelialClientConfig.caveSoundOcclusion();
+        List<Map.Entry<Channel, OpenAlEfxBridge.SourceAcousticSnapshot>> updates = new ArrayList<>();
+
+        for (Map.Entry<Channel, TrackedChannel> entry : TRACKED_CHANNELS.entrySet()) {
+            Channel ch = entry.getKey();
+            TrackedChannel tc = entry.getValue();
+            SoundInstance snd = tc.soundRef.get();
+            if (snd instanceof TickableSoundInstance tickable && tickable.isStopped()) {
+                TRACKED_CHANNELS.remove(ch);
+                continue;
+            }
+            if ((snd == null || !snd.isLooping()) && (now - tc.createdAtMs) > TRACKED_CHANNEL_TTL_MS) {
+                TRACKED_CHANNELS.remove(ch);
+                continue;
+            }
+            if (snd != null) {
+                tc.x = snd.getX();
+                tc.y = snd.getY();
+                tc.z = snd.getZ();
+            }
+            float rawOcc = occlusionEnabled
+                    ? computeMaterialOcclusion(mc.level, listenerEye, new Vec3(tc.x, tc.y, tc.z))
+                    : 0.0F;
+            float smoothOcc = AcousticPhysicsEngine.smoothOcclusion(tc.smoothedOcclusion, rawOcc, 0.45F);
+            tc.smoothedOcclusion = smoothOcc;
+            updates.add(new AbstractMap.SimpleImmutableEntry<>(
+                    ch,
+                    new OpenAlEfxBridge.SourceAcousticSnapshot(env, smoothOcc, submersion, tc.applyReverb, now)
+            ));
+        }
+
+        if (updates.isEmpty()) {
+            return;
+        }
+        audioExecutor.execute(() -> {
+            for (var item : updates) {
+                if (!OpenAlEfxBridge.updateActiveChannel(item.getKey(), item.getValue())) {
+                    TRACKED_CHANNELS.remove(item.getKey());
+                }
+            }
+        });
+    }
+
+    private static Executor resolveAudioExecutor(SoundManager soundManager) {
+        if (audioExecutorResolved) {
+            return cachedAudioExecutor;
+        }
+        audioExecutorResolved = true;
+        if (soundManager == null) {
+            return null;
+        }
+        try {
+            SoundEngine engine = null;
+            for (Field f : SoundManager.class.getDeclaredFields()) {
+                if (f.getType() == SoundEngine.class) {
+                    f.setAccessible(true);
+                    engine = (SoundEngine) f.get(soundManager);
+                    break;
+                }
+            }
+            if (engine == null) {
+                return null;
+            }
+            for (Field f : SoundEngine.class.getDeclaredFields()) {
+                if (Executor.class.isAssignableFrom(f.getType())) {
+                    f.setAccessible(true);
+                    cachedAudioExecutor = (Executor) f.get(engine);
+                    return cachedAudioExecutor;
+                }
+            }
+        } catch (Throwable ignored) {
+            // Safe fallback: dynamic tracking yields gracefully if executor reflection fails
+        }
+        return null;
     }
 
     private static void scanSinkholeProximity(Level level, Player player) {
@@ -366,6 +560,14 @@ public final class ClientAcousticController {
 
     public static AcousticEnvironment getCurrentEnvironment() {
         return currentEnvironment;
+    }
+
+    public static SubmersionState getCurrentSubmersionState() {
+        return currentSubmersion;
+    }
+
+    public static int getTrackedChannelCount() {
+        return TRACKED_CHANNELS.size();
     }
 
     public static float getLastEnclosureRatio() {

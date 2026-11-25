@@ -515,6 +515,104 @@ def granular_bio_cloud(
     return out / max(rms, 1e-6) * 0.45 if rms > 1e-8 else out
 
 
+def morphing_formant_tract(
+    t: np.ndarray,
+    f0_hz: np.ndarray | float,
+    formant_keyframes: list[tuple[float, list[tuple[float, float, float]]]],
+    rng: np.random.Generator,
+    *,
+    open_quotient: float = 0.54,
+    speed_quotient: float = 2.1,
+    sub_weight: float = 0.55,
+    breath_noise: float = 0.14,
+) -> np.ndarray:
+    """Multi-keyframe morphing vocal tract filtering a Rosenberg glottal pulse train.
+
+    Each keyframe is (time_fraction_0_to_1, [(freq_hz, q, gain), ...]).
+    """
+    n = len(t)
+    if n <= 8:
+        return np.zeros(max(0, n), dtype=np.float64)
+    if np.ndim(f0_hz) == 0:
+        f_arr = np.full(n, max(24.0, float(f0_hz)), dtype=np.float64)
+    else:
+        f_arr = np.maximum(24.0, np.asarray(f0_hz, dtype=np.float64))
+    phase_cyc = np.cumsum(f_arr) / float(SAMPLE_RATE) + rng.uniform(0.0, 1.0)
+    glottal = rosenberg_glottal_pulse(phase_cyc, open_quotient=open_quotient, speed_quotient=speed_quotient)
+    sub = np.sin(np.pi * phase_cyc + rng.uniform(0.0, 2.0 * np.pi)) * float(sub_weight)
+    exc = glottal + sub
+    if breath_noise > 1e-4:
+        exc = exc + _sos_bandpass(rng.normal(0.0, 1.0, n), 700.0, 4800.0) * float(breath_noise)
+
+    if not formant_keyframes:
+        return exc
+    sorted_kf = sorted(formant_keyframes, key=lambda kf: float(kf[0]))
+    if len(sorted_kf) == 1:
+        specs = sorted_kf[0][1]
+        bank = [(float(f), float(q), float(g)) for f, q, g in specs]
+        return _apply_formant_bank(exc, bank)
+
+    seg_count = len(sorted_kf) - 1
+    out = np.zeros(n, dtype=np.float64)
+    for idx in range(seg_count):
+        t0_f, formants_a = sorted_kf[idx]
+        t1_f, formants_b = sorted_kf[idx + 1]
+        s0 = max(0, min(n, int(round(float(t0_f) * n))))
+        s1 = n if idx == seg_count - 1 else max(s0, min(n, int(round(float(t1_f) * n))))
+        if s1 - s0 <= 8:
+            continue
+        pad = min(64, s0)
+        seg_exc = exc[s0 - pad : s1]
+        seg_out = np.zeros(len(seg_exc), dtype=np.float64)
+        for j in range(min(len(formants_a), len(formants_b))):
+            fa, qa, ga = formants_a[j]
+            fb, qb, gb = formants_b[j]
+            q_mid = max(0.5, 0.5 * (float(qa) + float(qb)))
+            g_mid = 0.5 * (float(ga) + float(gb))
+            seg_out += _swept_resonant_filter(seg_exc, float(fa), float(fb), q=q_mid, n_bands=10) * g_mid
+        core = seg_out[pad:]
+        if idx > 0 and len(core) > 48:
+            xf = np.linspace(0.0, 1.0, 48)
+            out[s0 : s0 + 48] = out[s0 : s0 + 48] * (1.0 - xf) + core[:48] * xf
+            out[s0 + 48 : s1] = core[48:]
+        else:
+            out[s0:s1] = core
+    return out
+
+
+def modal_dispersed_impact(
+    n: int,
+    base_freq: float,
+    rng: np.random.Generator,
+    *,
+    num_modes: int = 8,
+    hardness: float = 0.65,
+    dispersion: float = 0.14,
+    decay_secs: float = 0.42,
+) -> np.ndarray:
+    """Stiff-plate inharmonic modal dispersion synthesizer using frequency stretching f_k = f0 * k^(1 + dispersion)."""
+    if n <= 16:
+        return np.zeros(max(0, n), dtype=np.float64)
+    t = np.arange(n, dtype=np.float64) / float(SAMPLE_RATE)
+    out = np.zeros(n, dtype=np.float64)
+    f0 = max(45.0, float(base_freq) * float(rng.uniform(0.92, 1.08)))
+    hard = float(np.clip(hardness, 0.1, 1.0))
+    disp = float(np.clip(dispersion, 0.0, 0.45))
+    for k in range(1, max(2, int(num_modes)) + 1):
+        stretch = (k ** (1.0 + disp)) * (1.0 + float(rng.uniform(-0.025, 0.025)))
+        f_k = f0 * stretch
+        if f_k >= 0.44 * SAMPLE_RATE:
+            break
+        tau_k = max(0.012, float(decay_secs) / (1.0 + 0.55 * (k - 1) * (1.15 - 0.35 * hard)))
+        amp_k = (1.0 / (k ** (1.25 - 0.45 * hard)))
+        phase_k = float(rng.uniform(0.0, 2.0 * np.pi))
+        out += amp_k * np.sin(2.0 * np.pi * f_k * t + phase_k) * np.exp(-t / tau_k)
+    strike = _sos_bandpass(rng.normal(0.0, 1.0, n), 1100.0, min(14000.0, 4200.0 + hard * 7500.0))
+    out += strike * exp_decay(t, 0.004 + 0.010 * (1.0 - hard)) * (0.28 + 0.42 * hard)
+    peak = float(np.max(np.abs(out)))
+    return out / max(peak, 1e-6) if peak > 1e-8 else out
+
+
 def karplus_strong_chitin(
     n: int,
     freq_hz: float,

@@ -963,6 +963,8 @@ def audit_sound_masking(top_n: int = 12) -> dict[str, Any]:
         "max_true_peak_dbfs": qr.get("max_true_peak_dbfs"),
         "loop_seam_ok": qr.get("loop_seam_ok"),
         "stem_qc_summary": stem_qc,
+        "bark_unmasking_applied": masking.get("bark_unmasking_applied", False),
+        "unmasking_carve_bands_hz": masking.get("unmasking_carve_bands_hz", []),
         "beds_checked": masking.get("beds_checked", 0),
         "foregrounds_checked": masking.get("foregrounds_checked", 0),
         "pairs_evaluated": masking.get("pairs_evaluated", 0),

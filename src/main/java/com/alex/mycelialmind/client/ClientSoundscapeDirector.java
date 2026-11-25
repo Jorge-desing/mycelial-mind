@@ -40,9 +40,12 @@ public final class ClientSoundscapeDirector {
     private static int tickCounter = 0;
     private static int alertCooldownTicks = 0;
     private static int primordialAlertCooldownTicks = 0;
+    private static int microAmbienceCooldownTicks = 80;
     private static int duckTicksRemaining = 0;
     private static int duckTotalTicks = 0;
     private static float duckMaxReduction = 0.0F;
+    private static boolean lastBossNearby = false;
+    private static int lastNearbyHostileCount = 0;
 
     @Nullable
     private static ReactiveLoopSoundInstance fungalTideLoop;
@@ -58,6 +61,10 @@ public final class ClientSoundscapeDirector {
     private static ReactiveLoopSoundInstance bossTensionBedLoop;
     @Nullable
     private static ReactiveLoopSoundInstance sinkholeUpdraftLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance hiveTensionBedLowLoop;
+    @Nullable
+    private static ReactiveLoopSoundInstance hiveSwarmCombatBedLoop;
 
     private ClientSoundscapeDirector() {
     }
@@ -75,9 +82,12 @@ public final class ClientSoundscapeDirector {
         tickCounter = 0;
         alertCooldownTicks = 0;
         primordialAlertCooldownTicks = 0;
+        microAmbienceCooldownTicks = 80;
         duckTicksRemaining = 0;
         duckTotalTicks = 0;
         duckMaxReduction = 0.0F;
+        lastBossNearby = false;
+        lastNearbyHostileCount = 0;
 
         Minecraft mc = Minecraft.getInstance();
         stopLoopImmediate(mc, fungalTideLoop);
@@ -87,6 +97,8 @@ public final class ClientSoundscapeDirector {
         stopLoopImmediate(mc, sovereignNexusHumLoop);
         stopLoopImmediate(mc, bossTensionBedLoop);
         stopLoopImmediate(mc, sinkholeUpdraftLoop);
+        stopLoopImmediate(mc, hiveTensionBedLowLoop);
+        stopLoopImmediate(mc, hiveSwarmCombatBedLoop);
         fungalTideLoop = null;
         homeostasisHeartbeatLoop = null;
         acidRainSizzleLoop = null;
@@ -94,6 +106,8 @@ public final class ClientSoundscapeDirector {
         sovereignNexusHumLoop = null;
         bossTensionBedLoop = null;
         sinkholeUpdraftLoop = null;
+        hiveTensionBedLowLoop = null;
+        hiveSwarmCombatBedLoop = null;
     }
 
     public static int getActiveLoopCount() {
@@ -105,6 +119,8 @@ public final class ClientSoundscapeDirector {
         if (sovereignNexusHumLoop != null && !sovereignNexusHumLoop.isStopped()) active++;
         if (bossTensionBedLoop != null && !bossTensionBedLoop.isStopped()) active++;
         if (sinkholeUpdraftLoop != null && !sinkholeUpdraftLoop.isStopped()) active++;
+        if (hiveTensionBedLowLoop != null && !hiveTensionBedLowLoop.isStopped()) active++;
+        if (hiveSwarmCombatBedLoop != null && !hiveSwarmCombatBedLoop.isStopped()) active++;
         return active;
     }
 
@@ -379,13 +395,15 @@ public final class ClientSoundscapeDirector {
         // 2e. Boss combat tension bed (sub-harmonic drone bed scaling as boss HP drops)
         float bossBedVol = 0.0F;
         float bossBedPitch = 1.0F;
-        if (envVol > 0.01F && MycelialClientConfig.bossTensionBedEnabled() && tickCounter % 5 == 0) {
-            List<MycelialBossMob> bosses = mc.level.getEntitiesOfClass(
-                    MycelialBossMob.class,
-                    mc.player.getBoundingBox().inflate(48.0D),
-                    m -> m.isAlive()
-            );
-            if (!bosses.isEmpty()) {
+        if (tickCounter % 5 == 0) {
+            List<MycelialBossMob> bosses = envVol > 0.01F
+                    ? mc.level.getEntitiesOfClass(
+                            MycelialBossMob.class,
+                            mc.player.getBoundingBox().inflate(48.0D),
+                            m -> m.isAlive())
+                    : List.of();
+            lastBossNearby = !bosses.isEmpty();
+            if (envVol > 0.01F && MycelialClientConfig.bossTensionBedEnabled() && !bosses.isEmpty()) {
                 MycelialBossMob nearestBoss = bosses.get(0);
                 double bestDist = nearestBoss.distanceToSqr(mc.player);
                 for (int i = 1; i < bosses.size(); i++) {
@@ -403,14 +421,20 @@ public final class ClientSoundscapeDirector {
             }
             bossTensionBedLoop = updateReactiveLoop(
                     mc, bossTensionBedLoop, ModSounds.BOSS_COMBAT_TENSION_BED.get(), SoundSource.AMBIENT,
-                    false, 0.0D, 0.0D, 0.0D, bossBedVol, bossBedPitch, 0.025F
+                    false, 0.0D, 0.0D, 0.0D,
+                    MycelialClientConfig.bossTensionBedEnabled() ? bossBedVol : 0.0F,
+                    bossBedPitch, 0.025F
             );
         } else if (envVol <= 0.01F || !MycelialClientConfig.bossTensionBedEnabled()) {
+            lastBossNearby = false;
             bossTensionBedLoop = updateReactiveLoop(
                     mc, bossTensionBedLoop, ModSounds.BOSS_COMBAT_TENSION_BED.get(), SoundSource.AMBIENT,
                     false, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, 0.04F
             );
         }
+
+        float layerDuck = AcousticPhysicsEngine.computeLayerDuckMultiplier(
+                lastBossNearby, alertDuck, MycelialClientConfig.dynamicAudioDucking());
 
         // 2e2. Sinkhole thermal spore-wind updraft bed (7th reactive loop near SporeUpdraftVentBlock)
         BlockPos updraftPos = ClientAcousticController.getNearestUpdraftVentPos();
@@ -421,7 +445,7 @@ public final class ClientSoundscapeDirector {
         if (envVol > 0.01F && updraftPos != null && MycelialClientConfig.sinkholeUpdraftBedEnabled()) {
             double dSq = updraftPos.distSqr(mc.player.blockPosition());
             updraftVol = AcousticPhysicsEngine.computeSinkholeUpdraftLoopVolume(
-                    dSq, 18.0D, envVol, alertDuck, true);
+                    dSq, 18.0D, envVol, layerDuck, true);
             ux = updraftPos.getX() + 0.5D;
             uy = updraftPos.getY() + 1.0D;
             uz = updraftPos.getZ() + 0.5D;
@@ -430,6 +454,72 @@ public final class ClientSoundscapeDirector {
                 mc, sinkholeUpdraftLoop, ModSounds.SINKHOLE_UPDRAFT_LOOP.get(), SoundSource.AMBIENT,
                 true, ux, uy, uz, updraftVol, 1.0F, 0.025F
         );
+
+        // 2e3. Adaptive Hive Tension Exploration Bed (8th) & Swarm Skirmish Combat Bed (9th)
+        if (tickCounter % 5 == 2) {
+            lastNearbyHostileCount = envVol > 0.01F && MycelialClientConfig.adaptiveAmbientLayersEnabled()
+                    ? mc.level.getEntitiesOfClass(
+                            com.alex.mycelialmind.entity.MycelialMob.class,
+                            mc.player.getBoundingBox().inflate(24.0D),
+                            m -> m.isAlive() && !(m instanceof MycelialBossMob)
+                    ).size()
+                    : 0;
+        }
+        boolean adaptiveLayersEnabled = MycelialClientConfig.adaptiveAmbientLayersEnabled();
+        double threatPct = ClientHiveCache.getThreatLevel();
+        float explorationBedVol = envVol > 0.01F
+                ? AcousticPhysicsEngine.computeAdaptiveExplorationBedVolume(
+                        threatPct, lastBossNearby, envVol, layerDuck, adaptiveLayersEnabled)
+                : 0.0F;
+        hiveTensionBedLowLoop = updateReactiveLoop(
+                mc, hiveTensionBedLowLoop, ModSounds.HIVE_TENSION_BED_LOW.get(), SoundSource.AMBIENT,
+                false, 0.0D, 0.0D, 0.0D, explorationBedVol, 1.0F, 0.02F
+        );
+        float swarmBedVol = envVol > 0.01F
+                ? AcousticPhysicsEngine.computeSwarmCombatBedVolume(
+                        lastNearbyHostileCount, threatPct, lastBossNearby, envVol, layerDuck, adaptiveLayersEnabled)
+                : 0.0F;
+        hiveSwarmCombatBedLoop = updateReactiveLoop(
+                mc, hiveSwarmCombatBedLoop, ModSounds.HIVE_SWARM_COMBAT_BED.get(), SoundSource.AMBIENT,
+                false, 0.0D, 0.0D, 0.0D, swarmBedVol, 1.0F, 0.025F
+        );
+
+        // 2e4. Periodic 3D directional spatial micro-emitters (drips, hyphal creaks, whispers, sanctum chimes)
+        if (microAmbienceCooldownTicks > 0) {
+            microAmbienceCooldownTicks--;
+        } else if (envVol > 0.01F && MycelialClientConfig.spatialMicroAmbienceEnabled()) {
+            AcousticPhysicsEngine.AcousticEnvironment env = ClientAcousticController.getCurrentEnvironment();
+            SoundEvent microEvt = switch (env) {
+                case SANCTUM_VAULT -> ModSounds.SANCTUM_HARMONIC_CHIME.get();
+                case DEEP_MYCELIUM_ABYSS -> mc.level.random.nextBoolean()
+                        ? ModSounds.DEEP_MYCELIUM_WHISPER.get()
+                        : ModSounds.CAVERN_SPORE_DRIP.get();
+                case CAVERN_SINKHOLE -> mc.level.random.nextBoolean()
+                        ? ModSounds.CAVERN_SPORE_DRIP.get()
+                        : ModSounds.SUBTERRANEAN_HYPHAL_CREAK.get();
+                default -> null;
+            };
+            if (microEvt != null) {
+                for (int attempt = 0; attempt < 3; attempt++) {
+                    double ang = mc.level.random.nextDouble() * Math.PI * 2.0D;
+                    double rad = 6.0D + mc.level.random.nextDouble() * 7.5D;
+                    double tx = mc.player.getX() + Math.cos(ang) * rad;
+                    double tz = mc.player.getZ() + Math.sin(ang) * rad;
+                    double ty = mc.player.getEyeY() + (mc.level.random.nextDouble() * 5.0D - 1.5D);
+                    BlockPos probe = BlockPos.containing(tx, ty, tz);
+                    if (mc.level.hasChunkAt(probe) && mc.level.getBlockState(probe).isAir()) {
+                        mc.level.playLocalSound(
+                                tx, ty, tz, microEvt, SoundSource.AMBIENT,
+                                0.34F * envVol * layerDuck,
+                                0.94F + mc.level.random.nextFloat() * 0.12F,
+                                false
+                        );
+                        break;
+                    }
+                }
+            }
+            microAmbienceCooldownTicks = 95 + mc.level.random.nextInt(70);
+        }
 
         // 2f. Nearby Primordial Bioluminescent Mob resonance pulse (dedicated event)
         if (envVol > 0.01F

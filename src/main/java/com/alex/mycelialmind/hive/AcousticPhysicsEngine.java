@@ -113,6 +113,12 @@ public final class AcousticPhysicsEngine {
         LOW
     }
 
+    public enum SubmersionState {
+        NONE,
+        SPORE_FOG,
+        WATER
+    }
+
     private AcousticPhysicsEngine() {
     }
 
@@ -125,6 +131,31 @@ public final class AcousticPhysicsEngine {
         }
         double factor = 1.0D - Math.exp(-cumulativeAbsorption * 1.15D);
         return (float) Math.max(0.0D, Math.min(1.0D, factor));
+    }
+
+    /**
+     * Combines wall raycast occlusion with listener medium submersion (dense spore fog or water)
+     * via multiplicative transmission loss so NONE &lt; SPORE_FOG &lt; WATER remains strictly ordered.
+     */
+    public static float computeEffectiveOcclusion(float wallOcclusion, SubmersionState submersion) {
+        float occ = clamp01(wallOcclusion);
+        SubmersionState safe = submersion != null ? submersion : SubmersionState.NONE;
+        float mediumFloor = switch (safe) {
+            case NONE -> 0.0F;
+            case SPORE_FOG -> 0.28F;
+            case WATER -> 0.74F;
+        };
+        return clamp01(1.0F - (1.0F - occ) * (1.0F - mediumFloor));
+    }
+
+    /**
+     * Exponentially smooths occlusion transitions over live tracked OpenAL sources to prevent LPF zipper noise.
+     */
+    public static float smoothOcclusion(float currentOcclusion, float targetOcclusion, float alpha) {
+        float current = clamp01(currentOcclusion);
+        float target = clamp01(targetOcclusion);
+        float step = clamp01(alpha);
+        return clamp01(current + (target - current) * step);
     }
 
     /**
@@ -160,6 +191,64 @@ public final class AcousticPhysicsEngine {
         }
         AcousticEnvironment safeEnv = env != null ? env : AcousticEnvironment.OPEN_AIR;
         return safeEnv.airAbsorptionFactor();
+    }
+
+    /**
+     * Layered sidechain ducking multiplier stacking alert ducking with active boss combat suppression.
+     */
+    public static float computeLayerDuckMultiplier(
+            boolean bossActive,
+            float alertDuckMultiplier,
+            boolean dynamicDuckingEnabled
+    ) {
+        if (!dynamicDuckingEnabled) {
+            return 1.0F;
+        }
+        float safeAlert = Float.isFinite(alertDuckMultiplier) ? Math.max(0.15F, Math.min(1.0F, alertDuckMultiplier)) : 1.0F;
+        float bossScale = bossActive ? 0.52F : 1.0F;
+        return Math.max(0.15F, Math.min(1.0F, safeAlert * bossScale));
+    }
+
+    /**
+     * Computes the adaptive low-intensity Hive tension exploration bed volume (fades out during boss encounters).
+     */
+    public static float computeAdaptiveExplorationBedVolume(
+            double threatLevel,
+            boolean bossActive,
+            float ambientScale,
+            float layerDuck,
+            boolean enabled
+    ) {
+        if (!enabled || bossActive || !Double.isFinite(threatLevel) || threatLevel < 12.0D
+                || !Float.isFinite(ambientScale) || ambientScale <= 0.01F) {
+            return 0.0F;
+        }
+        double norm = Math.max(0.0D, Math.min(1.0D, (threatLevel - 12.0D) / 58.0D));
+        float safeAmb = clamp01(ambientScale);
+        float safeDuck = Float.isFinite(layerDuck) ? Math.max(0.15F, Math.min(1.0F, layerDuck)) : 1.0F;
+        return (float) ((0.10D + 0.16D * norm) * safeAmb * safeDuck);
+    }
+
+    /**
+     * Computes the rhythmic swarm skirmish combat bed volume (superseded during boss encounters).
+     */
+    public static float computeSwarmCombatBedVolume(
+            int nearbyHostileCount,
+            double threatLevel,
+            boolean bossActive,
+            float ambientScale,
+            float layerDuck,
+            boolean enabled
+    ) {
+        if (!enabled || bossActive || nearbyHostileCount < 2
+                || !Float.isFinite(ambientScale) || ambientScale <= 0.01F) {
+            return 0.0F;
+        }
+        double countNorm = Math.max(0.0D, Math.min(1.0D, (nearbyHostileCount - 1) / 7.0D));
+        double threatNorm = Double.isFinite(threatLevel) ? Math.max(0.0D, Math.min(1.0D, threatLevel / 100.0D)) : 0.0D;
+        float safeAmb = clamp01(ambientScale);
+        float safeDuck = Float.isFinite(layerDuck) ? Math.max(0.15F, Math.min(1.0F, layerDuck)) : 1.0F;
+        return (float) ((0.12D + 0.14D * countNorm + 0.06D * threatNorm) * safeAmb * safeDuck);
     }
 
     /**
@@ -232,6 +321,8 @@ public final class AcousticPhysicsEngine {
                 || soundPath.startsWith("hive_trait_")
                 || soundPath.startsWith("hive_synergy_")
                 || soundPath.startsWith("hive_threat_")
+                || soundPath.startsWith("hive_tension_bed_")
+                || soundPath.startsWith("hive_swarm_combat_")
                 || soundPath.startsWith("fungal_tide_")
                 || soundPath.startsWith("colony_raid_")
                 || soundPath.startsWith("biome_")
@@ -242,7 +333,11 @@ public final class AcousticPhysicsEngine {
         }
         if (soundPath.startsWith("mob_step_")
                 || soundPath.endsWith("_step")
-                || "sporeling_chitter".equals(soundPath)) {
+                || "sporeling_chitter".equals(soundPath)
+                || "cavern_spore_drip".equals(soundPath)
+                || "subterranean_hyphal_creak".equals(soundPath)
+                || "deep_mycelium_whisper".equals(soundPath)
+                || "sanctum_harmonic_chime".equals(soundPath)) {
             return VoicePriority.LOW;
         }
         if (soundPath.endsWith("_ambient")

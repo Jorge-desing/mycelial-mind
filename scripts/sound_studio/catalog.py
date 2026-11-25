@@ -362,6 +362,13 @@ BIOME_AMBIENT_AND_ALERT_SOUNDS: list[SoundSpec] = [
     _s("sovereign_nexus_hum", "biome_ambient", "system_env", 4.00, 146.0, 2.8, "Sovereign Nexus field hums", "Campo del Nexo Soberano zumba", species="bio_relic", loudness_group="ambient", variations=2, attenuation_distance=24, seed_offset=815, volume=0.76),
     _s("boss_combat_tension_bed", "biome_ambient", "system_env", 4.50, 56.0, 2.2, "Hive dread pulses in combat", "Pavor de la Colmena palpita en combate", species="colossal_organic", loudness_group="ambient", variations=2, attenuation_distance=32, seed_offset=816, volume=0.82),
     _s("sinkhole_updraft_loop", "biome_ambient", "system_env", 4.40, 112.0, 3.0, "Sinkhole updraft column roars", "Corriente ascendente de la Sima fluye", species="bio_relic", loudness_group="ambient", variations=2, attenuation_distance=26, seed_offset=817, volume=0.76),
+    # 5. Adaptive Multi-Layer Beds & Cavern Spatial Micro-Emitters (v5: 6)
+    _s("hive_tension_bed_low", "biome_ambient", "system_env", 4.60, 62.0, 2.0, "Dormant hive undertone hums", "Trasfondo latente de la Colmena zumba", species="synaptic_eldritch", loudness_group="ambient", variations=2, attenuation_distance=32, seed_offset=818, volume=0.68),
+    _s("hive_swarm_combat_bed", "biome_ambient", "system_env", 4.40, 84.0, 4.2, "Swarm skirmish pulse intensifies", "Pulso de escaramuza del enjambre se intensifica", species="colossal_organic", loudness_group="ambient", variations=2, attenuation_distance=32, seed_offset=819, volume=0.74),
+    _s("cavern_spore_drip", "biome_ambient", "system_env", 0.95, 440.0, 8.0, "Bioluminescent spore drops chime", "Gotas de espora bioluminiscente resuenan", species="bio_relic", loudness_group="ambient", variations=3, attenuation_distance=24, seed_offset=820, volume=0.72),
+    _s("subterranean_hyphal_creak", "biome_ambient", "system_env", 1.25, 118.0, 5.5, "Deep mycelial roots creak", "Raíces miceliales profundas crujen", species="colossal_organic", loudness_group="ambient", variations=3, attenuation_distance=24, seed_offset=821, volume=0.74),
+    _s("deep_mycelium_whisper", "biome_ambient", "system_env", 1.45, 220.0, 6.2, "Abyssal mycelium whispers", "El micelio abisal susurra", species="synaptic_eldritch", loudness_group="ambient", variations=3, attenuation_distance=24, seed_offset=822, volume=0.72),
+    _s("sanctum_harmonic_chime", "biome_ambient", "system_env", 1.55, 360.0, 4.8, "Sanctum crystal chimes echo", "Campanas cristalinas del Santuario resuenan", species="synaptic_eldritch", loudness_group="ambient", variations=3, attenuation_distance=28, seed_offset=823, volume=0.75),
 ]
 
 SOUND_CATALOG: list[SoundSpec] = [

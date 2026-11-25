@@ -8,8 +8,8 @@
   "vae_sliced_decode": true,
   "sampler_type": "pingpong",
   "sample_rate": 44100,
-  "stem_count": 66,
-  "mapped_sound_events": 220,
+  "stem_count": 69,
+  "mapped_sound_events": 226,
   "stems": {
     "acid_spitter_wet_gurgle": {
       "group": "entity",
@@ -37,6 +37,54 @@
         "duration_secs": 2.6,
         "issues": []
       }
+    },
+    "adaptive_hive_tension_bed": {
+      "group": "system_env",
+      "prompt": "Subtle ominous subterranean mycelial exploration drone, soft breathing cavern wind and warm distant harmonic glass pad",
+      "seed": 1063772736,
+      "batch_index": 2,
+      "seconds_total": 5.2,
+      "duration_secs": 5.2,
+      "rms_dbfs": -14.38,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.38,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.676,
+        "silence_tail_ratio": 0.315,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 5.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "hive_tension_bed_low"
+      ]
+    },
+    "adaptive_swarm_combat_bed": {
+      "group": "system_env",
+      "prompt": "Driving rhythmic subterranean hive skirmish pulse, muted tribal chitin percussion bed and low tension synth throb loop",
+      "seed": 1063772736,
+      "batch_index": 1,
+      "seconds_total": 5.0,
+      "duration_secs": 5.0,
+      "rms_dbfs": -14.05,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.05,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.869,
+        "silence_tail_ratio": 0.131,
+        "clipped_samples": 0,
+        "dc_offset": -6e-05,
+        "duration_secs": 5.0,
+        "issues": []
+      },
+      "sound_ids": [
+        "hive_swarm_combat_bed"
+      ]
     },
     "anatomical_chitin_footsteps": {
       "group": "entity",
@@ -454,6 +502,33 @@
         "duration_secs": 2.8,
         "issues": []
       }
+    },
+    "cavern_spatial_micro_ambience": {
+      "group": "system_env",
+      "prompt": "Bioluminescent cave water spore droplet ping, deep wooden mycelial root creak, eerie alien cave whisper and crystal chime",
+      "seed": 1063772736,
+      "batch_index": 0,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -22.71,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.72,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.467,
+        "silence_tail_ratio": 0.533,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "cavern_spore_drip",
+        "subterranean_hyphal_creak",
+        "deep_mycelium_whisper",
+        "sanctum_harmonic_chime"
+      ]
     },
     "chimera_alpha_roar": {
       "group": "entity",

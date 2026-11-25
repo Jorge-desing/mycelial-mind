@@ -76,7 +76,7 @@
   - [Engrama VIII: Linaje Primordial](#cap11-engram_primordial_lineage) — _Extracción genética de variantes primordiales_
   - [Engrama IX: Réquiem Matriarcal](#cap11-engram_matriarch_requiem) — _Remisión dimensional y protocolo de enclave_
   - [Engrama X: Ciclo de la Supramente](#cap11-engram_overmind_cycle) — _Maestría post-Matriarca con mutadores activos_
-- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 220 Sonidos, OpenAL EFX, 53 Configs, Red v23, /mycelial y 24 Verify
+- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 226 Sonidos, OpenAL EFX en Vivo, 56 Configs, Red v23, /mycelial y 24 Verify
   - [Configuraciones (13 Cliente / 43 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
   - [Red v23, `/mycelial` y Verify](#cap12-comandos_red_y_verificacion) — _Payloads v23, /mycelial colony, field_engram y 24 verify_
 
@@ -1633,7 +1633,7 @@ _8 Secretos (Pistas + Spoilers), 32 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 ## Capítulo 12: Técnica, Config y Comandos
 
-_220 Sonidos, OpenAL EFX, 53 Configs, Red v23, /mycelial y 24 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
+_226 Sonidos, OpenAL EFX en Vivo, 56 Configs, Red v23, /mycelial y 24 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
 
 <a id="cap12-configuracion_cliente_servidor"></a>
 ### 1. Configuraciones (13 Cliente / 43 Servidor)
@@ -1661,6 +1661,7 @@ _220 Sonidos, OpenAL EFX, 53 Configs, Red v23, /mycelial y 24 Verify_ | Puerta r
 
 #### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.5] Claves de Configuración TOML (5/15)
 
+• `[audio] (v5)` `openAlEfxDynamicTrackingEnabled` = `true`; `adaptiveAmbientLayersEnabled` = `true`; `spatialMicroAmbienceEnabled` = `true`.
 • `[particles]` `particleDensityScale` = `1.0` (`0.25..1.5`); `enableAdditiveParticleGlow` = `true`.
 
 #### [Libro: Cap.12 / configuracion_cliente_servidor / Pág.6] Claves de Configuración TOML (6/15)

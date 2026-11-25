@@ -39,6 +39,9 @@ public final class MycelialClientConfig {
     public static final ModConfigSpec.BooleanValue OPENAL_EFX_VANILLA_IN_MYCELIAL_ZONES;
     public static final ModConfigSpec.BooleanValue SWARM_VOICE_LIMITING_ENABLED;
     public static final ModConfigSpec.BooleanValue SINKHOLE_UPDRAFT_BED_ENABLED;
+    public static final ModConfigSpec.BooleanValue OPENAL_EFX_DYNAMIC_TRACKING_ENABLED;
+    public static final ModConfigSpec.BooleanValue ADAPTIVE_AMBIENT_LAYERS_ENABLED;
+    public static final ModConfigSpec.BooleanValue SPATIAL_MICRO_AMBIENCE_ENABLED;
     public static final ModConfigSpec.DoubleValue PARTICLE_DENSITY_SCALE;
     public static final ModConfigSpec.BooleanValue ENABLE_ADDITIVE_PARTICLE_GLOW;
     public static final ModConfigSpec.DoubleValue SCREEN_SHAKE_SCALE;
@@ -121,6 +124,18 @@ public final class MycelialClientConfig {
         SINKHOLE_UPDRAFT_BED_ENABLED = builder
                 .comment("Play a reactive vertical spore-wind chimney loop bed near active Sinkhole updraft vents.")
                 .define("sinkholeUpdraftBedEnabled", true);
+
+        OPENAL_EFX_DYNAMIC_TRACKING_ENABLED = builder
+                .comment("Continuously re-evaluate occlusion, underwater/spore-fog submersion, and room EFX reverb on active playing channels.")
+                .define("openAlEfxDynamicTrackingEnabled", true);
+
+        ADAPTIVE_AMBIENT_LAYERS_ENABLED = builder
+                .comment("Play multi-layer adaptive tension and swarm skirmish loops alongside reactive sidechain ducking.")
+                .define("adaptiveAmbientLayersEnabled", true);
+
+        SPATIAL_MICRO_AMBIENCE_ENABLED = builder
+                .comment("Emit periodic directional 3D cavern/sanctum micro-ambience (drips, hyphal creaks, whispers, chimes).")
+                .define("spatialMicroAmbienceEnabled", true);
         builder.pop();
 
         builder.push("particles");
@@ -231,6 +246,18 @@ public final class MycelialClientConfig {
 
     public static boolean sinkholeUpdraftBedEnabled() {
         return SPEC.isLoaded() ? SINKHOLE_UPDRAFT_BED_ENABLED.get() : SINKHOLE_UPDRAFT_BED_ENABLED.getDefault();
+    }
+
+    public static boolean openAlEfxDynamicTrackingEnabled() {
+        return SPEC.isLoaded() ? OPENAL_EFX_DYNAMIC_TRACKING_ENABLED.get() : OPENAL_EFX_DYNAMIC_TRACKING_ENABLED.getDefault();
+    }
+
+    public static boolean adaptiveAmbientLayersEnabled() {
+        return SPEC.isLoaded() ? ADAPTIVE_AMBIENT_LAYERS_ENABLED.get() : ADAPTIVE_AMBIENT_LAYERS_ENABLED.getDefault();
+    }
+
+    public static boolean spatialMicroAmbienceEnabled() {
+        return SPEC.isLoaded() ? SPATIAL_MICRO_AMBIENCE_ENABLED.get() : SPATIAL_MICRO_AMBIENCE_ENABLED.getDefault();
     }
 
     public static double particleDensityScale() {

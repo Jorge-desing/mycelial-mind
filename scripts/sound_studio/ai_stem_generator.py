@@ -814,6 +814,44 @@ AI_STEM_ARCHETYPES: tuple[StemArchetype, ...] = (
         attack_guard_ms=14.0,
         sound_ids=("ui_codex_tab", "ui_action_confirm", "station_upkeep_low"),
     ),
+    # =========================================================================
+    # 3 Selective Expansion Stems (v5: Adaptive Multi-Layer Beds & Cavern Spatial Micro-Ambience)
+    # =========================================================================
+    StemArchetype(
+        stem_id="adaptive_hive_tension_bed",
+        group="system_env",
+        prompt="Subtle ominous subterranean mycelial exploration drone, soft breathing cavern wind and warm distant harmonic glass pad",
+        seconds_total=5.2,
+        band_lo_hz=38.0,
+        band_hi_hz=3200.0,
+        mix_weight=0.28,
+        attack_guard_ms=30.0,
+        seamless_loop=True,
+        sound_ids=("hive_tension_bed_low",),
+    ),
+    StemArchetype(
+        stem_id="adaptive_swarm_combat_bed",
+        group="system_env",
+        prompt="Driving rhythmic subterranean hive skirmish pulse, muted tribal chitin percussion bed and low tension synth throb loop",
+        seconds_total=5.0,
+        band_lo_hz=40.0,
+        band_hi_hz=3600.0,
+        mix_weight=0.28,
+        attack_guard_ms=28.0,
+        seamless_loop=True,
+        sound_ids=("hive_swarm_combat_bed",),
+    ),
+    StemArchetype(
+        stem_id="cavern_spatial_micro_ambience",
+        group="system_env",
+        prompt="Bioluminescent cave water spore droplet ping, deep wooden mycelial root creak, eerie alien cave whisper and crystal chime",
+        seconds_total=2.8,
+        band_lo_hz=75.0,
+        band_hi_hz=7200.0,
+        mix_weight=0.26,
+        attack_guard_ms=18.0,
+        sound_ids=("cavern_spore_drip", "subterranean_hyphal_creak", "deep_mycelium_whisper", "sanctum_harmonic_chime"),
+    ),
 )
 
 SOUND_TO_ARCHETYPE: dict[str, StemArchetype] = {
@@ -1271,6 +1309,30 @@ def _cpu_hpss_harmonic_soft(sig: np.ndarray, sample_rate: int = SAMPLE_RATE, str
     return np.pad(np.asarray(out, dtype=np.float64), (0, n - len(out)))
 
 
+def _cpu_align_stem_spectral_tilt(
+    stem_wave: np.ndarray,
+    dsp_wave: np.ndarray,
+    sample_rate: int = SAMPLE_RATE,
+    strength: float = 0.45,
+) -> np.ndarray:
+    """Match cuda_dsp._gpu_align_spectral_tilt on CPU so AI stems inherit DSP spectral balance cleanly."""
+    n = len(stem_wave)
+    if strength <= 1e-4 or n < 512 or len(dsp_wave) != n:
+        return stem_wave
+    s_spec = np.fft.rfft(stem_wave)
+    d_spec = np.fft.rfft(dsp_wave)
+    freqs = np.fft.rfftfreq(n, 1.0 / float(sample_rate))
+    s_pwr = (np.abs(s_spec) ** 2) + 1e-12
+    d_pwr = (np.abs(d_spec) ** 2) + 1e-12
+    c_stem = float(np.sum(freqs * s_pwr) / np.sum(s_pwr))
+    c_dsp = float(np.sum(freqs * d_pwr) / np.sum(d_pwr))
+    ratio = float(np.clip(c_dsp / max(60.0, c_stem), 0.55, 1.85))
+    tilt_exp = float(np.clip(np.log2(ratio) * float(strength), -0.55, 0.55))
+    pivot = float(np.clip(c_dsp, 220.0, 4200.0))
+    tilt = np.clip((np.maximum(freqs, 40.0) / pivot) ** tilt_exp, 0.55, 1.75)
+    return np.asarray(np.fft.irfft(s_spec * tilt, n=n), dtype=np.float64)
+
+
 def _prepare_seamless_stem_body(stem: np.ndarray, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
     """Trim silent fade tails and build a continuous palindrome loop from the steady active stem body."""
     n = len(stem)
@@ -1366,15 +1428,17 @@ def blend_with_ai_stem(
         bridge = resampled[n : n + loop_cf] * np.cos(theta) + resampled[:loop_cf] * np.sin(theta)
         resampled = np.concatenate([bridge[half:], resampled[loop_cf:n], bridge[:half]])
 
-    wrap = min(n // 4, 4096) if (arch.seamless_loop and n >= 4096) else 0
-    if wrap > 0:
-        res_in = np.concatenate([resampled[-wrap:], resampled, resampled[:wrap]])
-        dsp_in = np.concatenate([dsp_wave[-wrap:], dsp_wave, dsp_wave[:wrap]])
-    else:
-        res_in = resampled
-        dsp_in = dsp_wave
-
+    dsp_in_src = dsp_wave
+    res_in_src = resampled
+    wrap = min(n // 4, 8192) if (arch.seamless_loop and n >= 4096) else 0
     # Try batched RTX CUDA FFT 3-band filtering, HPSS & envelope following; fall back to CPU SciPy cleanly
+    if wrap > 0:
+        res_in = np.concatenate([res_in_src[-wrap:], res_in_src, res_in_src[:wrap]])
+        dsp_in = np.concatenate([dsp_in_src[-wrap:], dsp_in_src, dsp_in_src[:wrap]])
+    else:
+        res_in = res_in_src
+        dsp_in = dsp_in_src
+
     shaped = _gpu_dualband_blend_shape(
         res_in,
         dsp_in,
@@ -1384,7 +1448,17 @@ def blend_with_ai_stem(
         apply_hpss=not arch.seamless_loop,
     )
     if shaped is None:
-        src_in = _cpu_hpss_harmonic_soft(res_in, SAMPLE_RATE, strength=0.60) if not arch.seamless_loop else res_in
+        if arch.seamless_loop:
+            # Align spectral tilt on the exact periodic n-sample loop first so FFT leaves zero seam jump
+            aligned_core = _cpu_align_stem_spectral_tilt(res_in_src, dsp_in_src, SAMPLE_RATE, strength=0.35)
+            src_in = (
+                np.concatenate([aligned_core[-wrap:], aligned_core, aligned_core[:wrap]])
+                if wrap > 0
+                else aligned_core
+            )
+        else:
+            src_in = _cpu_hpss_harmonic_soft(res_in, SAMPLE_RATE, strength=0.60)
+            src_in = _cpu_align_stem_spectral_tilt(src_in, dsp_in, SAMPLE_RATE, strength=0.45)
         s1 = min(240.0, max(arch.band_lo_hz * 1.45, arch.band_hi_hz * 0.12))
         s2 = min(1800.0, max(s1 * 2.2, arch.band_hi_hz * 0.42))
         tri = (s1 > arch.band_lo_hz + 25.0) and (s2 > s1 + 140.0) and (arch.band_hi_hz > s2 + 220.0)
@@ -1414,8 +1488,16 @@ def blend_with_ai_stem(
         else:
             filtered = _bandpass(src_in, arch.band_lo_hz, arch.band_hi_hz)
             shaped = filtered * _envelope_follower(dsp_in, window_ms=18.0)
+    cf_cpu = 0
+    if arch.seamless_loop and wrap >= int(SAMPLE_RATE * 0.060) + 64 and n > 4410:
+        cf_cand = min(wrap - 32, n // 4, int(SAMPLE_RATE * 0.060))
+        if cf_cand % 2 == 1:
+            cf_cand -= 1
+        if cf_cand >= 32:
+            cf_cpu = cf_cand
+
     if wrap > 0:
-        shaped = shaped[wrap : wrap + n]
+        shaped = shaped[wrap : wrap + n + cf_cpu]
 
     # Preserve initial pure DSP attack transient (20-28 ms) for non-loop one-shots
     if not arch.seamless_loop:
@@ -1423,12 +1505,19 @@ def blend_with_ai_stem(
         if guard_samples > 8:
             shaped[:guard_samples] *= np.linspace(0.0, 1.0, guard_samples) ** 1.6
 
+    dsp_match = np.concatenate([dsp_wave, dsp_wave[:cf_cpu]]) if cf_cpu > 0 else dsp_wave
     dsp_rms = float(np.sqrt(np.mean(dsp_wave * dsp_wave))) + 1e-8
-    stem_rms = float(np.sqrt(np.mean(shaped * shaped)))
+    stem_core = shaped[:n]
+    stem_rms = float(np.sqrt(np.mean(stem_core * stem_core)))
     if stem_rms < 1e-7:
         return dsp_wave
 
     matched_stem = shaped * (dsp_rms / stem_rms)
     w_stem = arch.mix_weight
     w_dsp = 1.0 - (w_stem * 0.55)
-    return (dsp_wave * w_dsp) + (matched_stem * w_stem)
+    out_mix = (dsp_match * w_dsp) + (matched_stem * w_stem)
+    if cf_cpu > 0 and len(out_mix) == n + cf_cpu:
+        from scripts.sound_studio.dsp_engine import fold_seamless_loop
+
+        return fold_seamless_loop(out_mix, n, crossfade_ms=(cf_cpu * 1000.0) / float(SAMPLE_RATE))
+    return out_mix[:n]

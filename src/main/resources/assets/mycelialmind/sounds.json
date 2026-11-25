@@ -4578,5 +4578,131 @@
         "attenuation_distance": 26
       }
     ]
+  },
+  "hive_tension_bed_low": {
+    "subtitle": "subtitles.mycelialmind.hive_tension_bed_low",
+    "sounds": [
+      {
+        "name": "mycelialmind:hive_tension_bed_low_1",
+        "volume": 0.661,
+        "pitch": 0.997,
+        "attenuation_distance": 32
+      },
+      {
+        "name": "mycelialmind:hive_tension_bed_low_2",
+        "volume": 0.678,
+        "pitch": 0.99,
+        "attenuation_distance": 32
+      }
+    ]
+  },
+  "hive_swarm_combat_bed": {
+    "subtitle": "subtitles.mycelialmind.hive_swarm_combat_bed",
+    "sounds": [
+      {
+        "name": "mycelialmind:hive_swarm_combat_bed_1",
+        "volume": 0.733,
+        "pitch": 1.035,
+        "attenuation_distance": 32
+      },
+      {
+        "name": "mycelialmind:hive_swarm_combat_bed_2",
+        "volume": 0.758,
+        "pitch": 1.035,
+        "attenuation_distance": 32
+      }
+    ]
+  },
+  "cavern_spore_drip": {
+    "subtitle": "subtitles.mycelialmind.cavern_spore_drip",
+    "sounds": [
+      {
+        "name": "mycelialmind:cavern_spore_drip_1",
+        "volume": 0.739,
+        "pitch": 0.974,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:cavern_spore_drip_2",
+        "volume": 0.718,
+        "pitch": 1.023,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:cavern_spore_drip_3",
+        "volume": 0.72,
+        "pitch": 1.022,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "subterranean_hyphal_creak": {
+    "subtitle": "subtitles.mycelialmind.subterranean_hyphal_creak",
+    "sounds": [
+      {
+        "name": "mycelialmind:subterranean_hyphal_creak_1",
+        "volume": 0.759,
+        "pitch": 1.03,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:subterranean_hyphal_creak_2",
+        "volume": 0.719,
+        "pitch": 1.014,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:subterranean_hyphal_creak_3",
+        "volume": 0.739,
+        "pitch": 1.01,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "deep_mycelium_whisper": {
+    "subtitle": "subtitles.mycelialmind.deep_mycelium_whisper",
+    "sounds": [
+      {
+        "name": "mycelialmind:deep_mycelium_whisper_1",
+        "volume": 0.705,
+        "pitch": 1.011,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:deep_mycelium_whisper_2",
+        "volume": 0.709,
+        "pitch": 0.966,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "mycelialmind:deep_mycelium_whisper_3",
+        "volume": 0.712,
+        "pitch": 1.03,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "sanctum_harmonic_chime": {
+    "subtitle": "subtitles.mycelialmind.sanctum_harmonic_chime",
+    "sounds": [
+      {
+        "name": "mycelialmind:sanctum_harmonic_chime_1",
+        "volume": 0.736,
+        "pitch": 1.027,
+        "attenuation_distance": 28
+      },
+      {
+        "name": "mycelialmind:sanctum_harmonic_chime_2",
+        "volume": 0.738,
+        "pitch": 1.015,
+        "attenuation_distance": 28
+      },
+      {
+        "name": "mycelialmind:sanctum_harmonic_chime_3",
+        "volume": 0.75,
+        "pitch": 0.976,
+        "attenuation_distance": 28
+      }
+    ]
   }
 }

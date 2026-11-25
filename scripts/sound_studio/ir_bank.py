@@ -248,6 +248,8 @@ def select_ir_space(sound_id: str, species: str, loudness_group: str, category: 
             "colony_reconstruction",
             "primordial_presence",
             "boss_telegraph_lock",
+            "sanctum_harmonic_chime",
+            "deep_mycelium_whisper",
         )
     ) or sp == "synaptic_eldritch" or "monolith" in sid:
         return "monolith_vault"
@@ -266,11 +268,15 @@ def select_ir_space(sound_id: str, species: str, loudness_group: str, category: 
             "boss_weakpoint",
             "boss_stagger_break",
             "boss_combat_tension",
+            "hive_tension_bed",
+            "hive_swarm_combat",
             "colony_raid_horn",
             "brute_wall_stun",
             "root_keeper",
             "sinkhole_updraft",
             "spore_updraft_vent",
+            "cavern_spore_drip",
+            "subterranean_hyphal_creak",
         )
     ) or sp == "colossal_organic":
         return "abyssal_cavern"

@@ -319,6 +319,25 @@ def _gpu_hpss_harmonic_soft(torch, sig_t, sample_rate: int, strength: float = 0.
     return torch.istft(blended, n_fft=n_fft, hop_length=hop, win_length=n_fft, window=win, length=n)
 
 
+def _gpu_align_spectral_tilt(torch, stem_bp_t, dsp_bp_t, freqs, *, strength: float = 0.45):
+    """Align AI stem spectral slope in CUDA FFT space toward DSP centroid so blends stay free of mud/harshness."""
+    n = int(stem_bp_t.numel())
+    if strength <= 1e-4 or n < 512:
+        return stem_bp_t
+    n_fft = _next_pow2(n)
+    f_t = _get_freqs_tensor(torch, n_fft, int(freqs) if isinstance(freqs, int) else 44100)
+    pair = torch.stack([stem_bp_t, dsp_bp_t], dim=0)
+    spec = torch.fft.rfft(pair, n=n_fft, dim=-1)
+    pwr = spec.abs() ** 2 + 1e-12
+    c_stem = (f_t * pwr[0]).sum() / pwr[0].sum()
+    c_dsp = (f_t * pwr[1]).sum() / pwr[1].sum()
+    ratio = torch.clamp(c_dsp / torch.clamp(c_stem, min=60.0), 0.55, 1.85)
+    tilt_exp = torch.clamp(torch.log2(ratio) * float(strength), -0.55, 0.55)
+    pivot = torch.clamp(c_dsp, 220.0, 4200.0)
+    tilt = torch.clamp((torch.clamp(f_t, min=40.0) / pivot) ** tilt_exp, 0.55, 1.75)
+    return torch.fft.irfft(spec[0] * tilt, n=n_fft)[:n]
+
+
 def _apply_bandpass_and_envelope_gpu(
     torch,
     resampled_t,
@@ -329,9 +348,14 @@ def _apply_bandpass_and_envelope_gpu(
     band_hi_hz: float,
     apply_hpss: bool = False,
 ):
-    """Shared GPU 3-band / 2-band / 1-band zero-phase FFT filtering + HPSS + envelope follower."""
+    """Shared GPU 3-band / 2-band / 1-band zero-phase FFT filtering + HPSS + spectral tilt alignment + envelope follower."""
     n = int(dsp_t.numel())
     src_t = _gpu_hpss_harmonic_soft(torch, resampled_t, sample_rate, strength=0.60) if apply_hpss else resampled_t
+    if n >= 1024 and not apply_hpss:
+        # Seamless beds still benefit from gentle spectral tilt alignment toward DSP bed centroid
+        src_t = _gpu_align_spectral_tilt(torch, src_t, dsp_t, sample_rate, strength=0.35)
+    elif n >= 1024:
+        src_t = _gpu_align_spectral_tilt(torch, src_t, dsp_t, sample_rate, strength=0.45)
     s1 = min(240.0, max(band_lo_hz * 1.45, band_hi_hz * 0.12))
     s2 = min(1800.0, max(s1 * 2.2, band_hi_hz * 0.42))
     tri = (s1 > band_lo_hz + 25.0) and (s2 > s1 + 140.0) and (band_hi_hz > s2 + 220.0)

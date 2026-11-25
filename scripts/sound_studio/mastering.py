@@ -58,8 +58,38 @@ SEAMLESS_LOOP_IDS: frozenset[str] = frozenset(
         "sovereign_nexus_hum",
         "boss_combat_tension_bed",
         "sinkhole_updraft_loop",
+        "hive_tension_bed_low",
+        "hive_swarm_combat_bed",
     }
 )
+
+BARK_UNMASK_CARVE_BANDS_HZ: tuple[float, ...] = (1450.0, 3200.0)
+
+
+def apply_bark_unmasking_carve(wave: np.ndarray, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
+    """Apply gentle dual-band psychoacoustic unmasking carve on continuous beds so foreground cues stay crystal clear."""
+    n = len(wave)
+    if n < 256:
+        return wave
+    out = np.asarray(wave, dtype=np.float64)
+    nyq = 0.5 * float(sample_rate)
+    for center_hz, q_val, db_cut in ((1450.0, 1.2, -2.0), (3200.0, 1.4, -2.2)):
+        if center_hz >= nyq * 0.90:
+            continue
+        gain = 10.0 ** (db_cut / 20.0)
+        w0 = 2.0 * np.pi * center_hz / float(sample_rate)
+        alpha = np.sin(w0) / (2.0 * q_val)
+        sqrt_a = np.sqrt(gain)
+        b0 = 1.0 + alpha * sqrt_a
+        b1 = -2.0 * np.cos(w0)
+        b2 = 1.0 - alpha * sqrt_a
+        a0 = 1.0 + alpha / sqrt_a
+        a1 = -2.0 * np.cos(w0)
+        a2 = 1.0 - alpha / sqrt_a
+        b = np.array([b0 / a0, b1 / a0, b2 / a0], dtype=np.float64)
+        a = np.array([1.0, a1 / a0, a2 / a0], dtype=np.float64)
+        out = signal.lfilter(b, a, out)
+    return out
 
 # Must match dsp_engine.LOUDNESS_TARGETS_DBFS
 LOUDNESS_TARGETS_DBFS: dict[str, float] = {
@@ -399,7 +429,12 @@ def master_with_pedalboard(
 
     # Shape boundaries early so short 0.16s hits account for fade-in/out attenuation,
     # while loops keep full boundary energy warmed up from preroll.
-    if not is_loop:
+    if is_loop:
+        # Carve subtle spectral pockets at Bark 11 (1450 Hz) & Bark 16 (3200 Hz) BEFORE circular wrap fade
+        ext = min(n // 4, 2048)
+        padded = np.concatenate([processed[-ext:], processed])
+        processed = apply_bark_unmasking_carve(padded, SAMPLE_RATE)[ext : ext + n]
+    else:
         processed = _apply_fade_guards(processed, fade_in_ms=2.5, fade_out_ms=14.0)
 
     # Converge toward calibrated active RMS while factoring ITU-R BS.1770-4 LUFS perceptually
