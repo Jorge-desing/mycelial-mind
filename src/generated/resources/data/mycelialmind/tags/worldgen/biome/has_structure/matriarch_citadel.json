@@ -1,8 +1,5 @@
 {
   "values": [
-    {
-      "id": "mycelialmind:hive_heart_sanctum",
-      "required": false
-    }
+    "mycelialmind:hive_heart_sanctum"
   ]
 }

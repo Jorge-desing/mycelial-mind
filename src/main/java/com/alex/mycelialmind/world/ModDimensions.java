@@ -43,10 +43,7 @@ public final class ModDimensions {
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "deep_mycelium")
     );
 
-    public static final ResourceKey<DimensionType> DEEP_MYCELIUM_TYPE = ResourceKey.create(
-            Registries.DIMENSION_TYPE,
-            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "deep_mycelium")
-    );
+    public static final ResourceKey<DimensionType> DEEP_MYCELIUM_TYPE = ModWorldgenKeys.DEEP_MYCELIUM_TYPE;
 
     private ModDimensions() {
     }

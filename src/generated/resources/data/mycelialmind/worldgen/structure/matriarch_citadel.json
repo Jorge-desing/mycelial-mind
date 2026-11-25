@@ -1,0 +1,6 @@
+{
+  "type": "mycelialmind:matriarch_citadel",
+  "biomes": "#mycelialmind:has_structure/matriarch_citadel",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

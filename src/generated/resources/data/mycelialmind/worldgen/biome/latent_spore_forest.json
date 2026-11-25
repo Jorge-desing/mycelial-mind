@@ -1,0 +1,81 @@
+{
+  "carvers": {
+    "air": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ]
+  },
+  "downfall": 0.8,
+  "effects": {
+    "additions_sound": {
+      "sound": "mycelialmind:biome_forest_additions",
+      "tick_chance": 0.0111
+    },
+    "ambient_sound": "mycelialmind:biome_forest_loop",
+    "fog_color": 4599640,
+    "foliage_color": 6258791,
+    "grass_color": 6717291,
+    "mood_sound": {
+      "block_search_extent": 8,
+      "offset": 2.0,
+      "sound": "mycelialmind:biome_forest_mood",
+      "tick_delay": 3600
+    },
+    "sky_color": 5849459,
+    "water_color": 4159204,
+    "water_fog_color": 2302743
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "mycelialmind:deep_mycelium_outbreak"
+    ]
+  ],
+  "has_precipitation": true,
+  "spawn_costs": {},
+  "spawners": {
+    "ambient": [],
+    "axolotls": [],
+    "creature": [],
+    "misc": [],
+    "monster": [
+      {
+        "type": "mycelialmind:sporeling",
+        "maxCount": 5,
+        "minCount": 2,
+        "weight": 60
+      },
+      {
+        "type": "mycelialmind:mycelial_stalker",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 25
+      },
+      {
+        "type": "mycelialmind:acid_spitter",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 15
+      },
+      {
+        "type": "mycelialmind:chitin_brute",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 15
+      }
+    ],
+    "underground_water_creature": [],
+    "water_ambient": [],
+    "water_creature": []
+  },
+  "temperature": 0.7
+}

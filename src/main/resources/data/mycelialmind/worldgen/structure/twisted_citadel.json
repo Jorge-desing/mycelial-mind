@@ -1,7 +1,0 @@
-{
-  "type": "mycelialmind:twisted_citadel",
-  "biomes": "#mycelialmind:has_structure/twisted_citadel",
-  "step": "underground_structures",
-  "spawn_overrides": {},
-  "terrain_adaptation": "none"
-}

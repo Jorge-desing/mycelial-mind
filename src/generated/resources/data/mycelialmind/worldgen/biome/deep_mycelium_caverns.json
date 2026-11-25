@@ -1,0 +1,78 @@
+{
+  "carvers": {
+    "air": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground"
+    ]
+  },
+  "downfall": 0.5,
+  "effects": {
+    "additions_sound": {
+      "sound": "mycelialmind:biome_caverns_additions",
+      "tick_chance": 0.0111
+    },
+    "ambient_sound": "mycelialmind:biome_caverns_loop",
+    "fog_color": 2758716,
+    "mood_sound": {
+      "block_search_extent": 8,
+      "offset": 2.0,
+      "sound": "mycelialmind:biome_caverns_mood",
+      "tick_delay": 3600
+    },
+    "sky_color": 3482438,
+    "water_color": 4159204,
+    "water_fog_color": 2302743
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "mycelialmind:deep_mycelium_outbreak"
+    ]
+  ],
+  "has_precipitation": false,
+  "spawn_costs": {},
+  "spawners": {
+    "ambient": [],
+    "axolotls": [],
+    "creature": [],
+    "misc": [],
+    "monster": [
+      {
+        "type": "mycelialmind:burrower",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 35
+      },
+      {
+        "type": "mycelialmind:synapse_weaver",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 20
+      },
+      {
+        "type": "mycelialmind:leech_parasite",
+        "maxCount": 4,
+        "minCount": 2,
+        "weight": 40
+      },
+      {
+        "type": "mycelialmind:spore_architect",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 10
+      }
+    ],
+    "underground_water_creature": [],
+    "water_ambient": [],
+    "water_creature": []
+  },
+  "temperature": 0.6
+}

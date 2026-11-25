@@ -1,0 +1,22 @@
+{
+  "feature": "mycelialmind:surface_hive",
+  "placement": [
+    {
+      "type": "mycelialmind:hive_tier_rarity",
+      "adaptive_chance": 104,
+      "awakened_chance": 150,
+      "dormant_chance": 220,
+      "overmind_chance": 72
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "MOTION_BLOCKING_NO_LEAVES"
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

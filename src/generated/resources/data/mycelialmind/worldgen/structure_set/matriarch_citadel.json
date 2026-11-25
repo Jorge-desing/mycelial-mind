@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 94182736,
+    "separation": 36,
+    "spacing": 72
+  },
+  "structures": [
+    {
+      "structure": "mycelialmind:matriarch_citadel",
+      "weight": 1
+    }
+  ]
+}

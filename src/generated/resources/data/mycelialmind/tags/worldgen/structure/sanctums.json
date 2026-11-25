@@ -1,12 +1,6 @@
 {
   "values": [
-    {
-      "id": "mycelialmind:hive_sanctum",
-      "required": false
-    },
-    {
-      "id": "mycelialmind:matriarch_citadel",
-      "required": false
-    }
+    "mycelialmind:hive_sanctum",
+    "mycelialmind:matriarch_citadel"
   ]
 }

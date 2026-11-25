@@ -34,8 +34,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Registers NeoForge DataGen entrypoint and emits Tags, Recipes, Loot Tables,
- * NeoForge Data Maps, and Global Loot Modifiers.
+ * Registers NeoForge DataGen entrypoint and emits Datapack Builtin Entries (Worldgen, Dimensions,
+ * Structures, and Biome Modifiers), Tags, Recipes, Loot Tables, NeoForge Data Maps, and
+ * Global Loot Modifiers.
  */
 @EventBusSubscriber(modid = MycelialMind.MODID)
 public final class ModDataGenerators {
@@ -53,6 +54,10 @@ public final class ModDataGenerators {
         generator.addProvider(true, PackMetadataGenerator.forFeaturePack(
                 output, Component.literal("Mycelial Mind generated resources")));
 
+        MycelialDatapackProvider datapackProvider = generator.addProvider(
+                includeServer, new MycelialDatapackProvider(output, lookupProvider));
+        CompletableFuture<HolderLookup.Provider> datapackLookup = datapackProvider.getRegistryProvider();
+
         BlockTagsProvider blockTagsProvider = generator.addProvider(
                 includeServer, new MycelialBlockTagsProvider(output, lookupProvider, existingFileHelper));
         generator.addProvider(includeServer, new MycelialItemTagsProvider(
@@ -60,9 +65,9 @@ public final class ModDataGenerators {
         generator.addProvider(includeServer, new MycelialEntityTypeTagsProvider(
                 output, lookupProvider, existingFileHelper));
         generator.addProvider(includeServer, new MycelialBiomeTagsProvider(
-                output, lookupProvider, existingFileHelper));
+                output, datapackLookup, existingFileHelper));
         generator.addProvider(includeServer, new MycelialStructureTagsProvider(
-                output, lookupProvider, existingFileHelper));
+                output, datapackLookup, existingFileHelper));
 
         generator.addProvider(includeServer, new MycelialRecipeProvider(output, lookupProvider));
 

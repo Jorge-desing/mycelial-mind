@@ -134,9 +134,16 @@ def scan_repo_inventory(repo_root: Path) -> dict:
             loot_tables_set.add(Path(p).relative_to(root / "loot_table").with_suffix("").as_posix())
     loot_tables = sorted(loot_tables_set)
 
-    data_root = res_root / "data/mycelialmind"
-    biomes = [Path(p).stem for p in sorted(glob.glob(str(data_root / "worldgen/biome/*.json")))]
-    dimensions = [Path(p).stem for p in sorted(glob.glob(str(data_root / "dimension/*.json")))]
+    biomes = sorted({
+        Path(p).stem
+        for root in data_roots
+        for p in glob.glob(str(root / "worldgen/biome/*.json"))
+    })
+    dimensions = sorted({
+        Path(p).stem
+        for root in data_roots
+        for p in glob.glob(str(root / "dimension/*.json"))
+    })
     sounds = list(json.loads((res_root / "assets/mycelialmind/sounds.json").read_text(encoding="utf-8")).keys())
     compostables_json = gen_root / "data/neoforge/data_maps/item/compostables.json"
     if not compostables_json.is_file():

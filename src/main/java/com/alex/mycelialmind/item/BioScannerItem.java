@@ -79,10 +79,7 @@ import java.util.stream.Collectors;
  * nearest Mycelial Node, or nearest Hive Heart Sanctum structure.
  */
 public class BioScannerItem extends Item {
-    private static final TagKey<Structure> SANCTUM_TAG = TagKey.create(
-            Registries.STRUCTURE,
-            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "sanctums")
-    );
+    private static final TagKey<Structure> SANCTUM_TAG = com.alex.mycelialmind.world.ModWorldgenKeys.SANCTUMS;
 
     public BioScannerItem(Properties properties) {
         super(properties);
