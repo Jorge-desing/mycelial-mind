@@ -62,7 +62,7 @@ public final class OpenAlEfxBridge {
 
     /**
      * Applies precomputed environment reverb, direct occlusion low-pass filter, and air absorption
-     * directly to an OpenAL source handle on the SoundEngine executor thread.
+     * directly to an OpenAL channel on the SoundEngine executor thread.
      */
     public static synchronized boolean applyToChannel(Channel channel, SourceAcousticSnapshot snapshot) {
         if (channel == null || snapshot == null) {
@@ -71,8 +71,26 @@ public final class OpenAlEfxBridge {
         if (!ensureInitializedOnAudioThread()) {
             return false;
         }
+        if (!resolveChannelReflection()) {
+            statusReason = "channel_source_reflection_unavailable";
+            return false;
+        }
         int sourceId = extractSourceId(channel);
-        if (sourceId <= 0 || !AL10.alIsSource(sourceId)) {
+        return applyToSource(sourceId, snapshot);
+    }
+
+    /**
+     * Applies precomputed environment reverb, direct occlusion low-pass filter, and air absorption
+     * directly to a raw OpenAL source handle on the active OpenAL audio thread.
+     */
+    public static synchronized boolean applyToSource(int sourceId, SourceAcousticSnapshot snapshot) {
+        if (sourceId <= 0 || snapshot == null) {
+            return false;
+        }
+        if (!ensureInitializedOnAudioThread()) {
+            return false;
+        }
+        if (!AL10.alIsSource(sourceId)) {
             return false;
         }
         try {
@@ -113,8 +131,39 @@ public final class OpenAlEfxBridge {
         }
     }
 
+    /**
+     * Releases allocated EFX effect slots and filters on the active audio context and resets bridge state.
+     */
+    public static synchronized void shutdownOnAudioThread() {
+        long ctx = 0L;
+        try {
+            ctx = ALC10.alcGetCurrentContext();
+        } catch (Throwable ignored) {
+            // OpenAL context may already be closed
+        }
+        if (initialized && ctx != 0L && ctx == boundContext) {
+            cleanupHandlesOnCurrentContext();
+        } else {
+            resetHandleMaps();
+        }
+        boundContext = 0L;
+        initialized = false;
+        efxSupported = false;
+        REINIT_REQUESTED.set(true);
+        statusReason = "shutdown";
+    }
+
+    private static boolean isExternalAudioModLoaded() {
+        try {
+            ModList modList = ModList.get();
+            return modList != null && modList.isLoaded("sound_physics_remastered");
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     private static boolean ensureInitializedOnAudioThread() {
-        if (ModList.get().isLoaded("sound_physics_remastered")) {
+        if (isExternalAudioModLoaded()) {
             externalModConflict = true;
             efxSupported = false;
             initialized = false;
@@ -157,13 +206,6 @@ public final class OpenAlEfxBridge {
                 efxSupported = false;
                 initialized = true;
                 statusReason = "alc_ext_efx_unsupported";
-                return false;
-            }
-
-            if (!resolveChannelReflection()) {
-                efxSupported = false;
-                initialized = true;
-                statusReason = "channel_source_reflection_unavailable";
                 return false;
             }
 

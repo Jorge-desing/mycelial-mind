@@ -21,6 +21,7 @@ out/
 build/
 .gradle/
 .gradle-user-home/
+.lwjgl/
 
 # Minecraft / NeoForge runtime & logs
 run/
