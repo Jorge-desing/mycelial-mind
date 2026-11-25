@@ -87,8 +87,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "• **Reclaimed Blooms (5):** `reclaimed_bloom_melee`, `reclaimed_bloom_projectile`, `reclaimed_bloom_fire`, `reclaimed_bloom_explosion`, `reclaimed_bloom_magic`.",
                 ),
                 (
-                    "• **Sima Subterránea (3 + 2 Huevos):** `root_sap_vial` (embotellado de `root_sap_moss`), `canopy_membrane` (`spore_glider`) y `root_heart_resin` (`root_keeper`).",
-                    "• **Sinkhole Reagents (3 + 2 Eggs):** `root_sap_vial` (bottled from `root_sap_moss`), `canopy_membrane` (`spore_glider`), and `root_heart_resin` (`root_keeper`).",
+                    "• **Sima Subterránea (4 + 2 Huevos):** `root_sap_vial`, `resonant_sap_elixir` (Mesa Sináptica), `canopy_membrane` (`spore_glider`) y `root_heart_resin` (`root_keeper`).",
+                    "• **Sinkhole Reagents (4 + 2 Eggs):** `root_sap_vial`, `resonant_sap_elixir` (Synaptic Bench), `canopy_membrane` (`spore_glider`), and `root_heart_resin` (`root_keeper`).",
                 ),
             ],
         ),
@@ -390,7 +390,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="catalogo_bloques_items",
             order=1,
-            title=lt("Catálogo: 29 Bloques y 66 Ítems", "Catalog: 29 Blocks & 66 Items"),
+            title=lt("Catálogo: 29 Bloques y 67 Ítems", "Catalog: 29 Blocks & 67 Items"),
             subtitle=lt(
                 "Inventario íntegro de flora, bloques e ítems registrados",
                 "Complete registry inventory of flora, blocks & items",
@@ -467,6 +467,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:root_sap_moss",
                 "mycelialmind:root_cap_shelf",
                 "mycelialmind:root_sap_vial",
+                "mycelialmind:resonant_sap_elixir",
                 "mycelialmind:canopy_membrane",
                 "mycelialmind:root_heart_resin",
                 "mycelialmind:spore_glider_spawn_egg",
@@ -558,17 +559,21 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     [
                         (
                             "• **Alambique (`onRegisterBrewingRecipes`):** Poción Rara (`Awkward`) + "
-                            "`latent_spore` -> `spore_antidote`; luego + Amatista -> `concentrated_antidote`.",
+                            "`latent_spore` -> `spore_antidote`; luego + Amatista o `Awkward + root_sap_vial` -> `concentrated_antidote`.",
                             "• **Brewing Stand (`onRegisterBrewingRecipes`):** `Awkward Potion` + "
-                            "`latent_spore` -> `spore_antidote`; + Amethyst Shard -> `concentrated_antidote`.",
+                            "`latent_spore` -> `spore_antidote`; + Amethyst Shard or `Awkward + root_sap_vial` -> `concentrated_antidote`.",
                         ),
                         (
-                            "• **Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), "
-                            "`bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), `reclaimed_bloom*` (**0.65**), "
-                            "`latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**), `antibody_cyst` (**0.50**), `hyphal_vein` (**0.30**).",
-                            "• **Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), "
-                            "`bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), `reclaimed_bloom*` (**0.65**), "
-                            "`latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**), `antibody_cyst` (**0.50**), `hyphal_vein` (**0.30**).",
+                            "• **Compostables 1/2 (`compostables.json`):** `mycelial_biomass`, `root_sap_moss`, "
+                            "`canopy_membrane`, `bioluminescent_mycelial_cap`, `spore_bulb` y `reclaimed_bloom*` (**0.65**).",
+                            "• **Compostables 1/2 (`compostables.json`):** `mycelial_biomass`, `root_sap_moss`, "
+                            "`canopy_membrane`, `bioluminescent_mycelial_cap`, `spore_bulb` & `reclaimed_bloom*` (**0.65**).",
+                        ),
+                        (
+                            "• **Compostables 2/2 y Combustible:** `latent_spore`, `mycelial_tendrils`, `antibody_cyst`, "
+                            "`root_cap_shelf` (**0.50**), `hyphal_vein` (**0.30**); combustible `root_heart_resin` (**1600t**).",
+                            "• **Compostables 2/2 & Fuel:** `latent_spore`, `mycelial_tendrils`, `antibody_cyst`, "
+                            "`root_cap_shelf` (**0.50**), `hyphal_vein` (**0.30**); fuel `root_heart_resin` (**1600t**).",
                         ),
                         (
                             "• **Aldeanos y Errante:** Clérigos (N2–N5) comercian `mycelial_biomass`, "
@@ -791,12 +796,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "and `surface_hive_cache`/`gallery`/`crypt` chests.",
                         ),
                         (
-                            "• `mycelial_sinkhole`: sima de 3 estratos (Corona superficial, Garganta con repisas "
-                            "`root_cap_shelf` y Caverna Raíz en `-22..-32`), `spore_updraft_vent` central, `root_sap_moss`, "
-                            "`sinkhole_root_vault`, `root_keeper` y `spore_glider`. Colocar un Pilón calma la brecha.",
-                            "• `mycelial_sinkhole`: 3-stratum sinkhole (Surface Crown, Twilight Throat with "
-                            "`root_cap_shelf` spiral ledges, Root Cavern at `-22..-32`), central `spore_updraft_vent`, "
-                            "`root_sap_moss`, `sinkhole_root_vault`, `root_keeper` & `spore_glider`. Pylons calm the breach.",
+                            "• `mycelial_sinkhole`: sima de 3 estratos (`root_cap_shelf`, `spore_updraft_vent`, `sinkhole_root_vault`, "
+                            "`root_keeper`, `spore_glider`), más Cámara Norte de Savia y Túnel Sur hacia cuevas. Un Pilón calma la brecha.",
+                            "• `mycelial_sinkhole`: 3-stratum sinkhole (`root_cap_shelf`, `spore_updraft_vent`, `sinkhole_root_vault`, "
+                            "`root_keeper`, `spore_glider`), plus North Sap Chamber & South Root Tunnel to caves. Pylons calm the breach.",
                         ),
                         (
                             "• **Motores (`hive_tier_rarity` / `FastNoiseLite`):** filtran rareza por Acto vía "
@@ -1185,6 +1188,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             unlock_gate="always",
             registry_refs=(
                 "root",
+                "sinkhole_descend",
+                "sinkhole_elixir",
                 "first_adaptation",
                 "genetic_sampler",
                 "sever_the_network",
@@ -1226,11 +1231,11 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "Complete Advancements Chain",
                     [
                         (
-                            "• **Acto I y Base (9):** `root`, `first_adaptation`, `genetic_sampler`, "
-                            "`sever_the_network`, `biotech_research`, `targeted_purge`, `chitin_bulwark`, "
+                            "• **Acto I y Base (11):** `root`, `sinkhole_descend`, `sinkhole_elixir`, `first_adaptation`, "
+                            "`genetic_sampler`, `sever_the_network`, `biotech_research`, `targeted_purge`, `chitin_bulwark`, "
                             "`tier2_awakening`, `base_sentinel`.",
-                            "• **Act I & Bastion (9):** `root`, `first_adaptation`, `genetic_sampler`, "
-                            "`sever_the_network`, `biotech_research`, `targeted_purge`, `chitin_bulwark`, "
+                            "• **Act I & Bastion (11):** `root`, `sinkhole_descend`, `sinkhole_elixir`, `first_adaptation`, "
+                            "`genetic_sampler`, `sever_the_network`, `biotech_research`, `targeted_purge`, `chitin_bulwark`, "
                             "`tier2_awakening`, `base_sentinel`.",
                         ),
                         (
@@ -1658,8 +1663,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         number=11,
         title=lt("Secretos, Logros y Compat", "Secrets, Advancements & Compat"),
         subtitle=lt(
-            "8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat",
-            "8 Secrets (Hints + Spoilers), 30 Advancements, 7 Redstone & 9 Compat",
+            "8 Secretos (Pistas + Spoilers), 32 Logros, 7 Redstone y 9 Compat",
+            "8 Secrets (Hints + Spoilers), 32 Advancements, 7 Redstone & 9 Compat",
         ),
         icon_item="mycelialmind:neural_echo_core",
         entries=ch11_entries,
@@ -1823,10 +1828,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="comandos_red_y_verificacion",
             order=2,
-            title=lt("Red v22, `/mycelial` y Verify", "Net v22, `/mycelial` & Verify"),
+            title=lt("Red v23, `/mycelial` y Verify", "Net v23, `/mycelial` & Verify"),
             subtitle=lt(
-                "Payloads v22, /mycelial colony, field_engram y 23 verify",
-                "v22 Payloads, /mycelial colony, field_engram & 23 verify",
+                "Payloads v23, /mycelial colony, field_engram y 24 verify",
+                "v23 Payloads, /mycelial colony, field_engram & 24 verify",
             ),
             icon_item="mycelialmind:bio_scanner",
             x=grid_xy(1, 2)[0],
@@ -1868,6 +1873,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "dimension_progression",
                 "cycles",
                 "colony",
+                "sinkhole",
             ),
             pages=tuple(
                 chunk_paired_blocks(
@@ -1916,12 +1922,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`symbiosis`, `units`, `expansion`, `tide`, `counteroffensive`, `arsenal`.",
                         ),
                         (
-                            "• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
+                            "• **`/mycelial verify` (12–24):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
                             "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, "
-                            "`dimension_progression`, `cycles`, `colony`.",
-                            "• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
+                            "`dimension_progression`, `cycles`, `colony`, `sinkhole`.",
+                            "• **`/mycelial verify` (12–24):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, "
                             "`tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, "
-                            "`dimension_progression`, `cycles`, `colony`.",
+                            "`dimension_progression`, `cycles`, `colony`, `sinkhole`.",
                         ),
                     ],
                 )
@@ -1933,8 +1939,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         number=12,
         title=lt("Técnica, Config y Comandos", "Tech, Configs & Commands"),
         subtitle=lt(
-            "189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify",
-            "189 Sounds, LabPBR, 49 Configs, Net v23, /mycelial & 23 Verify",
+            "208 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 24 Verify",
+            "208 Sounds, LabPBR, 49 Configs, Net v23, /mycelial & 24 Verify",
         ),
         icon_item="mycelialmind:bio_scanner",
         entries=ch12_entries,

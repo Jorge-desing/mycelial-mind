@@ -99,6 +99,14 @@ public final class SynapticBenchRecipeDefinitions {
                         List.of(new ItemStack(ModItems.NEURAL_ECHO_CORE.get())),
                         new ItemStack(ModItems.CHIMERA_OVUM.get()),
                         "recipe.mycelialmind.synaptic.chimera_ovum"
+                ),
+                new SynapticRecipeDescriptor(
+                        "resonant_sap_elixir",
+                        List.of(new ItemStack(ModItems.ROOT_SAP_VIAL.get())),
+                        List.of(new ItemStack(ModItems.MYCELIAL_BIOMASS.get())),
+                        List.of(new ItemStack(ModItems.ROOT_HEART_RESIN.get())),
+                        new ItemStack(ModItems.RESONANT_SAP_ELIXIR.get()),
+                        "recipe.mycelialmind.synaptic.resonant_sap_elixir"
                 )
         ));
         List<ItemStack> blooms = List.of(
@@ -151,7 +159,14 @@ public final class SynapticBenchRecipeDefinitions {
                 new CompatInfoEntry("sovereign_nexus", ModBlocks.SOVEREIGN_NEXUS.get(), "compat.mycelialmind.info.sovereign_nexus"),
                 new CompatInfoEntry("sovereign_command_staff", ModItems.SOVEREIGN_COMMAND_STAFF.get(), "compat.mycelialmind.info.sovereign_command_staff"),
                 new CompatInfoEntry("field_engram", ModItems.FIELD_ENGRAM.get(), "compat.mycelialmind.info.field_engram"),
-                new CompatInfoEntry("reclaimed_bloom", ModBlocks.RECLAIMED_BLOOM.get(), "compat.mycelialmind.info.reclaimed_bloom")
+                new CompatInfoEntry("reclaimed_bloom", ModBlocks.RECLAIMED_BLOOM.get(), "compat.mycelialmind.info.reclaimed_bloom"),
+                new CompatInfoEntry("spore_updraft_vent", ModBlocks.SPORE_UPDRAFT_VENT.get(), "compat.mycelialmind.info.spore_updraft_vent"),
+                new CompatInfoEntry("root_sap_moss", ModBlocks.ROOT_SAP_MOSS.get(), "compat.mycelialmind.info.root_sap_moss"),
+                new CompatInfoEntry("root_cap_shelf", ModBlocks.ROOT_CAP_SHELF.get(), "compat.mycelialmind.info.root_cap_shelf"),
+                new CompatInfoEntry("root_sap_vial", ModItems.ROOT_SAP_VIAL.get(), "compat.mycelialmind.info.root_sap_vial"),
+                new CompatInfoEntry("canopy_membrane", ModItems.CANOPY_MEMBRANE.get(), "compat.mycelialmind.info.canopy_membrane"),
+                new CompatInfoEntry("root_heart_resin", ModItems.ROOT_HEART_RESIN.get(), "compat.mycelialmind.info.root_heart_resin"),
+                new CompatInfoEntry("resonant_sap_elixir", ModItems.RESONANT_SAP_ELIXIR.get(), "compat.mycelialmind.info.resonant_sap_elixir")
         );
     }
 }

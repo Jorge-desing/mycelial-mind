@@ -15,6 +15,7 @@ import com.alex.mycelialmind.item.NeutralizingSporeLauncherItem;
 import com.alex.mycelialmind.item.OvermindCrownItem;
 import com.alex.mycelialmind.item.PurifierGrenadeItem;
 import com.alex.mycelialmind.item.ReclaimedBloomItem;
+import com.alex.mycelialmind.item.ResonantSapElixirItem;
 import com.alex.mycelialmind.item.RiftCatalystItem;
 import com.alex.mycelialmind.item.RootSapVialItem;
 import com.alex.mycelialmind.item.SovereignCommandStaffItem;
@@ -258,6 +259,9 @@ public final class ModItems {
             () -> new TooltipMaterialItem(new Item.Properties().rarity(Rarity.UNCOMMON),
                     "tooltip.mycelialmind.root_heart_resin", ChatFormatting.GOLD,
                     "tooltip.mycelialmind.root_heart_resin.hint", ChatFormatting.GREEN));
+
+    public static final DeferredItem<Item> RESONANT_SAP_ELIXIR = ITEMS.register("resonant_sap_elixir",
+            () -> new ResonantSapElixirItem(new Item.Properties().stacksTo(16).rarity(Rarity.RARE)));
 
     public static final DeferredItem<Item> SPORE_GLIDER_SPAWN_EGG = ITEMS.register("spore_glider_spawn_egg",
             () -> new DeferredSpawnEggItem(ModEntities.SPORE_GLIDER, 0x26547C, 0x72EFDD, new Item.Properties()));

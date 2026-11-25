@@ -166,6 +166,8 @@ public final class MycelialCommands {
                                 .executes(ctx -> verifyCycles(ctx.getSource())))
                         .then(Commands.literal("colony")
                                 .executes(ctx -> verifyColony(ctx.getSource())))
+                        .then(Commands.literal("sinkhole")
+                                .executes(ctx -> verifySinkhole(ctx.getSource())))
                         .then(Commands.literal("worldgen")
                                 .executes(ctx -> runWorldgenAudit(ctx.getSource(), 6, 64)))
                         .then(Commands.literal("all")
@@ -347,8 +349,9 @@ public final class MycelialCommands {
         int r21 = verifyDimensionProgression(source);
         int r22 = verifyCycles(source);
         int r23 = verifyColony(source);
-        if (r1 == 1 && r2 == 1 && r3 == 1 && r4 == 1 && r5 == 1 && r6 == 1 && r7 == 1 && r8 == 1 && r9 == 1 && r10 == 1 && r11 == 1 && r12 == 1 && r13 == 1 && r14 == 1 && r15 == 1 && r16 == 1 && r17 == 1 && r18 == 1 && r19 == 1 && r20 == 1 && r21 == 1 && r22 == 1 && r23 == 1) {
-            source.sendSuccess(() -> Component.literal("[Mycelial Verify] ALL 23 automated scenario checks PASSED.")
+        int r24 = verifySinkhole(source);
+        if (r1 == 1 && r2 == 1 && r3 == 1 && r4 == 1 && r5 == 1 && r6 == 1 && r7 == 1 && r8 == 1 && r9 == 1 && r10 == 1 && r11 == 1 && r12 == 1 && r13 == 1 && r14 == 1 && r15 == 1 && r16 == 1 && r17 == 1 && r18 == 1 && r19 == 1 && r20 == 1 && r21 == 1 && r22 == 1 && r23 == 1 && r24 == 1) {
+            source.sendSuccess(() -> Component.literal("[Mycelial Verify] ALL 24 automated scenario checks PASSED.")
                     .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD), true);
             return 1;
         }
@@ -376,6 +379,7 @@ public final class MycelialCommands {
         appendFailedScenario(failedScenarios, "dimension_progression", r21);
         appendFailedScenario(failedScenarios, "cycles", r22);
         appendFailedScenario(failedScenarios, "colony", r23);
+        appendFailedScenario(failedScenarios, "sinkhole", r24);
         source.sendFailure(Component.literal("[Mycelial Verify] Failed scenarios: " + failedScenarios + "."));
         return 0;
     }
@@ -1394,7 +1398,7 @@ public final class MycelialCommands {
     private static int verifyPolish(CommandSourceStack source) {
         ServerLevel level = source.getLevel();
         var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
-        boolean soundsOk = soundEntries.size() == 200;
+        boolean soundsOk = soundEntries.size() == 208;
         if (soundsOk) {
             for (var holder : soundEntries) {
                 SoundEvent evt = holder.get();
@@ -1527,7 +1531,7 @@ public final class MycelialCommands {
                 && new ItemStack(ModItems.RIFT_CATALYST.get()).is(ItemTags.DURABILITY_ENCHANTABLE)
                 && new ItemStack(ModItems.SCHISM_INJECTOR.get()).is(ItemTags.DURABILITY_ENCHANTABLE)
                 && new ItemStack(ModItems.FALSE_ENGRAM_INJECTOR.get()).is(ItemTags.DURABILITY_ENCHANTABLE)
-                && SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 29
+                && SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 36
                 && ProgressionGoalEngine.BESTIARY_SPECIES_IDS.size() == 17
                 && ProgressionGoalEngine.TOTAL_SECRETS == 8
                 && Math.abs(ModArmorMaterials.CHITIN.value().toughness() - 1.0F) < 0.01F
@@ -2232,5 +2236,90 @@ public final class MycelialCommands {
             shown++;
         }
         return 1;
+    }
+
+    private static int verifySinkhole(CommandSourceStack source) {
+        ServerLevel level = source.getLevel();
+        BlockPos base = BlockPos.containing(source.getPosition());
+        int originY = Math.min(level.getMaxBuildHeight() - 12, Math.max(base.getY() + 44, level.getMinBuildHeight() + 44));
+        BlockPos origin = new BlockPos(base.getX() + 48, originY, base.getZ() + 48);
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        CompoundTag trackerSnapshot = tracker.save(new CompoundTag(), level.registryAccess());
+        java.util.Map<BlockPos, BlockState> savedBlocks = new java.util.HashMap<>();
+        BlockPos benchPos = origin.offset(0, 6, 0);
+        try {
+            tracker.clearAll();
+            for (int dx = -11; dx <= 11; dx++) {
+                for (int dz = -19; dz <= 22; dz++) {
+                    for (int dy = -34; dy <= 5; dy++) {
+                        BlockPos p = origin.offset(dx, dy, dz);
+                        savedBlocks.put(p, level.getBlockState(p));
+                        if (dy <= -2) {
+                            level.setBlock(p, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 2);
+                        } else if (dy == -1) {
+                            level.setBlock(p, net.minecraft.world.level.block.Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                        } else {
+                            level.setBlock(p, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                        }
+                    }
+                }
+            }
+            if (!com.alex.mycelialmind.world.MycelialSinkholeFeature.generateSinkholeAt(level, origin, level.getRandom())) {
+                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: generateSinkholeAt returned false."));
+                return 0;
+            }
+            BlockPos ventPos = origin.below(30);
+            BlockPos northWater = origin.offset(0, -31, -13);
+            BlockPos northMoss = origin.offset(3, -31, -13);
+            BlockPos southTunnel = origin.offset(0, -29, 12);
+            boolean geoOk = level.getBlockState(ventPos).is(ModBlocks.SPORE_UPDRAFT_VENT.get())
+                    && level.getBlockState(northWater).is(net.minecraft.world.level.block.Blocks.WATER)
+                    && level.getBlockState(northMoss).is(ModBlocks.ROOT_SAP_MOSS.get())
+                    && level.getBlockState(southTunnel).isAir();
+            if (!geoOk) {
+                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: geometry check failed."));
+                return 0;
+            }
+            savedBlocks.put(benchPos, level.getBlockState(benchPos));
+            level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
+            if (!(level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench)) {
+                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: bench missing."));
+                return 0;
+            }
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, new ItemStack(ModItems.ROOT_SAP_VIAL.get()));
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
+            bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, new ItemStack(ModItems.ROOT_HEART_RESIN.get()));
+            ItemStack out = bench.computeSynthesisResult();
+            if (!out.is(ModItems.RESONANT_SAP_ELIXIR.get())) {
+                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: bench failed to synthesize resonant_sap_elixir."));
+                return 0;
+            }
+            BlockPos pylonPos = origin.offset(-2, -30, 2);
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            if (!com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(true, tracker.isProtected(ventPos))) {
+                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: Purification Pylon did not seal sinkhole breach."));
+                return 0;
+            }
+            source.sendSuccess(() -> Component.literal("[Verify:Sinkhole] PASS (3-strata + N/S galleries + Elixir synthesis + Pylon seal)")
+                    .withStyle(ChatFormatting.GREEN), false);
+            return 1;
+        } finally {
+            net.minecraft.world.phys.AABB cleanupBox = new net.minecraft.world.phys.AABB(
+                    origin.getX() - 14.0D, origin.getY() - 35.0D, origin.getZ() - 20.0D,
+                    origin.getX() + 14.0D, origin.getY() + 8.0D, origin.getZ() + 24.0D);
+            for (var e : level.getEntitiesOfClass(com.alex.mycelialmind.entity.RootKeeperEntity.class, cleanupBox)) {
+                e.discard();
+            }
+            for (var e : level.getEntitiesOfClass(com.alex.mycelialmind.entity.SporeGliderEntity.class, cleanupBox)) {
+                e.discard();
+            }
+            for (var entry : savedBlocks.entrySet()) {
+                level.setBlock(entry.getKey(), entry.getValue(), 2);
+            }
+            tracker.restoreFromSnapshot(trackerSnapshot, level.registryAccess());
+            hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
+        }
     }
 }

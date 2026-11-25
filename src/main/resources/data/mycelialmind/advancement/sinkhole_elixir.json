@@ -1,0 +1,27 @@
+{
+  "parent": "mycelialmind:sinkhole_descend",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:resonant_sap_elixir"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.sinkhole_elixir.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.sinkhole_elixir.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "has_elixir": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:resonant_sap_elixir"
+          }
+        ]
+      }
+    }
+  }
+}

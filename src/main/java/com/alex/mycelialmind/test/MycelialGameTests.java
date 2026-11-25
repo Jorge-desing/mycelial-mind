@@ -5804,7 +5804,7 @@ public final class MycelialGameTests {
                     && "hud.mycelialmind.squad_desynced".equals(sDesynced);
 
             BlockState ephState = ModBlocks.EPHEMERAL_CHITIN.get().defaultBlockState();
-            boolean tagsAndCompatOk = SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 29
+            boolean tagsAndCompatOk = SynapticBenchRecipeDefinitions.allCompatInfoEntries().size() == 36
                     && ephState.is(BlockTags.MINEABLE_WITH_HOE)
                     && ephState.is(BlockTags.MINEABLE_WITH_PICKAXE);
 
@@ -10848,9 +10848,9 @@ public final class MycelialGameTests {
         BlockPos pylonPos = originAbs.offset(-2, -30, 2);
 
         try {
-            // Prepare sturdy subterranean column + surface cap + air headroom
+            // Prepare sturdy subterranean column + surface cap + air headroom (extended N/S for lateral galleries)
             for (int dx = -11; dx <= 11; dx++) {
-                for (int dz = -11; dz <= 11; dz++) {
+                for (int dz = -19; dz <= 23; dz++) {
                     for (int dy = -34; dy <= -2; dy++) {
                         level.setBlock(originAbs.offset(dx, dy, dz), Blocks.STONE.defaultBlockState(), 2);
                     }
@@ -10881,6 +10881,17 @@ public final class MycelialGameTests {
             helper.assertTrue(!level.getBlockState(nodePos).isAir()
                             && tracker.findNearestEnemyNode(ventPos, 10) != null,
                     "Eastern Root Synaptic Node must be registered as hostile node.");
+
+            // Verify Northern Sap Chamber & Southern Root Tunnel lateral galleries
+            helper.assertTrue(level.getBlockState(originAbs.offset(0, -31, -13)).is(Blocks.WATER),
+                    "Northern Sap Chamber must contain recessed water spring at (0, -31, -13).");
+            helper.assertTrue(level.getBlockState(originAbs.offset(3, -31, -13)).is(ModBlocks.ROOT_SAP_MOSS.get())
+                            && level.getBlockState(originAbs.offset(3, -31, -13)).getValue(com.alex.mycelialmind.block.RootSapMossBlock.SAP_READY),
+                    "Northern Sap Chamber must surround spring with ready Root Sap Moss.");
+            helper.assertTrue(level.getBlockState(originAbs.offset(0, -29, 12)).isAir(),
+                    "Southern Root Tunnel must carve clear subterranean passage at (0, -29, 12).");
+            helper.assertTrue(level.getBlockState(originAbs.offset(3, -29, 11)).is(ModBlocks.CHITIN_PILLAR.get()),
+                    "Southern Root Tunnel must anchor Chitin Pillar arch ribs.");
 
             // Verify Stratum 2 spiral Root Cap Shelves
             int shelfCount = 0;
@@ -10947,13 +10958,49 @@ public final class MycelialGameTests {
                             && Math.abs(followRange.getBaseValue() - com.alex.mycelialmind.world.SinkholeEcosystemEngine.PURIFIED_AGGRO_RANGE) < 0.05D,
                     "Purified RootKeeper follow range must drop to PURIFIED_AGGRO_RANGE.");
 
+            // Verify Synaptic Research Bench synthesis & consumption of Resonant Sap Elixir + Bio-Scanner inspection
+            BlockPos benchPos = originAbs.offset(0, 2, 0);
+            level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
+            helper.assertTrue(level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench,
+                    "Temporary Synaptic Bench must instantiate.");
+            if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
+                bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, new ItemStack(ModItems.ROOT_SAP_VIAL.get()));
+                bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
+                bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, new ItemStack(ModItems.ROOT_HEART_RESIN.get()));
+                ItemStack elixirOut = bench.computeSynthesisResult();
+                helper.assertTrue(elixirOut.is(ModItems.RESONANT_SAP_ELIXIR.get()),
+                        "Synaptic Bench must synthesize Resonant Sap Elixir from Root Sap Vial + Biomass + Root Heart Resin.");
+
+                player.addEffect(new net.minecraft.world.effect.MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
+                ItemStack consumed = elixirOut.copyWithCount(1).finishUsingItem(level, player);
+                helper.assertTrue(consumed.is(net.minecraft.world.item.Items.GLASS_BOTTLE),
+                        "Drinking Resonant Sap Elixir in Survival must return a Glass Bottle.");
+                helper.assertFalse(player.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                        "Resonant Sap Elixir must cure Mycelial Infection.");
+                helper.assertTrue(player.hasEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION)
+                                && player.hasEffect(net.minecraft.world.effect.MobEffects.SLOW_FALLING)
+                                && player.hasEffect(ModEffects.SYNAPTIC_INSIGHT),
+                        "Resonant Sap Elixir must grant Night Vision, Slow Falling, and Synaptic Insight.");
+            }
+
+            ItemStack scannerStack = new ItemStack(ModItems.BIO_SCANNER.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, scannerStack);
+            var scanVentRes = scannerStack.useOn(new net.minecraft.world.item.context.UseOnContext(
+                    level, player, InteractionHand.MAIN_HAND, scannerStack,
+                    new BlockHitResult(Vec3.atCenterOf(ventPos), Direction.UP, ventPos, false)));
+            var scanSapRes = scannerStack.useOn(new net.minecraft.world.item.context.UseOnContext(
+                    level, player, InteractionHand.MAIN_HAND, scannerStack,
+                    new BlockHitResult(Vec3.atCenterOf(sapPos), Direction.UP, sapPos, false)));
+            helper.assertTrue(scanVentRes.consumesAction() && scanSapRes.consumesAction(),
+                    "Bio-Scanner must inspect both SporeUpdraftVent and RootSapMoss cleanly.");
+
             helper.succeed();
         } finally {
             for (var e : cleanupEntities) {
                 e.discard();
             }
             for (int dx = -11; dx <= 11; dx++) {
-                for (int dz = -11; dz <= 11; dz++) {
+                for (int dz = -19; dz <= 23; dz++) {
                     for (int dy = -34; dy <= 6; dy++) {
                         level.setBlock(originAbs.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
                     }

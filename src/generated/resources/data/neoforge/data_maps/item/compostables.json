@@ -6,6 +6,9 @@
     "mycelialmind:bioluminescent_mycelial_cap": {
       "chance": 0.65
     },
+    "mycelialmind:canopy_membrane": {
+      "chance": 0.65
+    },
     "mycelialmind:hyphal_vein": {
       "chance": 0.3
     },
@@ -34,6 +37,12 @@
       "chance": 0.65
     },
     "mycelialmind:reclaimed_bloom_projectile": {
+      "chance": 0.65
+    },
+    "mycelialmind:root_cap_shelf": {
+      "chance": 0.5
+    },
+    "mycelialmind:root_sap_moss": {
       "chance": 0.65
     },
     "mycelialmind:spore_bulb": {

@@ -3,7 +3,7 @@
   "chapters": [
     "economia_datos"
   ],
-  "page_count": 88,
+  "page_count": 89,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.III"
@@ -13,7 +13,7 @@
     "resolved": true,
     "pages": [
       {
-        "raw": "Cap.9: Catálogo: 29\nBloques y 66 Ítems\nFlora, Geología y\nBloques Estructurales\n(1/4)\n• `creeping_mycelium`:\npropaga micelio y\ntransmisiones\nacústicas (32m);\nhorneable a\n`mycelial_stone`.\n• `hyphal_vein`: vena\nnegra en forma de\nrayo sobre tus rutas"
+        "raw": "Cap.9: Catálogo: 29\nBloques y 67 Ítems\nFlora, Geología y\nBloques Estructurales\n(1/4)\n• `creeping_mycelium`:\npropaga micelio y\ntransmisiones\nacústicas (32m);\nhorneable a\n`mycelial_stone`.\n• `hyphal_vein`: vena\nnegra en forma de\nrayo sobre tus rutas"
       },
       {
         "raw": "habituales (`CHARGED`\nsi densidad >=60%).\nCortable con Tijeras,\nAzada o Hoja\nSimbiótica."
@@ -61,7 +61,7 @@
         "raw": "Ítems y Armadura\n(`ModItems`) (5/6)\n• Brotes Recuperados\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
-        "raw": "Ítems y Armadura\n(`ModItems`) (6/6)\n• Sima Subterránea (3\n+ 2 Huevos):\n`root_sap_vial`\n(embotellado de\n`root_sap_moss`),\n`canopy_membrane`\n(`spore_glider`) y\n`root_heart_resin`\n(`root_keeper`)."
+        "raw": "Ítems y Armadura\n(`ModItems`) (6/6)\n• Sima Subterránea (4\n+ 2 Huevos):\n`root_sap_vial`,\n`resonant_sap_elixir`\n(Mesa Sináptica),\n`canopy_membrane`\n(`spore_glider`) y\n`root_heart_resin`\n(`root_keeper`)."
       },
       {
         "raw": "Colonia Soberana\nPost-Matriarca (1/7)\n• Ancla y Puestos\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`): tras derrotar\na la Matriarca, el\n`sovereign_nexus`\nacepta\n`mycelial_biomass`\n(mano o tolvas) e\nintegra hasta 4\n`symbiotic_node`"
@@ -223,16 +223,19 @@
         "raw": "Antídoto Concentrado\npor Savia Raíz\n[crafting_shapeless]\nroot_sap_vial +\nlatent_spore +\nmycelial_biomass -> 1x\nconcentrated_antidote\nSíntesis sin mesa\nusando\n`root_sap_vial`\nembotellado de\n`root_sap_moss`,\n`latent_spore` y\n`mycelial_biomass`."
       },
       {
-        "raw": "Cap.9: Alambique,\nCompostaje y\nComercio\nIntegración Económica\nVanilla+ (1/3)\n• Alambique\n(`onRegisterBrewingRe\ncipes`): Poción Rara\n(`Awkward`) +\n`latent_spore` ->\n`spore_antidote`;\nluego + Amatista ->\n`concentrated_antidot\ne`."
+        "raw": "Cap.9: Alambique,\nCompostaje y\nComercio\nIntegración Económica\nVanilla+ (1/4)\n• Alambique\n(`onRegisterBrewingRe\ncipes`): Poción Rara\n(`Awkward`) +\n`latent_spore` ->\n`spore_antidote`;\nluego + Amatista o\n`Awkward +\nroot_sap_vial` ->"
       },
       {
-        "raw": "Integración Económica\nVanilla+ (2/3)\n• Compostables\n(`compostables.json`):\n`mycelial_biomass`\n(0.65),\n`bioluminescent_myceli\nal_cap` (0.65),\n`spore_bulb` (0.65),\n`reclaimed_bloom*`\n(0.65), `latent_spore`\n(0.50),\n`mycelial_tendrils`"
+        "raw": "`concentrated_antidot\ne`."
       },
       {
-        "raw": "(0.50), `antibody_cyst`\n(0.50), `hyphal_vein`\n(0.30)."
+        "raw": "Integración Económica\nVanilla+ (2/4)\n• Compostables 1/2\n(`compostables.json`):\n`mycelial_biomass`,\n`root_sap_moss`,\n`canopy_membrane`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`\ny `reclaimed_bloom*`\n(0.65)."
       },
       {
-        "raw": "Integración Económica\nVanilla+ (3/3)\n• Aldeanos y Errante:\nClérigos (N2–N5)\ncomercian\n`mycelial_biomass`,\n`spore_antidote`,\n`latent_spore`,\n`concentrated_antidot\ne`; Albañiles y\nVendedor Errante\nofrecen bloques\nmiceliales y\n`truce_pheromone`."
+        "raw": "Integración Económica\nVanilla+ (3/4)\n• Compostables 2/2 y\nCombustible:\n`latent_spore`,\n`mycelial_tendrils`,\n`antibody_cyst`,\n`root_cap_shelf`\n(0.50), `hyphal_vein`\n(0.30); combustible\n`root_heart_resin`\n(1600t)."
+      },
+      {
+        "raw": "Integración Económica\nVanilla+ (4/4)\n• Aldeanos y Errante:\nClérigos (N2–N5)\ncomercian\n`mycelial_biomass`,\n`spore_antidote`,\n`latent_spore`,\n`concentrated_antidot\ne`; Albañiles y\nVendedor Errante\nofrecen bloques\nmiceliales y\n`truce_pheromone`."
       },
       {
         "raw": "Cap.9: Las 58 Tablas\nde Botín\nBotín Multi-Pool (58\nTablas) (1/10)\n• Bloques 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."

@@ -76,7 +76,7 @@
         "raw": "old`=`5` (`2..32`),\n`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
       },
       {
-        "raw": "Cap.12: Red v22,\n`/mycelial` y Verify\nComandos Admin,\nPayloads y Verify\n(1/7)\n• Red (`ModNetworking`\nv23):\n`HiveSyncPayload`\n(`<=64` nodos, `<=32`\npilones, `<=64` chunks\ninflamados),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+        "raw": "Cap.12: Red v23,\n`/mycelial` y Verify\nComandos Admin,\nPayloads y Verify\n(1/7)\n• Red (`ModNetworking`\nv23):\n`HiveSyncPayload`\n(`<=64` nodos, `<=32`\npilones, `<=64` chunks\ninflamados),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
       },
       {
         "raw": "` y\n`DiscoverySyncPayloa\nd`."
@@ -103,7 +103,7 @@
         "raw": "`counteroffensive`,\n`arsenal`."
       },
       {
-        "raw": "Comandos Admin,\nPayloads y Verify\n(7/7)\n• `/mycelial verify`\n(12–23): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`, `colony`."
+        "raw": "Comandos Admin,\nPayloads y Verify\n(7/7)\n• `/mycelial verify`\n(12–24): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`, `colony`,\n`sinkhole`."
       }
     ]
   }

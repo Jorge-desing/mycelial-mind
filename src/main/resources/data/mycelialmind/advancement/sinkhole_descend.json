@@ -1,0 +1,30 @@
+{
+  "parent": "mycelialmind:root",
+  "display": {
+    "icon": {
+      "id": "mycelialmind:root_sap_vial"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.sinkhole_descend.title"
+    },
+    "description": {
+      "translate": "advancement.mycelialmind.sinkhole_descend.description"
+    }
+  },
+  "criteria": {
+    "has_sinkhole_reagent": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "mycelialmind:root_sap_vial",
+              "mycelialmind:canopy_membrane",
+              "mycelialmind:root_heart_resin"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

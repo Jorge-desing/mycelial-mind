@@ -786,8 +786,8 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
                 ),
                 *chunk_paired_blocks(
                     "bench_recipes",
-                    "Las 4 Síntesis Oficiales",
-                    "The 4 Official Syntheses",
+                    "Las 5 Síntesis Oficiales",
+                    "The 5 Official Syntheses",
                     [
                         (
                             "• `symbiotic_mutagen`: `GeneticSample` (con rasgo) + `MycelialBiomass` + "
@@ -810,6 +810,12 @@ def build_chapters_5_to_8() -> tuple[CodexChapter, ...]:
                             "(**2x** at T3).\n"
                             "• `chimera_ovum`: `GeneticSample` + `MycelialBiomass` + `NeuralEchoCore`. Hoppers "
                             "via `SidedSynapticBenchHandler` (`synaptic_bench`).",
+                        ),
+                        (
+                            "• `resonant_sap_elixir`: `RootSapVial` + `MycelialBiomass` + `RootHeartResin` -> **x1** "
+                            "(**x2** en N3) para exploración subterránea y protección frente a esporas.",
+                            "• `resonant_sap_elixir`: `RootSapVial` + `MycelialBiomass` + `RootHeartResin` -> **1x** "
+                            "(**2x** at T3) for spelunking & spore shielding.",
                         ),
                     ],
                 ),

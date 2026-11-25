@@ -4,7 +4,7 @@
     "mundo_dimension",
     "secretos_logros"
   ],
-  "page_count": 73,
+  "page_count": 74,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.IV"
@@ -26,10 +26,10 @@
         "raw": "/`gallery`/`crypt`."
       },
       {
-        "raw": "Estructuras y\nCaracterísticas\nOverworld (3/4)\n• `mycelial_sinkhole`:\nsima de 3 estratos\n(Corona superficial,\nGarganta con repisas\n`root_cap_shelf` y\nCaverna Raíz en\n`-22..-32`),\n`spore_updraft_vent`\ncentral,\n`root_sap_moss`,\n`sinkhole_root_vault`,"
+        "raw": "Estructuras y\nCaracterísticas\nOverworld (3/4)\n• `mycelial_sinkhole`:\nsima de 3 estratos\n(`root_cap_shelf`,\n`spore_updraft_vent`,\n`sinkhole_root_vault`,\n`root_keeper`,\n`spore_glider`), más\nCámara Norte de Savia\ny Túnel Sur hacia\ncuevas. Un Pilón calma"
       },
       {
-        "raw": "`root_keeper` y\n`spore_glider`.\nColocar un Pilón calma\nla brecha."
+        "raw": "la brecha."
       },
       {
         "raw": "Estructuras y\nCaracterísticas\nOverworld (4/4)\n• Motores\n(`hive_tier_rarity` /\n`FastNoiseLite`):\nfiltran rareza por\nActo vía\n`StructureProgressio\nnPolicy` usando ruido\n`FastNoiseLite`\n(`SIMPLEX_SMOOTH`,\n`CELLULAR`,\n`DOMAIN_WARP`)"
@@ -137,7 +137,10 @@
         "raw": "Cap`."
       },
       {
-        "raw": "Cap.11: Los 32 Logros\n(`advancement`)\nCadena Completa de\nLogros (1/4)\n• Acto I y Base (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,\n`base_sentinel`."
+        "raw": "Cap.11: Los 32 Logros\n(`advancement`)\nCadena Completa de\nLogros (1/4)\n• Acto I y Base (11):\n`root`,\n`sinkhole_descend`,\n`sinkhole_elixir`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,"
+      },
+      {
+        "raw": "`chitin_bulwark`,\n`tier2_awakening`,\n`base_sentinel`."
       },
       {
         "raw": "Cadena Completa de\nLogros (2/4)\n• Táctica y\nBiotecnología (9):\n`bastion_tier3`,\n`purifier_drone_deplo\nyed`,\n`symbiotic_vessel`,\n`synaptic_graft_netwo\nrk`,\n`pavlovian_deceiver`,\n`chemical_diplomat`,\n`architect_bane`,\n`chimera_bioforge`,"

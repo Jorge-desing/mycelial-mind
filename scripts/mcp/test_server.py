@@ -577,8 +577,8 @@ return {{
             assert payload["asset_lang"].get("referenced_keys_count", 0) >= 100
             assert payload["asset_lang"].get("missing_referenced_keys") == []
             assert payload["blockstates_count"] >= 20
-            assert payload["sounds_json_count"] == 200
-            assert payload["ogg_files_count"] == 532
+            assert payload["sounds_json_count"] == 208
+            assert payload["ogg_files_count"] == 552
             assert payload["missing_sound_files"] == []
             assert payload["vanilla_event_redirects"] == 0
             assert payload["audio_quality_ok"] is True

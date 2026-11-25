@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -115,7 +116,10 @@ public class SporeUpdraftVentBlock extends Block {
                 entity.resetFallDistance();
             }
 
+            boolean elixirProtected = entity.hasEffect(ModEffects.SYNAPTIC_INSIGHT)
+                    && entity.hasEffect(MobEffects.SLOW_FALLING);
             if (applyInfectionWindow
+                    && !elixirProtected
                     && !(entity instanceof MycelialMob)
                     && !(entity instanceof SporeGliderEntity)) {
                 if (entity instanceof Player player) {

@@ -98,6 +98,11 @@ public final class MycelialVanillaIntegration {
                 Ingredient.of(Items.AMETHYST_SHARD),
                 new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get())
         );
+        builder.addRecipe(
+                DataComponentIngredient.of(false, PotionContents.createItemStack(Items.POTION, Potions.AWKWARD)),
+                Ingredient.of(ModItems.ROOT_SAP_VIAL.get()),
+                new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get())
+        );
     }
 
     @SubscribeEvent

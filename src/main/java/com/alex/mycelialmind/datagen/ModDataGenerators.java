@@ -62,6 +62,9 @@ public final class ModDataGenerators {
                     .add(ModBlocks.MYCELIAL_TENDRILS.getId(), new Compostable(0.50F), false)
                     .add(ModBlocks.HYPHAL_VEIN.getId(), new Compostable(0.30F), false)
                     .add(ModBlocks.ANTIBODY_CYST.getId(), new Compostable(0.50F), false)
+                    .add(ModBlocks.ROOT_SAP_MOSS.getId(), new Compostable(0.65F), false)
+                    .add(ModBlocks.ROOT_CAP_SHELF.getId(), new Compostable(0.50F), false)
+                    .add(ModItems.CANOPY_MEMBRANE.getId(), new Compostable(0.65F), false)
                     .add(ModBlocks.RECLAIMED_BLOOM.getId(), new Compostable(0.65F), false)
                     .add(ModItems.RECLAIMED_BLOOM_MELEE.getId(), new Compostable(0.65F), false)
                     .add(ModItems.RECLAIMED_BLOOM_PROJECTILE.getId(), new Compostable(0.65F), false)
@@ -72,7 +75,8 @@ public final class ModDataGenerators {
             builder(NeoForgeDataMaps.FURNACE_FUELS)
                     .add(ModItems.MYCELIAL_BIOMASS.getId(), new FurnaceFuel(400), false)
                     .add(ModBlocks.LUMINESCENT_AMBER_VEIN.getId(), new FurnaceFuel(1200), false)
-                    .add(ModItems.VOLATILE_ENGRAM.getId(), new FurnaceFuel(1600), false);
+                    .add(ModItems.VOLATILE_ENGRAM.getId(), new FurnaceFuel(1600), false)
+                    .add(ModItems.ROOT_HEART_RESIN.getId(), new FurnaceFuel(1600), false);
 
             ResourceKey<LootTable> clericGift = ResourceKey.create(
                     Registries.LOOT_TABLE,

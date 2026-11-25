@@ -6,6 +6,9 @@
     "mycelialmind:mycelial_biomass": {
       "burn_time": 400
     },
+    "mycelialmind:root_heart_resin": {
+      "burn_time": 1600
+    },
     "mycelialmind:volatile_engram": {
       "burn_time": 1600
     }

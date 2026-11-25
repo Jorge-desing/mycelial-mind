@@ -400,6 +400,42 @@ public class BioScannerItem extends Item {
             blockInfoKey = "jade.mycelialmind.spore_vent";
         } else if (clickedState.is(ModBlocks.SPORE_BULB.get())) {
             blockInfoKey = "jade.mycelialmind.spore_bulb";
+        } else if (clickedState.is(ModBlocks.ROOT_CAP_SHELF.get())) {
+            blockInfoKey = "jade.mycelialmind.root_cap_shelf";
+        } else if (clickedState.is(ModBlocks.SPORE_UPDRAFT_VENT.get())) {
+            if (level instanceof ServerLevel serverLevel) {
+                PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
+                boolean purified = tracker.isProtected(pos);
+                HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
+                var tier = com.alex.mycelialmind.hive.HiveProgressionTier.resolveEffectiveTier(
+                        hive.getThreatLevel(), hive.getHighestTierReached());
+                int height = com.alex.mycelialmind.world.SinkholeEcosystemEngine.computeUpdraftHeight(tier, purified);
+                boolean rootNodeAlive = tracker.findNearestEnemyNode(pos, 28) != null;
+                boolean sealed = com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(rootNodeAlive, purified);
+                player.sendSystemMessage(Component.translatable(
+                        "message.mycelialmind.scanner_updraft_inspect",
+                        Component.translatable(purified ? "status.mycelialmind.protected" : "status.mycelialmind.exposed"),
+                        height,
+                        Component.translatable(sealed ? "jade.mycelialmind.spore_updraft_vent_inactive"
+                                : "jade.mycelialmind.spore_updraft_vent_active")
+                ).withStyle(purified ? ChatFormatting.AQUA : ChatFormatting.LIGHT_PURPLE));
+                serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.35F);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        } else if (clickedState.is(ModBlocks.ROOT_SAP_MOSS.get())) {
+            if (level instanceof ServerLevel serverLevel) {
+                boolean ready = clickedState.hasProperty(com.alex.mycelialmind.block.RootSapMossBlock.SAP_READY)
+                        && clickedState.getValue(com.alex.mycelialmind.block.RootSapMossBlock.SAP_READY);
+                int signal = clickedState.getAnalogOutputSignal(serverLevel, pos);
+                player.sendSystemMessage(Component.translatable(
+                        "message.mycelialmind.scanner_sap_moss_inspect",
+                        Component.translatable(ready ? "jade.mycelialmind.root_sap_moss_ready"
+                                : "jade.mycelialmind.root_sap_moss_depleted"),
+                        signal
+                ).withStyle(ready ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+                serverLevel.playSound(null, pos, ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.4F);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide());
         }
         if (blockInfoKey != null) {
             if (level instanceof ServerLevel serverLevel) {

@@ -94,6 +94,8 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
         BlockState sporeVent = ModBlocks.SPORE_VENT.get().defaultBlockState();
         BlockState sapMoss = ModBlocks.ROOT_SAP_MOSS.get().defaultBlockState().setValue(RootSapMossBlock.SAP_READY, true);
         BlockState updraftVent = ModBlocks.SPORE_UPDRAFT_VENT.get().defaultBlockState();
+        BlockState hyphalVein = ModBlocks.HYPHAL_VEIN.get().defaultBlockState();
+        BlockState water = Blocks.WATER.defaultBlockState();
 
         long noiseSeed = origin.asLong() ^ 0x53494E4B484F4C45L;
 
@@ -242,6 +244,110 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                             safeSetBlock(level, p, shellMat);
                         }
                     }
+                }
+            }
+        }
+
+        // 3a) Lateral Gallery North: Humid Sap Chamber (dz = -7 .. -17) with shallow spring & abundant Root Sap Moss
+        for (int dz = -7; dz >= -17; dz--) {
+            boolean doorway = dz >= -8;
+            int halfW = doorway ? 2 : 5;
+            for (int dx = -halfW; dx <= halfW; dx++) {
+                for (int dy = -25; dy >= -32; dy--) {
+                    BlockPos p = origin.offset(dx, dy, dz);
+                    boolean outerShell = dy == -32
+                            || dy == -25
+                            || (!doorway && (Math.abs(dx) == 5 || dz == -17))
+                            || (!doorway && dy == -26 && Math.abs(dx) >= 3)
+                            || (doorway && (Math.abs(dx) == 2 && dy == -26));
+                    if (outerShell) {
+                        BlockState shellMat = (!doorway && dy >= -29 && dy <= -26 && random.nextFloat() < 0.16F)
+                                ? amberVein
+                                : (random.nextFloat() < 0.18F ? archBrick : stone);
+                        safeSetBlock(level, p, shellMat);
+                        if (dy == -32) {
+                            anchorBaseDown(level, p.below(), 3, stone);
+                        }
+                    } else if (dy == -31) {
+                        boolean inSpring = !doorway && Math.abs(dx) <= 2 && dz <= -12 && dz >= -14;
+                        if (inSpring) {
+                            safeSetBlock(level, p, water);
+                        } else {
+                            safeSetBlock(level, p, sapMoss);
+                        }
+                    } else {
+                        safeSetBlock(level, p, air);
+                    }
+                }
+            }
+        }
+        // Scatter luminous flora & tendrils around North Sap Chamber edges
+        for (int dz = -9; dz >= -16; dz--) {
+            for (int dx = -4; dx <= 4; dx++) {
+                if (Math.abs(dx) <= 2 && dz <= -12 && dz >= -14) {
+                    continue;
+                }
+                BlockPos floor = origin.offset(dx, -31, dz);
+                if (level.getBlockState(floor).isSolid()
+                        && isOpenAirOrReplaceable(level, floor.above())
+                        && (Math.abs(dx) == 4 || dz == -16)
+                        && random.nextFloat() < 0.35F) {
+                    safeSetBlock(level, floor.above(), random.nextFloat() < 0.65F ? cap : sporeBulb);
+                }
+                BlockPos ceilHang = origin.offset(dx, -26, dz);
+                if (isOpenAirOrReplaceable(level, ceilHang)
+                        && level.getBlockState(ceilHang.above()).isSolid()
+                        && random.nextFloat() < 0.20F) {
+                    safeSetBlock(level, ceilHang, tendrils);
+                }
+            }
+        }
+
+        // 3b) Lateral Gallery South: Winding Root Tunnel (dz = 7 .. 21) opening toward adjacent caves
+        for (int dz = 7; dz <= 21; dz++) {
+            int cx = dz <= 9 ? 0 : (int) Math.round(Math.sin((dz - 9) * 0.45D) * 1.5D);
+            boolean pillarRib = dz == 11 || dz == 15 || dz == 19;
+            boolean southMouth = dz == 21;
+            for (int ox = -2; ox <= 2; ox++) {
+                int rx = cx + ox;
+                for (int dy = -26; dy >= -32; dy--) {
+                    BlockPos p = origin.offset(rx, dy, dz);
+                    boolean insidePassage = (Math.abs(ox) <= 1 && dy >= -30 && dy <= -28)
+                            || (ox == 0 && dy == -27);
+                    if (insidePassage) {
+                        safeSetBlock(level, p, air);
+                    } else if (!southMouth) {
+                        if (dy == -32) {
+                            safeSetBlock(level, p, stone);
+                            anchorBaseDown(level, p.below(), 3, stone);
+                        } else if (dy == -31) {
+                            BlockState fState = (Math.abs(ox) == 1 && random.nextFloat() < 0.25F) ? mycelium : stone;
+                            safeSetBlock(level, p, fState);
+                        } else if (pillarRib && Math.abs(ox) == 2 && dy >= -30 && dy <= -27) {
+                            safeSetBlock(level, p, pillar);
+                        } else if (pillarRib && dy == -26 && Math.abs(ox) <= 1) {
+                            safeSetBlock(level, p, archBrick);
+                        } else if (Math.abs(ox) == 2 && dy == -29 && random.nextFloat() < 0.30F) {
+                            safeSetBlock(level, p, amberVein);
+                        } else {
+                            safeSetBlock(level, p, random.nextFloat() < 0.15F ? archBrick : stone);
+                        }
+                    } else if (dy == -31 && Math.abs(ox) <= 1) {
+                        safeSetBlock(level, p, stone);
+                        anchorBaseDown(level, p.below(), 3, stone);
+                    }
+                }
+            }
+            if (!southMouth && (dz == 12 || dz == 18)) {
+                BlockPos veinPos = origin.offset(cx, -30, dz);
+                if (level.getBlockState(veinPos.below()).isSolid()) {
+                    safeSetBlock(level, veinPos, hyphalVein);
+                }
+            }
+            if (dz == 15) {
+                BlockPos ventTunnelPos = origin.offset(cx + 1, -30, dz);
+                if (level.getBlockState(ventTunnelPos.below()).isSolid()) {
+                    safeSetBlock(level, ventTunnelPos, sporeVent);
                 }
             }
         }

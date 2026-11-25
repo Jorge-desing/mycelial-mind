@@ -85,13 +85,15 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         return switch (slot) {
             case SLOT_SAMPLE -> stack.is(ModItems.GENETIC_SAMPLE.get())
                     || stack.is(ModItems.SPORE_ANTIDOTE.get())
+                    || stack.is(ModItems.ROOT_SAP_VIAL.get())
                     || isReclaimedBloom(stack);
             case SLOT_BIOMASS -> stack.is(ModItems.MYCELIAL_BIOMASS.get())
                     || stack.is(ModItems.LATENT_SPORE.get());
             case SLOT_CATALYST -> stack.is(ModItems.SYNAPTIC_CORE.get())
                     || stack.is(ModItems.PURIFIER_GRENADE.get())
                     || stack.is(Items.AMETHYST_SHARD)
-                    || stack.is(ModItems.NEURAL_ECHO_CORE.get());
+                    || stack.is(ModItems.NEURAL_ECHO_CORE.get())
+                    || stack.is(ModItems.ROOT_HEART_RESIN.get());
             default -> false;
         };
     }
@@ -260,6 +262,15 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
                 return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.ADAPTIVE);
             }
             return new SynthesisResult(new ItemStack(ModItems.CHIMERA_OVUM.get()), -1, null);
+        }
+
+        // Recipe E: RootSapVial + MycelialBiomass + RootHeartResin -> ResonantSapElixir (+1 at T3)
+        if (s0.is(ModItems.ROOT_SAP_VIAL.get())
+                && s1.is(ModItems.MYCELIAL_BIOMASS.get())
+                && s2.is(ModItems.ROOT_HEART_RESIN.get())) {
+            return new SynthesisResult(
+                    new ItemStack(ModItems.RESONANT_SAP_ELIXIR.get(), effectiveLabTier >= 3 ? 2 : 1),
+                    -1, null);
         }
 
         // Secret #1: GeneticSample (typed) + MycelialBiomass + AmethystShard -> Artificial SynapticCore (Act II or Lab T2+)

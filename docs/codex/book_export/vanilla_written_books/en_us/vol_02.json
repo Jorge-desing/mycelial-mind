@@ -6,7 +6,7 @@
     "biotecnologia",
     "arsenal_defensa"
   ],
-  "page_count": 76,
+  "page_count": 77,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.II"
@@ -166,13 +166,16 @@
         "raw": "Cap.7: Synaptic Bench\n& Lab Tiers 1–3\nLaboratory Upgrades\n(T1->T2->T3)\nItem:\nmycelialmind:synaptic_r\nesearch_bench\n`Shift + Click`: T1->T2\n(`synaptic_core`, 25%\nbiomass save); T2->T3\n(`neural_echo_core`/`\novermind_essence`,\n50% save + 2x\nserums)."
       },
       {
-        "raw": "The 4 Official\nSyntheses (1/2)\n• `symbiotic_mutagen`:\n`GeneticSample`\n(typed) +\n`MycelialBiomass` +\n`SynapticCore`.\n• `counter_serum`:\n`GeneticSample`\n(typed) +\n`LatentSpore` +\n(`PurifierGrenade` or\nAmethyst) -> 1x (2x\nat T3)."
+        "raw": "The 5 Official\nSyntheses (1/3)\n• `symbiotic_mutagen`:\n`GeneticSample`\n(typed) +\n`MycelialBiomass` +\n`SynapticCore`.\n• `counter_serum`:\n`GeneticSample`\n(typed) +\n`LatentSpore` +\n(`PurifierGrenade` or\nAmethyst) -> 1x (2x\nat T3)."
       },
       {
-        "raw": "The 4 Official\nSyntheses (2/2)\n•\n`concentrated_antidot\ne`: `SporeAntidote` +\n`LatentSpore` +\nAmethyst -> 1x (2x at\nT3).\n• `chimera_ovum`:\n`GeneticSample` +\n`MycelialBiomass` +\n`NeuralEchoCore`.\nHoppers via\n`SidedSynapticBenchHa"
+        "raw": "The 5 Official\nSyntheses (2/3)\n•\n`concentrated_antidot\ne`: `SporeAntidote` +\n`LatentSpore` +\nAmethyst -> 1x (2x at\nT3).\n• `chimera_ovum`:\n`GeneticSample` +\n`MycelialBiomass` +\n`NeuralEchoCore`.\nHoppers via\n`SidedSynapticBenchHa"
       },
       {
         "raw": "ndler`\n(`synaptic_bench`)."
+      },
+      {
+        "raw": "The 5 Official\nSyntheses (3/3)\n•\n`resonant_sap_elixir`:\n`RootSapVial` +\n`MycelialBiomass` +\n`RootHeartResin` -> 1x\n(2x at T3) for\nspelunking & spore\nshielding."
       },
       {
         "raw": "Cap.7: Symbiosis & The\n5 Mutagens\nThe 5 Symbiotic\nMutagens (1/4)\n• Rules (`symbiosis`):\nmax `maxMutagenSlots\n= 2`, adds +15%\nThreat/slot (`1.0 +\n0.15*n`), inflicts\n`mycelial_infection`\n(`120t`) every `60t` on\nbare mycelium, and\nclears upon death."

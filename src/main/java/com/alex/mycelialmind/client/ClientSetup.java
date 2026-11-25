@@ -513,6 +513,7 @@ public final class ClientSetup {
         private static final List<BlockPos> CACHED_THERMAL_VAULTS = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_VEINS = new ArrayList<>();
         private static final List<BlockPos> CACHED_THERMAL_BLIND_SPOTS = new ArrayList<>();
+        private static final List<BlockPos> CACHED_THERMAL_UPDRAFTS = new ArrayList<>();
         private static final List<BlockPos> CACHED_GARDEN_FLORA = new ArrayList<>();
         private static int gardenScanTick;
         private static int cystScanTick = 0;
@@ -611,6 +612,7 @@ public final class ClientSetup {
                     CACHED_THERMAL_VAULTS.clear();
                     CACHED_THERMAL_VEINS.clear();
                     CACHED_THERMAL_BLIND_SPOTS.clear();
+                    CACHED_THERMAL_UPDRAFTS.clear();
                     cystScanTick = 0;
                     clientSessionActive = false;
                 }
@@ -697,12 +699,14 @@ public final class ClientSetup {
                     CACHED_THERMAL_VAULTS.clear();
                     CACHED_THERMAL_VEINS.clear();
                     CACHED_THERMAL_BLIND_SPOTS.clear();
+                    CACHED_THERMAL_UPDRAFTS.clear();
                     BlockPos origin = mc.player.blockPosition();
                     var cystBlock = ModBlocks.ANTIBODY_CYST.get();
                     var turretBlock = ModBlocks.PURIFICATION_TURRET.get();
                     var nexusBlock = ModBlocks.SOVEREIGN_NEXUS.get();
                     var veinBlock = ModBlocks.HYPHAL_VEIN.get();
                     var bulbBlock = ModBlocks.SPORE_BULB.get();
+                    var updraftBlock = ModBlocks.SPORE_UPDRAFT_VENT.get();
                     for (BlockPos p : BlockPos.betweenClosed(origin.offset(-14, -6, -14), origin.offset(14, 6, 14))) {
                         var st = mc.level.getBlockState(p);
                         if (st.is(cystBlock) && CACHED_THERMAL_CYSTS.size() < 48) {
@@ -711,6 +715,8 @@ public final class ClientSetup {
                             CACHED_THERMAL_TURRETS.add(p.immutable());
                         } else if (st.is(nexusBlock) && CACHED_THERMAL_NEXUSES.size() < 8) {
                             CACHED_THERMAL_NEXUSES.add(p.immutable());
+                        } else if (st.is(updraftBlock) && CACHED_THERMAL_UPDRAFTS.size() < 16) {
+                            CACHED_THERMAL_UPDRAFTS.add(p.immutable());
                         } else if (st.is(net.minecraft.world.level.block.Blocks.CHEST)
                                 && CACHED_THERMAL_VAULTS.size() < 8
                                 && com.alex.mycelialmind.item.BioScannerItem.isSealedVaultChest(mc.level, p)) {
@@ -732,12 +738,14 @@ public final class ClientSetup {
                     || !CACHED_THERMAL_VAULTS.isEmpty()
                     || !CACHED_THERMAL_VEINS.isEmpty()
                     || !CACHED_THERMAL_BLIND_SPOTS.isEmpty()
+                    || !CACHED_THERMAL_UPDRAFTS.isEmpty()
                     || !CACHED_GARDEN_FLORA.isEmpty()) {
                 CACHED_THERMAL_CYSTS.clear();
                 CACHED_THERMAL_TURRETS.clear();
                 CACHED_THERMAL_VAULTS.clear();
                 CACHED_THERMAL_VEINS.clear();
                 CACHED_THERMAL_BLIND_SPOTS.clear();
+                CACHED_THERMAL_UPDRAFTS.clear();
                 CACHED_GARDEN_FLORA.clear();
                 cystScanTick = 0;
             }
@@ -819,6 +827,9 @@ public final class ClientSetup {
                         || entity instanceof Player) {
                     LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.05D),
                             0.20F, 0.95F, 0.72F, 0.85F);
+                } else if (entity instanceof com.alex.mycelialmind.entity.SporeGliderEntity) {
+                    LevelRenderer.renderLineBox(poseStack, lineConsumer, entity.getBoundingBox().inflate(0.05D),
+                            0.22F, 0.95F * pulse, 0.78F, 0.88F);
                 }
             }
 
@@ -887,6 +898,11 @@ public final class ClientSetup {
             for (BlockPos blindPos : CACHED_THERMAL_BLIND_SPOTS) {
                 LevelRenderer.renderLineBox(poseStack, lineConsumer, new AABB(blindPos).inflate(0.06D),
                         1.0F, 0.18F, 0.72F * pulse, 0.96F);
+            }
+
+            for (BlockPos updraftPos : CACHED_THERMAL_UPDRAFTS) {
+                LevelRenderer.renderLineBox(poseStack, lineConsumer, new AABB(updraftPos).inflate(0.05D),
+                        0.20F, 0.92F * pulse, 0.96F, 0.92F);
             }
 
             for (BlockPos flora : CACHED_GARDEN_FLORA) {

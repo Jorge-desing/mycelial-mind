@@ -5,7 +5,7 @@
     "secretos_logros",
     "tecnica_comandos"
   ],
-  "page_count": 96,
+  "page_count": 95,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.IV"
@@ -21,10 +21,7 @@
         "raw": "Overworld Worldgen\nFeatures (2/4)\n• `surface_hive`:\nmega-capsule (r=8,\nh=16),\n`MIN_HIVE_SPACING =\n192`,\n`MIN_NODE_CLEARANCE\n= 64`, subterranean\ncrypt, mezzanine\ngallery, conduits, and\n`surface_hive_cache`\n/`gallery`/`crypt`\nchests."
       },
       {
-        "raw": "Overworld Worldgen\nFeatures (3/4)\n• `mycelial_sinkhole`:\n3-stratum sinkhole\n(Surface Crown,\nTwilight Throat with\n`root_cap_shelf`\nspiral ledges, Root\nCavern at `-22..-32`),\ncentral\n`spore_updraft_vent`,\n`root_sap_moss`,\n`sinkhole_root_vault`,"
-      },
-      {
-        "raw": "`root_keeper` &\n`spore_glider`. Pylons\ncalm the breach."
+        "raw": "Overworld Worldgen\nFeatures (3/4)\n• `mycelial_sinkhole`:\n3-stratum sinkhole\n(`root_cap_shelf`,\n`spore_updraft_vent`,\n`sinkhole_root_vault`,\n`root_keeper`,\n`spore_glider`), plus\nNorth Sap Chamber &\nSouth Root Tunnel to\ncaves. Pylons calm the\nbreach."
       },
       {
         "raw": "Overworld Worldgen\nFeatures (4/4)\n• Engines\n(`hive_tier_rarity` /\n`FastNoiseLite`): gate\nrarity per Act via\n`StructureProgressio\nnPolicy` and\n`FastNoiseLite`\ncellular/domain-warpe\nd fields verified by\n`WorldgenAuditEngine`."
@@ -114,10 +111,10 @@
         "raw": "Cap`."
       },
       {
-        "raw": "Cap.11: All 32\nAdvancements\nComplete\nAdvancements Chain\n(1/4)\n• Act I & Bastion (9):\n`root`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,\n`chitin_bulwark`,\n`tier2_awakening`,"
+        "raw": "Cap.11: All 32\nAdvancements\nComplete\nAdvancements Chain\n(1/4)\n• Act I & Bastion (11):\n`root`,\n`sinkhole_descend`,\n`sinkhole_elixir`,\n`first_adaptation`,\n`genetic_sampler`,\n`sever_the_network`,\n`biotech_research`,\n`targeted_purge`,"
       },
       {
-        "raw": "`base_sentinel`."
+        "raw": "`chitin_bulwark`,\n`tier2_awakening`,\n`base_sentinel`."
       },
       {
         "raw": "Complete\nAdvancements Chain\n(2/4)\n• Tactics & Biotech\n(9): `bastion_tier3`,\n`purifier_drone_deplo\nyed`,\n`symbiotic_vessel`,\n`synaptic_graft_netwo\nrk`,\n`pavlovian_deceiver`,\n`chemical_diplomat`,\n`architect_bane`,\n`chimera_bioforge`,"
@@ -273,7 +270,7 @@
         "raw": "`growthIntervalTicks`=\n`10` (`1..100`),\n`maxTrailPointsPerChu\nnk`=`64` (`16..256`)."
       },
       {
-        "raw": "Cap.12: Net v22,\n`/mycelial` & Verify\nAdmin Commands,\nPayloads & Verify\n(1/7)\n• Networking\n(`ModNetworking` v23):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
+        "raw": "Cap.12: Net v23,\n`/mycelial` & Verify\nAdmin Commands,\nPayloads & Verify\n(1/7)\n• Networking\n(`ModNetworking` v23):\n`HiveSyncPayload`\n(`<=64` nodes, `<=32`\npylons, `<=64` inflamed\nchunks),\n`SymbiosisSyncPayload\n`,\n`DiplomacySyncPayload"
       },
       {
         "raw": "` &\n`DiscoverySyncPayloa\nd`."
@@ -300,7 +297,7 @@
         "raw": "`counteroffensive`,\n`arsenal`."
       },
       {
-        "raw": "Admin Commands,\nPayloads & Verify\n(7/7)\n• `/mycelial verify`\n(12–23): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`, `colony`."
+        "raw": "Admin Commands,\nPayloads & Verify\n(7/7)\n• `/mycelial verify`\n(12–24): `mycorrhizal`,\n`hive_ai`, `chimera`,\n`memory`, `tactical_ai`,\n`field_ai`,\n`hyphal_siege`, `loot`,\n`homeostasis`, `polish`,\n`dimension_progressio\nn`, `cycles`, `colony`,\n`sinkhole`."
       }
     ]
   }

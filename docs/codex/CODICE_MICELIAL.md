@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `62` entradas y `246` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `62` entradas y `248` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -51,7 +51,7 @@
   - [Las 4 Reliquias Endgame](#cap8-reliquias_endgame) — _TideBeacon, SynapticSuppressor, RiftCatalyst y OvermindCrown_
   - [Defensa del Bastión y Torretas](#cap8-bastion_defensivo) — _Pilón (monument_focus), Torreta (3 tiers), Dron y Bio-Barrera_
 - **Capítulo 9 — Economía, Recetas y Botín** (`economia_datos`): 24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines
-  - [Catálogo: 29 Bloques y 66 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
+  - [Catálogo: 29 Bloques y 67 Ítems](#cap9-catalogo_bloques_items) — _Inventario íntegro de flora, bloques e ítems registrados_
   - [Recetario Total (43 Datapack)](#cap9-recetas_36_datapack) — _Todas las recetas de mesa, horno, ahumador y cortapiedras_
   - [Alambique, Compostaje y Comercio](#cap9-vanilla_brew_compost_trades) — _Poción Awkward, 5 compostables NeoForge y ofertas Clérigo/Albañil_
   - [Las 58 Tablas de Botín](#cap9-botin_48_tablas) — _27 bloques, 11 cofres, 19 entidades y aldea + multiplicadores_
@@ -61,7 +61,7 @@
   - [Santuario Jigsaw y Ciudadela Matriarca](#cap10-megaestructuras_santuario_ciudadela) — _hive_sanctum (11 plantillas NBT) y matriarch_citadel_
   - [Homeostasis Dimensional y Quistes](#cap10-homeostasis_dimensional) — _3 etapas STABLE/IRRITATED/IMMUNE_RESPONSE, Lluvia Ácida y Quistes_
   - [Protocolo de Ciclos y Mutadores](#cap10-ciclos_de_la_colmena) — _Rejugabilidad post-Matriarca con 1–3 mutadores y rango S+..C_
-- **Capítulo 11 — Secretos, Logros y Compat** (`secretos_logros`): 8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat
+- **Capítulo 11 — Secretos, Logros y Compat** (`secretos_logros`): 8 Secretos (Pistas + Spoilers), 32 Logros, 7 Redstone y 9 Compat
   - [Los 8 Secretos: Pistas de Campo](#cap11-secretos_pistas_seguras) — _Indicios de investigación experimental y ecológica sin spoilers_
   - [Los 8 Secretos: Revelación Exacta](#cap11-secretos_revelaciones_spoiler) — _[SPOILER] Fórmulas y disparadores exactos en código_
   - [Los 32 Logros (`advancement`)](#cap11-logros_30_advancements) — _27 logros de campaña y 5 desbloqueos automáticos de recetas_
@@ -76,9 +76,9 @@
   - [Engrama VIII: Linaje Primordial](#cap11-engram_primordial_lineage) — _Extracción genética de variantes primordiales_
   - [Engrama IX: Réquiem Matriarcal](#cap11-engram_matriarch_requiem) — _Remisión dimensional y protocolo de enclave_
   - [Engrama X: Ciclo de la Supramente](#cap11-engram_overmind_cycle) — _Maestría post-Matriarca con mutadores activos_
-- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify
+- **Capítulo 12 — Técnica, Config y Comandos** (`tecnica_comandos`): 208 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 24 Verify
   - [Configuraciones (13 Cliente / 43 Servidor)](#cap12-configuracion_cliente_servidor) — _MycelialClientConfig, KeyBindings y MycelialConfig TOML completo_
-  - [Red v22, `/mycelial` y Verify](#cap12-comandos_red_y_verificacion) — _Payloads v22, /mycelial colony, field_engram y 23 verify_
+  - [Red v23, `/mycelial` y Verify](#cap12-comandos_red_y_verificacion) — _Payloads v23, /mycelial colony, field_engram y 24 verify_
 
 ---
 
@@ -787,15 +787,19 @@ _Mesa Sináptica N1–N3, 5 Mutágenos, Cismas y Diplomacia Química_ | Puerta r
 
 `Shift + Clic`: **N1->N2** (`synaptic_core`, **25%** ahorro biomasa); **N2->N3** (`neural_echo_core`/`overmind_essence`, **50%** y **x2** sueros).
 
-#### [Libro: Cap.7 / mesa_investigacion_sinaptica / Pág.2] Las 4 Síntesis Oficiales (1/2)
+#### [Libro: Cap.7 / mesa_investigacion_sinaptica / Pág.2] Las 5 Síntesis Oficiales (1/3)
 
 • `symbiotic_mutagen`: `GeneticSample` (con rasgo) + `MycelialBiomass` + `SynapticCore`.
 • `counter_serum`: `GeneticSample` (con rasgo) + `LatentSpore` + (`PurifierGrenade` o Amatista) -> **x1** (o **x2** en N3).
 
-#### [Libro: Cap.7 / mesa_investigacion_sinaptica / Pág.3] Las 4 Síntesis Oficiales (2/2)
+#### [Libro: Cap.7 / mesa_investigacion_sinaptica / Pág.3] Las 5 Síntesis Oficiales (2/3)
 
 • `concentrated_antidote`: `SporeAntidote` + `LatentSpore` + Amatista -> **x1** (**x2** en N3).
 • `chimera_ovum`: `GeneticSample` + `MycelialBiomass` + `NeuralEchoCore`. Tolvas vía `SidedSynapticBenchHandler` (menú `synaptic_bench`).
+
+#### [Libro: Cap.7 / mesa_investigacion_sinaptica / Pág.4] Las 5 Síntesis Oficiales (3/3)
+
+• `resonant_sap_elixir`: `RootSapVial` + `MycelialBiomass` + `RootHeartResin` -> **x1** (**x2** en N3) para exploración subterránea y protección frente a esporas.
 
 <a id="cap7-simbiosis_mutagenos"></a>
 ### 2. Simbiosis y los 5 Mutágenos
@@ -934,7 +938,7 @@ Defensa `[2, 5, 6, 2]` (Cuerpo **9**), Encant. **14**, Dureza **1.0F**, repara c
 _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recomendada: `always` | Ícono: `mycelialmind:chitin_plate`
 
 <a id="cap9-catalogo_bloques_items"></a>
-### 1. Catálogo: 29 Bloques y 66 Ítems
+### 1. Catálogo: 29 Bloques y 67 Ítems
 
 - **ID de Entrada:** `economia_datos/catalogo_bloques_items` | **Ícono:** `mycelialmind:mycelial_biomass` | **Unlock:** `always`
 - **Resumen:** Inventario íntegro de flora, bloques e ítems registrados
@@ -994,7 +998,7 @@ _24 Bloques, 53 Ítems, 37 Recetas, Brews, Compost y 49 Botines_ | Puerta recome
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.14] Ítems y Armadura (`ModItems`) (6/6)
 
-• **Sima Subterránea (3 + 2 Huevos):** `root_sap_vial` (embotellado de `root_sap_moss`), `canopy_membrane` (`spore_glider`) y `root_heart_resin` (`root_keeper`).
+• **Sima Subterránea (4 + 2 Huevos):** `root_sap_vial`, `resonant_sap_elixir` (Mesa Sináptica), `canopy_membrane` (`spore_glider`) y `root_heart_resin` (`root_keeper`).
 
 #### [Libro: Cap.9 / catalogo_bloques_items / Pág.15] Colonia Soberana Post-Matriarca (1/7)
 
@@ -1200,15 +1204,19 @@ Síntesis sin mesa usando `root_sap_vial` embotellado de `root_sap_moss`, `laten
 - **ID de Entrada:** `economia_datos/vanilla_brew_compost_trades` | **Ícono:** `mycelialmind:latent_spore` | **Unlock:** `always`
 - **Resumen:** Poción Awkward, 5 compostables NeoForge y ofertas Clérigo/Albañil
 
-#### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.1] Integración Económica Vanilla+ (1/3)
+#### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.1] Integración Económica Vanilla+ (1/4)
 
-• **Alambique (`onRegisterBrewingRecipes`):** Poción Rara (`Awkward`) + `latent_spore` -> `spore_antidote`; luego + Amatista -> `concentrated_antidote`.
+• **Alambique (`onRegisterBrewingRecipes`):** Poción Rara (`Awkward`) + `latent_spore` -> `spore_antidote`; luego + Amatista o `Awkward + root_sap_vial` -> `concentrated_antidote`.
 
-#### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.2] Integración Económica Vanilla+ (2/3)
+#### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.2] Integración Económica Vanilla+ (2/4)
 
-• **Compostables (`compostables.json`):** `mycelial_biomass` (**0.65**), `bioluminescent_mycelial_cap` (**0.65**), `spore_bulb` (**0.65**), `reclaimed_bloom*` (**0.65**), `latent_spore` (**0.50**), `mycelial_tendrils` (**0.50**), `antibody_cyst` (**0.50**), `hyphal_vein` (**0.30**).
+• **Compostables 1/2 (`compostables.json`):** `mycelial_biomass`, `root_sap_moss`, `canopy_membrane`, `bioluminescent_mycelial_cap`, `spore_bulb` y `reclaimed_bloom*` (**0.65**).
 
-#### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.3] Integración Económica Vanilla+ (3/3)
+#### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.3] Integración Económica Vanilla+ (3/4)
+
+• **Compostables 2/2 y Combustible:** `latent_spore`, `mycelial_tendrils`, `antibody_cyst`, `root_cap_shelf` (**0.50**), `hyphal_vein` (**0.30**); combustible `root_heart_resin` (**1600t**).
+
+#### [Libro: Cap.9 / vanilla_brew_compost_trades / Pág.4] Integración Económica Vanilla+ (4/4)
 
 • **Aldeanos y Errante:** Clérigos (N2–N5) comercian `mycelial_biomass`, `spore_antidote`, `latent_spore`, `concentrated_antidote`; Albañiles y Vendedor Errante ofrecen bloques miceliales y `truce_pheromone`.
 
@@ -1280,7 +1288,7 @@ _Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis_ | P
 
 #### [Libro: Cap.10 / generacion_overworld_ruido / Pág.3] Estructuras y Características Overworld (3/4)
 
-• `mycelial_sinkhole`: sima de 3 estratos (Corona superficial, Garganta con repisas `root_cap_shelf` y Caverna Raíz en `-22..-32`), `spore_updraft_vent` central, `root_sap_moss`, `sinkhole_root_vault`, `root_keeper` y `spore_glider`. Colocar un Pilón calma la brecha.
+• `mycelial_sinkhole`: sima de 3 estratos (`root_cap_shelf`, `spore_updraft_vent`, `sinkhole_root_vault`, `root_keeper`, `spore_glider`), más Cámara Norte de Savia y Túnel Sur hacia cuevas. Un Pilón calma la brecha.
 
 #### [Libro: Cap.10 / generacion_overworld_ruido / Pág.4] Estructuras y Características Overworld (4/4)
 
@@ -1362,7 +1370,7 @@ _Overworld, Micelio Profundo (3 biomas), Santuario, Ciudadela y Homeostasis_ | P
 
 ## Capítulo 11: Secretos, Logros y Compat
 
-_8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta recomendada: `always` | Ícono: `mycelialmind:neural_echo_core`
+_8 Secretos (Pistas + Spoilers), 32 Logros, 7 Redstone y 9 Compat_ | Puerta recomendada: `always` | Ícono: `mycelialmind:neural_echo_core`
 
 <a id="cap11-secretos_pistas_seguras"></a>
 ### 1. Los 8 Secretos: Pistas de Campo
@@ -1457,7 +1465,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 #### [Libro: Cap.11 / logros_30_advancements / Pág.1] Cadena Completa de Logros (1/4)
 
-• **Acto I y Base (9):** `root`, `first_adaptation`, `genetic_sampler`, `sever_the_network`, `biotech_research`, `targeted_purge`, `chitin_bulwark`, `tier2_awakening`, `base_sentinel`.
+• **Acto I y Base (11):** `root`, `sinkhole_descend`, `sinkhole_elixir`, `first_adaptation`, `genetic_sampler`, `sever_the_network`, `biotech_research`, `targeted_purge`, `chitin_bulwark`, `tier2_awakening`, `base_sentinel`.
 
 #### [Libro: Cap.11 / logros_30_advancements / Pág.2] Cadena Completa de Logros (2/4)
 
@@ -1625,7 +1633,7 @@ _8 Secretos (Pistas + Spoilers), 30 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 
 ## Capítulo 12: Técnica, Config y Comandos
 
-_189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
+_208 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 24 Verify_ | Puerta recomendada: `always` | Ícono: `mycelialmind:bio_scanner`
 
 <a id="cap12-configuracion_cliente_servidor"></a>
 ### 1. Configuraciones (13 Cliente / 43 Servidor)
@@ -1698,10 +1706,10 @@ _189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify_ | Puerta recom
 • `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).
 
 <a id="cap12-comandos_red_y_verificacion"></a>
-### 2. Red v22, `/mycelial` y Verify
+### 2. Red v23, `/mycelial` y Verify
 
 - **ID de Entrada:** `tecnica_comandos/comandos_red_y_verificacion` | **Ícono:** `mycelialmind:bio_scanner` | **Unlock:** `admin`
-- **Resumen:** Payloads v22, /mycelial colony, field_engram y 23 verify
+- **Resumen:** Payloads v23, /mycelial colony, field_engram y 24 verify
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.1] Comandos Admin, Payloads y Verify (1/7)
 
@@ -1729,6 +1737,6 @@ _189 Sonidos, LabPBR, 49 Configs, Red v23, /mycelial y 23 Verify_ | Puerta recom
 
 #### [Libro: Cap.12 / comandos_red_y_verificacion / Pág.7] Comandos Admin, Payloads y Verify (7/7)
 
-• **`/mycelial verify` (12–23):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, `tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`, `cycles`, `colony`.
+• **`/mycelial verify` (12–24):** `mycorrhizal`, `hive_ai`, `chimera`, `memory`, `tactical_ai`, `field_ai`, `hyphal_siege`, `loot`, `homeostasis`, `polish`, `dimension_progression`, `cycles`, `colony`, `sinkhole`.
 
 ---

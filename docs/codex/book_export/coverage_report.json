@@ -3,7 +3,7 @@
   "stats": {
     "chapters": 12,
     "entries": 62,
-    "pages": 246
+    "pages": 248
   },
   "summary": {
     "blocks": {
@@ -12,8 +12,8 @@
       "missing": 0
     },
     "items": {
-      "expected": 66,
-      "covered": 66,
+      "expected": 67,
+      "covered": 67,
       "missing": 0
     },
     "entities": {
@@ -77,8 +77,8 @@
       "missing": 0
     },
     "advancements": {
-      "expected": 34,
-      "covered": 34,
+      "expected": 36,
+      "covered": 36,
       "missing": 0
     },
     "loot_tables": {
@@ -122,8 +122,8 @@
       "missing": 0
     },
     "verify_scenarios": {
-      "expected": 23,
-      "covered": 23,
+      "expected": 24,
+      "covered": 24,
       "missing": 0
     },
     "stimuli": {

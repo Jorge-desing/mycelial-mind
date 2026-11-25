@@ -69,6 +69,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SYNAPTIC_CORE.get());
                         output.accept(ModItems.HIVE_HEART.get());
                         output.accept(ModItems.ROOT_SAP_VIAL.get());
+                        output.accept(ModItems.RESONANT_SAP_ELIXIR.get());
                         output.accept(ModItems.CANOPY_MEMBRANE.get());
                         output.accept(ModItems.ROOT_HEART_RESIN.get());
 

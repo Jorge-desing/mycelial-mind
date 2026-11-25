@@ -1673,6 +1673,14 @@
               "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.3.title",
               "text_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.3.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "bench_recipes_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.4.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.4.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -2081,6 +2089,7 @@
             "mycelialmind:root_sap_moss",
             "mycelialmind:root_cap_shelf",
             "mycelialmind:root_sap_vial",
+            "mycelialmind:resonant_sap_elixir",
             "mycelialmind:canopy_membrane",
             "mycelialmind:root_heart_resin",
             "mycelialmind:spore_glider_spawn_egg",
@@ -2609,6 +2618,14 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.3.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "vanilla_econ_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.4.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.4.text",
               "is_spoiler": false
             }
           ]
@@ -3164,6 +3181,8 @@
           "unlock_gate": "always",
           "registry_refs": [
             "root",
+            "sinkhole_descend",
+            "sinkhole_elixir",
             "first_adaptation",
             "genetic_sampler",
             "sever_the_network",
@@ -3774,7 +3793,8 @@
             "polish",
             "dimension_progression",
             "cycles",
-            "colony"
+            "colony",
+            "sinkhole"
           ],
           "pages": [
             {

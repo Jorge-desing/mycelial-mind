@@ -14,9 +14,12 @@ import com.alex.mycelialmind.block.MycelialTendrilsBlock;
 import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
+import com.alex.mycelialmind.block.RootCapShelfBlock;
+import com.alex.mycelialmind.block.RootSapMossBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
 import com.alex.mycelialmind.block.SovereignNexusBlock;
 import com.alex.mycelialmind.block.SporeBulbBlock;
+import com.alex.mycelialmind.block.SporeUpdraftVentBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.block.SynapticResearchBenchBlock;
@@ -33,6 +36,7 @@ import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.entity.SporeGliderEntity;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
@@ -86,6 +90,7 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         registration.registerEntityComponent(EntityProvider.INSTANCE, MycelialChimeraEntity.class);
         registration.registerEntityComponent(EntityProvider.INSTANCE, PurifierDroneEntity.class);
         registration.registerEntityComponent(EntityProvider.INSTANCE, ColonySymbiontEntity.class);
+        registration.registerEntityComponent(EntityProvider.INSTANCE, SporeGliderEntity.class);
 
         registration.registerBlockComponent(BlockProvider.INSTANCE, MycelialNodeBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, IncubatorNodeBlock.class);
@@ -106,6 +111,9 @@ public final class MycelialJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(BlockProvider.INSTANCE, HyphalVeinBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, ReclaimedBloomBlock.class);
         registration.registerBlockComponent(BlockProvider.INSTANCE, SovereignNexusBlock.class);
+        registration.registerBlockComponent(BlockProvider.INSTANCE, SporeUpdraftVentBlock.class);
+        registration.registerBlockComponent(BlockProvider.INSTANCE, RootSapMossBlock.class);
+        registration.registerBlockComponent(BlockProvider.INSTANCE, RootCapShelfBlock.class);
     }
 
     public enum EntityProvider implements IEntityComponentProvider {
@@ -217,6 +225,8 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 if ("dialect_observing".equals(symbiont.getTaskState())) {
                     tooltip.add(Component.translatable("jade.mycelialmind.symbiont_dialect_observing"));
                 }
+            } else if (accessor.getEntity() instanceof SporeGliderEntity) {
+                tooltip.add(Component.translatable("jade.mycelialmind.spore_glider_pollinator"));
             }
         }
 
@@ -362,6 +372,20 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 tooltip.add(Component.translatable("jade.mycelialmind.matriarch_altar"));
             } else if (accessor.getBlock() instanceof SporeVentBlock) {
                 tooltip.add(Component.translatable("jade.mycelialmind.spore_vent"));
+            } else if (accessor.getBlock() instanceof SporeUpdraftVentBlock) {
+                boolean active = accessor.getBlockState().hasProperty(SporeUpdraftVentBlock.ACTIVE)
+                        && accessor.getBlockState().getValue(SporeUpdraftVentBlock.ACTIVE);
+                tooltip.add(Component.translatable(active
+                        ? "jade.mycelialmind.spore_updraft_vent_active"
+                        : "jade.mycelialmind.spore_updraft_vent_inactive"));
+            } else if (accessor.getBlock() instanceof RootSapMossBlock) {
+                boolean ready = accessor.getBlockState().hasProperty(RootSapMossBlock.SAP_READY)
+                        && accessor.getBlockState().getValue(RootSapMossBlock.SAP_READY);
+                tooltip.add(Component.translatable(ready
+                        ? "jade.mycelialmind.root_sap_moss_ready"
+                        : "jade.mycelialmind.root_sap_moss_depleted"));
+            } else if (accessor.getBlock() instanceof RootCapShelfBlock) {
+                tooltip.add(Component.translatable("jade.mycelialmind.root_cap_shelf"));
             } else if (accessor.getBlock() instanceof SovereignNexusBlock) {
                 CompoundTag serverData = accessor.getServerData();
                 if (serverData.contains("ColonyTier")) {

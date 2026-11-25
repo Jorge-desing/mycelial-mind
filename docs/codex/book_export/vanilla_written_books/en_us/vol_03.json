@@ -3,7 +3,7 @@
   "chapters": [
     "economia_datos"
   ],
-  "page_count": 87,
+  "page_count": 88,
   "component": {
     "title": {
       "raw": "Mycelial Codex Vol.III"
@@ -13,7 +13,7 @@
     "resolved": true,
     "pages": [
       {
-        "raw": "Cap.9: Catalog: 29\nBlocks & 66 Items\nFlora, Geology &\nStructural Blocks\n(1/4)\n• `creeping_mycelium`:\nspreads mycelium and\nacoustic tremors\n(32m); smelts into\n`mycelial_stone`.\n• `hyphal_vein`:\nlightning-black\noverlay vein crawling\nover player routes"
+        "raw": "Cap.9: Catalog: 29\nBlocks & 67 Items\nFlora, Geology &\nStructural Blocks\n(1/4)\n• `creeping_mycelium`:\nspreads mycelium and\nacoustic tremors\n(32m); smelts into\n`mycelial_stone`.\n• `hyphal_vein`:\nlightning-black\noverlay vein crawling\nover player routes"
       },
       {
         "raw": "(`CHARGED` >=60%\ndensity). Sever\ncleanly with Shears,\nHoes, or Symbiotic\nBlade."
@@ -58,7 +58,7 @@
         "raw": "Items & Armor\n(`ModItems`) (5/6)\n• Reclaimed Blooms\n(5):\n`reclaimed_bloom_mele\ne`,\n`reclaimed_bloom_proj\nectile`,\n`reclaimed_bloom_fire`,\n`reclaimed_bloom_expl\nosion`,\n`reclaimed_bloom_magi\nc`."
       },
       {
-        "raw": "Items & Armor\n(`ModItems`) (6/6)\n• Sinkhole Reagents\n(3 + 2 Eggs):\n`root_sap_vial`\n(bottled from\n`root_sap_moss`),\n`canopy_membrane`\n(`spore_glider`), and\n`root_heart_resin`\n(`root_keeper`)."
+        "raw": "Items & Armor\n(`ModItems`) (6/6)\n• Sinkhole Reagents\n(4 + 2 Eggs):\n`root_sap_vial`,\n`resonant_sap_elixir`\n(Synaptic Bench),\n`canopy_membrane`\n(`spore_glider`), and\n`root_heart_resin`\n(`root_keeper`)."
       },
       {
         "raw": "Post-Matriarch\nSovereign Hive Colony\n(1/7)\n• Anchor & Outposts\n(`SovereignNexusBlock\n` /\n`SovereignNexusBlock\nEntity`):\npost-Matriarch\nendgame hub\naccepting\n`mycelial_biomass`\n(manual or hopper)\nand linking up to 4"
@@ -220,16 +220,19 @@
         "raw": "Concentrated Antidote\nvia Root Sap\n[crafting_shapeless]\nroot_sap_vial +\nlatent_spore +\nmycelial_biomass -> 1x\nconcentrated_antidote\nShapeless synthesis\nfrom `root_sap_vial`\nbottled off\n`root_sap_moss`,\n`latent_spore`, and\n`mycelial_biomass`."
       },
       {
-        "raw": "Cap.9: Brewing,\nCompost & Trades\nVanilla+ Economy\nIntegration (1/3)\n• Brewing Stand\n(`onRegisterBrewingRe\ncipes`): `Awkward\nPotion` +\n`latent_spore` ->\n`spore_antidote`; +\nAmethyst Shard ->\n`concentrated_antidot\ne`."
+        "raw": "Cap.9: Brewing,\nCompost & Trades\nVanilla+ Economy\nIntegration (1/4)\n• Brewing Stand\n(`onRegisterBrewingRe\ncipes`): `Awkward\nPotion` +\n`latent_spore` ->\n`spore_antidote`; +\nAmethyst Shard or\n`Awkward +\nroot_sap_vial` ->\n`concentrated_antidot"
       },
       {
-        "raw": "Vanilla+ Economy\nIntegration (2/3)\n• Compostables\n(`compostables.json`):\n`mycelial_biomass`\n(0.65),\n`bioluminescent_myceli\nal_cap` (0.65),\n`spore_bulb` (0.65),\n`reclaimed_bloom*`\n(0.65), `latent_spore`\n(0.50),\n`mycelial_tendrils`"
+        "raw": "e`."
       },
       {
-        "raw": "(0.50), `antibody_cyst`\n(0.50), `hyphal_vein`\n(0.30)."
+        "raw": "Vanilla+ Economy\nIntegration (2/4)\n• Compostables 1/2\n(`compostables.json`):\n`mycelial_biomass`,\n`root_sap_moss`,\n`canopy_membrane`,\n`bioluminescent_myceli\nal_cap`, `spore_bulb`\n& `reclaimed_bloom*`\n(0.65)."
       },
       {
-        "raw": "Vanilla+ Economy\nIntegration (3/3)\n• Villagers &\nWandering Trader:\nClerics (Lv 2–5)\ntrade\n`mycelial_biomass`,\n`spore_antidote`,\n`latent_spore`,\n`concentrated_antidot\ne`; Masons & Traders\ncarry mycelial\nstonework and\n`truce_pheromone`."
+        "raw": "Vanilla+ Economy\nIntegration (3/4)\n• Compostables 2/2 &\nFuel: `latent_spore`,\n`mycelial_tendrils`,\n`antibody_cyst`,\n`root_cap_shelf`\n(0.50), `hyphal_vein`\n(0.30); fuel\n`root_heart_resin`\n(1600t)."
+      },
+      {
+        "raw": "Vanilla+ Economy\nIntegration (4/4)\n• Villagers &\nWandering Trader:\nClerics (Lv 2–5)\ntrade\n`mycelial_biomass`,\n`spore_antidote`,\n`latent_spore`,\n`concentrated_antidot\ne`; Masons & Traders\ncarry mycelial\nstonework and\n`truce_pheromone`."
       },
       {
         "raw": "Cap.9: All 58 Loot\nTables\nMulti-Pool Loot (58\nTables) (1/10)\n• Blocks 1/4:\n`blocks/antibody_cyst`\n,\n`blocks/bio_chitin_latti\nce`,\n`blocks/bioluminescent\n_mycelial_cap`,\n`blocks/chitin_pillar`,\n`blocks/creeping_myc\nelium`."

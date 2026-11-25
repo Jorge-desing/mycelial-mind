@@ -6,7 +6,7 @@
     "biotecnologia",
     "arsenal_defensa"
   ],
-  "page_count": 81,
+  "page_count": 82,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.II"
@@ -175,13 +175,16 @@
         "raw": "50% y x2 sueros)."
       },
       {
-        "raw": "Las 4 Síntesis\nOficiales (1/2)\n• `symbiotic_mutagen`:\n`GeneticSample` (con\nrasgo) +\n`MycelialBiomass` +\n`SynapticCore`.\n• `counter_serum`:\n`GeneticSample` (con\nrasgo) +\n`LatentSpore` +\n(`PurifierGrenade` o\nAmatista) -> x1 (o x2\nen N3)."
+        "raw": "Las 5 Síntesis\nOficiales (1/3)\n• `symbiotic_mutagen`:\n`GeneticSample` (con\nrasgo) +\n`MycelialBiomass` +\n`SynapticCore`.\n• `counter_serum`:\n`GeneticSample` (con\nrasgo) +\n`LatentSpore` +\n(`PurifierGrenade` o\nAmatista) -> x1 (o x2\nen N3)."
       },
       {
-        "raw": "Las 4 Síntesis\nOficiales (2/2)\n•\n`concentrated_antidot\ne`: `SporeAntidote` +\n`LatentSpore` +\nAmatista -> x1 (x2 en\nN3).\n• `chimera_ovum`:\n`GeneticSample` +\n`MycelialBiomass` +\n`NeuralEchoCore`.\nTolvas vía\n`SidedSynapticBenchHa"
+        "raw": "Las 5 Síntesis\nOficiales (2/3)\n•\n`concentrated_antidot\ne`: `SporeAntidote` +\n`LatentSpore` +\nAmatista -> x1 (x2 en\nN3).\n• `chimera_ovum`:\n`GeneticSample` +\n`MycelialBiomass` +\n`NeuralEchoCore`.\nTolvas vía\n`SidedSynapticBenchHa"
       },
       {
         "raw": "ndler` (menú\n`synaptic_bench`)."
+      },
+      {
+        "raw": "Las 5 Síntesis\nOficiales (3/3)\n•\n`resonant_sap_elixir`:\n`RootSapVial` +\n`MycelialBiomass` +\n`RootHeartResin` -> x1\n(x2 en N3) para\nexploración\nsubterránea y\nprotección frente a\nesporas."
       },
       {
         "raw": "Cap.7: Simbiosis y los 5\nMutágenos\nLos 5 Mutágenos\nSimbióticos (1/4)\n• Reglas (`symbiosis`):\nmáx. `maxMutagenSlots\n= 2`, añade +15%\nAmenaza/slot (`1.0 +\n0.15*n`), aplica\n`mycelial_infection`\n(`120t`) cada `60t`\nsobre micelio sin"

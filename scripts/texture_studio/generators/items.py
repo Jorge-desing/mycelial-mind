@@ -786,6 +786,23 @@ def _root_heart_resin(p: float) -> IconCanvas:
     return c
 
 
+def _resonant_sap_elixir(p: float) -> IconCanvas:
+    c = IconCanvas(seed=145)
+    xx, yy = c.xx, c.yy
+    amphora = sdf_polygon(xx, yy, 0.0, 0.16, 0.48, sides=6)
+    neck = sdf_box(xx, yy, 0.0, -0.32, 0.14, 0.22)
+    handle_l = sdf_capsule(xx, yy, -0.46, -0.12, -0.32, 0.24, 0.075)
+    handle_r = sdf_capsule(xx, yy, 0.46, -0.12, 0.32, 0.24, 0.075)
+    carafe = np.minimum(amphora, np.minimum(neck, np.minimum(handle_l, handle_r)))
+    _p(c, carafe, "biolum_cyan", "PURIFICATION_CRYSTAL", 0.60, height=0.72)
+    c.zone(sdf_diamond(xx, yy, 0.0, 0.18, 0.28), "mutant_amber", "TOXIC_SPORE", tone=0.85)
+    c.glow(sdf_diamond(xx, yy, 0.0, 0.18, 0.24) <= 0.0, "mutant_amber")
+    crown = sdf_polygon(xx, yy, 0.0, -0.52, 0.18, sides=3)
+    _p(c, crown, "royal_gold", "PURIFICATION_GOLD", 0.84, height=0.78)
+    c.zone(sdf_box(xx, yy, 0.0, -0.36, 0.20, 0.055), "chitin_bone", "CHITIN_BONE", tone=0.75)
+    return c
+
+
 _ICONS = {
     "bio_scanner": (_bio_scanner, True, 4),
     "mycelial_codex": (_mycelial_codex, True, 4),
@@ -826,6 +843,7 @@ _ICONS = {
     "false_engram_injector": (_false_engram_injector, False, 0),
     "sovereign_command_staff": (_sovereign_command_staff, True, 4),
     "root_sap_vial": (_root_sap_vial, False, 0),
+    "resonant_sap_elixir": (_resonant_sap_elixir, False, 0),
     "canopy_membrane": (_canopy_membrane, False, 0),
     "root_heart_resin": (_root_heart_resin, False, 0),
 }

@@ -4397,3 +4397,34 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Verificación / Estado:**
   - `CodeMode` (`mycelial-mind-dev`): `run_model_studio` (`26/26 OK`), `run_texture_studio` (`41/41 OK`), `run_sound_studio` (`18/18 OK`), `run_codex_studio` (`5/5 OK`, `0` faltantes), `audit_mod_assets` (`ok: true`, `2176/2176` claves EN/ES), `validate_skills` (`8/8 OK`).
   - Gradle JDK 21: `test build` (`BUILD SUCCESSFUL`, **`111/111` JUnit en `12` suites**, `0` fallos/omitidos) y `runGameTestServer -PisolatedGameTests=true` (**`194/194` `@GameTest`s PASS en `6.250s`**, `0` fallos).
+
+
+## [2026-11-24 19:17] — Continuación Ecosistema Subterráneo (Fase 2): Galerías Laterales, Elixir Resonante e Integración 360° (`/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:**
+  1. **Galerías Laterales de Caverna Raíz (`MycelialSinkholeFeature.java`):**
+     - *Cámara Norte de Savia (`dz = -7..-17`):* alcoba húmeda abovedada con manantial poco profundo (`Blocks.WATER` en `0,-31,-13`), enmarcado íntegramente por `RootSapMossBlock` (`SAP_READY=true`), flora luminosa, zarcillos colgantes y vetas de ámbar.
+     - *Túnel Sur de Raíces (`dz = 7..21`):* pasaje serpenteante horizontal de `13` bloques con arcos de `chitin_pillar`, costillas de `luminescent_amber_vein`, `hyphal_vein` en suelo, `spore_vent` lateral y boca sur abierta hacia cuevas adyacentes.
+  2. **Equipo e Interacción Biotecnológica (`ResonantSapElixirItem.java`):**
+     - Registrado `mycelialmind:resonant_sap_elixir` (`ModItems`, `ModCreativeTabs`): poción bebible que cura `MYCELIAL_INFECTION` y `SPORE_ROT`, concede `NIGHT_VISION` (`4800t`), `SLOW_FALLING` (`1800t`), `REGENERATION` (`240t`) y `SYNAPTIC_INSIGHT` (`1200t`), devuelve frasco vacío y protege frente a esporas tóxicas de `SporeUpdraftVentBlock`.
+     - Integrada síntesis oficial E en `SynapticBenchBlockEntity` (`root_sap_vial` + `mycelial_biomass` + `root_heart_resin` -> `resonant_sap_elixir`, `x2` en N3) y catálogo JEI/EMI (`SynapticBenchRecipeDefinitions`: `+7` `CompatInfoEntry` = `36` totales).
+  3. **Integración 360° Completa:**
+     - `BioScannerItem`: inspección contextual de `SporeUpdraftVentBlock`, `RootSapMossBlock` y `RootCapShelfBlock`.
+     - `ClientSetup`: cajas térmicas 3D `SYNAPTIC_VISION` para `SPORE_UPDRAFT_VENT` (`CACHED_THERMAL_UPDRAFTS`) y `SporeGliderEntity`.
+     - `MycelialJadePlugin`: telemetría Jade para `SporeGliderEntity`, `SporeUpdraftVentBlock`, `RootSapMossBlock` y `RootCapShelfBlock`.
+     - Vanilla+ y DataGen: receta de Alambique (`Awkward + root_sap_vial -> concentrated_antidote` en `MycelialVanillaIntegration`), Data Maps generados vía `:runData` (`compostables.json`: `root_sap_moss`, `root_cap_shelf`, `canopy_membrane`; `furnace_fuels.json`: `root_heart_resin` `1600t`), y `2` Advancements (`sinkhole_descend`, `sinkhole_elixir`).
+     - RCON y Estudios: añadido `/mycelial verify sinkhole` en `MycelialCommands` y cableado en `verifyAll` (**`24/24`** escenarios + `scripts/rcon_verify.py` + `verifyPolish` `208`/`36`), ícono `_resonant_sap_elixir` + LabPBR en `texture_studio` (`42` íconos), paridad EN/ES (`2198` claves), Códice (`codex_studio`) y ampliación de `mycelialSinkholeEcosystemBlocksEntitiesAndPurificationWorkEndToEnd` (`MycelialGameTests`).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/item/{ResonantSapElixirItem,BioScannerItem}.java`, `src/main/java/com/alex/mycelialmind/world/MycelialSinkholeFeature.java`
+  - `src/main/java/com/alex/mycelialmind/block/SporeUpdraftVentBlock.java`, `src/main/java/com/alex/mycelialmind/block/entity/SynapticBenchBlockEntity.java`, `src/main/java/com/alex/mycelialmind/recipe/SynapticBenchRecipeDefinitions.java`
+  - `src/main/java/com/alex/mycelialmind/client/ClientSetup.java`, `src/main/java/com/alex/mycelialmind/compat/{jade/MycelialJadePlugin,vanilla/MycelialVanillaIntegration}.java`, `src/main/java/com/alex/mycelialmind/datagen/ModDataGenerators.java`, `src/main/java/com/alex/mycelialmind/command/MycelialCommands.java`
+  - `src/main/resources/data/mycelialmind/advancement/{sinkhole_descend,sinkhole_elixir}.json`, `src/generated/resources/data/neoforge/data_maps/{compostable,furnace_fuel}.json`? *(emitidos por `:runData` en `src/generated/resources/`)*
+  - `scripts/{texture_studio/generators/items.py,codex_studio/content_part{2,3}.py,rcon_verify.py,mcp/test_server.py}`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`
+  - `.agents/skills/{mycelial-ai-hive,mycelial-texture-studio}/SKILL.md`, `MEMORY.md`
+- **Skills revisadas y actualizadas:**
+  - Actualizadas `mycelial-ai-hive` y `mycelial-texture-studio`; las otras `6` skills revisadas sin cambios necesarios (`validate_skills` = `8/8 OK`).
+- **Verificación / Estado:**
+  - `CodeMode` (`mycelial-mind-dev`): `runData` (`ok: true`), `validate_skills` (`8/8 OK`), `run_model_studio` (`26/26 OK`), `run_texture_studio` (`41/41 OK`), `run_sound_studio` (`18/18 OK`), `run_codex_studio` (`5/5 OK`, `0` faltantes), `audit_mod_assets` (`ok: true`, `2198/2198` EN/ES).
+  - Gradle JDK 21: `test build` (`BUILD SUCCESSFUL`, **`111/111` JUnit en `12` suites**), `runGameTestServer -PisolatedGameTests=true` (**`194/194` `@GameTest`s PASS en `6.132 s`**).
+  - Smoke Server headless RCON: **`ALL 24 automated scenario checks PASSED`** (incluyendo `[Verify:Sinkhole] PASS`).
+  - Nota: `scripts/mcp/.venv/Scripts/python.exe scripts/mcp/test_server.py` falló al importar `fastmcp.Client` por `ImportError` local en `cryptography.hazmat.bindings._rust`; validado sintácticamente vía `py_compile`.
