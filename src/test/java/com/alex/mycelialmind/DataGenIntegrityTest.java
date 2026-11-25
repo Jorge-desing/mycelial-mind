@@ -10,12 +10,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,8 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * resources under {@code src/main/resources} and NeoForge DataGen outputs under {@code src/generated/resources}.
  */
 class DataGenIntegrityTest {
-    private static final Path MAIN_RESOURCES = resolveRepoRoot().resolve("src/main/resources");
-    private static final Path GENERATED_RESOURCES = resolveRepoRoot().resolve("src/generated/resources");
+    private static final Path REPO_ROOT = resolveRepoRoot();
+    private static final Path MAIN_RESOURCES = REPO_ROOT.resolve("src/main/resources");
+    private static final Path GENERATED_RESOURCES = REPO_ROOT.resolve("src/generated/resources");
+    private static final Path REGISTRY_ROOT = REPO_ROOT.resolve("src/main/java/com/alex/mycelialmind/registry");
+    private static final Pattern REGISTER_BLOCK_PATTERN = Pattern.compile("registerBlock\\(\"([a-z0-9_]+)\"");
+    private static final Pattern REGISTER_ITEM_PATTERN = Pattern.compile("ITEMS\\.register\\(\"([a-z0-9_]+)\"");
+    private static final Set<String> BLOCKS_WITHOUT_LOOT_TABLE = Set.of("mycelial_rift", "ephemeral_chitin");
 
     @Test
     void zeroFileOverlapsBetweenMainAndGeneratedResources() throws IOException {
@@ -122,6 +130,81 @@ class DataGenIntegrityTest {
                 "Expected generated blocks atlas under src/generated/resources");
         assertFalse(Files.exists(MAIN_RESOURCES.resolve("assets/minecraft/atlases/blocks.json")),
                 "Duplicate static blocks.json atlas found under src/main/resources");
+    }
+
+    @Test
+    void allRegisteredBlocksHaveBlockstatesAndExpectedLootTables() throws IOException {
+        Set<String> registeredBlocks = extractMatches(REGISTRY_ROOT.resolve("ModBlocks.java"), REGISTER_BLOCK_PATTERN);
+        assertEquals(29, registeredBlocks.size(), "Expected 29 registered blocks in ModBlocks.java");
+
+        Set<String> blockstates = collectJsonByName("assets/mycelialmind/blockstates").keySet();
+        Set<String> missingBlockstates = new TreeSet<>(registeredBlocks);
+        missingBlockstates.removeAll(blockstates);
+        assertTrue(missingBlockstates.isEmpty(), "Registered blocks missing blockstate JSON: " + missingBlockstates);
+
+        Set<String> blockLootTables = collectJsonByName("data/mycelialmind/loot_table/blocks").keySet();
+        Set<String> expectedLootBlocks = new TreeSet<>(registeredBlocks);
+        expectedLootBlocks.removeAll(BLOCKS_WITHOUT_LOOT_TABLE);
+
+        Set<String> missingLoot = new TreeSet<>(expectedLootBlocks);
+        missingLoot.removeAll(blockLootTables);
+        assertTrue(missingLoot.isEmpty(), "Blocks missing loot table JSON: " + missingLoot);
+        assertTrue(Collections.disjoint(BLOCKS_WITHOUT_LOOT_TABLE, blockLootTables),
+                "Blocks intentionally without loot tables unexpectedly have loot JSONs");
+    }
+
+    @Test
+    void allRegisteredItemsAndBlockItemsHaveItemModels() throws IOException {
+        Set<String> registeredItems = new TreeSet<>();
+        registeredItems.addAll(extractMatches(REGISTRY_ROOT.resolve("ModBlocks.java"), REGISTER_BLOCK_PATTERN));
+        registeredItems.addAll(extractMatches(REGISTRY_ROOT.resolve("ModItems.java"), REGISTER_ITEM_PATTERN));
+        assertEquals(96, registeredItems.size(), "Expected 96 unique registered item + block-item IDs");
+
+        Set<String> itemModels = collectJsonByName("assets/mycelialmind/models/item").keySet();
+        Set<String> missingModels = new TreeSet<>(registeredItems);
+        missingModels.removeAll(itemModels);
+        assertTrue(missingModels.isEmpty(), "Registered items missing item model JSON: " + missingModels);
+
+        Set<String> extraModels = new TreeSet<>(itemModels);
+        extraModels.removeAll(registeredItems);
+        assertTrue(extraModels.isEmpty(), "Orphan item model JSONs with no registered item: " + extraModels);
+    }
+
+    @Test
+    void allGeneratedDataJsonFilesParseCleanly() throws IOException {
+        Path genModData = GENERATED_RESOURCES.resolve("data/mycelialmind");
+        List<String> categories = List.of("recipe", "loot_table", "worldgen", "dimension", "dimension_type", "neoforge");
+        int parsedFiles = 0;
+
+        for (String category : categories) {
+            Path categoryDir = genModData.resolve(category);
+            assertTrue(Files.isDirectory(categoryDir), "Missing generated category directory: " + category);
+            List<Path> jsonFiles;
+            try (Stream<Path> walk = Files.walk(categoryDir)) {
+                jsonFiles = walk.filter(Files::isRegularFile)
+                        .filter(p -> p.getFileName().toString().endsWith(".json"))
+                        .toList();
+            }
+            assertFalse(jsonFiles.isEmpty(), "Empty generated category directory: " + category);
+            for (Path file : jsonFiles) {
+                JsonElement parsed = parseJson(file);
+                assertTrue(parsed.isJsonObject() && !parsed.getAsJsonObject().isEmpty(),
+                        "Generated JSON must be a non-empty JSON object: " + genModData.relativize(file));
+                parsedFiles++;
+            }
+        }
+
+        assertEquals(128, parsedFiles, "Expected 128 generated JSON files across recipes/loot/worldgen/dimension/neoforge");
+    }
+
+    private static Set<String> extractMatches(Path sourceFile, Pattern pattern) throws IOException {
+        String content = Files.readString(sourceFile, StandardCharsets.UTF_8);
+        Matcher matcher = pattern.matcher(content);
+        Set<String> matches = new TreeSet<>();
+        while (matcher.find()) {
+            matches.add(matcher.group(1));
+        }
+        return matches;
     }
 
     private static Path resolveRepoRoot() {

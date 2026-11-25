@@ -1,14 +1,12 @@
 package com.alex.mycelialmind.item;
 
 import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModEntities;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -51,12 +49,8 @@ public class PurifierDroneCoreItem extends Item {
                         spawnPos.getX() + 0.5, spawnPos.getY() + 0.8, spawnPos.getZ() + 0.5,
                         18, 0.4, 0.4, 0.4, 0.04);
                 serverLevel.playSound(null, spawnPos, ModSounds.PURIFIER_DRONE_DEPLOY.get(), SoundSource.PLAYERS, 0.95F, 1.0F);
-                if (player instanceof ServerPlayer serverPlayer && serverPlayer.getServer() != null) {
-                    AdvancementHolder adv = serverPlayer.getServer().getAdvancements()
-                            .get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "purifier_drone_deployed"));
-                    if (adv != null) {
-                        serverPlayer.getAdvancements().award(adv, "deploy_drone");
-                    }
+                if (player instanceof ServerPlayer serverPlayer) {
+                    ModAdvancements.award(serverPlayer, ModAdvancements.PURIFIER_DRONE_DEPLOYED);
                 }
                 if (!player.getAbilities().instabuild) {
                     context.getItemInHand().shrink(1);

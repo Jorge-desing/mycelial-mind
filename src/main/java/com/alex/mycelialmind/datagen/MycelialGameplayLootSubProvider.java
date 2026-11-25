@@ -19,7 +19,7 @@ import java.util.function.BiConsumer;
  * Generates Hero of the Village and other gameplay gift loot tables referenced by Data Maps.
  */
 public final class MycelialGameplayLootSubProvider implements LootTableSubProvider {
-    private static final ResourceKey<LootTable> CLERIC_MYCELIAL_GIFT = ResourceKey.create(
+    static final ResourceKey<LootTable> CLERIC_MYCELIAL_GIFT = ResourceKey.create(
             Registries.LOOT_TABLE,
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "gameplay/hero_of_the_village/cleric_mycelial_gift")
     );

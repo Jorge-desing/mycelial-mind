@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.datagen;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
@@ -119,12 +120,12 @@ public final class MycelialAdvancementProvider implements AdvancementProvider.Ad
                 .save(saver, id("architect_bane"), existingFileHelper);
 
         AdvancementHolder purifierDroneDeployed = saveImpossible(
-                saver, existingFileHelper, "purifier_drone_deployed", baseSentinel,
-                ModItems.PURIFIER_DRONE_CORE.get(), AdvancementType.TASK, "deploy_drone");
+                saver, existingFileHelper, ModAdvancements.PURIFIER_DRONE_DEPLOYED, baseSentinel,
+                ModItems.PURIFIER_DRONE_CORE.get(), AdvancementType.TASK);
 
         AdvancementHolder bastionTier3 = saveImpossible(
-                saver, existingFileHelper, "bastion_tier3", purifierDroneDeployed,
-                ModBlocks.PURIFICATION_TURRET.get(), AdvancementType.GOAL, "upgrade_tier3");
+                saver, existingFileHelper, ModAdvancements.BASTION_TIER3, purifierDroneDeployed,
+                ModBlocks.PURIFICATION_TURRET.get(), AdvancementType.GOAL);
 
         baseBuilder("counteroffensive_master", bastionTier3, ModItems.OVERMIND_CROWN.get(), AdvancementType.CHALLENGE)
                 .addCriterion("has_beacon", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.TIDE_BEACON.get()))
@@ -160,8 +161,8 @@ public final class MycelialAdvancementProvider implements AdvancementProvider.Ad
                         ChangeDimensionTrigger.TriggerInstance.changedDimensionTo(ModDimensions.DEEP_MYCELIUM_LEVEL))
                 .save(saver, id("enter_deep_mycelium"), existingFileHelper);
 
-        saveImpossible(saver, existingFileHelper, "immune_homeostasis", enterDeepMycelium,
-                ModBlocks.ANTIBODY_CYST.get(), AdvancementType.CHALLENGE, "overcome_immune_response");
+        saveImpossible(saver, existingFileHelper, ModAdvancements.IMMUNE_HOMEOSTASIS, enterDeepMycelium,
+                ModBlocks.ANTIBODY_CYST.get(), AdvancementType.CHALLENGE);
 
         AdvancementHolder apexMatriarchSlayer = saveSimpleItem(
                 saver, existingFileHelper, "apex_matriarch_slayer", enterDeepMycelium,
@@ -171,19 +172,19 @@ public final class MycelialAdvancementProvider implements AdvancementProvider.Ad
         saveSimpleItem(saver, existingFileHelper, "overmind_ascendant", apexMatriarchSlayer,
                 ModItems.OVERMIND_CROWN.get(), AdvancementType.CHALLENGE, "has_crown", ModItems.OVERMIND_CROWN.get());
 
-        saveImpossible(saver, existingFileHelper, "recovered_garden", apexMatriarchSlayer,
-                ModBlocks.RECLAIMED_BLOOM.get(), AdvancementType.GOAL, "recover_garden");
+        saveImpossible(saver, existingFileHelper, ModAdvancements.RECOVERED_GARDEN, apexMatriarchSlayer,
+                ModBlocks.RECLAIMED_BLOOM.get(), AdvancementType.GOAL);
 
-        saveImpossible(saver, existingFileHelper, "recovered_route", apexMatriarchSlayer,
-                ModBlocks.PURIFICATION_PYLON.get(), AdvancementType.GOAL, "recover_route");
+        saveImpossible(saver, existingFileHelper, ModAdvancements.RECOVERED_ROUTE, apexMatriarchSlayer,
+                ModBlocks.PURIFICATION_PYLON.get(), AdvancementType.GOAL);
 
         AdvancementHolder sovereignNexus = saveSimpleItem(
                 saver, existingFileHelper, "sovereign_nexus", apexMatriarchSlayer,
                 ModBlocks.SOVEREIGN_NEXUS.get(), AdvancementType.GOAL,
                 "has_nexus", ModBlocks.SOVEREIGN_NEXUS.get());
 
-        saveImpossible(saver, existingFileHelper, "sovereign_colony_tier3", sovereignNexus,
-                ModItems.SOVEREIGN_COMMAND_STAFF.get(), AdvancementType.CHALLENGE, "upgrade_tier3");
+        saveImpossible(saver, existingFileHelper, ModAdvancements.SOVEREIGN_COLONY_TIER3, sovereignNexus,
+                ModItems.SOVEREIGN_COMMAND_STAFF.get(), AdvancementType.CHALLENGE);
     }
 
     private static Advancement.Builder baseBuilder(
@@ -232,15 +233,15 @@ public final class MycelialAdvancementProvider implements AdvancementProvider.Ad
     private static AdvancementHolder saveImpossible(
             Consumer<AdvancementHolder> saver,
             ExistingFileHelper existingFileHelper,
-            String name,
+            ModAdvancements.TriggeredAdvancement triggered,
             AdvancementHolder parent,
             ItemLike icon,
-            AdvancementType type,
-            String criterionKey
+            AdvancementType type
     ) {
-        return baseBuilder(name, parent, icon, type)
-                .addCriterion(criterionKey, CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
-                .save(saver, id(name), existingFileHelper);
+        return baseBuilder(triggered.id().getPath(), parent, icon, type)
+                .addCriterion(triggered.criterion(),
+                        CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
+                .save(saver, triggered.id(), existingFileHelper);
     }
 
     private static Criterion<?> anyOf(ItemLike... items) {

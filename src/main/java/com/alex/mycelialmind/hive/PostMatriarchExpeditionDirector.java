@@ -10,8 +10,8 @@ import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.entity.MycelialMob;
-import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.network.PostMatriarchExpeditionSyncPayload;
+import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.world.ModDimensions;
 import com.alex.mycelialmind.registry.ModParticles;
@@ -22,7 +22,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -570,14 +569,12 @@ public final class PostMatriarchExpeditionDirector {
                 overworldSaved.setDirty();
             }
         }
-        String advancementId = outcome == PostMatriarchExpeditionData.Outcome.ROUTE ? "recovered_route" : "recovered_garden";
-        String criterion = outcome == PostMatriarchExpeditionData.Outcome.ROUTE ? "recover_route" : "recover_garden";
-        var advancement = level.getServer().getAdvancements().get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, advancementId));
-        if (advancement != null) {
-            for (ServerPlayer participant : level.players()) {
-                if (participant.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 48.0 * 48.0) {
-                    participant.getAdvancements().award(advancement, criterion);
-                }
+        ModAdvancements.TriggeredAdvancement targetAdvancement = outcome == PostMatriarchExpeditionData.Outcome.ROUTE
+                ? ModAdvancements.RECOVERED_ROUTE
+                : ModAdvancements.RECOVERED_GARDEN;
+        for (ServerPlayer participant : level.players()) {
+            if (participant.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 48.0 * 48.0) {
+                ModAdvancements.award(participant, targetAdvancement);
             }
         }
         level.sendParticles(ModParticles.SPORE_MOTE.get(), pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,

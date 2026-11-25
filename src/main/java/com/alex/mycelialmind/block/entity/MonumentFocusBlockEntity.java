@@ -1,17 +1,16 @@
 package com.alex.mycelialmind.block.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -146,12 +144,8 @@ public class MonumentFocusBlockEntity extends BlockEntity {
                     .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
             if (player instanceof ServerPlayer serverPlayer) {
                 PlayerDiscoveryData.unlockMilestone(serverPlayer, ProgressionGoalEngine.MILESTONE_STATION_UPGRADED);
-                if (nextTier >= 3 && serverPlayer.getServer() != null) {
-                    AdvancementHolder adv = serverPlayer.getServer().getAdvancements()
-                            .get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bastion_tier3"));
-                    if (adv != null) {
-                        serverPlayer.getAdvancements().award(adv, "upgrade_tier3");
-                    }
+                if (nextTier >= 3) {
+                    ModAdvancements.award(serverPlayer, ModAdvancements.BASTION_TIER3);
                 }
             }
         }

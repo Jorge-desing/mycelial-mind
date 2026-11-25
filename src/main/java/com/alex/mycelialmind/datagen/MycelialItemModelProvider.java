@@ -4,72 +4,69 @@ import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
 import net.minecraft.data.PackOutput;
-import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import java.util.List;
 
 /**
  * Generates the 61 boilerplate item models under {@code assets/mycelialmind/models/item/*.json}
- * (29 block-parented items, 20 spawn eggs, 11 flat generated items, and 1 handheld staff), while
- * preserving the 35 custom 3D voxel {@code elements} item models in {@code src/main/resources/}.
+ * (29 block-parented items, 20 auto-discovered spawn eggs, 11 flat generated items, and 1 handheld
+ * staff), while preserving the 35 custom 3D voxel {@code elements} item models in {@code src/main/resources/}.
  */
 public final class MycelialItemModelProvider extends ItemModelProvider {
-    private static final List<String> BLOCK_PARENTED_ITEMS = List.of(
-            "antibody_cyst",
-            "bio_chitin_lattice",
-            "chitin_pillar",
-            "creeping_mycelium",
-            "ephemeral_chitin",
-            "hive_altar",
-            "incubator_node",
-            "luminescent_amber_vein",
-            "matriarch_altar",
-            "mycelial_arch_brick",
-            "mycelial_node",
-            "mycelial_stone",
-            "purification_pylon",
-            "purification_turret",
-            "reclaimed_bloom",
-            "reclaimed_bloom_explosion",
-            "reclaimed_bloom_fire",
-            "reclaimed_bloom_magic",
-            "reclaimed_bloom_melee",
-            "reclaimed_bloom_projectile",
-            "reinforced_bio_barrier",
-            "root_cap_shelf",
-            "root_sap_moss",
-            "sentinel_node",
-            "sovereign_nexus",
-            "spore_updraft_vent",
-            "spore_vent",
-            "symbiotic_node",
-            "synaptic_research_bench"
+    private static final List<DeferredBlock<?>> BLOCK_PARENTED_BLOCKS = List.of(
+            ModBlocks.ANTIBODY_CYST,
+            ModBlocks.BIO_CHITIN_LATTICE,
+            ModBlocks.CHITIN_PILLAR,
+            ModBlocks.CREEPING_MYCELIUM,
+            ModBlocks.EPHEMERAL_CHITIN,
+            ModBlocks.HIVE_ALTAR,
+            ModBlocks.INCUBATOR_NODE,
+            ModBlocks.LUMINESCENT_AMBER_VEIN,
+            ModBlocks.MATRIARCH_ALTAR,
+            ModBlocks.MYCELIAL_ARCH_BRICK,
+            ModBlocks.MYCELIAL_NODE,
+            ModBlocks.MYCELIAL_STONE,
+            ModBlocks.PURIFICATION_PYLON,
+            ModBlocks.PURIFICATION_TURRET,
+            ModBlocks.RECLAIMED_BLOOM,
+            ModBlocks.REINFORCED_BIO_BARRIER,
+            ModBlocks.ROOT_CAP_SHELF,
+            ModBlocks.ROOT_SAP_MOSS,
+            ModBlocks.SENTINEL_NODE,
+            ModBlocks.SOVEREIGN_NEXUS,
+            ModBlocks.SPORE_UPDRAFT_VENT,
+            ModBlocks.SPORE_VENT,
+            ModBlocks.SYMBIOTIC_NODE,
+            ModBlocks.SYNAPTIC_RESEARCH_BENCH
     );
 
-    private static final List<DeferredItem<Item>> SPAWN_EGGS = List.of(
-            ModItems.ACID_SPITTER_SPAWN_EGG,
-            ModItems.APEX_MATRIARCH_SPAWN_EGG,
-            ModItems.BURROWER_SPAWN_EGG,
-            ModItems.CHITIN_BRUTE_SPAWN_EGG,
-            ModItems.COLONY_SYMBIONT_SPAWN_EGG,
-            ModItems.COLONY_WARDEN_SPAWN_EGG,
-            ModItems.GOLIATH_CARRIER_SPAWN_EGG,
-            ModItems.HIVE_CORE_SPAWN_EGG,
-            ModItems.LEECH_PARASITE_SPAWN_EGG,
-            ModItems.MYCELIAL_CHIMERA_SPAWN_EGG,
-            ModItems.MYCELIAL_STALKER_SPAWN_EGG,
-            ModItems.PURIFIER_DRONE_SPAWN_EGG,
-            ModItems.PYRO_SHROOM_SPAWN_EGG,
-            ModItems.ROOT_KEEPER_SPAWN_EGG,
-            ModItems.SPORE_ARCHITECT_SPAWN_EGG,
-            ModItems.SPORE_BEHEMOTH_SPAWN_EGG,
-            ModItems.SPORE_GLIDER_SPAWN_EGG,
-            ModItems.SPORELING_SPAWN_EGG,
-            ModItems.SYNAPSE_WEAVER_SPAWN_EGG,
-            ModItems.SYNAPTIC_MIMIC_SPAWN_EGG
+    private static final List<DeferredItem<?>> BLOCK_PARENTED_VARIANTS = List.of(
+            ModItems.RECLAIMED_BLOOM_EXPLOSION,
+            ModItems.RECLAIMED_BLOOM_FIRE,
+            ModItems.RECLAIMED_BLOOM_MAGIC,
+            ModItems.RECLAIMED_BLOOM_MELEE,
+            ModItems.RECLAIMED_BLOOM_PROJECTILE
+    );
+
+    private static final List<DeferredItem<?>> GENERATED_ITEMS = List.of(
+            ModItems.CANOPY_MEMBRANE,
+            ModItems.FIELD_ENGRAM,
+            ModItems.MYCELIAL_CODEX,
+            ModItems.RESONANT_SAP_ELIXIR,
+            ModItems.ROOT_HEART_RESIN,
+            ModItems.ROOT_SAP_VIAL
+    );
+
+    private static final List<DeferredBlock<?>> FLAT_BLOCK_ITEMS = List.of(
+            ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP,
+            ModBlocks.MYCELIAL_RIFT,
+            ModBlocks.MYCELIAL_TENDRILS,
+            ModBlocks.SPORE_BULB
     );
 
     public MycelialItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -78,28 +75,32 @@ public final class MycelialItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        for (String name : BLOCK_PARENTED_ITEMS) {
-            withExistingParent(name, modLoc("block/" + name));
+        for (DeferredBlock<?> block : BLOCK_PARENTED_BLOCKS) {
+            withBlockParent(block.getId().getPath());
+        }
+        for (DeferredItem<?> item : BLOCK_PARENTED_VARIANTS) {
+            withBlockParent(item.getId().getPath());
         }
 
-        for (DeferredItem<Item> spawnEgg : SPAWN_EGGS) {
-            spawnEggItem(spawnEgg.get());
+        ModItems.ITEMS.getEntries().stream()
+                .filter(entry -> entry.get() instanceof DeferredSpawnEggItem)
+                .forEach(entry -> spawnEggItem(entry.get()));
+
+        for (DeferredItem<?> item : GENERATED_ITEMS) {
+            String path = item.getId().getPath();
+            generatedItem(path, "item/" + path);
         }
-
-        generatedItem(ModItems.CANOPY_MEMBRANE.getId().getPath(), "item/canopy_membrane");
-        generatedItem(ModItems.FIELD_ENGRAM.getId().getPath(), "item/field_engram");
-        generatedItem(ModItems.MYCELIAL_CODEX.getId().getPath(), "item/mycelial_codex");
-        generatedItem(ModItems.RESONANT_SAP_ELIXIR.getId().getPath(), "item/resonant_sap_elixir");
-        generatedItem(ModItems.ROOT_HEART_RESIN.getId().getPath(), "item/root_heart_resin");
-        generatedItem(ModItems.ROOT_SAP_VIAL.getId().getPath(), "item/root_sap_vial");
-
-        generatedItem(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.getId().getPath(), "block/bioluminescent_mycelial_cap");
+        for (DeferredBlock<?> block : FLAT_BLOCK_ITEMS) {
+            String path = block.getId().getPath();
+            generatedItem(path, "block/" + path);
+        }
         generatedItem(ModBlocks.HYPHAL_VEIN.getId().getPath(), "block/hyphal_vein_dot");
-        generatedItem(ModBlocks.MYCELIAL_RIFT.getId().getPath(), "block/mycelial_rift");
-        generatedItem(ModBlocks.MYCELIAL_TENDRILS.getId().getPath(), "block/mycelial_tendrils");
-        generatedItem(ModBlocks.SPORE_BULB.getId().getPath(), "block/spore_bulb");
 
         handheldItem(ModItems.SOVEREIGN_COMMAND_STAFF.get());
+    }
+
+    private void withBlockParent(String path) {
+        withExistingParent(path, modLoc("block/" + path));
     }
 
     private void generatedItem(String itemPath, String texturePath) {

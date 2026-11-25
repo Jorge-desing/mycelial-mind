@@ -5,15 +5,12 @@ import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.world.loot.MycelialTraceLootModifier;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.metadata.PackMetadataGenerator;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -51,12 +48,21 @@ public final class ModDataGenerators {
         PackOutput output = generator.getPackOutput();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
-        boolean includeServer = event.includeServer();
-        boolean includeClient = event.includeClient();
 
         generator.addProvider(true, PackMetadataGenerator.forFeaturePack(
                 output, Component.literal("Mycelial Mind generated resources")));
 
+        registerServerProviders(generator, output, lookupProvider, existingFileHelper, event.includeServer());
+        registerClientProviders(generator, output, lookupProvider, existingFileHelper, event.includeClient());
+    }
+
+    private static void registerServerProviders(
+            DataGenerator generator,
+            PackOutput output,
+            CompletableFuture<HolderLookup.Provider> lookupProvider,
+            ExistingFileHelper existingFileHelper,
+            boolean includeServer
+    ) {
         MycelialDatapackProvider datapackProvider = generator.addProvider(
                 includeServer, new MycelialDatapackProvider(output, lookupProvider));
         CompletableFuture<HolderLookup.Provider> datapackLookup = datapackProvider.getRegistryProvider();
@@ -97,7 +103,15 @@ public final class ModDataGenerators {
 
         generator.addProvider(includeServer, new MycelialDataMapProvider(output, lookupProvider));
         generator.addProvider(includeServer, new MycelialGlobalLootModifierProvider(output, lookupProvider));
+    }
 
+    private static void registerClientProviders(
+            DataGenerator generator,
+            PackOutput output,
+            CompletableFuture<HolderLookup.Provider> lookupProvider,
+            ExistingFileHelper existingFileHelper,
+            boolean includeClient
+    ) {
         generator.addProvider(includeClient, new MycelialSpriteSourceProvider(
                 output, lookupProvider, existingFileHelper));
         generator.addProvider(includeClient, new MycelialBlockStateProvider(output, existingFileHelper));
@@ -135,12 +149,9 @@ public final class ModDataGenerators {
                     .add(ModItems.VOLATILE_ENGRAM.getId(), new FurnaceFuel(1600), false)
                     .add(ModItems.ROOT_HEART_RESIN.getId(), new FurnaceFuel(1600), false);
 
-            ResourceKey<LootTable> clericGift = ResourceKey.create(
-                    Registries.LOOT_TABLE,
-                    ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "gameplay/hero_of_the_village/cleric_mycelial_gift")
-            );
             builder(NeoForgeDataMaps.RAID_HERO_GIFTS)
-                    .add(ResourceLocation.withDefaultNamespace("cleric"), new RaidHeroGift(clericGift), false);
+                    .add(ResourceLocation.withDefaultNamespace("cleric"),
+                            new RaidHeroGift(MycelialGameplayLootSubProvider.CLERIC_MYCELIAL_GIFT), false);
         }
     }
 

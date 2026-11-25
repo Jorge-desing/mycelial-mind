@@ -1,15 +1,13 @@
 package com.alex.mycelialmind.block;
 
-import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
+import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.util.MycelialRedstoneTelemetry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -72,12 +70,8 @@ public class PurificationTurretBlock extends Block implements EntityBlock {
                     if (player instanceof ServerPlayer serverPlayer) {
                         com.alex.mycelialmind.hive.PlayerDiscoveryData.unlockMilestone(
                                 serverPlayer, com.alex.mycelialmind.hive.ProgressionGoalEngine.MILESTONE_STATION_UPGRADED);
-                        if (turret.getTier() >= 3 && serverPlayer.getServer() != null) {
-                            AdvancementHolder adv = serverPlayer.getServer().getAdvancements()
-                                    .get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "bastion_tier3"));
-                            if (adv != null) {
-                                serverPlayer.getAdvancements().award(adv, "upgrade_tier3");
-                            }
+                        if (turret.getTier() >= 3) {
+                            ModAdvancements.award(serverPlayer, ModAdvancements.BASTION_TIER3);
                         }
                     }
                     return ItemInteractionResult.sidedSuccess(level.isClientSide());

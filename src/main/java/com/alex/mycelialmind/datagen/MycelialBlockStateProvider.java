@@ -22,9 +22,9 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.client.model.generators.VariantBlockStateBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.registries.DeferredBlock;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Generates all 29 blockstates under {@code assets/mycelialmind/blockstates/*.json}, referencing
@@ -46,38 +46,33 @@ public final class MycelialBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        registerSimpleExistingBlock(ModBlocks.BIO_CHITIN_LATTICE, "bio_chitin_lattice");
-        registerSimpleExistingBlock(ModBlocks.CREEPING_MYCELIUM, "creeping_mycelium");
-        registerSimpleExistingBlock(ModBlocks.EPHEMERAL_CHITIN, "ephemeral_chitin");
-        registerSimpleExistingBlock(ModBlocks.HIVE_ALTAR, "hive_altar");
-        registerSimpleExistingBlock(ModBlocks.INCUBATOR_NODE, "incubator_node");
-        registerSimpleExistingBlock(ModBlocks.LUMINESCENT_AMBER_VEIN, "luminescent_amber_vein");
-        registerSimpleExistingBlock(ModBlocks.MATRIARCH_ALTAR, "matriarch_altar");
-        registerSimpleExistingBlock(ModBlocks.MYCELIAL_ARCH_BRICK, "mycelial_arch_brick");
-        registerSimpleExistingBlock(ModBlocks.MYCELIAL_NODE, "mycelial_node");
-        registerSimpleExistingBlock(ModBlocks.MYCELIAL_RIFT, "mycelial_rift");
-        registerSimpleExistingBlock(ModBlocks.MYCELIAL_STONE, "mycelial_stone");
-        registerSimpleExistingBlock(ModBlocks.PURIFICATION_PYLON, "purification_pylon");
-        registerSimpleExistingBlock(ModBlocks.PURIFICATION_TURRET, "purification_turret");
-        registerSimpleExistingBlock(ModBlocks.REINFORCED_BIO_BARRIER, "reinforced_bio_barrier");
-        registerSimpleExistingBlock(ModBlocks.SENTINEL_NODE, "sentinel_node");
-        registerSimpleExistingBlock(ModBlocks.SOVEREIGN_NEXUS, "sovereign_nexus");
-        registerSimpleExistingBlock(ModBlocks.SPORE_BULB, "spore_bulb");
-        registerSimpleExistingBlock(ModBlocks.SPORE_VENT, "spore_vent");
-        registerSimpleExistingBlock(ModBlocks.SYMBIOTIC_NODE, "symbiotic_node");
-        registerSimpleExistingBlock(ModBlocks.SYNAPTIC_RESEARCH_BENCH, "synaptic_research_bench");
+        registerSimpleExistingBlock(ModBlocks.BIO_CHITIN_LATTICE);
+        registerSimpleExistingBlock(ModBlocks.CREEPING_MYCELIUM);
+        registerSimpleExistingBlock(ModBlocks.EPHEMERAL_CHITIN);
+        registerSimpleExistingBlock(ModBlocks.HIVE_ALTAR);
+        registerSimpleExistingBlock(ModBlocks.INCUBATOR_NODE);
+        registerSimpleExistingBlock(ModBlocks.LUMINESCENT_AMBER_VEIN);
+        registerSimpleExistingBlock(ModBlocks.MATRIARCH_ALTAR);
+        registerSimpleExistingBlock(ModBlocks.MYCELIAL_ARCH_BRICK);
+        registerSimpleExistingBlock(ModBlocks.MYCELIAL_NODE);
+        registerSimpleExistingBlock(ModBlocks.MYCELIAL_RIFT);
+        registerSimpleExistingBlock(ModBlocks.MYCELIAL_STONE);
+        registerSimpleExistingBlock(ModBlocks.PURIFICATION_PYLON);
+        registerSimpleExistingBlock(ModBlocks.PURIFICATION_TURRET);
+        registerSimpleExistingBlock(ModBlocks.REINFORCED_BIO_BARRIER);
+        registerSimpleExistingBlock(ModBlocks.SENTINEL_NODE);
+        registerSimpleExistingBlock(ModBlocks.SOVEREIGN_NEXUS);
+        registerSimpleExistingBlock(ModBlocks.SPORE_BULB);
+        registerSimpleExistingBlock(ModBlocks.SPORE_VENT);
+        registerSimpleExistingBlock(ModBlocks.SYMBIOTIC_NODE);
+        registerSimpleExistingBlock(ModBlocks.SYNAPTIC_RESEARCH_BENCH);
 
-        registerBooleanVariant(ModBlocks.ANTIBODY_CYST.get(), AntibodyCystBlock.ACTIVE,
-                "antibody_cyst", "antibody_cyst_withered");
-        registerBooleanVariant(ModBlocks.ROOT_SAP_MOSS.get(), RootSapMossBlock.SAP_READY,
-                "root_sap_moss", "root_sap_moss_depleted");
-        registerBooleanVariant(ModBlocks.SPORE_UPDRAFT_VENT.get(), SporeUpdraftVentBlock.ACTIVE,
-                "spore_updraft_vent", "spore_updraft_vent_inactive");
+        registerBooleanVariant(ModBlocks.ANTIBODY_CYST, AntibodyCystBlock.ACTIVE, "_withered");
+        registerBooleanVariant(ModBlocks.ROOT_SAP_MOSS, RootSapMossBlock.SAP_READY, "_depleted");
+        registerBooleanVariant(ModBlocks.SPORE_UPDRAFT_VENT, SporeUpdraftVentBlock.ACTIVE, "_inactive");
 
-        registerUniformBooleanStates(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get(),
-                BioluminescentMycelialCapBlock.MATURE, "bioluminescent_mycelial_cap");
-        registerUniformBooleanStates(ModBlocks.MYCELIAL_TENDRILS.get(),
-                MycelialTendrilsBlock.MATURE, "mycelial_tendrils");
+        registerUniformBooleanStates(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP, BioluminescentMycelialCapBlock.MATURE);
+        registerUniformBooleanStates(ModBlocks.MYCELIAL_TENDRILS, MycelialTendrilsBlock.MATURE);
 
         registerChitinPillar();
         registerRootCapShelf();
@@ -85,26 +80,26 @@ public final class MycelialBlockStateProvider extends BlockStateProvider {
         registerHyphalVein();
     }
 
-    private void registerSimpleExistingBlock(Supplier<? extends Block> block, String modelName) {
-        simpleBlock(block.get(), existingBlockModel(modelName));
+    private void registerSimpleExistingBlock(DeferredBlock<?> block) {
+        simpleBlock(block.get(), existingBlockModel(block.getId().getPath()));
     }
 
     private void registerBooleanVariant(
-            Block block,
+            DeferredBlock<?> block,
             BooleanProperty property,
-            String trueModelName,
-            String falseModelName
+            String falseModelSuffix
     ) {
-        ModelFile trueModel = existingBlockModel(trueModelName);
-        ModelFile falseModel = existingBlockModel(falseModelName);
-        VariantBlockStateBuilder builder = getVariantBuilder(block);
+        String baseName = block.getId().getPath();
+        ModelFile trueModel = existingBlockModel(baseName);
+        ModelFile falseModel = existingBlockModel(baseName + falseModelSuffix);
+        VariantBlockStateBuilder builder = getVariantBuilder(block.get());
         builder.partialState().with(property, true).modelForState().modelFile(trueModel).addModel();
         builder.partialState().with(property, false).modelForState().modelFile(falseModel).addModel();
     }
 
-    private void registerUniformBooleanStates(Block block, BooleanProperty property, String modelName) {
-        ModelFile model = existingBlockModel(modelName);
-        VariantBlockStateBuilder builder = getVariantBuilder(block);
+    private void registerUniformBooleanStates(DeferredBlock<?> block, BooleanProperty property) {
+        ModelFile model = existingBlockModel(block.getId().getPath());
+        VariantBlockStateBuilder builder = getVariantBuilder(block.get());
         builder.partialState().with(property, true).modelForState().modelFile(model).addModel();
         builder.partialState().with(property, false).modelForState().modelFile(model).addModel();
     }

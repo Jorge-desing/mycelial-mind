@@ -12,6 +12,7 @@ import com.alex.mycelialmind.entity.ai.colony.SymbiontArchitectGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontExcavatorGoal;
 import com.alex.mycelialmind.entity.ai.colony.SymbiontHarvesterGoal;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
+import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEntities;
@@ -233,13 +234,8 @@ public class SovereignNexusBlockEntity extends BlockEntity {
         level.sendParticles(ModParticles.PURIFIER_CROSS.get(),
                 worldPosition.getX() + 0.5, worldPosition.getY() + 1.2, worldPosition.getZ() + 0.5,
                 22, 0.6, 0.5, 0.6, 0.05);
-        if (colony.getTier() >= 3 && player instanceof ServerPlayer serverPlayer && serverPlayer.getServer() != null) {
-            var adv = serverPlayer.getServer().getAdvancements().get(
-                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
-                            com.alex.mycelialmind.MycelialMind.MODID, "sovereign_colony_tier3"));
-            if (adv != null) {
-                serverPlayer.getAdvancements().award(adv, "upgrade_tier3");
-            }
+        if (colony.getTier() >= 3 && player instanceof ServerPlayer serverPlayer) {
+            ModAdvancements.award(serverPlayer, ModAdvancements.SOVEREIGN_COLONY_TIER3);
         }
         return true;
     }

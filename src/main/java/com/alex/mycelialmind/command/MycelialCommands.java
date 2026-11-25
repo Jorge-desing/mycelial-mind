@@ -1538,7 +1538,7 @@ public final class MycelialCommands {
                 && level.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "smelt_creeping_mycelium_to_stone")).isPresent()
                 && level.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "blast_cyst_to_chitin_plate")).isPresent()
                 && level.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "stonecut_mycelial_stone_to_arch_brick")).isPresent()
-                && level.getServer().getAdvancements().get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/unlock_biomass_recipes")) != null;
+                && level.getServer().getAdvancements().get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/tools/bio_scanner")) != null;
 
         // Dedicated servers use a SERVER_DATA resource manager, so client particle descriptors
         // (assets/mycelialmind/particles) are not visible here. Asset parity is covered by the

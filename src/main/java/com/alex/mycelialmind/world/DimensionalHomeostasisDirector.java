@@ -22,13 +22,13 @@ import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.LivingBattlefieldSystem;
 import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine.HomeostasisStage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -80,8 +80,6 @@ public final class DimensionalHomeostasisDirector {
             EquipmentSlot.LEGS,
             EquipmentSlot.FEET
     };
-    private static final ResourceLocation IMMUNE_HOMEOSTASIS_ADVANCEMENT =
-            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "immune_homeostasis");
 
     private DimensionalHomeostasisDirector() {
     }
@@ -870,12 +868,8 @@ public final class DimensionalHomeostasisDirector {
     }
 
     public static void grantHomeostasisAdvancement(ServerPlayer player) {
-        if (!(player.level() instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        AdvancementHolder holder = serverLevel.getServer().getAdvancements().get(IMMUNE_HOMEOSTASIS_ADVANCEMENT);
-        if (holder != null) {
-            player.getAdvancements().award(holder, "overcome_immune_response");
+        if (player.level() instanceof ServerLevel) {
+            ModAdvancements.award(player, ModAdvancements.IMMUNE_HOMEOSTASIS);
         }
     }
 
