@@ -1,0 +1,27 @@
+{
+  "parent": "mycelialmind:enter_deep_mycelium",
+  "criteria": {
+    "overcome_immune_response": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.immune_homeostasis.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:antibody_cyst"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.immune_homeostasis.title"
+    }
+  },
+  "requirements": [
+    [
+      "overcome_immune_response"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

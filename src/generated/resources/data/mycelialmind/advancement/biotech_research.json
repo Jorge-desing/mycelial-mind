@@ -1,0 +1,33 @@
+{
+  "parent": "mycelialmind:genetic_sampler",
+  "criteria": {
+    "has_bench": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:synaptic_research_bench"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.biotech_research.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:synaptic_research_bench"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.biotech_research.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_bench"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,37 @@
+{
+  "parent": "mycelialmind:base_sentinel",
+  "criteria": {
+    "killed_architect": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "mycelialmind:spore_architect"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:player_killed_entity"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.architect_bane.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:neutralizing_spore_launcher"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.architect_bane.title"
+    }
+  },
+  "requirements": [
+    [
+      "killed_architect"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "mycelialmind:hive_core_slayer",
+  "criteria": {
+    "has_tide_beacon": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:tide_beacon"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.tide_breaker.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:tide_beacon"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.tide_breaker.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_tide_beacon"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,27 @@
+{
+  "parent": "mycelialmind:apex_matriarch_slayer",
+  "criteria": {
+    "recover_route": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.recovered_route.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:purification_pylon"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.recovered_route.title"
+    }
+  },
+  "requirements": [
+    [
+      "recover_route"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

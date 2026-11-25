@@ -446,19 +446,27 @@ def check_item_icon_language(check_pbr: bool = False) -> None:
         if iou > worst:
             worst, worst_pair = iou, (left, right)
     assert worst <= 0.95, f"Icons {worst_pair[0]} and {worst_pair[1]} share a silhouette (IoU {worst:.3f})"
-    model_dir = os.path.join(REPO_ROOT, "src", "main", "resources", "assets", "mycelialmind", "models", "item")
-    for filename in sorted(os.listdir(model_dir)):
-        if not filename.endswith(".json"):
-            continue
-        with open(os.path.join(model_dir, filename), encoding="utf-8") as handle:
-            model = json.load(handle)
-        textures = model.get("textures", {})
-        for key, value in textures.items():
-            assert not value.startswith("minecraft:item/"), f"{filename} still uses vanilla texture {key}={value}"
-    codex_model = os.path.join(model_dir, "mycelial_codex.json")
-    with open(codex_model, encoding="utf-8") as handle:
-        codex = json.load(handle)
-    assert codex["textures"]["layer0"] == "mycelialmind:item/mycelial_codex", "Codex icon must use the studio texture"
+    model_dirs = [
+        d for d in (
+            os.path.join(REPO_ROOT, "src", "main", "resources", "assets", "mycelialmind", "models", "item"),
+            os.path.join(REPO_ROOT, "src", "generated", "resources", "assets", "mycelialmind", "models", "item"),
+        )
+        if os.path.isdir(d)
+    ]
+    codex_model = None
+    for model_dir in model_dirs:
+        for filename in sorted(os.listdir(model_dir)):
+            if not filename.endswith(".json"):
+                continue
+            with open(os.path.join(model_dir, filename), encoding="utf-8") as handle:
+                model = json.load(handle)
+            textures = model.get("textures", {})
+            for key, value in textures.items():
+                assert not value.startswith("minecraft:item/"), f"{filename} still uses vanilla texture {key}={value}"
+            if filename == "mycelial_codex.json":
+                codex_model = model
+    assert codex_model is not None, "Missing mycelial_codex.json in main/generated models/item"
+    assert codex_model["textures"]["layer0"] == "mycelialmind:item/mycelial_codex", "Codex icon must use the studio texture"
     print(f"Icon language checks PASSED ({len(names)} icons, worst silhouette IoU {worst:.3f}).")
 
 

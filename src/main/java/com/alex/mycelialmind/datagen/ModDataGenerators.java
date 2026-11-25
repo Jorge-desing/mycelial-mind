@@ -18,6 +18,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.DataMapProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -34,9 +35,10 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Registers NeoForge DataGen entrypoint and emits Datapack Builtin Entries (Worldgen, Dimensions,
- * Structures, and Biome Modifiers), Tags, Recipes, Loot Tables, NeoForge Data Maps, and
- * Global Loot Modifiers.
+ * Registers NeoForge DataGen entrypoint and emits server datapack entries (Worldgen, Dimensions,
+ * Structures, Biome Modifiers, Tags, Recipes, Progression Advancements, Loot Tables, NeoForge
+ * Data Maps, and Global Loot Modifiers) as well as client assets (Blockstates, Boilerplate Item
+ * Models, and Blocks Atlas). Python studios remain the source of truth for lang, particles, and sounds.
  */
 @EventBusSubscriber(modid = MycelialMind.MODID)
 public final class ModDataGenerators {
@@ -50,6 +52,7 @@ public final class ModDataGenerators {
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         boolean includeServer = event.includeServer();
+        boolean includeClient = event.includeClient();
 
         generator.addProvider(true, PackMetadataGenerator.forFeaturePack(
                 output, Component.literal("Mycelial Mind generated resources")));
@@ -70,6 +73,8 @@ public final class ModDataGenerators {
                 output, datapackLookup, existingFileHelper));
 
         generator.addProvider(includeServer, new MycelialRecipeProvider(output, lookupProvider));
+        generator.addProvider(includeServer, new AdvancementProvider(
+                output, lookupProvider, existingFileHelper, List.of(new MycelialAdvancementProvider())));
 
         generator.addProvider(includeServer, new LootTableProvider(
                 output,
@@ -92,6 +97,11 @@ public final class ModDataGenerators {
 
         generator.addProvider(includeServer, new MycelialDataMapProvider(output, lookupProvider));
         generator.addProvider(includeServer, new MycelialGlobalLootModifierProvider(output, lookupProvider));
+
+        generator.addProvider(includeClient, new MycelialSpriteSourceProvider(
+                output, lookupProvider, existingFileHelper));
+        generator.addProvider(includeClient, new MycelialBlockStateProvider(output, existingFileHelper));
+        generator.addProvider(includeClient, new MycelialItemModelProvider(output, existingFileHelper));
     }
 
     private static final class MycelialDataMapProvider extends DataMapProvider {

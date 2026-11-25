@@ -1,0 +1,33 @@
+{
+  "parent": "mycelialmind:tier2_awakening",
+  "criteria": {
+    "has_turret": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:purification_turret"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.base_sentinel.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:purification_turret"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.base_sentinel.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_turret"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -2152,13 +2152,31 @@ def audit_mod_assets() -> dict[str, Any]:
             elif name.endswith(".png.mcmeta"):
                 pbr_counts["mcmeta"] += 1
 
-    models_dir = assets_root / "models"
+    generated_assets_root = GENERATED_ROOT / "assets" / "mycelialmind"
+    asset_roots = [root for root in (assets_root, generated_assets_root) if root.is_dir()]
     model_json_counts = {
-        "block": sum(1 for e in os.scandir(models_dir / "block") if e.name.endswith(".json") and e.is_file(follow_symlinks=False)) if (models_dir / "block").is_dir() else 0,
-        "item": sum(1 for e in os.scandir(models_dir / "item") if e.name.endswith(".json") and e.is_file(follow_symlinks=False)) if (models_dir / "item").is_dir() else 0,
+        "block": len({
+            e.name
+            for root in asset_roots
+            if (root / "models" / "block").is_dir()
+            for e in os.scandir(root / "models" / "block")
+            if e.name.endswith(".json") and e.is_file(follow_symlinks=False)
+        }),
+        "item": len({
+            e.name
+            for root in asset_roots
+            if (root / "models" / "item").is_dir()
+            for e in os.scandir(root / "models" / "item")
+            if e.name.endswith(".json") and e.is_file(follow_symlinks=False)
+        }),
     }
-    blockstates_dir = assets_root / "blockstates"
-    blockstates_count = sum(1 for e in os.scandir(blockstates_dir) if e.name.endswith(".json") and e.is_file(follow_symlinks=False)) if blockstates_dir.is_dir() else 0
+    blockstates_count = len({
+        e.name
+        for root in asset_roots
+        if (root / "blockstates").is_dir()
+        for e in os.scandir(root / "blockstates")
+        if e.name.endswith(".json") and e.is_file(follow_symlinks=False)
+    })
 
     uv_info = get_uv_manifest()
     uv_models = set(uv_info.get("models", {}).keys()) if uv_info.get("ok") else set()

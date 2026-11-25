@@ -1,0 +1,34 @@
+{
+  "parent": "mycelialmind:enter_deep_mycelium",
+  "criteria": {
+    "has_essence": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:overmind_essence"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.apex_matriarch_slayer.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:overmind_essence"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.apex_matriarch_slayer.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_essence"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

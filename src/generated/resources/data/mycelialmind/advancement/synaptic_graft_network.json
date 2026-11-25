@@ -1,0 +1,33 @@
+{
+  "parent": "mycelialmind:sever_the_network",
+  "criteria": {
+    "has_synaptic_graft": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:synaptic_graft"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.synaptic_graft_network.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:synaptic_graft"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.synaptic_graft_network.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_synaptic_graft"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

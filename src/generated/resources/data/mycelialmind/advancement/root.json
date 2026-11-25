@@ -1,0 +1,35 @@
+{
+  "criteria": {
+    "has_biomass": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:mycelial_biomass"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:textures/block/mycelium_side.png",
+    "description": {
+      "translate": "advancement.mycelialmind.root.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:mycelial_node"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.mycelialmind.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_biomass"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

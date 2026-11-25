@@ -1,0 +1,33 @@
+{
+  "parent": "mycelialmind:root",
+  "criteria": {
+    "has_scanner": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:bio_scanner"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.first_adaptation.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:bio_scanner"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.first_adaptation.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_scanner"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

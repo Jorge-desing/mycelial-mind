@@ -1,0 +1,33 @@
+{
+  "parent": "mycelialmind:biotech_research",
+  "criteria": {
+    "has_mutagen": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:symbiotic_mutagen"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.symbiotic_vessel.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:symbiotic_mutagen"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.symbiotic_vessel.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_mutagen"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

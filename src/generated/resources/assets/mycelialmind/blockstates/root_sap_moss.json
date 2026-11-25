@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "sap_ready=false": {
+      "model": "mycelialmind:block/root_sap_moss_depleted"
+    },
+    "sap_ready=true": {
+      "model": "mycelialmind:block/root_sap_moss"
+    }
+  }
+}

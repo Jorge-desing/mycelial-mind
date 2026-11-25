@@ -1,0 +1,27 @@
+{
+  "parent": "mycelialmind:sovereign_nexus",
+  "criteria": {
+    "upgrade_tier3": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.sovereign_colony_tier3.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:sovereign_command_staff"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.sovereign_colony_tier3.title"
+    }
+  },
+  "requirements": [
+    [
+      "upgrade_tier3"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

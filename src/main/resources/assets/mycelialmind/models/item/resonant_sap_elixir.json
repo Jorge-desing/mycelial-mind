@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "mycelialmind:item/resonant_sap_elixir"
-  }
-}

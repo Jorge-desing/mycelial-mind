@@ -1,0 +1,26 @@
+{
+  "parent": "mycelialmind:base_sentinel",
+  "criteria": {
+    "deploy_drone": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.purifier_drone_deployed.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:purifier_drone_core"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.purifier_drone_deployed.title"
+    }
+  },
+  "requirements": [
+    [
+      "deploy_drone"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

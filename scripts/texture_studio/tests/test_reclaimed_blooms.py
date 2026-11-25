@@ -9,20 +9,31 @@ from scripts.model_studio.block_item_3d import build_reclaimed_bloom_model, buil
 from scripts.texture_studio.generators.reclaimed_blooms import PALETTES, generate_reclaimed_blooms
 
 
+def _resolve_asset(rel_path: str) -> Path:
+    for root in (
+        Path('src/generated/resources/assets/mycelialmind'),
+        Path('src/main/resources/assets/mycelialmind'),
+    ):
+        candidate = root / rel_path
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(f'Missing asset in generated or main resources: {rel_path}')
+
+
 class ReclaimedBloomAssetsTest(unittest.TestCase):
     def test_generated_assets_and_models_are_consistent(self):
         resources = Path('src/main/resources/assets/mycelialmind')
-        states = json.loads((resources / 'blockstates/reclaimed_bloom.json').read_text())['variants']
+        states = json.loads(_resolve_asset('blockstates/reclaimed_bloom.json').read_text())['variants']
         with tempfile.TemporaryDirectory() as directory:
             generate_reclaimed_blooms(directory, emit_pbr=True)
             for index, kind in enumerate(PALETTES):
                 name = 'reclaimed_bloom' if kind == 'base' else f'reclaimed_bloom_{kind}'
                 model = build_reclaimed_bloom_model() if kind == 'base' else build_reclaimed_bloom_variant(kind)
-                stored = json.loads((resources / 'models/block' / f'{name}.json').read_text())
+                stored = json.loads(_resolve_asset(f'models/block/{name}.json').read_text())
                 self.assertEqual(model, stored)
                 for mature in ('true', 'false'):
                     self.assertEqual(states[f'mature={mature},palette={index}']['model'], f'mycelialmind:block/{name}')
-                item = json.loads((resources / 'models/item' / f'{name}.json').read_text())
+                item = json.loads(_resolve_asset(f'models/item/{name}.json').read_text())
                 self.assertEqual(item['parent'], f'mycelialmind:block/{name}')
                 for suffix, size in (('', (128, 128)), ('_particle', (16, 16)), ('_n', (128, 128)), ('_s', (128, 128))):
                     filename = f'reclaimed_bloom_{kind}{suffix}.png'

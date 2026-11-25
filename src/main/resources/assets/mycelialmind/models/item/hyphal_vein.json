@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "mycelialmind:block/hyphal_vein_dot"
-  }
-}

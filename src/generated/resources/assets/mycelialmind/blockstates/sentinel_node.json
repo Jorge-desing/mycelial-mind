@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "mycelialmind:block/sentinel_node"
+    }
+  }
+}

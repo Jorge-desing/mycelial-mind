@@ -1,0 +1,34 @@
+{
+  "parent": "mycelialmind:hive_core_slayer",
+  "criteria": {
+    "has_suppressor": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:synaptic_suppressor"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.synaptic_mastery.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:synaptic_suppressor"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.synaptic_mastery.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_suppressor"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "mycelialmind:apex_matriarch_slayer",
+  "criteria": {
+    "has_nexus": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:sovereign_nexus"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.sovereign_nexus.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:sovereign_nexus"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.sovereign_nexus.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_nexus"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

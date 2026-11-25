@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "mycelialmind:item/sovereign_command_staff"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:directory",
+      "prefix": "model_atlas/",
+      "source": "model_atlas"
+    }
+  ]
+}

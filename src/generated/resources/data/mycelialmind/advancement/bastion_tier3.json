@@ -1,0 +1,27 @@
+{
+  "parent": "mycelialmind:purifier_drone_deployed",
+  "criteria": {
+    "upgrade_tier3": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.bastion_tier3.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:purification_turret"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.bastion_tier3.title"
+    }
+  },
+  "requirements": [
+    [
+      "upgrade_tier3"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

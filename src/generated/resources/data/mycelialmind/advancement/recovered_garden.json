@@ -1,0 +1,27 @@
+{
+  "parent": "mycelialmind:apex_matriarch_slayer",
+  "criteria": {
+    "recover_garden": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.recovered_garden.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:reclaimed_bloom"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.recovered_garden.title"
+    }
+  },
+  "requirements": [
+    [
+      "recover_garden"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "mycelialmind:apex_matriarch_slayer",
+  "criteria": {
+    "has_crown": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:overmind_crown"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.overmind_ascendant.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:overmind_crown"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.overmind_ascendant.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_crown"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

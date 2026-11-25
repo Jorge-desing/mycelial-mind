@@ -1,0 +1,34 @@
+{
+  "parent": "mycelialmind:symbiotic_vessel",
+  "criteria": {
+    "has_chimera_ovum": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:chimera_ovum"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.chimera_bioforge.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:chimera_ovum"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.chimera_bioforge.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_chimera_ovum"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,33 @@
+{
+  "parent": "mycelialmind:first_adaptation",
+  "criteria": {
+    "has_sample": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:genetic_sample"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.mycelialmind.genetic_sampler.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "mycelialmind:bio_extractor"
+    },
+    "title": {
+      "translate": "advancement.mycelialmind.genetic_sampler.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_sample"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

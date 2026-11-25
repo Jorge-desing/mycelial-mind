@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "mycelialmind:block/incubator_node"
+    }
+  }
+}
