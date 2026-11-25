@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "L": {
+      "item": "mycelialmind:latent_spore"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    }
+  },
+  "pattern": [
+    "LSL",
+    " C ",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:neutralizing_spore_launcher"
+  }
+}

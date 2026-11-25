@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "B": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "C": {
+      "item": "minecraft:crafting_table"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "mycelialmind:mycelial_biomass"
+    }
+  },
+  "pattern": [
+    "ASA",
+    "ICI",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:synaptic_research_bench"
+  }
+}

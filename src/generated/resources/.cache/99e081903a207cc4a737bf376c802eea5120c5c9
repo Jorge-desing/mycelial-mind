@@ -1,0 +1,4 @@
+// 1.21.1	2026-11-24T22:55:54.2483703	Tags for minecraft:worldgen/biome mod id mycelialmind
+7c1316e8e64b66dbe3c509a5e0712ee35e0b0616 data/mycelialmind/tags/worldgen/biome/has_structure/matriarch_citadel.json
+7c328cf802c4a42ddfa7d706dbb6b2093c188fc4 data/mycelialmind/tags/worldgen/biome/has_structure/twisted_citadel.json
+c03d56649819c6d5a6998a7df62fe82e1cec0c62 data/mycelialmind/tags/worldgen/biome/surface_excluded.json

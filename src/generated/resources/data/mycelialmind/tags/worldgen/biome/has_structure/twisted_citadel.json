@@ -1,0 +1,16 @@
+{
+  "values": [
+    {
+      "id": "mycelialmind:deep_mycelium_caverns",
+      "required": false
+    },
+    {
+      "id": "mycelialmind:hive_heart_sanctum",
+      "required": false
+    },
+    {
+      "id": "mycelialmind:latent_spore_forest",
+      "required": false
+    }
+  ]
+}

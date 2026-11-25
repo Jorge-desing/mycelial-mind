@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "mycelialmind:reinforced_bio_barrier"
+  },
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:chitin_pillar"
+  }
+}

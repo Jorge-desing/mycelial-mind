@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mycelial_stone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:mycelial_stone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:stonecut_mycelial_stone_to_arch_brick"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mycelial_stone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:stonecut_mycelial_stone_to_arch_brick"
+    ]
+  }
+}

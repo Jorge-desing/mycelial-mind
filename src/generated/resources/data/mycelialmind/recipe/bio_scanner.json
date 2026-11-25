@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "minecraft:compass"
+    },
+    "I": {
+      "item": "minecraft:copper_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "mycelialmind:latent_spore"
+    }
+  },
+  "pattern": [
+    " R ",
+    "ICI",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:bio_scanner"
+  }
+}

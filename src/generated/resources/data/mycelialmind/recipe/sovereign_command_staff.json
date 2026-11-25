@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "G": {
+      "item": "mycelialmind:synaptic_graft"
+    },
+    "N": {
+      "item": "mycelialmind:neural_echo_core"
+    },
+    "O": {
+      "item": "mycelialmind:overmind_essence"
+    }
+  },
+  "pattern": [
+    " OG",
+    " NO",
+    "C  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:sovereign_command_staff"
+  }
+}

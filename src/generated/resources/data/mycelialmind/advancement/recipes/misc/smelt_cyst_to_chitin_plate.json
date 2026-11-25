@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_antibody_cyst": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:antibody_cyst"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:smelt_cyst_to_chitin_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_antibody_cyst"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:smelt_cyst_to_chitin_plate"
+    ]
+  }
+}

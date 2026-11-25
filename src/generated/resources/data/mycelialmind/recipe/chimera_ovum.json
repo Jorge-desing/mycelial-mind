@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "mycelialmind:mycelial_biomass"
+    },
+    "E": {
+      "item": "mycelialmind:neural_echo_core"
+    },
+    "G": {
+      "item": "mycelialmind:genetic_sample"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    }
+  },
+  "pattern": [
+    " B ",
+    "GEG",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:chimera_ovum"
+  }
+}

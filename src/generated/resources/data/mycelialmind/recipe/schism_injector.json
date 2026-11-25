@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:blaze_powder"
+    },
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "E": {
+      "item": "mycelialmind:neural_echo_core"
+    },
+    "L": {
+      "item": "mycelialmind:latent_spore"
+    }
+  },
+  "pattern": [
+    " L ",
+    "CEC",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:schism_injector"
+  }
+}

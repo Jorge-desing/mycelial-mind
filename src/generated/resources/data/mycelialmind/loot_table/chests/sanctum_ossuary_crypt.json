@@ -1,0 +1,198 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 6.0,
+                "min": 3.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "mycelialmind:chitin_plate",
+          "weight": 40
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 5.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "minecraft:bone_block",
+          "weight": 28
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "minecraft:crying_obsidian",
+          "weight": 18
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 4.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "minecraft:amethyst_shard",
+          "weight": 14
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 3.0,
+        "min": 2.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:concentrated_antidote",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "mycelialmind:purifier_grenade",
+          "weight": 28
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:schism_injector",
+          "weight": 22
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "components": {
+                "mycelialmind:trait_id": "blast_shielded"
+              },
+              "function": "minecraft:set_components"
+            }
+          ],
+          "name": "mycelialmind:genetic_sample",
+          "weight": 20
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 2.0,
+        "min": 1.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:synaptic_core",
+          "weight": 35
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:neural_echo_core",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:chitin_helmet",
+          "weight": 18
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:chitin_chestplate",
+          "weight": 17
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "chance": 0.3,
+          "condition": "minecraft:random_chance"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:symbiotic_blade",
+          "weight": 32
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:enzyme_lance",
+          "weight": 32
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:chitin_leggings",
+          "weight": 18
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "minecraft:diamond",
+          "weight": 18
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "mycelialmind:chests/sanctum_ossuary_crypt"
+}

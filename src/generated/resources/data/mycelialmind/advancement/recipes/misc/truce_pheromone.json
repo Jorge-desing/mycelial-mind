@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mycelial_biomass": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:mycelial_biomass"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:truce_pheromone"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mycelial_biomass"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:truce_pheromone"
+    ]
+  }
+}

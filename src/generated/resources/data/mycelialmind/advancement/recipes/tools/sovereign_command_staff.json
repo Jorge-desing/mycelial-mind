@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_overmind_essence": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:overmind_essence"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:sovereign_command_staff"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_overmind_essence"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:sovereign_command_staff"
+    ]
+  }
+}

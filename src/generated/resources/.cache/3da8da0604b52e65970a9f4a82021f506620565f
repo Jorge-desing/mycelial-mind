@@ -1,0 +1,8 @@
+// 1.21.1	2026-11-24T22:55:54.2473695	Tags for minecraft:item mod id mycelialmind
+6b2c4fe2025d16849eb4e23380ec8f84089cdfa6 data/curios/tags/item/belt.json
+8365f8509e313a6bf80d3020d92a1e8bc32b59cb data/minecraft/tags/item/chest_armor.json
+a4fbb77bd76630072c940af281e6c17544e6d6c4 data/minecraft/tags/item/enchantable/durability.json
+573cb142ccbbc7556429ceed6ac8b0803fd01b06 data/minecraft/tags/item/foot_armor.json
+7838d090388a1a735246be64a37fff99f430e750 data/minecraft/tags/item/head_armor.json
+3c69f1179b9327d48ed3180d8f025bbd08c0b4ce data/minecraft/tags/item/leg_armor.json
+3c8063a8a1be323ae6f8a4cf88059e4b2676cd3a data/minecraft/tags/item/swords.json

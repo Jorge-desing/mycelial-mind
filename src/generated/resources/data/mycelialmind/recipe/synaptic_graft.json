@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "E": {
+      "item": "mycelialmind:neural_echo_core"
+    },
+    "L": {
+      "item": "mycelialmind:latent_spore"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    }
+  },
+  "pattern": [
+    " E ",
+    "CSC",
+    " L "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:synaptic_graft"
+  }
+}

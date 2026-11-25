@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_canopy_membrane": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:canopy_membrane"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:root_cap_shelf"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_canopy_membrane"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:root_cap_shelf"
+    ]
+  }
+}

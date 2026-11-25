@@ -1,0 +1,113 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 5.0,
+                "min": 3.0
+              },
+              "function": "minecraft:set_count"
+            },
+            {
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 1.0,
+                "min": 0.0
+              },
+              "enchantment": "minecraft:looting",
+              "function": "minecraft:enchanted_count_increase"
+            }
+          ],
+          "name": "mycelialmind:chitin_plate"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 6.0,
+                "min": 3.0
+              },
+              "function": "minecraft:set_count"
+            },
+            {
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 1.0,
+                "min": 0.0
+              },
+              "enchantment": "minecraft:looting",
+              "function": "minecraft:enchanted_count_increase"
+            }
+          ],
+          "name": "mycelialmind:mycelial_biomass"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:synaptic_core",
+          "weight": 28
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:neural_echo_core",
+          "weight": 22
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 2.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "mycelialmind:purifier_grenade",
+          "weight": 18
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:concentrated_antidote",
+          "weight": 14
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:truce_pheromone",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:chitin_chestplate",
+          "weight": 8
+        }
+      ],
+      "rolls": 2.0
+    }
+  ],
+  "random_sequence": "mycelialmind:entities/spore_behemoth"
+}

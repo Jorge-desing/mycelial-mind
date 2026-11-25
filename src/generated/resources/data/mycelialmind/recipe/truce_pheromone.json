@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "mycelialmind:mycelial_biomass"
+    },
+    {
+      "item": "mycelialmind:latent_spore"
+    },
+    {
+      "item": "minecraft:glass_bottle"
+    },
+    {
+      "item": "minecraft:fermented_spider_eye"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:truce_pheromone"
+  }
+}

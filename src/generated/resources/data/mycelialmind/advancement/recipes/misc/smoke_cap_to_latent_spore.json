@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bioluminescent_mycelial_cap": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:bioluminescent_mycelial_cap"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:smoke_cap_to_latent_spore"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_bioluminescent_mycelial_cap"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:smoke_cap_to_latent_spore"
+    ]
+  }
+}

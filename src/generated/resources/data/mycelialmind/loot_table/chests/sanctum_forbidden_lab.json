@@ -1,0 +1,225 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 8.0,
+                "min": 4.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "mycelialmind:mycelial_biomass",
+          "weight": 35
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 5.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "mycelialmind:latent_spore",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "mycelialmind:luminescent_amber_vein",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 6.0,
+                "min": 3.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "minecraft:experience_bottle",
+          "weight": 15
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 3.0,
+        "min": 2.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 2.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "mycelialmind:truce_pheromone",
+          "weight": 28
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:concentrated_antidote",
+          "weight": 26
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:volatile_engram",
+          "weight": 26
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "components": {
+                "mycelialmind:trait_id": "magic_carapace"
+              },
+              "function": "minecraft:set_components"
+            }
+          ],
+          "name": "mycelialmind:genetic_sample",
+          "weight": 20
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 2.0,
+        "min": 1.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:synaptic_core",
+          "weight": 35
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:neural_echo_core",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:false_engram_injector",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:schism_injector",
+          "weight": 15
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "chance": 0.35,
+          "condition": "minecraft:random_chance"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:synaptic_graft",
+          "weight": 32
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:quorum_seal",
+          "weight": 24
+        },
+        {
+          "type": "minecraft:item",
+          "name": "mycelialmind:chimera_ovum",
+          "weight": 22
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:echo_shard",
+          "weight": 22
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "chance": 0.45,
+          "condition": "minecraft:random_chance"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "components": {
+                "mycelialmind:engram_id": "synaptic_bloom"
+              },
+              "function": "minecraft:set_components"
+            }
+          ],
+          "name": "mycelialmind:field_engram",
+          "weight": 55
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "components": {
+                "mycelialmind:engram_id": "hyphal_memory"
+              },
+              "function": "minecraft:set_components"
+            }
+          ],
+          "name": "mycelialmind:field_engram",
+          "weight": 45
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "mycelialmind:chests/sanctum_forbidden_lab"
+}

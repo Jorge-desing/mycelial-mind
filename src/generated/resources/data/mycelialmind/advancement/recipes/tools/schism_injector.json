@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_latent_spore": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:latent_spore"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:schism_injector"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_latent_spore"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:schism_injector"
+    ]
+  }
+}

@@ -32,9 +32,14 @@ def _write_json(path: Path, payload: object) -> None:
 
 def _load_recipe_details(repo_root: Path) -> Dict[str, dict]:
     out: Dict[str, dict] = {}
-    for p in sorted(glob.glob(str(repo_root / "src/main/resources/data/mycelialmind/recipe/*.json"))):
-        rp = Path(p)
-        out[rp.stem] = json.loads(rp.read_text(encoding="utf-8"))
+    for root in (
+        repo_root / "src/main/resources/data/mycelialmind/recipe",
+        repo_root / "src/generated/resources/data/mycelialmind/recipe",
+    ):
+        if root.is_dir():
+            for p in sorted(glob.glob(str(root / "*.json"))):
+                rp = Path(p)
+                out[rp.stem] = json.loads(rp.read_text(encoding="utf-8"))
     return out
 
 

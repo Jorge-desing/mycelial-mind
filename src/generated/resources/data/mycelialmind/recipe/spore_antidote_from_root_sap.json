@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "mycelialmind:root_sap_vial"
+    },
+    {
+      "item": "mycelialmind:latent_spore"
+    },
+    {
+      "item": "mycelialmind:mycelial_biomass"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:concentrated_antidote"
+  }
+}

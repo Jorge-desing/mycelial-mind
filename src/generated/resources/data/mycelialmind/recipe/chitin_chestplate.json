@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    }
+  },
+  "pattern": [
+    "C C",
+    "CSC",
+    "CCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:chitin_chestplate"
+  }
+}

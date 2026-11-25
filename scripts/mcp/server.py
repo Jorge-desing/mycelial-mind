@@ -41,6 +41,7 @@ if str(REPO_ROOT) not in sys.path:
 
 JAVA_SRC_ROOT = REPO_ROOT / "src" / "main" / "java" / "com" / "alex" / "mycelialmind"
 RESOURCES_ROOT = REPO_ROOT / "src" / "main" / "resources"
+GENERATED_ROOT = REPO_ROOT / "src" / "generated" / "resources"
 REGISTRY_DIR = JAVA_SRC_ROOT / "registry"
 
 _PREFERRED_JAVA_HOMES = (
@@ -2254,37 +2255,48 @@ def audit_mod_assets() -> dict[str, Any]:
 
 @_tool(tags={"code", "registry"})
 def list_datapack_content() -> dict[str, Any]:
-    """Summarize data/mycelialmind/ datapack files and external tag/data_map namespaces (minecraft, c, neoforge)."""
+    """Summarize data/mycelialmind/ datapack files and external namespaces across main and generated resources."""
     cached = _cache_get("datapack_content")
     if cached is not None:
         return cached
-    data_base = RESOURCES_ROOT / "data"
-    data_root = data_base / "mycelialmind"
-    if not data_root.is_dir():
+    data_bases = [base / "data" for base in (RESOURCES_ROOT, GENERATED_ROOT) if (base / "data").is_dir()]
+    if not data_bases:
         return {"ok": False, "total": 0, "categories": {}, "external_total": 0, "external_namespaces": {}}
     categories: dict[str, list[str]] = {}
-    total = 0
-    for path in _iter_scandir_files(data_root):
-        rel = path.relative_to(data_root).as_posix()
-        parts = rel.split("/")
-        cat = f"{parts[0]}/{parts[1]}" if parts[0] == "worldgen" and len(parts) > 1 else parts[0]
-        categories.setdefault(cat, []).append(rel)
-        total += 1
+    seen_rel: set[str] = set()
     external_namespaces: dict[str, list[str]] = {}
-    for ns_dir in sorted(p for p in data_base.iterdir() if p.is_dir() and p.name != "mycelialmind"):
-        ext_files = [p.relative_to(ns_dir).as_posix() for p in _iter_scandir_files(ns_dir)]
-        if ext_files:
-            external_namespaces[ns_dir.name] = ext_files
+    seen_ext: dict[str, set[str]] = {}
+    for data_base in data_bases:
+        data_root = data_base / "mycelialmind"
+        if data_root.is_dir():
+            for path in _iter_scandir_files(data_root):
+                rel = path.relative_to(data_root).as_posix()
+                if rel in seen_rel:
+                    continue
+                seen_rel.add(rel)
+                parts = rel.split("/")
+                cat = f"{parts[0]}/{parts[1]}" if parts[0] == "worldgen" and len(parts) > 1 else parts[0]
+                categories.setdefault(cat, []).append(rel)
+        for ns_dir in sorted(p for p in data_base.iterdir() if p.is_dir() and p.name != "mycelialmind"):
+            ext_seen = seen_ext.setdefault(ns_dir.name, set())
+            for p in _iter_scandir_files(ns_dir):
+                rel = p.relative_to(ns_dir).as_posix()
+                if rel not in ext_seen:
+                    ext_seen.add(rel)
+                    external_namespaces.setdefault(ns_dir.name, []).append(rel)
+    categories = {k: sorted(v) for k, v in sorted(categories.items())}
+    external_namespaces = {k: sorted(v) for k, v in sorted(external_namespaces.items())}
+    total = sum(len(v) for v in categories.values())
     external_total = sum(len(v) for v in external_namespaces.values())
     return _cache_set(
         "datapack_content",
         {
             "ok": True,
             "total": total,
-            "counts": {k: len(v) for k, v in sorted(categories.items())},
+            "counts": {k: len(v) for k, v in categories.items()},
             "categories": categories,
             "external_total": external_total,
-            "external_counts": {k: len(v) for k, v in sorted(external_namespaces.items())},
+            "external_counts": {k: len(v) for k, v in external_namespaces.items()},
             "external_namespaces": external_namespaces,
         },
     )

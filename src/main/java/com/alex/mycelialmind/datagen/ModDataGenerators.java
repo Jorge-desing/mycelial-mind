@@ -8,15 +8,19 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.metadata.PackMetadataGenerator;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.DataMapProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.GlobalLootModifierProvider;
 import net.neoforged.neoforge.common.loot.LootTableIdCondition;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -25,10 +29,13 @@ import net.neoforged.neoforge.registries.datamaps.builtin.FurnaceFuel;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import net.neoforged.neoforge.registries.datamaps.builtin.RaidHeroGift;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Registers NeoForge DataGen entrypoint and emits NeoForge Data Maps and Global Loot Modifiers.
+ * Registers NeoForge DataGen entrypoint and emits Tags, Recipes, Loot Tables,
+ * NeoForge Data Maps, and Global Loot Modifiers.
  */
 @EventBusSubscriber(modid = MycelialMind.MODID)
 public final class ModDataGenerators {
@@ -40,11 +47,46 @@ public final class ModDataGenerators {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
+        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
+        boolean includeServer = event.includeServer();
 
         generator.addProvider(true, PackMetadataGenerator.forFeaturePack(
                 output, Component.literal("Mycelial Mind generated resources")));
-        generator.addProvider(event.includeServer(), new MycelialDataMapProvider(output, lookupProvider));
-        generator.addProvider(event.includeServer(), new MycelialGlobalLootModifierProvider(output, lookupProvider));
+
+        BlockTagsProvider blockTagsProvider = generator.addProvider(
+                includeServer, new MycelialBlockTagsProvider(output, lookupProvider, existingFileHelper));
+        generator.addProvider(includeServer, new MycelialItemTagsProvider(
+                output, lookupProvider, blockTagsProvider.contentsGetter(), existingFileHelper));
+        generator.addProvider(includeServer, new MycelialEntityTypeTagsProvider(
+                output, lookupProvider, existingFileHelper));
+        generator.addProvider(includeServer, new MycelialBiomeTagsProvider(
+                output, lookupProvider, existingFileHelper));
+        generator.addProvider(includeServer, new MycelialStructureTagsProvider(
+                output, lookupProvider, existingFileHelper));
+
+        generator.addProvider(includeServer, new MycelialRecipeProvider(output, lookupProvider));
+
+        generator.addProvider(includeServer, new LootTableProvider(
+                output,
+                Set.of(),
+                List.of(
+                        new LootTableProvider.SubProviderEntry(
+                                MycelialBlockLootSubProvider::new, LootContextParamSets.BLOCK),
+                        new LootTableProvider.SubProviderEntry(
+                                unused -> MycelialBlockLootSubProvider.reclaimedBloomSubProvider(),
+                                LootContextParamSets.BLOCK),
+                        new LootTableProvider.SubProviderEntry(
+                                MycelialEntityLootSubProvider::new, LootContextParamSets.ENTITY),
+                        new LootTableProvider.SubProviderEntry(
+                                MycelialChestLootSubProvider::new, LootContextParamSets.CHEST),
+                        new LootTableProvider.SubProviderEntry(
+                                MycelialGameplayLootSubProvider::new, LootContextParamSets.GIFT)
+                ),
+                lookupProvider
+        ));
+
+        generator.addProvider(includeServer, new MycelialDataMapProvider(output, lookupProvider));
+        generator.addProvider(includeServer, new MycelialGlobalLootModifierProvider(output, lookupProvider));
     }
 
     private static final class MycelialDataMapProvider extends DataMapProvider {

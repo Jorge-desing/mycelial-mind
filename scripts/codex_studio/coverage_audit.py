@@ -110,26 +110,35 @@ def scan_repo_inventory(repo_root: Path) -> dict:
     reg = repo_root / "src/main/java/com/alex/mycelialmind/registry"
     src_java = repo_root / "src/main/java/com/alex/mycelialmind"
     res_root = repo_root / "src/main/resources"
-    data_root = res_root / "data/mycelialmind"
+    gen_root = repo_root / "src/generated/resources"
+    data_roots = [p for p in (res_root / "data/mycelialmind", gen_root / "data/mycelialmind") if p.is_dir()]
 
     recipes_map: Dict[str, str] = {}
-    for p in sorted(glob.glob(str(data_root / "recipe/*.json"))):
-        rid = Path(p).stem
-        rtype = json.loads(Path(p).read_text(encoding="utf-8")).get("type", "")
-        recipes_map[rid] = rtype
+    for root in data_roots:
+        for p in sorted(glob.glob(str(root / "recipe/*.json"))):
+            rid = Path(p).stem
+            rtype = json.loads(Path(p).read_text(encoding="utf-8")).get("type", "")
+            recipes_map[rid] = rtype
 
-    advancements = [
-        Path(p).relative_to(data_root / "advancement").with_suffix("").as_posix()
-        for p in sorted(glob.glob(str(data_root / "advancement/**/*.json"), recursive=True))
-    ]
-    loot_tables = [
-        Path(p).relative_to(data_root / "loot_table").with_suffix("").as_posix()
-        for p in sorted(glob.glob(str(data_root / "loot_table/**/*.json"), recursive=True))
-    ]
+    advancements_set: Set[str] = set()
+    for root in data_roots:
+        for p in sorted(glob.glob(str(root / "advancement/**/*.json"), recursive=True)):
+            rel = Path(p).relative_to(root / "advancement").with_suffix("").as_posix()
+            if not rel.startswith("recipes/"):
+                advancements_set.add(rel)
+    advancements = sorted(advancements_set)
+
+    loot_tables_set: Set[str] = set()
+    for root in data_roots:
+        for p in sorted(glob.glob(str(root / "loot_table/**/*.json"), recursive=True)):
+            loot_tables_set.add(Path(p).relative_to(root / "loot_table").with_suffix("").as_posix())
+    loot_tables = sorted(loot_tables_set)
+
+    data_root = res_root / "data/mycelialmind"
     biomes = [Path(p).stem for p in sorted(glob.glob(str(data_root / "worldgen/biome/*.json")))]
     dimensions = [Path(p).stem for p in sorted(glob.glob(str(data_root / "dimension/*.json")))]
     sounds = list(json.loads((res_root / "assets/mycelialmind/sounds.json").read_text(encoding="utf-8")).keys())
-    compostables_json = repo_root / "src/generated/resources/data/neoforge/data_maps/item/compostables.json"
+    compostables_json = gen_root / "data/neoforge/data_maps/item/compostables.json"
     if not compostables_json.is_file():
         compostables_json = res_root / "data/neoforge/data_maps/item/compostables.json"
 

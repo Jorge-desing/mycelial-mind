@@ -1,0 +1,8 @@
+// 1.21.1	2026-11-24T22:55:54.2453685	Tags for minecraft:block mod id mycelialmind
+c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/dragon_immune.json
+533d12b13479ac6820bb5b94bd4ae514c8d99875 data/minecraft/tags/block/mineable/hoe.json
+4c659bb3725a7cdb9258c7e198932a050a71bccf data/minecraft/tags/block/mineable/pickaxe.json
+48a11bf6d416721dbe88dd106ebfdb327c54e0ff data/minecraft/tags/block/mineable/shovel.json
+c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/needs_diamond_tool.json
+5874134ec682e79fc618d8f07cd7ec0b8c704a1e data/minecraft/tags/block/needs_iron_tool.json
+c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/wither_immune.json

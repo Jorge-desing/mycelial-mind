@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "L": {
+      "item": "mycelialmind:latent_spore"
+    },
+    "V": {
+      "item": "mycelialmind:volatile_engram"
+    }
+  },
+  "pattern": [
+    " V ",
+    "CVC",
+    " L "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:false_engram_injector"
+  }
+}

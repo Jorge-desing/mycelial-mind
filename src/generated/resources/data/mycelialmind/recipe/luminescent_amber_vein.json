@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "L": {
+      "item": "mycelialmind:latent_spore"
+    },
+    "M": {
+      "item": "mycelialmind:mycelial_stone"
+    },
+    "S": {
+      "item": "mycelialmind:synaptic_core"
+    }
+  },
+  "pattern": [
+    "MLM",
+    "GSG",
+    "MLM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:luminescent_amber_vein"
+  }
+}

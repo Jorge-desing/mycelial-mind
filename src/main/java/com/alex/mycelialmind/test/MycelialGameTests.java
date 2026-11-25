@@ -6646,11 +6646,12 @@ public final class MycelialGameTests {
                     && recipeMgr.byKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "stonecut_mycelial_stone_to_arch_brick")).isPresent()
                     && recipeMgr.byKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "stonecut_arch_brick_to_chitin_pillar")).isPresent()
                     && recipeMgr.byKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "stonecut_chitin_plate_to_lattice")).isPresent()
-                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/unlock_biomass_recipes")) != null
-                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/unlock_latent_spore_recipes")) != null
-                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/unlock_chitin_recipes")) != null
-                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/unlock_synaptic_core_recipes")) != null
-                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/unlock_hive_heart_recipes")) != null;
+                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/misc/spore_antidote")) != null
+                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/tools/bio_scanner")) != null
+                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/combat/chitin_chestplate")) != null
+                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/tools/synaptic_graft")) != null
+                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/combat/overmind_crown")) != null
+                    && advMgr.get(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "recipes/building_blocks/reinforced_bio_barrier")) != null;
 
             ItemStack mutatedChest = new ItemStack(ModItems.CHITIN_CHESTPLATE.get());
             ChitinArmorItem.setArmorRank(mutatedChest, EvolutionRank.MUTATED);

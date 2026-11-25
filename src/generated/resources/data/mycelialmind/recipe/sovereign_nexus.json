@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "H": {
+      "item": "mycelialmind:hive_heart"
+    },
+    "N": {
+      "item": "mycelialmind:neural_echo_core"
+    },
+    "O": {
+      "item": "mycelialmind:overmind_essence"
+    },
+    "P": {
+      "item": "mycelialmind:purification_pylon"
+    },
+    "S": {
+      "item": "mycelialmind:symbiotic_node"
+    }
+  },
+  "pattern": [
+    "OCO",
+    "HSN",
+    "CPC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:sovereign_nexus"
+  }
+}

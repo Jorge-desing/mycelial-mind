@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_root_sap_vial": {
+      "conditions": {
+        "items": [
+          {
+            "items": "mycelialmind:root_sap_vial"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "mycelialmind:spore_antidote_from_root_sap"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_root_sap_vial"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mycelialmind:spore_antidote_from_root_sap"
+    ]
+  }
+}

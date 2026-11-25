@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "mycelialmind:chitin_plate"
+    },
+    "D": {
+      "item": "minecraft:diamond_sword"
+    },
+    "H": {
+      "item": "mycelialmind:hive_heart"
+    }
+  },
+  "pattern": [
+    " H ",
+    " C ",
+    " D "
+  ],
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:symbiotic_blade"
+  }
+}

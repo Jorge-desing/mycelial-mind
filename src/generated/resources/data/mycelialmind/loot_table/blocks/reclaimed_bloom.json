@@ -1,0 +1,91 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "mycelialmind:reclaimed_bloom",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "palette": "1"
+                  }
+                }
+              ],
+              "name": "mycelialmind:reclaimed_bloom_melee"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "mycelialmind:reclaimed_bloom",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "palette": "2"
+                  }
+                }
+              ],
+              "name": "mycelialmind:reclaimed_bloom_projectile"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "mycelialmind:reclaimed_bloom",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "palette": "3"
+                  }
+                }
+              ],
+              "name": "mycelialmind:reclaimed_bloom_fire"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "mycelialmind:reclaimed_bloom",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "palette": "4"
+                  }
+                }
+              ],
+              "name": "mycelialmind:reclaimed_bloom_explosion"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "mycelialmind:reclaimed_bloom",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "palette": "5"
+                  }
+                }
+              ],
+              "name": "mycelialmind:reclaimed_bloom_magic"
+            },
+            {
+              "type": "minecraft:item",
+              "name": "mycelialmind:reclaimed_bloom"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "mycelialmind:blocks/reclaimed_bloom"
+}
