@@ -42,13 +42,16 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
+        if (TerrainPlacementPolicy.isExcludedSurfaceBiome(level, origin)
+                || TerrainPlacementPolicy.isNearVanillaSurfaceStructure(level, origin, 1)) {
+            return false;
+        }
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
         int minSpawnDist = StructureProgressionPolicy.sinkholeMinSpawnDistance(tier);
         if (minSpawnDist > 0 && level.getLevel() instanceof ServerLevel serverLevel) {
             BlockPos spawn = serverLevel.getSharedSpawnPos();
-            long dx = (long) origin.getX() - spawn.getX();
-            long dz = (long) origin.getZ() - spawn.getZ();
-            if (dx * dx + dz * dz < (long) minSpawnDist * minSpawnDist) {
+            if (TerrainPlacementPolicy.isWithinSpawnSafeZone(
+                    origin.getX(), origin.getZ(), spawn.getX(), spawn.getZ(), minSpawnDist)) {
                 return false;
             }
         }
@@ -67,7 +70,8 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                 || !level.getFluidState(origin).isEmpty()
                 || !level.getFluidState(ground).isEmpty()
                 || !groundState.isFaceSturdy(level, ground, Direction.UP)
-                || !isSuitableSurfaceTerrain(level, origin, ground)) {
+                || !TerrainPlacementPolicy.hasSuitableTwoRingSurfaceTerrain(level, origin, 4, 8, 4, 4)
+                || !TerrainPlacementPolicy.hasSafeSubterraneanSinkholeColumn(level, origin)) {
             return false;
         }
 
@@ -128,7 +132,8 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                 if (dist <= 5.8D) {
                     BlockState rimMat = (dist <= 4.7D && random.nextFloat() < 0.35F) ? archBrick : stone;
                     safeSetBlock(level, floorPos, rimMat);
-                    anchorBaseDown(level, floorPos.below(), 3, stone);
+                    TerrainPlacementPolicy.anchorOrganicFoundation(
+                            level, floorPos.below(), 8, stone, archBrick, pos -> isSafeToOverwrite(level, pos));
                     if (dist <= 5.2D && random.nextFloat() < 0.45F) {
                         BlockPos crownLip = floorPos.above();
                         if (isOpenAirOrReplaceable(level, crownLip)) {
@@ -137,6 +142,10 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                     }
                 } else {
                     safeSetBlock(level, floorPos, random.nextFloat() < 0.72F ? mycelium : stone);
+                    if (dist <= 8.0D) {
+                        TerrainPlacementPolicy.anchorOrganicFoundation(
+                                level, floorPos.below(), 6, stone, null, pos -> isSafeToOverwrite(level, pos));
+                    }
                     BlockPos top = floorPos.above();
                     if (isOpenAirOrReplaceable(level, top)) {
                         if (dist > 6.8D && random.nextFloat() < 0.28F) {
@@ -464,36 +473,6 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
         return lz >= 0 ? Direction.NORTH : Direction.SOUTH;
     }
 
-    private static boolean isSuitableSurfaceTerrain(WorldGenLevel level, BlockPos origin, BlockPos ground) {
-        int[][] samples = {
-                {6, 0}, {-6, 0}, {0, 6}, {0, -6},
-                {4, 4}, {4, -4}, {-4, 4}, {-4, -4}
-        };
-        for (int[] s : samples) {
-            BlockPos airProbe = origin.offset(s[0], 0, s[1]);
-            BlockPos gProbe = ground.offset(s[0], 0, s[1]);
-            if (level.isOutsideBuildHeight(gProbe)
-                    || !level.getFluidState(airProbe).isEmpty()
-                    || !level.getFluidState(gProbe).isEmpty()) {
-                return false;
-            }
-            boolean hasSolidSlope = false;
-            for (int dy = -3; dy <= 3; dy++) {
-                BlockPos cand = gProbe.offset(0, dy, 0);
-                if (!level.isOutsideBuildHeight(cand)
-                        && level.getFluidState(cand).isEmpty()
-                        && level.getBlockState(cand).isFaceSturdy(level, cand, Direction.UP)) {
-                    hasSolidSlope = true;
-                    break;
-                }
-            }
-            if (!hasSolidSlope) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private static BlockPos findSurfaceFloor(WorldGenLevel level, int x, int baseY, int z, int maxDeltaY) {
         for (int step = 0; step <= maxDeltaY; step++) {
             int[] offsets = step == 0 ? new int[]{0} : new int[]{step, -step};
@@ -513,20 +492,8 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
     }
 
     private static void anchorBaseDown(WorldGenLevel level, BlockPos startPos, int maxDepth, BlockState fill) {
-        for (int d = 0; d < maxDepth; d++) {
-            BlockPos probe = startPos.below(d);
-            if (level.isOutsideBuildHeight(probe)) {
-                return;
-            }
-            BlockState existing = level.getBlockState(probe);
-            if (existing.isSolid() && !existing.liquid() && d > 0) {
-                return;
-            }
-            safeSetBlock(level, probe, fill);
-            if (existing.isSolid() && !existing.liquid()) {
-                return;
-            }
-        }
+        TerrainPlacementPolicy.anchorOrganicFoundation(
+                level, startPos, maxDepth, fill, null, pos -> isSafeToOverwrite(level, pos));
     }
 
     private static boolean safeSetBlock(WorldGenLevel level, BlockPos pos, BlockState state) {

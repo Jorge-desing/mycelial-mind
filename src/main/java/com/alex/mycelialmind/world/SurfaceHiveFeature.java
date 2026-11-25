@@ -37,13 +37,16 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
+        if (TerrainPlacementPolicy.isExcludedSurfaceBiome(level, origin)
+                || TerrainPlacementPolicy.isNearVanillaSurfaceStructure(level, origin, 1)) {
+            return false;
+        }
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
         int minSpawnDist = StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tier);
         if (minSpawnDist > 0 && level.getLevel() instanceof ServerLevel serverLevel) {
             BlockPos spawn = serverLevel.getSharedSpawnPos();
-            long dx = (long) origin.getX() - spawn.getX();
-            long dz = (long) origin.getZ() - spawn.getZ();
-            if (dx * dx + dz * dz < (long) minSpawnDist * minSpawnDist) {
+            if (TerrainPlacementPolicy.isWithinSpawnSafeZone(
+                    origin.getX(), origin.getZ(), spawn.getX(), spawn.getZ(), minSpawnDist)) {
                 return false;
             }
         }
@@ -66,7 +69,7 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                 || !level.getFluidState(origin).isEmpty()
                 || !level.getFluidState(ground).isEmpty()
                 || !groundState.isFaceSturdy(level, ground, Direction.UP)
-                || !isSuitableSurfaceTerrain(level, origin, ground)) {
+                || !TerrainPlacementPolicy.hasSuitableTwoRingSurfaceTerrain(level, origin, 4, 8, 3, 4)) {
             return false;
         }
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
@@ -125,8 +128,16 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                     continue;
                 }
                 if (isSafeToOverwrite(level, floorPos) && level.getFluidState(floorPos).isEmpty()) {
+                    BlockPos subPos = floorPos.below();
+                    boolean alreadySupported = !level.isOutsideBuildHeight(subPos)
+                            && level.getFluidState(subPos).isEmpty()
+                            && level.getBlockState(subPos).isFaceSturdy(level, subPos, Direction.UP);
+                    if (!alreadySupported) {
+                        TerrainPlacementPolicy.anchorOrganicFoundation(
+                                level, subPos, 8, mycelialStone, deepslateBricks, pos -> isSafeToOverwrite(level, pos));
+                    }
                     if (dist >= 5.2 && dist <= 7.8) {
-                        safeSetBlock(level, floorPos.below(), deepslateBricks);
+                        safeSetBlock(level, subPos, deepslateBricks);
                     }
                     safeSetBlock(level, floorPos, mycelium);
                 }
@@ -285,9 +296,9 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                 waypoints.add(origin.offset(tx, ty, tz));
             }
             if (!waypoints.isEmpty()) {
-                // Anchor base firmly into sloped or flat ground up to 4 blocks down
+                // Anchor base firmly into sloped or flat ground up to 8 blocks down
                 BlockPos base = waypoints.get(0);
-                anchorBaseDown(level, base.below(), 4, archBrick);
+                anchorBaseDown(level, base.below(), 8, archBrick);
                 VoxelStructureOps.placeFaceConnectedPath(
                         level, fullBox, waypoints,
                         idx -> (idx % 6 == 0) ? amberVein : ((idx % 2 == 0) ? chitinPillar : archBrick)
@@ -384,36 +395,6 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
         return true;
     }
 
-    private static boolean isSuitableSurfaceTerrain(WorldGenLevel level, BlockPos origin, BlockPos ground) {
-        int[][] samples = {
-                {4, 0}, {-4, 0}, {0, 4}, {0, -4},
-                {3, 3}, {3, -3}, {-3, 3}, {-3, -3}
-        };
-        for (int[] s : samples) {
-            BlockPos airProbe = origin.offset(s[0], 0, s[1]);
-            BlockPos gProbe = ground.offset(s[0], 0, s[1]);
-            if (level.isOutsideBuildHeight(gProbe)
-                    || !level.getFluidState(airProbe).isEmpty()
-                    || !level.getFluidState(gProbe).isEmpty()) {
-                return false;
-            }
-            boolean hasSolidSlope = false;
-            for (int dy = -3; dy <= 3; dy++) {
-                BlockPos cand = gProbe.offset(0, dy, 0);
-                if (!level.isOutsideBuildHeight(cand)
-                        && level.getFluidState(cand).isEmpty()
-                        && level.getBlockState(cand).isFaceSturdy(level, cand, Direction.UP)) {
-                    hasSolidSlope = true;
-                    break;
-                }
-            }
-            if (!hasSolidSlope) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private static BlockPos findCarpetFloor(WorldGenLevel level, int x, int baseY, int z, int maxDeltaY) {
         for (int step = 0; step <= maxDeltaY; step++) {
             int[] offsets = step == 0 ? new int[]{0} : new int[]{step, -step};
@@ -433,20 +414,8 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
     }
 
     private static void anchorBaseDown(WorldGenLevel level, BlockPos startPos, int maxDepth, BlockState fill) {
-        for (int d = 0; d < maxDepth; d++) {
-            BlockPos probe = startPos.below(d);
-            if (level.isOutsideBuildHeight(probe)) {
-                return;
-            }
-            BlockState existing = level.getBlockState(probe);
-            if (existing.isSolid() && !existing.liquid() && d > 0) {
-                return;
-            }
-            safeSetBlock(level, probe, fill);
-            if (existing.isSolid() && !existing.liquid()) {
-                return;
-            }
-        }
+        TerrainPlacementPolicy.anchorOrganicFoundation(
+                level, startPos, maxDepth, fill, null, pos -> isSafeToOverwrite(level, pos));
     }
 
     private static boolean safeSetBlock(WorldGenLevel level, BlockPos pos, BlockState state) {

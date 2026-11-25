@@ -2190,8 +2190,8 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "surface_hive_feature")
     public static void surfaceHiveFeaturePlacesNodesAndTrackerRegistersThem(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
+        for (int dx = -9; dx <= 9; dx++) {
+            for (int dz = -9; dz <= 9; dz++) {
                 helper.setBlock(4 + dx, 0, 4 + dz, Blocks.GRASS_BLOCK);
             }
         }
@@ -2811,9 +2811,9 @@ public final class MycelialGameTests {
             tracker.removeNode(entry.getKey());
         }
 
-        // Prepare flat dirt substrate for SurfaceHiveFeature (radius 4)
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
+        // Prepare flat dirt substrate for SurfaceHiveFeature (outer 2-ring radius 8)
+        for (int dx = -9; dx <= 9; dx++) {
+            for (int dz = -9; dz <= 9; dz++) {
                 level.setBlockAndUpdate(hiveOrigin.below().offset(dx, 0, dz), Blocks.DIRT.defaultBlockState());
                 for (int dy = 0; dy <= 4; dy++) {
                     level.setBlockAndUpdate(hiveOrigin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState());
@@ -2839,22 +2839,15 @@ public final class MycelialGameTests {
 
         // Verify MycelialOutbreakFeature placement on dirt
         BlockPos outbreakOrigin = base.offset(-24, 1, 0);
-        level.setBlockAndUpdate(outbreakOrigin.below(), Blocks.DIRT.defaultBlockState());
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
+        for (int dx = -5; dx <= 5; dx++) {
+            for (int dz = -5; dz <= 5; dz++) {
+                level.setBlockAndUpdate(outbreakOrigin.below(2).offset(dx, 0, dz), Blocks.DIRT.defaultBlockState());
                 level.setBlockAndUpdate(outbreakOrigin.below().offset(dx, 0, dz), Blocks.DIRT.defaultBlockState());
                 level.setBlockAndUpdate(outbreakOrigin.offset(dx, 0, dz), Blocks.AIR.defaultBlockState());
             }
         }
-        var ctx = new net.minecraft.world.level.levelgen.feature.FeaturePlaceContext<>(
-                java.util.Optional.empty(),
-                level,
-                level.getChunkSource().getGenerator(),
-                level.getRandom(),
-                outbreakOrigin.below(),
-                net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE
-        );
-        boolean outbreakPlaced = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(ctx);
+        boolean outbreakPlaced = MycelialOutbreakFeature.generateOutbreakAt(
+                level, outbreakOrigin.below(), level.getRandom());
         if (!outbreakPlaced) {
             helper.fail("Expected MycelialOutbreakFeature.place to succeed on dirt substrate.");
             return;
@@ -3709,15 +3702,14 @@ public final class MycelialGameTests {
 
         // 1) MycelialOutbreakFeature 6-connectivity (stalk, counter-rib, cap, and censer)
         BlockPos outbreakPos = helper.absolutePos(new BlockPos(8, 120, 8));
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
+        for (int dx = -5; dx <= 5; dx++) {
+            for (int dz = -5; dz <= 5; dz++) {
                 level.setBlock(outbreakPos.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
                 level.setBlock(outbreakPos.offset(dx, -2, dz), Blocks.STONE.defaultBlockState(), 18);
             }
         }
-        boolean outbreakPlaced = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
-                net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
-                level, level.getChunkSource().getGenerator(), level.getRandom(), outbreakPos);
+        boolean outbreakPlaced = MycelialOutbreakFeature.generateOutbreakAt(
+                level, outbreakPos, level.getRandom());
         if (!outbreakPlaced) {
             helper.fail("MycelialOutbreakFeature.place returned false on flat stone platform.");
             return;
@@ -8077,7 +8069,7 @@ public final class MycelialGameTests {
         BlockPos pylonPos = protectedGround.offset(2, 1, 0);
         BlockPos waterHiveOrigin = helper.absolutePos(new BlockPos(8, 160, 40));
         BlockPos hiveOrigin = helper.absolutePos(new BlockPos(36, 160, 40));
-        BlockPos protectedChest = outbreakGround.offset(3, 0, 3);
+        BlockPos protectedChest = outbreakGround.offset(2, 0, 1);
         BlockPos protectedBedrock = outbreakGround.offset(1, 0, 1);
 
         try {
@@ -8097,9 +8089,8 @@ public final class MycelialGameTests {
             level.setBlock(protectedChest, Blocks.CHEST.defaultBlockState(), 18);
             level.setBlock(protectedBedrock, Blocks.BEDROCK.defaultBlockState(), 18);
 
-            boolean placedDeep = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
-                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
-                    level, level.getChunkSource().getGenerator(), level.getRandom(), outbreakGround);
+            boolean placedDeep = MycelialOutbreakFeature.generateOutbreakAt(
+                    level, outbreakGround, level.getRandom());
             helper.assertTrue(placedDeep, "MycelialOutbreakFeature must place on MYCELIAL_STONE substrate.");
 
             for (Direction dir : Direction.Plane.HORIZONTAL) {
@@ -8113,16 +8104,15 @@ public final class MycelialGameTests {
                     "Outbreak must never overwrite indestructible bedrock.");
 
             // 2. Purification Pylon blocks Outbreak placement inside protected radius
-            for (int dx = -2; dx <= 2; dx++) {
-                for (int dz = -2; dz <= 2; dz++) {
+            for (int dx = -5; dx <= 5; dx++) {
+                for (int dz = -5; dz <= 5; dz++) {
                     level.setBlock(protectedGround.offset(dx, 0, dz), Blocks.DIRT.defaultBlockState(), 18);
                     level.setBlock(protectedGround.offset(dx, 1, dz), Blocks.AIR.defaultBlockState(), 18);
                 }
             }
             level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
-            boolean placedProtected = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
-                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
-                    level, level.getChunkSource().getGenerator(), level.getRandom(), protectedGround);
+            boolean placedProtected = MycelialOutbreakFeature.generateOutbreakAt(
+                    level, protectedGround, level.getRandom());
             helper.assertFalse(placedProtected, "MycelialOutbreakFeature must not generate inside a Purification Pylon zone.");
 
             // 3. SurfaceHiveFeature rejects water and generates a continuous 4-step crypt stairwell
@@ -11009,6 +10999,142 @@ public final class MycelialGameTests {
             tracker.removeSinkhole(originAbs);
             tracker.clearAll();
             hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
+        }
+    }
+
+    @GameTest(template = "empty", batch = "worldgen_terrain_balance")
+    public static void terrainPlacementQualityRejectsCliffsFluidsSpawnAndAnchorsSlopesCleanly(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+
+        BlockPos hiveOrigin = helper.absolutePos(new BlockPos(24, 160, 24));
+        BlockPos sinkOrigin = helper.absolutePos(new BlockPos(72, 160, 24));
+        BlockPos spawnPos = level.getSharedSpawnPos();
+        BlockPos spawnOutbreakOrigin = new BlockPos(spawnPos.getX(), 200, spawnPos.getZ());
+
+        try {
+            // 1) Steep cliff (deltaY = 5 > 3) must reject SurfaceHiveFeature without leaking tracker reservation
+            for (int dx = -11; dx <= 11; dx++) {
+                for (int dz = -11; dz <= 11; dz++) {
+                    for (int dy = -6; dy <= 16; dy++) {
+                        level.setBlock(hiveOrigin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 18);
+                    }
+                    int topDy = dx >= 4 ? -6 : -1;
+                    for (int dy = -6; dy <= topDy; dy++) {
+                        level.setBlock(hiveOrigin.offset(dx, dy, dz), Blocks.STONE.defaultBlockState(), 18);
+                    }
+                }
+            }
+            boolean cliffHive = com.alex.mycelialmind.world.SurfaceHiveFeature.generateHiveAt(
+                    level, hiveOrigin, level.getRandom());
+            helper.assertFalse(cliffHive, "SurfaceHiveFeature must reject steep cliffs exceeding 3-block slope delta.");
+            helper.assertTrue(tracker.findNearestEnemyNode(hiveOrigin, 16) == null,
+                    "Rejected cliff hive must not reserve nodes in PurificationZoneTracker.");
+
+            // 2) Flooded surface origin must reject SurfaceHiveFeature
+            level.setBlock(hiveOrigin, Blocks.WATER.defaultBlockState(), 18);
+            boolean fluidHive = com.alex.mycelialmind.world.SurfaceHiveFeature.generateHiveAt(
+                    level, hiveOrigin, level.getRandom());
+            helper.assertFalse(fluidHive, "SurfaceHiveFeature must reject waterlogged surface origins.");
+
+            // 3) Gentle 2-block slope (deltaY = 2 <= 3) must succeed with organic foundation & zero floating perimeter blocks
+            for (int dx = -11; dx <= 11; dx++) {
+                for (int dz = -11; dz <= 11; dz++) {
+                    for (int dy = -8; dy <= 16; dy++) {
+                        level.setBlock(hiveOrigin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 18);
+                    }
+                    int topDy = dx >= 5 ? -3 : -1;
+                    for (int dy = -8; dy <= topDy; dy++) {
+                        BlockState mat = (dy == topDy) ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.STONE.defaultBlockState();
+                        level.setBlock(hiveOrigin.offset(dx, dy, dz), mat, 18);
+                    }
+                }
+            }
+            boolean slopeHive = com.alex.mycelialmind.world.SurfaceHiveFeature.generateHiveAt(
+                    level, hiveOrigin, level.getRandom());
+            helper.assertTrue(slopeHive, "SurfaceHiveFeature must succeed on a gentle 2-block slope.");
+            helper.assertFalse(level.getBlockState(hiveOrigin.offset(6, -2, 0)).isAir(),
+                    "Gentle slope skirt at dx=6 must anchor organic foundation downward instead of floating.");
+
+            var terrainStats = com.alex.mycelialmind.world.WorldgenAuditEngine.auditTerrainQuality(
+                    level, java.util.List.of(hiveOrigin), java.util.List.of());
+            helper.assertTrue(terrainStats.floatingFoundationViolations() == 0
+                            && terrainStats.fluidIntrusionViolations() == 0,
+                    "Anchored slope SurfaceHive must report 0 floating/fluid violations, got float="
+                            + terrainStats.floatingFoundationViolations()
+                            + " fluid=" + terrainStats.fluidIntrusionViolations());
+            tracker.clearAll();
+
+            // 4) Subterranean lava pocket must reject MycelialSinkholeFeature without reserving sinkhole; dry column succeeds
+            for (int dx = -11; dx <= 11; dx++) {
+                for (int dz = -19; dz <= 23; dz++) {
+                    for (int dy = -34; dy <= -2; dy++) {
+                        level.setBlock(sinkOrigin.offset(dx, dy, dz), Blocks.STONE.defaultBlockState(), 2);
+                    }
+                    level.setBlock(sinkOrigin.offset(dx, -1, dz), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                    for (int dy = 0; dy <= 5; dy++) {
+                        level.setBlock(sinkOrigin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+            level.setBlock(sinkOrigin.offset(0, -15, 0), Blocks.LAVA.defaultBlockState(), 2);
+            boolean lavaSink = com.alex.mycelialmind.world.MycelialSinkholeFeature.generateSinkholeAt(
+                    level, sinkOrigin, level.getRandom());
+            helper.assertFalse(lavaSink, "MycelialSinkholeFeature must abort when lava occupies subterranean throat.");
+            helper.assertFalse(tracker.hasSinkholeWithin(sinkOrigin, 4),
+                    "Rejected lava sinkhole must not reserve sinkhole coordinates.");
+
+            level.setBlock(sinkOrigin.offset(0, -15, 0), Blocks.STONE.defaultBlockState(), 2);
+            boolean drySink = com.alex.mycelialmind.world.MycelialSinkholeFeature.generateSinkholeAt(
+                    level, sinkOrigin, level.getRandom());
+            helper.assertTrue(drySink, "MycelialSinkholeFeature must succeed once subterranean column is dry.");
+
+            // 5) Overworld surface outbreak via worldgen Feature.place must honor permanent spawn safe zone
+            for (int dx = -5; dx <= 5; dx++) {
+                for (int dz = -5; dz <= 5; dz++) {
+                    level.setBlock(spawnOutbreakOrigin.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
+                    level.setBlock(spawnOutbreakOrigin.offset(dx, -2, dz), Blocks.STONE.defaultBlockState(), 18);
+                    level.setBlock(spawnOutbreakOrigin.offset(dx, 0, dz), Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+            boolean placedAtSpawn = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), spawnOutbreakOrigin);
+            helper.assertFalse(placedAtSpawn,
+                    "Worldgen MycelialOutbreakFeature.place must respect permanent spawn-safe radius.");
+
+            helper.succeed();
+        } finally {
+            net.minecraft.world.phys.AABB sinkBox = new net.minecraft.world.phys.AABB(
+                    sinkOrigin.getX() - 14.0D, sinkOrigin.getY() - 35.0D, sinkOrigin.getZ() - 20.0D,
+                    sinkOrigin.getX() + 14.0D, sinkOrigin.getY() + 8.0D, sinkOrigin.getZ() + 24.0D);
+            for (var e : level.getEntitiesOfClass(com.alex.mycelialmind.entity.RootKeeperEntity.class, sinkBox)) {
+                e.discard();
+            }
+            for (var e : level.getEntitiesOfClass(com.alex.mycelialmind.entity.SporeGliderEntity.class, sinkBox)) {
+                e.discard();
+            }
+            for (int dx = -11; dx <= 11; dx++) {
+                for (int dz = -11; dz <= 11; dz++) {
+                    for (int dy = -8; dy <= 16; dy++) {
+                        level.setBlock(hiveOrigin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+                for (int dz = -19; dz <= 23; dz++) {
+                    for (int dy = -34; dy <= 6; dy++) {
+                        level.setBlock(sinkOrigin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+            for (int dx = -5; dx <= 5; dx++) {
+                for (int dz = -5; dz <= 5; dz++) {
+                    for (int dy = -2; dy <= 0; dy++) {
+                        level.setBlock(spawnOutbreakOrigin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 18);
+                    }
+                }
+            }
+            tracker.clearAll();
         }
     }
 }

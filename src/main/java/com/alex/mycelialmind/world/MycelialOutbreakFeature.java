@@ -37,15 +37,48 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
-        WorldGenLevel level = context.level();
-        BlockPos origin = context.origin();
-        RandomSource random = context.random();
+        return placeInternal(context.level(), context.origin(), context.random(), true);
+    }
 
+    public static boolean generateOutbreakAt(WorldGenLevel level, BlockPos origin, RandomSource random) {
+        return placeInternal(level, origin, random, false);
+    }
+
+    private static boolean placeInternal(
+            WorldGenLevel level,
+            BlockPos origin,
+            RandomSource random,
+            boolean enforceWorldgenGates
+    ) {
         BlockPos center = findAnchor(level, origin);
         if (center == null) {
             return false;
         }
+        boolean isOverworld = level.getLevel() instanceof ServerLevel sl && sl.dimension().equals(Level.OVERWORLD);
+        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, center.getX(), center.getZ());
+        boolean isSubterranean = center.getY() < surfaceY - 6;
+
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
+        if (isOverworld && !isSubterranean) {
+            if (enforceWorldgenGates) {
+                if (TerrainPlacementPolicy.isExcludedSurfaceBiome(level, center)
+                        || TerrainPlacementPolicy.isNearVanillaSurfaceStructure(level, center, 1)) {
+                    return false;
+                }
+                int minSpawnDist = StructureProgressionPolicy.surfaceOutbreakMinSpawnDistance(tier);
+                if (level.getLevel() instanceof ServerLevel serverLevel) {
+                    BlockPos spawn = serverLevel.getSharedSpawnPos();
+                    if (TerrainPlacementPolicy.isWithinSpawnSafeZone(
+                            center.getX(), center.getZ(), spawn.getX(), spawn.getZ(), minSpawnDist)) {
+                        return false;
+                    }
+                }
+            }
+            if (!TerrainPlacementPolicy.hasSuitableTwoRingSurfaceTerrain(level, center, 2, 4, 3, 3)) {
+                return false;
+            }
+        }
+
         SynapticNodeType nodeType = StructureProgressionPolicy.pickOutbreakNodeType(tier, random.nextFloat());
         int minSpacing = StructureProgressionPolicy.outbreakMinSpacing(tier);
         if (level.getLevel() instanceof ServerLevel serverLevel) {
@@ -99,7 +132,7 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
                 }
                 if (canReplaceGround(level.getBlockState(corner))) {
                     level.setBlock(corner, archBrick, 2);
-                } else if (isOpenAirOrReplaceable(level, corner) && anchorColumnDown(level, corner.below(), 2, archBrick)) {
+                } else if (isOpenAirOrReplaceable(level, corner) && anchorColumnDown(level, corner.below(), 6, archBrick)) {
                     level.setBlock(corner, archBrick, 2);
                 }
                 if (level.getBlockState(corner).is(archBrick.getBlock()) && isOpenAirOrReplaceable(level, corner.above())) {
@@ -107,10 +140,6 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
                 }
             }
         }
-
-        boolean isOverworld = level.getLevel() instanceof ServerLevel sl && sl.dimension().equals(Level.OVERWORLD);
-        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, center.getX(), center.getZ());
-        boolean isSubterranean = center.getY() < surfaceY - 6;
 
         // 70/20/10 6-connected curving fungal stalk, counter-rib & stratified cap (height 9)
         // or compact ceiling-welded cave crown in low/medium subterranean caverns (headroom 4..8)
@@ -420,7 +449,7 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
         if (!isOpenAirOrReplaceable(level, pos)) {
             return false;
         }
-        for (int d = 1; d <= 2; d++) {
+        for (int d = 1; d <= 6; d++) {
             BlockPos below = pos.below(d);
             if (level.isOutsideBuildHeight(below)) {
                 return false;
@@ -470,7 +499,7 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
         }
         if (canReplaceGround(level.getBlockState(basePos))) {
             level.setBlock(basePos, archBrick, 2);
-        } else if (isOpenAirOrReplaceable(level, basePos) && anchorColumnDown(level, basePos.below(), 2, archBrick)) {
+        } else if (isOpenAirOrReplaceable(level, basePos) && anchorColumnDown(level, basePos.below(), 6, archBrick)) {
             level.setBlock(basePos, archBrick, 2);
         }
     }

@@ -4428,3 +4428,30 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - Gradle JDK 21: `test build` (`BUILD SUCCESSFUL`, **`111/111` JUnit en `12` suites**), `runGameTestServer -PisolatedGameTests=true` (**`194/194` `@GameTest`s PASS en `6.132 s`**).
   - Smoke Server headless RCON: **`ALL 24 automated scenario checks PASSED`** (incluyendo `[Verify:Sinkhole] PASS`).
   - Nota: `scripts/mcp/.venv/Scripts/python.exe scripts/mcp/test_server.py` falló al importar `fastmcp.Client` por `ImportError` local en `cryptography.hazmat.bindings._rust`; validado sintácticamente vía `py_compile`.
+
+
+## [2026-11-24 20:51] — Balanceo de Calidad de Terreno y Reglas de Emplazamiento Overworld (`/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:**
+  1. **Política de Emplazamiento y Exclusión de Biomas (`TerrainPlacementPolicy`, `tags/worldgen/biome/surface_excluded.json`):**
+     - Excluidos `#minecraft:is_ocean`, `#minecraft:is_river`, `#minecraft:is_beach`, `minecraft:mushroom_fields`, `minecraft:jagged_peaks`, `minecraft:frozen_peaks`, `minecraft:stony_peaks` y `minecraft:ice_spikes` en los generadores superficiales del Overworld (`SurfaceHiveFeature`, `MycelialSinkholeFeature`, `MycelialOutbreakFeature` cuando `!isSubterranean`), manteniendo permitidos los brotes subterráneos (`center.getY() < surfaceY - 6`) bajo cualquier bioma.
+     - Evitación no bloqueante de estructuras vanilla superficiales (`Village`, `PillagerOutpost`, templos, `WoodlandMansion`, portales en ruinas) mediante `level.hasChunk(...)` + `ChunkStatus.STRUCTURE_REFERENCES` (`isNearVanillaSurfaceStructure`) sin forzar carga de chunks.
+     - Validación topográfica estricta en 2 anillos concéntricos (`hasSuitableTwoRingSurfaceTerrain`: `<= 3m` en `SurfaceHiveFeature` y `MycelialOutbreakFeature`, `<= 4m` en `MycelialSinkholeFeature`), cimentación orgánica adaptativa (`anchorOrganicFoundation` hasta `8m` en faldones/corona de Hive/Sima y `6m` en esquinas de Outbreak) y rechazo subterráneo de lava o acuíferos en Simas (`hasSafeSubterraneanSinkholeColumn`: `lavaBlocks == 0 && waterBlocks <= 12 && ratio <= 0.12`).
+  2. **Zona Segura Permanente del Spawn (`StructureProgressionPolicy`):**
+     - Añadido `surfaceOutbreakMinSpawnDistance` (`64/56/48/48`) y elevados a valores no nulos permanentes `surfaceHiveMinSpawnDistance` (`128/104/88/72`) y `sinkholeMinSpawnDistance` (`160/128/104/80`).
+     - Extraído `MycelialOutbreakFeature.generateOutbreakAt(...)` para pruebas locales y reordenado `placeInternal` para evaluar todas las compuertas y pendientes antes de reservar en `PurificationZoneTracker`.
+  3. **Auditoría de Terreno (`WorldgenAuditEngine`):**
+     - Añadido `TerrainQualityStats` (`inspectedSurfaceSites`, `floatingFoundationViolations`, `fluidIntrusionViolations`, `spawnSafeZoneViolations`, `excludedBiomeViolations`, `passed`) al reporte JSON (`"terrain_quality"`), línea compacta (`| terrain(...)`) y comprobación de invariantes en `runAudit` / `auditTerrainQuality`.
+  4. **Pruebas:** Actualizado `HiveAlgorithmsUnitTest` (`terrainPlacementPolicyEvaluatesSpawnSafetySlopesFluidsAndFoundations`) y `MycelialGameTests` (`terrainPlacementQualityRejectsCliffsFluidsSpawnAndAnchorsSlopesCleanly` + ajuste de plataformas/cofre en 4 pruebas existentes de `Outbreak`/`SurfaceHive`).
+- **Archivos / Símbolos:**
+  - `src/main/resources/data/mycelialmind/tags/worldgen/biome/surface_excluded.json`
+  - `src/main/java/com/alex/mycelialmind/world/{TerrainPlacementPolicy,SurfaceHiveFeature,MycelialSinkholeFeature,MycelialOutbreakFeature,WorldgenAuditEngine,structure/StructureProgressionPolicy}.java`
+  - `src/test/java/com/alex/mycelialmind/HiveAlgorithmsUnitTest.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`
+  - `.agents/skills/mycelial-ai-hive/SKILL.md`, `.agents/skills/mycelial-diagnostics/{SKILL.md,references/herramientas-y-escenarios.md}`, `MEMORY.md`
+- **Skills revisadas y actualizadas:**
+  - Actualizadas `mycelial-ai-hive/SKILL.md` y `mycelial-diagnostics/{SKILL.md,references/herramientas-y-escenarios.md}`; las otras `6` skills revisadas sin cambios necesarios (`validate_skills` = `8/8 OK`).
+- **Verificación / Estado:**
+  - `CodeMode` (`mycelial-mind-dev`): `validate_skills` (`8/8 OK`), `audit_mod_assets` (`ok: true`, `2198/2198` EN/ES).
+  - Gradle JDK 21 (`test build runGameTestServer -PisolatedGameTests=true`): **`112/112` JUnit en `12` suites**, **`195/195` `@GameTest`s PASS en `6.359 s`** (`All 195 required tests passed :)`).
+  - Smoke headless (`flat`): **`ALL 24 automated scenario checks PASSED`**.
+  - Smoke Overworld (`default`): `/mycelial worldgen audit 8 64` PASS (`289` chunks, `2` brotes en cueva, `terrain(sites=0,...)`) y `/mycelial worldgen audit 14 64` PASS (`841` chunks, `12` brotes en cueva, `1` `SurfaceHive` `valid=1/1`, `terrain(sites=1,float=0,fluid=0,spawn=0,biome=0)`).

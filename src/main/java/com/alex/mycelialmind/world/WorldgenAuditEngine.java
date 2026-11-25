@@ -2,13 +2,16 @@ package com.alex.mycelialmind.world;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.world.structure.StructureProgressionPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -17,6 +20,7 @@ import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -156,6 +160,26 @@ public final class WorldgenAuditEngine {
         }
     }
 
+    public record TerrainQualityStats(
+            int inspectedSurfaceSites,
+            int floatingFoundationViolations,
+            int fluidIntrusionViolations,
+            int spawnSafeZoneViolations,
+            int excludedBiomeViolations,
+            boolean passed
+    ) {
+        public JsonObject toJson() {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("inspected_surface_sites", inspectedSurfaceSites);
+            obj.addProperty("floating_foundation_violations", floatingFoundationViolations);
+            obj.addProperty("fluid_intrusion_violations", fluidIntrusionViolations);
+            obj.addProperty("spawn_safe_zone_violations", spawnSafeZoneViolations);
+            obj.addProperty("excluded_biome_violations", excludedBiomeViolations);
+            obj.addProperty("passed", passed);
+            return obj;
+        }
+    }
+
     public record WorldgenAuditReport(
             String dimension,
             long seed,
@@ -181,6 +205,7 @@ public final class WorldgenAuditEngine {
             NetworkStats networkStats,
             List<HiveIntegrityReport> hiveIntegrityReports,
             SanctumGridStats sanctumGridStats,
+            TerrainQualityStats terrainQualityStats,
             List<String> failures,
             boolean passed
     ) {
@@ -188,7 +213,7 @@ public final class WorldgenAuditEngine {
             int validHives = (int) hiveIntegrityReports.stream().filter(HiveIntegrityReport::valid).count();
             return String.format(
                     Locale.ROOT,
-                    "[Mycelial WorldgenAudit] %s | chunks=%d ms=%d | outbreaks=%d(cave=%d,surf=%d) hives=%d(valid=%d/%d) nodes=%d(R=%d,I=%d,S=%d) | nn_xz(outbreak=%.1f/%.1f/%.1f,hive=%.1f,o2h=%.1f) | net(links=%d,clusters=%d,max=%d,iso=%.2f) | sanctum(cand=%d,min_chk=%.1f,sep=%d)",
+                    "[Mycelial WorldgenAudit] %s | chunks=%d ms=%d | outbreaks=%d(cave=%d,surf=%d) hives=%d(valid=%d/%d) nodes=%d(R=%d,I=%d,S=%d) | nn_xz(outbreak=%.1f/%.1f/%.1f,hive=%.1f,o2h=%.1f) | net(links=%d,clusters=%d,max=%d,iso=%.2f) | sanctum(cand=%d,min_chk=%.1f,sep=%d) | terrain(sites=%d,float=%d,fluid=%d,spawn=%d,biome=%d)",
                     passed ? "PASS" : "FAIL",
                     chunksScanned,
                     durationMs,
@@ -213,7 +238,12 @@ public final class WorldgenAuditEngine {
                     networkStats.isolationRatio(),
                     sanctumGridStats.candidateCount(),
                     sanctumGridStats.chunkNearestNeighbor().min(),
-                    sanctumGridStats.separationChunks()
+                    sanctumGridStats.separationChunks(),
+                    terrainQualityStats.inspectedSurfaceSites(),
+                    terrainQualityStats.floatingFoundationViolations(),
+                    terrainQualityStats.fluidIntrusionViolations(),
+                    terrainQualityStats.spawnSafeZoneViolations(),
+                    terrainQualityStats.excludedBiomeViolations()
             );
         }
 
@@ -267,6 +297,7 @@ public final class WorldgenAuditEngine {
             root.add("surface_hive_integrity", integrity);
 
             root.add("sanctum_jigsaw_grid", sanctumGridStats.toJson());
+            root.add("terrain_quality", terrainQualityStats.toJson());
 
             JsonObject invariants = new JsonObject();
             invariants.addProperty("passed", passed);
@@ -421,6 +452,7 @@ public final class WorldgenAuditEngine {
 
         NetworkStats networkStats = computeNetworkStats(allNodes, MycelialConfig.SYNAPTIC_NODE_LINK_RADIUS.get(), tracker);
         SanctumGridStats sanctumGridStats = auditSanctumJigsawGrid(level, centerChunk, sanctumGridChunks);
+        TerrainQualityStats terrainQualityStats = auditTerrainQuality(level, surfaceHives, surfaceOutbreaks);
 
         List<String> failures = new ArrayList<>();
         if (chunksScanned > 0
@@ -447,6 +479,16 @@ public final class WorldgenAuditEngine {
                     "hive_sanctum min chunk distance %.1f < separation %d",
                     sanctumGridStats.chunkNearestNeighbor().min(),
                     sanctumGridStats.separationChunks()
+            ));
+        }
+        if (!terrainQualityStats.passed()) {
+            failures.add(String.format(
+                    Locale.ROOT,
+                    "Terrain quality violation(s): float=%d, fluid=%d, spawn=%d, biome=%d",
+                    terrainQualityStats.floatingFoundationViolations(),
+                    terrainQualityStats.fluidIntrusionViolations(),
+                    terrainQualityStats.spawnSafeZoneViolations(),
+                    terrainQualityStats.excludedBiomeViolations()
             ));
         }
 
@@ -476,9 +518,99 @@ public final class WorldgenAuditEngine {
                 networkStats,
                 hiveIntegrityReports,
                 sanctumGridStats,
+                terrainQualityStats,
                 failures,
                 failures.isEmpty()
         );
+    }
+
+    public static TerrainQualityStats auditTerrainQuality(
+            ServerLevel level,
+            List<BlockPos> surfaceHives,
+            List<BlockPos> surfaceOutbreaks
+    ) {
+        boolean isOverworld = Level.OVERWORLD.equals(level.dimension());
+        BlockPos spawnPos = level.getSharedSpawnPos();
+        HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
+        int hiveMinSpawn = StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tier);
+        int outbreakMinSpawn = StructureProgressionPolicy.surfaceOutbreakMinSpawnDistance(tier);
+
+        int inspected = surfaceHives.size() + surfaceOutbreaks.size();
+        int floatingViolations = 0;
+        int fluidViolations = 0;
+        int spawnViolations = 0;
+        int biomeViolations = 0;
+
+        for (BlockPos origin : surfaceHives) {
+            if (isOverworld) {
+                if (TerrainPlacementPolicy.isWithinSpawnSafeZone(
+                        origin.getX(), origin.getZ(), spawnPos.getX(), spawnPos.getZ(), hiveMinSpawn)) {
+                    spawnViolations++;
+                }
+                if (TerrainPlacementPolicy.isExcludedSurfaceBiome(level, origin)) {
+                    biomeViolations++;
+                }
+            }
+            if (!level.getFluidState(origin).isEmpty() || !level.getFluidState(origin.below()).isEmpty()) {
+                fluidViolations++;
+            }
+            for (int dx = -7; dx <= 7; dx++) {
+                for (int dz = -7; dz <= 7; dz++) {
+                    int rSq = dx * dx + dz * dz;
+                    if (rSq < 25 || rSq > 49) {
+                        continue;
+                    }
+                    if (isFloatingStructuralBlock(level, origin.offset(dx, -1, dz))) {
+                        floatingViolations++;
+                    }
+                }
+            }
+        }
+
+        for (BlockPos origin : surfaceOutbreaks) {
+            if (isOverworld) {
+                if (TerrainPlacementPolicy.isWithinSpawnSafeZone(
+                        origin.getX(), origin.getZ(), spawnPos.getX(), spawnPos.getZ(), outbreakMinSpawn)) {
+                    spawnViolations++;
+                }
+                if (TerrainPlacementPolicy.isExcludedSurfaceBiome(level, origin)) {
+                    biomeViolations++;
+                }
+            }
+            if (!level.getFluidState(origin).isEmpty() || !level.getFluidState(origin.below()).isEmpty()) {
+                fluidViolations++;
+            }
+            for (int sx : new int[]{-2, 2}) {
+                for (int sz : new int[]{-2, 2}) {
+                    if (isFloatingStructuralBlock(level, origin.offset(sx, 0, sz))) {
+                        floatingViolations++;
+                    }
+                }
+            }
+        }
+
+        boolean ok = floatingViolations == 0
+                && fluidViolations == 0
+                && spawnViolations == 0
+                && biomeViolations == 0;
+        return new TerrainQualityStats(inspected, floatingViolations, fluidViolations, spawnViolations, biomeViolations, ok);
+    }
+
+    private static boolean isFloatingStructuralBlock(ServerLevel level, BlockPos pos) {
+        if (level.isOutsideBuildHeight(pos) || level.isOutsideBuildHeight(pos.below())) {
+            return false;
+        }
+        BlockState state = level.getBlockState(pos);
+        boolean modStructural = state.is(ModBlocks.MYCELIAL_STONE.get())
+                || state.is(ModBlocks.MYCELIAL_ARCH_BRICK.get())
+                || state.is(ModBlocks.CREEPING_MYCELIUM.get())
+                || state.is(Blocks.DEEPSLATE_BRICKS);
+        if (!modStructural) {
+            return false;
+        }
+        BlockPos below = pos.below();
+        BlockState belowState = level.getBlockState(below);
+        return !belowState.isFaceSturdy(level, below, Direction.UP) && !belowState.isSolid();
     }
 
     public static HiveIntegrityReport inspectSurfaceHive(ServerLevel level, PurificationZoneTracker tracker, BlockPos origin) {

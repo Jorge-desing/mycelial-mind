@@ -125,14 +125,28 @@ public final class StructureProgressionPolicy {
     }
 
     /**
+     * Minimum horizontal distance (in blocks) from world spawn before a natural Overworld
+     * surface spore outbreak may spawn (remains protective across all progression tiers).
+     */
+    public static int surfaceOutbreakMinSpawnDistance(HiveProgressionTier tier) {
+        HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
+        return switch (safeTier) {
+            case DORMANT -> 64;
+            case AWAKENED -> 56;
+            case ADAPTIVE, OVERMIND -> 48;
+        };
+    }
+
+    /**
      * Minimum horizontal distance (in blocks) from world spawn before a natural SurfaceHive may spawn.
      */
     public static int surfaceHiveMinSpawnDistance(HiveProgressionTier tier) {
         HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
         return switch (safeTier) {
-            case DORMANT -> 96;
-            case AWAKENED -> 64;
-            case ADAPTIVE, OVERMIND -> 0;
+            case DORMANT -> 128;
+            case AWAKENED -> 104;
+            case ADAPTIVE -> 88;
+            case OVERMIND -> 72;
         };
     }
 
@@ -244,10 +258,10 @@ public final class StructureProgressionPolicy {
     public static int sinkholeMinSpawnDistance(HiveProgressionTier tier) {
         HiveProgressionTier safeTier = tier != null ? tier : HiveProgressionTier.DORMANT;
         return switch (safeTier) {
-            case DORMANT -> 128;
-            case AWAKENED -> 96;
-            case ADAPTIVE -> 64;
-            case OVERMIND -> 0;
+            case DORMANT -> 160;
+            case AWAKENED -> 128;
+            case ADAPTIVE -> 104;
+            case OVERMIND -> 80;
         };
     }
 
