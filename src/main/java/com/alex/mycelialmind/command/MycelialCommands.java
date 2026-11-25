@@ -6,6 +6,7 @@ import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.ChitinBruteEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
+import com.alex.mycelialmind.entity.HyphalFilamentEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
@@ -40,6 +41,7 @@ import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
 import com.alex.mycelialmind.world.MycelialLootSystem;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.WorldgenAuditEngine;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
 import com.mojang.brigadier.CommandDispatcher;
@@ -172,6 +174,13 @@ public final class MycelialCommands {
                                 .executes(ctx -> runWorldgenAudit(ctx.getSource(), 6, 64)))
                         .then(Commands.literal("all")
                                 .executes(ctx -> verifyAll(ctx.getSource()))))
+                .then(Commands.literal("filament")
+                        .then(Commands.argument("anchorA", BlockPosArgument.blockPos())
+                                .then(Commands.argument("anchorB", BlockPosArgument.blockPos())
+                                        .executes(ctx -> spawnFilamentCmd(
+                                                ctx.getSource(),
+                                                BlockPosArgument.getLoadedBlockPos(ctx, "anchorA"),
+                                                BlockPosArgument.getLoadedBlockPos(ctx, "anchorB"))))))
                 .then(Commands.literal("cycle")
                         .then(Commands.literal("status")
                                 .executes(ctx -> reportCycleStatus(ctx.getSource())))
@@ -271,6 +280,18 @@ public final class MycelialCommands {
                                 .executes(ctx -> triggerColonyRaidCmd(ctx.getSource())))
                         .then(Commands.literal("reset")
                                 .executes(ctx -> resetColonyCmd(ctx.getSource())))));
+    }
+
+    private static int spawnFilamentCmd(CommandSourceStack source, BlockPos anchorA, BlockPos anchorB) {
+        ServerLevel level = source.getLevel();
+        HyphalFilamentEntity filament = new HyphalFilamentEntity(level, anchorA, anchorB, 0.70F);
+        level.addFreshEntity(filament);
+        source.sendSuccess(() -> Component.translatable(
+                "message.mycelialmind.filament_spawned",
+                anchorA.toShortString(),
+                anchorB.toShortString()
+        ).withStyle(ChatFormatting.LIGHT_PURPLE), true);
+        return 1;
     }
 
     private static int reportStatus(CommandSourceStack source) {

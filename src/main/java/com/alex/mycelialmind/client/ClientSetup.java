@@ -30,6 +30,7 @@ import com.alex.mycelialmind.client.model.SporelingModel;
 import com.alex.mycelialmind.client.model.SynapseWeaverModel;
 import com.alex.mycelialmind.client.model.SynapticMimicModel;
 import com.alex.mycelialmind.client.renderer.GlowOrbProjectileRenderer;
+import com.alex.mycelialmind.client.renderer.HyphalFilamentRenderer;
 import com.alex.mycelialmind.client.renderer.block.MonumentFocusRenderer;
 import com.alex.mycelialmind.client.renderer.block.MonumentRenderParts;
 import com.alex.mycelialmind.client.renderer.block.PurificationTurretRenderer;
@@ -304,6 +305,7 @@ public final class ClientSetup {
                 ctx -> new GlowOrbProjectileRenderer<>(ctx, NEUTRALIZING_SPORE_TEX, 0.45F));
         event.registerEntityRenderer(ModEntities.PURIFIER_GRENADE.get(),
                 ctx -> new GlowOrbProjectileRenderer<>(ctx, PURIFIER_GRENADE_TEX, 0.55F));
+        event.registerEntityRenderer(ModEntities.HYPHAL_FILAMENT.get(), HyphalFilamentRenderer::new);
 
         event.registerBlockEntityRenderer(ModBlockEntities.SYNAPTIC_NODE.get(), SynapticNodeRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.PURIFICATION_TURRET.get(), PurificationTurretRenderer::new);

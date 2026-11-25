@@ -9,6 +9,7 @@ import com.alex.mycelialmind.entity.ColonySymbiontEntity;
 import com.alex.mycelialmind.entity.ColonyWardenEntity;
 import com.alex.mycelialmind.entity.GoliathCarrierEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
+import com.alex.mycelialmind.entity.HyphalFilamentEntity;
 import com.alex.mycelialmind.entity.LeechParasiteEntity;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
@@ -135,6 +136,10 @@ public final class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<PurifierGrenadeProjectile>> PURIFIER_GRENADE =
             ENTITY_TYPES.register("purifier_grenade", () -> EntityType.Builder.<PurifierGrenadeProjectile>of(PurifierGrenadeProjectile::new, MobCategory.MISC)
                     .sized(0.35F, 0.35F).clientTrackingRange(4).updateInterval(10).build("purifier_grenade"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<HyphalFilamentEntity>> HYPHAL_FILAMENT =
+            ENTITY_TYPES.register("hyphal_filament", () -> EntityType.Builder.<HyphalFilamentEntity>of(HyphalFilamentEntity::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F).clientTrackingRange(8).updateInterval(3).build("hyphal_filament"));
 
     private ModEntities() {
     }

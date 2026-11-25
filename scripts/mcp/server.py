@@ -2235,7 +2235,10 @@ def audit_mod_assets() -> dict[str, Any]:
     uv_models = set(uv_info.get("models", {}).keys()) if uv_info.get("ok") else set()
     reg_entities = set(get_registered_content().get("ModEntities", []))
     entities_without_uv = sorted(
-        e for e in reg_entities if e not in uv_models and e not in ("acid_spit", "neutralizing_spore", "purifier_grenade")
+        e
+        for e in reg_entities
+        if e not in uv_models
+        and e not in ("acid_spit", "neutralizing_spore", "purifier_grenade", "hyphal_filament")
     )
 
     particles_dir = assets_root / "particles"

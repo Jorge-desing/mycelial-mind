@@ -37,6 +37,7 @@ public class HyphalVeinBlockEntity extends BlockEntity {
     private static final String TAG_TRAIL_INDEX = "TrailIndex";
     private static final String TAG_ROOT = "Root";
     private static final String TAG_TRAVERSALS = "Traversals";
+    private static final String TAG_TURGOR = "Turgor";
 
     private byte diagonals = 0;
     private byte faces = HyphalPhysics.FACE_DOWN;
@@ -47,6 +48,10 @@ public class HyphalVeinBlockEntity extends BlockEntity {
     private int trailIndex = -1;
     private boolean root = false;
     private int traversals = 0;
+    private float turgor = 0.0F;
+    private float waveAmplitude = 0.0F;
+    private long lastWaveTick = -100L;
+    private long lastEntityStepWaveTick = -100L;
     private long nextGrowthTick = 0L;
     private long nextWitherTick = 0L;
 
@@ -216,6 +221,54 @@ public class HyphalVeinBlockEntity extends BlockEntity {
         this.nextWitherTick = nextWitherTick;
     }
 
+    public float getTurgor() {
+        return turgor;
+    }
+
+    public boolean setTurgor(float turgor) {
+        float clamped = Float.isFinite(turgor) ? Math.max(0.0F, Math.min(1.0F, turgor)) : 0.0F;
+        if (Float.compare(this.turgor, clamped) == 0) {
+            return false;
+        }
+        this.turgor = clamped;
+        setChanged();
+        return true;
+    }
+
+    public float getWaveAmplitude() {
+        return waveAmplitude;
+    }
+
+    public void setWaveAmplitude(float waveAmplitude) {
+        this.waveAmplitude = Float.isFinite(waveAmplitude)
+                ? Math.max(0.0F, Math.min(1.0F, waveAmplitude))
+                : 0.0F;
+    }
+
+    public long getLastWaveTick() {
+        return lastWaveTick;
+    }
+
+    public boolean triggerWave(float amplitude, long gameTime) {
+        if (!Float.isFinite(amplitude) || amplitude < HyphalPhysics.WAVE_MIN_AMPLITUDE) {
+            return false;
+        }
+        if ((gameTime - lastWaveTick) < HyphalPhysics.WAVE_COOLDOWN_TICKS && amplitude <= waveAmplitude) {
+            return false;
+        }
+        this.waveAmplitude = Math.min(1.0F, Math.max(this.waveAmplitude, amplitude));
+        this.lastWaveTick = gameTime;
+        return true;
+    }
+
+    public boolean canTriggerStepWave(long gameTime) {
+        if ((gameTime - lastEntityStepWaveTick) < 10L) {
+            return false;
+        }
+        lastEntityStepWaveTick = gameTime;
+        return true;
+    }
+
     public void syncToClient() {
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
@@ -246,6 +299,7 @@ public class HyphalVeinBlockEntity extends BlockEntity {
         tag.putInt(TAG_TRAIL_INDEX, trailIndex);
         tag.putBoolean(TAG_ROOT, root);
         tag.putInt(TAG_TRAVERSALS, traversals);
+        tag.putFloat(TAG_TURGOR, turgor);
     }
 
     @Override
@@ -262,6 +316,9 @@ public class HyphalVeinBlockEntity extends BlockEntity {
         trailIndex = tag.contains(TAG_TRAIL_INDEX) ? tag.getInt(TAG_TRAIL_INDEX) : -1;
         root = tag.getBoolean(TAG_ROOT);
         traversals = Math.max(0, tag.getInt(TAG_TRAVERSALS));
+        turgor = tag.contains(TAG_TURGOR)
+                ? Math.max(0.0F, Math.min(1.0F, tag.getFloat(TAG_TURGOR)))
+                : 0.0F;
     }
 
     @Override

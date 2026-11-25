@@ -23,6 +23,19 @@ public final class HyphalPhysics {
     public static final int MAX_TRAVERSAL_ENTRIES_PER_CHUNK = 256;
     public static final int MAX_SUPERCOVER_STEPS = 16;
 
+    // Entity organic drag/boost constants
+    public static final float MYCELIAL_MOB_SPEED_BOOST = 1.10F;
+
+    // Mechanical/seismic wave propagation constants
+    public static final int WAVE_STEP_TICKS = 2;
+    public static final float WAVE_MIN_AMPLITUDE = 0.08F;
+    public static final float WAVE_DECAY_PER_HOP = 0.78F;
+    public static final float WAVE_EXPLOSION_DETACH_THRESHOLD = 0.65F;
+    public static final long WAVE_COOLDOWN_TICKS = 6L;
+
+    // Internal fluid turgor / pressure constants
+    public static final float HIGH_TURGOR_SPRAY_THRESHOLD = 0.65F;
+
     // Diagonal connection bitmask (horizontal plane: X/Z)
     public static final byte DIAG_NE = 1 << 0; // +X, -Z
     public static final byte DIAG_NW = 1 << 1; // -X, -Z
@@ -233,5 +246,62 @@ public final class HyphalPhysics {
 
     public static boolean hasFace(byte faces, byte bit) {
         return (effectiveFaces(faces) & bit) != 0;
+    }
+
+    /**
+     * Computes horizontal movement multiplier when an entity steps through a Hyphal Vein.
+     * Mycelial mobs receive a 1.10x surge; non-mycelial entities are slowed on dense (STRENGTH 2-3)
+     * veins amplified by turgor, with 75% penalty mitigation for Chitin Boots or crouching.
+     */
+    public static float computeEntityDragFactor(
+            int strength,
+            float turgor,
+            boolean isMycelialMob,
+            boolean wearingChitinBoots,
+            boolean isCrouching
+    ) {
+        if (isMycelialMob) {
+            return MYCELIAL_MOB_SPEED_BOOST;
+        }
+        if (strength < 2) {
+            return 1.0F;
+        }
+        float safeTurgor = Float.isFinite(turgor) ? Math.max(0.0F, Math.min(1.0F, turgor)) : 0.0F;
+        float baseDrag = strength >= 3 ? 0.72F : 0.84F;
+        float drag = Math.max(0.50F, baseDrag - 0.06F * safeTurgor);
+        if (wearingChitinBoots || isCrouching) {
+            drag = 1.0F - (1.0F - drag) * 0.25F;
+        }
+        return drag;
+    }
+
+    public static float nextWaveAmplitude(float incomingAmplitude) {
+        if (!Float.isFinite(incomingAmplitude) || incomingAmplitude <= 0.0F) {
+            return 0.0F;
+        }
+        float decayed = incomingAmplitude * WAVE_DECAY_PER_HOP;
+        return decayed < WAVE_MIN_AMPLITUDE ? 0.0F : decayed;
+    }
+
+    public static boolean shouldDetachFromWave(float waveAmplitude, int strength, float turgor) {
+        float safeAmp = Float.isFinite(waveAmplitude) ? waveAmplitude : 0.0F;
+        float safeTurgor = Float.isFinite(turgor) ? turgor : 0.0F;
+        return safeAmp >= WAVE_EXPLOSION_DETACH_THRESHOLD && strength == 0 && safeTurgor < 0.45F;
+    }
+
+    public static float computeTurgor(int nutrient, boolean inRainOrWaterNearby, boolean nearHeatOrNether) {
+        int clampedNutrient = Math.max(0, Math.min(MAX_NUTRIENT, nutrient));
+        float turgor = (clampedNutrient / (float) MAX_NUTRIENT) * 0.70F;
+        if (inRainOrWaterNearby) {
+            turgor += 0.25F;
+        }
+        if (nearHeatOrNether) {
+            turgor -= 0.35F;
+        }
+        return Math.max(0.0F, Math.min(1.0F, turgor));
+    }
+
+    public static boolean isPressurizedForSpray(float turgor) {
+        return Float.isFinite(turgor) && turgor >= HIGH_TURGOR_SPRAY_THRESHOLD;
     }
 }

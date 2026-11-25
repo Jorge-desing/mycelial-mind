@@ -4,8 +4,11 @@ import com.alex.mycelialmind.block.CreepingMyceliumBlock;
 import com.alex.mycelialmind.block.HyphalVeinBlock;
 import com.alex.mycelialmind.block.MycelialNodeBlock;
 import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
+import com.alex.mycelialmind.entity.HyphalFilamentEntity;
+import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
+import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.hive.HiveMindSavedData.BlindSpotOutbreakSite;
 import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine.ArchitecturalAccentSnapshot;
 import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine.BlueprintVoxel;
@@ -34,9 +37,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.HoeItem;
@@ -63,6 +68,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -238,6 +244,27 @@ public final class HyphalSiegeDirector {
             tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
             event.setCancellationResult(InteractionResult.sidedSuccess(false));
             event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onExplosionDetonate(ExplosionEvent.Detonate event) {
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        Vec3 center = event.getExplosion().center();
+        BlockPos origin = BlockPos.containing(center);
+        for (BlockPos p : BlockPos.betweenClosed(origin.offset(-6, -4, -6), origin.offset(6, 4, 6))) {
+            if (!serverLevel.isLoaded(p)) {
+                continue;
+            }
+            if (serverLevel.getBlockState(p).is(ModBlocks.HYPHAL_VEIN.get())) {
+                double dist = Math.sqrt(p.distToCenterSqr(center.x, center.y, center.z));
+                if (dist <= 6.5D) {
+                    float amp = Mth.clamp(1.0F - (float) (dist / 7.0D), 0.15F, 1.0F);
+                    HyphalVeinBlock.injectMechanicalWave(serverLevel, p.immutable(), amp);
+                }
+            }
         }
     }
 
@@ -426,7 +453,9 @@ public final class HyphalSiegeDirector {
                     be.setTrailIndex(trailIndex);
                     be.setNextGrowthTick(level.getGameTime() + HyphalPhysics.getGrowthIntervalTicks());
                     linkAdjacentTrailDiagonals(level, orderedTrail, trailIndex, veinPos, be);
+                    HyphalVeinBlock.recomputeAndSyncTurgor(level, veinPos, be);
                     be.syncToClient();
+                    tryAutoSpawnHyphalFilament(level, veinPos, be);
                 }
                 HyphalVeinBlock.refreshLocalNeighborhood(level, veinPos);
                 hive.registerHyphalVein(veinPos);
@@ -586,7 +615,9 @@ public final class HyphalSiegeDirector {
                     linkDiagonalPair(veinPos, be, nextVeinPos, childBe);
                     linkAdjacentTrailDiagonals(level, trail, candidateIdx, nextVeinPos, childBe);
                     childBe.setNextGrowthTick(level.getGameTime() + HyphalPhysics.getGrowthIntervalTicks());
+                    HyphalVeinBlock.recomputeAndSyncTurgor(level, nextVeinPos, childBe);
                     childBe.syncToClient();
+                    tryAutoSpawnHyphalFilament(level, nextVeinPos, childBe);
                 }
                 be.syncToClient();
                 HyphalVeinBlock.refreshLocalNeighborhood(level, nextVeinPos);
@@ -857,10 +888,14 @@ public final class HyphalSiegeDirector {
         boolean specialized = isSpecializedMycelialTool(tool);
         boolean cutting = isRightClickSeveringTool(tool) || isSeveringTool(tool);
         int severedCount = 0;
+        float maxSeveredTurgor = 0.0F;
 
         for (BlockPos target : targets) {
             BlockState st = level.getBlockState(target);
             if (st.is(ModBlocks.HYPHAL_VEIN.get())) {
+                if (level.getBlockEntity(target) instanceof HyphalVeinBlockEntity vbe) {
+                    maxSeveredTurgor = Math.max(maxSeveredTurgor, vbe.getTurgor());
+                }
                 level.removeBlock(target, false);
                 HyphalVeinBlock.refreshLocalNeighborhood(level, target);
                 if (level.random.nextFloat() < 0.35F) {
@@ -876,6 +911,10 @@ public final class HyphalSiegeDirector {
             }
             hive.severHyphalVein(target, 0.0, level.getGameTime());
             severedCount++;
+        }
+
+        if (HyphalPhysics.isPressurizedForSpray(maxSeveredTurgor)) {
+            triggerPressurizedSpray(level, pos, maxSeveredTurgor);
         }
 
         double densityDrop = HyphalAdaptiveArchitectureEngine.computeVeinSeverDensityDrop(specialized, cutting, severedCount);
@@ -1871,5 +1910,113 @@ public final class HyphalSiegeDirector {
             return ModEntities.CHITIN_BRUTE.get();
         }
         return ModEntities.MYCELIAL_STALKER.get();
+    }
+
+    public static void triggerPressurizedSpray(ServerLevel level, BlockPos pos, float turgor) {
+        level.sendParticles(ModParticles.SPORE_MOTE.get(),
+                pos.getX() + 0.5D, pos.getY() + 0.35D, pos.getZ() + 0.5D,
+                16, 0.45D, 0.35D, 0.45D, 0.08D);
+        level.sendParticles(ModParticles.BIO_LUME.get(),
+                pos.getX() + 0.5D, pos.getY() + 0.35D, pos.getZ() + 0.5D,
+                10, 0.35D, 0.25D, 0.35D, 0.05D);
+        level.playSound(null, pos, ModSounds.SPORE_ARCHITECT_PULSE.get(),
+                SoundSource.BLOCKS, 0.70F, 1.30F);
+
+        Vec3 center = Vec3.atCenterOf(pos);
+        for (LivingEntity living : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(2.5D))) {
+            if (!living.isAlive() || living.isSpectator()
+                    || living instanceof MycelialMob || living instanceof MycelialChimeraEntity) {
+                continue;
+            }
+            Vec3 away = living.position().subtract(center);
+            double horizLen = Math.sqrt(away.x * away.x + away.z * away.z);
+            double px = horizLen > 1.0E-4D ? (away.x / horizLen) * 0.38D : 0.0D;
+            double pz = horizLen > 1.0E-4D ? (away.z / horizLen) * 0.38D : 0.0D;
+            living.push(px, 0.16D, pz);
+            living.hurtMarked = true;
+
+            int chitinPieces = 0;
+            for (ItemStack armor : living.getArmorSlots()) {
+                if (!armor.isEmpty() && armor.getItem() instanceof ChitinArmorItem) {
+                    chitinPieces++;
+                }
+            }
+            if (chitinPieces < 2) {
+                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 0, false, true));
+                living.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 60, 0, false, true));
+            }
+        }
+    }
+
+    public static void tryAutoSpawnHyphalFilament(
+            ServerLevel level,
+            BlockPos veinPos,
+            HyphalVeinBlockEntity be
+    ) {
+        byte faces = be.getFaces();
+        boolean elevatedSurface = (faces & (HyphalPhysics.FACE_UP
+                | HyphalPhysics.FACE_NORTH
+                | HyphalPhysics.FACE_EAST
+                | HyphalPhysics.FACE_SOUTH
+                | HyphalPhysics.FACE_WEST)) != 0;
+        if (!elevatedSurface) {
+            return;
+        }
+
+        List<HyphalFilamentEntity> nearbyFilaments = level.getEntitiesOfClass(
+                HyphalFilamentEntity.class, new AABB(veinPos).inflate(16.0D));
+        if (nearbyFilaments.size() >= 8) {
+            return;
+        }
+
+        final int[][] dirs = {
+                {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1},
+                {0, 1, 0}, {0, -1, 0},
+                {1, 0, 1}, {1, 0, -1}, {-1, 0, 1}, {-1, 0, -1}
+        };
+        for (int[] d : dirs) {
+            for (int dist = 2; dist <= 6; dist++) {
+                BlockPos targetPos = veinPos.offset(d[0] * dist, d[1] * dist, d[2] * dist);
+                if (!level.isLoaded(targetPos)) {
+                    break;
+                }
+                BlockState targetState = level.getBlockState(targetPos);
+                if (targetState.is(ModBlocks.HYPHAL_VEIN.get())) {
+                    if (hasClearFilamentSpan(level, veinPos, targetPos)) {
+                        boolean alreadyLinked = false;
+                        for (HyphalFilamentEntity existing : nearbyFilaments) {
+                            BlockPos a = existing.getAnchorA();
+                            BlockPos b = existing.getAnchorB();
+                            if ((a.equals(veinPos) && b.equals(targetPos))
+                                    || (a.equals(targetPos) && b.equals(veinPos))) {
+                                alreadyLinked = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyLinked) {
+                            HyphalFilamentEntity filament = new HyphalFilamentEntity(
+                                    level, veinPos, targetPos, be.getTurgor());
+                            level.addFreshEntity(filament);
+                            return;
+                        }
+                    }
+                    break;
+                }
+                if (targetState.blocksMotion()) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private static boolean hasClearFilamentSpan(ServerLevel level, BlockPos from, BlockPos to) {
+        List<BlockPos> line = HyphalPhysics.supercoverLine(from, to, 8);
+        for (int i = 1; i < line.size() - 1; i++) {
+            BlockPos mid = line.get(i);
+            if (!level.isLoaded(mid) || level.getBlockState(mid).blocksMotion()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

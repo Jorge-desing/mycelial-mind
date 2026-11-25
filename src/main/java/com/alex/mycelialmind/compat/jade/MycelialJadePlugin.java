@@ -357,6 +357,8 @@ public final class MycelialJadePlugin implements IWailaPlugin {
                 if (accessor.getBlockEntity() instanceof HyphalVeinBlockEntity veinBe) {
                     tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_nutrient",
                             veinBe.getNutrient()));
+                    tooltip.add(Component.translatable("jade.mycelialmind.hyphal_vein_turgor",
+                            Math.round(veinBe.getTurgor() * 100.0F)));
                     tooltip.add(Component.translatable(veinBe.isRoot()
                             ? "jade.mycelialmind.hyphal_vein_root_yes"
                             : "jade.mycelialmind.hyphal_vein_root_no",

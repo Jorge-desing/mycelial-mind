@@ -11191,4 +11191,191 @@ public final class MycelialGameTests {
 
         helper.succeed();
     }
+
+    @GameTest(template = "empty", batch = "hyphal_route_veins")
+    public static void hyphalEntityDragAndMycelialBoostWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
+        BlockPos base = helper.absolutePos(new BlockPos(6, 10, 6));
+        BlockPos veinPos = base.above();
+        var zombie = net.minecraft.world.entity.EntityType.ZOMBIE.create(level);
+        var sporeling = ModEntities.SPORELING.get().create(level);
+
+        try {
+            level.setBlockAndUpdate(base, Blocks.STONE.defaultBlockState());
+            BlockState veinState = ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
+                    .setValue(com.alex.mycelialmind.block.HyphalVeinBlock.STRENGTH, 3)
+                    .setValue(com.alex.mycelialmind.block.HyphalVeinBlock.CHARGED, true);
+            level.setBlockAndUpdate(veinPos, veinState);
+            if (level.getBlockEntity(veinPos) instanceof com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity be) {
+                be.setTurgor(0.80F);
+            }
+
+            if (zombie == null || sporeling == null) {
+                helper.fail("Failed to create test entities for hyphal drag check.");
+                return;
+            }
+            zombie.setPos(veinPos.getX() + 0.5D, veinPos.getY() + 0.05D, veinPos.getZ() + 0.5D);
+            zombie.setDeltaMovement(0.40D, 0.0D, 0.0D);
+            veinState.entityInside(level, veinPos, zombie);
+            double zombieSpeedX = zombie.getDeltaMovement().x;
+
+            sporeling.setPos(veinPos.getX() + 0.5D, veinPos.getY() + 0.05D, veinPos.getZ() + 0.5D);
+            sporeling.setDeltaMovement(0.20D, 0.0D, 0.0D);
+            veinState.entityInside(level, veinPos, sporeling);
+            double sporelingSpeedX = sporeling.getDeltaMovement().x;
+
+            Player bootedPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+            bootedPlayer.setItemSlot(net.minecraft.world.entity.EquipmentSlot.FEET, new ItemStack(ModItems.CHITIN_BOOTS.get()));
+            bootedPlayer.setPos(veinPos.getX() + 0.5D, veinPos.getY() + 0.05D, veinPos.getZ() + 0.5D);
+            bootedPlayer.setDeltaMovement(0.40D, 0.0D, 0.0D);
+            veinState.entityInside(level, veinPos, bootedPlayer);
+            double bootedSpeedX = bootedPlayer.getDeltaMovement().x;
+
+            if (zombieSpeedX >= 0.35D || sporelingSpeedX <= 0.205D || bootedSpeedX <= zombieSpeedX) {
+                helper.fail(String.format(
+                        "Entity drag check failed: zombieX=%.3f sporelingX=%.3f bootedX=%.3f",
+                        zombieSpeedX, sporelingSpeedX, bootedSpeedX));
+                return;
+            }
+            helper.succeed();
+        } finally {
+            if (zombie != null) zombie.discard();
+            if (sporeling != null) sporeling.discard();
+            level.removeBlock(veinPos, false);
+            level.removeBlock(base, false);
+            releaseArenaChunks(level, forcedChunks);
+        }
+    }
+
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 80)
+    public static void hyphalMechanicalWavePropagatesAndAlertsNode(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
+        BlockPos startFloor = helper.absolutePos(new BlockPos(10, 10, 6));
+        BlockPos nodePos = startFloor.offset(4, 1, 0);
+
+        for (int dx = 0; dx <= 4; dx++) {
+            level.setBlockAndUpdate(startFloor.offset(dx, 0, 0), Blocks.STONE.defaultBlockState());
+            if (dx < 4) {
+                level.setBlockAndUpdate(startFloor.offset(dx, 1, 0), ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
+                        .setValue(com.alex.mycelialmind.block.HyphalVeinBlock.STRENGTH, 2));
+                if (level.getBlockEntity(startFloor.offset(dx, 1, 0)) instanceof com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity vbe) {
+                    vbe.setRoot(true);
+                }
+            }
+        }
+        level.setBlockAndUpdate(nodePos, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
+        com.alex.mycelialmind.block.HyphalVeinBlock.injectMechanicalWave(level, startFloor.offset(0, 1, 0), 0.90F);
+
+        helper.runAfterDelay(12, () -> {
+            try {
+                boolean nodeAlerted = level.getBlockEntity(nodePos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity node
+                        && node.isAlerted();
+                if (!nodeAlerted) {
+                    helper.fail("Mechanical wave failed to propagate and alert adjacent SynapticNode within 12 ticks.");
+                    return;
+                }
+                helper.succeed();
+            } finally {
+                for (int dx = 0; dx <= 4; dx++) {
+                    level.removeBlock(startFloor.offset(dx, 1, 0), false);
+                    level.removeBlock(startFloor.offset(dx, 0, 0), false);
+                }
+                releaseArenaChunks(level, forcedChunks);
+            }
+        });
+    }
+
+    @GameTest(template = "empty", batch = "hyphal_route_veins")
+    public static void hyphalPressurizedSeverSpraysSporesAndDebuffs(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        BlockPos floorPos = helper.absolutePos(new BlockPos(14, 10, 10));
+        BlockPos veinPos = floorPos.above();
+        var zombie = net.minecraft.world.entity.EntityType.ZOMBIE.create(level);
+
+        try {
+            level.setBlockAndUpdate(floorPos, Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(veinPos, ModBlocks.HYPHAL_VEIN.get().defaultBlockState()
+                    .setValue(com.alex.mycelialmind.block.HyphalVeinBlock.STRENGTH, 2));
+            if (level.getBlockEntity(veinPos) instanceof com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity vbe) {
+                vbe.setTurgor(0.85F);
+            }
+            if (zombie == null) {
+                helper.fail("Failed to spawn Zombie for pressurized spray check.");
+                return;
+            }
+            zombie.setPos(veinPos.getX() + 1.5D, veinPos.getY(), veinPos.getZ() + 0.5D);
+            level.addFreshEntity(zombie);
+
+            int severed = com.alex.mycelialmind.hive.HyphalSiegeDirector.trySeverHyphalVein(
+                    level, veinPos, null, new ItemStack(ModItems.SYMBIOTIC_BLADE.get()));
+            boolean hasSlow = zombie.hasEffect(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN);
+            boolean hasInfection = zombie.hasEffect(ModEffects.MYCELIAL_INFECTION);
+            boolean pushed = zombie.getDeltaMovement().lengthSqr() > 0.01D;
+
+            if (severed <= 0 || !hasSlow || !hasInfection || !pushed) {
+                helper.fail(String.format(
+                        "Pressurized spray failed: severed=%d slow=%s inf=%s pushed=%s",
+                        severed, hasSlow, hasInfection, pushed));
+                return;
+            }
+            helper.succeed();
+        } finally {
+            if (zombie != null) zombie.discard();
+            level.removeBlock(veinPos, false);
+            level.removeBlock(floorPos, false);
+            hive.resetAll();
+            releaseArenaChunks(level, forcedChunks);
+        }
+    }
+
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 80)
+    public static void hyphalFilamentEntitySimulatesVerletAndSnapsWhenAnchorBreaks(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 36, -4, 36);
+        BlockPos anchorA = helper.absolutePos(new BlockPos(8, 15, 16));
+        BlockPos anchorB = anchorA.offset(4, 0, 0);
+
+        for (int dx = 0; dx <= 4; dx++) {
+            level.removeBlock(anchorA.offset(dx, -1, 0), false);
+            level.removeBlock(anchorA.offset(dx, 0, 0), false);
+        }
+        level.setBlockAndUpdate(anchorA, Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(anchorB, Blocks.STONE.defaultBlockState());
+
+        var filament = new com.alex.mycelialmind.entity.HyphalFilamentEntity(level, anchorA, anchorB, 0.75F);
+        level.addFreshEntity(filament);
+
+        helper.runAfterDelay(12, () -> {
+            boolean sagged = !filament.isRemoved()
+                    && filament.getMidpointNode().y < Vec3.atCenterOf(anchorA).y - 0.15D;
+            if (!sagged) {
+                filament.discard();
+                level.removeBlock(anchorA, false);
+                level.removeBlock(anchorB, false);
+                releaseArenaChunks(level, forcedChunks);
+                helper.fail("Expected HyphalFilamentEntity midpoint to sag under gravity by tick 12.");
+                return;
+            }
+            level.removeBlock(anchorB, false);
+        });
+
+        helper.runAfterDelay(16, () -> {
+            try {
+                if (!filament.isRemoved()) {
+                    helper.fail("Expected HyphalFilamentEntity to snap and discard after anchorB broke.");
+                    return;
+                }
+                helper.succeed();
+            } finally {
+                if (!filament.isRemoved()) filament.discard();
+                level.removeBlock(anchorA, false);
+                level.removeBlock(anchorB, false);
+                releaseArenaChunks(level, forcedChunks);
+            }
+        });
+    }
 }

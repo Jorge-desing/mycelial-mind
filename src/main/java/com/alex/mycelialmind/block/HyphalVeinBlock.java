@@ -1,12 +1,18 @@
 package com.alex.mycelialmind.block;
 
 import com.alex.mycelialmind.block.entity.HyphalVeinBlockEntity;
+import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.entity.MycelialChimeraEntity;
+import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HyphalPhysics;
 import com.alex.mycelialmind.hive.HyphalSiegeDirector;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,12 +20,16 @@ import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -30,6 +40,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Fallable;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -38,7 +49,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -340,6 +353,29 @@ public class HyphalVeinBlock extends Block implements EntityBlock, Fallable {
             scheduleConnectedVeinNeighbors(level, pos, be, NUTRIENT_STEP_TICKS);
         }
 
+        // Internal fluid turgor recalculation (humidity/rain raises it, heat/Nether shrinks it)
+        recomputeAndSyncTurgor(level, pos, be);
+
+        // Mechanical/seismic wave propagation along connected vein network
+        float waveAmp = be.getWaveAmplitude();
+        if (waveAmp >= HyphalPhysics.WAVE_MIN_AMPLITUDE) {
+            be.setWaveAmplitude(0.0F);
+            int curStrength = workingState.getValue(STRENGTH);
+            if (HyphalPhysics.shouldDetachFromWave(waveAmp, curStrength, be.getTurgor())) {
+                scheduleConnectedVeinNeighbors(level, pos, be, NUTRIENT_STEP_TICKS);
+                HiveMindSavedData.get(level).severHyphalVein(pos, 0.0, level.getGameTime());
+                FallingBlockEntity falling = FallingBlockEntity.fall(level, pos, workingState);
+                falling.disableDrop();
+                return;
+            }
+            spawnWavePulseParticles(level, pos, waveAmp);
+            alertHiveOnWaveArrival(level, pos, waveAmp);
+            float nextAmp = HyphalPhysics.nextWaveAmplitude(waveAmp);
+            if (nextAmp >= HyphalPhysics.WAVE_MIN_AMPLITUDE) {
+                propagateWaveToConnectedNeighbors(level, pos, be, nextAmp);
+            }
+        }
+
         if ((be.isRoot() || nextNutrient > 1) && be.getTrailIndex() >= 0) {
             long now = level.getGameTime();
             if (now >= be.getNextGrowthTick()) {
@@ -352,6 +388,156 @@ public class HyphalVeinBlock extends Block implements EntityBlock, Fallable {
                 level.scheduleTick(pos, this, delay);
             }
         }
+    }
+
+    @Override
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+        if (entity.isSpectator()
+                || !entity.isAlive()
+                || entity instanceof FallingBlockEntity
+                || entity instanceof ItemEntity) {
+            return;
+        }
+        HyphalVeinBlockEntity be = level.getBlockEntity(pos) instanceof HyphalVeinBlockEntity vbe ? vbe : null;
+        float turgor = be != null ? be.getTurgor() : 0.0F;
+        int strength = state.hasProperty(STRENGTH) ? state.getValue(STRENGTH) : 0;
+        boolean isMycelial = entity instanceof MycelialMob || entity instanceof MycelialChimeraEntity;
+        boolean wearingChitinBoots = entity instanceof LivingEntity living
+                && living.getItemBySlot(EquipmentSlot.FEET).is(ModItems.CHITIN_BOOTS.get());
+        boolean crouching = entity.isCrouching();
+
+        float drag = HyphalPhysics.computeEntityDragFactor(
+                strength, turgor, isMycelial, wearingChitinBoots, crouching);
+        Vec3 vel = entity.getDeltaMovement();
+        if (drag > 1.0F) {
+            double hSq = vel.x * vel.x + vel.z * vel.z;
+            if (hSq > 1.0E-4D && hSq < 0.20D) {
+                double nx = Math.max(-0.45D, Math.min(0.45D, vel.x * drag));
+                double nz = Math.max(-0.45D, Math.min(0.45D, vel.z * drag));
+                entity.setDeltaMovement(nx, vel.y, nz);
+            }
+        } else if (drag < 1.0F) {
+            entity.setDeltaMovement(vel.x * drag, vel.y, vel.z * drag);
+        }
+
+        if (level instanceof ServerLevel serverLevel
+                && !isMycelial
+                && !crouching
+                && !wearingChitinBoots
+                && entity instanceof LivingEntity) {
+            double hSq = vel.x * vel.x + vel.z * vel.z;
+            if ((hSq > 0.008D || entity.fallDistance > 0.5F)
+                    && be != null
+                    && be.canTriggerStepWave(serverLevel.getGameTime())) {
+                injectMechanicalWave(serverLevel, pos, 0.45F);
+            }
+        }
+    }
+
+    public static boolean injectMechanicalWave(ServerLevel level, BlockPos pos, float amplitude) {
+        if (!level.isLoaded(pos)
+                || !level.getBlockState(pos).is(ModBlocks.HYPHAL_VEIN.get())
+                || !(level.getBlockEntity(pos) instanceof HyphalVeinBlockEntity be)) {
+            return false;
+        }
+        if (!be.triggerWave(amplitude, level.getGameTime())) {
+            return false;
+        }
+        spawnWavePulseParticles(level, pos, amplitude);
+        level.scheduleTick(pos, ModBlocks.HYPHAL_VEIN.get(), HyphalPhysics.WAVE_STEP_TICKS);
+        return true;
+    }
+
+    private static void propagateWaveToConnectedNeighbors(
+            ServerLevel level,
+            BlockPos center,
+            HyphalVeinBlockEntity centerBe,
+            float nextAmp
+    ) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    BlockPos adj = center.offset(dx, dy, dz);
+                    if (!level.isLoaded(adj) || !level.getBlockState(adj).is(ModBlocks.HYPHAL_VEIN.get())) {
+                        continue;
+                    }
+                    if (dx != 0 && dz != 0) {
+                        byte myBit = HyphalPhysics.diagonalBit(dx, dz);
+                        byte oppBit = HyphalPhysics.oppositeDiagonalBit(dx, dz);
+                        boolean selfConnected = (centerBe.getDiagonals() & myBit) != 0;
+                        boolean otherConnected = level.getBlockEntity(adj) instanceof HyphalVeinBlockEntity nbe
+                                && (nbe.getDiagonals() & oppBit) != 0;
+                        if (!selfConnected && !otherConnected) {
+                            continue;
+                        }
+                    }
+                    injectMechanicalWave(level, adj, nextAmp);
+                }
+            }
+        }
+    }
+
+    private static void alertHiveOnWaveArrival(ServerLevel level, BlockPos pos, float waveAmp) {
+        for (BlockPos p : BlockPos.betweenClosed(pos.offset(-2, -1, -2), pos.offset(2, 1, 2))) {
+            if (!level.isLoaded(p)) {
+                continue;
+            }
+            if (level.getBlockEntity(p) instanceof SynapticNodeBlockEntity node
+                    && node.getNodeType() != SynapticNodeType.SYMBIOTIC) {
+                node.triggerAlert(120);
+                HiveBlackboard.getInfluenceMap(level).addInfluence(pos, 0.10F, 0.25F * waveAmp, 0.20F);
+                break;
+            }
+        }
+        var mobs = level.getEntitiesOfClass(MycelialMob.class, new AABB(pos).inflate(4.0D));
+        if (!mobs.isEmpty()) {
+            HiveBlackboard.getInfluenceMap(level).addInfluence(pos, 0.08F, 0.20F * waveAmp, 0.25F);
+        }
+    }
+
+    private static void spawnWavePulseParticles(ServerLevel level, BlockPos pos, float waveAmp) {
+        int count = waveAmp >= 0.65F ? 6 : 3;
+        int color = waveAmp >= 0.65F ? 0xFFE68A1E : 0xFF7B3FE4;
+        level.sendParticles(ColorParticleOption.create(ModParticles.HIVE_DUST.get(), color),
+                pos.getX() + 0.5D, pos.getY() + 0.14D, pos.getZ() + 0.5D,
+                count, 0.28D, 0.08D, 0.28D, 0.02D);
+    }
+
+    public static void recomputeAndSyncTurgor(ServerLevel level, BlockPos pos, HyphalVeinBlockEntity be) {
+        boolean wet = level.isRainingAt(pos) || hasFluidOrMoistureNeighbor(level, pos);
+        boolean hot = level.dimension() == Level.NETHER || hasHeatNeighbor(level, pos);
+        float nextTurgor = HyphalPhysics.computeTurgor(be.getNutrient(), wet, hot);
+        if (Math.abs(nextTurgor - be.getTurgor()) >= 0.05F) {
+            be.setTurgor(nextTurgor);
+            be.syncToClient();
+        }
+    }
+
+    private static boolean hasFluidOrMoistureNeighbor(LevelReader level, BlockPos pos) {
+        for (Direction dir : Direction.values()) {
+            BlockPos adj = pos.relative(dir);
+            if (level.getFluidState(adj).is(FluidTags.WATER)) {
+                return true;
+            }
+        }
+        return level.getFluidState(pos).is(FluidTags.WATER);
+    }
+
+    private static boolean hasHeatNeighbor(LevelReader level, BlockPos pos) {
+        for (Direction dir : Direction.values()) {
+            BlockPos adj = pos.relative(dir);
+            if (level.getFluidState(adj).is(FluidTags.LAVA)) {
+                return true;
+            }
+            BlockState adjState = level.getBlockState(adj);
+            if (adjState.is(Blocks.FIRE) || adjState.is(Blocks.SOUL_FIRE) || adjState.is(Blocks.MAGMA_BLOCK)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int computeMaxNeighborNutrient(LevelReader level, BlockPos pos, HyphalVeinBlockEntity self) {
@@ -547,6 +733,14 @@ public class HyphalVeinBlock extends Block implements EntityBlock, Fallable {
             if (random.nextInt(3) == 0) {
                 level.addParticle(ModParticles.SPORE_MOTE.get(), x, y, z, 0.0D, 0.01D, 0.0D);
             }
+        }
+        if (level.getBlockEntity(pos) instanceof HyphalVeinBlockEntity be
+                && HyphalPhysics.isPressurizedForSpray(be.getTurgor())
+                && random.nextInt(5) == 0) {
+            double x = pos.getX() + 0.20D + random.nextDouble() * 0.60D;
+            double y = pos.getY() + 0.10D;
+            double z = pos.getZ() + 0.20D + random.nextDouble() * 0.60D;
+            level.addParticle(ModParticles.SPORE_MOTE.get(), x, y, z, 0.0D, 0.025D, 0.0D);
         }
     }
 
