@@ -18,9 +18,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +25,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -38,7 +34,7 @@ import java.util.List;
  * Autonomous base defense BlockEntity that fires NeutralizingSporeProjectiles
  * at nearby MycelialMobs (prioritizing Burrowers and Colony Wardens).
  */
-public class PurificationTurretBlockEntity extends BlockEntity {
+public class PurificationTurretBlockEntity extends SyncingBlockEntity {
     private static final String TAG_TIER = "TurretTier";
     private static final String TAG_JAMMED_TICKS = "JammedTicks";
     private static final String TAG_AMMO = "TurretAmmo";
@@ -405,17 +401,6 @@ public class PurificationTurretBlockEntity extends BlockEntity {
         } else {
             this.ammo = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.TURRET_INITIAL_AMMO;
         }
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveWithoutMetadata(registries);
-    }
-
-    @Nullable
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     public static boolean isEligibleTarget(MycelialMob mob, List<? extends Player> nearbyPlayers) {

@@ -15,15 +15,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
@@ -32,7 +28,7 @@ import javax.annotation.Nullable;
  * BlockEntity anchoring animated 3D BlockEntityRenderers and persistent tier state
  * on Purification Pylons (T1-T3) and Ritual Altars.
  */
-public class MonumentFocusBlockEntity extends BlockEntity {
+public class MonumentFocusBlockEntity extends SyncingBlockEntity {
     private static final String TAG_PYLON_TIER = "PylonTier";
     private static final String TAG_PURIFICATION_CHARGE = "PurificationCharge";
 
@@ -242,16 +238,5 @@ public class MonumentFocusBlockEntity extends BlockEntity {
         } else {
             this.purificationCharge = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_INITIAL_CHARGE;
         }
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveWithoutMetadata(registries);
-    }
-
-    @Nullable
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

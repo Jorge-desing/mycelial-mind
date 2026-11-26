@@ -21,9 +21,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -34,7 +31,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -45,7 +41,7 @@ import javax.annotation.Nullable;
  * Synthesizes Symbiotic Mutagens, targeted Counter-Serums, Concentrated Antidotes,
  * Chimera Ovums, and 4 discoverable experimental biotechnology formulas across Lab Tiers 1-3.
  */
-public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvider {
+public class SynapticBenchBlockEntity extends SyncingBlockEntity implements MenuProvider {
     public static final int SLOT_SAMPLE = 0;
     public static final int SLOT_BIOMASS = 1;
     public static final int SLOT_CATALYST = 2;
@@ -432,16 +428,5 @@ public class SynapticBenchBlockEntity extends BlockEntity implements MenuProvide
         }
         if (inventory.getStackInSlot(SLOT_OUTPUT).isEmpty()) outputInputsConsumed = false;
         refreshOutputSlot();
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveWithoutMetadata(registries);
-    }
-
-    @Nullable
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 }
