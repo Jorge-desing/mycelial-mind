@@ -7815,8 +7815,16 @@ public final class MycelialGameTests {
             helper.assertTrue(level.getBlockEntity(pylonPos) instanceof MonumentFocusBlockEntity pylonBe
                     && pylonBe.getTier() == 3,
                     "Pylon capability must upgrade Pylon to Tier 3");
+            var forcedData = level.getDataStorage().get(net.minecraft.world.level.ForcedChunksSavedData.factory(), "chunks");
+            long pylonChunkLong = new ChunkPos(pylonPos).toLong();
+            boolean hasPylonTicket = forcedData != null && (
+                    forcedData.getBlockForcedChunks().getTickingChunks().values().stream()
+                            .anyMatch(chunks -> chunks.contains(pylonChunkLong))
+                    || forcedData.getBlockForcedChunks().getChunks().values().stream()
+                            .anyMatch(chunks -> chunks.contains(pylonChunkLong))
+            );
             helper.assertTrue(com.alex.mycelialmind.world.MycelialChunkTicketManager.shouldAnchorPylon(level, pylonPos)
-                    && level.getForcedChunks().contains(new ChunkPos(pylonPos).toLong()),
+                    && (hasPylonTicket || level.getForcedChunks().contains(pylonChunkLong)),
                     "Tier 3 Purification Pylon must register a NeoForge TicketController forced chunk");
             hive.resetAll();
 

@@ -37,7 +37,7 @@ task verify:visual
 
 **Verify Mycelial Mind** (`.github/workflows/verify.yml`) se ejecuta en los pull requests a `main`, en los pushes a `main` y bajo demanda desde la pestaña **Actions** o mediante `gh`. Para ahorrar minutos del plan **GitHub Free** (2,000 min/mes en repositorios privados):
 
-- Los 3 jobs (`automation-config`, `assets`, `gradle`) corren en **`ubuntu-latest`** (consumo `1x` frente a `2x` de Windows).
+- Los jobs `automation-config` y `gradle` (el más pesado) corren en **`ubuntu-latest`** (consumo `1x` frente a `2x` de Windows); `assets` corre en `windows-latest` con `./scripts/Verify-Assets.ps1` (~30 s) para mantener paridad exacta de hashes SHA-256 de sprites generados en Windows.
 - Se ignoran cambios puramente documentales o de memoria/skills (`paths-ignore` para `MEMORY.md`, `AGENTS.md`, `GEMINI.md`, `README.md`, `docs/**`, `.agents/**`).
 - `concurrency` cancela automáticamente ejecuciones previas en el mismo PR cuando se sube un nuevo commit.
 - El job `gradle` anula `org.gradle.jvmargs` con `-Xmx2G` para evitar `WINDOWS-ROOT` en Linux y retiene los artefactos durante 7 días.

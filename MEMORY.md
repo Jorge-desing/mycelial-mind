@@ -4894,3 +4894,12 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `.python-version`, `pyproject.toml`, `uv.lock`, `MEMORY.md`.
 - **Skills revisadas:** Ninguna skill requirió edición.
 - **Estado / Siguiente paso:** Commit, push a `origin/main` y verificación en vivo de los 3 jobs de `Verify Mycelial Mind`.
+
+## [2026-11-26 11:11] — Verificación en verde de CI (`TicketController` en GameTest + `Asset checks` en Windows)
+- **Tipo:** `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:** Al verificar el run `45873093753` tras fijar Python `3.12.10`, se resolvieron las 2 causas restantes para dejar los 3 jobs de `Verify Mycelial Mind` en verde:
+  1. `MycelialGameTests.java` (`neoforgeIntegrationGlmDataMapsCapabilitiesBossPartsAndCuresWork`): la comprobación de chunk-loading del Pilón Tier 3 verificaba `level.getForcedChunks()` (solo `/forceload` vanilla) en vez de `ForcedChunksSavedData.getBlockForcedChunks().getTickingChunks()`/`getChunks()` (donde NeoForge `TicketController.forceChunk(..., true)` registra el ticket). Actualizado y validado en local (`All 205 required tests passed :)` en `23.83 s`).
+  2. `.github/workflows/verify.yml` y `docs/development-automation.md`: `Asset checks` vuelve a `windows-latest` con `./scripts/Verify-Assets.ps1` (~30 s) para mantener paridad exacta de hashes SHA-256 de los 113 sprites de partículas generados en Windows, mientras `Validate automation config` y `Build and GameTests` permanecen en `ubuntu-latest` (`1x` minutos).
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`, `.github/workflows/verify.yml`, `docs/development-automation.md`, `MEMORY.md`.
+- **Skills revisadas:** Ninguna skill requirió edición.
+- **Estado / Siguiente paso:** Commit, push a `origin/main` y confirmación en vivo de los 3 jobs de GitHub Actions en verde.
