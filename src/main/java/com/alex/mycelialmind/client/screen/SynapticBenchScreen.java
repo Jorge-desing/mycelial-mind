@@ -181,17 +181,7 @@ public class SynapticBenchScreen extends AbstractContainerScreen<SynapticBenchMe
     }
 
     private void drawScaledLabel(GuiGraphics graphics, Component label, int x, int y, int maxWidth, int color) {
-        int labelW = this.font.width(label);
-        if (labelW > maxWidth && labelW > 0) {
-            float scale = (float) maxWidth / (float) labelW;
-            graphics.pose().pushPose();
-            graphics.pose().translate(x, y, 0);
-            graphics.pose().scale(scale, scale, 1.0F);
-            graphics.drawString(this.font, label, 0, 0, color, false);
-            graphics.pose().popPose();
-        } else {
-            graphics.drawString(this.font, label, x, y, color, false);
-        }
+        MycelialScreenDrawing.drawScaledText(graphics, this.font, label, x, y, maxWidth, color, false);
     }
 
     private boolean isHoveringBadge(int mouseX, int mouseY) {

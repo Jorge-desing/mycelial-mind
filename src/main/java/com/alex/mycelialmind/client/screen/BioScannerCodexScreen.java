@@ -1038,17 +1038,7 @@ public class BioScannerCodexScreen extends Screen {
     }
 
     private void drawScaledText(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int color) {
-        int textW = this.font.width(text);
-        if (textW > maxWidth && textW > 0) {
-            float scale = (float) maxWidth / (float) textW;
-            graphics.pose().pushPose();
-            graphics.pose().translate(x, y, 0);
-            graphics.pose().scale(scale, scale, 1.0F);
-            graphics.drawString(this.font, text, 0, 0, color, true);
-            graphics.pose().popPose();
-        } else {
-            graphics.drawString(this.font, text, x, y, color, true);
-        }
+        MycelialScreenDrawing.drawScaledText(graphics, this.font, text, x, y, maxWidth, color, true);
     }
 
     @Override

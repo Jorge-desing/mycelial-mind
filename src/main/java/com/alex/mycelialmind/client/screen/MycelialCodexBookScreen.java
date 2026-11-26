@@ -1437,17 +1437,7 @@ public class MycelialCodexBookScreen extends Screen {
     }
 
     private void drawScaledText(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int color, boolean shadow) {
-        int w = this.font.width(text);
-        if (w <= maxWidth || maxWidth <= 8) {
-            graphics.drawString(this.font, text, x, y, color, shadow);
-        } else {
-            float scale = Math.max(0.62F, (float) maxWidth / (float) w);
-            graphics.pose().pushPose();
-            graphics.pose().translate(x, y + (1.0F - scale) * 3.5F, 0);
-            graphics.pose().scale(scale, scale, 1.0F);
-            graphics.drawString(this.font, text, 0, 0, color, shadow);
-            graphics.pose().popPose();
-        }
+        MycelialScreenDrawing.drawScaledText(graphics, this.font, text, x, y, maxWidth, color, shadow, 0.62F, 8, 3.5F);
     }
 
     private void drawClippedOrScaledText(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int color, boolean shadow) {

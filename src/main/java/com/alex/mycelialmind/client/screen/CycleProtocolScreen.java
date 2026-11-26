@@ -212,17 +212,7 @@ public class CycleProtocolScreen extends Screen {
     }
 
     private void drawScaled(GuiGraphics graphics, Component text, int x, int y, int maxW, int color) {
-        int tw = this.font.width(text);
-        if (tw <= maxW || maxW <= 4) {
-            graphics.drawString(this.font, text, x, y, color, true);
-        } else {
-            float scale = Math.max(0.65F, (float) maxW / (float) tw);
-            graphics.pose().pushPose();
-            graphics.pose().translate(x, y, 0);
-            graphics.pose().scale(scale, scale, 1.0F);
-            graphics.drawString(this.font, text, 0, 0, color, true);
-            graphics.pose().popPose();
-        }
+        MycelialScreenDrawing.drawScaledText(graphics, this.font, text, x, y, maxW, color, true, 0.65F, 4, 0.0F);
     }
 
     private static void playUiPing(float pitch) {
