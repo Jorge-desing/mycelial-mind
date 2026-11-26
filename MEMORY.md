@@ -4887,3 +4887,10 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `scripts/texture_studio/tests/test_reclaimed_blooms.py`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`ARENA_ENTITY_TICKET`, `forceArenaChunks`, `releaseArenaChunks`), `MEMORY.md`.
 - **Skills revisadas:** Ninguna skill requirió edición.
 - **Estado / Siguiente paso:** Validado en local (`test_reclaimed_blooms` OK; CodeMode `run_gradle_task(["compileJava", "runGameTestServer"])`: `All 205 required tests passed :)` en `20.89 s`). Commit, push a `origin/main` y verificación en vivo de los 3 jobs de `Verify Mycelial Mind`.
+
+## [2026-11-26 11:05] — Restauración de Python `3.12.10` en `.python-version`/`pyproject.toml`/`uv.lock` para paridad local y CI
+- **Tipo:** `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:** El run `45872198678` aprobó **`Validate automation config`** (`31s`) y **`Build and GameTests`** (`1m7s`, `205/205` GameTests en verde en `ubuntu-latest`), pero `Asset checks` falló en `test_particle_studio.py` bajo Python `3.15.2` (introducido previamente por Renovate en `9e9b9a2`, que además impedía ejecutar `task verify:assets` en local). Se restauraron `.python-version` (`3.12.10`), `pyproject.toml` (`requires-python = "==3.12.*"`) y `uv.lock` (`uv lock`), alineados con la guarda `allowedVersions: "/^3\\.12(\\.|$)/"` ya configurada en `renovate.json`.
+- **Archivos / Símbolos:** `.python-version`, `pyproject.toml`, `uv.lock`, `MEMORY.md`.
+- **Skills revisadas:** Ninguna skill requirió edición.
+- **Estado / Siguiente paso:** Commit, push a `origin/main` y verificación en vivo de los 3 jobs de `Verify Mycelial Mind`.
