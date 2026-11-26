@@ -1,5 +1,9 @@
 package com.alex.mycelialmind.command;
 
+import com.alex.mycelialmind.command.MycelialCommandSupport.SavedBlock;
+import com.alex.mycelialmind.command.MycelialCommandSupport.VerifyCheck;
+import static com.alex.mycelialmind.command.MycelialCommandSupport.*;
+
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.CreepingMyceliumBlock;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
@@ -28,7 +32,6 @@ import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModArmorMaterials;
 import com.alex.mycelialmind.item.GeneticSampleItem;
-import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.network.SymbiosisSyncPayload;
 import com.alex.mycelialmind.recipe.SynapticBenchRecipeDefinitions;
 import com.alex.mycelialmind.registry.ModAttachments;
@@ -78,19 +81,16 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -103,9 +103,6 @@ import java.util.stream.Collectors;
  * and automate the manual verification scenarios of Mycelial Mind.
  */
 public final class MycelialCommands {
-    private record SavedBlock(BlockState state, CompoundTag blockEntityData) {
-    }
-
     private MycelialCommands() {
     }
 
@@ -395,9 +392,8 @@ public final class MycelialCommands {
         try {
             type = StimulusType.valueOf(rawType.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            source.sendFailure(Component.literal("Unknown stimulus type: " + rawType
-                    + ". Valid: MELEE, PROJECTILE, FIRE, EXPLOSION, MAGIC"));
-            return 0;
+            return fail(source, "Unknown stimulus type: " + rawType
+                    + ". Valid: MELEE, PROJECTILE, FIRE, EXPLOSION, MAGIC");
         }
         ServerLevel level = source.getLevel();
         HiveMindSavedData hive = HiveMindSavedData.get(level);
@@ -410,72 +406,32 @@ public final class MycelialCommands {
     }
 
     private static int verifyAll(CommandSourceStack source) {
-        int r1 = verifyProjectileAdaptation(source);
-        int r2 = verifyPylonContainment(source);
-        int r3 = verifyBossEncounter(source);
-        int r4 = verifyTier2Synergy(source);
-        int r5 = verifySynapticNetwork(source);
-        int r6 = verifySymbiosis(source);
-        int r7 = verifyUnits(source);
-        int r8 = verifyExpansion(source);
-        int r9 = verifyTide(source);
-        int r10 = verifyCounteroffensive(source);
-        int r11 = verifyArsenal(source);
-        int r12 = verifyMycorrhizal(source);
-        int r13 = verifyHiveAi(source);
-        int r14 = verifyChimera(source);
-        int r15 = verifyMemory(source);
-        int r16 = verifyTacticalAi(source);
-        int r17 = verifyFieldAi(source);
-        int r18 = verifyLoot(source);
-        int r19 = verifyHomeostasis(source);
-        int r20 = verifyPolish(source);
-        int r21 = verifyDimensionProgression(source);
-        int r22 = verifyCycles(source);
-        int r23 = verifyColony(source);
-        int r24 = verifySinkhole(source);
-        if (r1 == 1 && r2 == 1 && r3 == 1 && r4 == 1 && r5 == 1 && r6 == 1 && r7 == 1 && r8 == 1 && r9 == 1 && r10 == 1 && r11 == 1 && r12 == 1 && r13 == 1 && r14 == 1 && r15 == 1 && r16 == 1 && r17 == 1 && r18 == 1 && r19 == 1 && r20 == 1 && r21 == 1 && r22 == 1 && r23 == 1 && r24 == 1) {
-            source.sendSuccess(() -> Component.literal("[Mycelial Verify] ALL 24 automated scenario checks PASSED.")
-                    .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD), true);
-            return 1;
-        }
-        StringBuilder failedScenarios = new StringBuilder();
-        appendFailedScenario(failedScenarios, "projectile_adaptation", r1);
-        appendFailedScenario(failedScenarios, "pylon_containment", r2);
-        appendFailedScenario(failedScenarios, "boss_encounter", r3);
-        appendFailedScenario(failedScenarios, "tier2_synergy", r4);
-        appendFailedScenario(failedScenarios, "synaptic_network", r5);
-        appendFailedScenario(failedScenarios, "symbiosis", r6);
-        appendFailedScenario(failedScenarios, "units", r7);
-        appendFailedScenario(failedScenarios, "expansion", r8);
-        appendFailedScenario(failedScenarios, "tide", r9);
-        appendFailedScenario(failedScenarios, "counteroffensive", r10);
-        appendFailedScenario(failedScenarios, "arsenal", r11);
-        appendFailedScenario(failedScenarios, "mycorrhizal", r12);
-        appendFailedScenario(failedScenarios, "hive_ai", r13);
-        appendFailedScenario(failedScenarios, "chimera", r14);
-        appendFailedScenario(failedScenarios, "memory", r15);
-        appendFailedScenario(failedScenarios, "tactical_ai", r16);
-        appendFailedScenario(failedScenarios, "field_ai", r17);
-        appendFailedScenario(failedScenarios, "loot", r18);
-        appendFailedScenario(failedScenarios, "homeostasis", r19);
-        appendFailedScenario(failedScenarios, "polish", r20);
-        appendFailedScenario(failedScenarios, "dimension_progression", r21);
-        appendFailedScenario(failedScenarios, "cycles", r22);
-        appendFailedScenario(failedScenarios, "colony", r23);
-        appendFailedScenario(failedScenarios, "sinkhole", r24);
-        source.sendFailure(Component.literal("[Mycelial Verify] Failed scenarios: " + failedScenarios + "."));
-        return 0;
-    }
-
-    private static void appendFailedScenario(StringBuilder failures, String scenario, int result) {
-        if (result == 1) {
-            return;
-        }
-        if (failures.length() > 0) {
-            failures.append(", ");
-        }
-        failures.append(scenario);
+        return runVerifyChecks(source, List.of(
+                new VerifyCheck("projectile_adaptation", MycelialCommands::verifyProjectileAdaptation),
+                new VerifyCheck("pylon_containment", MycelialCommands::verifyPylonContainment),
+                new VerifyCheck("boss_encounter", MycelialCommands::verifyBossEncounter),
+                new VerifyCheck("tier2_synergy", MycelialCommands::verifyTier2Synergy),
+                new VerifyCheck("synaptic_network", MycelialCommands::verifySynapticNetwork),
+                new VerifyCheck("symbiosis", MycelialCommands::verifySymbiosis),
+                new VerifyCheck("units", MycelialCommands::verifyUnits),
+                new VerifyCheck("expansion", MycelialCommands::verifyExpansion),
+                new VerifyCheck("tide", MycelialCommands::verifyTide),
+                new VerifyCheck("counteroffensive", MycelialCommands::verifyCounteroffensive),
+                new VerifyCheck("arsenal", MycelialCommands::verifyArsenal),
+                new VerifyCheck("mycorrhizal", MycelialCommands::verifyMycorrhizal),
+                new VerifyCheck("hive_ai", MycelialCommands::verifyHiveAi),
+                new VerifyCheck("chimera", MycelialCommands::verifyChimera),
+                new VerifyCheck("memory", MycelialCommands::verifyMemory),
+                new VerifyCheck("tactical_ai", MycelialCommands::verifyTacticalAi),
+                new VerifyCheck("field_ai", MycelialCommands::verifyFieldAi),
+                new VerifyCheck("loot", MycelialCommands::verifyLoot),
+                new VerifyCheck("homeostasis", MycelialCommands::verifyHomeostasis),
+                new VerifyCheck("polish", MycelialCommands::verifyPolish),
+                new VerifyCheck("dimension_progression", MycelialCommands::verifyDimensionProgression),
+                new VerifyCheck("cycles", MycelialCommands::verifyCycles),
+                new VerifyCheck("colony", MycelialCommands::verifyColony),
+                new VerifyCheck("sinkhole", MycelialCommands::verifySinkhole)
+        ));
     }
 
     private static int verifyProjectileAdaptation(CommandSourceStack source) {
@@ -496,14 +452,12 @@ public final class MycelialCommands {
                     MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get()
             );
             if (preObs != ProgressionGoalEngine.CreatureObservation.INSUFFICIENT_EVIDENCE) {
-                source.sendFailure(Component.literal("[Verify:Projectile] FAIL: Expected INSUFFICIENT_EVIDENCE before combat."));
-                return 0;
+                return fail(source, "[Verify:Projectile] FAIL: Expected INSUFFICIENT_EVIDENCE before combat.");
             }
             for (int i = 0; i < 20 && !hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT); i++) {
                 SporelingEntity sporeling = ModEntities.SPORELING.get().create(level);
                 if (sporeling == null) {
-                    source.sendFailure(Component.literal("[Verify:Projectile] Failed to create Sporeling."));
-                    return 0;
+                    return fail(source, "[Verify:Projectile] Failed to create Sporeling.");
                 }
                 Arrow arrow = new Arrow(level, origin.getX() + 0.5, origin.getY() + 1.0, origin.getZ() + 0.5,
                         new ItemStack(Items.ARROW), null);
@@ -518,14 +472,12 @@ public final class MycelialCommands {
             }
 
             if (!hive.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT)) {
-                source.sendFailure(Component.literal("[Verify:Projectile] FAIL: PROJECTILE_DEFLECT did not activate."));
-                return 0;
+                return fail(source, "[Verify:Projectile] FAIL: PROJECTILE_DEFLECT did not activate.");
             }
 
             brute = ModEntities.CHITIN_BRUTE.get().create(level);
             if (brute == null) {
-                source.sendFailure(Component.literal("[Verify:Projectile] FAIL: Could not create ChitinBrute."));
-                return 0;
+                return fail(source, "[Verify:Projectile] FAIL: Could not create ChitinBrute.");
             }
             brute.moveTo(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5);
             brute.finalizeSpawn(level, level.getCurrentDifficultyAt(origin), MobSpawnType.COMMAND, null);
@@ -540,22 +492,15 @@ public final class MycelialCommands {
             );
             if (!brute.hasTrait(AdaptationTrait.PROJECTILE_DEFLECT)
                     || postObs != ProgressionGoalEngine.CreatureObservation.CONFIRMED_PROJECTILE_ADAPTATION) {
-                source.sendFailure(Component.literal("[Verify:Projectile] FAIL: ChitinBrute did not inherit trait or observation mismatch."));
-                return 0;
+                return fail(source, "[Verify:Projectile] FAIL: ChitinBrute did not inherit trait or observation mismatch.");
             }
 
-            source.sendSuccess(() -> Component.literal("[Verify:Projectile] PASS: Arrow stimulus activated PROJECTILE_DEFLECT and rank inheritance verified.")
-                    .withStyle(ChatFormatting.GREEN), false);
-            return 1;
+            return pass(source, "[Verify:Projectile] PASS: Arrow stimulus activated PROJECTILE_DEFLECT and rank inheritance verified.");
         } finally {
             if (brute != null) {
                 brute.discard();
             }
-            try {
-                hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
-            } finally {
-                syncAllPlayers(level);
-            }
+            restoreHiveAndSync(level, hive, hiveSnapshot);
         }
     }
 
@@ -595,12 +540,9 @@ public final class MycelialCommands {
         }
 
         if (!contained) {
-            source.sendFailure(Component.literal("[Verify:Pylon] FAIL: Mycelium breached or zone was unprotected."));
-            return 0;
+            return fail(source, "[Verify:Pylon] FAIL: Mycelium breached or zone was unprotected.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Pylon] PASS: Purification Pylon contained Creeping Mycelium spread.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Pylon] PASS: Purification Pylon contained Creeping Mycelium spread.");
     }
 
     private static int verifyBossEncounter(CommandSourceStack source) {
@@ -626,8 +568,7 @@ public final class MycelialCommands {
             level.setBlockAndUpdate(nodePos, ModBlocks.SYMBIOTIC_NODE.get().defaultBlockState());
             tracker.addNode(nodePos, com.alex.mycelialmind.world.SynapticNodeType.SYMBIOTIC);
             if (boss == null) {
-                source.sendFailure(Component.literal("[Verify:Boss] FAIL: Could not create HiveCore."));
-                return 0;
+                return fail(source, "[Verify:Boss] FAIL: Could not create HiveCore.");
             }
             boss.moveTo(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5);
             boss.finalizeSpawn(level, level.getCurrentDifficultyAt(origin), MobSpawnType.COMMAND, null);
@@ -648,26 +589,15 @@ public final class MycelialCommands {
             try {
                 restoreBlocks(level, blockSnapshot);
             } finally {
-                try {
-                    tracker.restoreFromSnapshot(trackerSnapshot, level.registryAccess());
-                } finally {
-                    try {
-                        hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
-                    } finally {
-                        syncAllPlayers(level);
-                    }
-                }
+                restoreTrackerHiveAndSync(level, tracker, trackerSnapshot, hive, hiveSnapshot);
             }
         }
 
         if (!hasShield || !adaptedMagic) {
-            source.sendFailure(Component.literal(String.format(
-                    "[Verify:Boss] FAIL: hasShield=%s adaptedMagic=%s", hasShield, adaptedMagic)));
-            return 0;
+            return fail(source, String.format(
+                    "[Verify:Boss] FAIL: hasShield=%s adaptedMagic=%s", hasShield, adaptedMagic));
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Boss] PASS: HiveCoreBoss symbiotic node shield & real-time adaptation verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Boss] PASS: HiveCoreBoss symbiotic node shield & real-time adaptation verified.");
     }
 
     private static int verifyTier2Synergy(CommandSourceStack source) {
@@ -683,19 +613,12 @@ public final class MycelialCommands {
             t2 = hive.hasTier2Trait(AdaptationTrait.FIRE_RESISTANT);
             syn = hive.hasSynergy(HiveSynergy.PYROLYTIC_SHELL);
         } finally {
-            try {
-                hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
-            } finally {
-                syncAllPlayers(level);
-            }
+            restoreHiveAndSync(level, hive, hiveSnapshot);
         }
         if (!t2 || !syn) {
-            source.sendFailure(Component.literal(String.format("[Verify:Tier2] FAIL: t2=%s syn=%s", t2, syn)));
-            return 0;
+            return fail(source, String.format("[Verify:Tier2] FAIL: t2=%s syn=%s", t2, syn));
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Tier2] PASS: Tier 2 mutation & PYROLYTIC_SHELL synergy verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Tier2] PASS: Tier 2 mutation & PYROLYTIC_SHELL synergy verified.");
     }
 
     private static int verifySynapticNetwork(CommandSourceStack source) {
@@ -733,13 +656,10 @@ public final class MycelialCommands {
         }
 
         if (!linkedBefore || linkedAfter) {
-            source.sendFailure(Component.literal(String.format(
-                    "[Verify:Network] FAIL: linkedBefore=%s linkedAfter=%s", linkedBefore, linkedAfter)));
-            return 0;
+            return fail(source, String.format(
+                    "[Verify:Network] FAIL: linkedBefore=%s linkedAfter=%s", linkedBefore, linkedAfter));
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Network] PASS: Synaptic link formation & Pylon severing verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Network] PASS: Synaptic link formation & Pylon severing verified.");
     }
 
     private static int verifySymbiosis(CommandSourceStack source) {
@@ -749,21 +669,17 @@ public final class MycelialCommands {
         boolean third = data.equipMutagen(SymbioticMutagen.ARCANE_SYNAPSE);
         double amp = data.getThreatAmplifier();
         if (!first || !second || third || Math.abs(amp - 1.30) > 0.001) {
-            source.sendFailure(Component.literal(String.format(
-                    "[Verify:Symbiosis] FAIL: first=%s second=%s third=%s amp=%.2f", first, second, third, amp)));
-            return 0;
+            return fail(source, String.format(
+                    "[Verify:Symbiosis] FAIL: first=%s second=%s third=%s amp=%.2f", first, second, third, amp));
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Symbiosis] PASS: 2-slot Symbiosis cap & 1.30x threat amplifier verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Symbiosis] PASS: 2-slot Symbiosis cap & 1.30x threat amplifier verified.");
     }
 
     private static int verifyUnits(CommandSourceStack source) {
         ServerLevel level = source.getLevel();
         ChitinBruteEntity brute = ModEntities.CHITIN_BRUTE.get().create(level);
         if (brute == null) {
-            source.sendFailure(Component.literal("[Verify:Units] FAIL: Could not create ChitinBrute."));
-            return 0;
+            return fail(source, "[Verify:Units] FAIL: Could not create ChitinBrute.");
         }
         float baseHp = brute.getMaxHealth();
         brute.promoteRank(EvolutionRank.ELITE);
@@ -771,12 +687,9 @@ public final class MycelialCommands {
         boolean ok = brute.getEvolutionRank() == EvolutionRank.ELITE && eliteHp > baseHp;
         brute.discard();
         if (!ok) {
-            source.sendFailure(Component.literal("[Verify:Units] FAIL: ELITE promotion did not scale HP."));
-            return 0;
+            return fail(source, "[Verify:Units] FAIL: ELITE promotion did not scale HP.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Units] PASS: EvolutionRank ELITE promotion & stat scaling verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Units] PASS: EvolutionRank ELITE promotion & stat scaling verified.");
     }
 
     private static int verifyExpansion(CommandSourceStack source) {
@@ -791,12 +704,9 @@ public final class MycelialCommands {
             architect.discard();
         }
         if (!ok) {
-            source.sendFailure(Component.literal("[Verify:Expansion] FAIL: SporeArchitect or aggressive village assimilation check failed."));
-            return 0;
+            return fail(source, "[Verify:Expansion] FAIL: SporeArchitect or aggressive village assimilation check failed.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Expansion] PASS: SporeArchitect & aggressive village assimilation verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Expansion] PASS: SporeArchitect & aggressive village assimilation verified.");
     }
 
     private static int verifyTide(CommandSourceStack source) {
@@ -820,19 +730,12 @@ public final class MycelialCommands {
             if (behemoth != null) {
                 behemoth.discard();
             }
-            try {
-                hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
-            } finally {
-                syncAllPlayers(level);
-            }
+            restoreHiveAndSync(level, hive, hiveSnapshot);
         }
         if (!active) {
-            source.sendFailure(Component.literal("[Verify:Tide] FAIL: Fungal Tide lifecycle or SporeBehemoth shield check failed."));
-            return 0;
+            return fail(source, "[Verify:Tide] FAIL: Fungal Tide lifecycle or SporeBehemoth shield check failed.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Tide] PASS: Fungal Tide & SporeBehemoth Mycelial Shield verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Tide] PASS: Fungal Tide & SporeBehemoth Mycelial Shield verified.");
     }
 
     private static int verifyCounteroffensive(CommandSourceStack source) {
@@ -847,12 +750,9 @@ public final class MycelialCommands {
             drone.discard();
         }
         if (!ok) {
-            source.sendFailure(Component.literal("[Verify:Counteroffensive] FAIL: PurifierDrone or recipe missing."));
-            return 0;
+            return fail(source, "[Verify:Counteroffensive] FAIL: PurifierDrone or recipe missing.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Counteroffensive] PASS: PurifierDrone & Survival recipes verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Counteroffensive] PASS: PurifierDrone & Survival recipes verified.");
     }
 
     private static int verifyArsenal(CommandSourceStack source) {
@@ -864,12 +764,9 @@ public final class MycelialCommands {
         boolean ok = m1 && m2
                 && com.alex.mycelialmind.item.ChitinArmorItem.getArmorRank(chest) == EvolutionRank.ELITE;
         if (!ok) {
-            source.sendFailure(Component.literal("[Verify:Arsenal] FAIL: ChitinArmor evolution check failed."));
-            return 0;
+            return fail(source, "[Verify:Arsenal] FAIL: ChitinArmor evolution check failed.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Arsenal] PASS: ChitinArmor BASE->MUTATED->ELITE evolution verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Arsenal] PASS: ChitinArmor BASE->MUTATED->ELITE evolution verified.");
     }
 
     private static int verifyMycorrhizal(CommandSourceStack source) {
@@ -893,12 +790,9 @@ public final class MycelialCommands {
         }
         boolean ok = mimicPersonaOk && graftRecipeOk && decoyRecipeOk;
         if (!ok) {
-            source.sendFailure(Component.literal("[Verify:Mycorrhizal] FAIL: SynapticMimic or v1.2.0 recipes missing."));
-            return 0;
+            return fail(source, "[Verify:Mycorrhizal] FAIL: SynapticMimic or v1.2.0 recipes missing.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Mycorrhizal] PASS: SynapticMimic, SymbioticNode, and Mycorrhizal Echoes verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Mycorrhizal] PASS: SynapticMimic, SymbioticNode, and Mycorrhizal Echoes verified.");
     }
 
     private static int verifyHiveAi(CommandSourceStack source) {
@@ -937,13 +831,10 @@ public final class MycelialCommands {
             }
 
             if (!enemyOk || !flowOk || !arriveOk || !btOk) {
-                source.sendFailure(Component.literal("[Verify:HiveAI] FAIL: enemyOk=" + enemyOk
-                        + " flowOk=" + flowOk + " arriveOk=" + arriveOk + " btOk=" + btOk));
-                return 0;
+                return fail(source, "[Verify:HiveAI] FAIL: enemyOk=" + enemyOk
+                        + " flowOk=" + flowOk + " arriveOk=" + arriveOk + " btOk=" + btOk);
             }
-            source.sendSuccess(() -> Component.literal("[Verify:HiveAI] PASS: Native HiveBehaviorTree, Arrive steering, FastNoiseLite flow & Tactical Utility verified.")
-                    .withStyle(ChatFormatting.GREEN), false);
-            return 1;
+            return pass(source, "[Verify:HiveAI] PASS: Native HiveBehaviorTree, Arrive steering, FastNoiseLite flow & Tactical Utility verified.");
         } finally {
             if (brute != null) {
                 brute.discard();
@@ -966,12 +857,9 @@ public final class MycelialCommands {
             chimera.discard();
         }
         if (!ok) {
-            source.sendFailure(Component.literal("[Verify:Chimera] FAIL: MycelialChimera or chimera_ovum recipe missing."));
-            return 0;
+            return fail(source, "[Verify:Chimera] FAIL: MycelialChimera or chimera_ovum recipe missing.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Chimera] PASS: Modular Chimera Bio-Forge & randomized genes verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Chimera] PASS: Modular Chimera Bio-Forge & randomized genes verified.");
     }
 
     private static int verifyMemory(CommandSourceStack source) {
@@ -988,19 +876,12 @@ public final class MycelialCommands {
             hive.recordHabit(com.alex.mycelialmind.hive.PlayerHabit.COMBAT_MEDIC, 65.0);
             habitOk = hive.hasHabitAdaptation(com.alex.mycelialmind.hive.PlayerHabit.COMBAT_MEDIC);
         } finally {
-            try {
-                hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
-            } finally {
-                syncAllPlayers(level);
-            }
+            restoreHiveAndSync(level, hive, hiveSnapshot);
         }
         if (!recipeOk || !habitOk) {
-            source.sendFailure(Component.literal("[Verify:Memory] FAIL: Habit adaptation or false_engram_injector recipe missing."));
-            return 0;
+            return fail(source, "[Verify:Memory] FAIL: Habit adaptation or false_engram_injector recipe missing.");
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Memory] PASS: PlayerHabits, Volatile Buffer & Pavlovian Deception verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:Memory] PASS: PlayerHabits, Volatile Buffer & Pavlovian Deception verified.");
     }
 
     private static int verifyTacticalAi(CommandSourceStack source) {
@@ -1011,8 +892,7 @@ public final class MycelialCommands {
         var spitter = ModEntities.ACID_SPITTER.get().create(level);
         try {
             if (weaver == null || brute == null || spitter == null) {
-                source.sendFailure(Component.literal("[Verify:TacticalAI] FAIL: Could not instantiate squad entities."));
-                return 0;
+                return fail(source, "[Verify:TacticalAI] FAIL: Could not instantiate squad entities.");
             }
             weaver.moveTo(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5, 0.0F, 0.0F);
             brute.moveTo(origin.getX() + 2.5, origin.getY(), origin.getZ() + 0.5, 0.0F, 0.0F);
@@ -1034,13 +914,10 @@ public final class MycelialCommands {
             boolean desyncOk = desynced >= 2 && brute.isDesynced() && !brute.isFrenzyActive();
 
             if (!leaderOk || !frenzyOn || !desyncOk) {
-                source.sendFailure(Component.literal("[Verify:TacticalAI] FAIL: leaderOk=" + leaderOk
-                        + " frenzyOn=" + frenzyOn + " desyncOk=" + desyncOk));
-                return 0;
+                return fail(source, "[Verify:TacticalAI] FAIL: leaderOk=" + leaderOk
+                        + " frenzyOn=" + frenzyOn + " desyncOk=" + desyncOk);
             }
-            source.sendSuccess(() -> Component.literal("[Verify:TacticalAI] PASS: Leader priority, Frenzy & Synaptic Desync verified.")
-                    .withStyle(ChatFormatting.GREEN), false);
-            return 1;
+            return pass(source, "[Verify:TacticalAI] PASS: Leader priority, Frenzy & Synaptic Desync verified.");
         } finally {
             if (weaver != null) weaver.discard();
             if (brute != null) brute.discard();
@@ -1083,16 +960,13 @@ public final class MycelialCommands {
         }
 
         if (!lightAvoids || !sapperIgnores || !carrionOk || !jamOk) {
-            source.sendFailure(Component.literal("[Verify:FieldAI] FAIL: lightAvoids=" + lightAvoids
-                    + " sapperIgnores=" + sapperIgnores + " carrionOk=" + carrionOk + " jamOk=" + jamOk));
-            return 0;
+            return fail(source, "[Verify:FieldAI] FAIL: lightAvoids=" + lightAvoids
+                    + " sapperIgnores=" + sapperIgnores + " carrionOk=" + carrionOk + " jamOk=" + jamOk);
         }
         if (verifyHyphalSiege(source) != 1) {
             return 0;
         }
-        source.sendSuccess(() -> Component.literal("[Verify:FieldAI] PASS: Ephemeral Chitin, Trauma Killzones, Carrion Necrophagy & Parasitic Jamming verified.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Verify:FieldAI] PASS: Ephemeral Chitin, Trauma Killzones, Carrion Necrophagy & Parasitic Jamming verified.");
     }
 
     private static int verifyHyphalSiege(CommandSourceStack source) {
@@ -1228,17 +1102,14 @@ public final class MycelialCommands {
                     || !groundIntactAfterSever || !densityDropped
                     || !accentOk || !sawDarkOak || !sawArchBrick
                     || !coreHasVeinHalo || !grew1 || !grew2 || !stalledInLight || !coreDestroyedOk || !completedOk) {
-                source.sendFailure(Component.literal(String.format(
+                return fail(source, String.format(
                         "[Verify:HyphalSiege] FAIL: sprout=%d overlay=%s ambush=%s sev=%d dirtOk=%s drop=%s acc=%s oak=%s brick=%s halo=%s grew=%s/%s stall=%s coreDel=%s comp=%s",
                         sprouted, veinOverlayOnIntactDirt, ambushOk, severed, groundIntactAfterSever, densityDropped,
                         accentOk, sawDarkOak, sawArchBrick, coreHasVeinHalo,
-                        grew1, grew2, stalledInLight, coreDestroyedOk, completedOk)));
-                return 0;
+                        grew1, grew2, stalledInLight, coreDestroyedOk, completedOk));
             }
-            source.sendSuccess(() -> Component.literal(
-                    "[Verify:HyphalSiege] PASS: Hyphal Route Veins/Ambushes, Architectural Accent Reflection & Blind-Spot Outbreaks verified.")
-                    .withStyle(ChatFormatting.GREEN), false);
-            return 1;
+            return pass(source,
+                    "[Verify:HyphalSiege] PASS: Hyphal Route Veins/Ambushes, Architectural Accent Reflection & Blind-Spot Outbreaks verified.");
         } finally {
             for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.Entity.class, cleanupArea)) {
                 if (!preExistingIds.contains(e.getUUID()) && !(e instanceof ServerPlayer)) {
@@ -1248,15 +1119,7 @@ public final class MycelialCommands {
             try {
                 restoreBlocks(level, blockSnapshot);
             } finally {
-                try {
-                    tracker.restoreFromSnapshot(trackerSnapshot, level.registryAccess());
-                } finally {
-                    try {
-                        hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
-                    } finally {
-                        syncAllPlayers(level);
-                    }
-                }
+                restoreTrackerHiveAndSync(level, tracker, trackerSnapshot, hive, hiveSnapshot);
             }
         }
     }
@@ -1267,28 +1130,24 @@ public final class MycelialCommands {
 
         for (ResourceKey<LootTable> chestKey : MycelialLootSystem.ALL_CHEST_TABLES) {
             if (registries.getLootTable(chestKey) == LootTable.EMPTY) {
-                source.sendFailure(Component.literal("[Verify:Loot] FAIL: Missing chest table " + chestKey.location()));
-                return 0;
+                return fail(source, "[Verify:Loot] FAIL: Missing chest table " + chestKey.location());
             }
         }
         for (String nodeId : List.of("blocks/mycelial_node", "blocks/incubator_node", "blocks/sentinel_node")) {
             ResourceKey<LootTable> key = ResourceKey.create(Registries.LOOT_TABLE,
                     ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, nodeId));
             if (registries.getLootTable(key) == LootTable.EMPTY) {
-                source.sendFailure(Component.literal("[Verify:Loot] FAIL: Missing node table " + nodeId));
-                return 0;
+                return fail(source, "[Verify:Loot] FAIL: Missing node table " + nodeId);
             }
         }
         ResourceKey<LootTable> clericGiftKey = ResourceKey.create(Registries.LOOT_TABLE,
                 ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "gameplay/hero_of_the_village/cleric_mycelial_gift"));
         if (registries.getLootTable(clericGiftKey) == LootTable.EMPTY) {
-            source.sendFailure(Component.literal("[Verify:Loot] FAIL: Missing cleric_mycelial_gift loot table."));
-            return 0;
+            return fail(source, "[Verify:Loot] FAIL: Missing cleric_mycelial_gift loot table.");
         }
         if (MycelialLootSystem.rollTraceDrop("underground_traces", RandomSource.create(7L)).isEmpty()
                 || MycelialLootSystem.rollTraceDrop("deep_traces", RandomSource.create(7L)).isEmpty()) {
-            source.sendFailure(Component.literal("[Verify:Loot] FAIL: GLM trace roll returned empty."));
-            return 0;
+            return fail(source, "[Verify:Loot] FAIL: GLM trace roll returned empty.");
         }
 
         boolean sawCodedSample = false;
@@ -1314,16 +1173,13 @@ public final class MycelialCommands {
         }
 
         if (!sawCodedSample || uniqueBonusItems.size() < 4) {
-            source.sendFailure(Component.literal("[Verify:Loot] FAIL: sawCodedSample=" + sawCodedSample
-                    + " uniqueBonusItems=" + uniqueBonusItems.size()));
-            return 0;
+            return fail(source, "[Verify:Loot] FAIL: sawCodedSample=" + sawCodedSample
+                    + " uniqueBonusItems=" + uniqueBonusItems.size());
         }
-        source.sendSuccess(() -> Component.literal("[Verify:Loot] PASS: "
+        return pass(source, "[Verify:Loot] PASS: "
                         + MycelialLootSystem.ALL_CHEST_TABLES.size()
                         + " chest tables, 3 node tables & adaptive mob drops verified ("
-                        + uniqueBonusItems.size() + " drop variants).")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+                        + uniqueBonusItems.size() + " drop variants).");
     }
 
     private static int verifyHomeostasis(CommandSourceStack source) {
@@ -1360,8 +1216,7 @@ public final class MycelialCommands {
         }
         for (BlockPos pos : touchedPositions) {
             if (!level.isInWorldBounds(pos) || !level.isLoaded(pos)) {
-                source.sendFailure(Component.literal("[Verify:Homeostasis] Refused: scenario positions must be inside the world and already loaded."));
-                return 0;
+                return fail(source, "[Verify:Homeostasis] Refused: scenario positions must be inside the world and already loaded.");
             }
         }
 
@@ -1448,16 +1303,14 @@ public final class MycelialCommands {
                     || sensAtImmune < 1 || sensAfterSedation >= sensAtImmune
                     || neighborStress <= 0.0 || neighborStress > DimensionalHomeostasisEngine.INFLAMMATORY_DIFFUSION_CAP_WITHOUT_FOREIGN + 0.01
                     || activeSignal <= 0 || witheredSignal != 0) {
-                source.sendFailure(Component.literal(String.format(
+                return fail(source, String.format(
                         "[Verify:Homeostasis] FAIL: stress=%.1f stage=%s open=%s roof=%s cysts=%d smothered=%s freed=%s sedated=%.1f sens=%d->%d nbr=%.1f sig=%d/%d",
                         escalatedStress, escalatedStage, exposedOpen, shelteredUnderBarrier, cystsGrown,
-                        smothered, freed, sedatedStress, sensAtImmune, sensAfterSedation, neighborStress, activeSignal, witheredSignal)));
-                return 0;
+                        smothered, freed, sedatedStress, sensAtImmune, sensAfterSedation, neighborStress, activeSignal, witheredSignal));
             }
-            source.sendSuccess(() -> Component.literal(String.format(
+            return pass(source, String.format(
                     "[Verify:Homeostasis] PASS: escalation(%.1f%%), roof shelter, antibody smother/free (%d cysts), sensitization, diffusion & sedation verified.",
-                    escalatedStress, cystsGrown)).withStyle(ChatFormatting.GREEN), false);
-            return 1;
+                    escalatedStress, cystsGrown));
         } finally {
             try {
                 restoreBlocks(level, blockSnapshot);
@@ -1634,17 +1487,15 @@ public final class MycelialCommands {
         if (!soundsOk || !entitySoundsOk || distinctAmbient.size() != 17
                 || distinctHurt.size() != 17 || distinctDeath.size() != 17
                 || !tagsAndBenchOk || !thresholdsOk || !particlesOk) {
-            source.sendFailure(Component.literal(String.format(
+            return fail(source, String.format(
                     "[Verify:Polish] FAIL: sounds=%s(%d) entitySounds=%s ambient=%d hurt=%d death=%d tagsBench=%s thresholds=%s particles=%s(%d)",
                     soundsOk, soundEntries.size(), entitySoundsOk,
                     distinctAmbient.size(), distinctHurt.size(), distinctDeath.size(),
-                    tagsAndBenchOk, thresholdsOk, particlesOk, ModParticles.all().size())));
-            return 0;
+                    tagsAndBenchOk, thresholdsOk, particlesOk, ModParticles.all().size()));
         }
-        source.sendSuccess(() -> Component.literal(String.format(
+        return pass(source, String.format(
                 "[Verify:Polish] PASS: %d ModSounds, %d distinct entity audio profiles (17 ambient/hurt/death), %d particle types with resources, tags/bench & calibrated thresholds (70/200/60) verified.",
-                soundEntries.size(), distinctAmbient.size(), ModParticles.all().size())).withStyle(ChatFormatting.GREEN), false);
-        return 1;
+                soundEntries.size(), distinctAmbient.size(), ModParticles.all().size()));
     }
 
     private static int verifyDimensionProgression(CommandSourceStack source) {
@@ -1652,8 +1503,7 @@ public final class MycelialCommands {
         ServerLevel overworld = server.overworld();
         ServerLevel deep = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
         if (deep == null) {
-            source.sendFailure(Component.literal("[Verify:DimensionProgression] deep_mycelium level missing."));
-            return 0;
+            return fail(source, "[Verify:DimensionProgression] deep_mycelium level missing.");
         }
         HiveMindSavedData owHive = HiveMindSavedData.get(overworld);
         HiveMindSavedData deepHive = HiveMindSavedData.get(deep);
@@ -1699,16 +1549,13 @@ public final class MycelialCommands {
             double scaledInRemission = DimensionalHomeostasisDirector.applyProgressionStressScaling(deep, 10.0);
 
             if (!deepSynced || scaledBeforeRemission <= 10.0 || !postMatriarchOk || scaledInRemission >= scaledBeforeRemission) {
-                source.sendFailure(Component.literal(String.format(
+                return fail(source, String.format(
                         "[Verify:DimensionProgression] FAIL: synced=%s scaleBefore=%.2f postOk=%s scaleRem=%.2f owThreat=%.1f",
-                        deepSynced, scaledBeforeRemission, postMatriarchOk, scaledInRemission, owHive.getThreatLevel())));
-                return 0;
+                        deepSynced, scaledBeforeRemission, postMatriarchOk, scaledInRemission, owHive.getThreatLevel()));
             }
-            source.sendSuccess(() -> Component.literal(String.format(
+            return pass(source, String.format(
                     "[Verify:DimensionProgression] PASS: Overworld->Deep sync (%.1f%%), tier stress scaling (%.2fx->%.2fx) & Post-Matriarch Remission verified.",
-                    deepHive.getThreatLevel(), scaledBeforeRemission / 10.0, scaledInRemission / 10.0))
-                    .withStyle(ChatFormatting.GREEN), false);
-            return 1;
+                    deepHive.getThreatLevel(), scaledBeforeRemission / 10.0, scaledInRemission / 10.0));
         } finally {
             try {
                 owHive.restoreFromSnapshot(owHiveSnapshot, overworld.registryAccess());
@@ -1723,49 +1570,6 @@ public final class MycelialCommands {
                         syncAllPlayers(deep);
                     }
                 }
-            }
-        }
-    }
-
-    private static Map<BlockPos, SavedBlock> snapshotBlocks(ServerLevel level, Set<BlockPos> positions) {
-        Map<BlockPos, SavedBlock> snapshot = new LinkedHashMap<>();
-        for (BlockPos pos : positions) {
-            BlockPos immutable = pos.immutable();
-            BlockEntity blockEntity = level.getBlockEntity(immutable);
-            CompoundTag blockEntityData = blockEntity == null
-                    ? null
-                    : blockEntity.saveWithFullMetadata(level.registryAccess());
-            snapshot.put(immutable, new SavedBlock(level.getBlockState(immutable), blockEntityData));
-        }
-        return snapshot;
-    }
-
-    private static boolean ensureScenarioPositionsLoaded(CommandSourceStack source, String scenario,
-                                                         Set<BlockPos> positions) {
-        ServerLevel level = source.getLevel();
-        for (BlockPos pos : positions) {
-            if (!level.isInWorldBounds(pos) || !level.isLoaded(pos)) {
-                source.sendFailure(Component.literal("[Verify:" + scenario
-                        + "] Refused: scenario positions must be inside the world and already loaded."));
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static void restoreBlocks(ServerLevel level, Map<BlockPos, SavedBlock> snapshot) {
-        for (Map.Entry<BlockPos, SavedBlock> entry : snapshot.entrySet()) {
-            level.setBlock(entry.getKey(), entry.getValue().state(), 3);
-        }
-        for (Map.Entry<BlockPos, SavedBlock> entry : snapshot.entrySet()) {
-            CompoundTag blockEntityData = entry.getValue().blockEntityData();
-            if (blockEntityData == null) {
-                continue;
-            }
-            BlockEntity blockEntity = level.getBlockEntity(entry.getKey());
-            if (blockEntity != null) {
-                blockEntity.loadWithComponents(blockEntityData.copy(), level.registryAccess());
-                blockEntity.setChanged();
             }
         }
     }
@@ -1884,17 +1688,14 @@ public final class MycelialCommands {
                 + jsonPath.map(p -> " | json=" + p.getFileName()).orElse("");
 
         if (report.passed()) {
-            source.sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GREEN), false);
-            return 1;
+            return pass(source, line);
         }
-        source.sendFailure(Component.literal(line + " | failures=" + String.join("; ", report.failures())));
-        return 0;
+        return fail(source, line + " | failures=" + String.join("; ", report.failures()));
     }
 
     private static int reportSymbiosis(CommandSourceStack source) {
         if (!(source.getEntity() instanceof ServerPlayer player)) {
-            source.sendFailure(Component.literal("Must be executed by a player."));
-            return 0;
+            return fail(source, "Must be executed by a player.");
         }
         PlayerSymbiosisData data = player.getData(ModAttachments.SYMBIOSIS);
         String list = data.getEquippedMutagens().isEmpty()
@@ -1909,26 +1710,21 @@ public final class MycelialCommands {
 
     private static int clearSymbiosis(CommandSourceStack source) {
         if (!(source.getEntity() instanceof ServerPlayer player)) {
-            source.sendFailure(Component.literal("Must be executed by a player."));
-            return 0;
+            return fail(source, "Must be executed by a player.");
         }
         player.getData(ModAttachments.SYMBIOSIS).clearMutagens();
         SymbiosisAttributeSync.sync(player);
         SymbiosisSyncPayload.syncToPlayer(player);
-        source.sendSuccess(() -> Component.literal("[Symbiosis] Equipped mutagens cleared.")
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Symbiosis] Equipped mutagens cleared.");
     }
 
     private static int grantMutagen(CommandSourceStack source, String rawId) {
         if (!(source.getEntity() instanceof ServerPlayer player)) {
-            source.sendFailure(Component.literal("Must be executed by a player."));
-            return 0;
+            return fail(source, "Must be executed by a player.");
         }
         SymbioticMutagen mutagen = SymbioticMutagen.fromId(rawId.toLowerCase(Locale.ROOT));
         if (mutagen == null) {
-            source.sendFailure(Component.literal("Unknown mutagen: " + rawId));
-            return 0;
+            return fail(source, "Unknown mutagen: " + rawId);
         }
         if (player.getData(ModAttachments.SYMBIOSIS).equipMutagen(mutagen)) {
             SymbiosisAttributeSync.sync(player);
@@ -1937,25 +1733,16 @@ public final class MycelialCommands {
                     .withStyle(ChatFormatting.LIGHT_PURPLE), false);
             return 1;
         }
-        source.sendFailure(Component.literal("[Symbiosis] Slots full or mutagen already active."));
-        return 0;
-    }
-
-    private static void syncAllPlayers(ServerLevel level) {
-        for (ServerPlayer player : level.players()) {
-            PacketDistributor.sendToPlayer(player, HiveSyncPayload.forPlayer(level, player));
-        }
+        return fail(source, "[Symbiosis] Slots full or mutagen already active.");
     }
 
     private static int setDiplomacyRep(CommandSourceStack source, String strainRaw, int value) {
         if (!(source.getEntity() instanceof ServerPlayer player)) {
-            source.sendFailure(Component.literal("Must be executed by a player."));
-            return 0;
+            return fail(source, "Must be executed by a player.");
         }
         var strain = com.alex.mycelialmind.hive.HiveStrain.byName(strainRaw);
         if (!strain.isSchismStrain()) {
-            source.sendFailure(Component.literal("Use 'amber' or 'crimson'."));
-            return 0;
+            return fail(source, "Use 'amber' or 'crimson'.");
         }
         var dip = player.getData(ModAttachments.DIPLOMACY);
         dip.setReputation(strain, value);
@@ -2007,16 +1794,14 @@ public final class MycelialCommands {
             if (tok.isBlank()) continue;
             var mut = com.alex.mycelialmind.hive.HiveCycleMutator.byId(tok);
             if (mut == null) {
-                source.sendFailure(Component.literal("[Cycle] Unknown mutator: " + tok));
-                return 0;
+                return fail(source, "[Cycle] Unknown mutator: " + tok);
             }
             mask |= mut.bitMask();
         }
         ServerLevel level = source.getLevel();
         ServerPlayer player = source.getEntity() instanceof ServerPlayer sp ? sp : null;
         if (!com.alex.mycelialmind.hive.HiveCycleDirector.startCycle(player, level, mask)) {
-            source.sendFailure(Component.literal("[Cycle] Cannot start cycle (requires Matriarch defeated and 1-3 mutators, and no active cycle)."));
-            return 0;
+            return fail(source, "[Cycle] Cannot start cycle (requires Matriarch defeated and 1-3 mutators, and no active cycle).");
         }
         final int chosenMask = mask;
         source.sendSuccess(() -> Component.literal("[Cycle] Started cycle with mask=" + chosenMask)
@@ -2028,8 +1813,7 @@ public final class MycelialCommands {
         ServerLevel level = source.getLevel();
         ServerPlayer player = source.getEntity() instanceof ServerPlayer sp ? sp : null;
         if (!com.alex.mycelialmind.hive.HiveCycleDirector.abortCycle(player, level)) {
-            source.sendFailure(Component.literal("[Cycle] No active cycle to abort."));
-            return 0;
+            return fail(source, "[Cycle] No active cycle to abort.");
         }
         source.sendSuccess(() -> Component.literal("[Cycle] Aborted active cycle.")
                 .withStyle(ChatFormatting.YELLOW), true);
@@ -2060,34 +1844,27 @@ public final class MycelialCommands {
             int mask = com.alex.mycelialmind.hive.HiveCycleMutator.PRIMORDIAL_APEX.bitMask()
                     | com.alex.mycelialmind.hive.HiveCycleMutator.SYNAPTIC_SWARM.bitMask();
             if (!com.alex.mycelialmind.hive.HiveCycleDirector.startCycle(null, overworld, mask)) {
-                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: startCycle returned false."));
-                return 0;
+                return fail(source, "[Verify:Cycles] FAIL: startCycle returned false.");
             }
             if (!cycles.isCycleActive() || cycles.getActiveMutatorMask() != mask) {
-                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: Cycle did not activate with requested mutators."));
-                return 0;
+                return fail(source, "[Verify:Cycles] FAIL: Cycle did not activate with requested mutators.");
             }
             testMatriarch = ModEntities.APEX_MATRIARCH.get().create(overworld);
             if (testMatriarch == null) {
-                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: Could not create ApexMatriarchEntity."));
-                return 0;
+                return fail(source, "[Verify:Cycles] FAIL: Could not create ApexMatriarchEntity.");
             }
             testMatriarch.moveTo(source.getPosition().x, source.getPosition().y + 2, source.getPosition().z);
             com.alex.mycelialmind.hive.HiveCycleDirector.applyBossCycleScaling(testMatriarch, overworld);
             if (testMatriarch.getMaxHealth() <= 600.0F) {
-                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: ApexMatriarch HP did not scale with PRIMORDIAL_APEX."));
-                return 0;
+                return fail(source, "[Verify:Cycles] FAIL: ApexMatriarch HP did not scale with PRIMORDIAL_APEX.");
             }
             var res = cycles.completeCycle(overworld.getGameTime() + 100L);
             if (res == null || res.score() < 1000 || cycles.getCompletedCycles() != 1 || cycles.getBestScore() != res.score()) {
-                source.sendFailure(Component.literal("[Verify:Cycles] FAIL: Cycle completion/record calculation invalid."));
-                return 0;
+                return fail(source, "[Verify:Cycles] FAIL: Cycle completion/record calculation invalid.");
             }
             final float scaledHp = testMatriarch.getMaxHealth();
-            source.sendSuccess(() -> Component.literal("[Verify:Cycles] PASS (ScaledHP="
-                    + scaledHp + ", Score=" + res.score() + ", Grade=" + res.grade() + ")")
-                    .withStyle(ChatFormatting.GREEN), false);
-            return 1;
+            return pass(source, "[Verify:Cycles] PASS (ScaledHP="
+                    + scaledHp + ", Score=" + res.score() + ", Grade=" + res.grade() + ")");
         } finally {
             if (testMatriarch != null) {
                 testMatriarch.discard();
@@ -2110,7 +1887,7 @@ public final class MycelialCommands {
                     + saved.getAllColonies().size()).withStyle(ChatFormatting.YELLOW), false);
             return 1;
         }
-        source.sendSuccess(() -> Component.literal(String.format(
+        return pass(source, String.format(
                 "[Colony] Nexus=%s | Tier=%d | Radius=%dm | Pop=%d/%d | Biomass=%d | Morale=%.0f%% | DomainXP=%d | Traits=0x%X | Outposts=%d | Orders=%d",
                 nearest.getNexusPos().toShortString(),
                 nearest.getTier(),
@@ -2123,30 +1900,26 @@ public final class MycelialCommands {
                 nearest.getUnlockedTraitMask(),
                 nearest.getLinkedOutposts().size(),
                 nearest.getOrderBoard().size()
-        )).withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        ));
     }
 
     private static int spawnColonySymbiontCmd(CommandSourceStack source, String rawCaste) {
         var caste = com.alex.mycelialmind.colony.SymbiontCaste.byId(rawCaste);
         if (caste == null) {
-            source.sendFailure(Component.literal("[Colony] Unknown caste: " + rawCaste
-                    + ". Valid: harvester, excavator, courier, architect, sentinel"));
-            return 0;
+            return fail(source, "[Colony] Unknown caste: " + rawCaste
+                    + ". Valid: harvester, excavator, courier, architect, sentinel");
         }
         ServerLevel level = source.getLevel();
         BlockPos origin = BlockPos.containing(source.getPosition());
         var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
         var nearest = saved.findNearestColony(origin, null, 256.0D);
         if (nearest == null || !(level.getBlockEntity(nearest.getNexusPos()) instanceof com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity nexus)) {
-            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
-            return 0;
+            return fail(source, "[Colony] No Sovereign Nexus found within 256 blocks.");
         }
         ServerPlayer player = source.getEntity() instanceof ServerPlayer sp ? sp : null;
         var worker = nexus.incubateSymbiont(level, player, caste, true);
         if (worker == null) {
-            source.sendFailure(Component.literal("[Colony] Failed to incubate Colony Symbiont."));
-            return 0;
+            return fail(source, "[Colony] Failed to incubate Colony Symbiont.");
         }
         source.sendSuccess(() -> Component.literal("[Colony] Incubated " + caste.id()
                 + " Symbiont (" + worker.getTemperament().id() + ") at " + worker.blockPosition().toShortString())
@@ -2159,12 +1932,10 @@ public final class MycelialCommands {
         BlockPos origin = BlockPos.containing(source.getPosition());
         var nearest = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).findNearestColony(origin, null, 256.0D);
         if (nearest == null || !(level.getBlockEntity(nearest.getNexusPos()) instanceof com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity nexus)) {
-            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
-            return 0;
+            return fail(source, "[Colony] No Sovereign Nexus found within 256 blocks.");
         }
         if (!nexus.upgradeTier(level, null, true)) {
-            source.sendFailure(Component.literal("[Colony] Colony is already at Max Tier (T3)."));
-            return 0;
+            return fail(source, "[Colony] Colony is already at Max Tier (T3).");
         }
         source.sendSuccess(() -> Component.literal("[Colony] Upgraded Sovereign Colony to Tier " + nearest.getTier()
                 + " (Radius=" + nearest.getEffectiveRadius() + "m, Cap=" + nearest.getPopulationCap() + ").")
@@ -2178,8 +1949,7 @@ public final class MycelialCommands {
         var saved = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level);
         var nearest = saved.findNearestColony(origin, null, 256.0D);
         if (nearest == null) {
-            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
-            return 0;
+            return fail(source, "[Colony] No Sovereign Nexus found within 256 blocks.");
         }
         nearest.enableAdministrativeOverride();
         int added = nearest.addBiomass(amount);
@@ -2194,8 +1964,7 @@ public final class MycelialCommands {
         BlockPos origin = BlockPos.containing(source.getPosition());
         var nearest = com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).findNearestColony(origin, null, 256.0D);
         if (nearest == null) {
-            source.sendFailure(Component.literal("[Colony] No Sovereign Nexus found within 256 blocks."));
-            return 0;
+            return fail(source, "[Colony] No Sovereign Nexus found within 256 blocks.");
         }
         nearest.enableAdministrativeOverride();
         com.alex.mycelialmind.colony.SovereignColonySavedData.get(level).setDirty();
@@ -2224,32 +1993,27 @@ public final class MycelialCommands {
             saved.resetAll();
             level.setBlockAndUpdate(origin, ModBlocks.SOVEREIGN_NEXUS.get().defaultBlockState());
             if (!(level.getBlockEntity(origin) instanceof com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity nexus)) {
-                source.sendFailure(Component.literal("[Verify:Colony] FAIL: SovereignNexusBlockEntity missing."));
-                return 0;
+                return fail(source, "[Verify:Colony] FAIL: SovereignNexusBlockEntity missing.");
             }
             nexus.enableAdministrativeOverride(level);
             var colony = nexus.getOrCreateColony(level);
             colony.addBiomass(64);
             colony.addDomainXp(160);
             if (!nexus.upgradeTier(level, null, false) || colony.getTier() != 2) {
-                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Tier 2 upgrade check failed."));
-                return 0;
+                return fail(source, "[Verify:Colony] FAIL: Tier 2 upgrade check failed.");
             }
             worker = nexus.incubateSymbiont(level, null, com.alex.mycelialmind.colony.SymbiontCaste.HARVESTER, true);
             if (worker == null || colony.getRoster().size() != 1) {
-                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Symbiont incubation/roster check failed."));
-                return 0;
+                return fail(source, "[Verify:Colony] FAIL: Symbiont incubation/roster check failed.");
             }
             worker.setCaste(com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL);
             if (worker.getCaste() != com.alex.mycelialmind.colony.SymbiontCaste.SENTINEL) {
-                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Symbiont caste switch failed."));
-                return 0;
+                return fail(source, "[Verify:Colony] FAIL: Symbiont caste switch failed.");
             }
             if (ModSounds.COLONY_DIALECT_TONE_1.get() == null
                     || ModSounds.COLONY_DIALECT_TONE_2.get() == null
                     || ModSounds.COLONY_DIALECT_TONE_3.get() == null) {
-                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Dialect tone sounds missing."));
-                return 0;
+                return fail(source, "[Verify:Colony] FAIL: Dialect tone sounds missing.");
             }
             var dialectA = new com.alex.mycelialmind.colony.ColonyDialect();
             var dialectB = new com.alex.mycelialmind.colony.ColonyDialect();
@@ -2259,13 +2023,11 @@ public final class MycelialCommands {
                     || !dialectA.teach(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2)
                     || !dialectB.teach(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, 2)
                     || dialectA.sharedCall(com.alex.mycelialmind.colony.ColonySiteHabit.REST_BEFORE_RETURN, dialectB) != 2) {
-                source.sendFailure(Component.literal("[Verify:Colony] FAIL: Dialect teach/clearCall/sharedCall check failed."));
-                return 0;
+                return fail(source, "[Verify:Colony] FAIL: Dialect teach/clearCall/sharedCall check failed.");
             }
-            source.sendSuccess(() -> Component.literal("[Verify:Colony] PASS (Tier=" + colony.getTier()
+            return pass(source, "[Verify:Colony] PASS (Tier=" + colony.getTier()
                     + ", Radius=" + colony.getEffectiveRadius() + ", TraitMask=0x"
-                    + Integer.toHexString(colony.getUnlockedTraitMask()) + ", Dialect=OK)").withStyle(ChatFormatting.GREEN), false);
-            return 1;
+                    + Integer.toHexString(colony.getUnlockedTraitMask()) + ", Dialect=OK)");
         } finally {
             if (worker != null) {
                 worker.discard();
@@ -2367,14 +2129,12 @@ public final class MycelialCommands {
     private static int reportAiTrace(CommandSourceStack source, int radius) {
         LivingEntity nearest = findNearestBrainOwner(source, radius);
         if (nearest == null) {
-            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
-            return 0;
+            return fail(source, "[Mycelial AI] No HiveBrainOwner within " + radius + "m.");
         }
         HiveBrainOwner<?> owner = (HiveBrainOwner<?>) nearest;
         HiveBrain<?> brain = owner.getHiveBrain();
         if (brain == null) {
-            source.sendFailure(Component.literal("[Mycelial AI] Target entity has null HiveBrain."));
-            return 0;
+            return fail(source, "[Mycelial AI] Target entity has null HiveBrain.");
         }
         HiveBrainSnapshot snap = brain.captureSnapshot(source.getLevel().getGameTime());
         source.sendSuccess(() -> Component.literal("[Mycelial AI Trace] "
@@ -2398,39 +2158,32 @@ public final class MycelialCommands {
     private static int applyAiProfileCommand(CommandSourceStack source, String profileName, int radius) {
         LivingEntity nearest = findNearestBrainOwner(source, radius);
         if (nearest == null) {
-            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
-            return 0;
+            return fail(source, "[Mycelial AI] No HiveBrainOwner within " + radius + "m.");
         }
         HiveBrainOwner rawOwner = (HiveBrainOwner) nearest;
         HiveBrain rawBrain = rawOwner.getHiveBrain();
         if (rawBrain == null) {
-            source.sendFailure(Component.literal("[Mycelial AI] Target entity has null HiveBrain."));
-            return 0;
+            return fail(source, "[Mycelial AI] Target entity has null HiveBrain.");
         }
         String normalized = (profileName == null || profileName.isBlank()) ? "default" : profileName;
         if (!"default".equals(normalized) && !rawBrain.getRegisteredProfileNames().contains(normalized)) {
-            source.sendFailure(Component.literal("[Mycelial AI] Unknown profile '" + normalized
-                    + "' (available: default, " + String.join(", ", rawBrain.getRegisteredProfileNames()) + ")."));
-            return 0;
+            return fail(source, "[Mycelial AI] Unknown profile '" + normalized
+                    + "' (available: default, " + String.join(", ", rawBrain.getRegisteredProfileNames()) + ").");
         }
         boolean changed = rawOwner.applyBrainProfile(source.getLevel(), nearest, normalized);
-        source.sendSuccess(() -> Component.literal("[Mycelial AI] "
+        return pass(source, "[Mycelial AI] "
                         + nearest.getType().getDescription().getString() + " #" + nearest.getId()
-                        + " profile=" + rawBrain.getActiveProfile() + (changed ? " (switched)" : " (unchanged)"))
-                .withStyle(ChatFormatting.GREEN), false);
-        return 1;
+                        + " profile=" + rawBrain.getActiveProfile() + (changed ? " (switched)" : " (unchanged)"));
     }
 
     private static int setAiPausedCommand(CommandSourceStack source, boolean paused, int radius) {
         LivingEntity nearest = findNearestBrainOwner(source, radius);
         if (nearest == null) {
-            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
-            return 0;
+            return fail(source, "[Mycelial AI] No HiveBrainOwner within " + radius + "m.");
         }
         HiveBrain<?> brain = ((HiveBrainOwner<?>) nearest).getHiveBrain();
         if (brain == null) {
-            source.sendFailure(Component.literal("[Mycelial AI] Target entity has null HiveBrain."));
-            return 0;
+            return fail(source, "[Mycelial AI] Target entity has null HiveBrain.");
         }
         brain.setPaused(paused, source.getLevel().getGameTime());
         source.sendSuccess(() -> Component.literal("[Mycelial AI] "
@@ -2444,15 +2197,13 @@ public final class MycelialCommands {
     private static int injectAiSignalCommand(CommandSourceStack source, String typeName, int radius) {
         LivingEntity nearest = findNearestBrainOwner(source, radius);
         if (nearest == null) {
-            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
-            return 0;
+            return fail(source, "[Mycelial AI] No HiveBrainOwner within " + radius + "m.");
         }
         HiveBrainSignal.SignalType type;
         try {
             type = HiveBrainSignal.SignalType.valueOf(typeName.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ignored) {
-            source.sendFailure(Component.literal("[Mycelial AI] Unknown SignalType: " + typeName));
-            return 0;
+            return fail(source, "[Mycelial AI] Unknown SignalType: " + typeName);
         }
         ServerLevel level = source.getLevel();
         BlockPos pos = BlockPos.containing(source.getPosition());
@@ -2504,8 +2255,7 @@ public final class MycelialCommands {
                 }
             }
             if (!com.alex.mycelialmind.world.MycelialSinkholeFeature.generateSinkholeAt(level, origin, level.getRandom())) {
-                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: generateSinkholeAt returned false."));
-                return 0;
+                return fail(source, "[Verify:Sinkhole] FAIL: generateSinkholeAt returned false.");
             }
             BlockPos ventPos = origin.below(30);
             BlockPos northWater = origin.offset(0, -31, -13);
@@ -2516,32 +2266,26 @@ public final class MycelialCommands {
                     && level.getBlockState(northMoss).is(ModBlocks.ROOT_SAP_MOSS.get())
                     && level.getBlockState(southTunnel).isAir();
             if (!geoOk) {
-                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: geometry check failed."));
-                return 0;
+                return fail(source, "[Verify:Sinkhole] FAIL: geometry check failed.");
             }
             savedBlocks.put(benchPos, level.getBlockState(benchPos));
             level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
             if (!(level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench)) {
-                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: bench missing."));
-                return 0;
+                return fail(source, "[Verify:Sinkhole] FAIL: bench missing.");
             }
             bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_SAMPLE, new ItemStack(ModItems.ROOT_SAP_VIAL.get()));
             bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_BIOMASS, new ItemStack(ModItems.MYCELIAL_BIOMASS.get()));
             bench.getInventory().setStackInSlot(SynapticBenchBlockEntity.SLOT_CATALYST, new ItemStack(ModItems.ROOT_HEART_RESIN.get()));
             ItemStack out = bench.computeSynthesisResult();
             if (!out.is(ModItems.RESONANT_SAP_ELIXIR.get())) {
-                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: bench failed to synthesize resonant_sap_elixir."));
-                return 0;
+                return fail(source, "[Verify:Sinkhole] FAIL: bench failed to synthesize resonant_sap_elixir.");
             }
             BlockPos pylonPos = origin.offset(-2, -30, 2);
             level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
             if (!com.alex.mycelialmind.world.SinkholeEcosystemEngine.isBreachSealed(true, tracker.isProtected(ventPos))) {
-                source.sendFailure(Component.literal("[Verify:Sinkhole] FAIL: Purification Pylon did not seal sinkhole breach."));
-                return 0;
+                return fail(source, "[Verify:Sinkhole] FAIL: Purification Pylon did not seal sinkhole breach.");
             }
-            source.sendSuccess(() -> Component.literal("[Verify:Sinkhole] PASS (3-strata + N/S galleries + Elixir synthesis + Pylon seal)")
-                    .withStyle(ChatFormatting.GREEN), false);
-            return 1;
+            return pass(source, "[Verify:Sinkhole] PASS (3-strata + N/S galleries + Elixir synthesis + Pylon seal)");
         } finally {
             net.minecraft.world.phys.AABB cleanupBox = new net.minecraft.world.phys.AABB(
                     origin.getX() - 14.0D, origin.getY() - 35.0D, origin.getZ() - 20.0D,
@@ -2589,15 +2333,13 @@ public final class MycelialCommands {
             }
         }
         if (matched == null) {
-            source.sendFailure(Component.literal("[Mycelial Audio] Unknown sound_id: " + soundId));
-            return 0;
+            return fail(source, "[Mycelial Audio] Unknown sound_id: " + soundId);
         }
         ServerLevel level = source.getLevel();
         BlockPos pos = BlockPos.containing(source.getPosition());
         level.playSound(null, pos, matched, net.minecraft.sounds.SoundSource.MASTER, 1.0F, 1.0F);
         final String playedPath = normalized;
-        source.sendSuccess(() -> Component.literal("[Mycelial Audio] Played mycelialmind:" + playedPath
-                + " @ " + pos.toShortString()).withStyle(ChatFormatting.GREEN), false);
-        return 1;
+        return pass(source, "[Mycelial Audio] Played mycelialmind:" + playedPath
+                + " @ " + pos.toShortString());
     }
 }

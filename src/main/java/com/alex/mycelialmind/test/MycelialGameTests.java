@@ -1,5 +1,7 @@
 package com.alex.mycelialmind.test;
 
+import static com.alex.mycelialmind.test.MycelialGameTestSupport.*;
+
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.BioluminescentMycelialCapBlock;
 import com.alex.mycelialmind.block.CreepingMyceliumBlock;
@@ -371,8 +373,7 @@ public final class MycelialGameTests {
     @GameTest(batch = "spitter_regroup_utility", template = "empty", timeoutTicks = 180)
     public static void injuredSpitterRegroupsAndReevaluatesDestroyedNode(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         HiveBlackboard.clear(level);
         com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.clearDecoys(level);
         List<ChunkPos> forced = forceArenaChunks(helper, -4, 18, -4, 8);
@@ -578,8 +579,7 @@ public final class MycelialGameTests {
                 + ", bbOrder=" + HiveBlackboard.getOrder(level)
                 + ", target=" + m.getTarget()
                 + ", pos=" + m.position() + ")";
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         HiveBlackboard.clear(level);
         hive.recordStimulus(StimulusType.MELEE, 260.0, level.getGameTime());
         HiveBlackboard.updateStrategicState(level, hive);
@@ -702,92 +702,10 @@ public final class MycelialGameTests {
                 .thenSucceed();
     }
 
-    private static double stimulusForScore(double score) {
-        return score / MycelialConfig.LEARNING_MULTIPLIER.get();
-    }
-
-    private static BlockPos insetInChunk(BlockPos pos, int margin) {
-        ChunkPos chunk = new ChunkPos(pos);
-        int x = Math.clamp(pos.getX() - chunk.getMinBlockX(), margin, 15 - margin);
-        int z = Math.clamp(pos.getZ() - chunk.getMinBlockZ(), margin, 15 - margin);
-        return chunk.getBlockAt(x, pos.getY(), z);
-    }
-
-    private static final java.util.Map<Long, Integer> ARENA_CHUNK_REFS = new java.util.HashMap<>();
-    private static final net.minecraft.server.level.TicketType<ChunkPos> ARENA_ENTITY_TICKET =
-            net.minecraft.server.level.TicketType.create("mycelial_gametest_arena", java.util.Comparator.comparingLong(ChunkPos::toLong));
-
-    private static List<ChunkPos> forceArenaChunks(GameTestHelper helper, int minX, int maxX, int minZ, int maxZ) {
-        ServerLevel level = helper.getLevel();
-        BlockPos minPos = helper.absolutePos(new BlockPos(minX, 0, minZ));
-        BlockPos maxPos = helper.absolutePos(new BlockPos(maxX, 0, maxZ));
-        int minCx = Math.min(minPos.getX(), maxPos.getX()) >> 4;
-        int maxCx = Math.max(minPos.getX(), maxPos.getX()) >> 4;
-        int minCz = Math.min(minPos.getZ(), maxPos.getZ()) >> 4;
-        int maxCz = Math.max(minPos.getZ(), maxPos.getZ()) >> 4;
-        List<ChunkPos> tracked = new ArrayList<>();
-        for (int cx = minCx; cx <= maxCx; cx++) {
-            for (int cz = minCz; cz <= maxCz; cz++) {
-                ChunkPos cp = new ChunkPos(cx, cz);
-                long key = cp.toLong();
-                int refs = ARENA_CHUNK_REFS.getOrDefault(key, 0);
-                if (refs > 0) {
-                    ARENA_CHUNK_REFS.put(key, refs + 1);
-                } else {
-                    level.getChunkSource().addRegionTicket(ARENA_ENTITY_TICKET, cp, 2, cp, true);
-                    level.getChunk(cx, cz);
-                    ARENA_CHUNK_REFS.put(key, 1);
-                }
-                tracked.add(cp);
-            }
-        }
-        return tracked;
-    }
-
-    private static boolean entityChunksReady(ServerLevel level, BlockPos center, int radius) {
-        ChunkPos min = new ChunkPos(center.offset(-radius, 0, -radius));
-        ChunkPos max = new ChunkPos(center.offset(radius, 0, radius));
-        for (int chunkX = min.x; chunkX <= max.x; chunkX++) {
-            for (int chunkZ = min.z; chunkZ <= max.z; chunkZ++) {
-                ChunkPos chunk = new ChunkPos(chunkX, chunkZ);
-                if (!level.isPositionEntityTicking(chunk.getWorldPosition())
-                        || !level.areEntitiesLoaded(chunk.toLong())) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static void releaseArenaChunks(ServerLevel level, List<ChunkPos> forcedChunks) {
-        for (ChunkPos cp : forcedChunks) {
-            long key = cp.toLong();
-            int refs = ARENA_CHUNK_REFS.getOrDefault(key, 0);
-            if (refs <= 1) {
-                ARENA_CHUNK_REFS.remove(key);
-                level.getChunkSource().removeRegionTicket(ARENA_ENTITY_TICKET, cp, 2, cp, true);
-            } else {
-                ARENA_CHUNK_REFS.put(key, refs - 1);
-            }
-        }
-    }
-
-    private static boolean hasAcidShot(GameTestHelper helper, MycelialMob owner) {
-        return !helper.getLevel().getEntitiesOfClass(AcidSpitProjectile.class,
-                owner.getBoundingBox().inflate(20), shot -> shot.getOwner() == owner).isEmpty();
-    }
-
-    private static void clearAcidShots(GameTestHelper helper, MycelialMob owner) {
-        helper.getLevel().getEntitiesOfClass(AcidSpitProjectile.class,
-                owner.getBoundingBox().inflate(20), shot -> shot.getOwner() == owner)
-                .forEach(AcidSpitProjectile::discard);
-    }
-
     @GameTest(template = "empty")
     public static void fireStimulusTriggersFireResistantTrait(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
         hive.recordStimulus(StimulusType.FIRE, stimulusForScore(threshold + 1.0));
 
@@ -1007,8 +925,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty")
     public static void projectileBowAttackTriggersDeflectAndBioScannerSync(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         double threshold = MycelialConfig.TRAIT_ACTIVATION_THRESHOLD.get();
         int maxHits = 10 + (int) Math.ceil(stimulusForScore(threshold) / 4.0);
@@ -1112,8 +1029,7 @@ public final class MycelialGameTests {
     @GameTest(batch = "hive_state_sync", template = "empty")
     public static void globalHiveAdaptationsPropagateExpireAndResetForLivingMobs(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         MycelialMob mob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 1, 1, 1);
         HiveCoreBossEntity boss = helper.spawnWithNoFreeWill(ModEntities.HIVE_CORE.get(), 4, 1, 4);
@@ -1222,8 +1138,7 @@ public final class MycelialGameTests {
     @GameTest(batch = "defaultBatch", template = "empty")
     public static void hiveTraitRevisionAndLocalNeutralizationPersistAcrossReload(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         MycelialMob original = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 2, 1, 2);
         MycelialMob restored = null;
 
@@ -1359,8 +1274,7 @@ public final class MycelialGameTests {
     @GameTest(batch = "defaultBatch", template = "empty")
     public static void tideBeaconAndSuppressorUseSphericalEntityRadii(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         BlockPos anchor = helper.absolutePos(new BlockPos(2, 1, 2));
         int chunkMinX = Math.floorDiv(anchor.getX(), 16) * 16;
         int chunkMinZ = Math.floorDiv(anchor.getZ(), 16) * 16;
@@ -2044,8 +1958,7 @@ public final class MycelialGameTests {
         for (var entry : tracker.getNodesWithin(nodeAbs, 1_000_000_000, 200)) {
             tracker.removeNode(entry.getKey());
         }
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.recordStimulus(StimulusType.MELEE, 550.0);
         var architect = helper.spawnWithNoFreeWill(ModEntities.SPORE_ARCHITECT.get(), 2, 2, 2);
         boolean planted = architect.attemptPlantColonyAt(level, nodeAbs);
@@ -2103,8 +2016,7 @@ public final class MycelialGameTests {
             return;
         }
 
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.recordStimulus(StimulusType.MELEE, 550.0);
         var exposedVillager = helper.spawnWithNoFreeWill(net.minecraft.world.entity.EntityType.VILLAGER, 4, 1, 4);
         exposedVillager.addEffect(new net.minecraft.world.effect.MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
@@ -2127,8 +2039,7 @@ public final class MycelialGameTests {
         helper.setBlock(planksRel, Blocks.OAK_PLANKS);
         helper.setBlock(chestRel, Blocks.CHEST);
 
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.recordStimulus(StimulusType.MELEE, 550.0);
         boolean canCobble = CreepingMyceliumBlock.canInfect(level, helper.absolutePos(cobbleRel), helper.getBlockState(cobbleRel));
         boolean canPlanks = CreepingMyceliumBlock.canInfect(level, helper.absolutePos(planksRel), helper.getBlockState(planksRel));
@@ -2144,8 +2055,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void fungalTideActivatesAt75ThreatAndEndsOnBehemothDeath(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.resetAll();
         long now = level.getGameTime();
         hive.recordStimulus(StimulusType.FIRE, 800.0, now);
@@ -2174,8 +2084,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void tideBeaconPurgesFungalTideAndClearsInfection(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         long now = level.getGameTime();
         hive.triggerFungalTide(now, 600);
         var villager = helper.spawnWithNoFreeWill(net.minecraft.world.entity.EntityType.VILLAGER, 2, 1, 2);
@@ -3038,8 +2947,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void daytimeSurfaceSpawnAndIncubatorRespectThreatThresholds(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.resetAll();
         long prevDayTime = level.getDayTime();
         level.setDayTime(1000L);
@@ -4034,8 +3942,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void synapticMemoryRouterSplits4060AndConsolidatesBuffer(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.resetAll();
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
 
@@ -4069,8 +3976,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void purgingNodeBufferDropsVolatileEngramAndClearsMemory(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.resetAll();
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
 
@@ -4099,8 +4005,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void pavlovianDeceptionGrantsVulnerabilityAndRevealsOnLie(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.resetAll();
         long now = level.getGameTime();
 
@@ -4134,8 +4039,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void combatMedicHabitTriggersSporeRotHealingReduction(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         hive.resetAll();
         hive.recordHabit(com.alex.mycelialmind.hive.PlayerHabit.COMBAT_MEDIC, 70.0);
 
@@ -4270,8 +4174,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void progressiveThreatScalingStrengthensMobsAcrossTiers(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         var dormantMob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 2, 1, 2);
         dormantMob.applyProgressionScaling(level, hive);
@@ -4301,8 +4204,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void progressionGatingBlocksFreeShortcuts(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
@@ -4370,8 +4272,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void playerDeathToMycelialMobIncreasesHiveThreatAndRecordsHighestTier(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         var killer = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 3, 1, 3);
@@ -5104,8 +5005,7 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void entityAudioProfilesSoundRegistryAndThresholdCalibrationWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         try {
             var soundEntries = ModSounds.SOUND_EVENTS.getEntries();
@@ -6306,21 +6206,6 @@ public final class MycelialGameTests {
         }
     }
 
-    private static void resetHomeostasisChunks(DimensionalHomeostasisSavedData data, ChunkPos center, int radius) {
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
-                data.resetChunk(new ChunkPos(center.x + dx, center.z + dz));
-            }
-        }
-    }
-
-    private static BlockPos homeostasisTestPos(GameTestHelper helper, int slot, BlockPos relativePos) {
-        // GameTest batches run concurrently and homeostasis state is keyed by chunk.
-        // Keep each scenario's live blocks in a separate chunk strip (3 chunks / 48 blocks apart along X).
-        int separation = slot * 48;
-        return helper.absolutePos(relativePos).offset(separation, 0, 0);
-    }
-
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void coreLoopStationsAndExperimentalDiscoveryWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
@@ -6402,8 +6287,7 @@ public final class MycelialGameTests {
             }
 
             // 5. Synaptic Bench T1 -> T3 upgrades + 4-Act gated experimental formulas
-            HiveMindSavedData hive = HiveMindSavedData.get(level);
-            hive.resetAll();
+            HiveMindSavedData hive = resetHive(level);
             level.setBlockAndUpdate(benchPos, ModBlocks.SYNAPTIC_RESEARCH_BENCH.get().defaultBlockState());
             boolean benchOk = false;
             if (level.getBlockEntity(benchPos) instanceof SynapticBenchBlockEntity bench) {
@@ -6693,8 +6577,7 @@ public final class MycelialGameTests {
 
             // 6. BioExtractor on Primordial mob grants sample + spore + biomass + secret + reduced 20t CD
             boolean extractorPrimordialOk = false;
-            HiveMindSavedData hive = HiveMindSavedData.get(level);
-            hive.resetAll();
+            HiveMindSavedData hive = resetHive(level);
             var extractBrute = ModEntities.CHITIN_BRUTE.get().create(level);
             if (extractBrute != null) {
                 extractBrute.setPrimordialVariant(true);
@@ -6808,8 +6691,7 @@ public final class MycelialGameTests {
     public static void fourActProgressionIntegratesVaultsExperimentsPrimordialsAndRemission(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -2, 8, -2, 8);
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         BlockPos altarPos = helper.absolutePos(new BlockPos(4, 2, 4));
         HiveCoreBossEntity summonedBoss = null;
 
@@ -7045,8 +6927,7 @@ public final class MycelialGameTests {
     public static void architecturalAccentSubstitutesPaletteAndProportionsInTwistedReflection(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -2, 60, -2, 60);
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         BlockPos towerBase = helper.absolutePos(new BlockPos(2, 2, 2));
         BlockPos reflectionOrigin = helper.absolutePos(new BlockPos(18, 2, 18));
@@ -7375,8 +7256,7 @@ public final class MycelialGameTests {
     public static void hyphalEcosystemPurificationAcousticsRemissionAndCodexWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 14, -4, 14);
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
         PurificationZoneTracker.get(level).clearAll();
 
         BlockPos base = helper.absolutePos(new BlockPos(2, 30, 2));
@@ -7659,8 +7539,7 @@ public final class MycelialGameTests {
     public static void hyphalWallVeinLosesSupportFallsAndDisintegratesOnLanding(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 16, -4, 16);
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        hive.resetAll();
+        HiveMindSavedData hive = resetHive(level);
 
         BlockPos veinPos = insetInChunk(helper.absolutePos(new BlockPos(0, 14, 0)), 6);
         BlockPos wallA = veinPos.west();
