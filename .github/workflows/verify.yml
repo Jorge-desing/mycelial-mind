@@ -3,13 +3,6 @@ name: Verify Mycelial Mind
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - 'MEMORY.md'
-      - 'AGENTS.md'
-      - 'GEMINI.md'
-      - 'README.md'
-      - 'docs/**'
-      - '.agents/**'
   push:
     branches: [main]
     paths-ignore:
@@ -17,6 +10,8 @@ on:
       - 'AGENTS.md'
       - 'GEMINI.md'
       - 'README.md'
+      - 'SECURITY.md'
+      - 'CONTRIBUTING.md'
       - 'docs/**'
       - '.agents/**'
   workflow_dispatch:

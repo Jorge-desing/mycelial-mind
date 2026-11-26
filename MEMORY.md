@@ -4903,3 +4903,13 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`, `.github/workflows/verify.yml`, `docs/development-automation.md`, `MEMORY.md`.
 - **Skills revisadas:** Ninguna skill requirió edición.
 - **Estado / Siguiente paso:** Commit, push a `origin/main` y confirmación en vivo de los 3 jobs de GitHub Actions en verde.
+
+## [2026-11-26 12:08] — Optimización del repositorio de GitHub y sus apps (`Jorge-desing/mycelial-mind`)
+- **Tipo:** `IMPLEMENTACIÓN` | `DOCUMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Optimizado el repositorio público `Jorge-desing/mycelial-mind`, sus workflows y apps gratuitas:
+  1. **Limpieza de cachés de Actions (`9.49 GB -> ~1.30 GB`):** Eliminadas `11` cachés obsoletas de Windows Gradle y Python `3.15.2` (`13 -> 2` activas), y añadido `.github/workflows/cleanup-caches.yml` (limpieza semanal automática de cachés > 7 días).
+  2. **Seguridad y gobierno gratuito en GitHub:** Activados `secret_scanning`, `secret_scanning_push_protection`, `vulnerability-alerts`, `allow_auto_merge: true`, `topics` del repositorio, y **Branch Protection** en `main` exigiendo los 3 checks (`Validate automation config`, `Asset checks`, `Build and GameTests`, con `enforce_admins: false`, `allow_force_pushes: false`, `allow_deletions: false`).
+  3. **Workflows y archivos de comunidad:** Añadido `.github/workflows/dependency-review.yml` (`actions/dependency-review-action@v4` en PRs), retirado `paths-ignore` de `pull_request` en `verify.yml` para no bloquear PRs documentales con checks requeridos, y creados `.github/CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md` y badges de estado en `README.md`.
+- **Archivos / Símbolos:** `.github/workflows/{verify,dependency-review,cleanup-caches}.yml`, `.github/CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md`, `README.md`, `MEMORY.md`.
+- **Skills revisadas:** Ninguna skill requirió edición (`validate_agent_skills.py`: `8/8` OK).
+- **Estado / Siguiente paso:** Commit, push a `origin/main` y verificación en vivo de los checks de GitHub del commit publicado.
