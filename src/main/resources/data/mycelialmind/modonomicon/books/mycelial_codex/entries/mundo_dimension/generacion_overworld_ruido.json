@@ -34,6 +34,13 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.generacion_overworld_ruido.page4.text"
     }
   ]
 }

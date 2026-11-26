@@ -19,7 +19,6 @@ from .schema import (
     CodexBook,
     CodexChapter,
     CodexEntry,
-    CodexPage,
     paginate_vanilla_lines,
     strip_book_markup,
 )
@@ -248,6 +247,11 @@ def export_modonomicon_book(
         return key
 
     book_root = out_dir / "data/mycelialmind/modonomicon/books/mycelial_codex"
+    for sub in ("categories", "entries"):
+        sub_dir = book_root / sub
+        if sub_dir.is_dir():
+            for stale in sub_dir.rglob("*.json"):
+                stale.unlink()
     put_key("book.mycelialmind.mycelial_codex.name", book.title.es, book.title.en)
     put_key("book.mycelialmind.mycelial_codex.tooltip", book.tooltip.es, book.tooltip.en)
 
@@ -411,6 +415,10 @@ def export_vanilla_written_books(book: CodexBook, repo_root: Path, out_dir: Path
     results: Dict[str, List[dict]] = {}
 
     for lang_key, lang_dir in (("es", "es_es"), ("en", "en_us")):
+        lang_out_dir = out_dir / lang_dir
+        if lang_out_dir.is_dir():
+            for stale in lang_out_dir.glob("vol_*.json"):
+                stale.unlink()
         volumes: List[dict] = []
         cur_pages: List[str] = []
         cur_chapters: List[str] = []

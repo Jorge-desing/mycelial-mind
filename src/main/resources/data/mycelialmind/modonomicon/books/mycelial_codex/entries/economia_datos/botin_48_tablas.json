@@ -83,6 +83,20 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.economia_datos.botin_48_tablas.page9.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.botin_48_tablas.page10.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.botin_48_tablas.page10.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.botin_48_tablas.page11.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.botin_48_tablas.page11.text"
     }
   ]
 }

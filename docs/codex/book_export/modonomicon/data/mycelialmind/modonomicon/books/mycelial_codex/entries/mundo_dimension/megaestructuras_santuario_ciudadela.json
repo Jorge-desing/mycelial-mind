@@ -41,6 +41,20 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.mundo_dimension.megaestructuras_santuario_ciudadela.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.megaestructuras_santuario_ciudadela.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.megaestructuras_santuario_ciudadela.page4.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.mundo_dimension.megaestructuras_santuario_ciudadela.page5.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.mundo_dimension.megaestructuras_santuario_ciudadela.page5.text"
     }
   ]
 }

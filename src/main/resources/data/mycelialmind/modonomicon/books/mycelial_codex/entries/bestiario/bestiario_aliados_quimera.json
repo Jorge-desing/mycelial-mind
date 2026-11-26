@@ -42,10 +42,13 @@
       "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page2.text"
     },
     {
-      "type": "modonomicon:text",
-      "title": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page3.title",
-      "use_markdown_title": true,
-      "show_title_separator": true,
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page3.entity_name",
+      "entity_id": "mycelialmind:colony_symbiont",
+      "scale": 0.82,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
       "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page3.text"
     },
     {
@@ -61,6 +64,13 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page5.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page6.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.bestiario_aliados_quimera.page6.text"
     }
   ]
 }

@@ -41,6 +41,13 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page3.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page4.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.vanilla_brew_compost_trades.page4.text"
     }
   ]
 }

@@ -2682,9 +2682,12 @@
             "chests/citadel_amber_chapel",
             "chests/citadel_crimson_chapel",
             "chests/citadel_royal_crypt",
+            "chests/end_spire_vault",
+            "chests/nether_breach_reliquary",
             "chests/outbreak_sealed_vault",
             "chests/sanctum_forbidden_lab",
             "chests/sanctum_ossuary_crypt",
+            "chests/sanctum_quarantine_cache",
             "chests/sanctum_spore_vault",
             "chests/sinkhole_root_vault",
             "chests/surface_hive_cache",
@@ -2790,6 +2793,14 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.10.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.10.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 11,
+              "id": "loot_tables_p11",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.11.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.11.text",
+              "is_spoiler": false
             }
           ]
         }
@@ -2876,6 +2887,7 @@
             "mycelialmind:deep_mycelium_caverns",
             "mycelialmind:hive_heart_sanctum",
             "mycelialmind:latent_spore_forest",
+            "mycelialmind:deep_mycelium_terrain",
             "WfcCavernLayout",
             "mycelialmind:mycelial_rift"
           ],
@@ -2924,7 +2936,14 @@
             "mycelialmind:matriarch_citadel_piece",
             "mycelialmind:twisted_citadel",
             "mycelialmind:twisted_citadel_piece",
-            "mycelialmind:architectural_accent"
+            "mycelialmind:nether_mycelial_breach",
+            "mycelialmind:nether_breach_piece",
+            "mycelialmind:end_spore_spire",
+            "mycelialmind:end_spire_piece",
+            "mycelialmind:architectural_accent",
+            "mycelialmind:fluid_clear",
+            "mycelialmind:foundation_pillar",
+            "mycelialmind:biome_degrade"
           ],
           "pages": [
             {
@@ -2949,6 +2968,22 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.3.title",
               "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "megastructures_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.4.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "megastructures_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.5.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.5.text",
               "is_spoiler": false
             }
           ]
@@ -3758,6 +3793,14 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.title",
               "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 16,
+              "id": "config_ref_p16",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.16.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.16.text",
               "is_spoiler": false
             }
           ]

@@ -137,7 +137,9 @@
       "type": "modonomicon:crafting_recipe",
       "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.title",
       "recipe_id_1": "mycelialmind:mycelial_codex",
-      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.text"
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page15.title2",
+      "recipe_id_2": "mycelialmind:luminescent_amber_vein"
     },
     {
       "type": "modonomicon:smelting_recipe",
@@ -178,6 +180,28 @@
       "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page21.title",
       "recipe_id_1": "mycelialmind:stonecut_chitin_plate_to_lattice",
       "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page21.text"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page22.title",
+      "recipe_id_1": "mycelialmind:sovereign_nexus",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page22.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page22.title2",
+      "recipe_id_2": "mycelialmind:sovereign_command_staff"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page23.title",
+      "recipe_id_1": "mycelialmind:spore_updraft_vent",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page23.text",
+      "title2": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page23.title2",
+      "recipe_id_2": "mycelialmind:root_cap_shelf"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "title1": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page24.title",
+      "recipe_id_1": "mycelialmind:spore_antidote_from_root_sap",
+      "text": "book.mycelialmind.mycelial_codex.economia_datos.recetas_36_datapack.page24.text"
     }
   ]
 }

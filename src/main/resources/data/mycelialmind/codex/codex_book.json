@@ -720,18 +720,23 @@
       "unlock_gate": "always",
       "entries": [
         {
-          "id": "arquitectura_hivebrain_gdxai",
+          "id": "arquitectura_hivebrain",
           "order": 1,
-          "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.name",
-          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.desc",
+          "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.name",
+          "subtitle_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.desc",
           "icon_item": "mycelialmind:neural_echo_core",
           "x": -2,
           "y": 0,
           "parents": [],
           "unlock_gate": "always",
           "registry_refs": [
+            "HiveBrain",
             "HiveBrainBridge",
             "HiveBrainOwner",
+            "HiveBrainSchedule",
+            "UtilitySelectorBehaviour",
+            "HiveBehaviorTree",
+            "HiveSteeringEngine",
             "HiveMindSensor",
             "HiveTacticalTree",
             "HiveUtilityEvaluator",
@@ -747,31 +752,48 @@
             "mycelialmind:mob_combat_xp",
             "mycelialmind:last_attack_stimulus",
             "mycelialmind:nearby_ally_count",
+            "mycelialmind:incoming_projectile_pos",
             "mycelialmind:hive_mind_sensor"
           ],
           "pages": [
             {
               "page_number": 1,
-              "id": "hivebrain_gdx_p1",
+              "id": "hivebrain_native_p1",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.1.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.1.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.1.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.1.text",
               "is_spoiler": false
             },
             {
               "page_number": 2,
-              "id": "hivebrain_gdx_p2",
+              "id": "hivebrain_native_p2",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.2.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.2.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.2.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.2.text",
               "is_spoiler": false
             },
             {
               "page_number": 3,
-              "id": "hivebrain_gdx_p3",
+              "id": "hivebrain_native_p3",
               "type": "text",
-              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.3.title",
-              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain_gdxai.page.3.text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.3.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "hivebrain_native_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.4.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "hivebrain_native_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.5.title",
+              "text_key": "codex.mycelialmind.entry.ia_tactica.arquitectura_hivebrain.page.5.text",
               "is_spoiler": false
             }
           ]
@@ -785,7 +807,7 @@
           "x": 0,
           "y": 0,
           "parents": [
-            "ia_tactica/arquitectura_hivebrain_gdxai"
+            "ia_tactica/arquitectura_hivebrain"
           ],
           "unlock_gate": "always",
           "registry_refs": [
@@ -1379,7 +1401,9 @@
             "mycelialmind:spore_behemoth_spawn_egg",
             "mycelialmind:purifier_drone_spawn_egg",
             "mycelialmind:hive_core_spawn_egg",
-            "mycelialmind:apex_matriarch_spawn_egg"
+            "mycelialmind:apex_matriarch_spawn_egg",
+            "mycelialmind:spore_glider_spawn_egg",
+            "mycelialmind:root_keeper_spawn_egg"
           ],
           "pages": [
             {
@@ -1421,6 +1445,49 @@
               "title_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.5.title",
               "text_key": "codex.mycelialmind.entry.bestiario.proyectiles_y_huevos.page.5.text",
               "is_spoiler": false
+            }
+          ]
+        },
+        {
+          "id": "fauna_sima_micelial",
+          "order": 11,
+          "title_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.name",
+          "subtitle_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.desc",
+          "icon_item": "mycelialmind:root_keeper_spawn_egg",
+          "x": 1,
+          "y": 4,
+          "parents": [
+            "bestiario/rangos_y_primordiales"
+          ],
+          "unlock_gate": "always",
+          "registry_refs": [
+            "mycelialmind:spore_glider",
+            "mycelialmind:root_keeper",
+            "mycelialmind:spore_glider_spawn_egg",
+            "mycelialmind:root_keeper_spawn_egg"
+          ],
+          "pages": [
+            {
+              "page_number": 1,
+              "id": "ent_spore_glider",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.page.1.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.page.1.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:spore_glider",
+              "entity_scale": 0.82,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.page.1.entity"
+            },
+            {
+              "page_number": 2,
+              "id": "ent_root_keeper",
+              "type": "entity",
+              "title_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.page.2.title",
+              "text_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.page.2.text",
+              "is_spoiler": false,
+              "entity_id": "mycelialmind:root_keeper",
+              "entity_scale": 0.72,
+              "entity_name_key": "codex.mycelialmind.entry.bestiario.fauna_sima_micelial.page.2.entity"
             }
           ]
         }
@@ -1605,6 +1672,14 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.3.title",
               "text_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "bench_recipes_p3",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.4.title",
+              "text_key": "codex.mycelialmind.entry.biotecnologia.mesa_investigacion_sinaptica.page.4.text",
               "is_spoiler": false
             }
           ]
@@ -2009,7 +2084,16 @@
             "mycelialmind:hive_heart",
             "mycelialmind:mycelial_codex",
             "mycelialmind:sovereign_nexus",
-            "mycelialmind:sovereign_command_staff"
+            "mycelialmind:sovereign_command_staff",
+            "mycelialmind:spore_updraft_vent",
+            "mycelialmind:root_sap_moss",
+            "mycelialmind:root_cap_shelf",
+            "mycelialmind:root_sap_vial",
+            "mycelialmind:resonant_sap_elixir",
+            "mycelialmind:canopy_membrane",
+            "mycelialmind:root_heart_resin",
+            "mycelialmind:spore_glider_spawn_egg",
+            "mycelialmind:root_keeper_spawn_egg"
           ],
           "pages": [
             {
@@ -2046,7 +2130,7 @@
             },
             {
               "page_number": 5,
-              "id": "all_23_blocks_p1",
+              "id": "flora_eco_p5",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.5.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.5.text",
@@ -2054,7 +2138,7 @@
             },
             {
               "page_number": 6,
-              "id": "all_23_blocks_p2",
+              "id": "all_23_blocks_p1",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.6.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.6.text",
@@ -2062,7 +2146,7 @@
             },
             {
               "page_number": 7,
-              "id": "all_23_blocks_p3",
+              "id": "all_23_blocks_p2",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.7.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.7.text",
@@ -2070,7 +2154,7 @@
             },
             {
               "page_number": 8,
-              "id": "all_35_items_p1",
+              "id": "all_23_blocks_p3",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.8.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.8.text",
@@ -2078,7 +2162,7 @@
             },
             {
               "page_number": 9,
-              "id": "all_35_items_p2",
+              "id": "all_23_blocks_p4",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.9.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.9.text",
@@ -2086,7 +2170,7 @@
             },
             {
               "page_number": 10,
-              "id": "all_35_items_p3",
+              "id": "all_35_items_p1",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.10.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.10.text",
@@ -2094,7 +2178,7 @@
             },
             {
               "page_number": 11,
-              "id": "all_35_items_p4",
+              "id": "all_35_items_p2",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.11.text",
@@ -2102,7 +2186,7 @@
             },
             {
               "page_number": 12,
-              "id": "all_35_items_p5",
+              "id": "all_35_items_p3",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.12.text",
@@ -2110,7 +2194,7 @@
             },
             {
               "page_number": 13,
-              "id": "sovereign_colony_guide_p1",
+              "id": "all_35_items_p4",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.13.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.13.text",
@@ -2118,7 +2202,7 @@
             },
             {
               "page_number": 14,
-              "id": "sovereign_colony_guide_p2",
+              "id": "all_35_items_p5",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.14.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.14.text",
@@ -2126,7 +2210,7 @@
             },
             {
               "page_number": 15,
-              "id": "sovereign_colony_guide_p3",
+              "id": "all_35_items_p6",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.15.text",
@@ -2134,7 +2218,7 @@
             },
             {
               "page_number": 16,
-              "id": "sovereign_colony_guide_p4",
+              "id": "sovereign_colony_guide_p1",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.16.text",
@@ -2142,7 +2226,7 @@
             },
             {
               "page_number": 17,
-              "id": "sovereign_colony_guide_p5",
+              "id": "sovereign_colony_guide_p2",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.17.text",
@@ -2150,7 +2234,7 @@
             },
             {
               "page_number": 18,
-              "id": "sovereign_colony_guide_p6",
+              "id": "sovereign_colony_guide_p3",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.18.text",
@@ -2158,10 +2242,34 @@
             },
             {
               "page_number": 19,
-              "id": "sovereign_colony_guide_p7",
+              "id": "sovereign_colony_guide_p4",
               "type": "text",
               "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.19.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 20,
+              "id": "sovereign_colony_guide_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.20.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.20.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 21,
+              "id": "sovereign_colony_guide_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.21.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.21.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 22,
+              "id": "sovereign_colony_guide_p7",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.22.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.catalogo_bloques_items.page.22.text",
               "is_spoiler": false
             }
           ]
@@ -2201,6 +2309,7 @@
             "mycelialmind:quorum_seal",
             "mycelialmind:reinforced_bio_barrier",
             "mycelialmind:rift_catalyst",
+            "mycelialmind:root_cap_shelf",
             "mycelialmind:schism_injector",
             "mycelialmind:smelt_cap_to_latent_spore",
             "mycelialmind:smelt_creeping_mycelium_to_stone",
@@ -2209,6 +2318,8 @@
             "mycelialmind:sovereign_command_staff",
             "mycelialmind:sovereign_nexus",
             "mycelialmind:spore_antidote",
+            "mycelialmind:spore_antidote_from_root_sap",
+            "mycelialmind:spore_updraft_vent",
             "mycelialmind:stonecut_arch_brick_to_chitin_pillar",
             "mycelialmind:stonecut_chitin_plate_to_lattice",
             "mycelialmind:stonecut_mycelial_stone_to_arch_brick",
@@ -2381,7 +2492,9 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.15.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.15.text",
               "is_spoiler": false,
-              "recipe_id": "mycelialmind:mycelial_codex"
+              "recipe_id": "mycelialmind:mycelial_codex",
+              "recipe_id_2": "mycelialmind:luminescent_amber_vein",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.15.title2"
             },
             {
               "page_number": 16,
@@ -2451,6 +2564,26 @@
               "recipe_id": "mycelialmind:sovereign_nexus",
               "recipe_id_2": "mycelialmind:sovereign_command_staff",
               "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.22.title2"
+            },
+            {
+              "page_number": 23,
+              "id": "rec_sinkhole_1",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.23.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.23.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:spore_updraft_vent",
+              "recipe_id_2": "mycelialmind:root_cap_shelf",
+              "title2_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.23.title2"
+            },
+            {
+              "page_number": 24,
+              "id": "rec_sinkhole_2",
+              "type": "recipe",
+              "title_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.24.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.recetas_36_datapack.page.24.text",
+              "is_spoiler": false,
+              "recipe_id": "mycelialmind:spore_antidote_from_root_sap"
             }
           ]
         },
@@ -2494,6 +2627,14 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.3.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.3.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "vanilla_econ_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.4.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.vanilla_brew_compost_trades.page.4.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -2518,7 +2659,6 @@
             "blocks/chitin_pillar",
             "blocks/creeping_mycelium",
             "blocks/hive_altar",
-            "blocks/hyphal_vein",
             "blocks/incubator_node",
             "blocks/luminescent_amber_vein",
             "blocks/matriarch_altar",
@@ -2530,19 +2670,26 @@
             "blocks/purification_turret",
             "blocks/reclaimed_bloom",
             "blocks/reinforced_bio_barrier",
+            "blocks/root_cap_shelf",
+            "blocks/root_sap_moss",
             "blocks/sentinel_node",
             "blocks/sovereign_nexus",
             "blocks/spore_bulb",
+            "blocks/spore_updraft_vent",
             "blocks/spore_vent",
             "blocks/symbiotic_node",
             "blocks/synaptic_research_bench",
             "chests/citadel_amber_chapel",
             "chests/citadel_crimson_chapel",
             "chests/citadel_royal_crypt",
+            "chests/end_spire_vault",
+            "chests/nether_breach_reliquary",
             "chests/outbreak_sealed_vault",
             "chests/sanctum_forbidden_lab",
             "chests/sanctum_ossuary_crypt",
+            "chests/sanctum_quarantine_cache",
             "chests/sanctum_spore_vault",
+            "chests/sinkhole_root_vault",
             "chests/surface_hive_cache",
             "chests/surface_hive_crypt",
             "chests/surface_hive_gallery",
@@ -2558,8 +2705,10 @@
             "entities/mycelial_stalker",
             "entities/purifier_drone",
             "entities/pyro_shroom",
+            "entities/root_keeper",
             "entities/spore_architect",
             "entities/spore_behemoth",
+            "entities/spore_glider",
             "entities/sporeling",
             "entities/synapse_weaver",
             "entities/synaptic_mimic"
@@ -2636,6 +2785,22 @@
               "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.9.title",
               "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.9.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 10,
+              "id": "loot_tables_p10",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.10.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.10.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 11,
+              "id": "loot_tables_p11",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.11.title",
+              "text_key": "codex.mycelialmind.entry.economia_datos.botin_48_tablas.page.11.text",
+              "is_spoiler": false
             }
           ]
         }
@@ -2662,8 +2827,10 @@
           "registry_refs": [
             "mycelialmind:mycelial_outbreak",
             "mycelialmind:surface_hive",
+            "mycelialmind:mycelial_sinkhole",
             "mycelialmind:hive_tier_rarity",
             "StructureProgressionPolicy",
+            "SinkholeEcosystemEngine",
             "MycelialFastNoise",
             "FastNoiseLite",
             "WorldgenAuditEngine"
@@ -2692,6 +2859,14 @@
               "title_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.3.title",
               "text_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.3.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "worldgen_ow_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.4.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.generacion_overworld_ruido.page.4.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -2712,6 +2887,7 @@
             "mycelialmind:deep_mycelium_caverns",
             "mycelialmind:hive_heart_sanctum",
             "mycelialmind:latent_spore_forest",
+            "mycelialmind:deep_mycelium_terrain",
             "WfcCavernLayout",
             "mycelialmind:mycelial_rift"
           ],
@@ -2760,7 +2936,14 @@
             "mycelialmind:matriarch_citadel_piece",
             "mycelialmind:twisted_citadel",
             "mycelialmind:twisted_citadel_piece",
-            "mycelialmind:architectural_accent"
+            "mycelialmind:nether_mycelial_breach",
+            "mycelialmind:nether_breach_piece",
+            "mycelialmind:end_spore_spire",
+            "mycelialmind:end_spire_piece",
+            "mycelialmind:architectural_accent",
+            "mycelialmind:fluid_clear",
+            "mycelialmind:foundation_pillar",
+            "mycelialmind:biome_degrade"
           ],
           "pages": [
             {
@@ -2785,6 +2968,22 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.3.title",
               "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.3.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 4,
+              "id": "megastructures_p4",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.4.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "megastructures_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.5.title",
+              "text_key": "codex.mycelialmind.entry.mundo_dimension.megaestructuras_santuario_ciudadela.page.5.text",
               "is_spoiler": false
             }
           ]
@@ -3024,6 +3223,8 @@
           "unlock_gate": "always",
           "registry_refs": [
             "root",
+            "sinkhole_descend",
+            "sinkhole_elixir",
             "first_adaptation",
             "genetic_sampler",
             "sever_the_network",
@@ -3577,6 +3778,30 @@
               "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.13.title",
               "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.13.text",
               "is_spoiler": false
+            },
+            {
+              "page_number": 14,
+              "id": "config_ref_p14",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.14.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.14.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 15,
+              "id": "config_ref_p15",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 16,
+              "id": "config_ref_p16",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.16.title",
+              "text_key": "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.16.text",
+              "is_spoiler": false
             }
           ]
         },
@@ -3626,7 +3851,8 @@
             "polish",
             "dimension_progression",
             "cycles",
-            "colony"
+            "colony",
+            "sinkhole"
           ],
           "pages": [
             {

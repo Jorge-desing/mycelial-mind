@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .helpers import callout_page, chunk_paired_blocks, grid_xy, lt, recipe_page, spot_page, text_page
+from .helpers import chunk_paired_blocks, grid_xy, lt, recipe_page
 from .schema import CodexChapter, CodexEntry
 
 
@@ -632,9 +632,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "chests/citadel_amber_chapel",
                 "chests/citadel_crimson_chapel",
                 "chests/citadel_royal_crypt",
+                "chests/end_spire_vault",
+                "chests/nether_breach_reliquary",
                 "chests/outbreak_sealed_vault",
                 "chests/sanctum_forbidden_lab",
                 "chests/sanctum_ossuary_crypt",
+                "chests/sanctum_quarantine_cache",
                 "chests/sanctum_spore_vault",
                 "chests/sinkhole_root_vault",
                 "chests/surface_hive_cache",
@@ -663,8 +666,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             pages=tuple(
                 chunk_paired_blocks(
                     "loot_tables",
-                    "Botín Multi-Pool (58 Tablas)",
-                    "Multi-Pool Loot (58 Tables)",
+                    "Botín Multi-Pool (61 Tablas)",
+                    "Multi-Pool Loot (61 Tables)",
                     [
                         (
                             "• **Bloques 1/4:** `blocks/antibody_cyst`, `blocks/bio_chitin_lattice`, "
@@ -699,10 +702,16 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`chests/surface_hive_cache`, `chests/surface_hive_crypt`, `chests/surface_hive_gallery`.",
                         ),
                         (
-                            "• **Cofres 2/2:** `chests/sanctum_spore_vault`, `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, "
-                            "`chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.",
-                            "• **Chests 2/2:** `chests/sanctum_spore_vault`, `chests/sanctum_forbidden_lab`, `chests/sanctum_ossuary_crypt`, "
-                            "`chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, `chests/citadel_royal_crypt`.",
+                            "• **Cofres 2/3:** `chests/sanctum_spore_vault`, `chests/sanctum_forbidden_lab`, "
+                            "`chests/sanctum_ossuary_crypt`, `chests/sanctum_quarantine_cache`.",
+                            "• **Chests 2/3:** `chests/sanctum_spore_vault`, `chests/sanctum_forbidden_lab`, "
+                            "`chests/sanctum_ossuary_crypt`, `chests/sanctum_quarantine_cache`.",
+                        ),
+                        (
+                            "• **Cofres 3/3:** `chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, "
+                            "`chests/citadel_royal_crypt`, `chests/nether_breach_reliquary`, `chests/end_spire_vault`.",
+                            "• **Chests 3/3:** `chests/citadel_amber_chapel`, `chests/citadel_crimson_chapel`, "
+                            "`chests/citadel_royal_crypt`, `chests/nether_breach_reliquary`, `chests/end_spire_vault`.",
                         ),
                         (
                             "• **Entidades 1/3:** `entities/acid_spitter`, `entities/apex_matriarch`, "
@@ -830,6 +839,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:deep_mycelium_caverns",
                 "mycelialmind:hive_heart_sanctum",
                 "mycelialmind:latent_spore_forest",
+                "mycelialmind:deep_mycelium_terrain",
                 "WfcCavernLayout",
                 "mycelialmind:mycelial_rift",
             ),
@@ -854,10 +864,12 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "`latent_spore_forest`, each with dedicated looping biome ambience & spore fog.",
                         ),
                         (
-                            "• **`WfcCavernLayout` (`Tile`):** algoritmo Wave Function Collapse para cavernas "
-                            "conectadas sin callejones sellados.",
-                            "• **`WfcCavernLayout` (`Tile`):** Wave Function Collapse cavern layout solver "
-                            "preventing disconnected pockets.",
+                            "• **`WfcCavernLayout` y `deep_mycelium_terrain`:** topología Wave Function Collapse sin "
+                            "callejones sellados y relieves por bioma (`CAVERN_STALACTITES`, `SPORE_CANOPY_ARCH`, "
+                            "`SANCTUM_AMBER_MONOLITH`, `GLOWING_SPORE_POOL`).",
+                            "• **`WfcCavernLayout` & `deep_mycelium_terrain`:** Wave Function Collapse cavern solver "
+                            "plus biome terrain features (`CAVERN_STALACTITES`, `SPORE_CANOPY_ARCH`, "
+                            "`SANCTUM_AMBER_MONOLITH`, `GLOWING_SPORE_POOL`).",
                         ),
                     ],
                 )
@@ -868,8 +880,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
             order=3,
             title=lt("Santuario Jigsaw y Ciudadela Matriarca", "Hive Sanctum & Matriarch Citadel"),
             subtitle=lt(
-                "hive_sanctum (11 plantillas NBT) y matriarch_citadel",
-                "hive_sanctum (11 NBT pieces) & matriarch_citadel",
+                "hive_sanctum (14 NBT), matriarch/twisted_citadel, Nether y End",
+                "hive_sanctum (14 NBT), matriarch/twisted_citadel, Nether & End",
             ),
             icon_item="mycelialmind:matriarch_altar",
             x=grid_xy(2, 3)[0],
@@ -882,7 +894,14 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "mycelialmind:matriarch_citadel_piece",
                 "mycelialmind:twisted_citadel",
                 "mycelialmind:twisted_citadel_piece",
+                "mycelialmind:nether_mycelial_breach",
+                "mycelialmind:nether_breach_piece",
+                "mycelialmind:end_spore_spire",
+                "mycelialmind:end_spire_piece",
                 "mycelialmind:architectural_accent",
+                "mycelialmind:fluid_clear",
+                "mycelialmind:foundation_pillar",
+                "mycelialmind:biome_degrade",
             ),
             pages=tuple(
                 chunk_paired_blocks(
@@ -891,11 +910,14 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                     "Endgame Megastructures",
                     [
                         (
-                            "• **`hive_sanctum` (Jigsaw, 11 piezas `.nbt`):** `sanctum_atrium`, `forbidden_lab`, "
-                            "`ossuary_crypt`, `spore_vault`, `incubation_wing`, `ribbed_nave` y corredores "
-                            "con botín `sanctum_*`.",
-                            "• **`hive_sanctum` (Jigsaw, 11 `.nbt` templates):** `sanctum_atrium`, `forbidden_lab`, "
-                            "`ossuary_crypt`, `spore_vault`, `incubation_wing`, `ribbed_nave` with `sanctum_*` chests.",
+                            "• **`hive_sanctum` (Jigsaw, 14 piezas `.nbt`):** `sanctum_atrium`, `forbidden_lab`, "
+                            "`ossuary_crypt`, `spore_vault`, `quarantine_ward`, `tactical_gallery`, `vertical_shaft` y `secret_reliquary`.",
+                            "• **`hive_sanctum` (Jigsaw, 14 `.nbt` pieces):** `sanctum_atrium`, `forbidden_lab`, "
+                            "`ossuary_crypt`, `spore_vault`, `quarantine_ward`, `tactical_gallery`, `vertical_shaft` & `secret_reliquary`.",
+                        ),
+                        (
+                            "• **Procesadores Jigsaw:** `fluid_clear`, `foundation_pillar` y `biome_degrade` sanean fluidos, cimentan pilares y adaptan biomas.",
+                            "• **Jigsaw Processors:** `fluid_clear`, `foundation_pillar`, and `biome_degrade` clear fluids, anchor pillars, and weather blocks by biome.",
                         ),
                         (
                             "• **`matriarch_citadel` (`matriarch_citadel_piece`):** incluye capillas `AMBER` y "
@@ -907,9 +929,15 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                         ),
                         (
                             "• **`twisted_citadel` (`twisted_citadel_piece`, `architectural_accent`):** reflejo arquitectónico "
-                            "en Micelio Profundo con plantillas `.nbt` (`spire_tower`, `gallery_hall`, `vault_bunker`) adaptadas a tu paleta y proporción.",
+                            "en Micelio Profundo con plantillas `.nbt` (`spire_tower`, `gallery_hall`, `vault_bunker`, `sentinel_cloister`) adaptadas a tu paleta.",
                             "• **`twisted_citadel` (`twisted_citadel_piece`, `architectural_accent`):** twisted architectural reflection "
-                            "in Deep Mycelium using `.nbt` templates (`spire_tower`, `gallery_hall`, `vault_bunker`) adapted to your block palette and proportions.",
+                            "in Deep Mycelium using `.nbt` templates (`spire_tower`, `gallery_hall`, `vault_bunker`, `sentinel_cloister`) adapted to your palette.",
+                        ),
+                        (
+                            "• **Nether y End:** `nether_mycelial_breach` (`nether_breach_piece`, 6 piezas Jigsaw, botín `nether_breach_reliquary`) "
+                            "y `end_spore_spire` (`end_spire_piece`, 6 piezas Jigsaw en el anillo exterior, botín `end_spire_vault`).",
+                            "• **Nether & End:** `nether_mycelial_breach` (`nether_breach_piece`, 6 Jigsaw pieces, `nether_breach_reliquary` loot) "
+                            "and `end_spore_spire` (`end_spire_piece`, 6 outer-ring Jigsaw pieces, `end_spire_vault` loot).",
                         ),
                     ],
                 )
@@ -1791,8 +1819,8 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
          "• `[hive_memory]` `maxMutagenSlots`=`2` (`1..5`), `counterSerumBleedRatio`=`0.50` (`0.1..0.95`)."),
         ("• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`), `pylonTier3ChunkLoadingEnabled`=`true`.",
          "• `[territory]` `myceliumSpreadEnabled`=`true`, `myceliumSpreadChance`=`0.12` (`0..1`), `pylonPurificationRadius`=`24` (`4..64`), `pylonTier3ChunkLoadingEnabled`=`true`."),
-        ("• `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`.",
-         "• `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`."),
+        ("• `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`, `respectClaimedChunks`=`true`.",
+         "• `[territory]` `synapticNodeLinkRadius`=`28` (`8..64`), `nodeDestructionStimulusBleed`=`18.0` (`0..100`), `burrowerBlockBreaking`=`true`, `respectClaimedChunks`=`true`."),
         ("• `[territory]` `playerCountScaling`=`0.15` (`0..1`), `wavesEnabled`=`true`, `waveCooldownTicks`=`3600` (`200..72000`).",
          "• `[territory]` `playerCountScaling`=`0.15` (`0..1`), `wavesEnabled`=`true`, `waveCooldownTicks`=`3600` (`200..72000`)."),
         ("• `[territory]` `autonomousExpansionEnabled`=`true`, `aggressiveVillageAssimilation`=`true`, `maxAutonomousNodes`=`32` (`4..128`), `minNodeSpacing`=`18` (`8..48`).",
@@ -1817,7 +1845,7 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
         CodexEntry(
             id="configuracion_cliente_servidor",
             order=1,
-            title=lt("Configuraciones (13 Cliente / 43 Servidor)", "Config Catalog (13 Client / 43 Server)"),
+            title=lt("Configuraciones (13 Cliente / 44 Servidor)", "Config Catalog (13 Client / 44 Server)"),
             subtitle=lt(
                 "MycelialClientConfig, KeyBindings y MycelialConfig TOML completo",
                 "MycelialClientConfig, KeyBindings & full MycelialConfig TOML",

@@ -1,9 +1,9 @@
 {
-  "ok": false,
+  "ok": true,
   "stats": {
     "chapters": 12,
     "entries": 62,
-    "pages": 250
+    "pages": 254
   },
   "summary": {
     "blocks": {
@@ -57,13 +57,13 @@
       "missing": 0
     },
     "features": {
-      "expected": 4,
-      "covered": 4,
+      "expected": 5,
+      "covered": 5,
       "missing": 0
     },
     "structures": {
-      "expected": 6,
-      "covered": 6,
+      "expected": 14,
+      "covered": 14,
       "missing": 0
     },
     "memory_types": {
@@ -82,8 +82,8 @@
       "missing": 0
     },
     "loot_tables": {
-      "expected": 57,
-      "covered": 57,
+      "expected": 60,
+      "covered": 60,
       "missing": 0
     },
     "biomes": {
@@ -103,8 +103,8 @@
     },
     "server_configs": {
       "expected": 44,
-      "covered": 43,
-      "missing": 1
+      "covered": 44,
+      "missing": 0
     },
     "client_configs": {
       "expected": 26,
@@ -202,11 +202,7 @@
       "missing": 0
     }
   },
-  "missing": {
-    "server_configs": [
-      "respectClaimedChunks"
-    ]
-  },
+  "missing": {},
   "invalid_refs": [],
   "recipe_pair_errors": [],
   "budget_issues": []

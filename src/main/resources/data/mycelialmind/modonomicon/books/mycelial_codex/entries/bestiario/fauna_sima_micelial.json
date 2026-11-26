@@ -1,0 +1,45 @@
+{
+  "category": "mycelialmind:bestiario",
+  "name": "book.mycelialmind.mycelial_codex.bestiario.fauna_sima_micelial.name",
+  "description": "book.mycelialmind.mycelial_codex.bestiario.fauna_sima_micelial.description",
+  "icon": {
+    "item": "mycelialmind:root_keeper_spawn_egg"
+  },
+  "x": 1,
+  "y": 4,
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "hide_while_locked": false,
+  "show_when_any_parent_unlocked": true,
+  "sort_number": 11,
+  "parents": [
+    {
+      "entry": "mycelialmind:bestiario/rangos_y_primordiales",
+      "draw_arrow": true,
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "pages": [
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.fauna_sima_micelial.page1.entity_name",
+      "entity_id": "mycelialmind:spore_glider",
+      "scale": 0.82,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.fauna_sima_micelial.page1.text"
+    },
+    {
+      "type": "modonomicon:entity",
+      "name": "book.mycelialmind.mycelial_codex.bestiario.fauna_sima_micelial.page2.entity_name",
+      "entity_id": "mycelialmind:root_keeper",
+      "scale": 0.72,
+      "offset": 0.0,
+      "rotate": true,
+      "default_rotation": -45.0,
+      "text": "book.mycelialmind.mycelial_codex.bestiario.fauna_sima_micelial.page2.text"
+    }
+  ]
+}
