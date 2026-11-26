@@ -14,7 +14,6 @@ import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -31,8 +30,7 @@ import java.util.List;
  * vanilla crops or bioluminescent mycelial flora, replants crops, collects drops, and
  * deposits yields into marked INPUT chests or Nexus biomass buffer.
  */
-public class SymbiontHarvesterGoal extends Goal {
-    private final ColonySymbiontEntity worker;
+public class SymbiontHarvesterGoal extends AbstractSymbiontCasteGoal {
     @Nullable
     private ColonyOrder activeOrder;
     private int navTicks = 0;
@@ -40,26 +38,12 @@ public class SymbiontHarvesterGoal extends Goal {
     private boolean depositing = false;
 
     public SymbiontHarvesterGoal(ColonySymbiontEntity worker) {
-        this.worker = worker;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-    }
-
-    @Override
-    public boolean canUse() {
-        return worker.getCaste() == SymbiontCaste.HARVESTER
-                && !worker.isStandby()
-                && !worker.isResting()
-                && worker.level() instanceof ServerLevel;
-    }
-
-    @Override
-    public boolean canContinueToUse() {
-        return canUse();
+        super(worker, SymbiontCaste.HARVESTER, EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
     public void stop() {
-        ColonyGoalSupport.releaseOrderReservationAndReset(worker, activeOrder != null);
+        releaseOrderReservationAndIdle(activeOrder != null);
         activeOrder = null;
         depositing = false;
     }

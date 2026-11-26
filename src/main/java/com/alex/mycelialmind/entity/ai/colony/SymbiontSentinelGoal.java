@@ -15,7 +15,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.phys.AABB;
 
@@ -27,8 +26,7 @@ import java.util.List;
 /**
  * Sentinel caste combat & perimeter patrol goal. Also engages attackers directly in self-defense.
  */
-public class SymbiontSentinelGoal extends Goal {
-    private final ColonySymbiontEntity worker;
+public class SymbiontSentinelGoal extends AbstractSymbiontCasteGoal {
     @Nullable
     private LivingEntity target;
     private int attackCooldown = 0;
@@ -36,25 +34,19 @@ public class SymbiontSentinelGoal extends Goal {
     private int scanCooldown = 0;
 
     public SymbiontSentinelGoal(ColonySymbiontEntity worker) {
-        this.worker = worker;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        super(worker, SymbiontCaste.SENTINEL, EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
     public boolean canUse() {
+        if (super.canUse()) {
+            return true;
+        }
         if (!(worker.level() instanceof ServerLevel) || worker.isStandby() || worker.isResting()) {
             return false;
         }
-        if (worker.getCaste() == SymbiontCaste.SENTINEL) {
-            return true;
-        }
         LivingEntity hurtBy = worker.getLastHurtByMob();
         return hurtBy != null && hurtBy.isAlive() && isValidHostile(hurtBy);
-    }
-
-    @Override
-    public boolean canContinueToUse() {
-        return canUse();
     }
 
     @Override

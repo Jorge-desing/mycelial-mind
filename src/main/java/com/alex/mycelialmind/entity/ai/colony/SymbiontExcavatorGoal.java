@@ -12,7 +12,6 @@ import com.alex.mycelialmind.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -29,8 +28,7 @@ import java.util.List;
  * mines natural ores and stone safely (never breaking containers, altars, pylons, or nodes),
  * and deposits spoils into INPUT chests.
  */
-public class SymbiontExcavatorGoal extends Goal {
-    private final ColonySymbiontEntity worker;
+public class SymbiontExcavatorGoal extends AbstractSymbiontCasteGoal {
     @Nullable
     private ColonyOrder activeOrder;
     private int navTicks = 0;
@@ -38,26 +36,12 @@ public class SymbiontExcavatorGoal extends Goal {
     private boolean depositing = false;
 
     public SymbiontExcavatorGoal(ColonySymbiontEntity worker) {
-        this.worker = worker;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-    }
-
-    @Override
-    public boolean canUse() {
-        return worker.getCaste() == SymbiontCaste.EXCAVATOR
-                && !worker.isStandby()
-                && !worker.isResting()
-                && worker.level() instanceof ServerLevel;
-    }
-
-    @Override
-    public boolean canContinueToUse() {
-        return canUse();
+        super(worker, SymbiontCaste.EXCAVATOR, EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
     public void stop() {
-        ColonyGoalSupport.releaseOrderReservationAndReset(worker, activeOrder != null);
+        releaseOrderReservationAndIdle(activeOrder != null);
         activeOrder = null;
         depositing = false;
     }

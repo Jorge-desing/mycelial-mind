@@ -71,6 +71,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -1646,5 +1650,16 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
         part.yOld = part.yo;
         part.zOld = part.zo;
         part.setPos(px, py, pz);
+    }
+
+    protected final void registerStandardAmbientGoals(double strollSpeed, float lookRange) {
+        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, strollSpeed));
+        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, lookRange));
+        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+    }
+
+    protected final void registerStandardPlayerTargets() {
+        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 }

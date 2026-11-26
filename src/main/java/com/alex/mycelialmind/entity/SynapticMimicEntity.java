@@ -53,12 +53,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
@@ -262,12 +257,8 @@ public class SynapticMimicEntity extends MycelialMob {
         this.goalSelector.addGoal(2, new SwarmFlankGoal(this, 1.20D));
         this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.15D, false));
         this.goalSelector.addGoal(4, new HiveRegroupGoal(this, 1.15D));
-        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.9D));
-        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
-
-        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        registerStandardAmbientGoals(0.9D, 8.0F);
+        registerStandardPlayerTargets();
     }
 
     @Override

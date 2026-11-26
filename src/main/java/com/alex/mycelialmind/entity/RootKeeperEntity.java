@@ -3,15 +3,12 @@ package com.alex.mycelialmind.entity;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.AnimatableMeleeAttack;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
-import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetWalkTargetToAttackTarget;
-import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
-import com.alex.mycelialmind.entity.ai.brain.hive.HiveNodeRegenBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
-import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
@@ -28,16 +25,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
 
@@ -58,12 +49,8 @@ public class RootKeeperEntity extends MycelialMob {
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.05D, false));
-        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8D));
-        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 9.0F));
-        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
-
-        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        registerStandardAmbientGoals(0.8D, 9.0F);
+        registerStandardPlayerTargets();
     }
 
     @Override
@@ -114,14 +101,7 @@ public class RootKeeperEntity extends MycelialMob {
 
     @Override
     public Map<Activity, BrainActivityGroup<? extends MycelialMob>> getAdditionalTasks() {
-        BrainActivityGroup<MycelialMob> investigate = new BrainActivityGroup<MycelialMob>(Activity.INVESTIGATE)
-                .onlyStartWithMemoryStatus(ModMemoryTypes.NEAREST_NODE_POS.get(), MemoryStatus.VALUE_PRESENT)
-                .onlyStartWithMemoryStatus(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT)
-                .behaviours(new AllApplicableBehaviours<>(
-                        new SetPlayerLookTarget<>(),
-                        new HiveNodeRegenBehaviour()
-                ));
-        return Map.of(Activity.INVESTIGATE, investigate);
+        return HiveBrainBridge.createNodeInvestigateTasks();
     }
 
     @Override

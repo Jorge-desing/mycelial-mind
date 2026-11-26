@@ -14,7 +14,6 @@ import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,41 +25,20 @@ import java.util.EnumSet;
  * Architect caste goal: restores Symbiotic Node stability, clears jammed Purification Turrets,
  * purifies invasive Creeping Mycelium, and reinforces marked BUILD positions.
  */
-public class SymbiontArchitectGoal extends Goal {
-    private final ColonySymbiontEntity worker;
+public class SymbiontArchitectGoal extends AbstractSymbiontCasteGoal {
     @Nullable
     private ColonyOrder activeOrder;
     private int navTicks = 0;
     private int workTimer = 0;
 
     public SymbiontArchitectGoal(ColonySymbiontEntity worker) {
-        this.worker = worker;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-    }
-
-    @Override
-    public boolean canUse() {
-        return worker.getCaste() == SymbiontCaste.ARCHITECT
-                && !worker.isStandby()
-                && !worker.isResting()
-                && worker.level() instanceof ServerLevel;
-    }
-
-    @Override
-    public boolean canContinueToUse() {
-        return canUse();
+        super(worker, SymbiontCaste.ARCHITECT, EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
     public void stop() {
-        if (activeOrder != null && worker.level() instanceof ServerLevel level) {
-            SovereignColonyData colony = worker.getColonyData(level);
-            if (colony != null) {
-                colony.getOrderBoard().releaseWorkerReservations(worker.getUUID());
-            }
-        }
+        releaseOrderReservationAndIdle(activeOrder != null);
         activeOrder = null;
-        worker.setTaskState("idle");
     }
 
     @Override

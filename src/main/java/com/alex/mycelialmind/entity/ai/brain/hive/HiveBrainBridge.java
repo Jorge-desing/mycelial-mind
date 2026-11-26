@@ -36,12 +36,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Native HiveBrain facade for {@link MycelialMob}: provides typed blackboard memory accessors,
@@ -219,6 +222,25 @@ public final class HiveBrainBridge {
                 new ReactToUnreachableTarget<MycelialMob>().afterTicks(60L),
                 new SetWalkTargetToAttackTarget<>(),
                 new AnimatableMeleeAttack<>(attackDelayTicks)
+        );
+    }
+
+    @SafeVarargs
+    public static Map<Activity, BrainActivityGroup<? extends MycelialMob>> createInvestigateTasks(
+            MemoryModuleType<?> presentMemory,
+            HiveBehaviour<? super MycelialMob>... behaviours) {
+        BrainActivityGroup<MycelialMob> investigate = new BrainActivityGroup<MycelialMob>(Activity.INVESTIGATE)
+                .onlyStartWithMemoryStatus(presentMemory, MemoryStatus.VALUE_PRESENT)
+                .onlyStartWithMemoryStatus(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT)
+                .behaviours(behaviours);
+        return Map.of(Activity.INVESTIGATE, investigate);
+    }
+
+    public static Map<Activity, BrainActivityGroup<? extends MycelialMob>> createNodeInvestigateTasks() {
+        return createInvestigateTasks(
+                ModMemoryTypes.NEAREST_NODE_POS.get(),
+                new SetPlayerLookTarget<>(),
+                new HiveNodeRegenBehaviour()
         );
     }
 }

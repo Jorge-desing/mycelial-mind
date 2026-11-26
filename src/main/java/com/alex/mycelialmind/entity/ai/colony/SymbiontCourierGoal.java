@@ -14,7 +14,6 @@ import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -29,13 +28,12 @@ import java.util.UUID;
  * Courier caste goal: chains INPUT chests -> Sovereign Nexus (biomass upkeep) / OUTPUT storage chests
  * using ColonyOrderBoard reservations and navigation-timeout recovery.
  */
-public class SymbiontCourierGoal extends Goal {
+public class SymbiontCourierGoal extends AbstractSymbiontCasteGoal {
     private enum Phase {
         PICKUP,
         DEPOSIT
     }
 
-    private final ColonySymbiontEntity worker;
     private Phase phase = Phase.PICKUP;
     @Nullable
     private ColonyOrder activeOrder;
@@ -56,21 +54,7 @@ public class SymbiontCourierGoal extends Goal {
     private boolean damagedDuringCurrentTrip;
 
     public SymbiontCourierGoal(ColonySymbiontEntity worker) {
-        this.worker = worker;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-    }
-
-    @Override
-    public boolean canUse() {
-        return worker.getCaste() == SymbiontCaste.COURIER
-                && !worker.isStandby()
-                && !worker.isResting()
-                && worker.level() instanceof ServerLevel;
-    }
-
-    @Override
-    public boolean canContinueToUse() {
-        return canUse();
+        super(worker, SymbiontCaste.COURIER, EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override

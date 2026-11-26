@@ -54,8 +54,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.Monster;
@@ -192,8 +190,7 @@ public class ApexMatriarchEntity extends MycelialBossMob {
         this.goalSelector.addGoal(1, new BossStateGatedMeleeGoal(this, 1.05D, false));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 20.0F));
 
-        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        registerStandardPlayerTargets();
     }
 
     @Override
