@@ -22,6 +22,10 @@ import java.util.concurrent.CompletableFuture;
 public final class MycelialEntityTypeTagsProvider extends EntityTypeTagsProvider {
     private static final TagKey<EntityType<?>> CARRYON_ENTITY_BLACKLIST =
             TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("carryon", "entity_blacklist"));
+    private static final TagKey<EntityType<?>> IF_MOB_IMPRISONMENT_BLACKLIST =
+            TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("industrialforegoing", "mob_imprisonment_tool_blacklist"));
+    private static final TagKey<EntityType<?>> IF_MOB_DUPLICATOR_BLACKLIST =
+            TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("industrialforegoing", "mob_duplicator_blacklist"));
 
     public MycelialEntityTypeTagsProvider(
             PackOutput output,
@@ -54,6 +58,14 @@ public final class MycelialEntityTypeTagsProvider extends EntityTypeTagsProvider
         tag(Tags.EntityTypes.CAPTURING_NOT_SUPPORTED).add(bossEntities);
         tag(Tags.EntityTypes.TELEPORTING_NOT_SUPPORTED).add(bossEntities);
 
+        EntityType<?>[] protectedEntities = {
+                ModEntities.HIVE_CORE.get(),
+                ModEntities.APEX_MATRIARCH.get(),
+                ModEntities.SPORE_BEHEMOTH.get(),
+                ModEntities.PURIFIER_DRONE.get(),
+                ModEntities.MYCELIAL_CHIMERA.get(),
+                ModEntities.COLONY_SYMBIONT.get()
+        };
         tag(CARRYON_ENTITY_BLACKLIST).add(
                 ModEntities.HIVE_CORE.get(),
                 ModEntities.APEX_MATRIARCH.get(),
@@ -61,5 +73,7 @@ public final class MycelialEntityTypeTagsProvider extends EntityTypeTagsProvider
                 ModEntities.PURIFIER_DRONE.get(),
                 ModEntities.MYCELIAL_CHIMERA.get()
         );
+        tag(IF_MOB_IMPRISONMENT_BLACKLIST).add(protectedEntities);
+        tag(IF_MOB_DUPLICATOR_BLACKLIST).add(protectedEntities);
     }
 }

@@ -2,8 +2,10 @@ package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.compat.claims.ClaimProtectionCompat;
 import com.alex.mycelialmind.compat.combat.ModdedDamageClassifier;
+import com.alex.mycelialmind.compat.curios.MycelialCuriosCompat;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.core.BlockPos;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -36,6 +39,11 @@ class ModCompatTest {
     private static final Path REGISTRY_ROOT = REPO_ROOT.resolve("src/main/java/com/alex/mycelialmind/registry");
     private static final Pattern REGISTER_BLOCK_PATTERN = Pattern.compile("registerBlock\\(\"([a-z0-9_]+)\"");
     private static final Pattern REGISTER_ITEM_PATTERN = Pattern.compile("ITEMS\\.register\\(\"([a-z0-9_]+)\"");
+    private static final Set<String> RESTRICTED_BOSS_OUTPUTS = Set.of(
+            "mycelialmind:hive_heart",
+            "mycelialmind:overmind_essence",
+            "mycelialmind:synaptic_core"
+    );
 
     @Test
     void classifiesArsNouveauAndIronsSpellsDamageTypes() {
@@ -61,6 +69,27 @@ class ModCompatTest {
     }
 
     @Test
+    void classifiesWave2ModdedNamespacesAndEnergyKeywords() {
+        for (String ns : List.of("botania", "malum", "occultism", "cataclysm", "twilightforest",
+                "mahoutsukai", "eidolon", "forbidden_arcanus", "bloodmagic")) {
+            assertEquals(StimulusType.MAGIC,
+                    ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse(ns + ":ritual_damage")));
+        }
+        assertEquals(StimulusType.MAGIC,
+                ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse("mekanism:radiation")));
+        assertEquals(StimulusType.MAGIC,
+                ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse("custom_mod:laser_beam")));
+        assertEquals(StimulusType.FIRE,
+                ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse("custom_mod:laser_burn")));
+        assertEquals(StimulusType.MAGIC,
+                ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse("custom_mod:void_rift")));
+        assertEquals(StimulusType.MAGIC,
+                ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse("custom_mod:sonic_boom")));
+        assertEquals(StimulusType.MAGIC,
+                ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse("custom_mod:lightning_strike")));
+    }
+
+    @Test
     void classifiesGenericModdedDamageByPrecedenceAndIgnoresVanilla() {
         assertEquals(StimulusType.EXPLOSION,
                 ModdedDamageClassifier.classifyModdedDamageType(ResourceLocation.parse("other_magic:arcane_blast")));
@@ -80,7 +109,42 @@ class ModCompatTest {
     }
 
     @Test
-    void allCompatRecipesHaveModLoadedConditionsAndValidModItemIds() throws IOException {
+    void curiosCompatHelpersScalePassivesAndFailSafeWithoutPlayer() {
+        assertFalse(MycelialCuriosCompat.hasEquippedScanner(null));
+        assertFalse(MycelialCuriosCompat.hasEquippedOvermindCrown(null));
+        assertFalse(MycelialCuriosCompat.hasEquippedQuorumSeal(null));
+
+        assertEquals(100, MycelialCuriosCompat.applyOvermindCrownInfectionReduction(100, false));
+        assertEquals(65, MycelialCuriosCompat.applyOvermindCrownInfectionReduction(100, true));
+        assertEquals(20, MycelialCuriosCompat.applyOvermindCrownInfectionReduction(25, true));
+
+        assertEquals(4.0F, MycelialCuriosCompat.applyOvermindCrownAcidRainMitigation(4.0F, false), 1e-4F);
+        assertEquals(2.8F, MycelialCuriosCompat.applyOvermindCrownAcidRainMitigation(4.0F, true), 1e-4F);
+
+        assertEquals(12, MycelialCuriosCompat.applyQuorumSealReputationBonus(12, false));
+        assertEquals(14, MycelialCuriosCompat.applyQuorumSealReputationBonus(12, true));
+        assertEquals(3, MycelialCuriosCompat.applyQuorumSealReputationBonus(2, true));
+        assertEquals(-6, MycelialCuriosCompat.applyQuorumSealReputationBonus(-6, true));
+
+        assertEquals(600, MycelialCuriosCompat.applyQuorumSealBetrayalCooldown(600, false));
+        assertEquals(300, MycelialCuriosCompat.applyQuorumSealBetrayalCooldown(600, true));
+    }
+
+    @Test
+    void curiosPlayerSlotsDeclareBeltHeadAndCharm() throws IOException {
+        Path playerJson = MAIN_DATA.resolve("curios/entities/player.json");
+        assertTrue(Files.isRegularFile(playerJson), "Missing curios/entities/player.json");
+        JsonObject obj = JsonParser.parseString(Files.readString(playerJson, StandardCharsets.UTF_8)).getAsJsonObject();
+        Set<String> slots = new HashSet<>();
+        for (JsonElement el : obj.getAsJsonArray("slots")) {
+            slots.add(el.getAsString());
+        }
+        assertTrue(slots.containsAll(List.of("belt", "head", "charm")),
+                "Expected belt, head, and charm Curios slots, found: " + slots);
+    }
+
+    @Test
+    void allCompatRecipesHaveModLoadedConditionsValidModItemIdsAndRespectActGating() throws IOException {
         Set<String> validModIds = new TreeSet<>();
         validModIds.addAll(extractMatches(REGISTRY_ROOT.resolve("ModBlocks.java"), REGISTER_BLOCK_PATTERN));
         validModIds.addAll(extractMatches(REGISTRY_ROOT.resolve("ModItems.java"), REGISTER_ITEM_PATTERN));
@@ -94,7 +158,7 @@ class ModCompatTest {
                     .filter(p -> p.getFileName().toString().endsWith(".json"))
                     .toList();
         }
-        assertTrue(recipeFiles.size() >= 11, "Expected >= 11 compat recipe JSON files, found " + recipeFiles.size());
+        assertTrue(recipeFiles.size() >= 25, "Expected >= 25 compat recipe JSON files, found " + recipeFiles.size());
 
         for (Path recipeFile : recipeFiles) {
             String expectedModId = compatRoot.relativize(recipeFile).getName(0).toString();
@@ -117,6 +181,10 @@ class ModCompatTest {
                 String itemId = modItemMatcher.group(1);
                 assertTrue(validModIds.contains(itemId),
                         "Compat recipe " + recipeFile + " references unknown mod item mycelialmind:" + itemId);
+            }
+            for (String restricted : RESTRICTED_BOSS_OUTPUTS) {
+                assertFalse(rawJson.contains("\"" + restricted + "\""),
+                        "Compat recipe " + recipeFile + " must not reference restricted progression item " + restricted);
             }
         }
     }

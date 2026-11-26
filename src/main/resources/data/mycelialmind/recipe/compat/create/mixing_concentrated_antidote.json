@@ -1,0 +1,26 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "mycelialmind:spore_antidote"
+    },
+    {
+      "item": "mycelialmind:root_sap_vial"
+    },
+    {
+      "item": "mycelialmind:latent_spore"
+    }
+  ],
+  "results": [
+    {
+      "id": "mycelialmind:concentrated_antidote",
+      "count": 1
+    }
+  ]
+}

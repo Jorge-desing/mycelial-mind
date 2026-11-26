@@ -1,0 +1,44 @@
+{
+  "values": [
+    {
+      "id": "#waystones:waystones",
+      "required": false
+    },
+    {
+      "id": "waystones:waystone",
+      "required": false
+    },
+    {
+      "id": "waystones:mossy_waystone",
+      "required": false
+    },
+    {
+      "id": "waystones:sandy_waystone",
+      "required": false
+    },
+    {
+      "id": "waystones:deepslate_waystone",
+      "required": false
+    },
+    {
+      "id": "waystones:end_stone_waystone",
+      "required": false
+    },
+    {
+      "id": "waystones:blackstone_waystone",
+      "required": false
+    },
+    {
+      "id": "waystones:sharestone",
+      "required": false
+    },
+    {
+      "id": "waystones:warp_plate",
+      "required": false
+    },
+    {
+      "id": "waystones:portstone",
+      "required": false
+    }
+  ]
+}

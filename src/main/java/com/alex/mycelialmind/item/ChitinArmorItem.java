@@ -2,6 +2,7 @@ package com.alex.mycelialmind.item;
 
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.compat.curios.MycelialCuriosCompat;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
@@ -117,13 +118,16 @@ public class ChitinArmorItem extends ArmorItem {
     }
 
     public static int reduceInfectionDuration(LivingEntity target, int baseTicks) {
+        int reduced = baseTicks;
         if (target instanceof Player player) {
             int pieces = countEquippedPieces(player);
             if (pieces > 0) {
-                return Math.max(20, (int) Math.round(baseTicks * (1.0 - 0.20 * pieces)));
+                reduced = Math.max(20, (int) Math.round(baseTicks * (1.0 - 0.20 * pieces)));
             }
+            reduced = MycelialCuriosCompat.applyOvermindCrownInfectionReduction(
+                    reduced, MycelialCuriosCompat.hasEquippedOvermindCrown(player));
         }
-        return baseTicks;
+        return reduced;
     }
 
     @Override

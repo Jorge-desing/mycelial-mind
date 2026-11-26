@@ -11,13 +11,22 @@ import java.util.Set;
 
 /**
  * Pure heuristic classifier for modded {@link net.minecraft.world.damagesource.DamageType} identifiers
- * (such as Ars Nouveau, Iron's Spells 'n Spellbooks, and generic magic/spell mods) that may omit
- * vanilla {@link net.minecraft.tags.DamageTypeTags}.
+ * (such as Ars Nouveau, Iron's Spells 'n Spellbooks, Botania, Malum, Occultism, Cataclysm,
+ * Twilight Forest, and generic magic/energy mods) that may omit vanilla {@link net.minecraft.tags.DamageTypeTags}.
  */
 public final class ModdedDamageClassifier {
     private static final Set<String> SPELL_MAGIC_MOD_NAMESPACES = Set.of(
             "ars_nouveau",
-            "irons_spellbooks"
+            "irons_spellbooks",
+            "botania",
+            "malum",
+            "occultism",
+            "eidolon",
+            "mahoutsukai",
+            "forbidden_arcanus",
+            "bloodmagic",
+            "cataclysm",
+            "twilightforest"
     );
 
     private static final List<String> FIRE_KEYWORDS = List.of(
@@ -30,7 +39,8 @@ public final class ModdedDamageClassifier {
             "projectile", "arrow", "bolt", "dart", "spear", "needle", "lance", "icicle", "shot"
     );
     private static final List<String> MAGIC_KEYWORDS = List.of(
-            "magic", "spell", "arcane", "eldritch", "evocation", "psychic", "mana"
+            "magic", "spell", "arcane", "eldritch", "evocation", "psychic", "mana",
+            "void", "abyss", "curse", "hex", "spirit", "runic", "sonic", "radiation", "laser", "lightning"
     );
 
     private ModdedDamageClassifier() {

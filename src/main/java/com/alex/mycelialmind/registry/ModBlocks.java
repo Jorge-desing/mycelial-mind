@@ -29,6 +29,9 @@ import com.alex.mycelialmind.block.SporeUpdraftVentBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.block.SynapticResearchBenchBlock;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -46,6 +49,8 @@ import java.util.function.Supplier;
  */
 public final class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MycelialMind.MODID);
+    public static final TagKey<Block> HIVE_PROTECTED_BLOCKS =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "hive_protected_blocks"));
 
     public static final DeferredBlock<Block> CREEPING_MYCELIUM = registerBlock("creeping_mycelium",
             () -> new CreepingMyceliumBlock(BlockBehaviour.Properties.of()

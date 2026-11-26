@@ -1,12 +1,22 @@
-// 1.21.1	2026-11-25T11:36:45.3106842	Tags for minecraft:item mod id mycelialmind
+// 1.21.1	2026-11-26T13:30:21.7393634	Tags for minecraft:item mod id mycelialmind
 6b2c4fe2025d16849eb4e23380ec8f84089cdfa6 data/curios/tags/item/belt.json
+240c5d4638505985bff5aa764ea3d962afa2a088 data/curios/tags/item/charm.json
+0c47816fccb790d9569bf4f4befce1e04a953b5d data/curios/tags/item/head.json
 53ce6862c0adc1c9c63840e573d68cf1fd0afb63 data/c/tags/item/armors.json
-335c8c1fbc4ae75dca372371e2883b5f4326e5c7 data/c/tags/item/drinks.json
+26c995de610e36ad42101f4b5b0b615d6c17d87b data/c/tags/item/drinks.json
 56deaace843431c62da2d65d3364df906a4be4ea data/c/tags/item/mushrooms.json
+c594a81cd16b0e1be0e819ab3b075b196637ff48 data/c/tags/item/stones.json
 3c8063a8a1be323ae6f8a4cf88059e4b2676cd3a data/c/tags/item/tools/melee_weapon.json
+c7e5be6f33b61324e9c5556e01e0875ddb556151 data/c/tags/item/tools/ranged_weapon.json
 8365f8509e313a6bf80d3020d92a1e8bc32b59cb data/minecraft/tags/item/chest_armor.json
 a4fbb77bd76630072c940af281e6c17544e6d6c4 data/minecraft/tags/item/enchantable/durability.json
 573cb142ccbbc7556429ceed6ac8b0803fd01b06 data/minecraft/tags/item/foot_armor.json
 7838d090388a1a735246be64a37fff99f430e750 data/minecraft/tags/item/head_armor.json
 3c69f1179b9327d48ed3180d8f025bbd08c0b4ce data/minecraft/tags/item/leg_armor.json
 3c8063a8a1be323ae6f8a4cf88059e4b2676cd3a data/minecraft/tags/item/swords.json
+074b3498aa9b1b7e087c91162313d5bff2016b06 data/sereneseasons/tags/item/autumn_crops.json
+074b3498aa9b1b7e087c91162313d5bff2016b06 data/sereneseasons/tags/item/spring_crops.json
+074b3498aa9b1b7e087c91162313d5bff2016b06 data/sereneseasons/tags/item/summer_crops.json
+074b3498aa9b1b7e087c91162313d5bff2016b06 data/sereneseasons/tags/item/winter_crops.json
+61c4ebb22cd5ef10510efa8d1c6a73c28f72d99e data/toughasnails/tags/item/thirst/2_thirst_drinks.json
+67fc01ea877809a2cc55e271810311dbdb794f9c data/toughasnails/tags/item/thirst/4_thirst_drinks.json

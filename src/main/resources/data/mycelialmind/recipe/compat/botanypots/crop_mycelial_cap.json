@@ -1,0 +1,40 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "botanypots"
+    }
+  ],
+  "type": "botanypots:crop",
+  "input": {
+    "item": "mycelialmind:bioluminescent_mycelial_cap"
+  },
+  "categories": [
+    "dirt",
+    "mushroom"
+  ],
+  "growthTicks": 1200,
+  "display": {
+    "type": "botanypots:aging",
+    "block": "mycelialmind:bioluminescent_mycelial_cap"
+  },
+  "drops": [
+    {
+      "type": "botanypots:items",
+      "items": [
+        {
+          "chance": 1.0,
+          "result": {
+            "id": "mycelialmind:bioluminescent_mycelial_cap"
+          }
+        },
+        {
+          "chance": 0.35,
+          "result": {
+            "id": "mycelialmind:latent_spore"
+          }
+        }
+      ]
+    }
+  ]
+}

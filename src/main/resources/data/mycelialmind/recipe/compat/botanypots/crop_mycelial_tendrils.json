@@ -1,0 +1,40 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "botanypots"
+    }
+  ],
+  "type": "botanypots:crop",
+  "input": {
+    "item": "mycelialmind:mycelial_tendrils"
+  },
+  "categories": [
+    "dirt",
+    "mushroom"
+  ],
+  "growthTicks": 1200,
+  "display": {
+    "type": "botanypots:aging",
+    "block": "mycelialmind:mycelial_tendrils"
+  },
+  "drops": [
+    {
+      "type": "botanypots:items",
+      "items": [
+        {
+          "chance": 1.0,
+          "result": {
+            "id": "mycelialmind:mycelial_tendrils"
+          }
+        },
+        {
+          "chance": 0.45,
+          "result": {
+            "id": "mycelialmind:mycelial_biomass"
+          }
+        }
+      ]
+    }
+  ]
+}

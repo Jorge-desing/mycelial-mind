@@ -272,7 +272,8 @@ public final class DamageTelemetryTracker {
                     && (attackedAlly || dip.getTruceTicks() > 0
                     || standing == PlayerDiplomacyData.Standing.PACT
                     || standing == PlayerDiplomacyData.Standing.ALLIED)) {
-                dip.triggerBetrayal(mob.getHiveStrain());
+                com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.triggerBetrayalWithSeal(
+                        dip, attacker, mob.getHiveStrain());
                 DiplomacySyncPayload.syncToPlayer(attacker);
                 attacker.sendSystemMessage(Component.translatable("message.mycelialmind.diplomacy_betrayal",
                         MycelialText.strain(mob.getHiveStrain())).withStyle(ChatFormatting.RED));
@@ -385,7 +386,8 @@ public final class DamageTelemetryTracker {
                 if (deadMob.getHiveStrain().isSchismStrain()) {
                     PlayerDiplomacyData dip = killer.getData(ModAttachments.DIPLOMACY);
                     dip.adjustReputation(deadMob.getHiveStrain(), -6);
-                    dip.adjustReputation(deadMob.getHiveStrain().oppositeSchism(), 2);
+                    com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.adjustReputationWithSeal(
+                            dip, killer, deadMob.getHiveStrain().oppositeSchism(), 2);
                     DiplomacySyncPayload.syncToPlayer(killer);
                 }
                 PlayerDiscoveryData discovery = killer.getData(ModAttachments.DISCOVERY);

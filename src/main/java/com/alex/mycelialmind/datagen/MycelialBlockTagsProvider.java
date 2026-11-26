@@ -21,6 +21,18 @@ import java.util.concurrent.CompletableFuture;
 public final class MycelialBlockTagsProvider extends BlockTagsProvider {
     private static final TagKey<Block> CARRYON_BLOCK_BLACKLIST =
             BlockTags.create(ResourceLocation.fromNamespaceAndPath("carryon", "block_blacklist"));
+    private static final TagKey<Block> AE2_SPATIAL_BLACKLIST =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("ae2", "spatial_blacklist"));
+    private static final TagKey<Block> COMMON_BRICKS =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("c", "bricks"));
+    private static final TagKey<Block> SERENE_SPRING_CROPS =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("sereneseasons", "spring_crops"));
+    private static final TagKey<Block> SERENE_SUMMER_CROPS =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("sereneseasons", "summer_crops"));
+    private static final TagKey<Block> SERENE_AUTUMN_CROPS =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("sereneseasons", "autumn_crops"));
+    private static final TagKey<Block> SERENE_WINTER_CROPS =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("sereneseasons", "winter_crops"));
 
     public MycelialBlockTagsProvider(
             PackOutput output,
@@ -112,5 +124,29 @@ public final class MycelialBlockTagsProvider extends BlockTagsProvider {
         };
         tag(Tags.Blocks.RELOCATION_NOT_SUPPORTED).add(immovableBlocks);
         tag(CARRYON_BLOCK_BLACKLIST).add(immovableBlocks);
+        tag(AE2_SPATIAL_BLACKLIST).add(immovableBlocks);
+
+        tag(Tags.Blocks.STONES).add(ModBlocks.MYCELIAL_STONE.get());
+        tag(COMMON_BRICKS).add(ModBlocks.MYCELIAL_ARCH_BRICK.get());
+
+        Block[] fungalFlora = {
+                ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get(),
+                ModBlocks.SPORE_BULB.get(),
+                ModBlocks.MYCELIAL_TENDRILS.get(),
+                ModBlocks.ROOT_SAP_MOSS.get(),
+                ModBlocks.RECLAIMED_BLOOM.get()
+        };
+        tag(SERENE_SPRING_CROPS).add(fungalFlora);
+        tag(SERENE_SUMMER_CROPS).add(fungalFlora);
+        tag(SERENE_AUTUMN_CROPS).add(fungalFlora);
+        tag(SERENE_WINTER_CROPS).add(fungalFlora);
+
+        var protectedBlocks = tag(ModBlocks.HIVE_PROTECTED_BLOCKS)
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("waystones", "waystones"));
+        for (String waystoneId : java.util.List.of(
+                "waystone", "mossy_waystone", "sandy_waystone", "deepslate_waystone",
+                "end_stone_waystone", "blackstone_waystone", "sharestone", "warp_plate", "portstone")) {
+            protectedBlocks.addOptional(ResourceLocation.fromNamespaceAndPath("waystones", waystoneId));
+        }
     }
 }

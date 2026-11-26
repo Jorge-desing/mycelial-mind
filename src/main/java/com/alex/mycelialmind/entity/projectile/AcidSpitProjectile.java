@@ -108,7 +108,8 @@ public class AcidSpitProjectile extends ThrowableProjectile {
             return;
         }
         BlockState state = level.getBlockState(pos);
-        if (state.is(ModBlocks.REINFORCED_BIO_BARRIER.get())) {
+        if (state.is(ModBlocks.REINFORCED_BIO_BARRIER.get())
+                || state.is(ModBlocks.HIVE_PROTECTED_BLOCKS)) {
             return;
         }
         if (state.is(Blocks.TORCH) || state.is(Blocks.WALL_TORCH)

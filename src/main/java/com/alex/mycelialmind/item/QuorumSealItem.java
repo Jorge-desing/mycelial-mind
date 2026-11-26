@@ -67,7 +67,7 @@ public class QuorumSealItem extends Item {
             }
             PlayerDiplomacyData dip = sp.getData(ModAttachments.DIPLOMACY);
             HiveStrain strain = dip.getSelectedStrain();
-            dip.adjustReputation(strain, 12);
+            com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.adjustReputationWithSeal(dip, sp, strain, 12);
             DiplomacySyncPayload.syncToPlayer(sp);
             sp.getCooldowns().addCooldown(this, 100);
             serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),

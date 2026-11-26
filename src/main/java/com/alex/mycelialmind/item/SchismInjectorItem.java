@@ -91,7 +91,7 @@ public class SchismInjectorItem extends Item {
                 mob.infectWithSchism(chosen, SCHISM_DURATION_TICKS);
                 injectedCount++;
             }
-            dip.adjustReputation(chosen, 8);
+            com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.adjustReputationWithSeal(dip, sp, chosen, 8);
             DiplomacySyncPayload.syncToPlayer(sp);
 
             serverLevel.sendParticles(ColorParticleOption.create(ModParticles.HIVE_DUST.get(), chosen.argbColor()),
@@ -118,7 +118,7 @@ public class SchismInjectorItem extends Item {
                 PlayerDiplomacyData dip = sp.getData(ModAttachments.DIPLOMACY);
                 HiveStrain chosen = dip.getSelectedStrain();
                 nodeBe.induceSchism(chosen, SCHISM_DURATION_TICKS);
-                dip.adjustReputation(chosen, 8);
+                com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.adjustReputationWithSeal(dip, sp, chosen, 8);
                 DiplomacySyncPayload.syncToPlayer(sp);
 
                 serverLevel.sendParticles(ColorParticleOption.create(ModParticles.HIVE_DUST.get(), chosen.argbColor()),

@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "mycelialmind:mycelial_biomass"
+    },
+    {
+      "item": "mycelialmind:mycelial_biomass"
+    },
+    {
+      "item": "mycelialmind:mycelial_biomass"
+    },
+    {
+      "item": "mycelialmind:mycelial_biomass"
+    },
+    {
+      "item": "minecraft:bone_meal"
+    }
+  ],
+  "results": [
+    {
+      "id": "mycelialmind:chitin_plate",
+      "count": 1
+    }
+  ]
+}

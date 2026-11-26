@@ -48,7 +48,8 @@ public class TrucePheromoneItem extends Item {
                 return InteractionResultHolder.fail(stack);
             }
             dip.setTruceTicks(TRUCE_DURATION_TICKS);
-            dip.adjustReputation(dip.getSelectedStrain(), 4);
+            com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.adjustReputationWithSeal(
+                    dip, sp, dip.getSelectedStrain(), 4);
             DiplomacySyncPayload.syncToPlayer(sp);
 
             if (DimensionalHomeostasisDirector.isHomeostasisDimension(serverLevel)) {

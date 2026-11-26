@@ -1,6 +1,9 @@
-// 1.21.1	2026-11-25T11:36:45.3096837	Tags for minecraft:block mod id mycelialmind
+// 1.21.1	2026-11-26T13:30:21.7393634	Tags for minecraft:block mod id mycelialmind
+c59930297c5efdc490d1a8b6d5683b251229b6bb data/ae2/tags/block/spatial_blacklist.json
 c59930297c5efdc490d1a8b6d5683b251229b6bb data/carryon/tags/block/block_blacklist.json
+44934b3c6c2e80f5f3a9af50ae835deb56b7febd data/c/tags/block/bricks.json
 c59930297c5efdc490d1a8b6d5683b251229b6bb data/c/tags/block/relocation_not_supported.json
+c594a81cd16b0e1be0e819ab3b075b196637ff48 data/c/tags/block/stones.json
 c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/dragon_immune.json
 533d12b13479ac6820bb5b94bd4ae514c8d99875 data/minecraft/tags/block/mineable/hoe.json
 4c659bb3725a7cdb9258c7e198932a050a71bccf data/minecraft/tags/block/mineable/pickaxe.json
@@ -8,3 +11,8 @@ c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/dragon_immune
 c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/needs_diamond_tool.json
 5874134ec682e79fc618d8f07cd7ec0b8c704a1e data/minecraft/tags/block/needs_iron_tool.json
 c738a2711793889dbe18e671a634076fc22886cc data/minecraft/tags/block/wither_immune.json
+5a4aef3b849b8f1e40b6c1fc9c5d6d6f2975c5e3 data/mycelialmind/tags/block/hive_protected_blocks.json
+853ce5558a102423a9fcb5c1d165f87af2933bb9 data/sereneseasons/tags/block/autumn_crops.json
+853ce5558a102423a9fcb5c1d165f87af2933bb9 data/sereneseasons/tags/block/spring_crops.json
+853ce5558a102423a9fcb5c1d165f87af2933bb9 data/sereneseasons/tags/block/summer_crops.json
+853ce5558a102423a9fcb5c1d165f87af2933bb9 data/sereneseasons/tags/block/winter_crops.json

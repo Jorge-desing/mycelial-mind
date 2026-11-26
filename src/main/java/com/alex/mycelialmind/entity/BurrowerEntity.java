@@ -191,7 +191,8 @@ public class BurrowerEntity extends MycelialMob {
                 || state.is(ModBlocks.SYMBIOTIC_NODE.get())
                 || state.is(ModBlocks.SOVEREIGN_NEXUS.get())
                 || state.is(ModBlocks.RECLAIMED_BLOOM.get())
-                || state.is(ModBlocks.EPHEMERAL_CHITIN.get())) {
+                || state.is(ModBlocks.EPHEMERAL_CHITIN.get())
+                || state.is(ModBlocks.HIVE_PROTECTED_BLOCKS)) {
             return false;
         }
         float speed = state.getDestroySpeed(level, targetPos);

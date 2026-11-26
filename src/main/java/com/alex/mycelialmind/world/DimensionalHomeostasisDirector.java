@@ -102,6 +102,9 @@ public final class DimensionalHomeostasisDirector {
     }
 
     public static boolean isForeignBlock(BlockState state) {
+        if (state.is(ModBlocks.HIVE_PROTECTED_BLOCKS)) {
+            return false;
+        }
         ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
         boolean isBedrock = state.is(Blocks.BEDROCK);
         return DimensionalHomeostasisEngine.isForeignBlockId(
@@ -797,6 +800,10 @@ public final class DimensionalHomeostasisDirector {
                 chitinPieces,
                 fullChitin
         );
+        if (target instanceof Player player) {
+            dmg = com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.applyOvermindCrownAcidRainMitigation(
+                    dmg, com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.hasEquippedOvermindCrown(player));
+        }
         target.hurt(level.damageSources().magic(), dmg);
 
         if (!fullChitin) {
