@@ -6,9 +6,9 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
-import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
@@ -149,7 +149,7 @@ public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwn
     private int rerollCooldownTicks = 0;
     private int healCooldownTicks = 0;
     @Nullable
-    private HiveBrainRuntime<MycelialChimeraEntity> hiveBrainRuntime;
+    private HiveBrain<MycelialChimeraEntity> hiveBrain;
 
     public MycelialChimeraEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -164,19 +164,28 @@ public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwn
     @SuppressWarnings("unchecked")
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
         Brain<?> brain = super.makeBrain(dynamic);
-        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<MycelialChimeraEntity>) brain);
+        this.hiveBrain = HiveBrainFactory.initializeBrain(this, (Brain<MycelialChimeraEntity>) brain);
         return brain;
     }
 
     @Override
     @Nullable
-    public HiveBrainRuntime<MycelialChimeraEntity> getHiveBrainRuntime() {
-        return this.hiveBrainRuntime;
+    public HiveBrain<MycelialChimeraEntity> getHiveBrain() {
+        return this.hiveBrain;
     }
 
     @Override
-    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<MycelialChimeraEntity> runtime) {
-        this.hiveBrainRuntime = runtime;
+    public void setHiveBrain(@Nullable HiveBrain<MycelialChimeraEntity> brain) {
+        this.hiveBrain = brain;
+    }
+
+    @Override
+    public boolean shouldTickBrain(ServerLevel level, MycelialChimeraEntity entity) {
+        boolean highPriority = getTarget() != null
+                || isVehicle()
+                || getCommandMode() == CommandMode.FOLLOW
+                || HiveBrainUtils.hasMemory(this, ModMemoryTypes.INCOMING_PROJECTILE_POS.get());
+        return HiveBrainOwner.evaluateStandardLod(level, entity, highPriority);
     }
 
     @Override
@@ -803,6 +812,7 @@ public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwn
         tag.putInt(TAG_MUTATION, getMutationGene().ordinal());
         tag.putInt(TAG_MODE, getCommandMode().id());
         tag.putInt(TAG_RANK, getEvolutionRank().ordinal());
+        saveBrainState(tag);
     }
 
     @Override
@@ -829,6 +839,7 @@ public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwn
         if (tag.contains(TAG_RANK)) {
             this.entityData.set(DATA_EVOLUTION_RANK, tag.getInt(TAG_RANK));
         }
+        loadBrainState(tag);
         applyGeneticAttributes();
     }
 

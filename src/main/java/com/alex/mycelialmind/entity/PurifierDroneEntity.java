@@ -6,9 +6,9 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
-import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
@@ -90,7 +90,7 @@ public class PurifierDroneEntity extends PathfinderMob implements HiveBrainOwner
     private int cleanseCooldown = 20;
     private int jammedTicks = 0;
     @Nullable
-    private HiveBrainRuntime<PurifierDroneEntity> hiveBrainRuntime;
+    private HiveBrain<PurifierDroneEntity> hiveBrain;
 
     public int getJammedTicks() {
         return jammedTicks;
@@ -131,19 +131,28 @@ public class PurifierDroneEntity extends PathfinderMob implements HiveBrainOwner
     @SuppressWarnings("unchecked")
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
         Brain<?> brain = super.makeBrain(dynamic);
-        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<PurifierDroneEntity>) brain);
+        this.hiveBrain = HiveBrainFactory.initializeBrain(this, (Brain<PurifierDroneEntity>) brain);
         return brain;
     }
 
     @Override
     @Nullable
-    public HiveBrainRuntime<PurifierDroneEntity> getHiveBrainRuntime() {
-        return this.hiveBrainRuntime;
+    public HiveBrain<PurifierDroneEntity> getHiveBrain() {
+        return this.hiveBrain;
     }
 
     @Override
-    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<PurifierDroneEntity> runtime) {
-        this.hiveBrainRuntime = runtime;
+    public void setHiveBrain(@Nullable HiveBrain<PurifierDroneEntity> brain) {
+        this.hiveBrain = brain;
+    }
+
+    @Override
+    public boolean shouldTickBrain(ServerLevel level, PurifierDroneEntity entity) {
+        boolean highPriority = getTarget() != null
+                || isJammed()
+                || !isPatrolMode()
+                || HiveBrainUtils.hasMemory(this, ModMemoryTypes.INCOMING_PROJECTILE_POS.get());
+        return HiveBrainOwner.evaluateStandardLod(level, entity, highPriority);
     }
 
     @Override
@@ -415,6 +424,7 @@ public class PurifierDroneEntity extends PathfinderMob implements HiveBrainOwner
         if (this.jammedTicks > 0) {
             tag.putInt(TAG_JAMMED, this.jammedTicks);
         }
+        saveBrainState(tag);
     }
 
     @Override
@@ -427,6 +437,7 @@ public class PurifierDroneEntity extends PathfinderMob implements HiveBrainOwner
             setPatrolMode(tag.getBoolean(TAG_PATROL));
         }
         this.jammedTicks = tag.contains(TAG_JAMMED) ? Math.max(0, tag.getInt(TAG_JAMMED)) : 0;
+        loadBrainState(tag);
     }
 
     @Override

@@ -66,7 +66,11 @@ import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainKey;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.core.SequentialBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
@@ -10811,6 +10815,101 @@ public final class MycelialGameTests {
         } finally {
             bruteA.discard();
             bruteB.discard();
+        }
+    }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    public static void hiveBrainV2SignalsBlackboardPersistenceProfilesAndSnapshotWorkEndToEnd(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
+        var bruteReloaded = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 4, 1, 2);
+        var glider = helper.spawnWithNoFreeWill(ModEntities.SPORE_GLIDER.get(), 3, 2, 3);
+        try {
+            HiveBrain<MycelialMob> bruteBrain = brute.getHiveBrain();
+            var gliderBrain = glider.getHiveBrain();
+            helper.assertTrue(bruteBrain != null && bruteBrain == brute.getHiveBrainRuntime(),
+                    "MycelialMob must expose unified HiveBrain == HiveBrainRuntime bridge.");
+            helper.assertTrue(gliderBrain != null && gliderBrain == glider.getHiveBrainRuntime(),
+                    "SporeGlider must expose unified HiveBrain == HiveBrainRuntime bridge.");
+
+            long now = level.getGameTime();
+            brute.tickBrain(brute);
+            BlockPos alertPos = helper.absolutePos(new BlockPos(7, 1, 2));
+            brute.dispatchBrainSignal(level, brute, HiveBrainSignal.allyAlert(alertPos, null, now));
+            helper.assertTrue(bruteBrain.getSignalCount() == 1L, "Immediate signal must increment signalCount.");
+            helper.assertTrue(bruteBrain.isLodAwake(now), "Immediate signal must wake LOD window.");
+            helper.assertTrue(HiveBrainUtils.hasMemory(brute, ModMemoryTypes.SHARED_TARGET_POS.get()),
+                    "ALLY_ALERT signal must populate SHARED_TARGET_POS.");
+
+            // Queued signal drains on next tickBrain
+            HiveBrainUtils.clearMemory(brute, ModMemoryTypes.SHARED_TARGET_POS.get());
+            BlockPos acousticPos = helper.absolutePos(new BlockPos(6, 1, 4));
+            brute.enqueueBrainSignal(HiveBrainSignal.acousticPulse(acousticPos, null, 0.9F, now));
+            helper.assertTrue(bruteBrain.getPendingSignalCount() == 1, "Queued signal must await tick.");
+            brute.tickBrain(brute);
+            helper.assertTrue(bruteBrain.getPendingSignalCount() == 0 && bruteBrain.getSignalCount() == 2L,
+                    "tickBrain must drain queued signals into deliverSignal.");
+            BlockPos sharedTarget = HiveBrainUtils.getMemory(brute, ModMemoryTypes.SHARED_TARGET_POS.get());
+            helper.assertTrue(acousticPos.equals(sharedTarget),
+                    "ACOUSTIC_PULSE signal must record origin in SHARED_TARGET_POS: got " + sharedTarget);
+
+            // Pause & per-sensor toggle controls
+            long ticksBeforePause = bruteBrain.getBrainTickCount();
+            bruteBrain.setPaused(true);
+            brute.tickBrain(brute);
+            helper.assertTrue(bruteBrain.getBrainTickCount() == ticksBeforePause,
+                    "Paused HiveBrain must skip ticks without advancing brainTickCount.");
+            bruteBrain.setPaused(false);
+            helper.assertTrue(bruteBrain.setSensorEnabled(HiveMindSensor.class, false) > 0
+                            && !bruteBrain.isSensorEnabled(HiveMindSensor.class),
+                    "setSensorEnabled must toggle matching HiveSensor instances.");
+            bruteBrain.setSensorEnabled(HiveMindSensor.class, true);
+
+            // NBT persistence across save -> load
+            HiveBrainKey<String> squadKey = HiveBrainKey.persistentString("gametest_v2_squad");
+            HiveBrainKey<Integer> chargesKey = HiveBrainKey.persistentInt("gametest_v2_charges");
+            bruteBrain.setActiveProfile("siege_vanguard");
+            bruteBrain.setPaused(true);
+            bruteBrain.getBlackboard().set(squadKey, "amber_wing");
+            bruteBrain.getBlackboard().set(chargesKey, 5);
+            bruteBrain.setCooldown("test_slam", now, 50);
+
+            CompoundTag saved = new CompoundTag();
+            brute.addAdditionalSaveData(saved);
+            bruteReloaded.readAdditionalSaveData(saved);
+            HiveBrain<MycelialMob> reloadedBrain = bruteReloaded.getHiveBrain();
+            helper.assertTrue(reloadedBrain != null, "Reloaded mob must keep HiveBrain.");
+            helper.assertTrue("siege_vanguard".equals(reloadedBrain.getActiveProfile()),
+                    "Saved profile must survive NBT round-trip.");
+            helper.assertTrue(reloadedBrain.isPaused(), "Saved paused state must survive NBT round-trip.");
+            helper.assertTrue("amber_wing".equals(reloadedBrain.getBlackboard().get(squadKey, now))
+                            && Integer.valueOf(5).equals(reloadedBrain.getBlackboard().get(chargesKey, now)),
+                    "Persistent HiveBrainKey values must survive NBT round-trip.");
+            helper.assertTrue(reloadedBrain.isOnCooldown("test_slam", now),
+                    "Named cooldowns must survive NBT round-trip.");
+            bruteReloaded.getHiveBrain().setPaused(false);
+            brute.getHiveBrain().setPaused(false);
+
+            // Snapshot & /mycelial ai over heterogeneous HiveBrainOwner entities
+            glider.tickBrain(glider);
+            HiveBrainSnapshot gliderSnap = glider.captureBrainSnapshot(now);
+            helper.assertTrue(gliderSnap != null && gliderSnap.formatCompact().contains("act="),
+                    "SporeGlider HiveBrainSnapshot must format cleanly.");
+            var server = level.getServer();
+            var src = server.createCommandSourceStack()
+                    .withLevel(level)
+                    .withPosition(glider.position())
+                    .withPermission(2);
+            int cmdResult = server.getCommands().getDispatcher().execute("mycelial ai 24", src);
+            helper.assertTrue(cmdResult > 0, "/mycelial ai 24 must report across all HiveBrainOwner entities.");
+
+            helper.succeed();
+        } catch (Exception ex) {
+            helper.fail("hiveBrainV2SignalsBlackboardPersistenceProfilesAndSnapshotWorkEndToEnd threw: " + ex.getMessage());
+        } finally {
+            brute.discard();
+            bruteReloaded.discard();
+            glider.discard();
         }
     }
 

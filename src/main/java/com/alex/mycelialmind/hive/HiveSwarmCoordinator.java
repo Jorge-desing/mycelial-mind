@@ -9,6 +9,7 @@ import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.MycelialStalkerEntity;
 import com.alex.mycelialmind.entity.SporeBehemothEntity;
 import com.alex.mycelialmind.entity.SynapseWeaverEntity;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.steering.HiveSteeringEngine;
 import com.alex.mycelialmind.world.MycelialFastNoise;
@@ -246,6 +247,10 @@ public final class HiveSwarmCoordinator {
         int alerted = 0;
         for (MycelialMob ally : allies) {
             ally.setTarget(attacker);
+            ally.dispatchBrainSignal(
+                    level,
+                    ally,
+                    HiveBrainSignal.allyAlert(attacker.blockPosition(), attacker, level.getGameTime()));
             alerted++;
         }
         return alerted;

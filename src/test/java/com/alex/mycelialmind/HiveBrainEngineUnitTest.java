@@ -15,17 +15,27 @@ import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtSequence;
 import com.alex.mycelialmind.entity.ai.brain.btree.HiveBtStatus;
 import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainBlackboard;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainKey;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
 import com.alex.mycelialmind.entity.ai.brain.core.UtilitySelectorBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
 import com.alex.mycelialmind.entity.ai.brain.steering.HiveSteeringEngine;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveDoctrine;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HiveBrainEngineUnitTest {
@@ -373,5 +383,87 @@ class HiveBrainEngineUnitTest {
         bb.doctrine = HiveDoctrine.RECOVERY;
         bb.influenceTrauma01 = 0.80F;
         assertTrue(HiveTacticalTree.scoreRegroup(bb) > baseRegroup);
+    }
+
+    @Test
+    void hiveBrainKeyBlackboardTtlCooldownsAndNbtRoundTripWorkWithoutRegistryBootstrap() {
+        HiveBrainKey<String> ephemeralKey = HiveBrainKey.of("test_ephemeral_tag", String.class);
+        HiveBrainKey<Integer> intKey = HiveBrainKey.persistentInt("test_persistent_kills");
+        HiveBrainKey<String> strKey = HiveBrainKey.persistentString("test_persistent_note");
+        HiveBrainKey<BlockPos> posKey = HiveBrainKey.persistentBlockPos("test_persistent_anchor");
+        HiveBrainKey<UUID> uuidKey = HiveBrainKey.persistentUuid("test_persistent_target");
+
+        HiveBrainBlackboard board = new HiveBrainBlackboard();
+        board.set(ephemeralKey, "temp");
+        board.set(intKey, 7);
+        board.setExpiring(strKey, "alert", 20, 100L);
+        BlockPos anchor = new BlockPos(12, 64, -8);
+        UUID targetId = UUID.fromString("12345678-1234-5678-9abc-123456789abc");
+        board.set(posKey, anchor);
+        board.set(uuidKey, targetId);
+        board.setCooldown("slam", 100L, 40);
+
+        assertEquals("temp", board.get(ephemeralKey, 100L));
+        assertEquals(7, board.get(intKey, 100L));
+        assertEquals("alert", board.get(strKey, 119L));
+        assertTrue(board.isOnCooldown("slam", 100L));
+        assertEquals(40L, board.getRemainingCooldown("slam", 100L));
+        assertEquals(1, board.getActiveCooldownCount(100L));
+
+        CompoundTag saved = board.saveToNbt(new CompoundTag(), 110L);
+        HiveBrainBlackboard reloaded = new HiveBrainBlackboard();
+        reloaded.loadFromNbt(saved);
+
+        assertNull(reloaded.get(ephemeralKey, 110L));
+        assertEquals(7, reloaded.get(intKey, 110L));
+        assertEquals("alert", reloaded.get(strKey, 119L));
+        assertNull(reloaded.get(strKey, 120L));
+        assertEquals(anchor, reloaded.get(posKey, 200L));
+        assertEquals(targetId, reloaded.get(uuidKey, 200L));
+        assertTrue(reloaded.isOnCooldown("slam", 110L));
+        assertEquals(30L, reloaded.getRemainingCooldown("slam", 110L));
+        assertFalse(reloaded.isOnCooldown("slam", 140L));
+
+        assertEquals(0, reloaded.pruneExpired(200L)); // get/isOnCooldown already lazily pruned expired entries
+        reloaded.setExpiring(ephemeralKey, "x", 5, 200L);
+        reloaded.setCooldown("temp_cd", 200L, 5);
+        assertEquals(2, reloaded.pruneExpired(205L));
+        reloaded.remove(posKey);
+        assertFalse(reloaded.has(posKey, 200L));
+    }
+
+    @Test
+    void hiveBrainSignalFactoriesLodWakeWindowAndSnapshotFormatWorkDeterministically() {
+        BlockPos origin = new BlockPos(5, 70, -3);
+        HiveBrainSignal acoustic = HiveBrainSignal.acousticPulse(origin, null, Float.NaN, 150L);
+        assertEquals(HiveBrainSignal.SignalType.ACOUSTIC_PULSE, acoustic.type());
+        assertEquals(origin, acoustic.sourcePos());
+        assertEquals(0.0F, acoustic.intensity());
+        assertFalse(acoustic.urgent());
+        assertEquals("acoustic", acoustic.tag());
+
+        HiveBrainSignal desync = HiveBrainSignal.desyncTriggered(100, 200L);
+        assertEquals(HiveBrainSignal.SignalType.DESYNC_TRIGGERED, desync.type());
+        assertTrue(desync.urgent());
+        assertEquals(100.0F, desync.intensity());
+
+        long wakeUntil = HiveBrainScheduler.computeLodWakeUntil(100L, 40);
+        assertEquals(140L, wakeUntil);
+        assertEquals(HiveBrainScheduler.INITIAL_TICK_SENTINEL, HiveBrainScheduler.computeLodWakeUntil(100L, 0));
+        assertEquals(Long.MAX_VALUE, HiveBrainScheduler.computeLodWakeUntil(Long.MAX_VALUE - 5L, 40));
+
+        // entityId=2, gameTime=139 -> (139+2)%4=1 (normally throttled), but woken until 140
+        assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(10L, 2, 139L, wakeUntil, false, false));
+        assertFalse(HiveBrainScheduler.shouldTickBrainWithLod(10L, 2, 141L, wakeUntil, false, false));
+
+        HiveBrainSnapshot snapshot = new HiveBrainSnapshot(
+                "", null, 12L, 50L, 6L, 3L, null, "", List.of("fight:Melee"), 2, 4, true);
+        String formatted = snapshot.formatCompact();
+        assertTrue(formatted.contains("act=none"));
+        assertTrue(formatted.contains("prof=default"));
+        assertTrue(formatted.contains("sig=3 (NONE)"));
+        assertTrue(formatted.contains("cd=2"));
+        assertTrue(formatted.contains("lodSkip=6"));
+        assertTrue(formatted.contains("PAUSED"));
     }
 }

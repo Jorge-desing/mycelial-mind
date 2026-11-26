@@ -19,6 +19,8 @@ import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.entity.SporeGliderEntity;
 import com.alex.mycelialmind.entity.SynapticMimicEntity;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HyphalAdaptiveArchitectureEngine;
@@ -487,6 +489,7 @@ public class BioScannerItem extends Item {
                             mob.getEpisodicMemory().size()
                     ).withStyle(ChatFormatting.AQUA));
                 }
+                sendBrainTelemetryIfPresent(player, serverLevel, mob);
 
                 HiveMindSavedData hive = HiveMindSavedData.get(serverLevel);
                 StimulusType dominantStimulus = null;
@@ -550,6 +553,7 @@ public class BioScannerItem extends Item {
                     discovery.recordTrait(chimera.getMutationGene());
                     DiscoverySyncPayload.syncToPlayer(serverPlayer);
                 }
+                sendBrainTelemetryIfPresent(player, serverLevel, chimera);
                 serverLevel.playSound(null, chimera.blockPosition(), ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.5F);
             }
             return InteractionResult.sidedSuccess(player.level().isClientSide());
@@ -569,6 +573,7 @@ public class BioScannerItem extends Item {
                         mode,
                         status
                 ).withStyle(drone.isJammed() ? ChatFormatting.YELLOW : ChatFormatting.AQUA));
+                sendBrainTelemetryIfPresent(player, serverLevel, drone);
                 if (player instanceof ServerPlayer serverPlayer) {
                     PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
                     discovery.recordSpecies(drone.getType());
@@ -587,6 +592,7 @@ public class BioScannerItem extends Item {
                         Component.translatable(symbiont.getRank().nameKey()),
                         Math.round(symbiont.getMorale())
                 ).withStyle(ChatFormatting.AQUA));
+                sendBrainTelemetryIfPresent(player, serverLevel, symbiont);
                 SovereignColonyData colony = symbiont.getColonyData(serverLevel);
                 var lesson = colony != null ? colony.getDialectLesson() : null;
                 if (lesson != null && (symbiont.getUUID().equals(lesson.teacher())
@@ -623,6 +629,7 @@ public class BioScannerItem extends Item {
                         "message.mycelialmind.scanner_glider_inspect",
                         String.format("%.0f/%.0f", glider.getHealth(), glider.getMaxHealth())
                 ).withStyle(ChatFormatting.AQUA));
+                sendBrainTelemetryIfPresent(player, serverLevel, glider);
                 serverLevel.playSound(null, glider.blockPosition(), ModSounds.BIO_SCANNER_PING.get(), SoundSource.PLAYERS, 0.7F, 1.7F);
             }
             return InteractionResult.sidedSuccess(player.level().isClientSide());
@@ -853,6 +860,16 @@ public class BioScannerItem extends Item {
             return Component.translatable("hud.mycelialmind.squad_synced");
         }
         return Component.translatable("hud.mycelialmind.squad_unlinked");
+    }
+
+    private static void sendBrainTelemetryIfPresent(Player player, ServerLevel serverLevel, LivingEntity target) {
+        if (target instanceof HiveBrainOwner<?> owner) {
+            HiveBrainSnapshot snapshot = owner.captureBrainSnapshot(serverLevel.getGameTime());
+            if (snapshot != null) {
+                player.sendSystemMessage(Component.literal("[HiveBrain] " + snapshot.formatCompact())
+                        .withStyle(ChatFormatting.DARK_AQUA));
+            }
+        }
     }
 
     @Override

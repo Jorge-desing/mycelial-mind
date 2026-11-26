@@ -8,8 +8,7 @@ import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
-import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
-import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
@@ -176,7 +175,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     @Nullable
     private HiveBehaviorTree<HiveAiBlackboard> tacticalTree;
     @Nullable
-    private HiveBrainRuntime<MycelialMob> hiveBrainRuntime;
+    private HiveBrain<MycelialMob> hiveBrain;
 
     protected MycelialMob(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -271,6 +270,12 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
         setFrenzyTicks(0);
         setPhalanxActive(false);
         setCommandRole(SynapticCommandSystem.CommandRole.NONE);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            dispatchBrainSignal(
+                    serverLevel,
+                    this,
+                    HiveBrainSignal.desyncTriggered(ticks, serverLevel.getGameTime()));
+        }
     }
 
     public int getFrenzyTicks() {
@@ -449,17 +454,23 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     @Override
     public boolean hurt(DamageSource source, float amount) {
         boolean hurt = super.hurt(source, amount);
-        if (hurt && this.level() instanceof ServerLevel serverLevel
-                && source.getEntity() instanceof LivingEntity attacker
-                && attacker != this
-                && this.canAttack(attacker)
-                && !(attacker instanceof Player player && isFriendlyToPlayer(this, player))) {
-            float healthRatio = attacker.getHealth() / Math.max(1.0F, attacker.getMaxHealth());
-            long now = serverLevel.getGameTime();
-            this.threatTable.recordDamage(attacker.getUUID(), amount, this.distanceToSqr(attacker), healthRatio, now);
-            if (amount >= this.getMaxHealth() * 0.25F || this.getHealth() <= this.getMaxHealth() * 0.35F) {
-                this.episodicMemory.remember(MobEpisodicMemory.grudgeKey(attacker.getUUID()), now);
+        if (hurt && this.level() instanceof ServerLevel serverLevel) {
+            LivingEntity attacker = source.getEntity() instanceof LivingEntity living ? living : null;
+            if (attacker != null
+                    && attacker != this
+                    && this.canAttack(attacker)
+                    && !(attacker instanceof Player player && isFriendlyToPlayer(this, player))) {
+                float healthRatio = attacker.getHealth() / Math.max(1.0F, attacker.getMaxHealth());
+                long now = serverLevel.getGameTime();
+                this.threatTable.recordDamage(attacker.getUUID(), amount, this.distanceToSqr(attacker), healthRatio, now);
+                if (amount >= this.getMaxHealth() * 0.25F || this.getHealth() <= this.getMaxHealth() * 0.35F) {
+                    this.episodicMemory.remember(MobEpisodicMemory.grudgeKey(attacker.getUUID()), now);
+                }
             }
+            dispatchBrainSignal(
+                    serverLevel,
+                    this,
+                    HiveBrainSignal.damageTaken(attacker, amount, serverLevel.getGameTime()));
         }
         return hurt;
     }
@@ -910,6 +921,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
             tag.putUUID(TAG_ALLIED_OWNER, this.alliedOwnerUuid);
         }
         this.episodicMemory.writeToNbt(tag, TAG_EPISODIC_MEMORY);
+        saveBrainState(tag);
     }
 
     @Override
@@ -981,6 +993,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
         }
         this.alliedOwnerUuid = tag.hasUUID(TAG_ALLIED_OWNER) ? tag.getUUID(TAG_ALLIED_OWNER) : null;
         this.episodicMemory.readFromNbt(tag, TAG_EPISODIC_MEMORY);
+        loadBrainState(tag);
         if (isAlliedEscortActive() && this.level() instanceof ServerLevel serverLevel) {
             AlliedEscortSavedData.get(serverLevel.getServer())
                     .register(this.getUUID(), this.alliedOwnerUuid, this.escortExpiryTick);
@@ -1137,37 +1150,53 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     @SuppressWarnings("unchecked")
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
         Brain<?> brain = super.makeBrain(dynamic);
-        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<MycelialMob>) brain);
+        this.hiveBrain = HiveBrainFactory.initializeBrain(this, (Brain<MycelialMob>) brain);
         return brain;
     }
 
     @Override
     @Nullable
-    public HiveBrainRuntime<MycelialMob> getHiveBrainRuntime() {
-        return this.hiveBrainRuntime;
+    public HiveBrain<MycelialMob> getHiveBrain() {
+        return this.hiveBrain;
     }
 
     @Override
-    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<MycelialMob> runtime) {
-        this.hiveBrainRuntime = runtime;
+    public void setHiveBrain(@Nullable HiveBrain<MycelialMob> brain) {
+        this.hiveBrain = brain;
     }
 
     @Override
     public boolean shouldTickBrain(ServerLevel level, MycelialMob entity) {
-        HiveBrain<MycelialMob> brain = getHiveBrain();
-        long tickCountVal = brain != null ? brain.getBrainTickCount() : 0L;
-        boolean highPriority = this.tickCount <= 2
-                || isBossMob()
+        boolean highPriority = isBossMob()
                 || getTarget() != null
                 || isDesynced()
                 || isFrenzyActive()
-                || this.hurtTime > 0
                 || HiveBrainUtils.hasMemory(this, ModMemoryTypes.SHARED_TARGET_POS.get())
-                || HiveBrainUtils.hasMemory(this, ModMemoryTypes.INCOMING_PROJECTILE_POS.get())
-                || (brain != null && brain.getActiveActivity() != getDefaultActivity());
-        boolean nearPlayer = level.getNearestPlayer(this, 32.0D) != null;
-        return HiveBrainScheduler.shouldTickBrainWithLod(
-                tickCountVal, this.getId(), level.getGameTime(), highPriority, nearPlayer);
+                || HiveBrainUtils.hasMemory(this, ModMemoryTypes.INCOMING_PROJECTILE_POS.get());
+        return HiveBrainOwner.evaluateStandardLod(level, entity, highPriority);
+    }
+
+    @Override
+    public void onBrainSignal(
+            ServerLevel level, MycelialMob entity, HiveBrain<MycelialMob> brain, HiveBrainSignal signal) {
+        switch (signal.type()) {
+            case ACOUSTIC_PULSE, ALLY_ALERT -> {
+                if (signal.sourcePos() != null
+                        && !isDesynced()
+                        && !isBossMob()
+                        && !brain.hasMemory(ModMemoryTypes.SHARED_TARGET_POS.get())) {
+                    brain.setForgettableMemory(
+                            ModMemoryTypes.SHARED_TARGET_POS.get(),
+                            signal.sourcePos(),
+                            160);
+                }
+            }
+            case DESYNC_TRIGGERED -> {
+                brain.clearMemory(ModMemoryTypes.STALKER_FLANK_POS.get());
+                brain.clearMemory(ModMemoryTypes.WEAVER_SUPPORT_POS.get());
+            }
+            default -> { }
+        }
     }
 
     @Override

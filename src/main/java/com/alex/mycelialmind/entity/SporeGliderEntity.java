@@ -8,9 +8,9 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
-import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
@@ -57,7 +57,7 @@ public class SporeGliderEntity extends PathfinderMob implements HiveBrainOwner<S
     private static final String TAG_ANCHOR_Z = "SinkholeAnchorZ";
 
     @Nullable
-    private HiveBrainRuntime<SporeGliderEntity> hiveBrainRuntime;
+    private HiveBrain<SporeGliderEntity> hiveBrain;
     @Nullable
     private BlockPos homeAnchor;
     private int pollinateCooldown = 100;
@@ -87,19 +87,26 @@ public class SporeGliderEntity extends PathfinderMob implements HiveBrainOwner<S
     @SuppressWarnings("unchecked")
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
         Brain<?> brain = super.makeBrain(dynamic);
-        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<SporeGliderEntity>) brain);
+        this.hiveBrain = HiveBrainFactory.initializeBrain(this, (Brain<SporeGliderEntity>) brain);
         return brain;
     }
 
     @Override
     @Nullable
-    public HiveBrainRuntime<SporeGliderEntity> getHiveBrainRuntime() {
-        return this.hiveBrainRuntime;
+    public HiveBrain<SporeGliderEntity> getHiveBrain() {
+        return this.hiveBrain;
     }
 
     @Override
-    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<SporeGliderEntity> runtime) {
-        this.hiveBrainRuntime = runtime;
+    public void setHiveBrain(@Nullable HiveBrain<SporeGliderEntity> brain) {
+        this.hiveBrain = brain;
+    }
+
+    @Override
+    public boolean shouldTickBrain(ServerLevel level, SporeGliderEntity entity) {
+        boolean highPriority = getTarget() != null
+                || HiveBrainUtils.hasMemory(this, ModMemoryTypes.INCOMING_PROJECTILE_POS.get());
+        return HiveBrainOwner.evaluateStandardLod(level, entity, highPriority);
     }
 
     @Override
@@ -241,6 +248,7 @@ public class SporeGliderEntity extends PathfinderMob implements HiveBrainOwner<S
             tag.putInt(TAG_ANCHOR_Y, this.homeAnchor.getY());
             tag.putInt(TAG_ANCHOR_Z, this.homeAnchor.getZ());
         }
+        saveBrainState(tag);
     }
 
     @Override
@@ -249,6 +257,7 @@ public class SporeGliderEntity extends PathfinderMob implements HiveBrainOwner<S
         if (tag.contains(TAG_ANCHOR_X) && tag.contains(TAG_ANCHOR_Y) && tag.contains(TAG_ANCHOR_Z)) {
             this.homeAnchor = new BlockPos(tag.getInt(TAG_ANCHOR_X), tag.getInt(TAG_ANCHOR_Y), tag.getInt(TAG_ANCHOR_Z));
         }
+        loadBrainState(tag);
     }
 
     @Override

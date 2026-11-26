@@ -6,6 +6,7 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.ApexMatriarchEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -190,6 +191,10 @@ public final class MycorrhizalAcousticTracker {
                             && mob.getTarget() == null
                             && !MycelialMob.isFriendlyToPlayer(mob, sourcePlayer)) {
                         mob.setTarget(sourcePlayer);
+                        mob.dispatchBrainSignal(
+                                level,
+                                mob,
+                                HiveBrainSignal.acousticPulse(origin, sourcePlayer, 1.0F, level.getGameTime()));
                     }
                 }
             }

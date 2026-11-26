@@ -18,9 +18,9 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
-import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainRuntime;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HurtBySensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.NearbyLivingEntitySensor;
@@ -143,7 +143,7 @@ public class ColonySymbiontEntity extends PathfinderMob implements HiveBrainOwne
 
     private final ItemStackHandler pouch = new ItemStackHandler(POUCH_SLOTS);
     @Nullable
-    private HiveBrainRuntime<ColonySymbiontEntity> hiveBrainRuntime;
+    private HiveBrain<ColonySymbiontEntity> hiveBrain;
 
     public ColonySymbiontEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -159,19 +159,27 @@ public class ColonySymbiontEntity extends PathfinderMob implements HiveBrainOwne
     @SuppressWarnings("unchecked")
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
         Brain<?> brain = super.makeBrain(dynamic);
-        this.hiveBrainRuntime = HiveBrainFactory.initializeBrain(this, (Brain<ColonySymbiontEntity>) brain);
+        this.hiveBrain = HiveBrainFactory.initializeBrain(this, (Brain<ColonySymbiontEntity>) brain);
         return brain;
     }
 
     @Override
     @Nullable
-    public HiveBrainRuntime<ColonySymbiontEntity> getHiveBrainRuntime() {
-        return this.hiveBrainRuntime;
+    public HiveBrain<ColonySymbiontEntity> getHiveBrain() {
+        return this.hiveBrain;
     }
 
     @Override
-    public void setHiveBrainRuntime(@Nullable HiveBrainRuntime<ColonySymbiontEntity> runtime) {
-        this.hiveBrainRuntime = runtime;
+    public void setHiveBrain(@Nullable HiveBrain<ColonySymbiontEntity> brain) {
+        this.hiveBrain = brain;
+    }
+
+    @Override
+    public boolean shouldTickBrain(ServerLevel level, ColonySymbiontEntity entity) {
+        boolean highPriority = getTarget() != null
+                || !isStandby()
+                || getLastHurtByMob() != null;
+        return HiveBrainOwner.evaluateStandardLod(level, entity, highPriority);
     }
 
     @Override
@@ -943,6 +951,7 @@ public class ColonySymbiontEntity extends PathfinderMob implements HiveBrainOwne
         }
         tag.put(TAG_SITE_WITNESSES, witnessTag);
         tag.put(TAG_POUCH, pouch.serializeNBT(this.registryAccess()));
+        saveBrainState(tag);
     }
 
     @Override
@@ -974,6 +983,7 @@ public class ColonySymbiontEntity extends PathfinderMob implements HiveBrainOwne
         if (tag.contains(TAG_POUCH, CompoundTag.TAG_COMPOUND)) {
             pouch.deserializeNBT(this.registryAccess(), tag.getCompound(TAG_POUCH));
         }
+        loadBrainState(tag);
         applyStatsFromState();
     }
 }

@@ -176,13 +176,43 @@ public final class HiveBrainScheduler {
     }
 
     /**
+     * Computes the gameTime deadline until which an entity stays woken from LOD throttling.
+     */
+    public static long computeLodWakeUntil(long gameTime, int wakeTicks) {
+        if (wakeTicks <= 0) {
+            return INITIAL_TICK_SENTINEL;
+        }
+        if (gameTime > Long.MAX_VALUE - wakeTicks) {
+            return Long.MAX_VALUE;
+        }
+        return gameTime + wakeTicks;
+    }
+
+    /**
      * Adaptive AI LOD gate for {@link HiveBrainOwner#shouldTickBrain}:
      * ticks at full 1-tick cadence during initial setup, combat, alerts, or within player proximity,
      * and throttles distant completely idle mobs to a staggered 1-in-4 tick cadence.
      */
     public static boolean shouldTickBrainWithLod(
             long brainTickCount, int entityId, long gameTime, boolean highPriority, boolean nearPlayer) {
-        if (brainTickCount <= 0L || highPriority || nearPlayer) {
+        return shouldTickBrainWithLod(
+                brainTickCount, entityId, gameTime, INITIAL_TICK_SENTINEL, highPriority, nearPlayer);
+    }
+
+    /**
+     * Adaptive AI LOD gate including an explicit signal wake deadline ({@code lodWakeUntilGameTime}).
+     */
+    public static boolean shouldTickBrainWithLod(
+            long brainTickCount,
+            int entityId,
+            long gameTime,
+            long lodWakeUntilGameTime,
+            boolean highPriority,
+            boolean nearPlayer) {
+        if (brainTickCount <= 0L
+                || highPriority
+                || nearPlayer
+                || (lodWakeUntilGameTime != INITIAL_TICK_SENTINEL && gameTime < lodWakeUntilGameTime)) {
             return true;
         }
         return Math.floorMod(gameTime + entityId, 4L) == 0L;

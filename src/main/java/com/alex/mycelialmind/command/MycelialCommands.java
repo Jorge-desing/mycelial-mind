@@ -11,6 +11,8 @@ import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.entity.SporelingEntity;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
@@ -66,6 +68,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ItemStack;
@@ -2231,39 +2235,65 @@ public final class MycelialCommands {
         ServerLevel level = source.getLevel();
         BlockPos center = BlockPos.containing(source.getPosition());
         net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(center).inflate(radius);
-        List<MycelialMob> mobs = level.getEntitiesOfClass(MycelialMob.class, box, mob -> mob.isAlive());
+        List<LivingEntity> owners = level.getEntitiesOfClass(
+                LivingEntity.class,
+                box,
+                entity -> entity.isAlive() && entity instanceof HiveBrainOwner<?>);
         var doctrine = com.alex.mycelialmind.hive.HiveBlackboard.getDoctrine(level);
         source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
-                "[Mycelial AI] radius=%dm | doctrine=%s | active_mobs=%d",
-                radius, doctrine.name(), mobs.size()))
+                "[Mycelial AI] radius=%dm | doctrine=%s | brain_entities=%d",
+                radius, doctrine.name(), owners.size()))
                 .withStyle(ChatFormatting.AQUA), false);
 
         int shown = 0;
-        for (MycelialMob mob : mobs) {
-            if (shown >= 8) {
+        long gameTime = level.getGameTime();
+        for (LivingEntity entity : owners) {
+            if (shown >= 10) {
                 break;
             }
-            var brain = mob.getHiveBrain();
-            String activity = (brain != null && brain.getActiveActivity() != null)
-                    ? brain.getActiveActivity().getName()
-                    : "none";
-            String role = com.alex.mycelialmind.hive.HiveSwarmCoordinator.assignRole(mob).name();
-            String intent = mob.getTacticalIntent().name();
-            String target = mob.getTarget() != null ? mob.getTarget().getName().getString() : "-";
-            String flags = (mob.isDesynced() ? "DESYNC " : "")
-                    + (mob.isFrenzyActive() ? "FRENZY " : "")
-                    + (mob.isPhalanxActive() ? "PHALANX " : "");
+            HiveBrainOwner<?> owner = (HiveBrainOwner<?>) entity;
+            HiveBrainSnapshot snap = owner.captureBrainSnapshot(gameTime);
+            String act = snap != null ? snap.activeActivity() : "none";
+            String prof = snap != null ? snap.activeProfile() : "default";
+            long sig = snap != null ? snap.signalCount() : 0L;
+            int cd = snap != null ? snap.activeCooldownCount() : 0;
+            long lodSkip = snap != null ? snap.skippedLodTicks() : 0L;
+            String run = (snap != null && !snap.runningBehaviours().isEmpty())
+                    ? String.join(",", snap.runningBehaviours())
+                    : "-";
+            String extra = "";
+            if (entity instanceof MycelialMob mob) {
+                String role = com.alex.mycelialmind.hive.HiveSwarmCoordinator.assignRole(mob).name();
+                String intent = mob.getTacticalIntent().name();
+                String target = mob.getTarget() != null ? mob.getTarget().getName().getString() : "-";
+                String flags = (mob.isDesynced() ? "DESYNC " : "")
+                        + (mob.isFrenzyActive() ? "FRENZY " : "")
+                        + (mob.isPhalanxActive() ? "PHALANX " : "");
+                extra = String.format(
+                        Locale.ROOT,
+                        " | intent=%s | role=%s | target=%s %s",
+                        intent,
+                        role,
+                        target,
+                        flags.isBlank() ? "" : "[" + flags.trim() + "]");
+            } else if (entity instanceof Mob mob) {
+                String target = mob.getTarget() != null ? mob.getTarget().getName().getString() : "-";
+                extra = " | target=" + target;
+            }
             final String line = String.format(
                     Locale.ROOT,
-                    " - %s #%d | act=%s | intent=%s | role=%s | target=%s %s",
-                    mob.getType().getDescription().getString(),
-                    mob.getId(),
-                    activity,
-                    intent,
-                    role,
-                    target,
-                    flags.isBlank() ? "" : "[" + flags.trim() + "]");
+                    " - %s #%d | act=%s | prof=%s | sig=%d | cd=%d | lodSkip=%d | run=%s%s%s",
+                    entity.getType().getDescription().getString(),
+                    entity.getId(),
+                    act,
+                    prof,
+                    sig,
+                    cd,
+                    lodSkip,
+                    run,
+                    (snap != null && snap.paused()) ? " [PAUSED]" : "",
+                    extra);
             source.sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GRAY), false);
             shown++;
         }

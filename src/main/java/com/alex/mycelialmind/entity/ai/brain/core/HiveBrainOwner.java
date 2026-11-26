@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.entity.ai.brain.core;
 
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
@@ -70,31 +71,79 @@ public interface HiveBrainOwner<T extends LivingEntity & HiveBrainOwner<T>> {
     default void onBrainTickEnd(ServerLevel level, T entity, HiveBrain<T> brain) {
     }
 
-    @Nullable
-    default HiveBrain<T> getHiveBrain() {
-        return getHiveBrainRuntime();
+    default void onBrainSignal(ServerLevel level, T entity, HiveBrain<T> brain, HiveBrainSignal signal) {
     }
 
-    default void setHiveBrain(@Nullable HiveBrain<T> brain) {
-        if (brain == null || brain instanceof HiveBrainRuntime<T>) {
-            setHiveBrainRuntime((HiveBrainRuntime<T>) brain);
-        } else {
-            HiveBrainRuntime<T> wrapped = new HiveBrainRuntime<>(
-                    brain.getVanillaBrain(),
-                    brain.getSensors(),
-                    brain.getActivityPriorities(),
-                    brain.getTaskGroups(),
-                    getDefaultActivity()
-            );
-            wrapped.setSchedule(brain.getSchedule());
-            setHiveBrainRuntime(wrapped);
+    @Nullable
+    HiveBrain<T> getHiveBrain();
+
+    void setHiveBrain(@Nullable HiveBrain<T> brain);
+
+    @Nullable
+    default HiveBrainRuntime<T> getHiveBrainRuntime() {
+        return getHiveBrain() instanceof HiveBrainRuntime<T> runtime ? runtime : null;
+    }
+
+    default void setHiveBrainRuntime(@Nullable HiveBrainRuntime<T> runtime) {
+        setHiveBrain(runtime);
+    }
+
+    default void dispatchBrainSignal(ServerLevel level, T entity, HiveBrainSignal signal) {
+        HiveBrain<T> brain = getHiveBrain();
+        if (brain != null) {
+            brain.dispatchSignal(level, entity, signal);
+        }
+    }
+
+    default void enqueueBrainSignal(HiveBrainSignal signal) {
+        HiveBrain<T> brain = getHiveBrain();
+        if (brain != null) {
+            brain.enqueueSignal(signal);
+        }
+    }
+
+    default void saveBrainState(CompoundTag tag) {
+        long gameTime = (this instanceof LivingEntity living && living.level() != null)
+                ? living.level().getGameTime()
+                : -1L;
+        saveBrainState(tag, gameTime);
+    }
+
+    default void saveBrainState(CompoundTag tag, long currentGameTime) {
+        HiveBrain<T> brain = getHiveBrain();
+        if (brain != null) {
+            brain.saveToNbt(tag, currentGameTime);
+        }
+    }
+
+    default void loadBrainState(CompoundTag tag) {
+        HiveBrain<T> brain = getHiveBrain();
+        if (brain != null) {
+            brain.loadFromNbt(tag);
         }
     }
 
     @Nullable
-    HiveBrainRuntime<T> getHiveBrainRuntime();
+    default HiveBrainSnapshot captureBrainSnapshot(long gameTime) {
+        HiveBrain<T> brain = getHiveBrain();
+        return brain != null ? brain.captureSnapshot(gameTime) : null;
+    }
 
-    void setHiveBrainRuntime(@Nullable HiveBrainRuntime<T> runtime);
+    static <E extends LivingEntity & HiveBrainOwner<E>> boolean evaluateStandardLod(
+            ServerLevel level, E entity, boolean highPriority) {
+        HiveBrain<E> brain = entity.getHiveBrain();
+        long tickCountVal = brain != null ? brain.getBrainTickCount() : 0L;
+        long wakeUntil = brain != null ? brain.getLodWakeUntilGameTime() : HiveBrainScheduler.INITIAL_TICK_SENTINEL;
+        boolean activeBrainState = brain != null
+                && (brain.getPendingSignalCount() > 0 || brain.getActiveActivity() != entity.getDefaultActivity());
+        boolean effectiveHighPriority = highPriority
+                || entity.tickCount <= 2
+                || entity.hurtTime > 0
+                || activeBrainState;
+        boolean nearPlayer = level.getNearestPlayer(entity, 32.0D) != null;
+        return HiveBrainScheduler.shouldTickBrainWithLod(
+                tickCountVal, entity.getId(), level.getGameTime(), wakeUntil, effectiveHighPriority, nearPlayer);
+    }
 
     @SuppressWarnings("unchecked")
     default void tickBrain(T entity) {
