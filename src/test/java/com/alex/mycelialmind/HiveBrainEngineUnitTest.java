@@ -20,6 +20,9 @@ import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainKey;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainScheduler;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainTrace;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveResourceArbiter;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveResourceChannel;
 import com.alex.mycelialmind.entity.ai.brain.core.UtilitySelectorBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
 import com.alex.mycelialmind.entity.ai.brain.steering.HiveSteeringEngine;
@@ -30,6 +33,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -465,5 +469,76 @@ class HiveBrainEngineUnitTest {
         assertTrue(formatted.contains("cd=2"));
         assertTrue(formatted.contains("lodSkip=6"));
         assertTrue(formatted.contains("PAUSED"));
+    }
+
+    @Test
+    void hiveResourceChannelArbiterPreemptsLowerPriorityAndReleasesCleanly() {
+        HiveResourceArbiter arbiter = new HiveResourceArbiter();
+        Object low = new Object();
+        Object conflict = new Object();
+        Object high = new Object();
+
+        int moveLookMask = HiveResourceChannel.maskOf(HiveResourceChannel.MOVE, HiveResourceChannel.LOOK);
+        assertEquals("MOVE|LOOK", HiveResourceChannel.formatMask(moveLookMask));
+
+        assertTrue(arbiter.acquire(low, moveLookMask, 1, null));
+        assertEquals(low, arbiter.getOwner(HiveResourceChannel.MOVE));
+        assertEquals(low, arbiter.getOwner(HiveResourceChannel.LOOK));
+        assertFalse(arbiter.canAcquire(conflict, HiveResourceChannel.MOVE.bit(), 1));
+        assertFalse(arbiter.acquire(conflict, HiveResourceChannel.MOVE.bit(), 1, null));
+
+        List<Object> displaced = new ArrayList<>();
+        assertTrue(arbiter.acquire(high, HiveResourceChannel.MOVE.bit(), 5, displaced::add));
+        assertEquals(1, displaced.size());
+        assertEquals(low, displaced.get(0));
+        assertEquals(high, arbiter.getOwner(HiveResourceChannel.MOVE));
+        assertNull(arbiter.getOwner(HiveResourceChannel.LOOK));
+
+        arbiter.release(high);
+        assertEquals(0, arbiter.occupiedMask());
+        assertEquals("NONE", arbiter.formatOccupied());
+    }
+
+    @Test
+    void hiveBrainTraceRingBufferMaintainsChronologicalOrderAndCapacity() {
+        HiveBrainTrace trace = new HiveBrainTrace(4);
+        assertEquals(4, trace.capacity());
+        assertEquals(0, trace.size());
+        assertNull(trace.latest());
+
+        for (int i = 0; i < 6; i++) {
+            trace.record(100L + i, HiveBrainTrace.EventKind.SIGNAL, "ev_" + i);
+        }
+
+        assertEquals(4, trace.size());
+        List<HiveBrainTrace.Entry> entries = trace.recentEntries();
+        assertEquals(4, entries.size());
+        assertEquals("ev_2", entries.get(0).detail());
+        assertEquals("ev_3", entries.get(1).detail());
+        assertEquals("ev_4", entries.get(2).detail());
+        assertEquals("ev_5", entries.get(3).detail());
+        assertEquals("ev_5", trace.latest().detail());
+        assertTrue(trace.latest().format().contains("[t=105] SIGNAL: ev_5"));
+
+        trace.clear();
+        assertEquals(0, trace.size());
+        assertNull(trace.latest());
+    }
+
+    @Test
+    void hiveBrainSchedulerLodMultiplierSupportsFullCadenceAndDeepSleep() {
+        // Multiplier 0 disables LOD throttling cleanly
+        for (long t = 0L; t < 8L; t++) {
+            assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(
+                    10L, 2, t, HiveBrainScheduler.INITIAL_TICK_SENTINEL, 0, false, false));
+        }
+
+        // Multiplier 1 = 1-in-4; Multiplier 2 = 1-in-8
+        assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(
+                10L, 1, 11L, HiveBrainScheduler.INITIAL_TICK_SENTINEL, 1, false, false));
+        assertFalse(HiveBrainScheduler.shouldTickBrainWithLod(
+                10L, 1, 11L, HiveBrainScheduler.INITIAL_TICK_SENTINEL, 2, false, false));
+        assertTrue(HiveBrainScheduler.shouldTickBrainWithLod(
+                10L, 1, 15L, HiveBrainScheduler.INITIAL_TICK_SENTINEL, 2, false, false));
     }
 }

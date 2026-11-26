@@ -2,8 +2,12 @@ package com.alex.mycelialmind.entity.ai.brain.core;
 
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Dynamic;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.schedule.Activity;
@@ -14,6 +18,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,7 +51,7 @@ public final class HiveBrainFactory {
 
         List<BrainActivityGroup<E>> groups = compileTaskGroups(owner);
         List<? extends HiveSensor<? extends E>> sensors = owner.getSensors();
-        List<MemoryModuleType<?>> memories = List.copyOf(collectDeclaredMemories(groups, sensors));
+        List<MemoryModuleType<?>> memories = List.copyOf(collectDeclaredMemories(owner, groups, sensors));
         MEMORY_CACHE.putIfAbsent(owner.getClass(), memories);
         PENDING_SPEC.set(new CompiledBrainSpec<>(owner, groups, sensors));
         return Brain.provider(memories, List.of());
@@ -70,6 +75,65 @@ public final class HiveBrainFactory {
             PENDING_SPEC.remove();
         }
 
+        applyGroupsToBrain(owner, brain, groups, owner.getDefaultActivity());
+
+        List<HiveSensor<? super E>> sensors = new ArrayList<>(rawSensors != null ? rawSensors.size() : 0);
+        if (rawSensors != null) {
+            for (int i = 0, size = rawSensors.size(); i < size; i++) {
+                HiveSensor<? extends E> sensor = rawSensors.get(i);
+                if (sensor != null) {
+                    sensors.add((HiveSensor<? super E>) sensor);
+                }
+            }
+        }
+        HiveBrainRuntime<E> runtime = new HiveBrainRuntime<>(
+                brain,
+                sensors,
+                owner.getActivityPriorities(),
+                groups,
+                owner.getDefaultActivity()
+        );
+        HiveBrainSchedule schedule = owner.getBrainSchedule();
+        if (schedule != null) {
+            runtime.setSchedule(schedule);
+        }
+        Map<String, HiveBrainProfile<E>> profiles = owner.getBrainProfiles();
+        if (profiles != null && !profiles.isEmpty()) {
+            for (HiveBrainProfile<E> profile : profiles.values()) {
+                runtime.registerProfile(profile);
+            }
+        }
+        List<HiveBrainModule<E>> modules = owner.getBrainModules();
+        if (modules != null && !modules.isEmpty()) {
+            for (HiveBrainModule<E> module : modules) {
+                runtime.addModule(module);
+            }
+        }
+        owner.handleAdditionalBrainSetup(runtime);
+        return runtime;
+    }
+
+    public static <E extends LivingEntity & HiveBrainOwner<E>> Brain<E> rebuildBrainForProfile(
+            E owner, @Nullable Brain<E> oldBrain, List<BrainActivityGroup<E>> targetGroups) {
+        Brain.Provider<E> provider;
+        try {
+            provider = createProvider(owner);
+        } finally {
+            PENDING_SPEC.remove();
+        }
+        Brain<E> newBrain = provider.makeBrain(new Dynamic<>(NbtOps.INSTANCE, new CompoundTag()));
+        if (oldBrain != null) {
+            copyPresentMemories(oldBrain, newBrain);
+        }
+        applyGroupsToBrain(owner, newBrain, targetGroups != null ? targetGroups : List.of(), owner.getDefaultActivity());
+        return newBrain;
+    }
+
+    private static <E extends LivingEntity & HiveBrainOwner<E>> void applyGroupsToBrain(
+            E owner,
+            Brain<E> brain,
+            List<BrainActivityGroup<E>> groups,
+            @Nullable Activity defaultActivity) {
         for (int i = 0, size = groups.size(); i < size; i++) {
             BrainActivityGroup<E> group = groups.get(i);
             if (!group.getBehaviours().isEmpty()
@@ -87,35 +151,28 @@ public final class HiveBrainFactory {
         if (!alwaysRunning.isEmpty()) {
             brain.setCoreActivities(alwaysRunning);
         }
-        Activity defaultActivity = owner.getDefaultActivity();
         if (defaultActivity != null) {
             brain.setDefaultActivity(defaultActivity);
             brain.useDefaultActivity();
         }
         owner.handleAdditionalBrainSetup(brain);
+    }
 
-        List<HiveSensor<? super E>> sensors = new ArrayList<>(rawSensors != null ? rawSensors.size() : 0);
-        if (rawSensors != null) {
-            for (int i = 0, size = rawSensors.size(); i < size; i++) {
-                HiveSensor<? extends E> sensor = rawSensors.get(i);
-                if (sensor != null) {
-                    sensors.add((HiveSensor<? super E>) sensor);
-                }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static <E extends LivingEntity> void copyPresentMemories(Brain<E> source, Brain<E> target) {
+        for (Map.Entry<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> entry : source.getMemories().entrySet()) {
+            Optional<? extends ExpirableValue<?>> opt = entry.getValue();
+            if (opt == null || opt.isEmpty()) {
+                continue;
+            }
+            ExpirableValue<?> val = opt.get();
+            MemoryModuleType type = entry.getKey();
+            if (val.canExpire()) {
+                target.setMemoryWithExpiry(type, val.getValue(), Math.max(1L, val.getTimeToLive()));
+            } else {
+                target.setMemory(type, val.getValue());
             }
         }
-        HiveBrainRuntime<E> runtime = new HiveBrainRuntime<>(
-                brain,
-                sensors,
-                owner.getActivityPriorities(),
-                groups,
-                defaultActivity
-        );
-        HiveBrainSchedule schedule = owner.getBrainSchedule();
-        if (schedule != null) {
-            runtime.setSchedule(schedule);
-        }
-        owner.handleAdditionalBrainSetup(runtime);
-        return runtime;
     }
 
     @SuppressWarnings("unchecked")
@@ -141,6 +198,7 @@ public final class HiveBrainFactory {
     }
 
     private static <E extends LivingEntity & HiveBrainOwner<E>> Set<MemoryModuleType<?>> collectDeclaredMemories(
+            E owner,
             List<BrainActivityGroup<E>> groups,
             @Nullable List<? extends HiveSensor<? extends E>> sensors) {
         Set<MemoryModuleType<?>> memories = new LinkedHashSet<>();
@@ -166,7 +224,27 @@ public final class HiveBrainFactory {
                 }
             }
         }
+        collectMemoriesFromGroups(memories, groups);
+        Map<String, HiveBrainProfile<E>> profiles = owner.getBrainProfiles();
+        if (profiles != null && !profiles.isEmpty()) {
+            for (HiveBrainProfile<E> profile : profiles.values()) {
+                if (profile != null && profile.hasTaskGroupOverrides()) {
+                    collectMemoriesFromGroups(memories, profile.taskGroups());
+                }
+            }
+        }
+        return memories;
+    }
+
+    private static <E extends LivingEntity & HiveBrainOwner<E>> void collectMemoriesFromGroups(
+            Set<MemoryModuleType<?>> memories, @Nullable List<BrainActivityGroup<E>> groups) {
+        if (groups == null) {
+            return;
+        }
         for (BrainActivityGroup<E> group : groups) {
+            if (group == null) {
+                continue;
+            }
             for (HiveBehaviour<? super E> behaviour : group.getBehaviours()) {
                 if (behaviour != null) {
                     memories.addAll(behaviour.collectMemoryTypes());
@@ -179,7 +257,6 @@ public final class HiveBrainFactory {
             }
             memories.addAll(group.getWipedMemoriesOnFinish());
         }
-        return memories;
     }
 
     private static final class CompiledBrainSpec<E extends LivingEntity & HiveBrainOwner<E>> {

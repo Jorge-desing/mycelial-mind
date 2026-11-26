@@ -3,14 +3,20 @@ package com.alex.mycelialmind.entity;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.util.MycelialParticles;
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.MoveToWalkTarget;
 import com.alex.mycelialmind.entity.ai.brain.btree.HiveBehaviorTree;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainModule;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainProfile;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
+import com.alex.mycelialmind.entity.ai.brain.hive.HiveMindSensor;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.mojang.serialization.Dynamic;
@@ -67,6 +73,7 @@ import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -76,7 +83,9 @@ import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -172,6 +181,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     private final MobEpisodicMemory episodicMemory = new MobEpisodicMemory();
     private int nextTacticalTreeTick = 0;
     private int lastDesyncTicks = 0;
+    private String lastLeaderOrderBroadcast = "";
     @Nullable
     private HiveBehaviorTree<HiveAiBlackboard> tacticalTree;
     @Nullable
@@ -275,6 +285,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
                     serverLevel,
                     this,
                     HiveBrainSignal.desyncTriggered(ticks, serverLevel.getGameTime()));
+            applyBrainProfile(serverLevel, this, "desync");
         }
     }
 
@@ -296,13 +307,16 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
         }
         boolean wasActive = isFrenzyActive();
         setFrenzyTicks(Math.max(getFrenzyTicks(), ticks));
-        if (!wasActive && this.level() instanceof ServerLevel serverLevel) {
-            float pitch = computeTacticalVoicePitchMultiplier(
-                    getEvolutionRank(), getHiveStrain(), true, false, getCommandRole(), false);
-            serverLevel.playSound(
-                    null, this.blockPosition(), ModSounds.SWARM_FLANK_CALL.get(),
-                    SoundSource.HOSTILE, 0.72F, pitch
-            );
+        if (this.level() instanceof ServerLevel serverLevel) {
+            applyBrainProfile(serverLevel, this, "frenzy");
+            if (!wasActive) {
+                float pitch = computeTacticalVoicePitchMultiplier(
+                        getEvolutionRank(), getHiveStrain(), true, false, getCommandRole(), false);
+                serverLevel.playSound(
+                        null, this.blockPosition(), ModSounds.SWARM_FLANK_CALL.get(),
+                        SoundSource.HOSTILE, 0.72F, pitch
+                );
+            }
         }
     }
 
@@ -1166,6 +1180,73 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     }
 
     @Override
+    public boolean replaceVanillaBrain(Brain<MycelialMob> newBrain) {
+        if (newBrain == null) {
+            return false;
+        }
+        this.brain = newBrain;
+        return true;
+    }
+
+    @Override
+    public Map<String, HiveBrainProfile<MycelialMob>> getBrainProfiles() {
+        Map<String, HiveBrainProfile<MycelialMob>> map = new LinkedHashMap<>();
+        map.put("frenzy", HiveBrainProfile.<MycelialMob>builder("frenzy")
+                .lodIntervalMultiplier(0)
+                .activityPriorities(List.of(Activity.FIGHT, Activity.IDLE))
+                .taskGroups(getCoreTasks(), getIdleTasks(), HiveBrainBridge.createFightTasks(4))
+                .build());
+        map.put("desync", HiveBrainProfile.<MycelialMob>builder("desync")
+                .disableSensors(HiveMindSensor.class)
+                .activityPriorities(List.of(Activity.IDLE))
+                .taskGroups(
+                        BrainActivityGroup.coreTasks(new LookAtTarget<>(), new MoveToWalkTarget<>()),
+                        BrainActivityGroup.idleTasks(new Idle<MycelialMob>().runFor(mob -> 30)))
+                .build());
+        return map;
+    }
+
+    @Override
+    public List<HiveBrainModule<MycelialMob>> getBrainModules() {
+        return List.of(new HiveBrainModule<>() {
+            @Override
+            public String id() {
+                return "tactical_btree";
+            }
+
+            @Override
+            public void tick(
+                    ServerLevel level, MycelialMob entity, HiveBrain<MycelialMob> brain, long gameTime) {
+                if (entity.tacticalTree == null) {
+                    return;
+                }
+                boolean hasTarget = entity.getTarget() != null && entity.getTarget().isAlive();
+                boolean nearPlayer = level.getNearestPlayer(entity, 24.0D) != null;
+                boolean inAlarmOrFrenzy = entity.isFrenzyActive()
+                        || HiveBlackboard.getNearestActiveAlarm(level, entity.blockPosition()) != null;
+                if ((hasTarget || inAlarmOrFrenzy) && entity.nextTacticalTreeTick > entity.tickCount + 4) {
+                    entity.nextTacticalTreeTick = entity.tickCount + 4;
+                }
+                if (entity.tickCount >= entity.nextTacticalTreeTick) {
+                    entity.aiBlackboard.populateFromMob(entity, entity.getTarget());
+                    entity.tacticalTree.step();
+                    int interval = TacticalEvasionEngine.computeAdaptiveAiInterval(
+                            hasTarget, nearPlayer, inAlarmOrFrenzy);
+                    entity.nextTacticalTreeTick = entity.tickCount + interval;
+                }
+            }
+
+            @Override
+            public void onSignal(
+                    ServerLevel level, MycelialMob entity, HiveBrain<MycelialMob> brain, HiveBrainSignal signal) {
+                if (signal.urgent() && entity.nextTacticalTreeTick > entity.tickCount) {
+                    entity.nextTacticalTreeTick = entity.tickCount;
+                }
+            }
+        });
+    }
+
+    @Override
     public boolean shouldTickBrain(ServerLevel level, MycelialMob entity) {
         boolean highPriority = isBossMob()
                 || getTarget() != null
@@ -1231,20 +1312,6 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
                     && !isDesynced() && !isAlliedEscort()
                     && !(this instanceof AcidSpitterEntity)) {
                 resolveThreatTableTarget(serverLevel);
-            }
-
-            boolean hasTarget = this.getTarget() != null && this.getTarget().isAlive();
-            boolean nearPlayer = serverLevel.getNearestPlayer(this, 24.0D) != null;
-            boolean inAlarmOrFrenzy = isFrenzyActive()
-                    || HiveBlackboard.getNearestActiveAlarm(serverLevel, this.blockPosition()) != null;
-            if ((hasTarget || inAlarmOrFrenzy) && this.nextTacticalTreeTick > this.tickCount + 4) {
-                this.nextTacticalTreeTick = this.tickCount + 4;
-            }
-            if (this.tacticalTree != null && this.tickCount >= this.nextTacticalTreeTick) {
-                this.aiBlackboard.populateFromMob(this, this.getTarget());
-                this.tacticalTree.step();
-                int interval = TacticalEvasionEngine.computeAdaptiveAiInterval(hasTarget, nearPlayer, inAlarmOrFrenzy);
-                this.nextTacticalTreeTick = this.tickCount + interval;
             }
         }
         tickBrain(this);
@@ -1376,6 +1443,30 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
                         SynapticCommandSystem.CASUALTY_RADIUS_SQ,
                         SynapticCommandSystem.CASUALTY_WINDOW_TICKS) >= SynapticCommandSystem.CASUALTY_FRENZY_THRESHOLD) {
             triggerFrenzy(SynapticCommandSystem.FRENZY_DURATION_TICKS);
+        }
+
+        HiveBrain<MycelialMob> brain = getHiveBrain();
+        if (brain != null) {
+            String activeProfile = brain.getActiveProfile();
+            if ("desync".equals(activeProfile) && !isDesynced()) {
+                applyBrainProfile(serverLevel, this, isFrenzyActive() ? "frenzy" : "default");
+            } else if ("frenzy".equals(activeProfile) && !isFrenzyActive() && !isDesynced()) {
+                applyBrainProfile(serverLevel, this, "default");
+            }
+        }
+        if (leader == this) {
+            String orderState = HiveBlackboard.getOrder(serverLevel).name()
+                    + (isPhalanxActive() ? ":PHALANX" : "");
+            if (!orderState.equals(this.lastLeaderOrderBroadcast)) {
+                this.lastLeaderOrderBroadcast = orderState;
+                HiveBrainSignal orderSig = HiveBrainSignal.leaderOrder(
+                        orderState, this.blockPosition(), serverLevel.getGameTime());
+                for (MycelialMob ally : squad) {
+                    if (ally != this && ally.isAlive() && !ally.isDesynced()) {
+                        ally.enqueueBrainSignal(orderSig);
+                    }
+                }
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package com.alex.mycelialmind.entity.ai.brain.sensor;
 
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -86,7 +88,12 @@ public class IncomingProjectilesSensor<E extends LivingEntity> extends HiveSenso
         Brain<?> brain = entity.getBrain();
         MemoryModuleType<BlockPos> memory = ModMemoryTypes.INCOMING_PROJECTILE_POS.get();
         if (nearest != null) {
-            brain.setMemory(memory, nearest.blockPosition());
+            BlockPos nearestPos = nearest.blockPosition();
+            BlockPos previousPos = brain.getMemory(memory).orElse(null);
+            brain.setMemory(memory, nearestPos);
+            if (!nearestPos.equals(previousPos) && entity instanceof HiveBrainOwner<?> owner) {
+                owner.enqueueBrainSignal(HiveBrainSignal.projectileIncoming(nearestPos, level.getGameTime()));
+            }
         } else {
             brain.eraseMemory(memory);
         }

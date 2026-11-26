@@ -147,6 +147,15 @@ public class PurifierDroneEntity extends PathfinderMob implements HiveBrainOwner
     }
 
     @Override
+    public boolean replaceVanillaBrain(Brain<PurifierDroneEntity> newBrain) {
+        if (newBrain == null) {
+            return false;
+        }
+        this.brain = newBrain;
+        return true;
+    }
+
+    @Override
     public boolean shouldTickBrain(ServerLevel level, PurifierDroneEntity entity) {
         boolean highPriority = getTarget() != null
                 || isJammed()

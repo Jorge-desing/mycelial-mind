@@ -15,17 +15,27 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * First-class clean-room AI brain coordinator wrapping a vanilla {@link Brain},
  * typed {@link HiveSensor}s, {@link HiveBrainSchedule}, {@link HiveBrainBlackboard},
- * reactive {@link HiveBrainSignal}s, NBT persistence, and zero-allocation per-tick scheduling
- * without Access Transformers or Mixins.
+ * executable {@link HiveBrainProfile}s, {@link HiveBrainModule}s, {@link HiveResourceArbiter},
+ * reactive {@link HiveBrainSignal}s, {@link HiveBrainTrace} ring-buffer, NBT persistence,
+ * and zero-allocation per-tick scheduling without Access Transformers or Mixins.
  */
 public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
+    @FunctionalInterface
+    public interface SignalListener<E extends LivingEntity & HiveBrainOwner<E>> {
+        void handle(ServerLevel level, E entity, HiveBrain<E> brain, HiveBrainSignal signal);
+    }
+
     public static final String NBT_BRAIN_STATE = "HiveBrainState";
     public static final int DEFAULT_SIGNAL_WAKE_TICKS = 40;
     private static final int MAX_QUEUED_SIGNALS = 16;
@@ -36,12 +46,22 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
     private Brain<E> vanillaBrain;
     private final List<HiveSensor<? super E>> sensors;
     private final boolean[] sensorEnabled;
-    private final List<Activity> activityPriorities;
-    private final List<BrainActivityGroup<E>> taskGroups;
+    private final List<Activity> defaultActivityPriorities;
+    private List<Activity> activeActivityPriorities;
+    private final List<BrainActivityGroup<E>> defaultTaskGroups;
+    private List<BrainActivityGroup<E>> activeTaskGroups;
     private final List<Activity> priorityResolutionBuffer = new ArrayList<>(8);
     private final HiveBrainBlackboard blackboard = new HiveBrainBlackboard();
+    private final HiveResourceArbiter resourceArbiter = new HiveResourceArbiter();
+    private final HiveBrainTrace trace = new HiveBrainTrace();
     private final ArrayDeque<HiveBrainSignal> pendingSignals = new ArrayDeque<>(4);
+    private final Map<String, HiveBrainProfile<E>> profiles = new LinkedHashMap<>();
+    private final List<HiveBrainModule<E>> modules = new ArrayList<>();
+    private final EnumMap<HiveBrainSignal.SignalType, List<SignalListener<E>>> signalListeners =
+            new EnumMap<>(HiveBrainSignal.SignalType.class);
 
+    @Nullable
+    private HiveBrainSchedule defaultSchedule;
     @Nullable
     private HiveBrainSchedule schedule;
     private boolean prioritizeScheduleAfterFight = true;
@@ -61,6 +81,9 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
     private HiveBrainSignal lastSignal;
     private boolean paused = false;
     private String activeProfile = "default";
+    private int lodIntervalMultiplier = 1;
+    private boolean hasActiveTaskGroupOverride = false;
+    private boolean pendingProfileSync = false;
     private boolean dispatchingUrgentSensors = false;
 
     public HiveBrain(List<HiveSensor<? super E>> sensors, List<Activity> activityPriorities) {
@@ -77,14 +100,28 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
         this.sensors = List.copyOf(sensors);
         this.sensorEnabled = new boolean[this.sensors.size()];
         Arrays.fill(this.sensorEnabled, true);
-        this.activityPriorities = List.copyOf(activityPriorities);
-        this.taskGroups = List.copyOf(taskGroups);
+        this.defaultActivityPriorities = List.copyOf(activityPriorities);
+        this.activeActivityPriorities = this.defaultActivityPriorities;
+        this.defaultTaskGroups = List.copyOf(taskGroups);
+        this.activeTaskGroups = this.defaultTaskGroups;
         this.defaultActivity = defaultActivity;
         this.activeActivity = defaultActivity;
     }
 
     public HiveBrainBlackboard getBlackboard() {
         return this.blackboard;
+    }
+
+    public HiveResourceArbiter getResourceArbiter() {
+        return this.resourceArbiter;
+    }
+
+    public HiveBrainTrace getTrace() {
+        return this.trace;
+    }
+
+    public int getLodIntervalMultiplier() {
+        return this.lodIntervalMultiplier;
     }
 
     @Nullable
@@ -97,11 +134,11 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
     }
 
     public List<Activity> getActivityPriorities() {
-        return Collections.unmodifiableList(this.activityPriorities);
+        return Collections.unmodifiableList(this.activeActivityPriorities);
     }
 
     public List<BrainActivityGroup<E>> getTaskGroups() {
-        return Collections.unmodifiableList(this.taskGroups);
+        return Collections.unmodifiableList(this.activeTaskGroups);
     }
 
     @Nullable
@@ -110,6 +147,7 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
     }
 
     public void setSchedule(@Nullable HiveBrainSchedule schedule) {
+        this.defaultSchedule = schedule;
         this.schedule = schedule;
     }
 
@@ -161,6 +199,16 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
         if (this.vanillaBrain == null) {
             this.vanillaBrain = brain;
         }
+        if (this.pendingProfileSync) {
+            this.pendingProfileSync = false;
+            if ("default".equals(this.activeProfile) || this.profiles.containsKey(this.activeProfile)) {
+                String target = this.activeProfile;
+                this.activeProfile = "__pending__";
+                applyProfile(level, entity, target);
+            } else {
+                this.activeProfile = "default";
+            }
+        }
         if (this.paused) {
             return;
         }
@@ -169,11 +217,12 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
             return;
         }
 
+        long gameTime = level.getGameTime();
         entity.onBrainTickStart(level, entity, this);
         this.brainTickCount++;
         drainPendingSignals(level, entity);
         if ((this.brainTickCount % 40L) == 0L) {
-            this.blackboard.pruneExpired(level.getGameTime());
+            this.blackboard.pruneExpired(gameTime);
         }
 
         for (int i = 0, size = this.sensors.size(); i < size; i++) {
@@ -182,27 +231,37 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
             }
         }
 
+        for (int i = 0, size = this.modules.size(); i < size; i++) {
+            HiveBrainModule<E> module = this.modules.get(i);
+            if (module.isEnabled()) {
+                module.tick(level, entity, this, gameTime);
+            }
+        }
+
+        Brain<E> activeBrain = this.vanillaBrain != null ? this.vanillaBrain : brain;
         Activity scheduledActivity = null;
         if (this.schedule != null) {
             this.schedule.runCallbacks(level, entity);
             scheduledActivity = this.schedule.resolveActivity(level, entity);
         }
 
-        brain.tick(level, entity);
+        activeBrain.tick(level, entity);
 
         if (scheduledActivity != null) {
             resolvePriorityBuffer(scheduledActivity);
-            brain.setActiveActivityToFirstValid(this.priorityResolutionBuffer);
-        } else if (!this.activityPriorities.isEmpty()) {
-            brain.setActiveActivityToFirstValid(this.activityPriorities);
+            activeBrain.setActiveActivityToFirstValid(this.priorityResolutionBuffer);
+        } else if (!this.activeActivityPriorities.isEmpty()) {
+            activeBrain.setActiveActivityToFirstValid(this.activeActivityPriorities);
         }
 
-        Activity current = resolveCurrentActiveActivity(brain, scheduledActivity);
+        Activity current = resolveCurrentActiveActivity(activeBrain, scheduledActivity);
         if (current != null && current != this.activeActivity) {
             Activity prev = this.activeActivity;
             this.previousActivity = prev;
             this.activeActivity = current;
-            this.lastActivityChangeGameTime = level.getGameTime();
+            this.lastActivityChangeGameTime = gameTime;
+            String prevName = prev != null ? prev.getName() : "none";
+            this.trace.record(gameTime, HiveBrainTrace.EventKind.ACTIVITY, prevName + " -> " + current.getName());
             entity.onActivityChanged(level, entity, prev, current);
         }
 
@@ -212,8 +271,8 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
     private void resolvePriorityBuffer(Activity scheduledActivity) {
         this.priorityResolutionBuffer.clear();
         if (this.prioritizeScheduleAfterFight) {
-            for (int i = 0, size = this.activityPriorities.size(); i < size; i++) {
-                Activity candidate = this.activityPriorities.get(i);
+            for (int i = 0, size = this.activeActivityPriorities.size(); i < size; i++) {
+                Activity candidate = this.activeActivityPriorities.get(i);
                 if (candidate == Activity.FIGHT || candidate == Activity.PANIC) {
                     this.priorityResolutionBuffer.add(candidate);
                 }
@@ -221,16 +280,16 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
             if (!this.priorityResolutionBuffer.contains(scheduledActivity)) {
                 this.priorityResolutionBuffer.add(scheduledActivity);
             }
-            for (int i = 0, size = this.activityPriorities.size(); i < size; i++) {
-                Activity candidate = this.activityPriorities.get(i);
+            for (int i = 0, size = this.activeActivityPriorities.size(); i < size; i++) {
+                Activity candidate = this.activeActivityPriorities.get(i);
                 if (!this.priorityResolutionBuffer.contains(candidate)) {
                     this.priorityResolutionBuffer.add(candidate);
                 }
             }
         } else {
             this.priorityResolutionBuffer.add(scheduledActivity);
-            for (int i = 0, size = this.activityPriorities.size(); i < size; i++) {
-                Activity candidate = this.activityPriorities.get(i);
+            for (int i = 0, size = this.activeActivityPriorities.size(); i < size; i++) {
+                Activity candidate = this.activeActivityPriorities.get(i);
                 if (candidate != scheduledActivity && !this.priorityResolutionBuffer.contains(candidate)) {
                     this.priorityResolutionBuffer.add(candidate);
                 }
@@ -243,8 +302,8 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
         if (scheduledActivity != null && !this.prioritizeScheduleAfterFight && brain.isActive(scheduledActivity)) {
             return scheduledActivity;
         }
-        for (int i = 0, size = this.activityPriorities.size(); i < size; i++) {
-            Activity candidate = this.activityPriorities.get(i);
+        for (int i = 0, size = this.activeActivityPriorities.size(); i < size; i++) {
+            Activity candidate = this.activeActivityPriorities.get(i);
             if (brain.isActive(candidate)) {
                 return candidate;
             }
@@ -255,8 +314,8 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
         if (this.defaultActivity != null && brain.isActive(this.defaultActivity)) {
             return this.defaultActivity;
         }
-        for (int i = 0, size = this.taskGroups.size(); i < size; i++) {
-            Activity candidate = this.taskGroups.get(i).getActivity();
+        for (int i = 0, size = this.activeTaskGroups.size(); i < size; i++) {
+            Activity candidate = this.activeTaskGroups.get(i).getActivity();
             if (candidate != Activity.CORE && brain.isActive(candidate)) {
                 return candidate;
             }
@@ -302,10 +361,154 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
         }
     }
 
+    public void registerProfile(HiveBrainProfile<E> profile) {
+        if (profile != null) {
+            this.profiles.put(profile.name(), profile);
+        }
+    }
+
+    public Set<String> getRegisteredProfileNames() {
+        return Collections.unmodifiableSet(this.profiles.keySet());
+    }
+
+    @Nullable
+    public HiveBrainProfile<E> getProfile(String name) {
+        return name != null ? this.profiles.get(name) : null;
+    }
+
+    public boolean applyProfile(ServerLevel level, E entity, @Nullable String profileName) {
+        String targetName = (profileName == null || profileName.isBlank()) ? "default" : profileName;
+        if (!"default".equals(targetName) && !this.profiles.containsKey(targetName)) {
+            return false;
+        }
+        if (targetName.equals(this.activeProfile) && !this.pendingProfileSync) {
+            return false;
+        }
+
+        String previous = "__pending__".equals(this.activeProfile) ? "default" : this.activeProfile;
+        HiveBrainProfile<E> prevProfile = this.profiles.get(previous);
+        HiveBrainProfile<E> nextProfile = "default".equals(targetName) ? null : this.profiles.get(targetName);
+
+        this.activeProfile = targetName;
+        this.pendingProfileSync = false;
+
+        if (prevProfile != null && prevProfile.onExit() != null && level != null && entity != null) {
+            prevProfile.onExit().accept(level, entity);
+        }
+
+        boolean nextHasTaskOverrides = nextProfile != null && nextProfile.hasTaskGroupOverrides();
+        if ((nextHasTaskOverrides || this.hasActiveTaskGroupOverride)
+                && this.vanillaBrain != null && level != null && entity != null) {
+            List<BrainActivityGroup<E>> targetGroups = nextHasTaskOverrides
+                    ? nextProfile.taskGroups()
+                    : this.defaultTaskGroups;
+            this.vanillaBrain.stopAll(level, entity);
+            this.resourceArbiter.releaseAll();
+            Brain<E> rebuilt = HiveBrainFactory.rebuildBrainForProfile(entity, this.vanillaBrain, targetGroups);
+            if (entity.replaceVanillaBrain(rebuilt)) {
+                this.vanillaBrain = rebuilt;
+                this.activeTaskGroups = targetGroups;
+                this.hasActiveTaskGroupOverride = nextHasTaskOverrides;
+            }
+        }
+
+        this.activeActivityPriorities = (nextProfile != null && nextProfile.activityPriorities() != null)
+                ? nextProfile.activityPriorities()
+                : this.defaultActivityPriorities;
+        this.schedule = (nextProfile != null && nextProfile.schedule() != null)
+                ? nextProfile.schedule()
+                : this.defaultSchedule;
+
+        Arrays.fill(this.sensorEnabled, true);
+        if (nextProfile != null) {
+            for (Class<?> disabled : nextProfile.disabledSensors()) {
+                setSensorEnabled(disabled, false);
+            }
+            for (Class<?> enabled : nextProfile.enabledSensors()) {
+                setSensorEnabled(enabled, true);
+            }
+        }
+
+        this.lodIntervalMultiplier = nextProfile != null ? nextProfile.lodIntervalMultiplier() : 1;
+        long gameTime = level != null ? level.getGameTime() : 0L;
+        if (level != null) {
+            wakeLodForTicks(gameTime, 20);
+        }
+        this.trace.record(gameTime, HiveBrainTrace.EventKind.PROFILE, previous + " -> " + targetName);
+
+        if (nextProfile != null && nextProfile.onEnter() != null && level != null && entity != null) {
+            nextProfile.onEnter().accept(level, entity);
+        }
+        if (level != null && entity != null) {
+            for (int i = 0, size = this.modules.size(); i < size; i++) {
+                this.modules.get(i).onProfileChanged(level, entity, this, previous, targetName);
+            }
+            entity.onProfileChanged(level, entity, previous, targetName);
+        }
+        return true;
+    }
+
+    public void addModule(HiveBrainModule<E> module) {
+        if (module == null) {
+            return;
+        }
+        removeModule(module.id());
+        this.modules.add(module);
+    }
+
+    public boolean removeModule(@Nullable String moduleId) {
+        if (moduleId == null || moduleId.isBlank()) {
+            return false;
+        }
+        for (int i = 0; i < this.modules.size(); i++) {
+            if (moduleId.equals(this.modules.get(i).id())) {
+                this.modules.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<HiveBrainModule<E>> getModules() {
+        return Collections.unmodifiableList(this.modules);
+    }
+
+    @Nullable
+    public HiveBrainModule<E> getModule(@Nullable String moduleId) {
+        if (moduleId == null) {
+            return null;
+        }
+        for (int i = 0, size = this.modules.size(); i < size; i++) {
+            HiveBrainModule<E> module = this.modules.get(i);
+            if (moduleId.equals(module.id())) {
+                return module;
+            }
+        }
+        return null;
+    }
+
+    public void onSignal(HiveBrainSignal.SignalType type, SignalListener<E> listener) {
+        if (type != null && listener != null) {
+            this.signalListeners.computeIfAbsent(type, unused -> new ArrayList<>(2)).add(listener);
+        }
+    }
+
+    public void clearSignalListeners(HiveBrainSignal.SignalType type) {
+        if (type != null) {
+            this.signalListeners.remove(type);
+        }
+    }
+
     private void deliverSignal(ServerLevel level, E entity, HiveBrainSignal signal) {
+        long gameTime = level.getGameTime();
         this.signalCount++;
         this.lastSignal = signal;
-        wakeLodForTicks(level.getGameTime(), DEFAULT_SIGNAL_WAKE_TICKS);
+        this.trace.record(
+                gameTime,
+                HiveBrainTrace.EventKind.SIGNAL,
+                signal.type().name() + (signal.tag().isEmpty() ? "" : ":" + signal.tag()));
+        wakeLodForTicks(gameTime, DEFAULT_SIGNAL_WAKE_TICKS);
+        interruptMatchingBehaviours(level, entity, signal, gameTime);
         if (signal.urgent() && !this.paused && !this.dispatchingUrgentSensors) {
             this.dispatchingUrgentSensors = true;
             try {
@@ -314,7 +517,54 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
                 this.dispatchingUrgentSensors = false;
             }
         }
+        List<SignalListener<E>> listeners = this.signalListeners.get(signal.type());
+        if (listeners != null && !listeners.isEmpty()) {
+            for (int i = 0, size = listeners.size(); i < size; i++) {
+                listeners.get(i).handle(level, entity, this, signal);
+            }
+        }
+        for (int i = 0, size = this.modules.size(); i < size; i++) {
+            HiveBrainModule<E> module = this.modules.get(i);
+            if (module.isEnabled()) {
+                module.onSignal(level, entity, this, signal);
+            }
+        }
         entity.onBrainSignal(level, entity, this, signal);
+    }
+
+    private void interruptMatchingBehaviours(
+            ServerLevel level, E entity, HiveBrainSignal signal, long gameTime) {
+        for (int i = 0, gSize = this.activeTaskGroups.size(); i < gSize; i++) {
+            List<HiveBehaviour<? super E>> behaviours = this.activeTaskGroups.get(i).getBehaviours();
+            for (int j = 0, bSize = behaviours.size(); j < bSize; j++) {
+                interruptBehaviourTree(behaviours.get(j), level, entity, signal, gameTime);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void interruptBehaviourTree(
+            HiveBehaviour<?> behaviour,
+            ServerLevel level,
+            E entity,
+            HiveBrainSignal signal,
+            long gameTime) {
+        if (behaviour.getStatus() == Behavior.Status.RUNNING && behaviour.isInterruptedBy(signal.type())) {
+            HiveBehaviour<E> typed = (HiveBehaviour<E>) behaviour;
+            typed.doStop(level, entity, gameTime);
+            typed.notifySignalInterrupt(entity);
+            this.trace.record(
+                    gameTime,
+                    HiveBrainTrace.EventKind.INTERRUPT,
+                    signal.type().name() + " -> " + behaviour.debugString());
+            return;
+        }
+        if (behaviour instanceof GroupBehaviour<?> group) {
+            List<? extends HiveBehaviour<?>> children = group.getChildBehaviours();
+            for (int i = 0, size = children.size(); i < size; i++) {
+                interruptBehaviourTree(children.get(i), level, entity, signal, gameTime);
+            }
+        }
     }
 
     public void wakeLodForTicks(long gameTime, int ticks) {
@@ -357,7 +607,14 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
     }
 
     public void setPaused(boolean paused) {
-        this.paused = paused;
+        setPaused(paused, this.brainTickCount);
+    }
+
+    public void setPaused(boolean paused, long gameTime) {
+        if (this.paused != paused) {
+            this.paused = paused;
+            this.trace.record(gameTime, HiveBrainTrace.EventKind.PAUSE, paused ? "PAUSED" : "RESUMED");
+        }
     }
 
     public String getActiveProfile() {
@@ -442,15 +699,18 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
     public void loadFromNbt(CompoundTag entityTag) {
         if (entityTag == null || !entityTag.contains(NBT_BRAIN_STATE, Tag.TAG_COMPOUND)) {
             this.activeProfile = "default";
+            this.pendingProfileSync = false;
             this.paused = false;
             this.blackboard.clear();
             return;
         }
         CompoundTag stateTag = entityTag.getCompound(NBT_BRAIN_STATE);
-        setActiveProfile(stateTag.contains(TAG_PROFILE, Tag.TAG_STRING)
+        String savedProfile = stateTag.contains(TAG_PROFILE, Tag.TAG_STRING)
                 ? stateTag.getString(TAG_PROFILE)
-                : "default");
-        setPaused(stateTag.getBoolean(TAG_PAUSED));
+                : "default";
+        setActiveProfile(savedProfile);
+        this.pendingProfileSync = !"default".equals(this.activeProfile);
+        this.paused = stateTag.getBoolean(TAG_PAUSED);
         this.blackboard.loadFromNbt(stateTag);
     }
 
@@ -458,6 +718,7 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
         String activeAct = this.activeActivity != null ? this.activeActivity.getName() : "none";
         String prevAct = this.previousActivity != null ? this.previousActivity.getName() : "none";
         String lastSig = this.lastSignal != null ? this.lastSignal.type().name() : "NONE";
+        HiveBrainTrace.Entry latestTrace = this.trace.latest();
         return new HiveBrainSnapshot(
                 activeAct,
                 prevAct,
@@ -470,7 +731,10 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
                 describeRunningBehaviours(),
                 this.blackboard.getActiveCooldownCount(gameTime),
                 this.blackboard.activeEntryCount(gameTime),
-                this.paused
+                this.paused,
+                this.modules.size(),
+                this.resourceArbiter.formatOccupied(),
+                latestTrace != null ? latestTrace.format() : "-"
         );
     }
 
@@ -502,8 +766,8 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
 
     public int getRunningBehaviourCount() {
         int running = 0;
-        for (int i = 0, gSize = this.taskGroups.size(); i < gSize; i++) {
-            List<HiveBehaviour<? super E>> behaviours = this.taskGroups.get(i).getBehaviours();
+        for (int i = 0, gSize = this.activeTaskGroups.size(); i < gSize; i++) {
+            List<HiveBehaviour<? super E>> behaviours = this.activeTaskGroups.get(i).getBehaviours();
             for (int j = 0, bSize = behaviours.size(); j < bSize; j++) {
                 if (behaviours.get(j).getStatus() == Behavior.Status.RUNNING) {
                     running++;
@@ -515,8 +779,8 @@ public class HiveBrain<E extends LivingEntity & HiveBrainOwner<E>> {
 
     public List<String> describeRunningBehaviours() {
         List<String> active = new ArrayList<>();
-        for (int i = 0, gSize = this.taskGroups.size(); i < gSize; i++) {
-            BrainActivityGroup<E> group = this.taskGroups.get(i);
+        for (int i = 0, gSize = this.activeTaskGroups.size(); i < gSize; i++) {
+            BrainActivityGroup<E> group = this.activeTaskGroups.get(i);
             List<HiveBehaviour<? super E>> behaviours = group.getBehaviours();
             for (int j = 0, bSize = behaviours.size(); j < bSize; j++) {
                 HiveBehaviour<? super E> behaviour = behaviours.get(j);

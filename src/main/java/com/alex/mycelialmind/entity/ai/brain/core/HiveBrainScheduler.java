@@ -196,7 +196,7 @@ public final class HiveBrainScheduler {
     public static boolean shouldTickBrainWithLod(
             long brainTickCount, int entityId, long gameTime, boolean highPriority, boolean nearPlayer) {
         return shouldTickBrainWithLod(
-                brainTickCount, entityId, gameTime, INITIAL_TICK_SENTINEL, highPriority, nearPlayer);
+                brainTickCount, entityId, gameTime, INITIAL_TICK_SENTINEL, 1, highPriority, nearPlayer);
     }
 
     /**
@@ -209,12 +209,32 @@ public final class HiveBrainScheduler {
             long lodWakeUntilGameTime,
             boolean highPriority,
             boolean nearPlayer) {
+        return shouldTickBrainWithLod(
+                brainTickCount, entityId, gameTime, lodWakeUntilGameTime, 1, highPriority, nearPlayer);
+    }
+
+    /**
+     * Adaptive AI LOD gate supporting profile-controlled cadence multipliers
+     * ({@code <= 0} forces full 1-tick cadence; {@code 1} is standard 1-in-4; {@code 2} is 1-in-8 deep sleep).
+     */
+    public static boolean shouldTickBrainWithLod(
+            long brainTickCount,
+            int entityId,
+            long gameTime,
+            long lodWakeUntilGameTime,
+            int lodIntervalMultiplier,
+            boolean highPriority,
+            boolean nearPlayer) {
+        if (lodIntervalMultiplier <= 0) {
+            return true;
+        }
         if (brainTickCount <= 0L
                 || highPriority
                 || nearPlayer
                 || (lodWakeUntilGameTime != INITIAL_TICK_SENTINEL && gameTime < lodWakeUntilGameTime)) {
             return true;
         }
-        return Math.floorMod(gameTime + entityId, 4L) == 0L;
+        long cadence = Math.max(1L, 4L * lodIntervalMultiplier);
+        return Math.floorMod(gameTime + entityId, cadence) == 0L;
     }
 }

@@ -74,6 +74,26 @@ public interface HiveBrainOwner<T extends LivingEntity & HiveBrainOwner<T>> {
     default void onBrainSignal(ServerLevel level, T entity, HiveBrain<T> brain, HiveBrainSignal signal) {
     }
 
+    default Map<String, HiveBrainProfile<T>> getBrainProfiles() {
+        return Map.of();
+    }
+
+    default List<HiveBrainModule<T>> getBrainModules() {
+        return List.of();
+    }
+
+    default void onProfileChanged(ServerLevel level, T entity, String previousProfile, String nextProfile) {
+    }
+
+    default boolean applyBrainProfile(ServerLevel level, T entity, @Nullable String profileName) {
+        HiveBrain<T> brain = getHiveBrain();
+        return brain != null && brain.applyProfile(level, entity, profileName);
+    }
+
+    default boolean replaceVanillaBrain(Brain<T> newBrain) {
+        return false;
+    }
+
     @Nullable
     HiveBrain<T> getHiveBrain();
 
@@ -134,6 +154,7 @@ public interface HiveBrainOwner<T extends LivingEntity & HiveBrainOwner<T>> {
         HiveBrain<E> brain = entity.getHiveBrain();
         long tickCountVal = brain != null ? brain.getBrainTickCount() : 0L;
         long wakeUntil = brain != null ? brain.getLodWakeUntilGameTime() : HiveBrainScheduler.INITIAL_TICK_SENTINEL;
+        int lodMultiplier = brain != null ? brain.getLodIntervalMultiplier() : 1;
         boolean activeBrainState = brain != null
                 && (brain.getPendingSignalCount() > 0 || brain.getActiveActivity() != entity.getDefaultActivity());
         boolean effectiveHighPriority = highPriority
@@ -142,7 +163,7 @@ public interface HiveBrainOwner<T extends LivingEntity & HiveBrainOwner<T>> {
                 || activeBrainState;
         boolean nearPlayer = level.getNearestPlayer(entity, 32.0D) != null;
         return HiveBrainScheduler.shouldTickBrainWithLod(
-                tickCountVal, entity.getId(), level.getGameTime(), wakeUntil, effectiveHighPriority, nearPlayer);
+                tickCountVal, entity.getId(), level.getGameTime(), wakeUntil, lodMultiplier, effectiveHighPriority, nearPlayer);
     }
 
     @SuppressWarnings("unchecked")

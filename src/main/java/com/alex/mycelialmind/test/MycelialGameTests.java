@@ -63,15 +63,20 @@ import com.alex.mycelialmind.entity.ai.brain.behaviour.FleeTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.StrafeTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.AllApplicableBehaviours;
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.FirstApplicableBehaviour;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainKey;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainProfile;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainTrace;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveResourceChannel;
 import com.alex.mycelialmind.entity.ai.brain.core.SequentialBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveHotspotPatrolBehaviour;
@@ -10910,6 +10915,156 @@ public final class MycelialGameTests {
             brute.discard();
             bruteReloaded.discard();
             glider.discard();
+        }
+    }
+
+    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    public static void hiveBrainV3ProfilesTaskSwapModulesChannelArbitrationTraceAndCommandsWorkEndToEnd(
+            GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
+        var behemoth = helper.spawnWithNoFreeWill(ModEntities.SPORE_BEHEMOTH.get(), 6, 1, 5);
+        try {
+            long now = level.getGameTime();
+            HiveBrain<MycelialMob> bruteBrain = brute.getHiveBrain();
+            helper.assertTrue(bruteBrain != null, "ChitinBrute must have HiveBrain.");
+            helper.assertTrue(bruteBrain.getModule("tactical_btree") != null,
+                    "MycelialMob must register tactical_btree HiveBrainModule.");
+            helper.assertTrue(bruteBrain.getRegisteredProfileNames().containsAll(List.of("frenzy", "desync")),
+                    "MycelialMob must register frenzy and desync executable profiles.");
+
+            // Memory preservation across vanilla Brain task-group rebuild during profile swap
+            HiveBrainUtils.setMemory(brute, ModMemoryTypes.HIVE_ALERT_LEVEL.get(), 0.77F);
+            helper.assertTrue(brute.applyBrainProfile(level, brute, "desync"),
+                    "applyBrainProfile(desync) must succeed.");
+            helper.assertTrue("desync".equals(bruteBrain.getActiveProfile()),
+                    "Active profile must switch to desync.");
+            helper.assertTrue(bruteBrain.getVanillaBrain() == brute.getBrain(),
+                    "Rebuilt Brain must be installed on LivingEntity via replaceVanillaBrain.");
+            helper.assertFalse(bruteBrain.isSensorEnabled(HiveMindSensor.class),
+                    "desync profile must disable HiveMindSensor.");
+            Float preservedAlert = HiveBrainUtils.getMemory(brute, ModMemoryTypes.HIVE_ALERT_LEVEL.get());
+            helper.assertTrue(preservedAlert != null && Math.abs(preservedAlert - 0.77F) < 0.01F,
+                    "Vanilla Brain rebuild on profile swap must preserve existing memories.");
+
+            helper.assertTrue(brute.applyBrainProfile(level, brute, "frenzy"),
+                    "applyBrainProfile(frenzy) must succeed.");
+            helper.assertTrue(bruteBrain.isSensorEnabled(HiveMindSensor.class),
+                    "frenzy profile must re-enable HiveMindSensor.");
+            helper.assertTrue(bruteBrain.getLodIntervalMultiplier() == 0,
+                    "frenzy profile must set full 1-tick cadence (lodIntervalMultiplier=0).");
+            helper.assertTrue(brute.applyBrainProfile(level, brute, "default"),
+                    "Restoring default profile must succeed.");
+
+            // Channel arbitration & signal interruption on running HiveBehaviour
+            int[] interruptCount = {0};
+            int[] listenerCount = {0};
+            var lowMoveTask = new HiveBehaviour<MycelialMob>() {
+                @Override
+                protected boolean shouldKeepRunning(MycelialMob entity) {
+                    return true;
+                }
+
+                @Override
+                protected List<com.mojang.datafixers.util.Pair<
+                        net.minecraft.world.entity.ai.memory.MemoryModuleType<?>,
+                        net.minecraft.world.entity.ai.memory.MemoryStatus>> getMemoryRequirements() {
+                    return List.of();
+                }
+            };
+            lowMoveTask.requireChannels(HiveResourceChannel.MOVE)
+                    .channelPriority(1)
+                    .interruptOnSignal(HiveBrainSignal.SignalType.DESYNC_TRIGGERED)
+                    .onSignalInterrupt(entity -> interruptCount[0]++);
+
+            var highMoveTask = new HiveBehaviour<MycelialMob>() {
+                @Override
+                protected boolean shouldKeepRunning(MycelialMob entity) {
+                    return true;
+                }
+
+                @Override
+                protected List<com.mojang.datafixers.util.Pair<
+                        net.minecraft.world.entity.ai.memory.MemoryModuleType<?>,
+                        net.minecraft.world.entity.ai.memory.MemoryStatus>> getMemoryRequirements() {
+                    return List.of();
+                }
+            };
+            highMoveTask.requireChannels(HiveResourceChannel.MOVE).channelPriority(5);
+
+            bruteBrain.registerProfile(HiveBrainProfile.<MycelialMob>builder("channel_test")
+                    .taskGroups(BrainActivityGroup.idleTasks(lowMoveTask))
+                    .build());
+            helper.assertTrue(brute.applyBrainProfile(level, brute, "channel_test"),
+                    "channel_test profile must apply.");
+            helper.assertTrue(lowMoveTask.tryStart(level, brute, now),
+                    "lowMoveTask must acquire MOVE channel.");
+            helper.assertTrue(bruteBrain.getResourceArbiter().getOwner(HiveResourceChannel.MOVE) == lowMoveTask,
+                    "Resource arbiter must track MOVE owner.");
+
+            bruteBrain.onSignal(HiveBrainSignal.SignalType.DESYNC_TRIGGERED,
+                    (lvl, ent, br, sig) -> listenerCount[0]++);
+            brute.dispatchBrainSignal(level, brute, HiveBrainSignal.desyncTriggered(30, now));
+            helper.assertTrue(lowMoveTask.getStatus() == net.minecraft.world.entity.ai.behavior.Behavior.Status.STOPPED,
+                    "DESYNC_TRIGGERED signal must stop interrupted HiveBehaviour.");
+            helper.assertTrue(interruptCount[0] == 1 && listenerCount[0] == 1,
+                    "Both onSignalInterrupt and brain.onSignal listener must fire once.");
+            helper.assertTrue(bruteBrain.getResourceArbiter().getOwner(HiveResourceChannel.MOVE) == null,
+                    "Stopping interrupted behaviour must release MOVE channel.");
+
+            // Channel preemption check
+            helper.assertTrue(lowMoveTask.tryStart(level, brute, now + 1),
+                    "lowMoveTask must re-acquire MOVE after interrupt release.");
+            helper.assertTrue(highMoveTask.tryStart(level, brute, now + 1),
+                    "Higher priority highMoveTask must preempt lowMoveTask.");
+            helper.assertTrue(lowMoveTask.getStatus() == net.minecraft.world.entity.ai.behavior.Behavior.Status.STOPPED
+                            && bruteBrain.getResourceArbiter().getOwner(HiveResourceChannel.MOVE) == highMoveTask,
+                    "Preempted lowMoveTask must stop and yield MOVE to highMoveTask.");
+            highMoveTask.doStop(level, brute, now + 2);
+            brute.applyBrainProfile(level, brute, "default");
+
+            // Boss phase/stagger profile + PHASE_SHIFT signal
+            behemoth.enterStaggeredState(level, 40);
+            HiveBrain<MycelialMob> behemothBrain = behemoth.getHiveBrain();
+            helper.assertTrue(behemothBrain != null
+                            && "staggered".equals(behemothBrain.getActiveProfile())
+                            && behemothBrain.getLastSignal() != null
+                            && behemothBrain.getLastSignal().type() == HiveBrainSignal.SignalType.PHASE_SHIFT,
+                    "Boss enterStaggeredState must emit PHASE_SHIFT and switch to staggered profile.");
+
+            // Traces + Brigadier subcommands: trace, profile, pause, signal
+            boolean hasProfileTrace = bruteBrain.getTrace().recentEntries().stream()
+                    .anyMatch(e -> e.kind() == HiveBrainTrace.EventKind.PROFILE);
+            boolean hasInterruptTrace = bruteBrain.getTrace().recentEntries().stream()
+                    .anyMatch(e -> e.kind() == HiveBrainTrace.EventKind.INTERRUPT);
+            helper.assertTrue(hasProfileTrace && hasInterruptTrace,
+                    "HiveBrainTrace must record PROFILE and INTERRUPT events.");
+
+            var server = level.getServer();
+            var src = server.createCommandSourceStack()
+                    .withLevel(level)
+                    .withPosition(brute.position())
+                    .withPermission(2);
+            helper.assertTrue(server.getCommands().getDispatcher().execute("mycelial ai trace 24", src) > 0,
+                    "/mycelial ai trace 24 must succeed.");
+            helper.assertTrue(server.getCommands().getDispatcher().execute("mycelial ai profile frenzy 24", src) > 0,
+                    "/mycelial ai profile frenzy 24 must succeed.");
+            helper.assertTrue(server.getCommands().getDispatcher().execute("mycelial ai pause true 24", src) > 0
+                            && bruteBrain.isPaused(),
+                    "/mycelial ai pause true 24 must pause nearest HiveBrain.");
+            helper.assertTrue(server.getCommands().getDispatcher().execute("mycelial ai pause false 24", src) > 0
+                            && !bruteBrain.isPaused(),
+                    "/mycelial ai pause false 24 must resume nearest HiveBrain.");
+            helper.assertTrue(server.getCommands().getDispatcher().execute("mycelial ai signal ally_alert 24", src) > 0,
+                    "/mycelial ai signal ally_alert 24 must dispatch signal cleanly.");
+
+            helper.succeed();
+        } catch (Exception ex) {
+            helper.fail("hiveBrainV3ProfilesTaskSwapModulesChannelArbitrationTraceAndCommandsWorkEndToEnd threw: "
+                    + ex.getMessage());
+        } finally {
+            brute.discard();
+            behemoth.discard();
         }
     }
 

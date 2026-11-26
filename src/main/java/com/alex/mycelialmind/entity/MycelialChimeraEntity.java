@@ -9,6 +9,7 @@ import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainFactory;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainProfile;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainUtils;
 import com.alex.mycelialmind.entity.ai.brain.hive.HiveBrainBridge;
 import com.alex.mycelialmind.entity.ai.brain.sensor.HiveSensor;
@@ -180,6 +181,32 @@ public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwn
     }
 
     @Override
+    public boolean replaceVanillaBrain(Brain<MycelialChimeraEntity> newBrain) {
+        if (newBrain == null) {
+            return false;
+        }
+        this.brain = newBrain;
+        return true;
+    }
+
+    @Override
+    public Map<String, HiveBrainProfile<MycelialChimeraEntity>> getBrainProfiles() {
+        return Map.of(
+                "wait", HiveBrainProfile.<MycelialChimeraEntity>builder("wait")
+                        .activityPriorities(List.of(Activity.REST, Activity.IDLE))
+                        .disableSensors(IncomingProjectilesSensor.class)
+                        .lodIntervalMultiplier(2)
+                        .build(),
+                "patrol", HiveBrainProfile.<MycelialChimeraEntity>builder("patrol")
+                        .lodIntervalMultiplier(1)
+                        .build(),
+                "follow", HiveBrainProfile.<MycelialChimeraEntity>builder("follow")
+                        .lodIntervalMultiplier(0)
+                        .build()
+        );
+    }
+
+    @Override
     public boolean shouldTickBrain(ServerLevel level, MycelialChimeraEntity entity) {
         boolean highPriority = getTarget() != null
                 || isVehicle()
@@ -237,7 +264,8 @@ public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwn
     }
 
     public void syncCommandBrainState(ServerLevel serverLevel) {
-        if (getCommandMode() == CommandMode.WAIT) {
+        CommandMode mode = getCommandMode();
+        if (mode == CommandMode.WAIT) {
             if (!HiveBrainUtils.hasMemory(this, MemoryModuleType.HOME)) {
                 HiveBrainUtils.setMemory(this, MemoryModuleType.HOME,
                         GlobalPos.of(serverLevel.dimension(), this.blockPosition()));
@@ -245,6 +273,12 @@ public class MycelialChimeraEntity extends PathfinderMob implements HiveBrainOwn
         } else {
             HiveBrainUtils.clearMemory(this, MemoryModuleType.HOME);
         }
+        String desiredProfile = switch (mode) {
+            case WAIT -> "wait";
+            case PATROL -> "patrol";
+            case FOLLOW -> "follow";
+        };
+        applyBrainProfile(serverLevel, this, desiredProfile);
     }
 
     @Override

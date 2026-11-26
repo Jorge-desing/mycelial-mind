@@ -32,6 +32,10 @@ public abstract class HiveBehaviour<E extends LivingEntity> implements BehaviorC
 
     protected long endTimestamp = Long.MAX_VALUE;
     protected long cooldownFinishedAt = HiveBrainScheduler.INITIAL_TICK_SENTINEL;
+    protected int requiredChannelMask = 0;
+    protected int channelPriority = 0;
+    protected int interruptSignalMask = 0;
+    protected Consumer<E> signalInterruptCallback = entity -> {};
     private Behavior.Status status = Behavior.Status.STOPPED;
 
     public final HiveBehaviour<E> whenStarting(Consumer<E> callback) {
@@ -83,6 +87,50 @@ public abstract class HiveBehaviour<E extends LivingEntity> implements BehaviorC
         return this;
     }
 
+    public final HiveBehaviour<E> requireChannels(HiveResourceChannel... channels) {
+        this.requiredChannelMask = HiveResourceChannel.maskOf(channels);
+        return this;
+    }
+
+    public final int getRequiredChannelMask() {
+        return this.requiredChannelMask;
+    }
+
+    public final HiveBehaviour<E> channelPriority(int priority) {
+        this.channelPriority = priority;
+        return this;
+    }
+
+    public final int getChannelPriority() {
+        return this.channelPriority;
+    }
+
+    public final HiveBehaviour<E> interruptOnSignal(HiveBrainSignal.SignalType... types) {
+        int mask = 0;
+        if (types != null) {
+            for (HiveBrainSignal.SignalType type : types) {
+                if (type != null) {
+                    mask |= (1 << type.ordinal());
+                }
+            }
+        }
+        this.interruptSignalMask = mask;
+        return this;
+    }
+
+    public final boolean isInterruptedBy(HiveBrainSignal.SignalType type) {
+        return type != null && (this.interruptSignalMask & (1 << type.ordinal())) != 0;
+    }
+
+    public final HiveBehaviour<E> onSignalInterrupt(Consumer<E> callback) {
+        this.signalInterruptCallback = callback != null ? callback : entity -> {};
+        return this;
+    }
+
+    public final void notifySignalInterrupt(E entity) {
+        this.signalInterruptCallback.accept(entity);
+    }
+
     @Override
     public Behavior.Status getStatus() {
         return this.status;
@@ -93,6 +141,28 @@ public abstract class HiveBehaviour<E extends LivingEntity> implements BehaviorC
         if (!doStartCheck(level, entity, gameTime)) {
             return false;
         }
+        if (this.requiredChannelMask != 0
+                && entity instanceof HiveBrainOwner<?> owner
+                && owner.getHiveBrain() != null) {
+            HiveBrain<?> brain = owner.getHiveBrain();
+            boolean acquired = brain.getResourceArbiter().acquire(
+                    this,
+                    this.requiredChannelMask,
+                    this.channelPriority,
+                    displaced -> {
+                        if (displaced instanceof HiveBehaviour<?> prev) {
+                            stopPreemptedBehaviour(prev, level, entity, gameTime);
+                            brain.getTrace().record(
+                                    gameTime,
+                                    HiveBrainTrace.EventKind.CHANNEL_PREEMPT,
+                                    debugString() + " preempted " + prev.debugString()
+                                            + " (" + HiveResourceChannel.formatMask(this.requiredChannelMask) + ")");
+                        }
+                    });
+            if (!acquired) {
+                return false;
+            }
+        }
         this.status = Behavior.Status.RUNNING;
         int runtime = this.runtimeProvider.apply(entity);
         this.endTimestamp = HiveBrainScheduler.computeEndTimestamp(gameTime, runtime);
@@ -101,7 +171,19 @@ public abstract class HiveBehaviour<E extends LivingEntity> implements BehaviorC
         return true;
     }
 
+    @SuppressWarnings("unchecked")
+    private void stopPreemptedBehaviour(HiveBehaviour<?> prev, ServerLevel level, E entity, long gameTime) {
+        ((HiveBehaviour<E>) prev).doStop(level, entity, gameTime);
+    }
+
     protected boolean doStartCheck(ServerLevel level, E entity, long gameTime) {
+        if (this.requiredChannelMask != 0
+                && entity instanceof HiveBrainOwner<?> owner
+                && owner.getHiveBrain() != null
+                && !owner.getHiveBrain().getResourceArbiter()
+                        .canAcquire(this, this.requiredChannelMask, this.channelPriority)) {
+            return false;
+        }
         return !HiveBrainScheduler.isOnCooldown(gameTime, this.cooldownFinishedAt)
                 && hasRequiredMemories(entity)
                 && this.startCondition.test(entity)
@@ -126,6 +208,11 @@ public abstract class HiveBehaviour<E extends LivingEntity> implements BehaviorC
             return;
         }
         this.status = Behavior.Status.STOPPED;
+        if (this.requiredChannelMask != 0
+                && entity instanceof HiveBrainOwner<?> owner
+                && owner.getHiveBrain() != null) {
+            owner.getHiveBrain().getResourceArbiter().release(this);
+        }
         stop(level, entity, gameTime);
         this.taskStopCallback.accept(entity);
         int cooldown = this.cooldownProvider.apply(entity);

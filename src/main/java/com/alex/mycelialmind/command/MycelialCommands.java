@@ -11,8 +11,11 @@ import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.entity.SporelingEntity;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrain;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainOwner;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainTrace;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
@@ -47,6 +50,7 @@ import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -83,6 +87,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -261,6 +266,45 @@ public final class MycelialCommands {
                         .executes(ctx -> reportRoutesAndArchitecture(ctx.getSource())))
                 .then(Commands.literal("ai")
                         .executes(ctx -> reportAiDiagnostics(ctx.getSource(), 24))
+                        .then(Commands.literal("trace")
+                                .executes(ctx -> reportAiTrace(ctx.getSource(), 24))
+                                .then(Commands.argument("radius", IntegerArgumentType.integer(4, 96))
+                                        .executes(ctx -> reportAiTrace(
+                                                ctx.getSource(),
+                                                IntegerArgumentType.getInteger(ctx, "radius")))))
+                        .then(Commands.literal("profile")
+                                .then(Commands.argument("name", StringArgumentType.word())
+                                        .executes(ctx -> applyAiProfileCommand(
+                                                ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "name"),
+                                                24))
+                                        .then(Commands.argument("radius", IntegerArgumentType.integer(4, 96))
+                                                .executes(ctx -> applyAiProfileCommand(
+                                                        ctx.getSource(),
+                                                        StringArgumentType.getString(ctx, "name"),
+                                                        IntegerArgumentType.getInteger(ctx, "radius"))))))
+                        .then(Commands.literal("pause")
+                                .then(Commands.argument("paused", BoolArgumentType.bool())
+                                        .executes(ctx -> setAiPausedCommand(
+                                                ctx.getSource(),
+                                                BoolArgumentType.getBool(ctx, "paused"),
+                                                24))
+                                        .then(Commands.argument("radius", IntegerArgumentType.integer(4, 96))
+                                                .executes(ctx -> setAiPausedCommand(
+                                                        ctx.getSource(),
+                                                        BoolArgumentType.getBool(ctx, "paused"),
+                                                        IntegerArgumentType.getInteger(ctx, "radius"))))))
+                        .then(Commands.literal("signal")
+                                .then(Commands.argument("type", StringArgumentType.word())
+                                        .executes(ctx -> injectAiSignalCommand(
+                                                ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "type"),
+                                                24))
+                                        .then(Commands.argument("radius", IntegerArgumentType.integer(4, 96))
+                                                .executes(ctx -> injectAiSignalCommand(
+                                                        ctx.getSource(),
+                                                        StringArgumentType.getString(ctx, "type"),
+                                                        IntegerArgumentType.getInteger(ctx, "radius"))))))
                         .then(Commands.argument("radius", IntegerArgumentType.integer(4, 96))
                                 .executes(ctx -> reportAiDiagnostics(
                                         ctx.getSource(),
@@ -2259,6 +2303,10 @@ public final class MycelialCommands {
             long sig = snap != null ? snap.signalCount() : 0L;
             int cd = snap != null ? snap.activeCooldownCount() : 0;
             long lodSkip = snap != null ? snap.skippedLodTicks() : 0L;
+            int modCount = snap != null ? snap.moduleCount() : 0;
+            String ch = (snap != null && !"NONE".equals(snap.occupiedChannels()))
+                    ? " | ch=" + snap.occupiedChannels()
+                    : "";
             String run = (snap != null && !snap.runningBehaviours().isEmpty())
                     ? String.join(",", snap.runningBehaviours())
                     : "-";
@@ -2283,20 +2331,147 @@ public final class MycelialCommands {
             }
             final String line = String.format(
                     Locale.ROOT,
-                    " - %s #%d | act=%s | prof=%s | sig=%d | cd=%d | lodSkip=%d | run=%s%s%s",
+                    " - %s #%d | act=%s | prof=%s | sig=%d | cd=%d | mod=%d | lodSkip=%d%s | run=%s%s%s",
                     entity.getType().getDescription().getString(),
                     entity.getId(),
                     act,
                     prof,
                     sig,
                     cd,
+                    modCount,
                     lodSkip,
+                    ch,
                     run,
                     (snap != null && snap.paused()) ? " [PAUSED]" : "",
                     extra);
             source.sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GRAY), false);
             shown++;
         }
+        return 1;
+    }
+
+    @javax.annotation.Nullable
+    private static LivingEntity findNearestBrainOwner(CommandSourceStack source, int radius) {
+        ServerLevel level = source.getLevel();
+        net.minecraft.world.phys.Vec3 pos = source.getPosition();
+        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(BlockPos.containing(pos)).inflate(radius);
+        return level.getEntitiesOfClass(
+                        LivingEntity.class,
+                        box,
+                        entity -> entity.isAlive() && entity instanceof HiveBrainOwner<?>)
+                .stream()
+                .min(Comparator.comparingDouble(entity -> entity.distanceToSqr(pos)))
+                .orElse(null);
+    }
+
+    private static int reportAiTrace(CommandSourceStack source, int radius) {
+        LivingEntity nearest = findNearestBrainOwner(source, radius);
+        if (nearest == null) {
+            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
+            return 0;
+        }
+        HiveBrainOwner<?> owner = (HiveBrainOwner<?>) nearest;
+        HiveBrain<?> brain = owner.getHiveBrain();
+        if (brain == null) {
+            source.sendFailure(Component.literal("[Mycelial AI] Target entity has null HiveBrain."));
+            return 0;
+        }
+        HiveBrainSnapshot snap = brain.captureSnapshot(source.getLevel().getGameTime());
+        source.sendSuccess(() -> Component.literal("[Mycelial AI Trace] "
+                        + nearest.getType().getDescription().getString() + " #" + nearest.getId()
+                        + " | " + snap.formatCompact())
+                .withStyle(ChatFormatting.AQUA), false);
+        List<HiveBrainTrace.Entry> entries = brain.getTrace().recentEntries();
+        if (entries.isEmpty()) {
+            source.sendSuccess(() -> Component.literal(" (no trace events recorded)")
+                    .withStyle(ChatFormatting.GRAY), false);
+        } else {
+            for (HiveBrainTrace.Entry entry : entries) {
+                source.sendSuccess(() -> Component.literal(" - " + entry.format())
+                        .withStyle(ChatFormatting.GRAY), false);
+            }
+        }
+        return 1;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static int applyAiProfileCommand(CommandSourceStack source, String profileName, int radius) {
+        LivingEntity nearest = findNearestBrainOwner(source, radius);
+        if (nearest == null) {
+            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
+            return 0;
+        }
+        HiveBrainOwner rawOwner = (HiveBrainOwner) nearest;
+        HiveBrain rawBrain = rawOwner.getHiveBrain();
+        if (rawBrain == null) {
+            source.sendFailure(Component.literal("[Mycelial AI] Target entity has null HiveBrain."));
+            return 0;
+        }
+        String normalized = (profileName == null || profileName.isBlank()) ? "default" : profileName;
+        if (!"default".equals(normalized) && !rawBrain.getRegisteredProfileNames().contains(normalized)) {
+            source.sendFailure(Component.literal("[Mycelial AI] Unknown profile '" + normalized
+                    + "' (available: default, " + String.join(", ", rawBrain.getRegisteredProfileNames()) + ")."));
+            return 0;
+        }
+        boolean changed = rawOwner.applyBrainProfile(source.getLevel(), nearest, normalized);
+        source.sendSuccess(() -> Component.literal("[Mycelial AI] "
+                        + nearest.getType().getDescription().getString() + " #" + nearest.getId()
+                        + " profile=" + rawBrain.getActiveProfile() + (changed ? " (switched)" : " (unchanged)"))
+                .withStyle(ChatFormatting.GREEN), false);
+        return 1;
+    }
+
+    private static int setAiPausedCommand(CommandSourceStack source, boolean paused, int radius) {
+        LivingEntity nearest = findNearestBrainOwner(source, radius);
+        if (nearest == null) {
+            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
+            return 0;
+        }
+        HiveBrain<?> brain = ((HiveBrainOwner<?>) nearest).getHiveBrain();
+        if (brain == null) {
+            source.sendFailure(Component.literal("[Mycelial AI] Target entity has null HiveBrain."));
+            return 0;
+        }
+        brain.setPaused(paused, source.getLevel().getGameTime());
+        source.sendSuccess(() -> Component.literal("[Mycelial AI] "
+                        + nearest.getType().getDescription().getString() + " #" + nearest.getId()
+                        + " paused=" + brain.isPaused())
+                .withStyle(ChatFormatting.YELLOW), false);
+        return 1;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static int injectAiSignalCommand(CommandSourceStack source, String typeName, int radius) {
+        LivingEntity nearest = findNearestBrainOwner(source, radius);
+        if (nearest == null) {
+            source.sendFailure(Component.literal("[Mycelial AI] No HiveBrainOwner within " + radius + "m."));
+            return 0;
+        }
+        HiveBrainSignal.SignalType type;
+        try {
+            type = HiveBrainSignal.SignalType.valueOf(typeName.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ignored) {
+            source.sendFailure(Component.literal("[Mycelial AI] Unknown SignalType: " + typeName));
+            return 0;
+        }
+        ServerLevel level = source.getLevel();
+        BlockPos pos = BlockPos.containing(source.getPosition());
+        long now = level.getGameTime();
+        HiveBrainSignal signal = switch (type) {
+            case DAMAGE_TAKEN -> HiveBrainSignal.damageTaken(null, 5.0F, now);
+            case ALLY_ALERT -> HiveBrainSignal.allyAlert(pos, null, now);
+            case ACOUSTIC_PULSE -> HiveBrainSignal.acousticPulse(pos, null, 1.0F, now);
+            case DESYNC_TRIGGERED -> HiveBrainSignal.desyncTriggered(100, now);
+            case LEADER_ORDER -> HiveBrainSignal.leaderOrder("COMMAND", pos, now);
+            case PROJECTILE_INCOMING -> HiveBrainSignal.projectileIncoming(pos, now);
+            case PHASE_SHIFT -> HiveBrainSignal.phaseShift("command_shift", now);
+            case CUSTOM -> HiveBrainSignal.custom("command", pos, null, 1.0F, true, now);
+        };
+        HiveBrainOwner rawOwner = (HiveBrainOwner) nearest;
+        rawOwner.dispatchBrainSignal(level, nearest, signal);
+        source.sendSuccess(() -> Component.literal("[Mycelial AI] Dispatched " + type.name() + " to "
+                        + nearest.getType().getDescription().getString() + " #" + nearest.getId())
+                .withStyle(ChatFormatting.AQUA), false);
         return 1;
     }
 

@@ -1,5 +1,9 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainProfile;
+import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
+import com.alex.mycelialmind.entity.ai.brain.sensor.IncomingProjectilesSensor;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossAttackId;
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine.BossCarapaceProfile;
@@ -32,6 +36,7 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -287,6 +292,7 @@ public abstract class MycelialBossMob extends MycelialMob {
                     setActiveAttack(BossAttackId.NONE);
                     setCombatState(BossCombatState.IDLE, 0);
                     globalIdleDelayTicks = 12;
+                    applyBrainProfile(level, this, resolveBossPhaseProfileName());
                 }
             }
             case WINDUP -> {
@@ -450,6 +456,33 @@ public abstract class MycelialBossMob extends MycelialMob {
         this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, ticks, 1, false, true));
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_STAGGER_BREAK.get(),
                 SoundSource.HOSTILE, 1.35F, 1.0F);
+        dispatchBrainSignal(level, this, HiveBrainSignal.phaseShift("staggered", level.getGameTime()));
+        applyBrainProfile(level, this, "staggered");
+    }
+
+    @Override
+    public Map<String, HiveBrainProfile<MycelialMob>> getBrainProfiles() {
+        Map<String, HiveBrainProfile<MycelialMob>> map = new LinkedHashMap<>(super.getBrainProfiles());
+        map.put("phase_2", HiveBrainProfile.<MycelialMob>builder("phase_2")
+                .lodIntervalMultiplier(0)
+                .build());
+        map.put("phase_3", HiveBrainProfile.<MycelialMob>builder("phase_3")
+                .lodIntervalMultiplier(0)
+                .build());
+        map.put("staggered", HiveBrainProfile.<MycelialMob>builder("staggered")
+                .disableSensors(IncomingProjectilesSensor.class)
+                .lodIntervalMultiplier(0)
+                .taskGroups(BrainActivityGroup.coreTasks(), BrainActivityGroup.idleTasks())
+                .build());
+        return map;
+    }
+
+    protected String resolveBossPhaseProfileName() {
+        int phase = getActiveBossPhase();
+        if (phase <= 1) {
+            return "default";
+        }
+        return phase == 2 ? "phase_2" : "phase_3";
     }
 
     protected void onBossPhaseTransition(ServerLevel level) {
@@ -457,14 +490,17 @@ public abstract class MycelialBossMob extends MycelialMob {
         this.telegraphAnchor = null;
         this.entityData.set(DATA_COMBO_ACTIVE, false);
         this.entityData.set(DATA_TELEGRAPH_LOCKED, false);
+        String phaseProfile = resolveBossPhaseProfileName();
         if (getCombatState() != BossCombatState.STAGGERED) {
             setActiveAttack(BossAttackId.NONE);
             setCombatState(BossCombatState.IDLE, 0);
             this.globalIdleDelayTicks = 16;
+            applyBrainProfile(level, this, phaseProfile);
         }
         refreshScaledCarapaceMax(level, false);
         restoreCarapace(level, false);
         emitPhaseTransitionShockwave(level);
+        dispatchBrainSignal(level, this, HiveBrainSignal.phaseShift(phaseProfile, level.getGameTime()));
     }
 
     protected void emitPhaseTransitionShockwave(ServerLevel level) {

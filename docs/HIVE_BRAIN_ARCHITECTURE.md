@@ -7,12 +7,17 @@ Mycelial Mind runs its creature, boss, and ally AI on a self-contained, clean-ro
 ```text
 com.alex.mycelialmind.entity.ai.brain
 ├── core/
-│   ├── HiveBrain.java               # First-class coordinator: typed memories, signals, local blackboard, controls, NBT & zero-alloc tick
-│   ├── HiveBrainOwner.java          # Primary entity contract (getHiveBrain/setHiveBrain), lifecycle hooks, signals, NBT & shared LOD
-│   ├── HiveBrainSignal.java         # Immutable reactive interrupt record (DAMAGE_TAKEN, ALLY_ALERT, ACOUSTIC_PULSE, DESYNC_TRIGGERED, ...)
+│   ├── HiveBrain.java               # First-class coordinator: profiles, modules, channel arbiter, traces, signals & zero-alloc tick
+│   ├── HiveBrainOwner.java          # Primary entity contract (getHiveBrain/setHiveBrain, replaceVanillaBrain, profiles, modules, LOD)
+│   ├── HiveBrainProfile.java        # Executable behavioral profiles (priorities, schedule, sensors, LOD multiplier & task-group swap)
+│   ├── HiveBrainModule.java         # Pluggable per-tick cognitive modules (e.g. tactical_btree) unified under pause & LOD
+│   ├── HiveResourceChannel.java     # Motor/cognitive resource lock channels (MOVE, LOOK, COMBAT, ABILITY, TERRAFORM)
+│   ├── HiveResourceArbiter.java     # Zero-alloc priority preemption arbiter across concurrent HiveBehaviour tasks (JUnit)
+│   ├── HiveBrainTrace.java          # 16-entry chronological decision ring-buffer (ACTIVITY, PROFILE, SIGNAL, INTERRUPT, CHANNEL_PREEMPT)
+│   ├── HiveBrainSignal.java         # Immutable reactive interrupt record (DAMAGE_TAKEN, ALLY_ALERT, ACOUSTIC_PULSE, DESYNC_TRIGGERED, LEADER_ORDER, PROJECTILE_INCOMING, PHASE_SHIFT)
 │   ├── HiveBrainKey.java            # Type-safe keys with ephemeral and persistent NBT factories (zero registry deps)
 │   ├── HiveBrainBlackboard.java     # Per-entity typed storage, TTL expiration, unified named cooldowns & NBT serialization
-│   ├── HiveBrainSnapshot.java       # Immutable live telemetry snapshot (activity, profile, signals, cooldowns, LOD skips, pause)
+│   ├── HiveBrainSnapshot.java       # Immutable live telemetry snapshot (activity, profile, signals, cooldowns, modules, channels, trace, pause)
 │   ├── HiveBrainFactory.java        # Class-keyed memory caching + ThreadLocal spec handoff (single compilation)
 │   ├── HiveBrainRuntime.java        # Backwards-compatible HiveBrain subclass returned by initializeBrain
 │   ├── HiveBrainSchedule.java       # Clean-room day-tick windows, predicate rules & callbacks
@@ -102,17 +107,18 @@ com.alex.mycelialmind.entity.ai.brain
 | `SporeGliderEntity` | `IncomingProjectilesSensor`, `NearbyPlayersSensor`, `HurtBySensor` | `LookAtTarget`, evade & ambient gliding | Preserves `FlyingMoveControl`, home anchor & moss pollination |
 | `RootKeeperEntity` | Inherits `MycelialMob` default | Inherits `MycelialMob` reactive signals, LOD & NBT | Dynamic range & pylon weakening via `SinkholeEcosystemEngine` |
 
-## Lifecycle & Zero-AT Design (`HiveBrain 2.0`)
+## Lifecycle & Zero-AT Design (`HiveBrain 3.0`)
 
 1. **Construction & Primary Contract (`HiveBrainOwner` & `HiveBrainFactory`):**
-   - `HiveBrainOwner<T>` defines `getHiveBrain()` / `setHiveBrain(@Nullable HiveBrain<T>)` as the primary abstract contract across all 5 root entity classes (`MycelialMob`, `MycelialChimeraEntity`, `ColonySymbiontEntity`, `PurifierDroneEntity`, `SporeGliderEntity` — covering `20/20` AI entities), while default `getHiveBrainRuntime()` / `setHiveBrainRuntime(...)` bridge cleanly.
-   - `brainProvider()` delegates to `HiveBrainFactory.createProvider(this)`, collecting every `MemoryModuleType<?>` declared by `getSensors()` and all `BrainActivityGroup` behaviours (including nested `GroupBehaviour` / `UtilitySelectorBehaviour` children) and caching them per `Class<?>`. On cache miss, a `ThreadLocal` spec handoff passes compiled task groups and sensors directly to `initializeBrain` so they are never instantiated twice.
-   - `makeBrain(Dynamic<?>)` invokes `super.makeBrain(dynamic)` and binds `this.hiveBrain = HiveBrainFactory.initializeBrain(this, brain)` (returning `HiveBrainRuntime<E> extends HiveBrain<E>`), registering activities via `Brain.addActivityAndRemoveMemoriesWhenStopped(...)`, applying `getBrainSchedule()`, setting `CORE` + `IDLE` defaults, and invoking `handleAdditionalBrainSetup(hiveBrain)`.
-2. **Tick, Adaptive LOD & Dynamic Controls (`customServerAiStep` -> `tickBrain(this)` -> `HiveBrain.tick`):**
-   - Checks `isPaused()` and `shouldTickBrain` (all 5 root classes share `HiveBrainOwner.evaluateStandardLod`, counting skipped ticks in `skippedLodTickCount`), then invokes `onBrainTickStart`.
-   - Drains up to `16` queued `HiveBrainSignal`s (`enqueueSignal`), prunes expired `HiveBrainBlackboard` entries/cooldowns periodically every 40 ticks, and ticks enabled `HiveSensor`s (`setSensorEnabled(Class<?>, boolean)` allows toggling sensors dynamically with `Entity.getId()` phase offsets).
-   - Runs `HiveBrainSchedule` callbacks & resolution (if present), calls `brain.tick(serverLevel, entity)`, resolves `Activity` priorities (`setActiveProfile` for active profile labeling), tracks `activeActivity` / `previousActivity` / `ticksInCurrentActivity` (`onActivityChanged`), and invokes `onBrainTickEnd`.
-3. **Reactive Signals, Typed Blackboard, NBT Persistence & Telemetry:**
-   - Immediate `dispatchSignal` / `dispatchBrainSignal` and queued `enqueueSignal` / `enqueueBrainSignal` wake LOD throttling (`wakeLodForTicks`, default 40t), trigger sensors immediately on `urgent` signals (with re-entrancy guard), and route to `onBrainSignal`. Real gameplay hooks emit signals from `MycelialMob.hurt`, `MycelialMob.triggerDesync`, `HiveSwarmCoordinator.broadcastAlertCall`, and `MycorrhizalAcousticTracker.tryEmitSeismicPulse`.
-   - `HiveBrainBlackboard` stores ephemeral/TTL entries via type-safe `HiveBrainKey<V>`, named cooldowns, and selective NBT serialization (`saveBrainState` / `loadBrainState` under `"HiveBrainState"`) wired in `addAdditionalSaveData` / `readAdditionalSaveData` on all 5 root classes.
-   - `captureSnapshot(gameTime)` -> `HiveBrainSnapshot` powers `/mycelial ai [radius]` across all `20/20` `HiveBrainOwner` entities and `[HiveBrain]` telemetry in `BioScannerItem`.
+   - `HiveBrainOwner<T>` defines `getHiveBrain()` / `setHiveBrain(@Nullable HiveBrain<T>)` as the primary abstract contract across all 5 root entity classes (`MycelialMob`, `MycelialChimeraEntity`, `ColonySymbiontEntity`, `PurifierDroneEntity`, `SporeGliderEntity` — covering `20/20` AI entities), while default `getHiveBrainRuntime()` / `setHiveBrainRuntime(...)` bridge cleanly. Each root entity also implements `replaceVanillaBrain` (`LivingEntity.brain` is `protected`) so profiles can rebuild vanilla `Brain` instances without ATs/Mixins while preserving memories (`ExpirableValue`).
+   - `brainProvider()` delegates to `HiveBrainFactory.createProvider(this)`, collecting every `MemoryModuleType<?>` declared by `getSensors()`, default `BrainActivityGroup`s, and `getBrainProfiles()` task overrides, caching them per `Class<?>`.
+   - `makeBrain(Dynamic<?>)` binds `this.hiveBrain = HiveBrainFactory.initializeBrain(this, brain)`, registering `getBrainSchedule()`, `getBrainProfiles()`, and `getBrainModules()`.
+2. **Tick, Adaptive LOD, Profiles, Modules & Channel Arbitration (`HiveBrain.tick`):**
+   - Applies pending NBT-restored profile if needed, checks `isPaused()` and `shouldTickBrain` (`evaluateStandardLod` + profile `lodIntervalMultiplier`), then invokes `onBrainTickStart`.
+   - Drains up to `16` queued `HiveBrainSignal`s, prunes expired `HiveBrainBlackboard` entries/cooldowns periodically, ticks enabled `HiveSensor`s, and steps enabled `HiveBrainModule`s (including `MycelialMob`'s `tactical_btree` module).
+   - `HiveBehaviour` instances declaring `requireChannels(...)` + `channelPriority(...)` arbitrate exclusive ownership via `HiveResourceArbiter` (preempting lower-priority holders cleanly), while `.interruptOnSignal(...)` immediately stops matching `RUNNING` behaviours when matching signals arrive.
+   - `HiveBrainProfile` dynamically swaps priorities, schedule, sensor toggles, LOD cadence, and vanilla `Brain` task groups across `MycelialMob` (`default`/`frenzy`/`desync`), `MycelialBossMob` (`default`/`phase_2`/`phase_3`/`staggered`), and `MycelialChimeraEntity` (`follow`/`patrol`/`wait`).
+3. **Reactive Signals, Typed Blackboard, Decision Traces & Live Controls:**
+   - Immediate `dispatchSignal` and queued `enqueueSignal` wake LOD, interrupt matching `HiveBehaviour`s, trigger urgent sensors (guarded against re-entrancy), notify `brain.onSignal(type, listener)`, modules, and `onBrainSignal`. Real hooks emit `DAMAGE_TAKEN`, `ALLY_ALERT`, `ACOUSTIC_PULSE`, `DESYNC_TRIGGERED`, `LEADER_ORDER` (squad leader broadcasts), `PROJECTILE_INCOMING` (`IncomingProjectilesSensor`), and `PHASE_SHIFT` (`MycelialBossMob`).
+   - `HiveBrainTrace` records the latest `16` transitions (`ACTIVITY`, `PROFILE`, `SIGNAL`, `INTERRUPT`, `CHANNEL_PREEMPT`, `MODULE`, `PAUSE`).
+   - `captureSnapshot(gameTime)` -> `HiveBrainSnapshot` + `/mycelial ai [radius|trace|profile|pause|signal]` and `[HiveBrain]` telemetry in `BioScannerItem` expose full live control and inspection across `20/20` entities.

@@ -175,6 +175,15 @@ public class ColonySymbiontEntity extends PathfinderMob implements HiveBrainOwne
     }
 
     @Override
+    public boolean replaceVanillaBrain(Brain<ColonySymbiontEntity> newBrain) {
+        if (newBrain == null) {
+            return false;
+        }
+        this.brain = newBrain;
+        return true;
+    }
+
+    @Override
     public boolean shouldTickBrain(ServerLevel level, ColonySymbiontEntity entity) {
         boolean highPriority = getTarget() != null
                 || !isStandby()

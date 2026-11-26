@@ -103,6 +103,15 @@ public class SporeGliderEntity extends PathfinderMob implements HiveBrainOwner<S
     }
 
     @Override
+    public boolean replaceVanillaBrain(Brain<SporeGliderEntity> newBrain) {
+        if (newBrain == null) {
+            return false;
+        }
+        this.brain = newBrain;
+        return true;
+    }
+
+    @Override
     public boolean shouldTickBrain(ServerLevel level, SporeGliderEntity entity) {
         boolean highPriority = getTarget() != null
                 || HiveBrainUtils.hasMemory(this, ModMemoryTypes.INCOMING_PROJECTILE_POS.get());
