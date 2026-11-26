@@ -1,7 +1,10 @@
 package com.alex.mycelialmind.datagen;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
+import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.world.loot.MycelialTraceLootModifier;
 import net.minecraft.core.HolderLookup;
@@ -10,7 +13,9 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.metadata.PackMetadataGenerator;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -77,6 +82,8 @@ public final class ModDataGenerators {
                 output, datapackLookup, existingFileHelper));
         generator.addProvider(includeServer, new MycelialStructureTagsProvider(
                 output, datapackLookup, existingFileHelper));
+        generator.addProvider(includeServer, new MycelialDamageTypeTagsProvider(
+                output, datapackLookup, existingFileHelper));
 
         generator.addProvider(includeServer, new MycelialRecipeProvider(output, lookupProvider));
         generator.addProvider(includeServer, new AdvancementProvider(
@@ -101,7 +108,7 @@ public final class ModDataGenerators {
                 lookupProvider
         ));
 
-        generator.addProvider(includeServer, new MycelialDataMapProvider(output, lookupProvider));
+        generator.addProvider(includeServer, new MycelialDataMapProvider(output, datapackLookup));
         generator.addProvider(includeServer, new MycelialGlobalLootModifierProvider(output, lookupProvider));
     }
 
@@ -152,6 +159,18 @@ public final class ModDataGenerators {
             builder(NeoForgeDataMaps.RAID_HERO_GIFTS)
                     .add(ResourceLocation.withDefaultNamespace("cleric"),
                             new RaidHeroGift(MycelialGameplayLootSubProvider.CLERIC_MYCELIAL_GIFT), false);
+
+            var stimulusBuilder = builder(ModDataMaps.DAMAGE_STIMULUS);
+            for (ResourceKey<DamageType> damageType : ModDamageTypes.ALL) {
+                stimulusBuilder.add(damageType, new ModDataMaps.DamageStimulusData(StimulusType.MAGIC, 1.0F), false);
+            }
+
+            builder(ModDataMaps.SYMBIOTIC_NUTRIENT)
+                    .add(ModItems.MYCELIAL_BIOMASS.getId(), new ModDataMaps.SymbioticNutrientData(15), false)
+                    .add(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.getId(), new ModDataMaps.SymbioticNutrientData(12), false)
+                    .add(ModBlocks.ROOT_SAP_MOSS.getId(), new ModDataMaps.SymbioticNutrientData(12), false)
+                    .add(ModBlocks.SPORE_BULB.getId(), new ModDataMaps.SymbioticNutrientData(10), false)
+                    .add(ModItems.LATENT_SPORE.getId(), new ModDataMaps.SymbioticNutrientData(8), false);
         }
     }
 

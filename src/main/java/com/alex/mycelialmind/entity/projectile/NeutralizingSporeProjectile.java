@@ -7,6 +7,7 @@ import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModParticles;
@@ -65,7 +66,10 @@ public class NeutralizingSporeProjectile extends ThrowableProjectile {
                 mob.clearAdaptations();
                 mob.triggerDesync(SynapticCommandSystem.DESYNC_DURATION_TICKS);
                 mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 160, 0));
-                hitEntity.hurt(this.damageSources().indirectMagic(this, this.getOwner()), 4.0F);
+                hitEntity.hurt(
+                        ModDamageTypes.source(serverLevel, ModDamageTypes.PURIFICATION_PURGE, this, this.getOwner()),
+                        4.0F
+                );
                 emitImpact(serverLevel, result);
             } else if (target instanceof PurifierDroneEntity drone
                     && drone.clearJam()) {

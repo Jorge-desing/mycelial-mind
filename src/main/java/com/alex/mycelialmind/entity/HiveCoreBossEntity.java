@@ -18,6 +18,7 @@ import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
 import com.alex.mycelialmind.registry.ModParticles;
@@ -519,7 +520,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
                 targetPos.x + 3.0D, targetPos.y + 2.5D, targetPos.z + 3.0D);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, blastBox,
                 e -> !(e instanceof MycelialMob) && e.isAlive())) {
-            entity.hurt(this.damageSources().magic(), 7.5F);
+            entity.hurt(ModDamageTypes.source(level, ModDamageTypes.PSYCHIC_SURGE, this, this), 7.5F);
             entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0));
         }
     }
@@ -539,7 +540,7 @@ public class HiveCoreBossEntity extends MycelialBossMob {
         level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_SHIELD.get(), SoundSource.HOSTILE, 1.20F, 0.58F);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7.2D),
                 e -> !(e instanceof MycelialMob) && e.isAlive())) {
-            entity.hurt(this.damageSources().magic(), 8.5F);
+            entity.hurt(ModDamageTypes.source(level, ModDamageTypes.PSYCHIC_SURGE, this, this), 8.5F);
             entity.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 1));
         }
     }

@@ -7727,6 +7727,43 @@ public final class MycelialGameTests {
             helper.assertTrue(weakDmg > carapaceDmg,
                     "Boss weak point (" + weakDmg + ") must deal more damage than armored carapace (" + carapaceDmg + ")");
 
+            // 5. Custom DamageTypes, Custom DataMaps (DAMAGE_STIMULUS & SYMBIOTIC_NUTRIENT), and Deep Mycelium effects
+            var damageTypeReg = level.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE);
+            for (var damageKey : com.alex.mycelialmind.registry.ModDamageTypes.ALL) {
+                var holder = damageTypeReg.getHolder(damageKey).orElse(null);
+                helper.assertTrue(holder != null, "Missing DamageType in registry: " + damageKey.location());
+                var source = com.alex.mycelialmind.registry.ModDamageTypes.source(level, damageKey);
+                helper.assertTrue(source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_ARMOR)
+                                && source.is(net.minecraft.tags.DamageTypeTags.WITCH_RESISTANT_TO),
+                        "Custom DamageType must carry BYPASSES_ARMOR and WITCH_RESISTANT_TO: " + damageKey.location());
+                var stimulusData = holder.getData(com.alex.mycelialmind.registry.ModDataMaps.DAMAGE_STIMULUS);
+                helper.assertTrue(stimulusData != null
+                                && stimulusData.stimulus() == com.alex.mycelialmind.hive.StimulusType.MAGIC
+                                && Math.abs(stimulusData.weightMultiplier() - 1.0F) < 1.0e-4F,
+                        "Expected DAMAGE_STIMULUS data map entry on " + damageKey.location());
+                helper.assertTrue(DamageTelemetryTracker.classifyDamage(source)
+                                == com.alex.mycelialmind.hive.StimulusType.MAGIC,
+                        "DamageTelemetryTracker must classify custom DamageType via DAMAGE_STIMULUS: " + damageKey.location());
+            }
+
+            var capNutrient = ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.asItem().builtInRegistryHolder()
+                    .getData(com.alex.mycelialmind.registry.ModDataMaps.SYMBIOTIC_NUTRIENT);
+            helper.assertTrue(capNutrient != null && capNutrient.stabilityRestore() == 12,
+                    "Expected SYMBIOTIC_NUTRIENT (+12) on bioluminescent_mycelial_cap");
+            ItemStack capRem = symCap.insertItem(0, new ItemStack(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.asItem(), 1), false);
+            helper.assertTrue(capRem.isEmpty()
+                            && level.getBlockEntity(symPos) instanceof SynapticNodeBlockEntity nodeBe3
+                            && nodeBe3.getSymbioticStability() == 87,
+                    "Inserting bioluminescent_mycelial_cap must recharge Symbiotic Node +12 (75 -> 87)");
+
+            var dimType = level.registryAccess()
+                    .registryOrThrow(net.minecraft.core.registries.Registries.DIMENSION_TYPE)
+                    .get(com.alex.mycelialmind.world.ModWorldgenKeys.DEEP_MYCELIUM_TYPE);
+            helper.assertTrue(dimType != null
+                            && com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_EFFECTS.equals(
+                                    dimType.effectsLocation()),
+                    "Deep Mycelium DimensionType must reference custom effects mycelialmind:deep_mycelium");
+
             helper.succeed();
         } finally {
             if (behemoth != null) behemoth.discard();

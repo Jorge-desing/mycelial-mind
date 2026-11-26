@@ -18,6 +18,7 @@ import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
@@ -294,7 +295,9 @@ public final class DamageTelemetryTracker {
             double symbiosisMult = source.getEntity() instanceof Player attacker
                     ? attacker.getData(ModAttachments.SYMBIOSIS).getThreatAmplifier()
                     : 1.0;
-            SynapticMemoryRouter.routeStimulus(serverLevel, mob.blockPosition(), stimulus, dealt * relayMult * symbiosisMult);
+            double stimulusWeight = resolveStimulusWeightMultiplier(source);
+            SynapticMemoryRouter.routeStimulus(
+                    serverLevel, mob.blockPosition(), stimulus, dealt * relayMult * symbiosisMult * stimulusWeight);
             if (dealt >= 4.0F) {
                 hive.recordCombatHotspot(mob.blockPosition(), Math.min(25.0, dealt * 1.5), serverLevel.getGameTime(), stimulus);
             }
@@ -816,6 +819,10 @@ public final class DamageTelemetryTracker {
     }
 
     public static StimulusType classifyDamage(DamageSource source) {
+        ModDataMaps.DamageStimulusData dataMapEntry = source.typeHolder().getData(ModDataMaps.DAMAGE_STIMULUS);
+        if (dataMapEntry != null) {
+            return dataMapEntry.stimulus();
+        }
         if (source.is(DamageTypeTags.IS_FIRE)) {
             return StimulusType.FIRE;
         }
@@ -837,5 +844,10 @@ public final class DamageTelemetryTracker {
             return StimulusType.MELEE;
         }
         return null;
+    }
+
+    public static float resolveStimulusWeightMultiplier(DamageSource source) {
+        ModDataMaps.DamageStimulusData dataMapEntry = source.typeHolder().getData(ModDataMaps.DAMAGE_STIMULUS);
+        return dataMapEntry != null ? dataMapEntry.weightMultiplier() : 1.0F;
     }
 }

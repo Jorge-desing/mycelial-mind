@@ -74,6 +74,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
+import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
@@ -169,6 +171,16 @@ public final class ClientSetup {
                 ModItems.RECLAIMED_BLOOM_FIRE.get(),
                 ModItems.RECLAIMED_BLOOM_EXPLOSION.get(),
                 ModItems.RECLAIMED_BLOOM_MAGIC.get());
+    }
+
+    @SubscribeEvent
+    public static void registerDimensionSpecialEffects(RegisterDimensionSpecialEffectsEvent event) {
+        event.register(ModDimensions.DEEP_MYCELIUM_EFFECTS, new DeepMyceliumSpecialEffects());
+    }
+
+    @SubscribeEvent
+    public static void registerItemDecorations(RegisterItemDecorationsEvent event) {
+        MycelialItemDecorators.register(event);
     }
 
     @SubscribeEvent

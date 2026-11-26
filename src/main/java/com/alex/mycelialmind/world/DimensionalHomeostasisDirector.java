@@ -23,6 +23,7 @@ import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -663,7 +664,7 @@ public final class DimensionalHomeostasisDirector {
             for (PurifierDroneEntity drone : level.getEntitiesOfClass(PurifierDroneEntity.class, area)) {
                 if (drone.isAlive() && affectedEntities.add(drone.getUUID())
                         && isExposedToCeilingAcidRain(level, drone.blockPosition())) {
-                    drone.hurt(level.damageSources().magic(), 1.0F);
+                    drone.hurt(ModDamageTypes.source(level, ModDamageTypes.ACID_RAIN), 1.0F);
                     drone.setJammedTicks(Math.max(drone.getJammedTicks(), 60));
                 }
             }
@@ -679,7 +680,7 @@ public final class DimensionalHomeostasisDirector {
                         level.sendParticles(ModParticles.SPORE_FALL.get(),
                                 chimera.getX(), chimera.getY() + 1.0, chimera.getZ(), 4, 0.3, 0.3, 0.3, 0.01);
                     } else if (delta < 0.0F) {
-                        chimera.hurt(level.damageSources().magic(), -delta);
+                        chimera.hurt(ModDamageTypes.source(level, ModDamageTypes.ACID_RAIN), -delta);
                         level.sendParticles(ModParticles.ACID_DROPLET.get(),
                                 chimera.getX(), chimera.getY() + 1.0, chimera.getZ(), 4, 0.3, 0.3, 0.3, 0.01);
                     }
@@ -697,7 +698,7 @@ public final class DimensionalHomeostasisDirector {
                         level.sendParticles(ModParticles.SPORE_FALL.get(),
                                 symbiont.getX(), symbiont.getY() + 0.8, symbiont.getZ(), 3, 0.25, 0.25, 0.25, 0.01);
                     } else {
-                        symbiont.hurt(level.damageSources().magic(), 0.5F);
+                        symbiont.hurt(ModDamageTypes.source(level, ModDamageTypes.ACID_RAIN), 0.5F);
                         level.sendParticles(ModParticles.ACID_DROPLET.get(),
                                 symbiont.getX(), symbiont.getY() + 0.8, symbiont.getZ(), 3, 0.25, 0.25, 0.25, 0.01);
                     }
@@ -804,7 +805,7 @@ public final class DimensionalHomeostasisDirector {
             dmg = com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.applyOvermindCrownAcidRainMitigation(
                     dmg, com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.hasEquippedOvermindCrown(player));
         }
-        target.hurt(level.damageSources().magic(), dmg);
+        target.hurt(ModDamageTypes.source(level, ModDamageTypes.ACID_RAIN), dmg);
 
         if (!fullChitin) {
             damageOneNonChitinArmorPiece(level, target);

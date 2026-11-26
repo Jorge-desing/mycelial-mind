@@ -21,6 +21,7 @@ import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModCreativeTabs;
 import com.alex.mycelialmind.registry.ModDataComponents;
+import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModEntities;
@@ -66,6 +67,7 @@ public class MycelialMind {
         ModCreativeTabs.register(modEventBus);
         ModNetworking.register(modEventBus);
         MycelialVanillaIntegration.register(modEventBus);
+        modEventBus.addListener(ModDataMaps::registerDataMaps);
         modEventBus.addListener(com.alex.mycelialmind.world.MycelialChunkTicketManager::onRegisterTicketControllers);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, MycelialConfig.SPEC);

@@ -2,6 +2,7 @@ package com.alex.mycelialmind.item;
 
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -37,7 +38,7 @@ public class EnzymeLanceItem extends SwordItem {
         boolean result = super.hurtEnemy(stack, target, attacker);
         if (result && target instanceof MycelialMob mob && !target.level().isClientSide()) {
             mob.setPhalanxActive(false);
-            mob.hurt(mob.damageSources().magic(), 1.5F);
+            mob.hurt(ModDamageTypes.source(target.level(), ModDamageTypes.BIO_ENZYME, attacker, attacker), 1.5F);
         }
         return result;
     }
@@ -55,7 +56,7 @@ public class EnzymeLanceItem extends SwordItem {
                     MycelialMob.class, player.getBoundingBox().inflate(3.5D),
                     m -> m.isAlive() && !MycelialMob.isFriendlyToPlayer(m, player))) {
                 mob.setPhalanxActive(false);
-                mob.hurt(player.damageSources().magic(), 4.0F);
+                mob.hurt(ModDamageTypes.source(serverLevel, ModDamageTypes.BIO_ENZYME, player, player), 4.0F);
                 mob.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
             }
             serverLevel.sendParticles(ModParticles.SYNAPSE_SPARK.get(),

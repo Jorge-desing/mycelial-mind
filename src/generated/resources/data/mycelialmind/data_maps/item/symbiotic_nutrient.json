@@ -1,0 +1,19 @@
+{
+  "values": {
+    "mycelialmind:bioluminescent_mycelial_cap": {
+      "stability_restore": 12
+    },
+    "mycelialmind:latent_spore": {
+      "stability_restore": 8
+    },
+    "mycelialmind:mycelial_biomass": {
+      "stability_restore": 15
+    },
+    "mycelialmind:root_sap_moss": {
+      "stability_restore": 12
+    },
+    "mycelialmind:spore_bulb": {
+      "stability_restore": 10
+    }
+  }
+}

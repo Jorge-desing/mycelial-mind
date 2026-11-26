@@ -2303,5 +2303,15 @@
   "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.text": "• `[dimensional_homeostasis]` `homeostasisEnabled`=`true`, `homeostasisExplosionStressScale`=`1.0` (`0.1..5`), `homeostasisAcidRainDamage`=`2.0` (`0.5..10`).",
   "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.15.title": "TOML Configuration Keys (15/16)",
   "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.16.text": "• `[dimensional_homeostasis]` `homeostasisAntibodyEncapsulationEnabled`=`true`, `homeostasisMaxCystsPerChunk`=`64` (`8..256`).\n• `[hyphal_network]` `rootTraversalThreshold`=`5` (`2..32`), `growthIntervalTicks`=`10` (`1..100`), `maxTrailPointsPerChunk`=`64` (`16..256`).",
-  "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.16.title": "TOML Configuration Keys (16/16)"
+  "codex.mycelialmind.entry.tecnica_comandos.configuracion_cliente_servidor.page.16.title": "TOML Configuration Keys (16/16)",
+  "death.attack.mycelialmind.acid_rain": "%1$s was dissolved by mycelial acid rain",
+  "death.attack.mycelialmind.acid_rain.player": "%1$s was dissolved by mycelial acid rain while fighting %2$s",
+  "death.attack.mycelialmind.acid_spit": "%1$s was corroded by fungal acid",
+  "death.attack.mycelialmind.acid_spit.player": "%1$s was corroded by %2$s's acid spit",
+  "death.attack.mycelialmind.bio_enzyme": "%1$s was catalyzed from within by enzymatic toxin",
+  "death.attack.mycelialmind.bio_enzyme.player": "%1$s was catalyzed from within by %2$s",
+  "death.attack.mycelialmind.psychic_surge": "%1$s's mind was shattered by a synaptic surge",
+  "death.attack.mycelialmind.psychic_surge.player": "%1$s's mind was shattered by %2$s's synaptic surge",
+  "death.attack.mycelialmind.purification_purge": "%1$s was cleansed from existence by purification energy",
+  "death.attack.mycelialmind.purification_purge.player": "%1$s was cleansed from existence by %2$s"
 }

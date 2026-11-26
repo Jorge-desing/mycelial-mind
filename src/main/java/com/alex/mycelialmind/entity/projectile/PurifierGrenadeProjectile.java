@@ -9,6 +9,7 @@ import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.MobEpisodicMemory;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -86,7 +87,10 @@ public class PurifierGrenadeProjectile extends ThrowableProjectile {
                 }
                 mob.clearAdaptations();
                 mob.triggerDesync(SynapticCommandSystem.DESYNC_DURATION_TICKS);
-                mob.hurt(this.damageSources().indirectMagic(this, this.getOwner()), 10.0F);
+                mob.hurt(
+                        ModDamageTypes.source(serverLevel, ModDamageTypes.PURIFICATION_PURGE, this, this.getOwner()),
+                        10.0F
+                );
                 if (mob.isAlive()) {
                     mob.getEpisodicMemory().remember(MobEpisodicMemory.KEY_TRAUMA_GRENADE, serverLevel.getGameTime());
                 }

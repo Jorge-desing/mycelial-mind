@@ -8,6 +8,7 @@ import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.LivingBattlefieldSystem;
 import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -65,7 +66,7 @@ public class AcidSpitProjectile extends ThrowableProjectile {
                     && this.getOwner() instanceof MycelialMob shooter
                     && shooter.isRivalStrainTarget(target);
             if (!isMycelial || rivalMycelial) {
-                hitEntity.hurt(this.damageSources().indirectMagic(this, this.getOwner()), 5.0F);
+                hitEntity.hurt(ModDamageTypes.source(this.level(), ModDamageTypes.ACID_SPIT, this, this.getOwner()), 5.0F);
                 target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
                 target.addEffect(new MobEffectInstance(MobEffects.POISON, 80, 0));
                 if (!isMycelial) {

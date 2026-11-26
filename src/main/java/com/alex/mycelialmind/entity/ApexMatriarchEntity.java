@@ -18,6 +18,7 @@ import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModMemoryTypes;
@@ -480,7 +481,7 @@ public class ApexMatriarchEntity extends MycelialBossMob {
                 center.x + 5.5D, center.y + 3.0D, center.z + 5.5D);
         for (LivingEntity victim : serverLevel.getEntitiesOfClass(LivingEntity.class, box,
                 e -> !(e instanceof MycelialMob) && e.isAlive())) {
-            victim.hurt(this.damageSources().magic(), 7.5F);
+            victim.hurt(ModDamageTypes.source(serverLevel, ModDamageTypes.PSYCHIC_SURGE, this, this), 7.5F);
             victim.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 140, 1));
             victim.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 1));
         }
@@ -493,7 +494,7 @@ public class ApexMatriarchEntity extends MycelialBossMob {
         serverLevel.playSound(null, this.blockPosition(), ModSounds.SYNAPTIC_PULSE.get(), SoundSource.HOSTILE, 1.35F, 0.62F);
         for (LivingEntity victim : serverLevel.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(7.6D),
                 e -> !(e instanceof MycelialMob) && e.isAlive())) {
-            victim.hurt(this.damageSources().magic(), 8.5F);
+            victim.hurt(ModDamageTypes.source(serverLevel, ModDamageTypes.PSYCHIC_SURGE, this, this), 8.5F);
             victim.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 160, 1));
         }
     }

@@ -26,6 +26,7 @@ public final class MycelialDatapackProvider extends DatapackBuiltinEntriesProvid
             .add(Registries.TEMPLATE_POOL, MycelialStructureBootstrap::bootstrapTemplatePools)
             .add(Registries.STRUCTURE, MycelialStructureBootstrap::bootstrapStructures)
             .add(Registries.STRUCTURE_SET, MycelialStructureBootstrap::bootstrapStructureSets)
+            .add(Registries.DAMAGE_TYPE, MycelialDamageTypeBootstrap::bootstrap)
             .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, MycelialBiomeBootstrap::bootstrapBiomeModifiers);
 
     public MycelialDatapackProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {

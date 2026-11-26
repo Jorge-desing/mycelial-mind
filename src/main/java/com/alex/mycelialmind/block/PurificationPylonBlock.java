@@ -11,6 +11,7 @@ import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -307,7 +308,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
                 mob.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
                 mob.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0));
                 if (tier >= 3) {
-                    mob.hurt(level.damageSources().magic(), t3PurgeDmg);
+                    mob.hurt(ModDamageTypes.source(level, ModDamageTypes.PURIFICATION_PURGE), t3PurgeDmg);
                 }
                 purifiedAny = true;
             }

@@ -16,6 +16,7 @@ import com.alex.mycelialmind.hive.PlayerHabit;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -101,21 +102,32 @@ public class SynapticNodeBlockEntity extends BlockEntity {
         }
     }
 
+    public static int resolveSymbioticStabilityRestore(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 0;
+        }
+        ModDataMaps.SymbioticNutrientData nutrient = stack.getItemHolder().getData(ModDataMaps.SYMBIOTIC_NUTRIENT);
+        if (nutrient != null) {
+            return nutrient.stabilityRestore();
+        }
+        return stack.is(ModItems.MYCELIAL_BIOMASS.get()) ? 15 : 0;
+    }
+
     public boolean canRechargeSymbiotic(ItemStack stack) {
         return getNodeType() == SynapticNodeType.SYMBIOTIC
-                && !stack.isEmpty()
-                && stack.is(ModItems.MYCELIAL_BIOMASS.get())
+                && resolveSymbioticStabilityRestore(stack) > 0
                 && this.symbioticStability < 100;
     }
 
     public boolean tryRechargeSymbiotic(ItemStack stack, boolean simulate) {
-        if (!canRechargeSymbiotic(stack)) {
+        int restoreAmount = resolveSymbioticStabilityRestore(stack);
+        if (getNodeType() != SynapticNodeType.SYMBIOTIC || restoreAmount <= 0 || this.symbioticStability >= 100) {
             return false;
         }
         if (simulate) {
             return true;
         }
-        int nextStability = Math.min(100, this.symbioticStability + 15);
+        int nextStability = Math.min(100, this.symbioticStability + restoreAmount);
         setSymbioticStability(nextStability);
         if (this.level instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),

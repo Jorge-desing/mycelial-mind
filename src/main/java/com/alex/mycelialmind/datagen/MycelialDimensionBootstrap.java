@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.datagen;
 
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.world.ModDimensions;
 import com.alex.mycelialmind.world.ModWorldgenKeys;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -13,7 +14,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -60,7 +60,7 @@ public final class MycelialDimensionBootstrap {
                 192,
                 192,
                 BlockTags.INFINIBURN_OVERWORLD,
-                BuiltinDimensionTypes.NETHER_EFFECTS,
+                ModDimensions.DEEP_MYCELIUM_EFFECTS,
                 0.15F,
                 new DimensionType.MonsterSettings(false, false, UniformInt.of(0, 11), 15)
         ));

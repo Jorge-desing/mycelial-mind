@@ -173,7 +173,8 @@ class DataGenIntegrityTest {
     @Test
     void allGeneratedDataJsonFilesParseCleanly() throws IOException {
         Path genModData = GENERATED_RESOURCES.resolve("data/mycelialmind");
-        List<String> categories = List.of("recipe", "loot_table", "worldgen", "dimension", "dimension_type", "neoforge");
+        List<String> categories = List.of(
+                "recipe", "loot_table", "worldgen", "dimension", "dimension_type", "damage_type", "neoforge");
         int parsedFiles = 0;
 
         for (String category : categories) {
@@ -194,7 +195,19 @@ class DataGenIntegrityTest {
             }
         }
 
-        assertEquals(152, parsedFiles, "Expected 152 generated JSON files across recipes/loot/worldgen/dimension/neoforge");
+        assertEquals(157, parsedFiles,
+                "Expected 157 generated JSON files across recipes/loot/worldgen/dimension/damage_type/neoforge");
+
+        for (String customDataMap : List.of(
+                "data_maps/damage_type/damage_stimulus.json",
+                "data_maps/item/symbiotic_nutrient.json"
+        )) {
+            Path path = genModData.resolve(customDataMap);
+            assertTrue(Files.isRegularFile(path), "Missing custom DataMap JSON: " + customDataMap);
+            JsonElement parsed = parseJson(path);
+            assertTrue(parsed.isJsonObject() && parsed.getAsJsonObject().has("values"),
+                    "Custom DataMap JSON must have 'values' object: " + customDataMap);
+        }
     }
 
     private static Set<String> extractMatches(Path sourceFile, Pattern pattern) throws IOException {

@@ -1,0 +1,19 @@
+{
+  "values": {
+    "mycelialmind:acid_rain": {
+      "stimulus": "magic"
+    },
+    "mycelialmind:acid_spit": {
+      "stimulus": "magic"
+    },
+    "mycelialmind:bio_enzyme": {
+      "stimulus": "magic"
+    },
+    "mycelialmind:psychic_surge": {
+      "stimulus": "magic"
+    },
+    "mycelialmind:purification_purge": {
+      "stimulus": "magic"
+    }
+  }
+}

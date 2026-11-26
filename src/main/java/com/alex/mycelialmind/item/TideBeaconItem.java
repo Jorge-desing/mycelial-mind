@@ -7,6 +7,7 @@ import com.alex.mycelialmind.hive.HiveBlackboard;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
@@ -58,7 +59,7 @@ public class TideBeaconItem extends Item {
                     if (mob.isAlliedEscort()) {
                         continue;
                     }
-                    mob.hurt(serverLevel.damageSources().magic(), 10.0F);
+                    mob.hurt(ModDamageTypes.source(serverLevel, ModDamageTypes.PURIFICATION_PURGE, player, player), 10.0F);
                     mob.triggerDesync(SynapticCommandSystem.DESYNC_DURATION_TICKS);
                     mob.removeEffect(net.minecraft.world.effect.MobEffects.ABSORPTION);
                     mob.removeEffect(net.minecraft.world.effect.MobEffects.REGENERATION);

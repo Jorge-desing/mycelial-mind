@@ -4999,3 +4999,37 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `run_gradle_task(["runData", "test", "build", "runGameTestServer"], isolated_gametests=True, no_daemon=True, max_workers=1)`: **`BUILD SUCCESSFUL` (`33.77s`)**, **`160/160` JUnit** en **`17` suites** (`2.423s`, `0` fallos/omisiones), **`205/205` `@GameTest`s PASS** (`All 205 required tests passed :)` en `7.836s`).
   - `audit_mod_assets` (`ok=true`, `2305/2305` EN/ES, `0` claves faltantes) y `validate_skills` (`8/8 OK`).
 - **Estado / Siguiente paso:** Listo para commit, push a `origin/main` y verificación de GitHub Actions CI.
+
+
+## [2026-11-26 14:00] — Integración Nativa NeoForge `21.1.267`: `DamageType`s Data-Driven, Custom `DataMapType`s, `DimensionSpecialEffects` e `IItemDecorator`s
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:** Adaptadas e implementadas 4 capacidades nativas de NeoForge `21.1.267` tras análisis y diseño interactivo (`/grill-me`):
+  1. **Tipos de Daño Data-Driven y Mensajes de Muerte (`ModDamageTypes`, `MycelialDamageTypeBootstrap`, `MycelialDamageTypeTagsProvider`):** Añadidos `5` `ResourceKey<DamageType>` (`acid_rain`, `acid_spit`, `psychic_surge`, `purification_purge`, `bio_enzyme`) en `MycelialDatapackProvider` (`12` registros) con factoría segura `ModDamageTypes.source(...)`, tags `minecraft:bypasses_armor` y `minecraft:witch_resistant_to`, cableado en las fuentes de daño del mod (`DimensionalHomeostasisDirector`, `AcidSpitProjectile`, `HiveCoreBossEntity`, `ApexMatriarchEntity`, `PurificationPylonBlock`, `NeutralizingSporeProjectile`, `PurifierGrenadeProjectile`, `TideBeaconItem`, `EnzymeLanceItem`) y `10` claves bilingües `death.attack.mycelialmind.*` (`2315/2315` EN/ES).
+  2. **DataMaps Personalizados (`ModDataMaps`, `ModDataGenerators`):** Registrados vía `RegisterDataMapTypesEvent` los mapas `mycelialmind:damage_stimulus` (`DamageType -> DamageStimulusData(StimulusType, float weightMultiplier)`) y `mycelialmind:symbiotic_nutrient` (`Item -> SymbioticNutrientData(int stabilityRestore)`), poblados en DataGen y conectados en `DamageTelemetryTracker` (`classifyDamage` y `resolveStimulusWeightMultiplier`) y `SynapticNodeBlockEntity` (`resolveSymbioticStabilityRestore` para recarga de nodos `SYMBIOTIC`).
+  3. **Efectos Dimensionales Nativos (`DeepMyceliumSpecialEffects`, `ModDimensions.DEEP_MYCELIUM_EFFECTS`, `MycelialDimensionBootstrap`):** Registrada `DimensionSpecialEffects` (`SkyType.NONE`, niebla índigo-violeta profunda e iluminación cavernosa sutil mediante `adjustLightmapColors`) vía `RegisterDimensionSpecialEffectsEvent` y referenciada desde `dimension_type/deep_mycelium.json`.
+  4. **Decoradores Diegéticos de Ítem (`MycelialItemDecorators`):** Registrados vía `RegisterItemDecorationsEvent` en `ClientSetup` para mostrar pips codificados por estímulo/rasgo/acto en `GeneticSampleItem`, `CounterSerumItem`, `SymbioticMutagenItem` y `FieldEngramItem`, además de una barra viva de amenaza (`ClientHiveCache`) en `BioScannerItem`.
+  5. **Pruebas:** Añadido `NeoForgeNativeIntegrationTest` (`3` pruebas JUnit 5 headless), ampliado `DataGenIntegrityTest` (`157` JSONs generados en `data/mycelialmind/` + validación de `damage_maps/*.json`) y actualizada la sección 5 de `MycelialGameTests.neoforgeIntegrationGlmDataMapsCapabilitiesBossPartsAndCuresWork`.
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/MycelialMind.java`
+  - `src/main/java/com/alex/mycelialmind/registry/{ModDamageTypes,ModDataMaps}.java`
+  - `src/main/java/com/alex/mycelialmind/datagen/{ModDataGenerators,MycelialDatapackProvider,MycelialDimensionBootstrap,MycelialDamageTypeBootstrap,MycelialDamageTypeTagsProvider}.java`
+  - `src/main/java/com/alex/mycelialmind/world/{ModDimensions,DimensionalHomeostasisDirector}.java`
+  - `src/main/java/com/alex/mycelialmind/block/PurificationPylonBlock.java`, `src/main/java/com/alex/mycelialmind/block/entity/SynapticNodeBlockEntity.java`
+  - `src/main/java/com/alex/mycelialmind/hive/DamageTelemetryTracker.java`
+  - `src/main/java/com/alex/mycelialmind/entity/{ApexMatriarchEntity,HiveCoreBossEntity}.java`, `src/main/java/com/alex/mycelialmind/entity/projectile/{AcidSpitProjectile,NeutralizingSporeProjectile,PurifierGrenadeProjectile}.java`
+  - `src/main/java/com/alex/mycelialmind/item/{EnzymeLanceItem,TideBeaconItem}.java`
+  - `src/main/java/com/alex/mycelialmind/client/{ClientSetup,DeepMyceliumSpecialEffects,MycelialItemDecorators}.java`
+  - `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`
+  - `src/main/resources/assets/mycelialmind/lang/{en_us,es_es}.json`
+  - `src/generated/resources/data/**` (`damage_type/`, `data_maps/`, `tags/damage_type/`, `dimension_type/deep_mycelium.json`)
+  - `src/test/java/com/alex/mycelialmind/{DataGenIntegrityTest,NeoForgeNativeIntegrationTest}.java`
+  - `.agents/skills/{neoforge-gametest/SKILL.md,mycelial-ai-hive/references/world-ecosystems-and-integration.md}`
+- **Skills revisadas y actualizadas:**
+  - Actualizadas `.agents/skills/neoforge-gametest/SKILL.md` y `.agents/skills/mycelial-ai-hive/references/world-ecosystems-and-integration.md`; las demás skills se revisaron y no requirieron cambios (`validate_skills` = `8/8 OK`).
+- **Verificación (`CodeMode` `mycelial-mind-dev`):**
+  - `run_gradle_task(["runData", "test", "build", "runGameTestServer"], isolated_gametests=True, no_daemon=True, max_workers=1)`: **`BUILD SUCCESSFUL` (`44.56s`)**, **`165/165` JUnit** en **`18` suites** (`2.671s`, `0` fallos/omisiones), **`205/205` `@GameTest`s PASS** (`All 205 required tests passed :)` en `7.904s`).
+  - `run_gradle_task(["runVisualSmoke"], no_daemon=True, max_workers=1)`: **`BUILD SUCCESSFUL` (`29.2s`)** (capturas `visual_smoke.png`, `visual_smoke_mobs.png`, `visual_smoke_bosses.png` y guardado de `deep_mycelium`).
+  - `run_codex_studio(check_only=True, run_tests=True)`: **`ok=True`** (`chapters=12`, `entries=62`, `pages=254`, `5/5` tests).
+  - `audit_mod_assets`: **`ok=true`** (`2315/2315` EN/ES, `missing_referenced_keys=[]`).
+  - `validate_skills`: **`8/8 OK`**.
+- **Estado / Siguiente paso:** Listo para commit selectivo (preservando cambios previos en audio/codex/mcp), push a `origin/main` y verificación de GitHub Actions CI.
