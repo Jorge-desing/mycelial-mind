@@ -2,12 +2,21 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "timezone": "America/Chihuahua",
+  "schedule": ["before 6am on Monday"],
+  "labels": ["dependencies"],
   "dependencyDashboard": {
-    "enabled": true
+    "enabled": true,
+    "labels": ["dependencies"]
   },
   "prConcurrentLimit": 4,
   "branchConcurrentLimit": 4,
+  "prHourlyLimit": 2,
+  "rebaseWhen": "conflicted",
+  "minimumReleaseAge": "3 days",
   "automerge": false,
+  "lockFileMaintenance": {
+    "enabled": false
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -20,6 +29,18 @@
       "datasourceTemplate": "maven",
       "registryUrlTemplate": "https://maven.neoforged.net/releases/",
       "versioningTemplate": "maven"
+    },
+    {
+      "customType": "regex",
+      "description": "Track pinned Renovate CLI validator version in Taskfile.yml and verify.yml",
+      "managerFilePatterns": [
+        "/^Taskfile\\.yml$/",
+        "/^\\.github/workflows/verify\\.yml$/"
+      ],
+      "matchStrings": ["--package renovate@(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "renovate",
+      "packageNameTemplate": "renovate",
+      "datasourceTemplate": "npm"
     }
   ],
   "packageRules": [
@@ -31,10 +52,37 @@
       "groupName": "NeoForge 1.21.1"
     },
     {
+      "description": "Group GitHub Actions and CI tooling updates into a single weekly PR",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions & CI",
+      "addLabels": ["area:ci-automation"]
+    },
+    {
+      "description": "Group Renovate CLI validator updates with GitHub Actions & CI",
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["renovate"],
+      "groupName": "GitHub Actions & CI",
+      "addLabels": ["area:ci-automation"]
+    },
+    {
       "description": "Group Gradle plugin updates for one review",
       "matchManagers": ["gradle"],
       "matchDepTypes": ["plugin"],
       "groupName": "Gradle plugins"
+    },
+    {
+      "description": "Group Minecraft 1.21.1 mod/compat dependencies into one PR",
+      "matchManagers": ["gradle"],
+      "matchDepNames": [
+        "maven.modrinth:iris",
+        "maven.modrinth:jade",
+        "maven.modrinth:observable",
+        "dev.emi:emi-neoforge",
+        "mezz.jei:jei-1.21.1-neoforge-api",
+        "com.klikli_dev:modonomicon-1.21.1-neoforge",
+        "net.tslat.smartbrainlib:SmartBrainLib-neoforge-1.21.1"
+      ],
+      "groupName": "MC 1.21.1 mod dependencies"
     },
     {
       "description": "Keep Iris updates on the Minecraft 1.21.1 NeoForge line",
@@ -43,10 +91,22 @@
       "allowedVersions": "/\\+1\\.21\\.1-neoforge$/"
     },
     {
+      "description": "Keep EMI updates on the Minecraft 1.21.1 line",
+      "matchManagers": ["gradle"],
+      "matchDepNames": ["dev.emi:emi-neoforge"],
+      "allowedVersions": "/\\+1\\.21\\.1$/"
+    },
+    {
       "description": "Keep Jade updates on the Minecraft 1.21.1 line",
       "matchManagers": ["gradle"],
       "matchDepNames": ["maven.modrinth:jade"],
       "allowedVersions": "/^15\\./"
+    },
+    {
+      "description": "Keep Observable updates on the Minecraft 1.21.1 NeoForge 5.x line",
+      "matchManagers": ["gradle"],
+      "matchDepNames": ["maven.modrinth:observable"],
+      "allowedVersions": "/^5\\./"
     },
     {
       "description": "Keep Java pinned to JDK 21 for Minecraft 1.21.1 / NeoForge 21.1",
@@ -59,9 +119,23 @@
       "allowedVersions": "/^8\\./"
     },
     {
-      "description": "Keep spark pinned to Java 21 / MC 1.21.1 compatible version",
+      "description": "Keep Python tooling grouped into a single weekly PR",
+      "matchManagers": ["pep621", "pip_requirements", "pyenv"],
+      "groupName": "Python tooling"
+    },
+    {
+      "description": "Avoid jumping to bleeding-edge Python versions unsupported by local uv/scientific wheels",
+      "matchManagers": ["pep621", "pyenv"],
+      "matchDepNames": ["python"],
+      "allowedVersions": "/^3\\.12(\\.|$)/"
+    },
+    {
+      "description": "Keep spark and hash-versioned kotlin-for-forge pinned for MC 1.21.1 stability",
       "matchManagers": ["gradle"],
-      "matchDepNames": ["maven.modrinth:spark"],
+      "matchDepNames": [
+        "maven.modrinth:spark",
+        "maven.modrinth:kotlin-for-forge"
+      ],
       "enabled": false
     }
   ]

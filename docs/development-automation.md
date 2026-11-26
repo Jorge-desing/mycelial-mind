@@ -59,9 +59,15 @@ Toda la operativa diaria con GitHub está disponible en `Taskfile.yml` mediante 
 | `task gh:issues` | Lista los issues abiertos. |
 | `task gh:release:draft` | Lanza `.github/workflows/release.yml` creando una Release en modo borrador (`draft=true`). |
 
-## Actualizaciones de dependencias
+## Actualizaciones de dependencias (Renovate)
 
-`renovate.json` configura Renovate sin auto-merge y limita las actualizaciones de NeoForge a la línea `21.1.x` de Minecraft `1.21.1`. El manager Gradle cubre el wrapper y los plugins; una regla regex explícita rastrea `neo_version` en `gradle.properties`. Ejecuta `task verify:renovate` para validar la configuración antes de cambiarla. Para recibir PRs automáticos, instala la app hospedada Renovate en el repositorio de GitHub.
+`renovate.json` configura Mend Renovate sin `automerge` y optimizado para ahorrar minutos en **GitHub Free**:
+
+- **Cadencia y control de ruido:** programación semanal (`before 6am on Monday`, `America/Chihuahua`), `prHourlyLimit: 2`, `rebaseWhen: "conflicted"`, `minimumReleaseAge: "3 days"` y etiquetas automáticas (`dependencies` en PRs y Dependency Dashboard; `area:ci-automation` en PRs de CI).
+- **Agrupación:** agrupa actualizaciones en PRs revisables (`GitHub Actions & CI`, `Gradle plugins`, `NeoForge 1.21.1`, `MC 1.21.1 mod dependencies` y `Python tooling`).
+- **Límites de compatibilidad MC 1.21.1 / JDK 21:** acota `neo_version` a `21.1.x`, `java-jdk` a `21`, `gradle` a `8.x`, `iris` a `+1.21.1-neoforge`, `emi` a `+1.21.1`, `jade` a `15.x`, `observable` a `5.x`, `python` a `3.12.x`, y mantiene excluidos `spark` y `kotlin-for-forge` (versionado por hash de Modrinth). También rastrea la versión fijada del validador `renovate` en `Taskfile.yml` y `.github/workflows/verify.yml`.
+
+Ejecuta `task verify:renovate` para validar la configuración de forma estricta antes de hacer commit. La app hospedada Mend Renovate ya está instalada y activa en `Jorge-desing/mycelial-mind` (Issue `#3` Dependency Dashboard).
 
 CI valida la configuración de Renovate y ejecuta `publishMods` con `publishDryRun=true` como parte de la verificación Gradle, comprobando que el release plugin prepara la vista previa sin publicar. Las releases locales también usan simulación por defecto. Consulta [Preparar una release](releasing.md) para generar una release sin subirla y para ver los requisitos de una publicación aprobada.
 

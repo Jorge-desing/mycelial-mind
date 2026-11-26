@@ -4867,3 +4867,14 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `C:\Users\Alex\.gemini\GEMINI.md`, `.agents/rules/git-auto-commit.md`, `GEMINI.md`, `MEMORY.md`.
 - **Skills revisadas:** Ninguna skill requirió edición (`validate_agent_skills.py`).
 - **Estado / Siguiente paso:** Validado, commiteado y subido a `origin/main`.
+
+## [2026-11-26 10:50] — Configuración final de Mend Renovate (`renovate.json`) para MC 1.21.1 y GitHub Free
+- **Tipo:** `IMPLEMENTACIÓN` | `DOCUMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Completada la configuración de `renovate.json` (validada con `task verify:renovate` `--strict`):
+  - Optimización para GitHub Free: `schedule: ["before 6am on Monday"]` (`America/Chihuahua`), `prHourlyLimit: 2`, `rebaseWhen: "conflicted"`, `minimumReleaseAge: "3 days"`, `lockFileMaintenance.enabled: false`.
+  - Etiquetas automáticas: `labels: ["dependencies"]`, `dependencyDashboard: { enabled: true, labels: ["dependencies"] }`, `addLabels: ["area:ci-automation"]` en PRs de CI; etiquetado Issue `#3` (`Dependency Dashboard`) con `dependencies`.
+  - Agrupación de PRs: `GitHub Actions & CI` (incluye nuevo `customManager` regex que rastrea `renovate@x.y.z` en `Taskfile.yml` y `.github/workflows/verify.yml`), `Gradle plugins`, `NeoForge 1.21.1`, `MC 1.21.1 mod dependencies` y `Python tooling`.
+  - Guardas de compatibilidad: `emi-neoforge` (`+1.21.1`), `observable` (`5.x`), `python` (`3.12.x`), y `kotlin-for-forge` (versionado por hash de Modrinth) excluido junto con `spark`.
+- **Archivos / Símbolos:** `renovate.json`, `docs/development-automation.md`, `MEMORY.md`, GitHub Issue `#3`.
+- **Skills revisadas:** Ninguna skill requirió edición (`validate_agent_skills.py`: `8/8` OK).
+- **Estado / Siguiente paso:** `task verify:renovate` en verde; commit, push a `origin/main` y comprobación de checks de GitHub del commit publicado.
