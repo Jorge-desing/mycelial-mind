@@ -161,7 +161,8 @@ class SoundStudioTests(unittest.TestCase):
         self.assertIn("hive_tension_bed_low", html_text)
         self.assertIn("sanctum_harmonic_chime", html_text)
         self.assertIn("44100", html_text)
-        self.assertIn("Consola Local de Audio v5", html_text)
+        self.assertIn("Consola Local de Audio v6", html_text)
+        self.assertIn("mean_organic_index", html_text)
         self.assertIn("Bloques Físicos", html_text)
         self.assertIn("Biomas y Ambiente (23)", html_text)
         self.assertIn("fftCanvas", html_text)
@@ -426,7 +427,7 @@ class SoundStudioTests(unittest.TestCase):
         self.assertTrue(-35.0 < measure_integrated_lufs(mastered, SAMPLE_RATE) < -3.0)
 
     def test_stage2_rtx4060_stable_audio_open_small_stems_and_hybrid_blend(self) -> None:
-        """Stage 2: 69 RTX 4060 Stable Audio Open Small stems (steps=14) must back all 226 sounds with worst_corr < 0.55."""
+        """Stage 2: 95 RTX 4060 Stable Audio Open Small stems (steps=28) must back all 226 sounds with worst_corr < 0.55."""
         import wave as std_wave
         from scripts.sound_studio.ai_stem_generator import (
             AI_STEMS_DIR,
@@ -437,20 +438,20 @@ class SoundStudioTests(unittest.TestCase):
             audit_all_stems,
         )
 
-        self.assertEqual(INFERENCE_STEPS, 14)
-        self.assertEqual(len(AI_STEM_ARCHETYPES), 69)
+        self.assertEqual(INFERENCE_STEPS, 28)
+        self.assertEqual(len(AI_STEM_ARCHETYPES), 95)
         self.assertEqual(len(SOUND_TO_ARCHETYPE), 226)
         self.assertTrue(STEM_MANIFEST_PATH.is_file(), f"Missing stem manifest: {STEM_MANIFEST_PATH}")
         stem_manifest = json.loads(STEM_MANIFEST_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(stem_manifest["stem_count"], 69)
+        self.assertEqual(stem_manifest["stem_count"], 95)
         self.assertEqual(stem_manifest["mapped_sound_events"], 226)
-        self.assertEqual(stem_manifest["steps"], 14)
+        self.assertEqual(stem_manifest["steps"], 28)
         self.assertIn("RTX 4060", stem_manifest["device_name"])
         self.assertEqual(stem_manifest["sample_rate"], SAMPLE_RATE)
 
         stem_qc = audit_all_stems(AI_STEMS_DIR)
         self.assertTrue(stem_qc["ok"], msg=f"Stem QC failed: {stem_qc['failed_stems']}")
-        self.assertEqual(stem_qc["checked_count"], 69)
+        self.assertEqual(stem_qc["checked_count"], 95)
 
         for arch in AI_STEM_ARCHETYPES:
             wav_path = AI_STEMS_DIR / f"{arch.stem_id}.wav"
@@ -811,6 +812,48 @@ class SoundStudioTests(unittest.TestCase):
             self.assertLessEqual(bm["loop_seam_delta"], 0.025, bed_id)
             self.assertLessEqual(bm["true_peak_dbfs"], -0.25, bed_id)
             self.assertEqual(evaluate_quality(bm, SOUND_BY_ID[bed_id].loudness_group, is_loop=True), [], msg=bed_id)
+
+    def test_stage6_bio_organic_humanization_and_95_stems(self) -> None:
+        """Stage 6: Bijective 95-stem coverage, de-vocoded blend, damped short reverb & organic_index scoring."""
+        from scripts.sound_studio import ai_stem_generator, dsp_engine
+        from scripts.sound_studio.metrics import compute_organic_metrics
+
+        arches = ai_stem_generator.AI_STEM_ARCHETYPES
+        self.assertEqual(len(arches), 95)
+        mapped = [sid for a in arches for sid in a.sound_ids]
+        self.assertEqual(len(mapped), 226)
+        self.assertEqual(set(mapped), set(SOUND_BY_ID.keys()))
+
+        # Loop archetypes must match only loop sounds (not one-shots like suppressor_discharge or mood cues)
+        loop_mapped = {sid for a in arches if a.seamless_loop for sid in a.sound_ids}
+        self.assertNotIn("suppressor_discharge", loop_mapped)
+        self.assertNotIn("biome_caverns_mood", loop_mapped)
+        self.assertIn("biome_caverns_loop", loop_mapped)
+        self.assertIn("purification_pylon_hum", loop_mapped)
+
+        # organic_index must clearly separate a static pure sine wave from organic creature audio
+        t = np.linspace(0.0, 1.0, SAMPLE_RATE, endpoint=False)
+        static_sine = np.sin(2.0 * np.pi * 440.0 * t) * 0.5
+        sine_org = compute_organic_metrics(static_sine, SAMPLE_RATE)
+        mob_wave, mob_metrics = self._synth_spec("chitin_brute_growl", variation_idx=0)
+        self.assertGreater(mob_metrics["organic_index"], sine_org["organic_index"] + 0.15)
+        self.assertGreater(len(mob_wave), SAMPLE_RATE // 4)
+
+        # Short-SFX _cavern_reverb must be tightly damped compared to long cinematic tail
+        impulse = np.zeros(SAMPLE_RATE, dtype=np.float64)
+        impulse[100] = 0.9
+        short_wet = dsp_engine._cavern_reverb(impulse, np.random.default_rng(7), wet=0.25, rt60=0.35)
+        long_wet = dsp_engine._cavern_reverb(impulse, np.random.default_rng(7), wet=0.25, rt60=1.20)
+        tail_short_rms = float(np.sqrt(np.mean(short_wet[int(0.05 * SAMPLE_RATE) : int(0.30 * SAMPLE_RATE)] ** 2)))
+        tail_long_rms = float(np.sqrt(np.mean(long_wet[int(0.05 * SAMPLE_RATE) : int(0.30 * SAMPLE_RATE)] ** 2)))
+        self.assertGreater(tail_long_rms, tail_short_rms * 1.8)
+
+        # Macro de-vocoded blend preserves audible stem body even when DSP dips briefly
+        gapped_dsp = np.sin(2.0 * np.pi * 220.0 * t) * 0.25
+        gapped_dsp[int(0.35 * SAMPLE_RATE) : int(0.65 * SAMPLE_RATE)] *= 0.05
+        blended = ai_stem_generator.blend_with_ai_stem(gapped_dsp, "chitin_brute_growl", variation_idx=0)
+        self.assertEqual(len(blended), SAMPLE_RATE)
+        self.assertFalse(np.any(np.isnan(blended)))
 
 
 if __name__ == "__main__":

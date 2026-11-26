@@ -1771,16 +1771,16 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
     ]
     sound_blocks = [
         (
-            "• **Estudio Visual y Audio v5:** 20 `Model` multi-articulados, LabPBR `_n`/`_s`, "
-            "OpenAL EFX en vivo (inmersión/oclusión), 9 camas reactivas y **226 `ModSounds`** (**596** `.ogg`, 69 stems).",
-            "• **Visual & Audio Studio v5:** 20 articulated 3D models, LabPBR `_n`/`_s`, "
-            "live OpenAL EFX (submersion/occlusion), 9 reactive beds, and **226 `ModSounds`** (**596** `.ogg`, 69 stems).",
+            "• **Estudio Visual y Audio v6 (Realismo Bio-Orgánico):** 20 `Model` multi-articulados, LabPBR `_n`/`_s`, "
+            "OpenAL EFX en vivo con `PlaybackHumanizer` anti-repetición, 9 camas reactivas y **226 `ModSounds`** (**596** `.ogg`, 95 stems @ 28 pasos).",
+            "• **Visual & Audio Studio v6 (Bio-Organic Realism):** 20 articulated 3D models, LabPBR `_n`/`_s`, "
+            "live OpenAL EFX with anti-repeat `PlaybackHumanizer`, 9 reactive beds, and **226 `ModSounds`** (**596** `.ogg`, 95 stems @ 28 steps).",
         ),
         (
-            "• **Dinámica Vocal y OpenAL EFX:** tono (`0.45–1.85`) por Rango/Cepa/Frenesí/Líder/`Desync`; "
-            "raycast de materiales + EAXReverb (`AcousticPhysicsEngine`) por oyente y límite anti-cacofonía.",
-            "• **Vocal Pitch & OpenAL EFX:** pitch (`0.45–1.85`) by Rank/Strain/Frenzy/Leader/`Desync`; "
-            "per-listener material raycast + EAXReverb (`AcousticPhysicsEngine`) & swarm anti-cacophony.",
+            "• **Dinámica Vocal, Micro-Prosodia y OpenAL EFX:** tono (`0.45–1.85`) por Rango/Cepa/Frenesí/Líder/`Desync`; "
+            "variación anti-repetición por disparo (`PlaybackHumanizer`), raycast de materiales + EAXReverb (`AcousticPhysicsEngine`) y límite anti-cacofonía.",
+            "• **Vocal Pitch, Micro-Prosody & OpenAL EFX:** pitch (`0.45–1.85`) by Rank/Strain/Frenzy/Leader/`Desync`; "
+            "per-hit anti-repeat detune (`PlaybackHumanizer`), material raycast + EAXReverb (`AcousticPhysicsEngine`) & swarm anti-cacophony.",
         ),
     ]
     for i in range(0, len(all_181_sounds), 6):

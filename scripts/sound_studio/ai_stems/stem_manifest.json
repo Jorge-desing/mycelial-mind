@@ -3,56 +3,79 @@
   "device_name": "NVIDIA GeForce RTX 4060",
   "torch_version": "2.11.0+cu128",
   "dtype": "bfloat16",
-  "steps": 14,
+  "steps": 28,
   "batch_size": 13,
   "vae_sliced_decode": true,
   "sampler_type": "pingpong",
   "sample_rate": 44100,
-  "stem_count": 69,
+  "stem_count": 95,
   "mapped_sound_events": 226,
   "stems": {
+    "acid_spitter_corrosive_spit": {
+      "group": "entity",
+      "prompt": "Pressurized wet saliva hawk spit globule, caustic sizzle burst, sharp organic eject, close dry foley",
+      "seed": 468379426,
+      "batch_index": 3,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -25.44,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -25.44,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.237,
+        "silence_tail_ratio": 0.763,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 1.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "acid_spitter_spit"
+      ]
+    },
     "acid_spitter_wet_gurgle": {
       "group": "entity",
-      "prompt": "Wet slimy organic bubbling acid sac gurgle, viscous mucus squelch, corrosive hiss",
-      "seed": 527620650,
+      "prompt": "Wet slimy organic bubbling throat gurgle, viscous mucus squelch in cheek sac, close dry creature foley",
+      "seed": 2012336952,
       "batch_index": 2,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -24.3,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -26.46,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -26.46,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.294,
+        "silence_tail_ratio": 0.608,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "acid_spitter_gurgle",
         "acid_spitter_hurt",
-        "acid_spitter_death",
-        "acid_spitter_spit"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -24.3,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.382,
-        "silence_tail_ratio": 0.545,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.6,
-        "issues": []
-      }
+        "acid_spitter_death"
+      ]
     },
     "adaptive_hive_tension_bed": {
       "group": "system_env",
-      "prompt": "Subtle ominous subterranean mycelial exploration drone, soft breathing cavern wind and warm distant harmonic glass pad",
-      "seed": 1063772736,
-      "batch_index": 2,
+      "prompt": "Subtle ominous subterranean mycelial exploration drone loop, soft breathing cavern wind and warm distant glass pad",
+      "seed": 1670178006,
+      "batch_index": 12,
       "seconds_total": 5.2,
       "duration_secs": 5.2,
-      "rms_dbfs": -14.38,
+      "rms_dbfs": -13.16,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -14.38,
+        "rms_dbfs": -13.16,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.676,
-        "silence_tail_ratio": 0.315,
+        "active_ratio": 0.937,
+        "silence_tail_ratio": 0.063,
         "clipped_samples": 0,
         "dc_offset": 0.0,
         "duration_secs": 5.2,
@@ -64,21 +87,21 @@
     },
     "adaptive_swarm_combat_bed": {
       "group": "system_env",
-      "prompt": "Driving rhythmic subterranean hive skirmish pulse, muted tribal chitin percussion bed and low tension synth throb loop",
-      "seed": 1063772736,
-      "batch_index": 1,
+      "prompt": "Driving rhythmic subterranean hive skirmish pulse loop, muted organic tribal percussion bed and low tension throb",
+      "seed": 1670178006,
+      "batch_index": 8,
       "seconds_total": 5.0,
       "duration_secs": 5.0,
-      "rms_dbfs": -14.05,
+      "rms_dbfs": -14.08,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -14.05,
+        "rms_dbfs": -14.08,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.869,
-        "silence_tail_ratio": 0.131,
+        "active_ratio": 0.879,
+        "silence_tail_ratio": 0.121,
         "clipped_samples": 0,
-        "dc_offset": -6e-05,
+        "dc_offset": 8e-05,
         "duration_secs": 5.0,
         "issues": []
       },
@@ -86,145 +109,114 @@
         "hive_swarm_combat_bed"
       ]
     },
-    "anatomical_chitin_footsteps": {
-      "group": "entity",
-      "prompt": "Dry insect tarsus claw footsteps tapping briskly on dark cave floor, crisp close foley",
-      "seed": 255099232,
-      "batch_index": 0,
-      "seconds_total": 2.2,
-      "duration_secs": 2.2,
-      "rms_dbfs": -30.58,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "mob_step_chitin",
-        "mob_step_arachnid",
-        "mob_step_heavy",
-        "mob_step_hover"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -30.58,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.064,
-        "silence_tail_ratio": 0.83,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.2,
-        "issues": []
-      }
-    },
     "boss_behemoth_death": {
       "group": "boss",
-      "prompt": "Towering monster dying bellow collapsing onto cavern stone, cascading rock debris avalanche, sub rumble",
-      "seed": 409518115,
-      "batch_index": 6,
+      "prompt": "Towering beast dying agonizing bellow collapsing onto cave floor, cascading rock avalanche, deep chest exhale",
+      "seed": 1670178006,
+      "batch_index": 4,
       "seconds_total": 3.8,
       "duration_secs": 3.8,
-      "rms_dbfs": -15.08,
+      "rms_dbfs": -15.4,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "spore_behemoth_death"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -15.08,
+        "rms_dbfs": -15.4,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.494,
-        "silence_tail_ratio": 0.457,
+        "active_ratio": 0.642,
+        "silence_tail_ratio": 0.259,
         "clipped_samples": 0,
-        "dc_offset": -1e-05,
+        "dc_offset": -2e-05,
         "duration_secs": 3.8,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "spore_behemoth_death"
+      ]
     },
     "boss_behemoth_hurt": {
       "group": "boss",
-      "prompt": "Giant armored beast pained grunt, heavy chitin plate crunch, deep sub stagger impact, dry foley",
-      "seed": 255099232,
-      "batch_index": 1,
+      "prompt": "Giant armored beast pained visceral grunt, heavy chitin plate fracture crunch, deep stagger thud, close dry foley",
+      "seed": 2012336952,
+      "batch_index": 3,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -18.72,
+      "rms_dbfs": -11.71,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "spore_behemoth_hurt"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -18.72,
+        "rms_dbfs": -11.71,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.353,
-        "silence_tail_ratio": 0.627,
+        "active_ratio": 0.569,
+        "silence_tail_ratio": 0.333,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 2.4,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "spore_behemoth_hurt"
+      ]
     },
     "boss_behemoth_roar": {
       "group": "boss",
-      "prompt": "Colossal tectonic kaiju monster roar, deep chest glottal growl, cavern earth rumble, dry cinematic foley",
-      "seed": 409518115,
-      "batch_index": 2,
+      "prompt": "Colossal prehistoric kaiju monster bellow roar, deep guttural chest vocal folds, earth rumble, close dry studio foley",
+      "seed": 1270272403,
+      "batch_index": 12,
       "seconds_total": 3.6,
       "duration_secs": 3.6,
-      "rms_dbfs": -16.13,
+      "rms_dbfs": -19.55,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "spore_behemoth_roar"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -16.13,
+        "rms_dbfs": -19.55,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.597,
-        "silence_tail_ratio": 0.377,
+        "active_ratio": 0.675,
+        "silence_tail_ratio": 0.325,
         "clipped_samples": 0,
-        "dc_offset": 0.0,
+        "dc_offset": -1e-05,
         "duration_secs": 3.6,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "spore_behemoth_roar"
+      ]
     },
     "boss_behemoth_slam": {
       "group": "boss",
-      "prompt": "Colossal boulder fist ground slam explosion, cracking limestone crust shockwave, seismic footstep thud",
-      "seed": 1751353161,
-      "batch_index": 12,
+      "prompt": "Colossal boulder fist ground slam detonation, shattering limestone crust shockwave, sub bass punch, close foley",
+      "seed": 1270272403,
+      "batch_index": 7,
       "seconds_total": 3.2,
       "duration_secs": 3.2,
-      "rms_dbfs": -22.18,
+      "rms_dbfs": -14.3,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "spore_behemoth_slam",
-        "mob_step_colossal"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -22.18,
+        "rms_dbfs": -14.3,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.221,
-        "silence_tail_ratio": 0.559,
+        "active_ratio": 0.853,
+        "silence_tail_ratio": 0.118,
         "clipped_samples": 0,
-        "dc_offset": 1e-05,
+        "dc_offset": -1e-05,
         "duration_secs": 3.2,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "spore_behemoth_slam"
+      ]
     },
     "boss_hive_core_death": {
       "group": "boss",
-      "prompt": "Catastrophic alien monolith meltdown siren, vacuum implosion, shattering obsidian prisms and dying horn",
-      "seed": 409518115,
-      "batch_index": 8,
+      "prompt": "Catastrophic alien monolith meltdown horn, vacuum implosion suction, shattering obsidian prisms",
+      "seed": 1670178006,
+      "batch_index": 6,
       "seconds_total": 4.0,
       "duration_secs": 4.0,
-      "rms_dbfs": -13.04,
+      "rms_dbfs": -16.07,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "hive_core_death"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -13.04,
+        "rms_dbfs": -16.07,
         "peak_dbfs": -0.92,
         "active_ratio": 0.674,
         "silence_tail_ratio": 0.314,
@@ -232,191 +224,194 @@
         "dc_offset": -0.0,
         "duration_secs": 4.0,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "hive_core_death"
+      ]
     },
     "boss_hive_core_hurt": {
       "group": "boss",
-      "prompt": "Resonant metallic crystal core cracking recoil, descending brass groan, electric arc spark overload",
-      "seed": 255099232,
-      "batch_index": 2,
+      "prompt": "Resonant metallic crystal core cracking recoil, descending brass groan, sharp electric overload spark",
+      "seed": 2012336952,
+      "batch_index": 4,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -13.7,
+      "rms_dbfs": -15.41,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "hive_core_hurt"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -13.7,
+        "rms_dbfs": -15.41,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.765,
-        "silence_tail_ratio": 0.235,
+        "active_ratio": 0.608,
+        "silence_tail_ratio": 0.373,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
+        "dc_offset": 0.0,
         "duration_secs": 2.4,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "hive_core_hurt"
+      ]
     },
     "boss_hive_core_resonance": {
       "group": "boss",
-      "prompt": "Alien psychic monolith Reaper brass horn braaam, deep harmonic metallic drone, ominous sci-fi SFX",
-      "seed": 409518115,
-      "batch_index": 3,
+      "prompt": "Alien psychic monolith low brass horn braaam, deep harmonic bowed metal drone, dark cinematic SFX",
+      "seed": 1670178006,
+      "batch_index": 0,
       "seconds_total": 3.6,
       "duration_secs": 3.6,
-      "rms_dbfs": -14.46,
+      "rms_dbfs": -11.44,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "hive_core_resonance"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -14.46,
+        "rms_dbfs": -11.44,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.584,
-        "silence_tail_ratio": 0.403,
+        "active_ratio": 0.844,
+        "silence_tail_ratio": 0.156,
         "clipped_samples": 0,
-        "dc_offset": -1e-05,
+        "dc_offset": 1e-05,
         "duration_secs": 3.6,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "hive_core_resonance"
+      ]
     },
     "boss_hive_core_shield": {
       "group": "boss",
-      "prompt": "Prismatic geodesic energy barrier lock-on chime, ascending crystal resonance, high tension static repulsion",
-      "seed": 527620650,
-      "batch_index": 12,
+      "prompt": "Prismatic geodesic energy barrier lock-on chime, ascending crystal resonance, crisp electrostatic repulsion",
+      "seed": 614348607,
+      "batch_index": 7,
       "seconds_total": 2.8,
       "duration_secs": 2.8,
-      "rms_dbfs": -16.29,
+      "rms_dbfs": -15.88,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "hive_core_shield"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -16.29,
+        "rms_dbfs": -15.88,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.517,
-        "silence_tail_ratio": 0.483,
+        "active_ratio": 0.45,
+        "silence_tail_ratio": 0.55,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
+        "dc_offset": -3e-05,
         "duration_secs": 2.8,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "hive_core_shield"
+      ]
     },
     "boss_matriarch_barrage": {
       "group": "boss",
-      "prompt": "Rapid volley of dimensional plasma energy bolts crackling through air, crystalline whip-crack shriek",
-      "seed": 1751353161,
-      "batch_index": 0,
+      "prompt": "Rapid volley of dimensional plasma arcs whipping through air, sharp crystalline snap and vocal hiss",
+      "seed": 614348607,
+      "batch_index": 8,
       "seconds_total": 2.8,
       "duration_secs": 2.8,
-      "rms_dbfs": -16.89,
+      "rms_dbfs": -16.99,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "apex_matriarch_barrage"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -16.89,
+        "rms_dbfs": -16.99,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.5,
-        "silence_tail_ratio": 0.5,
+        "active_ratio": 0.35,
+        "silence_tail_ratio": 0.567,
         "clipped_samples": 0,
         "dc_offset": 0.0,
         "duration_secs": 2.8,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "apex_matriarch_barrage"
+      ]
     },
     "boss_matriarch_death": {
       "group": "boss",
-      "prompt": "Anguished eldritch choir crescendo into gravitational void rupture, crystal veil shattering and abyss echo",
-      "seed": 409518115,
-      "batch_index": 9,
+      "prompt": "Anguished eldritch choir crescendo into gravitational void rupture, shattering crystal veil and abyssal drop",
+      "seed": 1670178006,
+      "batch_index": 7,
       "seconds_total": 4.0,
       "duration_secs": 4.0,
-      "rms_dbfs": -16.12,
+      "rms_dbfs": -17.48,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "apex_matriarch_death"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -16.12,
+        "rms_dbfs": -17.48,
         "peak_dbfs": -0.92,
         "active_ratio": 0.558,
-        "silence_tail_ratio": 0.43,
+        "silence_tail_ratio": 0.395,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 4.0,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "apex_matriarch_death"
+      ]
     },
     "boss_matriarch_hurt": {
       "group": "boss",
-      "prompt": "Sharp obsidian crystal shriek snap, discordant phantom soprano gasp, brittle glass chitin crack",
-      "seed": 255099232,
-      "batch_index": 3,
+      "prompt": "Sharp obsidian crystal shriek snap, discordant vocal gasp, brittle glass chitin crack, close dry foley",
+      "seed": 2012336952,
+      "batch_index": 5,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -35.27,
+      "rms_dbfs": -32.66,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "apex_matriarch_hurt"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -35.27,
+        "rms_dbfs": -32.66,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.098,
-        "silence_tail_ratio": 0.882,
+        "active_ratio": 0.294,
+        "silence_tail_ratio": 0.608,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 2.4,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "apex_matriarch_hurt"
+      ]
     },
     "boss_matriarch_wail": {
       "group": "boss",
-      "prompt": "Haunting eldritch soprano banshee wail, dissonant ghostly female choir scream, dimensional portal shimmer",
-      "seed": 409518115,
-      "batch_index": 4,
+      "prompt": "Haunting eldritch soprano banshee wail, dissonant ethereal vocal scream, glassy portal resonance",
+      "seed": 1670178006,
+      "batch_index": 1,
       "seconds_total": 3.6,
       "duration_secs": 3.6,
-      "rms_dbfs": -13.36,
+      "rms_dbfs": -15.58,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "apex_matriarch_wail"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -13.36,
+        "rms_dbfs": -15.58,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.831,
-        "silence_tail_ratio": 0.156,
+        "active_ratio": 0.61,
+        "silence_tail_ratio": 0.364,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
+        "dc_offset": 0.0,
         "duration_secs": 3.6,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "apex_matriarch_wail"
+      ]
     },
     "boss_tactical_stagger": {
       "group": "boss",
-      "prompt": "Sharp metallic psychic target lock warning followed by colossal shattered chitin armor stagger collapse, dry cinematic foley",
-      "seed": 308307838,
-      "batch_index": 4,
+      "prompt": "Sharp metallic target lock warning followed by colossal shattered chitin armor stagger collapse, dry foley",
+      "seed": 2079579549,
+      "batch_index": 11,
       "seconds_total": 2.6,
       "duration_secs": 2.6,
-      "rms_dbfs": -21.59,
+      "rms_dbfs": -24.68,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -21.59,
+        "rms_dbfs": -24.68,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.4,
-        "silence_tail_ratio": 0.582,
+        "active_ratio": 0.436,
+        "silence_tail_ratio": 0.564,
         "clipped_samples": 0,
         "dc_offset": 0.0,
         "duration_secs": 2.6,
@@ -430,94 +425,117 @@
     "boss_tension_bed": {
       "group": "system_env",
       "prompt": "Dark subterranean boss battle tension drone, slow pulsing infrasonic dread bed, ominous cavern choir air",
-      "seed": 1797257799,
-      "batch_index": 6,
+      "seed": 1402599246,
+      "batch_index": 0,
       "seconds_total": 5.2,
       "duration_secs": 5.2,
-      "rms_dbfs": -12.66,
+      "rms_dbfs": -12.07,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "boss_combat_tension_bed"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -12.66,
+        "rms_dbfs": -12.07,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.901,
-        "silence_tail_ratio": 0.063,
+        "active_ratio": 0.928,
+        "silence_tail_ratio": 0.054,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 5.2,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "boss_combat_tension_bed"
+      ]
     },
     "boss_weakpoint_impact": {
       "group": "boss",
-      "prompt": "Heavy monster weak-point rupture crunch followed by chitin armor ricochet clang, dry tactical foley",
-      "seed": 1797257799,
-      "batch_index": 1,
+      "prompt": "Heavy monster weak-point rupture crunch followed by chitin armor ricochet metallic clang, dry close foley",
+      "seed": 1442589572,
+      "batch_index": 4,
       "seconds_total": 2.2,
       "duration_secs": 2.2,
-      "rms_dbfs": -22.49,
+      "rms_dbfs": -22.5,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.5,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.362,
+        "silence_tail_ratio": 0.638,
+        "clipped_samples": 0,
+        "dc_offset": 1e-05,
+        "duration_secs": 2.2,
+        "issues": []
+      },
       "sound_ids": [
         "boss_weakpoint_crit",
         "boss_carapace_ricochet"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -22.49,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.426,
-        "silence_tail_ratio": 0.574,
-        "clipped_samples": 0,
-        "dc_offset": 3e-05,
-        "duration_secs": 2.2,
-        "issues": []
-      }
+      ]
     },
     "burrower_chitin_grind": {
       "group": "entity",
-      "prompt": "Scraping insect claws grinding against coarse basalt rock, crumbling earth gravel tunnel",
-      "seed": 1751353161,
-      "batch_index": 1,
-      "seconds_total": 2.8,
-      "duration_secs": 2.8,
-      "rms_dbfs": -22.69,
+      "prompt": "Grinding insectoid mandibles scraping stone, muffled earthen beast grunt, close dry foley",
+      "seed": 2079579549,
+      "batch_index": 12,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -33.79,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -33.79,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.491,
+        "silence_tail_ratio": 0.273,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      },
       "sound_ids": [
         "burrower_grind",
         "burrower_hurt",
-        "burrower_death",
-        "burrower_tunnel"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -22.69,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.633,
-        "silence_tail_ratio": 0.283,
-        "clipped_samples": 0,
-        "dc_offset": 0.0,
-        "duration_secs": 2.8,
-        "issues": []
-      }
+        "burrower_death"
+      ]
     },
-    "cavern_spatial_micro_ambience": {
-      "group": "system_env",
-      "prompt": "Bioluminescent cave water spore droplet ping, deep wooden mycelial root creak, eerie alien cave whisper and crystal chime",
-      "seed": 1063772736,
-      "batch_index": 0,
-      "seconds_total": 2.8,
-      "duration_secs": 2.8,
-      "rms_dbfs": -22.71,
+    "burrower_tunnel_dig": {
+      "group": "entity",
+      "prompt": "Rapid heavy claws tearing through gravel soil and basalt rubble, crumbling rocks, close dry foley",
+      "seed": 1442589572,
+      "batch_index": 5,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -24.36,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -22.72,
+        "rms_dbfs": -24.36,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.467,
-        "silence_tail_ratio": 0.533,
+        "active_ratio": 0.34,
+        "silence_tail_ratio": 0.404,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "burrower_tunnel"
+      ]
+    },
+    "cavern_spatial_micro_ambience": {
+      "group": "system_env",
+      "prompt": "Bioluminescent cave water spore droplet ping, deep wooden mycelial root creak, eerie alien cave whisper, dry foley",
+      "seed": 614348607,
+      "batch_index": 9,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -18.72,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.72,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.667,
+        "silence_tail_ratio": 0.283,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 2.8,
@@ -532,176 +550,274 @@
     },
     "chimera_alpha_roar": {
       "group": "entity",
-      "prompt": "Apex agile monster combat war roar, reverberating cavern beast snarl, fierce bite",
-      "seed": 1751353161,
-      "batch_index": 2,
+      "prompt": "Apex agile monster combat war roar, fierce wild cat-beast vocal snarl, resonant chest bite, dry foley",
+      "seed": 614348607,
+      "batch_index": 10,
       "seconds_total": 2.8,
       "duration_secs": 2.8,
-      "rms_dbfs": -15.68,
+      "rms_dbfs": -11.24,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "chimera_roar"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -15.68,
+        "rms_dbfs": -11.24,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.367,
-        "silence_tail_ratio": 0.617,
+        "active_ratio": 0.6,
+        "silence_tail_ratio": 0.333,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
+        "dc_offset": 1e-05,
         "duration_secs": 2.8,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "chimera_roar"
+      ]
     },
     "chimera_beast_growl": {
       "group": "entity",
-      "prompt": "Fierce agile biomechanical beast growl and roar, snapping muscle tendons, wild snarl",
-      "seed": 1751353161,
-      "batch_index": 3,
+      "prompt": "Fierce agile biomechanical hound beast growl and snap, wet lunging bite snarls, close dry foley",
+      "seed": 614348607,
+      "batch_index": 11,
       "seconds_total": 2.8,
       "duration_secs": 2.8,
-      "rms_dbfs": -20.03,
+      "rms_dbfs": -26.24,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -26.24,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.25,
+        "silence_tail_ratio": 0.667,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      },
       "sound_ids": [
         "mycelial_chimera_growl",
         "mycelial_chimera_hurt",
         "mycelial_chimera_death",
         "mycelial_chimera_strike"
-      ],
+      ]
+    },
+    "chitin_brute_ground_smash": {
+      "group": "entity",
+      "prompt": "Heavy armored chitin fist smashing rock floor, loud carapace crunch and earth thud, close dry foley",
+      "seed": 1442589572,
+      "batch_index": 6,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -24.54,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -20.03,
+        "rms_dbfs": -24.54,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.333,
-        "silence_tail_ratio": 0.667,
+        "active_ratio": 0.213,
+        "silence_tail_ratio": 0.766,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.8,
+        "dc_offset": -7e-05,
+        "duration_secs": 2.2,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "chitin_brute_smash"
+      ]
     },
     "chitin_brute_growl_heavy": {
       "group": "entity",
-      "prompt": "Heavy armored monster guttural growl, grinding insectoid carapace plates, heavy thud",
-      "seed": 1751353161,
-      "batch_index": 4,
+      "prompt": "Heavy armored rhino beetle monster guttural vocal growl, rough chest snort, close dry animal foley",
+      "seed": 614348607,
+      "batch_index": 12,
       "seconds_total": 2.8,
       "duration_secs": 2.8,
-      "rms_dbfs": -15.11,
+      "rms_dbfs": -15.16,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.16,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.9,
+        "silence_tail_ratio": 0.1,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      },
       "sound_ids": [
         "chitin_brute_growl",
         "chitin_brute_hurt",
-        "chitin_brute_death",
-        "chitin_brute_smash"
-      ],
+        "chitin_brute_death"
+      ]
+    },
+    "colony_dialect_harmonic_chords": {
+      "group": "block_func",
+      "prompt": "Delicate glass marimba and resonant fungal crystal tone motif, alien harmonic memory bell, close dry studio foley",
+      "seed": 1442589572,
+      "batch_index": 7,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -13.72,
+      "peak_dbfs": -1.06,
       "qc": {
         "ok": true,
-        "rms_dbfs": -15.11,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.65,
-        "silence_tail_ratio": 0.35,
+        "rms_dbfs": -13.72,
+        "peak_dbfs": -1.06,
+        "active_ratio": 0.511,
+        "silence_tail_ratio": 0.489,
         "clipped_samples": 0,
-        "dc_offset": -2e-05,
-        "duration_secs": 2.8,
+        "dc_offset": -0.0,
+        "duration_secs": 2.2,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "colony_dialect_tone_1",
+        "colony_dialect_tone_2",
+        "colony_dialect_tone_3"
+      ]
     },
     "colony_dialect_resonance": {
       "group": "block_func",
       "prompt": "Symbiotic alien colony harmonic tone triad, resonant bio-crystal memory chime and brief dissonant clash",
-      "seed": 1797257799,
-      "batch_index": 2,
+      "seed": 2012336952,
+      "batch_index": 6,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -12.09,
+      "rms_dbfs": -18.1,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.1,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.235,
+        "silence_tail_ratio": 0.765,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "colony_dialect_mastered",
         "colony_dialect_conflict",
         "colony_reconstruction_pulse"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -12.09,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.51,
-        "silence_tail_ratio": 0.49,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
+      ]
     },
     "colony_raid_signal": {
       "group": "boss",
-      "prompt": "Distant menacing insectoid siege warhorn blast across cavern, urgent chitinous rattle, cinematic foley",
-      "seed": 1797257799,
-      "batch_index": 4,
+      "prompt": "Distant menacing insectoid siege warhorn blast across cavern, urgent chitin rattle, cinematic foley",
+      "seed": 1270272403,
+      "batch_index": 8,
       "seconds_total": 3.2,
       "duration_secs": 3.2,
-      "rms_dbfs": -14.83,
+      "rms_dbfs": -15.84,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "colony_raid_horn"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -14.83,
+        "rms_dbfs": -15.84,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.515,
-        "silence_tail_ratio": 0.485,
+        "active_ratio": 0.397,
+        "silence_tail_ratio": 0.603,
         "clipped_samples": 0,
-        "dc_offset": 0.0,
+        "dc_offset": -0.0,
         "duration_secs": 3.2,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "colony_raid_horn"
+      ]
+    },
+    "colony_symbiont_organic": {
+      "group": "entity",
+      "prompt": "Gentle glowing fungal symbiote cricket trill, soft damp soil digging rustle, warm melodic harmonic chime, dry foley",
+      "seed": 2012336952,
+      "batch_index": 7,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -32.47,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -32.47,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.294,
+        "silence_tail_ratio": 0.706,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
+      "sound_ids": [
+        "colony_symbiont_ambient",
+        "colony_symbiont_work",
+        "colony_symbiont_promote"
+      ]
     },
     "colony_warden_deep_bellow": {
       "group": "entity",
-      "prompt": "Deep subterranean sentinel horn bellow, heavy chitin shield impact shockwave",
-      "seed": 1751353161,
-      "batch_index": 9,
-      "seconds_total": 3.0,
-      "duration_secs": 3.0,
-      "rms_dbfs": -15.59,
+      "prompt": "Deep subterranean sentinel chest horn bellow, heavy armored throat rattle, close dry animal foley",
+      "seed": 1270272403,
+      "batch_index": 0,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -10.42,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -10.42,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.917,
+        "silence_tail_ratio": 0.05,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      },
       "sound_ids": [
         "colony_warden_bellow",
         "colony_warden_hurt",
-        "colony_warden_death",
-        "colony_warden_shockwave"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -15.59,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.484,
-        "silence_tail_ratio": 0.5,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 3.0,
-        "issues": []
-      }
+        "colony_warden_death"
+      ]
     },
-    "eco_counterplay_amber": {
-      "group": "block_func",
-      "prompt": "Heavy armored beast slamming chitin pillar stun crunch, pressurized steam ember quench hiss, glowing amber crystal resonance",
-      "seed": 308307838,
-      "batch_index": 2,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -23.76,
+    "colony_warden_shield_shock": {
+      "group": "entity",
+      "prompt": "Heavy armored chitin shield slamming down with seismic kinetic pulse thud, close dry foley",
+      "seed": 1442589572,
+      "batch_index": 8,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -19.23,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -23.77,
+        "rms_dbfs": -19.23,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.511,
+        "silence_tail_ratio": 0.468,
+        "clipped_samples": 0,
+        "dc_offset": -0.00012,
+        "duration_secs": 2.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "colony_warden_shockwave"
+      ]
+    },
+    "eco_counterplay_amber": {
+      "group": "block_func",
+      "prompt": "Heavy armored beast slamming chitin pillar stun crunch, pressurized steam ember quench hiss, crystal ring, dry foley",
+      "seed": 2012336952,
+      "batch_index": 8,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -25.23,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -25.23,
         "peak_dbfs": -0.92,
         "active_ratio": 0.373,
         "silence_tail_ratio": 0.627,
         "clipped_samples": 0,
-        "dc_offset": 2e-05,
+        "dc_offset": -0.0,
         "duration_secs": 2.4,
         "issues": []
       },
@@ -711,289 +827,485 @@
         "amber_vein_resonate"
       ]
     },
-    "env_biome_caverns_abyss": {
+    "env_biome_caverns_fx": {
       "group": "system_env",
-      "prompt": "Deep subterranean cave wind ambience, slow water spore drips in darkness, distant rock creak",
-      "seed": 409518115,
-      "batch_index": 10,
+      "prompt": "Eerie distant subterranean cave rock groan, wet spore droplets echoing in deep stone vault, dry foley",
+      "seed": 1670178006,
+      "batch_index": 2,
+      "seconds_total": 3.6,
+      "duration_secs": 3.6,
+      "rms_dbfs": -20.43,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -20.43,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.39,
+        "silence_tail_ratio": 0.506,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 3.6,
+        "issues": []
+      },
+      "sound_ids": [
+        "biome_caverns_mood",
+        "biome_caverns_additions"
+      ]
+    },
+    "env_biome_caverns_loop": {
+      "group": "system_env",
+      "prompt": "Continuous deep subterranean cave wind bed, dark humid cavern drone air loop, distant subterranean rumble",
+      "seed": 1402599246,
+      "batch_index": 1,
       "seconds_total": 6.2,
       "duration_secs": 6.2,
-      "rms_dbfs": -14.85,
+      "rms_dbfs": -14.64,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.64,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.872,
+        "silence_tail_ratio": 0.128,
+        "clipped_samples": 0,
+        "dc_offset": 6e-05,
+        "duration_secs": 6.2,
+        "issues": []
+      },
       "sound_ids": [
         "biome_caverns_loop",
-        "biome_caverns_mood",
-        "biome_caverns_additions",
         "fungal_tide_ambience"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -14.85,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.556,
-        "silence_tail_ratio": 0.421,
-        "clipped_samples": 0,
-        "dc_offset": 0.0,
-        "duration_secs": 6.2,
-        "issues": []
-      }
+      ]
     },
-    "env_biome_forest_canopy": {
+    "env_biome_forest_fx": {
       "group": "system_env",
-      "prompt": "Bioluminescent mushroom forest night wind rustling giant caps, mystical shimmering spores floating",
-      "seed": 409518115,
-      "batch_index": 11,
-      "seconds_total": 6.2,
-      "duration_secs": 6.2,
-      "rms_dbfs": -15.77,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "biome_forest_loop",
-        "biome_forest_mood",
-        "biome_forest_additions",
-        "mycorrhizal_tremor"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -15.77,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.714,
-        "silence_tail_ratio": 0.278,
-        "clipped_samples": 0,
-        "dc_offset": 0.0,
-        "duration_secs": 6.2,
-        "issues": []
-      }
-    },
-    "env_biome_sanctum_arterial": {
-      "group": "system_env",
-      "prompt": "Dark organic cathedral ambience, slow subterranean biological heartbeat throb, eerie neural shimmer",
-      "seed": 409518115,
-      "batch_index": 12,
-      "seconds_total": 6.2,
-      "duration_secs": 6.2,
-      "rms_dbfs": -17.93,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "biome_sanctum_loop",
-        "biome_sanctum_mood",
-        "biome_sanctum_additions",
-        "homeostasis_heartbeat"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -17.93,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.421,
-        "silence_tail_ratio": 0.579,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 6.2,
-        "issues": []
-      }
-    },
-    "func_mycelial_rift_portal": {
-      "group": "block_func",
-      "prompt": "Dark subterranean portal rift drone, low throbbing subspace energy hum with cosmic static whisper",
-      "seed": 409518115,
-      "batch_index": 0,
+      "prompt": "Sparkling bioluminescent spore burst, soft creaking fungal stalks and low underground root tremor",
+      "seed": 1270272403,
+      "batch_index": 9,
       "seconds_total": 3.2,
       "duration_secs": 3.2,
-      "rms_dbfs": -10.89,
+      "rms_dbfs": -28.42,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "mycelial_rift_hum"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -10.89,
+        "rms_dbfs": -28.42,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.956,
-        "silence_tail_ratio": 0.044,
+        "active_ratio": 0.279,
+        "silence_tail_ratio": 0.279,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 3.2,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "biome_forest_mood",
+        "biome_forest_additions",
+        "mycorrhizal_tremor"
+      ]
+    },
+    "env_biome_forest_loop": {
+      "group": "system_env",
+      "prompt": "Bioluminescent giant mushroom forest night breeze loop, soft rustling fungal gills, mystical night air",
+      "seed": 1402599246,
+      "batch_index": 2,
+      "seconds_total": 6.2,
+      "duration_secs": 6.2,
+      "rms_dbfs": -13.13,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.13,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.774,
+        "silence_tail_ratio": 0.211,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 6.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "biome_forest_loop"
+      ]
+    },
+    "env_biome_sanctum_fx": {
+      "group": "system_env",
+      "prompt": "Deep living arterial membrane sigh and distant shimmering biological organ chord one-shot",
+      "seed": 1270272403,
+      "batch_index": 11,
+      "seconds_total": 3.4,
+      "duration_secs": 3.4,
+      "rms_dbfs": -13.57,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.57,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.699,
+        "silence_tail_ratio": 0.288,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 3.4,
+        "issues": []
+      },
+      "sound_ids": [
+        "biome_sanctum_mood",
+        "biome_sanctum_additions"
+      ]
+    },
+    "env_biome_sanctum_loop": {
+      "group": "system_env",
+      "prompt": "Dark living organic cathedral ambience loop, slow subterranean biological heartbeat throb, neural warmth",
+      "seed": 1402599246,
+      "batch_index": 3,
+      "seconds_total": 6.2,
+      "duration_secs": 6.2,
+      "rms_dbfs": -18.33,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.33,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.857,
+        "silence_tail_ratio": 0.135,
+        "clipped_samples": 0,
+        "dc_offset": 1e-05,
+        "duration_secs": 6.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "biome_sanctum_loop",
+        "homeostasis_heartbeat"
+      ]
+    },
+    "func_mycelial_rift_portal": {
+      "group": "block_func",
+      "prompt": "Dark subterranean portal rift drone, low throbbing subspace energy hum with cosmic static whisper",
+      "seed": 1270272403,
+      "batch_index": 10,
+      "seconds_total": 3.2,
+      "duration_secs": 3.2,
+      "rms_dbfs": -14.92,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.92,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.941,
+        "silence_tail_ratio": 0.059,
+        "clipped_samples": 0,
+        "dc_offset": -2e-05,
+        "duration_secs": 3.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "mycelial_rift_hum"
+      ]
     },
     "func_purifier_turret_pylon": {
       "group": "block_func",
-      "prompt": "Clinical futuristic energy turret shot, ascending power lock chime, pneumatic mechanical craft latch",
-      "seed": 527620650,
-      "batch_index": 3,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -13.59,
-      "peak_dbfs": -1.62,
+      "prompt": "Clinical futuristic energy turret pulse shot, ascending power lock chime, precision mechanical craft latch",
+      "seed": 2012336952,
+      "batch_index": 9,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -14.85,
+      "peak_dbfs": -2.69,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.85,
+        "peak_dbfs": -2.69,
+        "active_ratio": 0.451,
+        "silence_tail_ratio": 0.549,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "purification_pylon_pulse",
         "purification_turret_fire",
         "purification_turret_upgrade",
         "purification_turret_repair",
         "synaptic_bench_synthesize"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -13.59,
-        "peak_dbfs": -1.62,
-        "active_ratio": 0.527,
-        "silence_tail_ratio": 0.473,
-        "clipped_samples": 0,
-        "dc_offset": 0.0,
-        "duration_secs": 2.6,
-        "issues": []
-      }
+      ]
     },
     "func_spore_vent_bulb": {
       "group": "block_func",
-      "prompt": "Pressurized underground steam fungal geyser puff, wet organic spore pod pop, dry chitin crumble",
-      "seed": 527620650,
-      "batch_index": 4,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -22.44,
-      "peak_dbfs": -0.92,
+      "prompt": "Pressurized underground steam fungal geyser puff, wet organic spore pod pop, dry chitin crumble, close foley",
+      "seed": 2012336952,
+      "batch_index": 10,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -32.13,
+      "peak_dbfs": -1.03,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -32.13,
+        "peak_dbfs": -1.03,
+        "active_ratio": 0.255,
+        "silence_tail_ratio": 0.706,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "spore_vent_puff",
         "spore_bulb_burst",
         "ephemeral_chitin_crumble"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -22.44,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.382,
-        "silence_tail_ratio": 0.473,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.6,
-        "issues": []
-      }
+      ]
     },
     "func_synaptic_symbiotic_node": {
       "group": "block_func",
-      "prompt": "Crystalline energy node awakening chime, warm shimmering harmonic chord, whooshing portal teleport",
-      "seed": 1751353161,
-      "batch_index": 5,
-      "seconds_total": 2.8,
-      "duration_secs": 2.8,
-      "rms_dbfs": -15.47,
+      "prompt": "Crystalline biological node awakening chime, warm shimmering harmonic swell, whooshing spatial pulse, dry foley",
+      "seed": 614348607,
+      "batch_index": 0,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -13.6,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.6,
+        "peak_dbfs": -0.92,
+        "active_ratio": 1.0,
+        "silence_tail_ratio": 0.0,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      },
       "sound_ids": [
         "synaptic_node_mature",
         "symbiotic_node_charge",
         "symbiotic_node_teleport",
-        "sovereign_nexus_pulse",
-        "colony_dialect_tone_1",
-        "colony_dialect_tone_2",
-        "colony_dialect_tone_3"
-      ],
+        "sovereign_nexus_pulse"
+      ]
+    },
+    "goliath_carrier_egg_spawn": {
+      "group": "entity",
+      "prompt": "Wet organic brood sac birthing squelch, slippery membrane tearing pop, close dry foley",
+      "seed": 468379426,
+      "batch_index": 11,
+      "seconds_total": 2.0,
+      "duration_secs": 2.0,
+      "rms_dbfs": -33.81,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -15.47,
+        "rms_dbfs": -33.81,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.683,
-        "silence_tail_ratio": 0.317,
+        "active_ratio": 0.302,
+        "silence_tail_ratio": 0.581,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.8,
+        "dc_offset": 0.0,
+        "duration_secs": 2.0,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "goliath_carrier_spawn"
+      ]
     },
     "goliath_carrier_hollow_thud": {
       "group": "entity",
-      "prompt": "Massive hollow bloated sack thud, wet subterranean sloshing, heavy organic groan",
-      "seed": 1751353161,
-      "batch_index": 10,
-      "seconds_total": 3.0,
-      "duration_secs": 3.0,
-      "rms_dbfs": -21.98,
+      "prompt": "Massive hollow bloated belly groan, wet fluid sloshing inside deep carcass, close dry animal foley",
+      "seed": 1270272403,
+      "batch_index": 1,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -18.37,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.37,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.567,
+        "silence_tail_ratio": 0.433,
+        "clipped_samples": 0,
+        "dc_offset": -2e-05,
+        "duration_secs": 2.8,
+        "issues": []
+      },
       "sound_ids": [
         "goliath_carrier_thud",
         "goliath_carrier_hurt",
-        "goliath_carrier_death",
-        "goliath_carrier_spawn"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -21.98,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.531,
-        "silence_tail_ratio": 0.453,
-        "clipped_samples": 0,
-        "dc_offset": -2e-05,
-        "duration_secs": 3.0,
-        "issues": []
-      }
+        "goliath_carrier_death"
+      ]
     },
     "item_ballistic_launcher_grenade": {
       "group": "item",
-      "prompt": "Pneumatic launcher thump, crisp clean purifier shockwave grenade blast, acid splash sizzle",
-      "seed": 527620650,
-      "batch_index": 5,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -18.79,
-      "peak_dbfs": -0.92,
+      "prompt": "Pneumatic launcher thump, crisp clean purifier shockwave grenade blast detonation, close tactical foley",
+      "seed": 2012336952,
+      "batch_index": 11,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -26.71,
+      "peak_dbfs": -4.07,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -26.71,
+        "peak_dbfs": -4.07,
+        "active_ratio": 0.294,
+        "silence_tail_ratio": 0.706,
+        "clipped_samples": 0,
+        "dc_offset": 4e-05,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "spore_launcher_fire",
         "purifier_grenade_throw",
-        "purifier_grenade_detonate",
-        "acid_spit_impact",
-        "neutralizing_spore_impact"
-      ],
+        "purifier_grenade_detonate"
+      ]
+    },
+    "item_chitin_armor_clasp": {
+      "group": "item",
+      "prompt": "Interlocking insectoid chitin armor plate clasp buckling, rigid exoskeleton plates locking tight, close dry foley",
+      "seed": 468379426,
+      "batch_index": 12,
+      "seconds_total": 2.0,
+      "duration_secs": 2.0,
+      "rms_dbfs": -30.17,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -18.79,
+        "rms_dbfs": -30.17,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.491,
-        "silence_tail_ratio": 0.418,
+        "active_ratio": 0.233,
+        "silence_tail_ratio": 0.674,
         "clipped_samples": 0,
         "dc_offset": -0.0,
-        "duration_secs": 2.6,
+        "duration_secs": 2.0,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "chitin_armor_equip",
+        "chitin_armor_evolve"
+      ]
+    },
+    "item_eldritch_beacon_crown": {
+      "group": "item",
+      "prompt": "Dimensional beacon ignition flare, tearing spatial rift crystal surge and deep sub bass crown hum",
+      "seed": 1270272403,
+      "batch_index": 5,
+      "seconds_total": 3.0,
+      "duration_secs": 3.0,
+      "rms_dbfs": -11.78,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -11.78,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.672,
+        "silence_tail_ratio": 0.281,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 3.0,
+        "issues": []
+      },
+      "sound_ids": [
+        "tide_beacon_activate",
+        "rift_catalyst_ignite",
+        "overmind_crown_surge"
+      ]
     },
     "item_eldritch_relic_catalyst": {
       "group": "item",
-      "prompt": "Arcane eldritch relic surge, dimensional rift tearing open with sharp crystalline chime and sub drop",
-      "seed": 1751353161,
-      "batch_index": 11,
-      "seconds_total": 3.0,
-      "duration_secs": 3.0,
-      "rms_dbfs": -19.21,
+      "prompt": "Wet biological graft splice snap, volatile psychic glass sting and resonant alien wax seal pact, close foley",
+      "seed": 614348607,
+      "batch_index": 1,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -28.86,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -28.86,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.236,
+        "silence_tail_ratio": 0.545,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      },
       "sound_ids": [
         "synaptic_graft_splice",
         "volatile_engram_pulse",
         "schism_injector_sting",
-        "quorum_seal_pact",
-        "tide_beacon_activate",
-        "rift_catalyst_ignite",
-        "overmind_crown_surge"
-      ],
+        "quorum_seal_pact"
+      ]
+    },
+    "item_pheromone_ovum_flesh": {
+      "group": "item",
+      "prompt": "Soft misty pheromone spray aerosol hiss and wet organic leathery egg shell cracking open, close dry foley",
+      "seed": 1442589572,
+      "batch_index": 9,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -19.57,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -19.21,
+        "rms_dbfs": -19.57,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.562,
-        "silence_tail_ratio": 0.438,
+        "active_ratio": 0.319,
+        "silence_tail_ratio": 0.681,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "truce_pheromone_spray",
+        "chimera_ovum_hatch"
+      ]
+    },
+    "item_projectile_wet_impact": {
+      "group": "item",
+      "prompt": "Corrosive wet acid globule splatter impact sizzle and neutralizing spore pod burst splash, close dry foley",
+      "seed": 468379426,
+      "batch_index": 4,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -31.7,
+      "peak_dbfs": -4.44,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -31.7,
+        "peak_dbfs": -4.44,
+        "active_ratio": 0.395,
+        "silence_tail_ratio": 0.605,
         "clipped_samples": 0,
         "dc_offset": 0.0,
-        "duration_secs": 3.0,
+        "duration_secs": 1.8,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "acid_spit_impact",
+        "neutralizing_spore_impact"
+      ]
     },
     "item_purifier_scanner_tech": {
       "group": "item",
-      "prompt": "Crisp medical bio-scanner radar ping, high-tech thermal pulse sweep, clean spray fizz and electronic deploy",
-      "seed": 255099232,
-      "batch_index": 4,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -17.36,
+      "prompt": "Crisp medical bio-scanner radar ping, high-tech thermal pulse sweep, clean aerosol spray and electronic deploy",
+      "seed": 1442589572,
+      "batch_index": 10,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -12.26,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -12.26,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.489,
+        "silence_tail_ratio": 0.511,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      },
       "sound_ids": [
         "bio_scanner_ping",
         "bio_scanner_thermal_pulse",
@@ -1001,274 +1313,302 @@
         "neural_decoy_deploy",
         "purifier_drone_deploy",
         "command_staff_mark"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -17.36,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.333,
-        "silence_tail_ratio": 0.667,
-        "clipped_samples": 0,
-        "dc_offset": 0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
+      ]
     },
     "item_symbiotic_melee_blades": {
       "group": "item",
-      "prompt": "Razor-sharp organic blade whoosh slash, interlocking chitin plate armor clasp, resonant metallic harmonic",
-      "seed": 255099232,
-      "batch_index": 5,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -25.44,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "symbiotic_blade_slash",
-        "enzyme_lance_thrust",
-        "chitin_armor_equip",
-        "chitin_armor_evolve"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -25.44,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.235,
-        "silence_tail_ratio": 0.745,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
-    },
-    "item_visceral_mutagen_serum": {
-      "group": "item",
-      "prompt": "Organic glass syringe injection, pressurized bio-fluid squelch, pheromone mist spray, egg shell crack",
-      "seed": 527620650,
-      "batch_index": 6,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -32.04,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "bio_extractor_draw",
-        "counter_serum_inject",
-        "symbiotic_mutagen_implant",
-        "truce_pheromone_spray",
-        "chimera_ovum_hatch"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -32.04,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.382,
-        "silence_tail_ratio": 0.582,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.6,
-        "issues": []
-      }
-    },
-    "leech_parasite_shriek": {
-      "group": "entity",
-      "prompt": "High-pitched frantic parasite screech, wet suction siphon slurp, brittle insect chitin",
-      "seed": 255099232,
-      "batch_index": 6,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -15.01,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "leech_parasite_screech",
-        "leech_parasite_hurt",
-        "leech_parasite_death",
-        "leech_parasite_siphon"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -15.01,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.686,
-        "silence_tail_ratio": 0.314,
-        "clipped_samples": 0,
-        "dc_offset": 0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
-    },
-    "primordial_biolum_pulse": {
-      "group": "system_env",
-      "prompt": "Deep eldritch bioluminescent organism aura pulse, warm resonant crystal drone and ancestral sub throb",
-      "seed": 1797257799,
-      "batch_index": 3,
-      "seconds_total": 2.8,
-      "duration_secs": 2.8,
-      "rms_dbfs": -9.24,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "primordial_presence_pulse"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -9.24,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.9,
-        "silence_tail_ratio": 0.1,
-        "clipped_samples": 0,
-        "dc_offset": -4e-05,
-        "duration_secs": 2.8,
-        "issues": []
-      }
-    },
-    "purifier_drone_servo_thruster": {
-      "group": "entity",
-      "prompt": "Clean miniature futuristic quadcopter servo hum, crisp clinical electronic telemetry chirp, metallic impact",
-      "seed": 255099232,
-      "batch_index": 7,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -15.42,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "purifier_drone_hum",
-        "purifier_drone_hurt",
-        "purifier_drone_death",
-        "purifier_drone_fire",
-        "colony_symbiont_ambient",
-        "colony_symbiont_work",
-        "colony_symbiont_promote"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -15.42,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.588,
-        "silence_tail_ratio": 0.412,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
-    },
-    "pyro_shroom_ember_sizzle": {
-      "group": "entity",
-      "prompt": "Smoldering glowing embers crackling, pressurized fungal gas hiss and dry thermal fuse",
-      "seed": 1751353161,
-      "batch_index": 6,
-      "seconds_total": 2.8,
-      "duration_secs": 2.8,
-      "rms_dbfs": -29.38,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "pyro_shroom_crackle",
-        "pyro_shroom_hurt",
-        "pyro_shroom_death",
-        "pyro_shroom_ignite"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -29.38,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.483,
-        "silence_tail_ratio": 0.2,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.8,
-        "issues": []
-      }
-    },
-    "reclaimed_bloom_chime": {
-      "group": "block_func",
-      "prompt": "Bioluminescent crystal flower harvest chime, gentle stem snap, sparkling organic dewdrop shimmer",
-      "seed": 1797257799,
+      "prompt": "Razor-sharp organic blade whoosh slash, crisp piercing chitin lance thrust in air, close dry combat foley",
+      "seed": 1442589572,
       "batch_index": 0,
       "seconds_total": 2.0,
       "duration_secs": 2.0,
-      "rms_dbfs": -15.55,
+      "rms_dbfs": -36.0,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "reclaimed_bloom_harvest",
-        "reclaimed_bloom_pulse"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -15.55,
+        "rms_dbfs": -36.0,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.326,
-        "silence_tail_ratio": 0.674,
+        "active_ratio": 0.07,
+        "silence_tail_ratio": 0.93,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 2.0,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "symbiotic_blade_slash",
+        "enzyme_lance_thrust"
+      ]
+    },
+    "item_visceral_mutagen_serum": {
+      "group": "item",
+      "prompt": "Viscous liquid rushing through glass syringe needle, dense wet bubbling bio-fluid squelch under skin, sustained fizz, close dry foley",
+      "seed": 1577689086,
+      "batch_index": 1,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -31.03,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -31.03,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.723,
+        "silence_tail_ratio": 0.149,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "bio_extractor_draw",
+        "counter_serum_inject",
+        "symbiotic_mutagen_implant"
+      ]
+    },
+    "leech_parasite_shriek": {
+      "group": "entity",
+      "prompt": "High-pitched frantic blood-sucking parasite screech, wet clicking jaws, close dry foley",
+      "seed": 1442589572,
+      "batch_index": 12,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -28.76,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -28.76,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.106,
+        "silence_tail_ratio": 0.638,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      },
+      "sound_ids": [
+        "leech_parasite_screech",
+        "leech_parasite_hurt",
+        "leech_parasite_death"
+      ]
+    },
+    "leech_parasite_siphon_slurp": {
+      "group": "entity",
+      "prompt": "Wet viscous blood siphon slurping suction pull through organic tube, sticky latch, close dry foley",
+      "seed": 468379426,
+      "batch_index": 5,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -20.16,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -20.16,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.342,
+        "silence_tail_ratio": 0.579,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 1.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "leech_parasite_siphon"
+      ]
+    },
+    "primordial_biolum_pulse": {
+      "group": "system_env",
+      "prompt": "Deep eldritch bioluminescent organism aura pulse, warm resonant crystal drone and ancestral sub throb",
+      "seed": 1270272403,
+      "batch_index": 2,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -11.21,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -11.21,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.8,
+        "silence_tail_ratio": 0.2,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 2.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "primordial_presence_pulse"
+      ]
+    },
+    "purifier_drone_servo_thruster": {
+      "group": "entity",
+      "prompt": "Clean miniature futuristic quadcopter servo hum, crisp clinical electronic telemetry chirp, alloy impact",
+      "seed": 2012336952,
+      "batch_index": 12,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -7.95,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -7.95,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.608,
+        "silence_tail_ratio": 0.392,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
+      "sound_ids": [
+        "purifier_drone_hum",
+        "purifier_drone_hurt",
+        "purifier_drone_death",
+        "purifier_drone_fire"
+      ]
+    },
+    "pyro_shroom_ember_sizzle": {
+      "group": "entity",
+      "prompt": "Smoldering hot coals crackling inside wet fungal cap, pressurized gas hiss, close dry foley",
+      "seed": 614348607,
+      "batch_index": 2,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -34.21,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -34.21,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.491,
+        "silence_tail_ratio": 0.236,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      },
+      "sound_ids": [
+        "pyro_shroom_crackle",
+        "pyro_shroom_hurt",
+        "pyro_shroom_death"
+      ]
+    },
+    "pyro_shroom_gas_ignite": {
+      "group": "entity",
+      "prompt": "Whooshing pressurized methane flame ignition burst, dry thermal flare pop, close dry foley",
+      "seed": 468379426,
+      "batch_index": 10,
+      "seconds_total": 1.9,
+      "duration_secs": 1.9,
+      "rms_dbfs": -18.82,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -18.82,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.55,
+        "silence_tail_ratio": 0.4,
+        "clipped_samples": 0,
+        "dc_offset": 1e-05,
+        "duration_secs": 1.9,
+        "issues": []
+      },
+      "sound_ids": [
+        "pyro_shroom_ignite"
+      ]
+    },
+    "reclaimed_bloom_chime": {
+      "group": "block_func",
+      "prompt": "Bioluminescent crystal flower harvest chime, gentle crisp stem snap, sparkling dewdrop shimmer, close foley",
+      "seed": 1442589572,
+      "batch_index": 1,
+      "seconds_total": 2.0,
+      "duration_secs": 2.0,
+      "rms_dbfs": -15.04,
+      "peak_dbfs": -1.34,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -15.04,
+        "peak_dbfs": -1.35,
+        "active_ratio": 0.558,
+        "silence_tail_ratio": 0.442,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.0,
+        "issues": []
+      },
+      "sound_ids": [
+        "reclaimed_bloom_harvest",
+        "reclaimed_bloom_pulse"
+      ]
     },
     "ritual_dimensional_rift": {
       "group": "boss",
-      "prompt": "Urgent sci-fi power surge alarm, reverse vacuum suction cut, massive cinematic sub bass drop and choir shockwave",
-      "seed": 409518115,
-      "batch_index": 5,
+      "prompt": "Urgent dimensional rift tear, reverse vacuum suction cut, massive cinematic sub bass drop and shockwave",
+      "seed": 1670178006,
+      "batch_index": 3,
       "seconds_total": 3.6,
       "duration_secs": 3.6,
-      "rms_dbfs": -14.29,
+      "rms_dbfs": -15.96,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "matriarch_altar_awaken",
-        "boss_phase_shift"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -14.29,
+        "rms_dbfs": -15.96,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.468,
-        "silence_tail_ratio": 0.506,
+        "active_ratio": 0.74,
+        "silence_tail_ratio": 0.234,
         "clipped_samples": 0,
         "dc_offset": 0.0,
         "duration_secs": 3.6,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "matriarch_altar_awaken",
+        "boss_phase_shift"
+      ]
     },
     "ritual_monolith_awaken": {
       "group": "boss",
-      "prompt": "Ancient carved stone temple slabs grinding open, deep bronze monolith bell toll, subterranean warhorn blast",
-      "seed": 409518115,
-      "batch_index": 7,
+      "prompt": "Ancient carved stone temple slabs grinding open, deep bronze monolith bell toll, subterranean warhorn",
+      "seed": 1670178006,
+      "batch_index": 5,
       "seconds_total": 3.8,
       "duration_secs": 3.8,
-      "rms_dbfs": -11.0,
+      "rms_dbfs": -9.32,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "hive_altar_awaken",
-        "fungal_tide_horn"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -11.0,
+        "rms_dbfs": -9.32,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.877,
-        "silence_tail_ratio": 0.123,
+        "active_ratio": 0.79,
+        "silence_tail_ratio": 0.198,
         "clipped_samples": 0,
         "dc_offset": -0.0,
         "duration_secs": 3.8,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "hive_altar_awaken",
+        "fungal_tide_horn"
+      ]
     },
     "sinkhole_glider_wing": {
       "group": "entity",
-      "prompt": "Bioluminescent cave glider membrane wing flutter, gentle airy chime trill, soft organic subterranean echo",
-      "seed": 308307838,
-      "batch_index": 3,
+      "prompt": "Bioluminescent cave glider leather membrane wing flap, soft airy vocal trill, close dry creature foley",
+      "seed": 2079579549,
+      "batch_index": 0,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -19.28,
+      "rms_dbfs": -18.46,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -19.28,
+        "rms_dbfs": -18.46,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.373,
-        "silence_tail_ratio": 0.51,
+        "active_ratio": 0.431,
+        "silence_tail_ratio": 0.549,
         "clipped_samples": 0,
-        "dc_offset": 2e-05,
+        "dc_offset": -0.0,
         "duration_secs": 2.4,
         "issues": []
       },
@@ -1280,21 +1620,21 @@
     },
     "sinkhole_root_keeper": {
       "group": "entity",
-      "prompt": "Deep earthen root guardian growl, creaking subterranean wood-chitin impact slam, hollow cavern tremor",
-      "seed": 308307838,
-      "batch_index": 5,
+      "prompt": "Deep earthen ancient root guardian wooden creak and chest growl, heavy bark-chitin slam, close dry foley",
+      "seed": 1270272403,
+      "batch_index": 3,
       "seconds_total": 2.8,
       "duration_secs": 2.8,
-      "rms_dbfs": -18.63,
+      "rms_dbfs": -23.94,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -18.63,
+        "rms_dbfs": -23.94,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.583,
-        "silence_tail_ratio": 0.4,
+        "active_ratio": 0.483,
+        "silence_tail_ratio": 0.35,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
+        "dc_offset": 2e-05,
         "duration_secs": 2.8,
         "issues": []
       },
@@ -1307,19 +1647,19 @@
     },
     "sinkhole_sap_elixir": {
       "group": "item",
-      "prompt": "Rich thick honeyed liquid pouring into resonance crystal vial, steady warm golden chime swell, deep bouncy fungal cap thrum",
+      "prompt": "Rich thick honeyed sap pouring into resonance crystal vial, steady warm golden chime, bouncy fungal cap thrum",
       "seed": 2012336952,
       "batch_index": 0,
       "seconds_total": 2.2,
       "duration_secs": 2.2,
-      "rms_dbfs": -28.76,
+      "rms_dbfs": -18.14,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -28.76,
+        "rms_dbfs": -18.14,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.638,
-        "silence_tail_ratio": 0.319,
+        "active_ratio": 0.787,
+        "silence_tail_ratio": 0.213,
         "clipped_samples": 0,
         "dc_offset": 0.0,
         "duration_secs": 2.2,
@@ -1333,21 +1673,21 @@
     },
     "sinkhole_updraft_column": {
       "group": "system_env",
-      "prompt": "Steady vertical subterranean wind chimney updraft, warm rushing cavern air column with gentle resonant spore hum",
-      "seed": 308307838,
-      "batch_index": 6,
+      "prompt": "Steady vertical subterranean wind chimney updraft loop, warm rushing cavern air column with resonant spore hum",
+      "seed": 1670178006,
+      "batch_index": 9,
       "seconds_total": 5.0,
       "duration_secs": 5.0,
-      "rms_dbfs": -19.47,
+      "rms_dbfs": -12.97,
       "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -19.47,
+        "rms_dbfs": -12.97,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.738,
-        "silence_tail_ratio": 0.224,
+        "active_ratio": 0.822,
+        "silence_tail_ratio": 0.178,
         "clipped_samples": 0,
-        "dc_offset": 0.0,
+        "dc_offset": -0.0,
         "duration_secs": 5.0,
         "issues": []
       },
@@ -1359,239 +1699,559 @@
     "sovereign_nexus_bed": {
       "group": "system_env",
       "prompt": "Steady warm alien bio-sanctuary harmonic hum drone, gentle glowing energy field ambient loop",
-      "seed": 1797257799,
-      "batch_index": 5,
+      "seed": 1670178006,
+      "batch_index": 10,
       "seconds_total": 5.0,
       "duration_secs": 5.0,
-      "rms_dbfs": -7.53,
+      "rms_dbfs": -6.22,
       "peak_dbfs": -0.92,
-      "sound_ids": [
-        "sovereign_nexus_hum"
-      ],
       "qc": {
         "ok": true,
-        "rms_dbfs": -7.53,
+        "rms_dbfs": -6.22,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.981,
-        "silence_tail_ratio": 0.019,
+        "active_ratio": 0.888,
+        "silence_tail_ratio": 0.112,
         "clipped_samples": 0,
-        "dc_offset": -1e-05,
+        "dc_offset": 1e-05,
         "duration_secs": 5.0,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "sovereign_nexus_hum"
+      ]
     },
     "spore_architect_pulse": {
       "group": "entity",
-      "prompt": "Precision bio-organic pulse beacon, wet fleshy node construction snap",
-      "seed": 527620650,
-      "batch_index": 7,
+      "prompt": "Continuous rapid rhythmic bio-organic pulse clicks, bubbling wet membrane construction, organic creature breath, close dry foley",
+      "seed": 1577689086,
+      "batch_index": 2,
       "seconds_total": 2.6,
       "duration_secs": 2.6,
-      "rms_dbfs": -20.27,
+      "rms_dbfs": -27.01,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -27.01,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.8,
+        "silence_tail_ratio": 0.2,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 2.6,
+        "issues": []
+      },
       "sound_ids": [
         "spore_architect_pulse",
         "spore_architect_hurt",
         "spore_architect_death",
         "spore_architect_construct"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -20.27,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.291,
-        "silence_tail_ratio": 0.709,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.6,
-        "issues": []
-      }
+      ]
     },
     "sporeling_chitter_insect": {
       "group": "entity",
-      "prompt": "Tiny insectoid beetle chittering, rapid hollow chitin mandible clicks, small creature squeak",
-      "seed": 255099232,
-      "batch_index": 8,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -25.37,
+      "prompt": "Tiny insectoid beetle vocal chittering, hollow chitin mandible clicks, small wet squeak, close dry foley",
+      "seed": 2012336952,
+      "batch_index": 1,
+      "seconds_total": 2.2,
+      "duration_secs": 2.2,
+      "rms_dbfs": -19.68,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -19.68,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.213,
+        "silence_tail_ratio": 0.489,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.2,
+        "issues": []
+      },
       "sound_ids": [
         "sporeling_chitter",
         "sporeling_hurt",
-        "sporeling_death",
-        "sporeling_burst"
-      ],
+        "sporeling_death"
+      ]
+    },
+    "sporeling_pod_burst": {
+      "group": "entity",
+      "prompt": "Small pressurized wet fungal pod bursting pop, sticky organic spore splatter, close dry foley",
+      "seed": 468379426,
+      "batch_index": 6,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -31.81,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -25.37,
+        "rms_dbfs": -31.81,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.275,
+        "active_ratio": 0.237,
+        "silence_tail_ratio": 0.553,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 1.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "sporeling_burst"
+      ]
+    },
+    "stalker_predator_hiss": {
+      "group": "entity",
+      "prompt": "Sinister predatory insectoid raspy hiss, wet rasping throat click, stalking breath, close dry foley",
+      "seed": 2079579549,
+      "batch_index": 1,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -23.12,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -23.12,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.686,
         "silence_tail_ratio": 0.216,
         "clipped_samples": 0,
         "dc_offset": 0.0,
         "duration_secs": 2.4,
         "issues": []
-      }
-    },
-    "stalker_predator_hiss": {
-      "group": "entity",
-      "prompt": "Sinister predatory insectoid hiss, sharp scythe chitin blade swipe, stalking breath",
-      "seed": 527620650,
-      "batch_index": 8,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -22.6,
-      "peak_dbfs": -0.92,
+      },
       "sound_ids": [
         "stalker_hiss",
         "stalker_hurt",
-        "stalker_death",
-        "stalker_pounce"
-      ],
+        "stalker_death"
+      ]
+    },
+    "stalker_scythe_pounce": {
+      "group": "entity",
+      "prompt": "Fast razor chitin scythe arm whipping through air, sharp predator leap lunge, close dry foley",
+      "seed": 468379426,
+      "batch_index": 7,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -29.21,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -22.6,
+        "rms_dbfs": -29.21,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.218,
-        "silence_tail_ratio": 0.782,
+        "active_ratio": 0.079,
+        "silence_tail_ratio": 0.684,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.6,
+        "dc_offset": 0.0,
+        "duration_secs": 1.8,
         "issues": []
-      }
+      },
+      "sound_ids": [
+        "stalker_pounce"
+      ]
+    },
+    "step_arachnid_scurry": {
+      "group": "entity",
+      "prompt": "Fast spindly spider legs skittering on gritty stone, crisp dry chitin needle taps, close foley",
+      "seed": 468379426,
+      "batch_index": 0,
+      "seconds_total": 1.6,
+      "duration_secs": 1.6,
+      "rms_dbfs": -29.19,
+      "peak_dbfs": -1.13,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -29.19,
+        "peak_dbfs": -1.13,
+        "active_ratio": 0.765,
+        "silence_tail_ratio": 0.059,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 1.6,
+        "issues": []
+      },
+      "sound_ids": [
+        "mob_step_arachnid"
+      ]
+    },
+    "step_chitin_tarsus": {
+      "group": "entity",
+      "prompt": "Steady brisk succession of insect tarsus claws crunching on cave stone floor, crisp dense gravel and chitin taps, close foley",
+      "seed": 1577689086,
+      "batch_index": 0,
+      "seconds_total": 1.6,
+      "duration_secs": 1.6,
+      "rms_dbfs": -29.36,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -29.36,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.647,
+        "silence_tail_ratio": 0.294,
+        "clipped_samples": 0,
+        "dc_offset": 1e-05,
+        "duration_secs": 1.6,
+        "issues": []
+      },
+      "sound_ids": [
+        "mob_step_chitin"
+      ]
+    },
+    "step_colossal_seismic": {
+      "group": "entity",
+      "prompt": "Massive kaiju titan heavy footstep stomp on bedrock, deep earthen floor tremor thud, close dry foley",
+      "seed": 1442589572,
+      "batch_index": 2,
+      "seconds_total": 2.0,
+      "duration_secs": 2.0,
+      "rms_dbfs": -25.96,
+      "peak_dbfs": -4.51,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -25.96,
+        "peak_dbfs": -4.51,
+        "active_ratio": 0.163,
+        "silence_tail_ratio": 0.837,
+        "clipped_samples": 0,
+        "dc_offset": -0.00012,
+        "duration_secs": 2.0,
+        "issues": []
+      },
+      "sound_ids": [
+        "mob_step_colossal"
+      ]
+    },
+    "step_heavy_carapace": {
+      "group": "entity",
+      "prompt": "Heavy armored creature foot stomping on stone floor with dull chitin plate thud, close dry foley",
+      "seed": 468379426,
+      "batch_index": 8,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -22.19,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -22.19,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.263,
+        "silence_tail_ratio": 0.737,
+        "clipped_samples": 0,
+        "dc_offset": -9e-05,
+        "duration_secs": 1.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "mob_step_heavy"
+      ]
+    },
+    "step_hover_flutter": {
+      "group": "entity",
+      "prompt": "Soft airy membrane wing beat and gentle electrostatic air swoosh hover pulse, close dry foley",
+      "seed": 468379426,
+      "batch_index": 9,
+      "seconds_total": 1.8,
+      "duration_secs": 1.8,
+      "rms_dbfs": -19.18,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -19.18,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.658,
+        "silence_tail_ratio": 0.342,
+        "clipped_samples": 0,
+        "dc_offset": 1e-05,
+        "duration_secs": 1.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "mob_step_hover"
+      ]
     },
     "surf_antibody_cyst_visceral": {
       "group": "surface",
-      "prompt": "Viscous organic fluid sac squelch, taut membrane rupturing wetly with sticky droplets",
-      "seed": 255099232,
-      "batch_index": 9,
+      "prompt": "Viscous organic fluid sac squelch, taut membrane rupturing wetly with sticky droplets, close dry foley",
+      "seed": 2079579549,
+      "batch_index": 2,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -26.26,
+      "rms_dbfs": -26.41,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -26.41,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.255,
+        "silence_tail_ratio": 0.49,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "block_antibody_cyst_break",
         "block_antibody_cyst_step",
         "block_antibody_cyst_place",
         "block_antibody_cyst_hit",
         "block_antibody_cyst_fall"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -26.26,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.235,
-        "silence_tail_ratio": 0.725,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
+      ]
     },
     "surf_chitin_hollow_shell": {
       "group": "surface",
-      "prompt": "Dry hollow beetle exoskeleton shell snapping, brittle insect chitin cracking and rattling",
-      "seed": 255099232,
-      "batch_index": 10,
+      "prompt": "Dry hollow beetle exoskeleton shell snapping, brittle insect chitin cracking and tapping, close dry foley",
+      "seed": 2079579549,
+      "batch_index": 3,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -34.99,
+      "rms_dbfs": -31.38,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -31.38,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.176,
+        "silence_tail_ratio": 0.49,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "block_chitin_break",
         "block_chitin_step",
         "block_chitin_place",
         "block_chitin_hit",
         "block_chitin_fall"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -34.99,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.392,
-        "silence_tail_ratio": 0.294,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
+      ]
     },
     "surf_hive_altar_monolith": {
       "group": "surface",
-      "prompt": "Massive subterranean carved stone monolith impact thud, low resonant granite temple toll",
-      "seed": 527620650,
-      "batch_index": 9,
+      "prompt": "Massive subterranean carved stone monolith impact thud, low resonant granite block knock, close dry foley",
+      "seed": 614348607,
+      "batch_index": 4,
       "seconds_total": 2.6,
       "duration_secs": 2.6,
-      "rms_dbfs": -19.73,
-      "peak_dbfs": -2.26,
+      "rms_dbfs": -17.59,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -17.59,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.291,
+        "silence_tail_ratio": 0.709,
+        "clipped_samples": 0,
+        "dc_offset": 6e-05,
+        "duration_secs": 2.6,
+        "issues": []
+      },
       "sound_ids": [
         "block_hive_altar_break",
         "block_hive_altar_step",
         "block_hive_altar_place",
         "block_hive_altar_hit",
         "block_hive_altar_fall"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -19.73,
-        "peak_dbfs": -2.26,
-        "active_ratio": 0.4,
-        "silence_tail_ratio": 0.582,
-        "clipped_samples": 0,
-        "dc_offset": 9e-05,
-        "duration_secs": 2.6,
-        "issues": []
-      }
+      ]
     },
     "surf_mycelial_stone_basalt": {
       "group": "surface",
-      "prompt": "Sharp chisel striking coarse dark volcanic basalt rock, gritty slate rubble gravel tumble",
-      "seed": 255099232,
-      "batch_index": 11,
+      "prompt": "Sharp chisel striking coarse dark volcanic basalt rock, gritty slate rubble gravel crunch, close dry foley",
+      "seed": 2079579549,
+      "batch_index": 4,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -18.37,
-      "peak_dbfs": -0.92,
+      "rms_dbfs": -35.24,
+      "peak_dbfs": -1.59,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -35.24,
+        "peak_dbfs": -1.59,
+        "active_ratio": 0.255,
+        "silence_tail_ratio": 0.725,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "block_mycelial_stone_break",
         "block_mycelial_stone_step",
         "block_mycelial_stone_place",
         "block_mycelial_stone_hit",
         "block_mycelial_stone_fall"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -18.37,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.529,
-        "silence_tail_ratio": 0.431,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.4,
-        "issues": []
-      }
+      ]
     },
     "surf_mycelium_wet_moss": {
       "group": "surface",
-      "prompt": "Damp spongy forest moss turf tearing softly, wet fibrous fungal soil squish, close foley",
-      "seed": 255099232,
-      "batch_index": 12,
+      "prompt": "Damp spongy forest moss turf tearing softly, wet fibrous fungal soil squish, close dry foley",
+      "seed": 2079579549,
+      "batch_index": 5,
       "seconds_total": 2.4,
       "duration_secs": 2.4,
-      "rms_dbfs": -29.84,
+      "rms_dbfs": -25.37,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -25.37,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.824,
+        "silence_tail_ratio": 0.176,
+        "clipped_samples": 0,
+        "dc_offset": 4e-05,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "block_mycelium_break",
         "block_mycelium_step",
         "block_mycelium_place",
         "block_mycelium_hit",
         "block_mycelium_fall"
-      ],
+      ]
+    },
+    "surf_purification_alloy_plate": {
+      "group": "surface",
+      "prompt": "Precision stainless steel armor plate ring, crisp clean metallic clink and brushed alloy lock, dry studio foley",
+      "seed": 2079579549,
+      "batch_index": 6,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -27.36,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -29.84,
+        "rms_dbfs": -27.36,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.235,
+        "silence_tail_ratio": 0.765,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
+      "sound_ids": [
+        "block_purification_tech_break",
+        "block_purification_tech_step",
+        "block_purification_tech_place",
+        "block_purification_tech_hit",
+        "block_purification_tech_fall"
+      ]
+    },
+    "surf_synaptic_quartz_chime": {
+      "group": "surface",
+      "prompt": "Struck resonant quartz crystal slab, crisp glassy harmonic ping, brittle crystalline fracture, close dry foley",
+      "seed": 2079579549,
+      "batch_index": 7,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -28.37,
+      "peak_dbfs": -4.93,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -28.37,
+        "peak_dbfs": -4.93,
+        "active_ratio": 0.216,
+        "silence_tail_ratio": 0.784,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.4,
+        "issues": []
+      },
+      "sound_ids": [
+        "block_synaptic_node_break",
+        "block_synaptic_node_step",
+        "block_synaptic_node_place",
+        "block_synaptic_node_hit",
+        "block_synaptic_node_fall"
+      ]
+    },
+    "synapse_weaver_crystal_hum": {
+      "group": "entity",
+      "prompt": "Floating telepathic crystal glass hum, delicate organic vocal murmur, eerie harmonic shimmer, dry foley",
+      "seed": 614348607,
+      "batch_index": 5,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -17.17,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -17.17,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.727,
+        "silence_tail_ratio": 0.255,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      },
+      "sound_ids": [
+        "synapse_weaver_hum",
+        "synapse_weaver_hurt",
+        "synapse_weaver_death"
+      ]
+    },
+    "synapse_weaver_psychic_buff": {
+      "group": "entity",
+      "prompt": "Ascending crystalline telepathic chime pulse, shimmering neural wave swell, clean resonant glass ping",
+      "seed": 1442589572,
+      "batch_index": 3,
+      "seconds_total": 2.1,
+      "duration_secs": 2.1,
+      "rms_dbfs": -14.42,
+      "peak_dbfs": -1.18,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -14.43,
+        "peak_dbfs": -1.18,
+        "active_ratio": 0.556,
+        "silence_tail_ratio": 0.444,
+        "clipped_samples": 0,
+        "dc_offset": -0.0,
+        "duration_secs": 2.1,
+        "issues": []
+      },
+      "sound_ids": [
+        "synapse_weaver_buff"
+      ]
+    },
+    "synaptic_mimic_vocal": {
+      "group": "entity",
+      "prompt": "Uncanny shifting double-voice alien vocal mimicry, eerie whispered formant glide, sharp chitin swipe, dry foley",
+      "seed": 614348607,
+      "batch_index": 6,
+      "seconds_total": 2.6,
+      "duration_secs": 2.6,
+      "rms_dbfs": -17.26,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -17.26,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.382,
+        "silence_tail_ratio": 0.6,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.6,
+        "issues": []
+      },
+      "sound_ids": [
+        "synaptic_mimic_echo",
+        "synaptic_mimic_hurt",
+        "synaptic_mimic_death",
+        "synaptic_mimic_strike"
+      ]
+    },
+    "sys_acid_rain_necrophagy": {
+      "group": "system_env",
+      "prompt": "Corrosive acid rain sizzling on damp cave stone, wet sinister creature feeding crunch and shrill swarm rally call",
+      "seed": 2079579549,
+      "batch_index": 8,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -28.63,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -28.63,
         "peak_dbfs": -0.92,
         "active_ratio": 0.725,
         "silence_tail_ratio": 0.275,
@@ -1599,55 +2259,79 @@
         "dc_offset": -0.0,
         "duration_secs": 2.4,
         "issues": []
-      }
-    },
-    "surf_purification_alloy_plate": {
-      "group": "surface",
-      "prompt": "Precision stainless steel armor plate ring, crisp clean metallic clink and brushed alloy lock",
-      "seed": 527620650,
-      "batch_index": 0,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -26.08,
-      "peak_dbfs": -0.92,
+      },
       "sound_ids": [
-        "block_purification_tech_break",
-        "block_purification_tech_step",
-        "block_purification_tech_place",
-        "block_purification_tech_hit",
-        "block_purification_tech_fall"
-      ],
+        "acid_rain_sizzle",
+        "necrophagy_feast",
+        "swarm_flank_call"
+      ]
+    },
+    "sys_hive_evolution_surge": {
+      "group": "system_env",
+      "prompt": "Dark ascending alien hive biological evolution swell, pulsing synaptic energy rush and organic choir surge",
+      "seed": 1270272403,
+      "batch_index": 6,
+      "seconds_total": 3.0,
+      "duration_secs": 3.0,
+      "rms_dbfs": -14.19,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -26.08,
+        "rms_dbfs": -14.19,
         "peak_dbfs": -0.92,
-        "active_ratio": 0.294,
-        "silence_tail_ratio": 0.471,
+        "active_ratio": 0.469,
+        "silence_tail_ratio": 0.484,
         "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.4,
+        "dc_offset": 0.0,
+        "duration_secs": 3.0,
         "issues": []
-      }
-    },
-    "surf_synaptic_quartz_chime": {
-      "group": "surface",
-      "prompt": "Struck resonant quartz crystal slab, crisp glassy harmonic ping, brittle crystalline shatter",
-      "seed": 527620650,
-      "batch_index": 1,
-      "seconds_total": 2.4,
-      "duration_secs": 2.4,
-      "rms_dbfs": -30.56,
-      "peak_dbfs": -0.92,
+      },
       "sound_ids": [
-        "block_synaptic_node_break",
-        "block_synaptic_node_step",
-        "block_synaptic_node_place",
-        "block_synaptic_node_hit",
-        "block_synaptic_node_fall"
-      ],
+        "hive_mutate_tier2",
+        "synaptic_pulse",
+        "immune_surge",
+        "mob_promote_mutated",
+        "mob_promote_elite"
+      ]
+    },
+    "sys_hive_tactical_adapt": {
+      "group": "system_env",
+      "prompt": "Menacing alien hive strategic adaptation chime, deep crystalline chord lock and urgent subterranean omen toll",
+      "seed": 1270272403,
+      "batch_index": 4,
+      "seconds_total": 2.8,
+      "duration_secs": 2.8,
+      "rms_dbfs": -15.95,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -30.56,
+        "rms_dbfs": -15.95,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.55,
+        "silence_tail_ratio": 0.45,
+        "clipped_samples": 0,
+        "dc_offset": 0.0,
+        "duration_secs": 2.8,
+        "issues": []
+      },
+      "sound_ids": [
+        "hive_trait_adapt",
+        "hive_synergy_unlock",
+        "hive_threat_milestone"
+      ]
+    },
+    "sys_purifier_emp_pulse": {
+      "group": "system_env",
+      "prompt": "Heavy futuristic electromagnetic pulse capacitor discharge blast, clean static arc jam and servo stall fizz",
+      "seed": 2079579549,
+      "batch_index": 9,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -16.96,
+      "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -16.96,
         "peak_dbfs": -0.92,
         "active_ratio": 0.412,
         "silence_tail_ratio": 0.588,
@@ -1655,167 +2339,81 @@
         "dc_offset": -0.0,
         "duration_secs": 2.4,
         "issues": []
-      }
-    },
-    "synapse_weaver_crystal_hum": {
-      "group": "entity",
-      "prompt": "Floating telepathic crystal chime hum, subtle electric synapse buzz, eerie harmonic glass resonance",
-      "seed": 1751353161,
-      "batch_index": 7,
-      "seconds_total": 2.8,
-      "duration_secs": 2.8,
-      "rms_dbfs": -12.33,
-      "peak_dbfs": -0.92,
+      },
       "sound_ids": [
-        "synapse_weaver_hum",
-        "synapse_weaver_hurt",
-        "synapse_weaver_death",
-        "synapse_weaver_buff"
-      ],
+        "suppressor_discharge",
+        "squad_desync",
+        "corrosive_jam"
+      ]
+    },
+    "sys_purifier_pylon_bed": {
+      "group": "system_env",
+      "prompt": "Steady clean sci-fi purifier forcefield containment hum loop, warm low clinical energy resonance",
+      "seed": 1670178006,
+      "batch_index": 11,
+      "seconds_total": 5.0,
+      "duration_secs": 5.0,
+      "rms_dbfs": -8.91,
+      "peak_dbfs": -0.92,
       "qc": {
         "ok": true,
-        "rms_dbfs": -12.33,
+        "rms_dbfs": -8.91,
         "peak_dbfs": -0.92,
         "active_ratio": 1.0,
         "silence_tail_ratio": 0.0,
         "clipped_samples": 0,
-        "dc_offset": -1e-05,
-        "duration_secs": 2.8,
+        "dc_offset": 1e-05,
+        "duration_secs": 5.0,
         "issues": []
-      }
-    },
-    "synaptic_mimic_vocal": {
-      "group": "entity",
-      "prompt": "Uncanny shifting double-voice alien echo, sinister whispered formant glide, sharp chitin strike",
-      "seed": 527620650,
-      "batch_index": 10,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -15.45,
-      "peak_dbfs": -0.92,
+      },
       "sound_ids": [
-        "synaptic_mimic_echo",
-        "synaptic_mimic_hurt",
-        "synaptic_mimic_death",
-        "synaptic_mimic_strike"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -15.45,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.582,
-        "silence_tail_ratio": 0.382,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.6,
-        "issues": []
-      }
-    },
-    "sys_hive_evolution_surge": {
-      "group": "system_env",
-      "prompt": "Dark ascending alien hive evolution fanfare, pulsing synaptic power surge and crystalline chord swell",
-      "seed": 409518115,
-      "batch_index": 1,
-      "seconds_total": 3.2,
-      "duration_secs": 3.2,
-      "rms_dbfs": -18.16,
-      "peak_dbfs": -0.92,
-      "sound_ids": [
-        "hive_mutate_tier2",
-        "synaptic_pulse",
-        "immune_surge",
-        "mob_promote_mutated",
-        "mob_promote_elite",
-        "hive_trait_adapt",
-        "hive_synergy_unlock",
-        "hive_threat_milestone"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -18.16,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.456,
-        "silence_tail_ratio": 0.529,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 3.2,
-        "issues": []
-      }
-    },
-    "sys_purifier_emp_suppression": {
-      "group": "system_env",
-      "prompt": "Heavy futuristic electromagnetic pulse capacitor discharge, servo stall fizz, clinical containment hum",
-      "seed": 1751353161,
-      "batch_index": 8,
-      "seconds_total": 2.8,
-      "duration_secs": 2.8,
-      "rms_dbfs": -18.76,
-      "peak_dbfs": -2.47,
-      "sound_ids": [
-        "suppressor_discharge",
-        "squad_desync",
-        "corrosive_jam",
         "purification_pylon_hum"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -18.76,
-        "peak_dbfs": -2.47,
-        "active_ratio": 0.55,
-        "silence_tail_ratio": 0.45,
-        "clipped_samples": 0,
-        "dc_offset": -0.0,
-        "duration_secs": 2.8,
-        "issues": []
-      }
+      ]
     },
     "sys_visceral_assimilation": {
       "group": "system_env",
-      "prompt": "Corrosive acid rain sizzle on damp stone, rapid organic tissue burrowing and sinister creature feeding",
-      "seed": 527620650,
-      "batch_index": 11,
-      "seconds_total": 2.6,
-      "duration_secs": 2.6,
-      "rms_dbfs": -21.13,
+      "prompt": "Rapid organic burrowing tunnel retreat, wet cellular conversion squelch and taut cyst encapsulation, dry foley",
+      "seed": 2079579549,
+      "batch_index": 10,
+      "seconds_total": 2.4,
+      "duration_secs": 2.4,
+      "rms_dbfs": -13.38,
       "peak_dbfs": -0.92,
+      "qc": {
+        "ok": true,
+        "rms_dbfs": -13.38,
+        "peak_dbfs": -0.92,
+        "active_ratio": 0.255,
+        "silence_tail_ratio": 0.745,
+        "clipped_samples": 0,
+        "dc_offset": -1e-05,
+        "duration_secs": 2.4,
+        "issues": []
+      },
       "sound_ids": [
         "mob_dawn_retreat",
         "infected_mob_convert",
-        "antibody_cyst_encapsulate",
-        "acid_rain_sizzle",
-        "necrophagy_feast",
-        "swarm_flank_call"
-      ],
-      "qc": {
-        "ok": true,
-        "rms_dbfs": -21.13,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.473,
-        "silence_tail_ratio": 0.382,
-        "clipped_samples": 0,
-        "dc_offset": 0.0,
-        "duration_secs": 2.6,
-        "issues": []
-      }
+        "antibody_cyst_encapsulate"
+      ]
     },
     "ui_bio_tactile_tech": {
       "group": "item",
-      "prompt": "Crisp bio-organic parchment tap, tactile sterile purifier confirmation chime, subtle low-power beacon warning chirp",
-      "seed": 308307838,
-      "batch_index": 0,
-      "seconds_total": 1.8,
-      "duration_secs": 1.8,
-      "rms_dbfs": -14.41,
-      "peak_dbfs": -0.92,
+      "prompt": "Crisp organic parchment page tap, clean sterile purifier UI confirmation chime, subtle low-power beep",
+      "seed": 468379426,
+      "batch_index": 2,
+      "seconds_total": 1.6,
+      "duration_secs": 1.6,
+      "rms_dbfs": -23.54,
+      "peak_dbfs": -0.94,
       "qc": {
         "ok": true,
-        "rms_dbfs": -14.41,
-        "peak_dbfs": -0.92,
-        "active_ratio": 0.158,
-        "silence_tail_ratio": 0.711,
+        "rms_dbfs": -23.54,
+        "peak_dbfs": -0.94,
+        "active_ratio": 0.059,
+        "silence_tail_ratio": 0.941,
         "clipped_samples": 0,
         "dc_offset": -0.0,
-        "duration_secs": 1.8,
+        "duration_secs": 1.6,
         "issues": []
       },
       "sound_ids": [

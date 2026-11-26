@@ -882,13 +882,23 @@ async def run_sound_studio(
             args.append("--update-baseline")
     if check_baseline:
         args.append("--check-baseline")
-    return await _run_studio_with_tests(
+    res = await _run_studio_with_tests(
         "sound_studio",
         args,
         "scripts/sound_studio/tests",
         check_only=check_only,
         run_tests=run_tests,
     )
+    qr_path = REPO_ROOT / "scripts" / "sound_studio" / "exports" / "sound_quality_report.json"
+    if qr_path.is_file():
+        try:
+            qr_data = json.loads(qr_path.read_text(encoding="utf-8"))
+            res["mean_organic_index"] = qr_data.get("mean_organic_index")
+            res["mean_timbral_diversity"] = qr_data.get("mean_timbral_diversity")
+            res["worst_correlation"] = qr_data.get("worst_correlation")
+        except (OSError, json.JSONDecodeError):
+            pass
+    return res
 
 
 @_tool(tags={"studios", "assets"})
@@ -984,6 +994,7 @@ def audit_sound_masking(top_n: int = 12) -> dict[str, Any]:
         "total_ogg_files": qr.get("total_ogg_files"),
         "worst_correlation": qr.get("worst_correlation"),
         "mean_timbral_diversity": qr.get("mean_timbral_diversity"),
+        "mean_organic_index": qr.get("mean_organic_index"),
         "max_true_peak_dbfs": qr.get("max_true_peak_dbfs"),
         "loop_seam_ok": qr.get("loop_seam_ok"),
         "stem_qc_summary": stem_qc,

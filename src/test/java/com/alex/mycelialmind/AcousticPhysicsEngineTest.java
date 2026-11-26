@@ -182,4 +182,42 @@ public class AcousticPhysicsEngineTest {
         assertEquals(VoicePriority.CRITICAL, AcousticPhysicsEngine.classifySoundPriority("hive_tension_bed_low", true, false));
         assertEquals(VoicePriority.CRITICAL, AcousticPhysicsEngine.classifySoundPriority("hive_swarm_combat_bed", true, false));
     }
+
+    @Test
+    void v6PlaybackHumanizerVariesConsecutiveHitsAndKeepsCleanTechAndLoopsBounded() {
+        AcousticPhysicsEngine.PlaybackHumanizer humanizer = new AcousticPhysicsEngine.PlaybackHumanizer(1337L);
+
+        assertEquals(
+                AcousticPhysicsEngine.HumanizedPlayback.IDENTITY,
+                humanizer.nextForSound("sporeling_chitter", true, false, 1000L)
+        );
+        assertEquals(
+                AcousticPhysicsEngine.HumanizedPlayback.IDENTITY,
+                humanizer.nextForSound("sporeling_chitter", false, true, 1010L)
+        );
+        assertEquals(
+                AcousticPhysicsEngine.HumanizedPlayback.IDENTITY,
+                humanizer.nextForSound("ui_codex_tab", false, false, 1020L)
+        );
+        assertEquals(0L, humanizer.getHumanizedCount());
+
+        AcousticPhysicsEngine.HumanizedPlayback step1 = humanizer.nextForSound("mob_step_chitin", false, false, 2000L);
+        AcousticPhysicsEngine.HumanizedPlayback step2 = humanizer.nextForSound("mob_step_chitin", false, false, 2180L);
+        AcousticPhysicsEngine.HumanizedPlayback step3 = humanizer.nextForSound("mob_step_chitin", false, false, 2360L);
+        assertTrue(Math.abs(step1.pitchMultiplier() - 1.0F) <= 0.06F);
+        assertTrue(Math.abs(step2.pitchMultiplier() - step1.pitchMultiplier()) >= 0.025F,
+                "Consecutive footsteps must step apart to prevent machine-gunning");
+        assertTrue(Math.abs(step3.pitchMultiplier() - step2.pitchMultiplier()) >= 0.025F);
+        assertTrue(step1.gainMultiplier() >= 0.88F && step1.gainMultiplier() <= 1.06F);
+
+        for (int i = 0; i < 8; i++) {
+            AcousticPhysicsEngine.HumanizedPlayback tech =
+                    humanizer.nextForSound("purifier_drone_fire", false, false, 3000L + i * 120L);
+            assertTrue(Math.abs(tech.pitchMultiplier() - 1.0F) <= 0.016F,
+                    "Clean Purifier tech must preserve tighter pitch stability");
+        }
+        assertTrue(humanizer.getHumanizedCount() >= 10L);
+        humanizer.reset();
+        assertEquals(0L, humanizer.getHumanizedCount());
+    }
 }

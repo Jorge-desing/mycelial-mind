@@ -264,15 +264,15 @@ def _profile_params(sound_id: str, species: str, loudness_group: str, ir_space: 
         comp_thresh, comp_ratio = -18.0, 2.2
 
     if loudness_group == "footstep":
-        ir_mix = 0.07
+        ir_mix = 0.03
     elif is_boss or ir_space == "dimensional_rift":
-        ir_mix = 0.16
+        ir_mix = 0.14
     elif loudness_group in ("block_light", "block_heavy"):
-        ir_mix = 0.09
+        ir_mix = 0.045
     else:
-        ir_mix = 0.11
+        ir_mix = 0.055
 
-    chorus_mix = 0.07 if ir_space in ("dimensional_rift", "monolith_vault") else 0.0
+    chorus_mix = 0.05 if (is_boss or ir_space == "dimensional_rift") else 0.0
     return (ir_space, hp_hz, low_db, peak_hz, peak_db, peak_q, high_db, comp_thresh, comp_ratio, ir_mix, chorus_mix)
 
 
@@ -357,7 +357,7 @@ def master_with_pedalboard(
     key = _profile_params(sound_id, species, loudness_group, ir_space)
     is_loop = sound_id in SEAMLESS_LOOP_IDS
     preroll = min(n // 2, int(SAMPLE_RATE * 1.25)) if (is_loop and n > 2048) else 0
-    postroll = min(n // 4, int(SAMPLE_RATE * 0.25)) if (is_loop and n > 2048) else 0
+    postroll = min(n // 3, int(SAMPLE_RATE * 0.45)) if (is_loop and n > 2048) else 0
     if postroll % 2 == 1:
         postroll -= 1
     w_proc_in = np.concatenate([w_in[-preroll:], w_in, w_in[:postroll]]) if (preroll > 0 and postroll > 0) else (
@@ -382,11 +382,7 @@ def master_with_pedalboard(
         processed = np.pad(processed, (0, n_proc - len(processed)))
     if preroll > 0:
         if postroll >= 32:
-            seg = processed[preroll : preroll + n + postroll]
-            alpha = np.linspace(0.0, 1.0, postroll, dtype=np.float64)
-            bridge = seg[n : n + postroll] * (1.0 - alpha) + seg[:postroll] * alpha
-            half = postroll // 2
-            processed = np.concatenate([bridge[half:], seg[postroll:n], bridge[:half]])
+            processed = processed[preroll : preroll + n + postroll]
         else:
             processed = processed[preroll : preroll + n]
 
@@ -397,12 +393,12 @@ def master_with_pedalboard(
     ceiling = float(target_peak) if target_peak is not None else TRUE_PEAK_CEILING
 
     # Shape boundaries early so short 0.16s hits account for fade-in/out attenuation,
-    # while loops keep full boundary energy warmed up from preroll.
+    # while loops stay continuous through Bark carve & limiting before folding the postroll seam.
     if is_loop:
-        # Carve subtle spectral pockets at Bark 11 (1450 Hz) & Bark 16 (3200 Hz) BEFORE circular wrap fade
+        # Carve subtle spectral pockets at Bark 11 (1450 Hz) & Bark 16 (3200 Hz)
         ext = min(n // 4, 2048)
         padded = np.concatenate([processed[-ext:], processed])
-        processed = apply_bark_unmasking_carve(padded, SAMPLE_RATE)[ext : ext + n]
+        processed = apply_bark_unmasking_carve(padded, SAMPLE_RATE)[ext:]
     else:
         processed = _apply_fade_guards(processed, fade_in_ms=2.5, fade_out_ms=14.0)
 
@@ -429,6 +425,26 @@ def master_with_pedalboard(
             if abs(delta_db) > 1.2:
                 processed *= float(np.clip(target_rms / cur_rms, 0.25, 4.0))
                 processed = _soft_knee_limit(processed, threshold=min(0.76, ceiling * 0.82), ceiling=ceiling)
+
+    if is_loop and postroll >= 32 and len(processed) >= n + postroll:
+        seg = processed[: n + postroll]
+        alpha = 0.5 * (1.0 - np.cos(np.pi * np.linspace(0.0, 1.0, postroll, dtype=np.float64)))
+        bridge = seg[n : n + postroll] * (1.0 - alpha) + seg[:postroll] * alpha
+        half = postroll // 2
+        processed = np.concatenate([bridge[half:], seg[postroll:n], bridge[:half]])
+
+    if is_loop and len(processed) >= 4410:
+        win_seam = min(len(processed) // 4, int(SAMPLE_RATE * 0.050))
+        rms_h = float(np.sqrt(np.mean(processed[:win_seam] * processed[:win_seam])))
+        rms_t = float(np.sqrt(np.mean(processed[-win_seam:] * processed[-win_seam:])))
+        if abs(rms_h - rms_t) > 0.010 and rms_h > 1e-5 and rms_t > 1e-5:
+            mid = 0.5 * (rms_h + rms_t)
+            gh = float(np.clip(mid / rms_h, 0.72, 1.38))
+            gt = float(np.clip(mid / rms_t, 0.72, 1.38))
+            taper_len = min(len(processed) // 4, int(SAMPLE_RATE * 0.120))
+            taper = 0.5 * (1.0 + np.cos(np.pi * np.linspace(0.0, 1.0, taper_len, dtype=np.float64)))
+            processed[:taper_len] *= 1.0 + (gh - 1.0) * taper
+            processed[-taper_len:] *= 1.0 + (gt - 1.0) * taper[::-1]
 
     if is_loop:
         processed = _apply_fade_guards(processed, fade_in_ms=1.5, fade_out_ms=1.5)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import json
+import math
 import os
 import subprocess
 from pathlib import Path
@@ -140,10 +141,69 @@ def compute_loudness_dynamics(wave: np.ndarray, sample_rate: int = SAMPLE_RATE) 
     }
 
 
+def compute_organic_metrics(wave: np.ndarray, sample_rate: int = SAMPLE_RATE) -> dict[str, float]:
+    """Compute [0, 1] spectral flux, tonal peakiness, and composite organic_index."""
+    arr = np.asarray(wave, dtype=np.float64)
+    n = len(arr)
+    win = 1024
+    hop = 512
+    if n < win or float(np.max(np.abs(arr))) < 1e-7:
+        return {"spectral_flux": 0.0, "tonal_peakiness": 0.0, "organic_index": 0.0}
+
+    n_frames = 1 + (n - win) // hop
+    if n_frames < 2:
+        padded = np.pad(arr, (0, win + hop - n))
+        n_frames = 1 + (len(padded) - win) // hop
+        arr_view = padded
+    else:
+        arr_view = arr
+
+    window = np.hanning(win)
+    idx = np.arange(win)[None, :] + (np.arange(n_frames)[:, None] * hop)
+    frames = arr_view[idx] * window[None, :]
+    mags = np.abs(np.fft.rfft(frames, axis=1))
+    frame_norms = np.linalg.norm(mags, axis=1, keepdims=True)
+    active = (frame_norms[:, 0] > 1e-7)
+    mags_norm = mags / np.maximum(frame_norms, 1e-9)
+
+    if int(np.sum(active)) >= 2:
+        active_mags = mags_norm[active]
+        diffs = active_mags[1:] - active_mags[:-1]
+        flux = float(np.mean(np.sqrt(np.sum(diffs * diffs, axis=1)))) / math.sqrt(2.0)
+    else:
+        flux = 0.0
+    flux = float(np.clip(flux, 0.0, 1.0))
+
+    power = mags * mags
+    mean_spec = np.mean(power[active] if np.any(active) else power, axis=0) + 1e-18
+    k_top = max(3, len(mean_spec) // 20)
+    top_mean = float(np.mean(np.partition(mean_spec, -k_top)[-k_top:]))
+    med_pow = float(np.median(mean_spec)) + 1e-18
+    raw_ratio = top_mean / med_pow
+    tonal_peakiness = float(np.clip(math.log10(max(1.0, raw_ratio)) / 5.5, 0.0, 1.0))
+
+    rms_per_frame = np.sqrt(np.mean(frames * frames, axis=1))
+    active_rms = rms_per_frame[rms_per_frame > (0.05 * float(np.max(rms_per_frame)))]
+    if len(active_rms) >= 2:
+        env_cv = float(np.clip(np.std(active_rms) / (float(np.mean(active_rms)) + 1e-9), 0.0, 1.2)) / 1.2
+    else:
+        env_cv = 0.0
+
+    # Reward time-varying spectral evolution & micro-dynamics; penalize narrow static sine peakiness
+    organic_raw = 0.56 * min(1.0, flux * 2.1) + 0.24 * env_cv + 0.20 * (1.0 - tonal_peakiness)
+    organic_index = float(np.clip(organic_raw, 0.0, 1.0))
+    return {
+        "spectral_flux": round(flux, 4),
+        "tonal_peakiness": round(tonal_peakiness, 4),
+        "organic_index": round(organic_index, 4),
+    }
+
+
 def _augment_psychoacoustic_metrics(wave: np.ndarray, m: dict[str, Any], sample_rate: int = SAMPLE_RATE) -> dict[str, Any]:
-    """Attach Bark 24-band profile, mud/harshness ratios, and EBU R128 dynamics to a metrics dict."""
+    """Attach Bark 24-band profile, mud/harshness ratios, EBU R128 dynamics, and organicity metrics."""
     bark_profile, bark_peak, mud_ratio, harsh_ratio = compute_bark_profile(wave, sample_rate)
     dyn = compute_loudness_dynamics(wave, sample_rate)
+    org = compute_organic_metrics(wave, sample_rate)
     m["mud_ratio"] = mud_ratio
     m["harshness_ratio"] = harsh_ratio
     m["bark_peak_band"] = bark_peak
@@ -152,6 +212,9 @@ def _augment_psychoacoustic_metrics(wave: np.ndarray, m: dict[str, Any], sample_
     m["momentary_lufs_max"] = dyn["momentary_lufs_max"]
     m["short_term_lufs_max"] = dyn["short_term_lufs_max"]
     m["lra_lu"] = dyn["lra_lu"]
+    m["spectral_flux"] = org["spectral_flux"]
+    m["tonal_peakiness"] = org["tonal_peakiness"]
+    m["organic_index"] = org["organic_index"]
     return m
 
 
@@ -574,11 +637,12 @@ def save_acoustic_baseline(
             "max_variant_corr": corrs.get(sid, entry.get("max_variant_corr", 0.0)),
         }
     baseline = {
-        "schema_version": 5,
+        "schema_version": 6,
         "total_events": len(events_snap),
         "total_ogg_files": manifest.get("ogg_count", 0),
         "worst_correlation": quality_report.get("worst_correlation", 0.0),
         "mean_timbral_diversity": quality_report.get("mean_timbral_diversity", 0.0),
+        "mean_organic_index": quality_report.get("mean_organic_index", 0.0),
         "events": events_snap,
     }
     baseline_path.parent.mkdir(parents=True, exist_ok=True)
@@ -736,6 +800,7 @@ def build_audition_html(
             "max_true_peak_dbfs": quality_report.get("max_true_peak_dbfs"),
             "loop_seam_ok": quality_report.get("loop_seam_ok", True),
             "mean_timbral_diversity": quality_report.get("mean_timbral_diversity", 0.0),
+            "mean_organic_index": quality_report.get("mean_organic_index", 0.0),
             "baseline_ok": (baseline_diff or {}).get("ok"),
             "masking": masking_data,
             "stem_qc": stem_qc,
@@ -752,7 +817,7 @@ def build_audition_html(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mycelial Mind — Sound Studio Audition Console v5 ({len(rows)} eventos)</title>
+  <title>Mycelial Mind — Sound Studio Audition Console v6 ({len(rows)} eventos)</title>
   <style>
     :root {{
       --bg: #0c0d12;
@@ -847,8 +912,8 @@ def build_audition_html(
 <body>
   <header>
     <div>
-      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v5 (DSP v5 + HPSS Alineado + Bark Unmasking + EFX Sim)")}</h1>
-      <div class="sub">Audita los 5 motores DSP v5, 69 stems RTX 4060, Bark Unmasking (1450/3200 Hz), EBU R128 LRA/ST-LUFS y simulador OpenAL EFX / Inmersión.</div>
+      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v6 (Bio-Organic Realism + 95 Stems RTX + HPSS + Bark Unmasking + EFX Sim)")}</h1>
+      <div class="sub">Audita los 5 motores DSP v6, 95 stems RTX 4060 (@ 28 pasos), Bark Unmasking (1450/3200 Hz), Organic Index y simulador OpenAL EFX / Inmersión.</div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
@@ -1058,6 +1123,7 @@ def build_audition_html(
     const unmaskActive = DATA.masking && DATA.masking.bark_unmasking_applied ? " · Carve 1450/3200Hz" : "";
     const maskBadge = `<span class="badge ${{maskOk ? 'ok' : 'warn'}}">Bark Masking ${{maskOk ? 'CLEAR' : 'REVIEW'}}${{unmaskActive}}</span>`;
     const divBadge = `<span class="badge">Diversidad μ=${{DATA.mean_timbral_diversity ?? 0}}</span>`;
+    const orgBadge = `<span class="badge">Org μ=${{DATA.mean_organic_index ?? 0}}</span>`;
     statsEl.innerHTML = [
       `<span class="badge">${{DATA.total_events}} eventos ModSounds</span>`,
       `<span class="badge">${{DATA.total_ogg_files}} archivos .ogg mono</span>`,
@@ -1066,7 +1132,8 @@ def build_audition_html(
       seamBadge,
       maskBadge,
       divBadge,
-      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v5 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
+      orgBadge,
+      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v6 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
     ].join("");
 
     // Populate Bark Masking matrix & layer chart
@@ -1570,6 +1637,7 @@ def build_audition_html(
         const tpText = m.true_peak_dbfs != null ? ` · TP4x:${{m.true_peak_dbfs}}` : "";
         const lraText = m.lra_lu != null ? ` · ST:${{m.short_term_lufs_max}} · LRA:${{m.lra_lu}}LU` : "";
         const mudText = m.mud_ratio != null ? ` · Mud:${{Math.round(m.mud_ratio * 100)}}% Harsh:${{Math.round(m.harshness_ratio * 100)}}% · Bark#${{m.bark_peak_band}} (${{m.bark_peak_hz}}Hz)` : "";
+        const orgText = m.organic_index != null ? ` · Org:${{m.organic_index}}` : "";
         const seamText = e.is_loop && m.loop_seam_delta != null ? ` · SeamΔ:${{m.loop_seam_delta}}` : "";
         const baseD = e.baseline_delta ? ` · BaseΔRMS:${{e.baseline_delta.active_rms_delta_db > 0 ? '+' : ''}}${{e.baseline_delta.active_rms_delta_db}}dB` : "";
         const stemLabel = e.stem_id ? `<span class="pill" style="border-color:#22d3ee;color:#22d3ee;">AI-Hybrid · Stem: ${{e.stem_id}}</span>` : "";
@@ -1588,7 +1656,7 @@ def build_audition_html(
           <td><div class="takes">${{randBtn}}${{varBtns}}${{seamBtn}}${{abBtns}}</div></td>
           <td class="metrics">
             RMS:${{m.active_rms_dbfs}} · LUFS:${{m.integrated_lufs}}${{lraText}}${{tpText}} · Crest:${{m.crest_db}}dB<br/>
-            Cent:${{m.spectral_centroid_hz}}Hz · Dur:${{m.duration_secs}}s${{mudText}}${{corrText}}${{seamText}}${{baseD}}
+            Cent:${{m.spectral_centroid_hz}}Hz · Dur:${{m.duration_secs}}s${{mudText}}${{orgText}}${{corrText}}${{seamText}}${{baseD}}
           </td>
         </tr>`;
       }}).join("");

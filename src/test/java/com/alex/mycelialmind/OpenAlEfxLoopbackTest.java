@@ -380,6 +380,65 @@ public class OpenAlEfxLoopbackTest {
         }
     }
 
+    @Test
+    void playbackHumanizerAppliesPitchAndGainWithoutCompoundingOnLiveUpdates() {
+        short[] pcm = synthesizeMultiTonePcm(
+                SAMPLE_RATE,
+                new double[]{440.0D},
+                0.35D
+        );
+        int bufferId = createMono16Buffer(pcm);
+        int sourceId = AL10.alGenSources();
+        assertNotEquals(0, sourceId);
+        long humanizedBefore = OpenAlEfxBridge.getHumanizedSourcesCount();
+        try {
+            AL10.alSourcei(sourceId, AL10.AL_BUFFER, bufferId);
+            AL10.alSourcei(sourceId, AL10.AL_LOOPING, AL10.AL_TRUE);
+            AL10.alSource3f(sourceId, AL10.AL_POSITION, 0.0F, 0.0F, -1.0F);
+            AL10.alSourcef(sourceId, AL10.AL_PITCH, 1.0F);
+            AL10.alSourcef(sourceId, AL10.AL_GAIN, 1.0F);
+
+            SourceAcousticSnapshot initialSnap = new SourceAcousticSnapshot(
+                    AcousticEnvironment.OPEN_AIR,
+                    0.0F,
+                    AcousticPhysicsEngine.SubmersionState.NONE,
+                    false,
+                    10L,
+                    1.12F,
+                    0.85F
+            );
+            assertTrue(OpenAlEfxBridge.applyToSource(sourceId, initialSnap),
+                    "Initial applyToSource with humanizer must succeed");
+            assertTrue(OpenAlEfxBridge.getHumanizedSourcesCount() > humanizedBefore);
+            assertEquals(1.12F, AL10.alGetSourcef(sourceId, AL10.AL_PITCH), 1e-4F);
+            assertEquals(0.85F, AL10.alGetSourcef(sourceId, AL10.AL_GAIN), 1e-4F);
+
+            AL10.alSourcePlay(sourceId);
+            renderStereoFrames(1024);
+            float[] shiftedFrames = renderStereoFrames(FFT_SIZE);
+            double[] spec = computeStereoPowerSpectrum(shiftedFrames, 0, FFT_SIZE);
+            double origBand = bandPower(spec, 425.0D, 455.0D);
+            double shiftedBand = bandPower(spec, 478.0D, 508.0D);
+            assertTrue(shiftedBand > origBand * 4.0D,
+                    "1.12x pitch multiplier should shift 440 Hz tone into ~493 Hz bin (orig="
+                            + origBand + ", shifted=" + shiftedBand + ")");
+
+            // Simulate 4 live dynamic tracking updates; pitch and gain must NOT compound!
+            for (int i = 0; i < 4; i++) {
+                assertTrue(OpenAlEfxBridge.updateActiveSource(sourceId, initialSnap));
+            }
+            assertEquals(1.12F, AL10.alGetSourcef(sourceId, AL10.AL_PITCH), 1e-4F,
+                    "updateActiveSource must not compound initial AL_PITCH humanization");
+            assertEquals(0.85F, AL10.alGetSourcef(sourceId, AL10.AL_GAIN), 1e-4F,
+                    "updateActiveSource must not compound initial AL_GAIN humanization");
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError());
+        } finally {
+            AL10.alSourceStop(sourceId);
+            AL10.alDeleteSources(sourceId);
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
     private SpectralMeasurement measurePlaybackSpectrum(int bufferId, SourceAcousticSnapshot snapshot) {
         int sourceId = createUnitSource(bufferId);
         try {

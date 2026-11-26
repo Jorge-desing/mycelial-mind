@@ -61,6 +61,8 @@ public final class ClientAcousticController {
     private static final long TRACKED_CHANNEL_TTL_MS = 18_000L;
 
     private static final SwarmVoiceBudget VOICE_BUDGET = new SwarmVoiceBudget();
+    private static final AcousticPhysicsEngine.PlaybackHumanizer PLAYBACK_HUMANIZER =
+            new AcousticPhysicsEngine.PlaybackHumanizer();
     private static final Map<SoundInstance, OpenAlEfxBridge.SourceAcousticSnapshot> PENDING_SNAPSHOTS =
             new ConcurrentHashMap<>();
     private static final Map<Channel, TrackedChannel> TRACKED_CHANNELS = new ConcurrentHashMap<>();
@@ -119,6 +121,7 @@ public final class ClientAcousticController {
 
     public static void resetSession() {
         VOICE_BUDGET.reset();
+        PLAYBACK_HUMANIZER.reset();
         PENDING_SNAPSHOTS.clear();
         TRACKED_CHANNELS.clear();
         currentEnvironment = AcousticEnvironment.OPEN_AIR;
@@ -234,6 +237,10 @@ public final class ClientAcousticController {
         SubmersionState submersion = resolvePlayerSubmersion(mc);
         currentSubmersion = submersion;
         boolean applyReverb = !sound.isLooping() || MycelialMind.MODID.equals(namespace);
+        long nowMs = System.currentTimeMillis();
+        AcousticPhysicsEngine.HumanizedPlayback humanized = MycelialMind.MODID.equals(namespace)
+                ? PLAYBACK_HUMANIZER.nextForSound(path, sound.isLooping(), sound.isRelative(), nowMs)
+                : AcousticPhysicsEngine.HumanizedPlayback.IDENTITY;
         PENDING_SNAPSHOTS.put(
                 sound,
                 new OpenAlEfxBridge.SourceAcousticSnapshot(
@@ -241,7 +248,9 @@ public final class ClientAcousticController {
                         occlusion,
                         submersion,
                         applyReverb,
-                        System.currentTimeMillis()
+                        nowMs,
+                        humanized.pitchMultiplier(),
+                        humanized.gainMultiplier()
                 )
         );
     }
@@ -596,6 +605,10 @@ public final class ClientAcousticController {
 
     public static long getVoiceSuppressedCount() {
         return VOICE_BUDGET.getSuppressedCount();
+    }
+
+    public static long getHumanizedPlaybackCount() {
+        return PLAYBACK_HUMANIZER.getHumanizedCount();
     }
 
     public static int getActiveVoiceWindowCount() {

@@ -16,11 +16,12 @@ public final class ClientAudioDiagnostics {
     public static String formatClientTelemetry() {
         return String.format(
                 Locale.ROOT,
-                "EFX=%s (%s, slots=%d, applied=%d, dynUpdates=%d, tracked=%d, vanillaZones=%s) | Env=%s (enc=%.2f, wall=%.1fm, sinkhole=%s, submersion=%s, occ=%.2f) | VoiceBudget=%s (acc=%d, sup=%d, win=%d) | ActiveLoops=%d",
+                "EFX=%s (%s, slots=%d, applied=%d, humanized=%d, dynUpdates=%d, tracked=%d, vanillaZones=%s) | Env=%s (enc=%.2f, wall=%.1fm, sinkhole=%s, submersion=%s, occ=%.2f) | VoiceBudget=%s (acc=%d, sup=%d, win=%d) | ActiveLoops=%d",
                 OpenAlEfxBridge.isEfxSupported() && MycelialClientConfig.openAlEfxAcousticsEnabled(),
                 OpenAlEfxBridge.getStatusReason(),
                 OpenAlEfxBridge.getActiveSlotCount(),
                 OpenAlEfxBridge.getAppliedSourcesCount(),
+                ClientAcousticController.getHumanizedPlaybackCount(),
                 OpenAlEfxBridge.getDynamicUpdatesCount(),
                 ClientAcousticController.getTrackedChannelCount(),
                 MycelialClientConfig.openAlEfxVanillaInMycelialZones(),

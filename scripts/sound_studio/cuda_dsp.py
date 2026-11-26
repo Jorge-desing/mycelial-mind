@@ -19,6 +19,7 @@ _DEVICE_NAME = ""
 
 _THREAD_LOCAL = threading.local()
 _CACHE_LOCK = threading.Lock()
+_CUFFT_LOCK = threading.Lock()
 _FREQS_CACHE: dict[tuple[int, int], object] = {}
 _STEM_GPU_CACHE: dict[str, object] = {}
 _IR_GPU_CACHE: dict[str, object] = {}
@@ -39,6 +40,11 @@ def get_cuda_torch():
                     _TORCH_MOD = torch
                     _CUDA_READY = True
                     _DEVICE_NAME = str(torch.cuda.get_device_name(0))
+                    try:
+                        # Prevent Windows WDDM multi-stream cuFFT plan cache corruption across worker threads
+                        torch.backends.cuda.cufft_plan_cache.max_size = 0
+                    except Exception:
+                        pass
             except Exception:
                 _TORCH_MOD = None
                 _CUDA_READY = False
@@ -308,15 +314,18 @@ def _gpu_hpss_harmonic_soft(torch, sig_t, sample_rate: int, strength: float = 0.
     n_fft = 1024
     hop = 256
     win = torch.hann_window(n_fft, device="cuda", dtype=torch.float32)
-    stft = torch.stft(sig_t, n_fft=n_fft, hop_length=hop, win_length=n_fft, window=win, return_complex=True)
-    mag = stft.abs().unsqueeze(0).unsqueeze(0)
-    h_est = torch.nn.functional.avg_pool2d(mag, kernel_size=(1, 9), stride=1, padding=(0, 4))
-    p_est = torch.nn.functional.avg_pool2d(mag, kernel_size=(9, 1), stride=1, padding=(4, 0))
-    h2 = h_est * h_est
-    p2 = p_est * p_est
-    mask_h = (h2 / (h2 + p2 + 1e-9)).squeeze(0).squeeze(0)
-    blended = stft * ((1.0 - float(strength)) + float(strength) * mask_h)
-    return torch.istft(blended, n_fft=n_fft, hop_length=hop, win_length=n_fft, window=win, length=n)
+    with _CUFFT_LOCK:
+        stft = torch.stft(sig_t, n_fft=n_fft, hop_length=hop, win_length=n_fft, window=win, return_complex=True)
+        mag = stft.abs().unsqueeze(0).unsqueeze(0)
+        h_est = torch.nn.functional.avg_pool2d(mag, kernel_size=(1, 9), stride=1, padding=(0, 4))
+        p_est = torch.nn.functional.avg_pool2d(mag, kernel_size=(9, 1), stride=1, padding=(4, 0))
+        h2 = h_est * h_est
+        p2 = p_est * p_est
+        mask_h = (h2 / (h2 + p2 + 1e-9)).squeeze(0).squeeze(0)
+        blended = stft * ((1.0 - float(strength)) + float(strength) * mask_h)
+        out_t = torch.istft(blended, n_fft=n_fft, hop_length=hop, win_length=n_fft, window=win, length=n)
+        torch.cuda.current_stream().synchronize()
+    return out_t
 
 
 def _gpu_align_spectral_tilt(torch, stem_bp_t, dsp_bp_t, freqs, *, strength: float = 0.45):
@@ -377,15 +386,19 @@ def _apply_bandpass_and_envelope_gpu(
         m_air = _bandpass_mask_torch(torch, freqs, b3_lo, band_hi_hz, sample_rate)
         masks = torch.stack([m_sub, m_body, m_air], dim=0).unsqueeze(1)
         bands = torch.fft.irfft(spec_pair.unsqueeze(0) * masks, n=n_fft_bp, dim=-1)[..., :n]
-        win_sub = max(8, int(sample_rate * 28.0 / 1000.0))
-        win_body = max(8, int(sample_rate * 18.0 / 1000.0))
-        win_air = max(8, int(sample_rate * 11.0 / 1000.0))
+        win_sub = max(8, int(sample_rate * 55.0 / 1000.0))
+        win_body = max(8, int(sample_rate * 42.0 / 1000.0))
+        win_air = max(8, int(sample_rate * 30.0 / 1000.0))
         envs = _gpu_envelope_batch(
             torch,
             torch.stack([bands[0, 1], bands[1, 1], bands[2, 1]], dim=0),
             [win_sub, win_body, win_air],
         )
-        return (bands[0, 0] * envs[0]) + (bands[1, 0] * envs[1]) + (bands[2, 0] * envs[2])
+        return (
+            bands[0, 0] * (0.38 + 0.62 * envs[0])
+            + bands[1, 0] * (0.38 + 0.62 * envs[1])
+            + bands[2, 0] * (0.38 + 0.62 * envs[2])
+        )
 
     if dual:
         hi_start = max(band_lo_hz, split_hz * 0.85)
@@ -395,16 +408,16 @@ def _apply_bandpass_and_envelope_gpu(
         bands = torch.fft.irfft(spec_pair.unsqueeze(0) * masks, n=n_fft_bp, dim=-1)[..., :n]
         stem_lo, dsp_lo = bands[0, 0], bands[0, 1]
         stem_hi, dsp_hi = bands[1, 0], bands[1, 1]
-        win_lo = max(8, int(sample_rate * 22.0 / 1000.0))
-        win_hi = max(8, int(sample_rate * 14.0 / 1000.0))
+        win_lo = max(8, int(sample_rate * 48.0 / 1000.0))
+        win_hi = max(8, int(sample_rate * 34.0 / 1000.0))
         envs = _gpu_envelope_batch(torch, torch.stack([dsp_lo, dsp_hi], dim=0), [win_lo, win_hi])
-        return (stem_lo * envs[0]) + (stem_hi * envs[1])
+        return (stem_lo * (0.38 + 0.62 * envs[0])) + (stem_hi * (0.38 + 0.62 * envs[1]))
 
     m_bp = _bandpass_mask_torch(torch, freqs, band_lo_hz, band_hi_hz, sample_rate)
     stem_bp = torch.fft.irfft(spec_pair[0] * m_bp, n=n_fft_bp)[:n]
-    win = max(8, int(sample_rate * 18.0 / 1000.0))
+    win = max(8, int(sample_rate * 40.0 / 1000.0))
     env = _gpu_envelope_batch(torch, pair_t[1:2], [win])[0]
-    return stem_bp * env
+    return stem_bp * (0.38 + 0.62 * env)
 
 
 def gpu_dualband_blend_shape(
@@ -547,7 +560,7 @@ def gpu_blend_ai_stem(
 
         matched_stem = shaped_t * (dsp_rms / stem_rms)
         w_stem = float(mix_weight)
-        w_dsp = 1.0 - (w_stem * 0.55)
+        w_dsp = 1.0 - (w_stem * 0.72)
         out_t = (dsp_t * w_dsp) + (matched_stem * w_stem)
         return np.asarray(out_t.cpu().numpy(), dtype=np.float64)
 

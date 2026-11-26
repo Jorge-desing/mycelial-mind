@@ -447,6 +447,8 @@ def generate_all(
     masking_report = audit_spectral_masking(manifest_entries)
     multi_divs = [float(e.get("timbral_diversity", 0.0)) for e in manifest_entries if int(e.get("variations", 1)) > 1]
     mean_timbral_diversity = round(sum(multi_divs) / len(multi_divs), 4) if multi_divs else 0.0
+    organic_scores = [float((e.get("metrics") or {}).get("organic_index", 0.0)) for e in manifest_entries]  # type: ignore[union-attr]
+    mean_organic_index = round(sum(organic_scores) / len(organic_scores), 4) if organic_scores else 0.0
 
     worst_corr = round(max(event_correlations.values(), default=0.0), 4)
     max_true_peak = round(
@@ -474,6 +476,7 @@ def generate_all(
         "max_correlation_threshold": MAX_VARIATION_CORR,
         "worst_correlation": worst_corr,
         "mean_timbral_diversity": mean_timbral_diversity,
+        "mean_organic_index": mean_organic_index,
         "max_true_peak_dbfs": max_true_peak,
         "loop_seam_ok": len(loop_seam_failures) == 0,
         "loop_seam_failures": loop_seam_failures,
@@ -687,7 +690,7 @@ def main(argv: list[str] | None = None) -> int:
             f"in {qr['build_duration_secs']}s [{qr['acceleration_backend']}]."
         )
         print(
-            f"[Sound Studio] Acoustic QA ok={qr['ok']} | worst_corr={qr['worst_correlation']} | div={qr.get('mean_timbral_diversity')} "
+            f"[Sound Studio] Acoustic QA ok={qr['ok']} | worst_corr={qr['worst_correlation']} | div={qr.get('mean_timbral_diversity')} | org={qr.get('mean_organic_index')} "
             f"| max_tp={qr['max_true_peak_dbfs']} dBFS | seam_ok={qr['loop_seam_ok']} "
             f"| masking_ok={(qr.get('psychoacoustic_masking') or {}).get('ok')} | stems_ok={(qr.get('stem_qc_summary') or {}).get('ok')} "
             f"| failed_files={len(qr['failed_files'])}"

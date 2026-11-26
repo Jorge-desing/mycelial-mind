@@ -28,6 +28,7 @@ public final class OpenAlEfxBridge {
     private static final AtomicBoolean REINIT_REQUESTED = new AtomicBoolean(true);
     private static final AtomicLong APPLIED_SOURCES = new AtomicLong(0L);
     private static final AtomicLong DYNAMIC_UPDATES = new AtomicLong(0L);
+    private static final AtomicLong HUMANIZED_SOURCES = new AtomicLong(0L);
 
     private static volatile boolean externalModConflict = false;
     private static volatile boolean efxSupported = false;
@@ -51,8 +52,20 @@ public final class OpenAlEfxBridge {
             float occlusionFactor,
             SubmersionState submersion,
             boolean applyReverb,
-            long createdAtMs
+            long createdAtMs,
+            float pitchMultiplier,
+            float gainMultiplier
     ) {
+        public SourceAcousticSnapshot(
+                AcousticEnvironment environment,
+                float occlusionFactor,
+                SubmersionState submersion,
+                boolean applyReverb,
+                long createdAtMs
+        ) {
+            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs, 1.0F, 1.0F);
+        }
+
         public SourceAcousticSnapshot(
                 AcousticEnvironment environment,
                 float occlusionFactor,
@@ -65,7 +78,9 @@ public final class OpenAlEfxBridge {
                     occlusionFactor,
                     underwater ? SubmersionState.WATER : SubmersionState.NONE,
                     applyReverb,
-                    createdAtMs
+                    createdAtMs,
+                    1.0F,
+                    1.0F
             );
         }
 
@@ -155,7 +170,7 @@ public final class OpenAlEfxBridge {
         if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) {
             return false;
         }
-        boolean applied = applyToSource(sourceId, snapshot);
+        boolean applied = applyToSource(sourceId, snapshot, false);
         if (applied) {
             DYNAMIC_UPDATES.incrementAndGet();
         }
@@ -171,10 +186,18 @@ public final class OpenAlEfxBridge {
     }
 
     /**
-     * Applies precomputed environment reverb, direct occlusion low-pass filter, and air absorption
-     * directly to a raw OpenAL source handle on the active OpenAL audio thread.
+     * Applies precomputed environment reverb, direct occlusion low-pass filter, air absorption,
+     * and initial micro-prosody pitch/gain directly to a raw OpenAL source handle on the audio thread.
      */
     public static synchronized boolean applyToSource(int sourceId, SourceAcousticSnapshot snapshot) {
+        return applyToSource(sourceId, snapshot, true);
+    }
+
+    private static boolean applyToSource(
+            int sourceId,
+            SourceAcousticSnapshot snapshot,
+            boolean applyInitialHumanization
+    ) {
         if (sourceId <= 0 || snapshot == null) {
             return false;
         }
@@ -185,6 +208,31 @@ public final class OpenAlEfxBridge {
             return false;
         }
         try {
+            if (applyInitialHumanization) {
+                float pMul = Float.isFinite(snapshot.pitchMultiplier())
+                        ? Math.max(0.75F, Math.min(1.25F, snapshot.pitchMultiplier()))
+                        : 1.0F;
+                float gMul = Float.isFinite(snapshot.gainMultiplier())
+                        ? Math.max(0.65F, Math.min(1.15F, snapshot.gainMultiplier()))
+                        : 1.0F;
+                boolean modified = false;
+                if (Math.abs(pMul - 1.0F) > 1e-4F) {
+                    float basePitch = AL10.alGetSourcef(sourceId, AL10.AL_PITCH);
+                    float safeBasePitch = (Float.isFinite(basePitch) && basePitch > 0.05F) ? basePitch : 1.0F;
+                    AL10.alSourcef(sourceId, AL10.AL_PITCH, Math.max(0.5F, Math.min(2.0F, safeBasePitch * pMul)));
+                    modified = true;
+                }
+                if (Math.abs(gMul - 1.0F) > 1e-4F) {
+                    float baseGain = AL10.alGetSourcef(sourceId, AL10.AL_GAIN);
+                    float safeBaseGain = (Float.isFinite(baseGain) && baseGain > 0.0F) ? baseGain : 1.0F;
+                    AL10.alSourcef(sourceId, AL10.AL_GAIN, Math.max(0.02F, Math.min(1.5F, safeBaseGain * gMul)));
+                    modified = true;
+                }
+                if (modified) {
+                    HUMANIZED_SOURCES.incrementAndGet();
+                }
+            }
+
             float effectiveOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(
                     snapshot.occlusionFactor(), snapshot.submersion());
             int bucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(effectiveOcc * (OCCLUSION_BUCKETS - 1))));
@@ -501,6 +549,10 @@ public final class OpenAlEfxBridge {
 
     public static long getDynamicUpdatesCount() {
         return DYNAMIC_UPDATES.get();
+    }
+
+    public static long getHumanizedSourcesCount() {
+        return HUMANIZED_SOURCES.get();
     }
 
     public static int getActiveSlotCount() {

@@ -549,7 +549,7 @@ return {{
         and missing_artifacts.get("count") == 0
         and missing_artifacts.get("returned_count") == 0
     ),
-    "sound_studio_ok": sound_chk.get("ok"),
+    "sound_studio_ok": sound_chk.get("ok") and float(sound_chk.get("mean_organic_index", 0.0)) > 0.0,
     "sound_inspect_ok": (
         sound_inspect.get("ok")
         and sound_inspect.get("sound_id") == "boss_stagger_break"
@@ -560,6 +560,7 @@ return {{
         and sound_masking.get("beds_checked") == 11
         and sound_masking.get("bark_unmasking_applied") is True
         and sound_masking.get("high_risk_count") == 0
+        and float(sound_masking.get("mean_organic_index", 0.0)) > 0.0
     ),
     "codex_studio_ok": codex_chk.get("ok"),
     "live_colony_ok": (
@@ -568,7 +569,7 @@ return {{
         and (live_colony.get("cycle") or {{}}).get("last_grade") == "S"
     ),
     "diag_colony_ok": diag_colony.get("ok") is True and diag_colony.get("symptom") == "colony_dialects",
-    "unit_efx_ok": unit_efx.get("ok") is True and unit_efx.get("count", 0) >= 6,
+    "unit_efx_ok": unit_efx.get("ok") is True and unit_efx.get("count", 0) >= 7,
     "diag_audio_ok": diag_audio.get("ok") is True and diag_audio.get("symptom") == "audio_efx",
     "ref_matrix_ok": ref_matrix.get("ok") is True and "OpenAlEfxLoopbackTest" in ref_matrix.get("content", ""),
     "ai_refs_ok": (

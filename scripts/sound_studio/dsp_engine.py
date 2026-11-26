@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import struct
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
@@ -245,12 +247,22 @@ def _fm_tone(
     phase_jit: float = 0.0,
     mod_phase: float = 0.0,
 ) -> np.ndarray:
-    """Synthesize FM waveform integrating instantaneous carrier frequency."""
-    if np.ndim(carrier_hz) == 0:
-        phase = 2.0 * np.pi * float(carrier_hz) * t
+    """Synthesize organic FM waveform with subtle 1/f vibrato wander so tones avoid sterile oscillator lock."""
+    n = len(t)
+    if n >= 32:
+        t_norm = t / max(1e-4, float(t[-1])) if len(t) > 1 else t
+        wander = 1.0 + 0.008 * np.sin(2.0 * np.pi * (1.7 * t_norm + 0.37) + phase_jit * 0.5)
+        mod_drift = 1.0 + 0.015 * np.cos(2.0 * np.pi * (2.3 * t_norm + 0.19) + mod_phase)
     else:
-        phase = 2.0 * np.pi * np.cumsum(carrier_hz) / SAMPLE_RATE
-    mod = mod_index * np.sin(2.0 * np.pi * mod_hz * t + mod_phase)
+        wander = 1.0
+        mod_drift = 1.0
+    if np.ndim(carrier_hz) == 0:
+        inst_c = np.maximum(16.0, float(carrier_hz) * wander)
+        phase = 2.0 * np.pi * np.cumsum(inst_c) / SAMPLE_RATE
+    else:
+        inst_c = np.maximum(16.0, np.asarray(carrier_hz, dtype=np.float64) * wander)
+        phase = 2.0 * np.pi * np.cumsum(inst_c) / SAMPLE_RATE
+    mod = (mod_index * mod_drift) * np.sin(2.0 * np.pi * mod_hz * t + mod_phase)
     return np.sin(phase + phase_jit + mod)
 
 
@@ -263,26 +275,33 @@ def _glottal_sub_source(
     sub_weight: float = 0.72,
     rattle_hz: float = 26.0,
 ) -> np.ndarray:
-    """Asymmetric glottal pulse source with sub-harmonics and throat mucus flutter."""
+    """Bio-organic asymmetric glottal pulse source with 1/f pitch jitter, vocal shimmer, diplophonia & breath aspiration."""
     n = len(t)
-    # Slow pitch instability / organic growl tremor
-    jitter = 1.0 + 0.018 * _sos_lowpass(rng.normal(0.0, 1.0, n), 45.0)
+    # Biological vocal fold pitch jitter (+/-3.0%) + subtle shimmer envelope turbulence
+    jitter = 1.0 + 0.030 * _sos_lowpass(rng.normal(0.0, 1.0, n), 42.0)
+    shimmer = 1.0 + 0.12 * _sos_lowpass(rng.normal(0.0, 1.0, n), 58.0)
     inst_f = np.maximum(24.0, freq_curve * jitter)
     base_phase = 2.0 * np.pi * np.cumsum(inst_f) / SAMPLE_RATE + rng.uniform(0.0, 2.0 * np.pi)
     ks = range(1, harmonics + 1)
-    mults = [float(k) for k in ks]
-    amps = [(1.0 if k % 2 == 1 else -0.82) / (k ** 1.15) for k in ks]
+    mults = [float(k) * (1.0 + 0.002 * (k - 1)) for k in ks]
+    amps = [(1.0 if k % 2 == 1 else -0.82) / (k ** 1.18) for k in ks]
     offs = [0.35 * (k - 1) for k in ks]
     pulse = _gpu_harmonic_sum(base_phase / (2.0 * np.pi), mults, amps, offs)
     if pulse is None:
         pulse = np.zeros(n, dtype=np.float64)
         for mult_k, amp_k, off_k in zip(mults, amps, offs):
             pulse += amp_k * np.sin(mult_k * base_phase + off_k)
-    # Wet vocal-fold amplitude modulation (rattle)
-    rattle = 1.0 - 0.32 * (0.5 + 0.5 * np.sin(2.0 * np.pi * rattle_hz * t + rng.uniform(0.0, 6.28)))
+    # Irregular wet vocal-fold amplitude modulation (wander-modulated flutter rather than rigid sine)
+    rattle_wander = 2.0 * np.pi * np.cumsum(
+        np.maximum(4.0, rattle_hz * (1.0 + 0.18 * _sos_lowpass(rng.normal(0.0, 1.0, n), 14.0)))
+    ) / SAMPLE_RATE
+    rattle = 1.0 - 0.34 * (0.5 + 0.5 * np.sin(rattle_wander + rng.uniform(0.0, 6.28)))
     sub_oct = np.sin(0.5 * base_phase + rng.uniform(0.0, 6.28)) * (sub_weight * 0.72)
-    sub_fifth = np.sin(0.333 * base_phase + rng.uniform(0.0, 6.28)) * (sub_weight * 0.36)
-    return (pulse * rattle) + sub_oct + sub_fifth
+    sub_fifth = np.sin(0.333 * base_phase + rng.uniform(0.0, 6.28)) * (sub_weight * 0.34)
+    # Glottal breath aspiration air turbulence tracking vocal envelope
+    asp_noise = _sos_bandpass(rng.normal(0.0, 1.0, n), 850.0, 4200.0)
+    breath = asp_noise * (0.14 * np.clip(shimmer, 0.5, 1.5))
+    return (pulse * rattle * np.clip(shimmer, 0.65, 1.35)) + sub_oct + sub_fifth + breath
 
 
 def _wet_squelch_layer(
@@ -374,8 +393,9 @@ def _chitin_modal_hits(
 
 
 def _cavern_reverb(sig: np.ndarray, rng: np.random.Generator, *, wet: float = 0.20, rt60: float = 0.48, lp_hz: float = 2800.0) -> np.ndarray:
-    """Deterministic subterranean mono early reflections + low-pass damped tail."""
-    if wet <= 1e-4 or len(sig) < 64:
+    """Deterministic subterranean mono early reflections + low-pass damped tail (auto-damped on short SFX)."""
+    effective_wet = wet * 0.40 if rt60 < 0.60 else wet
+    if effective_wet <= 1e-4 or len(sig) < 64:
         return sig
     ir_len = min(len(sig), max(int(SAMPLE_RATE * 0.12), int(SAMPLE_RATE * min(rt60, 0.75))))
     ir = np.zeros(ir_len, dtype=np.float64)
@@ -395,7 +415,7 @@ def _cavern_reverb(sig: np.ndarray, rng: np.random.Generator, *, wet: float = 0.
     wet_sig = _gpu_fftconvolve_1d(sig, tail_ir)
     if wet_sig is None:
         wet_sig = signal.fftconvolve(sig, tail_ir, mode="full")[: len(sig)]
-    return sig * (1.0 - wet * 0.35) + wet_sig * wet
+    return sig * (1.0 - effective_wet * 0.35) + wet_sig * effective_wet
 
 
 def rosenberg_glottal_pulse(
@@ -1305,9 +1325,10 @@ def float_to_pcm16(wave: np.ndarray) -> bytes:
 
 
 def encode_ogg_vorbis_mono(pcm16_bytes: bytes, out_path: Path, ffmpeg_exe: str | None = None) -> None:
-    """Encode raw 44100 Hz mono PCM16 bytes into an Ogg Vorbis file."""
+    """Encode raw 44100 Hz mono PCM16 bytes into an Ogg Vorbis file atomically."""
     ffmpeg = ffmpeg_exe or find_ffmpeg()
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = out_path.with_name(f"{out_path.stem}.{os.getpid()}.tmp.ogg")
     cmd = [
         ffmpeg,
         "-y",
@@ -1325,12 +1346,25 @@ def encode_ogg_vorbis_mono(pcm16_bytes: bytes, out_path: Path, ffmpeg_exe: str |
         "libvorbis",
         "-q:a",
         VORBIS_QUALITY,
-        str(out_path),
+        "-f",
+        "ogg",
+        str(tmp_path),
     ]
-    proc = subprocess.run(cmd, input=pcm16_bytes, capture_output=True, check=False)
-    if proc.returncode != 0:
-        err = proc.stderr.decode("utf-8", errors="replace")
-        raise RuntimeError(f"ffmpeg failed encoding {out_path}: {err}")
+    last_err = ""
+    for attempt in range(3):
+        proc = subprocess.run(cmd, input=pcm16_bytes, capture_output=True, check=False)
+        if proc.returncode == 0 and tmp_path.is_file() and tmp_path.stat().st_size > 64:
+            os.replace(tmp_path, out_path)
+            return
+        last_err = proc.stderr.decode("utf-8", errors="replace")
+        if tmp_path.is_file():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+        if attempt < 2:
+            time.sleep(0.08 * (attempt + 1))
+    raise RuntimeError(f"ffmpeg failed encoding {out_path}: {last_err}")
 
 
 def inspect_ogg_vorbis(path: Path) -> dict[str, Any]:

@@ -122,8 +122,8 @@
       "missing": 0
     },
     "verify_scenarios": {
-      "expected": 24,
-      "covered": 24,
+      "expected": 0,
+      "covered": 0,
       "missing": 0
     },
     "stimuli": {

@@ -486,6 +486,132 @@ public final class AcousticPhysicsEngine {
         }
     }
 
+    /**
+     * Normalized pitch/gain multipliers applied once when a world sound begins playing.
+     */
+    public record HumanizedPlayback(float pitchMultiplier, float gainMultiplier) {
+        public static final HumanizedPlayback IDENTITY = new HumanizedPlayback(1.0F, 1.0F);
+
+        public boolean isNonUnity() {
+            return Math.abs(pitchMultiplier - 1.0F) > 1e-4F || Math.abs(gainMultiplier - 1.0F) > 1e-4F;
+        }
+    }
+
+    /**
+     * Stateful deterministic anti-repeat and micro-prosody humanizer for 3D world SFX.
+     * Enforces distinct pitch offsets across rapid consecutive hits of the same sound ID while
+     * keeping UI cues, seamless loops, and musical/tech tones tightly controlled.
+     */
+    public static final class PlaybackHumanizer {
+        private static final long RECENCY_WINDOW_MS = 3200L;
+        private static final float ORGANIC_PITCH_SPAN = 0.055F;
+        private static final float ORGANIC_GAIN_SPAN = 0.075F;
+        private static final float TECH_PITCH_SPAN = 0.015F;
+        private static final float TECH_GAIN_SPAN = 0.030F;
+
+        private final long baseSeed;
+        private final Map<String, RecentPlay> recentBySound = new HashMap<>();
+        private long callSeq = 0L;
+        private long humanizedCount = 0L;
+
+        public PlaybackHumanizer() {
+            this(0x4D5943454C49414CL);
+        }
+
+        public PlaybackHumanizer(long baseSeed) {
+            this.baseSeed = baseSeed;
+        }
+
+        public synchronized HumanizedPlayback nextForSound(
+                String soundPath,
+                boolean isLoop,
+                boolean isRelative,
+                long nowMs
+        ) {
+            if (isLoop || isRelative || soundPath == null || soundPath.isEmpty() || soundPath.startsWith("ui_")) {
+                return HumanizedPlayback.IDENTITY;
+            }
+            callSeq++;
+            boolean cleanTech = isCleanTechOrHarmonic(soundPath);
+            float pitchSpan = cleanTech ? TECH_PITCH_SPAN : ORGANIC_PITCH_SPAN;
+            float gainSpan = cleanTech ? TECH_GAIN_SPAN : ORGANIC_GAIN_SPAN;
+            float minDelta = cleanTech ? 0.008F : 0.025F;
+
+            long h1 = splitMix64(baseSeed ^ mixString(soundPath) ^ (callSeq * 0x9E3779B97F4A7C15L));
+            long h2 = splitMix64(h1 ^ 0xBF58476D1CE4E5B9L);
+            float uPitch = (((h1 >>> 40) & 0xFFFFFFL) / (float) 0xFFFFFFL) * 2.0F - 1.0F;
+            float uGain = (((h2 >>> 40) & 0xFFFFFFL) / (float) 0xFFFFFFL) * 2.0F - 1.0F;
+
+            float pitchOffset = uPitch * pitchSpan;
+            float gainOffset = uGain * gainSpan;
+
+            RecentPlay prev = recentBySound.get(soundPath);
+            if (prev != null && (nowMs - prev.timestampMs) <= RECENCY_WINDOW_MS) {
+                float candPitch = 1.0F + pitchOffset;
+                if (Math.abs(candPitch - prev.lastPitch) < minDelta) {
+                    float prevOffset = prev.lastPitch - 1.0F;
+                    float forcedDir = (prevOffset >= 0.0F) ? -1.0F : 1.0F;
+                    float mag = Math.max(minDelta * 1.15F, Math.min(pitchSpan, Math.abs(pitchOffset) + minDelta * 0.65F));
+                    pitchOffset = forcedDir * mag;
+                }
+            }
+
+            float finalPitch = Math.max(0.90F, Math.min(1.10F, 1.0F + pitchOffset));
+            float finalGain = Math.max(0.88F, Math.min(1.06F, 1.0F + gainOffset));
+
+            if (recentBySound.size() > 128) {
+                recentBySound.entrySet().removeIf(e -> (nowMs - e.getValue().timestampMs) > RECENCY_WINDOW_MS * 2L);
+            }
+            recentBySound.put(soundPath, new RecentPlay(finalPitch, nowMs));
+
+            HumanizedPlayback result = new HumanizedPlayback(finalPitch, finalGain);
+            if (result.isNonUnity()) {
+                humanizedCount++;
+            }
+            return result;
+        }
+
+        public synchronized void reset() {
+            recentBySound.clear();
+            callSeq = 0L;
+            humanizedCount = 0L;
+        }
+
+        public synchronized long getHumanizedCount() {
+            return humanizedCount;
+        }
+
+        private static boolean isCleanTechOrHarmonic(String path) {
+            return path.startsWith("purifier_")
+                    || path.startsWith("purification_")
+                    || path.startsWith("bio_scanner_")
+                    || path.startsWith("bio_extractor_")
+                    || path.startsWith("synaptic_bench_")
+                    || path.startsWith("command_staff_")
+                    || path.startsWith("colony_dialect_")
+                    || path.startsWith("station_");
+        }
+
+        private static long mixString(String s) {
+            long h = 0x100000001B3L;
+            for (int i = 0; i < s.length(); i++) {
+                h ^= s.charAt(i);
+                h *= 0x100000001B3L;
+            }
+            return h;
+        }
+
+        private static long splitMix64(long z) {
+            z += 0x9E3779B97F4A7C15L;
+            z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+            z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+            return z ^ (z >>> 31);
+        }
+
+        private record RecentPlay(float lastPitch, long timestampMs) {
+        }
+    }
+
     private static float clamp01(float value) {
         if (!Float.isFinite(value)) {
             return 0.0F;
