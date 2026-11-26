@@ -36,7 +36,8 @@
 | `read_mod_file` | `start_line=1`, `end_line=200`; el servidor recorta a **400 líneas** por llamada. |
 | `search_mod_code` | `scope="src"`, `file_ext=".java"`, `max_results=50`, `ignore_case=false` (regex). |
 | `list_gametests` | `batch_filter=""` filtra por batch. |
-| `run_gradle_task` | `tasks` obligatorio; `timeout_secs=300`, `max_workers=2`, `no_daemon=false`, `offline=None` (auto `--offline` con `.gradle-user-home`), **`isolated_gametests=false`** (inyecta `-PisolatedGameTests=true` si `runGameTestServer` está en `tasks`). También admite `-PdialectVisualSmoke=true` junto a `runVisualSmoke`. `publishMods` solo se ejecuta con `-PpublishDryRun=true` forzado y rechaza banderas extra. Devuelve `ok`, `error_lines`, `summary_markers`. |
+| `list_unit_tests` | `suite_filter=""` filtra por clase/archivo JUnit 6 (ej. `OpenAlEfxLoopbackTest`); devuelve `count`, `suites` y `tests`. |
+| `run_gradle_task` | `tasks` obligatorio; `timeout_secs=300`, `max_workers=2`, `no_daemon=false`, `offline=None` (auto `--offline` con `.gradle-user-home`), **`isolated_gametests=false`** (`-PisolatedGameTests=true` si `runGameTestServer` está en `tasks`), **`test_filter=""`** (`--tests <filter>` si `test` está en `tasks`), **`visual_smoke_mode=""`** (`default\|dialect\|relic\|particle\|expedition` → `-P<mode>VisualSmoke=true` si `runVisualSmoke` está en `tasks`). `publishMods` solo corre en dry-run estricto y rechaza filtros/banderas extra. Devuelve `ok`, `error_lines`, `summary_markers`. |
 | `run_verify_mod` | `timeout_secs=540`; flags `include_server_smoke`, `include_visual_smoke`, `include_structure_visual_smoke`, `include_worldgen_audit`, `worldgen_audit_radius=8`, `force_regenerate`, `no_daemon`. |
 | `manage_verify_cache` | `action="status"\|"clear"`, `scope="all"\|"gradle"\|"studios"` sobre `build/.verify-stamps/`. |
 | `run_model_studio` | `check_only=true`, `run_tests=true`. |

@@ -5,8 +5,8 @@ description: >-
   Mind: conexión con DeepSeek Harness y otros clientes MCP, descubrimiento con
   search/get_schema, sandbox Monty en execute (50 llamadas, 600 s, 100 MB), las
   67 herramientas del bridge (NeoForge 21.1.267, Colonia Soberana/Dialectos,
-  Ciclos, Expediciones y Sound Studio v4), ciclo servidor+cliente aislado,
-  auditorías y fallback de consola.
+  Ciclos, Expediciones, HiveBrain y Sound Studio v5), matriz de 147 JUnit / 201
+  GameTests, ciclo servidor+cliente aislado, auditorías y fallback de consola.
 ---
 
 # Guía Maestra de FastMCP `CodeMode` (`mycelial-mind-dev`)
@@ -39,10 +39,10 @@ description: >-
 
 | Objetivo | Herramientas clave | Detalle |
 | --- | --- | --- |
-| Explorar código, registros, IA/Colonia, tests, métricas o caché del bridge | `list_tool_tags`, `get_bridge_health`, `get_bridge_metrics`, `get_registered_content`, `get_hive_ai_overview` (`hive/` + `colony/`), `list_gametests`, `list_unit_tests`, `get_memory_tail`, `capture_audit_snapshot`, `diff_audit_snapshots`, `clear_bridge_cache` | [references/catalog-and-sandbox.md](references/catalog-and-sandbox.md) |
-| Servidor aislado, RCON (`/mycelial colony`, `cycle`, `verify`), `spark`, MC Pilot, JFR y reportes en vivo | `start_smoke_server`, `start_live_session`, `run_live_scenario` (incl. `colony_and_dialects`, `cycles_and_endgame`), `get_live_hive_status`, `get_live_colony_status`, `run_live_verify_scenario`, `rcon_command`, `run_rcon_batch`, `run_rcon_verify_suite`, `collect_spark_tps`, `capture_mcpilot_screenshot`, `run_jfr`, `summarize_jfr`, `get_latest_live_report`, `compare_live_reports`, `stop_live_session` | [references/live-game-lifecycle.md](references/live-game-lifecycle.md) |
-| Auditorías de activos, modelos 3D, texturas PBR, partículas, audio Ogg, códice, GameTests aislados, UI Nexo, build | `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio` (`only`, `changed_only`, `check_baseline`, `update_baseline`), `inspect_sound_event`, `audit_sound_masking`, `run_codex_studio`, `run_structure_studio`, `audit_mod_assets`, `run_gradle_task` (`isolated_gametests=True`, `-PdialectVisualSmoke=true`), `run_verify_mod`, `manage_verify_cache`, `check_visual_regression`, `check_structure_visual_regression`, `read_diagnostic_logs` | [references/audit-playbooks.md](references/audit-playbooks.md) |
-| Diagnosticar fallos, regresiones, Colonia/Dialectos, Expediciones/Ciclos, cuelgues o TPS/FPS (`/mycelial-diagnostics`) | `collect_diagnostic_bundle`, `diagnose_symptom` (`colony_dialects`, `expeditions_cycles`, ...), `get_diagnostics_guide`, `list_diagnostic_artifacts`, `run_live_scenario`, `compare_live_reports` | [references/audit-playbooks.md](references/audit-playbooks.md) y [../mycelial-diagnostics/SKILL.md](../mycelial-diagnostics/SKILL.md) |
+| Explorar código, registros, IA/Colonia, tests, métricas o caché del bridge | `list_tool_tags`, `get_bridge_health`, `get_bridge_metrics`, `get_registered_content`, `get_hive_ai_overview` (`hive/` + `colony/`), `list_gametests`, `list_unit_tests` (`suite_filter`), `get_memory_tail`, `capture_audit_snapshot`, `diff_audit_snapshots`, `clear_bridge_cache` | [references/catalog-and-sandbox.md](references/catalog-and-sandbox.md) |
+| Servidor aislado, RCON (`/mycelial colony`, `cycle`, `audio`, `ai`, `filament`, `verify`), `spark`, MC Pilot, JFR y reportes en vivo | `start_smoke_server`, `start_live_session`, `run_live_scenario` (incl. `colony_and_dialects`, `cycles_and_endgame`, `sinkhole_and_worldgen`, `audio_and_ai`), `get_live_hive_status`, `get_live_colony_status`, `run_live_verify_scenario` (`24` escenarios), `rcon_command`, `run_rcon_batch`, `run_rcon_verify_suite`, `collect_spark_tps`, `capture_mcpilot_screenshot`, `run_jfr`, `summarize_jfr`, `get_latest_live_report`, `compare_live_reports`, `stop_live_session` | [references/live-game-lifecycle.md](references/live-game-lifecycle.md) |
+| Matriz de tests y auditorías (147 JUnit, 201 GameTests, 5 modos VisualSmoke, 6 estudios Python) | `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio` v5 (`only`, `changed_only`, `check_baseline`, `update_baseline`), `inspect_sound_event`, `audit_sound_masking`, `run_codex_studio`, `run_structure_studio`, `audit_mod_assets`, `run_gradle_task` (`isolated_gametests=True`, `test_filter=...`, `visual_smoke_mode="default\|dialect\|relic\|particle\|expedition"`), `run_verify_mod`, `manage_verify_cache`, `check_visual_regression`, `check_structure_visual_regression`, `read_diagnostic_logs` | [references/test-matrix.md](references/test-matrix.md) y [references/audit-playbooks.md](references/audit-playbooks.md) |
+| Diagnosticar fallos, regresiones, OpenAL/Bark, Hifas Verlet, DataGen/Compat, Colonia o Ciclos (`/mycelial-diagnostics`) | `collect_diagnostic_bundle`, `diagnose_symptom` (`audio_efx`, `hyphal_physics`, `datagen_compat`, `colony_dialects`, `expeditions_cycles`, ...), `get_diagnostics_guide`, `list_diagnostic_artifacts`, `run_live_scenario`, `compare_live_reports` | [references/audit-playbooks.md](references/audit-playbooks.md) y [../mycelial-diagnostics/SKILL.md](../mycelial-diagnostics/SKILL.md) |
 
 ## 4. Recetas esenciales
 
@@ -68,14 +68,18 @@ return {"health": health["ok"], "tools": health["tool_count"],
         "assets": assets["ok"], "lang": assets.get("lang", {}).get("en_count")}
 ```
 
-**Build + reportes estructurados:**
+**Build + tests completos (o suite puntual con `test_filter`):**
 
 ```python
-build = await call_tool("run_gradle_task", {"tasks": ["test", "pitest"], "timeout_secs": 600})
+build = await call_tool("run_gradle_task", {
+    "tasks": ["runData", "test", "build", "runGameTestServer"],
+    "isolated_gametests": True, "no_daemon": True, "max_workers": 1, "timeout_secs": 600,
+})
+# Iteración rápida: run_gradle_task({"tasks": ["test"], "test_filter": "OpenAlEfxLoopbackTest"})
+# Nota: :pitest tiene incompatibilidad conocida con ModDevGradle 2.0.148 + Pitest 1.19.0
 return {"ok": build["ok"], "markers": build.get("summary_markers"),
         "errors": build.get("error_lines", [])[:10],
-        "junit": await call_tool("get_latest_junit_report", {}),
-        "pitest": await call_tool("get_latest_pitest_report", {})}
+        "junit": await call_tool("get_latest_junit_report", {})}
 ```
 
 **Sesión viva aislada y siempre cerrada:**

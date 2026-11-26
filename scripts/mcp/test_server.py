@@ -214,6 +214,20 @@ async def verify_code_mode() -> None:
     assert "-PisolatedGameTests=true" in iso_cmd and "--offline" in iso_cmd, iso_cmd
     pub_cmd = _build_gradle_task_command(["publishMods"], 2, False, True, isolated_gametests=True)
     assert "-PpublishDryRun=true" in pub_cmd and "-PisolatedGameTests=true" not in pub_cmd, pub_cmd
+    flt_cmd = _build_gradle_task_command(["test"], 2, False, True, test_filter="OpenAlEfxLoopbackTest")
+    assert "--tests" in flt_cmd and "OpenAlEfxLoopbackTest" in flt_cmd, flt_cmd
+    vis_cmd = _build_gradle_task_command(["runVisualSmoke"], 2, False, True, visual_smoke_mode="dialect")
+    assert "-PdialectVisualSmoke=true" in vis_cmd, vis_cmd
+    for bad_kwargs in (
+        {"tasks": ["publishMods"], "test_filter": "OpenAlEfxLoopbackTest"},
+        {"tasks": ["test"], "test_filter": "bad;cmd"},
+        {"tasks": ["runVisualSmoke"], "visual_smoke_mode": "invalid_mode"},
+    ):
+        try:
+            _build_gradle_task_command(max_workers=2, no_daemon=False, use_offline=True, **bad_kwargs)
+            raise AssertionError(f"Expected ValueError for {bad_kwargs}")
+        except ValueError:
+            pass
 
     picked_pid = _pick_minecraft_jvm_pid([
         {"pid": 100, "main_class": "org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.10"},
@@ -495,7 +509,7 @@ import asyncio
     call_tool("run_sound_studio", {{"check_only": True, "run_tests": True}}),
     call_tool("run_codex_studio", {{"check_only": True, "run_tests": True}}),
 )
-latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony = await asyncio.gather(
+latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony, unit_efx, diag_audio = await asyncio.gather(
     call_tool("get_latest_live_report", {{}}),
     call_tool("collect_diagnostic_bundle", {{"log_tail_lines": 20, "max_artifacts": 5}}),
     call_tool("list_diagnostic_artifacts", {{"subdir": "nonexistent_subdir_12345"}}),
@@ -503,6 +517,8 @@ latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_
     call_tool("audit_sound_masking", {{"top_n": 8}}),
     call_tool("get_live_colony_status", {{"port": {rcon_port}, "password": "secret"}}),
     call_tool("diagnose_symptom", {{"symptom": "dialecto", "include_live_state": False}}),
+    call_tool("list_unit_tests", {{"suite_filter": "OpenAlEfxLoopbackTest"}}),
+    call_tool("diagnose_symptom", {{"symptom": "openal", "include_live_state": False}}),
 )
 return {{
     "bad_sess_rejected": bad_sess.get("ok") is False and "Unknown session_id" in bad_sess.get("error", ""),
@@ -544,6 +560,8 @@ return {{
         and (live_colony.get("cycle") or {{}}).get("last_grade") == "S"
     ),
     "diag_colony_ok": diag_colony.get("ok") is True and diag_colony.get("symptom") == "colony_dialects",
+    "unit_efx_ok": unit_efx.get("ok") is True and unit_efx.get("count", 0) >= 6,
+    "diag_audio_ok": diag_audio.get("ok") is True and diag_audio.get("symptom") == "audio_efx",
 }}
 """
                 exec_live = await client.call_tool("execute", {"code": code_live})
@@ -564,9 +582,9 @@ return {{
             assert payload["ai_guide_ok"] is True
             assert payload["codemode_guide_ok"] is True
             assert payload["diag_guide_ok"] is True
-            assert payload["gametests_count"] >= 135, f"Expected >= 135 GameTests, got {payload['gametests_count']}"
+            assert payload["gametests_count"] >= 195, f"Expected >= 195 GameTests, got {payload['gametests_count']}"
             assert payload["gametest_sample"] and "batch" in payload["gametest_sample"]
-            assert payload["unit_tests_count"] >= 30, f"Expected >= 30 JUnit tests, got {payload['unit_tests_count']}"
+            assert payload["unit_tests_count"] >= 140, f"Expected >= 140 JUnit tests, got {payload['unit_tests_count']}"
             assert payload["junit_checked"] is True
             assert payload["pitest_checked"] is True
             assert payload["model_atlas_count"] >= 7
@@ -599,6 +617,8 @@ return {{
             assert payload["codex_studio_ok"] is True
             assert payload["live_colony_ok"] is True
             assert payload["diag_colony_ok"] is True
+            assert payload["unit_efx_ok"] is True
+            assert payload["diag_audio_ok"] is True
             assert payload["entities_without_uv"] == []
             assert payload["datapack_total"] > 0
             assert payload["datapack_external_total"] >= 15
@@ -617,8 +637,8 @@ return {{
             assert payload["missing_particle_assets"] == [], payload["missing_particle_assets"]
             assert payload["verify_cache_ok"] is True
             assert payload["jvms_ok"] is True
-            assert payload["data_components"] == ["armor_rank", "trait_id"], (
-                f"Expected ModDataComponents ['armor_rank', 'trait_id'], got {payload['data_components']}"
+            assert {"armor_rank", "engram_id", "staff_mode", "trait_id"}.issubset(set(payload["data_components"])), (
+                f"Expected ModDataComponents to contain ['armor_rank', 'engram_id', 'staff_mode', 'trait_id'], got {payload['data_components']}"
             )
             assert payload["rcon_ok"]["ok"] is True
             assert "Threat: 42.5%" in payload["rcon_ok"]["response"]

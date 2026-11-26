@@ -4680,3 +4680,25 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `audit_mod_assets` (`ok: true`, `2235/2235` EN/ES, `839` claves referenciadas, `0` faltantes), `validate_skills` (`8/8 OK`). *(Nota: `run_codex_studio` reportó únicamente la clave preexistente `respectClaimedChunks` pendiente en `server_configs`).*
   - Smoke `flat`: `run_rcon_verify_suite` -> **`ALL 24 automated scenario checks PASSED`**.
   - Smoke `default`: `/mycelial worldgen audit 8 64` PASS (`289` chunks, `terrain(sites=0,float=0,fluid=0,spawn=0,biome=0)`) y `execute in mycelialmind:deep_mycelium run locate structure mycelialmind:matriarch_citadel` -> `[-880, ~, 1712] (1983 blocks away)`.
+
+
+## [2026-11-26 01:34] — Actualización de `/mycelial-codemode` y bridge MCP con la matriz completa de tests (`147` JUnit, `201` GameTests, `5` VisualSmoke, `24` RCON, Sound Studio v5) (`/goal` + `/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `CORRECCIÓN` | `DOCUMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Actualizados `scripts/mcp/server.py`, `scripts/mcp/test_server.py` y toda la documentación/reglas de `/mycelial-codemode` cubriendo los tests más recientes del mod (`OpenAlEfxLoopbackTest`, `AcousticPhysicsEngineTest`, `DataGenIntegrityTest`, `ModCompatTest`, `HyphalPhysicsTest`, `HiveBrainEngineUnitTest`, `CleanRoomAiCapabilitiesUnitTest`, Verlet `HyphalVeinEntity`, Sima Micelial y Sound Studio v5) manteniendo **67** herramientas:
+  - **Bridge MCP (`scripts/mcp/server.py`):**
+    - `run_gradle_task` y `_build_gradle_task_command`: añadidos `test_filter: str = ""` (inyecta `--tests <filter>` validado mediante `_TEST_FILTER_RE` cuando `"test"` está en `tasks`, rechazando combinarse con `publishMods`) y `visual_smoke_mode: str = ""` (`default|dialect|relic|particle|expedition` → inyecta `-P<mode>VisualSmoke=true` cuando `"runVisualSmoke"` está en `tasks`).
+    - `list_unit_tests(suite_filter: str = "")`: filtro por suite/archivo JUnit y retorno de `suites` ordenadas manteniendo compatibilidad.
+    - `_DIAGNOSTIC_SYMPTOM_MATRIX`: añadidos síntomas `audio_efx`, `hyphal_physics` y `datagen_compat`.
+    - `_LIVE_SCENARIO_PRESETS`: añadidos presets `sinkhole_and_worldgen` y `audio_and_ai`.
+  - **Pruebas MCP (`scripts/mcp/test_server.py`):** Corregida aserción desfasada en `ModDataComponents` (`armor_rank`, `engram_id`, `staff_mode`, `trait_id`), elevados umbrales (`gametests_count >= 195`, `unit_tests_count >= 140`), añadidas pruebas unitarias de `test_filter` / `visual_smoke_mode` / rechazos de seguridad y llamadas en vivo a `list_unit_tests(suite_filter="OpenAlEfxLoopbackTest")` y `diagnose_symptom("openal")`.
+  - **Documentación y skills (`/mycelial-codemode`):** Creada referencia `.agents/skills/mycelial-codemode/references/test-matrix.md` (`147` JUnit / `17` suites, `201` GameTests / `41` batches, modos `VisualSmoke`/`AnimationVisualSmoke`/`StructureVisualSmoke`/`HiveLifecycleSmoke`, `24` RCON, `6` studios Python + nota sobre incompatibilidad `:pitest` bajo ModDevGradle `2.0.148` + Pitest `1.19.0`); actualizados `.agents/skills/mycelial-codemode/SKILL.md`, `references/{catalog-and-sandbox,live-game-lifecycle,audit-playbooks}.md`, `.agents/rules/codemode-first.md` y `scripts/mcp/README.md`. Resto de `.agents/skills/` revisadas sin cambios requeridos.
+- **Archivos / Símbolos:**
+  - `scripts/mcp/server.py` (`_VISUAL_SMOKE_MODE_PROPS`, `_TEST_FILTER_RE`, `_build_gradle_task_command`, `run_gradle_task`, `_DIAGNOSTIC_SYMPTOM_MATRIX`, `list_unit_tests`, `_LIVE_SCENARIO_PRESETS`)
+  - `scripts/mcp/test_server.py`, `scripts/mcp/README.md`
+  - `.agents/skills/mycelial-codemode/{SKILL.md,references/{test-matrix,catalog-and-sandbox,live-game-lifecycle,audit-playbooks}.md}`
+  - `.agents/rules/codemode-first.md`, `MEMORY.md`
+- **Verificación (`CodeMode` + host):**
+  - `py_compile` (`server.py` + `test_server.py`), `python scripts/validate_agent_skills.py` (`8/8` OK) y pruebas AST de helpers (`MCP_HELPER_TESTS_OK: unit_tests=147 suites=17 efx=6 presets=9 symptoms=13`).
+  - Studios/Assets (`mycelial-mind-dev` `execute`): `validate_skills` (`ok=true`), `audit_mod_assets` (`ok=true`, `2235/2235` EN/ES), `audit_sound_masking` (`ok=true`, `high_risk=0`), `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio` todos `ok=true` (`run_codex_studio` mantiene únicamente la falta preexistente de cobertura `respectClaimedChunks` en `server_configs`).
+  - Gradle/Tests (`mycelial-mind-dev` `execute`): `OpenAlEfxLoopbackTest` filtrado (`ok=true`), `test` (`147/147` JUnit en `17` suites, `2.316 s`) + `runGameTestServer` aislado (`All 201 required tests passed :)`).
+  - Smoke RCON (`start_smoke_server` -> `run_rcon_verify_suite` -> `stop_smoke_server`): `rcon_ok=true`, `ALL 24 automated scenario checks PASSED.` (`stop_ok=true`, `graceful_stop=true`). *(Reconectar el cliente MCP para cargar `test_filter`/`visual_smoke_mode`/`suite_filter` en la instancia viva).*

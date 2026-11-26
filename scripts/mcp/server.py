@@ -1131,12 +1131,23 @@ _ALLOWED_GRADLE_TASKS = {
 }
 
 
+_VISUAL_SMOKE_MODE_PROPS: dict[str, str] = {
+    "dialect": "-PdialectVisualSmoke=true",
+    "relic": "-PrelicVisualSmoke=true",
+    "particle": "-PparticleVisualSmoke=true",
+    "expedition": "-PexpeditionVisualSmoke=true",
+}
+_TEST_FILTER_RE = re.compile(r"^[A-Za-z0-9_.*$]+$")
+
+
 def _build_gradle_task_command(
     tasks: list[str],
     max_workers: int,
     no_daemon: bool,
     use_offline: bool,
     isolated_gametests: bool = False,
+    test_filter: str = "",
+    visual_smoke_mode: str = "",
 ) -> list[str]:
     """Build a safe Gradle command; CodeMode can only run publishMods in dry-run mode."""
     publish_dry_run = "publishMods" in tasks
@@ -1148,12 +1159,34 @@ def _build_gradle_task_command(
                 "publishMods is available through CodeMode only as a forced dry-run; "
                 f"remove project/system properties and unsupported flags: {unsafe_publish_args}"
             )
+        if test_filter or (visual_smoke_mode and visual_smoke_mode.strip().lower() not in {"", "default"}):
+            raise ValueError("test_filter and visual_smoke_mode cannot be combined with publishMods")
 
     for t in tasks:
         if t not in _ALLOWED_GRADLE_TASKS and not t.startswith(("--", "-P", "-D")):
             raise ValueError(f"Task '{t}' is not in allowed Gradle tasks: {sorted(_ALLOWED_GRADLE_TASKS)}")
 
     cmd = ["cmd.exe", "/c", "gradlew.bat", *tasks]
+    cleaned_filter = test_filter.strip()
+    if cleaned_filter:
+        if "test" not in tasks:
+            raise ValueError("test_filter requires 'test' in tasks")
+        if not _TEST_FILTER_RE.fullmatch(cleaned_filter):
+            raise ValueError(f"Invalid test_filter '{cleaned_filter}': allowed characters [A-Za-z0-9_.*$]")
+        cmd.extend(["--tests", cleaned_filter])
+
+    mode_key = visual_smoke_mode.strip().lower()
+    if mode_key and mode_key != "default":
+        if "runVisualSmoke" not in tasks:
+            raise ValueError("visual_smoke_mode requires 'runVisualSmoke' in tasks")
+        if mode_key not in _VISUAL_SMOKE_MODE_PROPS:
+            raise ValueError(
+                f"Invalid visual_smoke_mode '{visual_smoke_mode}'. Expected 'default' or one of: {sorted(_VISUAL_SMOKE_MODE_PROPS)}"
+            )
+        mode_prop = _VISUAL_SMOKE_MODE_PROPS[mode_key]
+        if mode_prop not in tasks:
+            cmd.append(mode_prop)
+
     if isolated_gametests and "runGameTestServer" in tasks and not publish_dry_run and "-PisolatedGameTests=true" not in tasks:
         cmd.append("-PisolatedGameTests=true")
     if publish_dry_run:
@@ -1175,13 +1208,16 @@ async def run_gradle_task(
     timeout_secs: int = 300,
     offline: bool | None = None,
     isolated_gametests: bool = False,
+    test_filter: str = "",
+    visual_smoke_mode: str = "",
 ) -> dict[str, Any]:
     """Run allowlisted Gradle tasks; publishMods is restricted to a forced local dry-run.
 
     Uses JDK 21 and Windows root truststore automatically. Defaults to max_workers=2 for
     parallel task execution and auto-enables --offline when GRADLE_USER_HOME uses .gradle-user-home.
-    Pass isolated_gametests=True with runGameTestServer to inject -PisolatedGameTests=true, or include
-    -PdialectVisualSmoke=true alongside runVisualSmoke for the Nexus/Dialects UI smoke scene.
+    Pass isolated_gametests=True with runGameTestServer to inject -PisolatedGameTests=true,
+    test_filter='OpenAlEfxLoopbackTest' with 'test' to run a focused JUnit class/method pattern, or
+    visual_smoke_mode in {'default','dialect','relic','particle','expedition'} with 'runVisualSmoke'.
     """
     use_offline = (
         offline
@@ -1191,7 +1227,15 @@ async def run_gradle_task(
             and "--refresh-dependencies" not in tasks
         )
     )
-    cmd = _build_gradle_task_command(tasks, max_workers, no_daemon, use_offline, isolated_gametests=isolated_gametests)
+    cmd = _build_gradle_task_command(
+        tasks,
+        max_workers,
+        no_daemon,
+        use_offline,
+        isolated_gametests=isolated_gametests,
+        test_filter=test_filter,
+        visual_smoke_mode=visual_smoke_mode,
+    )
     res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=60)
     _invalidate_cache()
     return _annotate_gradle_result(res)
@@ -1550,6 +1594,24 @@ _DIAGNOSTIC_SYMPTOM_MATRIX: dict[str, dict[str, Any]] = {
         "keywords": ("expedition", "expedicion", "enclave", "bloom", "flor", "cycle", "ciclo", "matriarch", "matriarca"),
         "tools": ["get_live_colony_status", "get_live_hive_status", "run_live_verify_scenario", "run_gradle_task"],
         "first_step": "Check cycle/colony live state via get_live_colony_status() and run '/mycelial verify cycles' or isolated GameTests (-PisolatedGameTests=true).",
+    },
+    "audio_efx": {
+        "label": "Audio OpenAL EFX, oclusión, loops o enmascaramiento Bark",
+        "keywords": ("audio", "sonido", "sound", "efx", "openal", "reverb", "oclusion", "occlusion", "bark", "masking", "loop", "loopback"),
+        "tools": ["run_gradle_task", "run_sound_studio", "inspect_sound_event", "audit_sound_masking", "rcon_command"],
+        "first_step": "Run headless FFT OpenAL tests via run_gradle_task(['test'], test_filter='OpenAlEfxLoopbackTest') + AcousticPhysicsEngineTest, check audit_sound_masking(), and test '/mycelial audio status'.",
+    },
+    "hyphal_physics": {
+        "label": "Física de hifas Verlet, raycast, turgencia u ondas sísmicas",
+        "keywords": ("hifa", "hyphal", "verlet", "filament", "filamento", "turgor", "turgencia", "raycast", "sismica", "seismic"),
+        "tools": ["run_gradle_task", "list_gametests", "run_live_verify_scenario"],
+        "first_step": "Run run_gradle_task(['test'], test_filter='HyphalPhysicsTest') and isolated GameTests in batches 'hyphal_route_veins' / 'hyphal_verlet_filament'.",
+    },
+    "datagen_compat": {
+        "label": "DataGen dual-root, compatibilidad multi-mod o claims",
+        "keywords": ("datagen", "generated", "compat", "curios", "create", "mekanism", "ftb", "opac", "claims", "bettercombat", "advancement"),
+        "tools": ["run_gradle_task", "audit_mod_assets", "list_datapack_content"],
+        "first_step": "Run run_gradle_task(['runData', 'test'], test_filter='DataGenIntegrityTest') and test_filter='ModCompatTest', then verify zero overlaps via audit_mod_assets().",
     },
 }
 
@@ -2377,30 +2439,48 @@ def list_datapack_content() -> dict[str, Any]:
 
 
 @_tool(tags={"code", "gradle"})
-def list_unit_tests() -> dict[str, Any]:
-    """List all JUnit 5 @Test methods in src/test/java/**/*.java with file and line numbers."""
+def list_unit_tests(suite_filter: str = "") -> dict[str, Any]:
+    """List all JUnit 6 @Test methods in src/test/java/**/*.java, optionally filtered by suite/file name."""
     cached = _cache_get("unit_tests")
-    if cached is not None:
-        return cached
-    test_root = REPO_ROOT / "src" / "test" / "java"
-    tests: list[dict[str, Any]] = []
-    for java_file in _iter_scandir_files(test_root, suffix=".java"):
-        text = java_file.read_text(encoding="utf-8", errors="replace")
-        if "@Test" not in text:
-            continue
-        lines = text.splitlines()
-        rel = java_file.relative_to(REPO_ROOT).as_posix()
-        pending = False
-        for idx, line in enumerate(lines, start=1):
-            if _UNIT_ANN_RE.search(line):
-                pending = True
+    if cached is None:
+        test_root = REPO_ROOT / "src" / "test" / "java"
+        tests: list[dict[str, Any]] = []
+        for java_file in _iter_scandir_files(test_root, suffix=".java"):
+            text = java_file.read_text(encoding="utf-8", errors="replace")
+            if "@Test" not in text:
                 continue
-            if pending:
-                m = _UNIT_METHOD_RE.search(line)
-                if m:
-                    tests.append({"name": m.group(1), "file": rel, "line": idx})
-                    pending = False
-    return _cache_set("unit_tests", {"ok": True, "count": len(tests), "tests": tests})
+            lines = text.splitlines()
+            rel = java_file.relative_to(REPO_ROOT).as_posix()
+            pending = False
+            for idx, line in enumerate(lines, start=1):
+                if _UNIT_ANN_RE.search(line):
+                    pending = True
+                    continue
+                if pending:
+                    m = _UNIT_METHOD_RE.search(line)
+                    if m:
+                        tests.append({"name": m.group(1), "file": rel, "line": idx})
+                        pending = False
+        cached = _cache_set(
+            "unit_tests",
+            {
+                "ok": True,
+                "count": len(tests),
+                "suites": sorted({t["file"].rsplit("/", 1)[-1] for t in tests}),
+                "tests": tests,
+            },
+        )
+    if suite_filter:
+        needle = suite_filter.strip().lower()
+        filtered = [t for t in cached["tests"] if needle in t["file"].lower()]
+        return {
+            "ok": True,
+            "suite_filter": suite_filter,
+            "count": len(filtered),
+            "suites": sorted({t["file"].rsplit("/", 1)[-1] for t in filtered}),
+            "tests": filtered,
+        }
+    return cached
 
 
 @_tool(tags={"gradle", "reports"})
@@ -3175,6 +3255,18 @@ _LIVE_SCENARIO_PRESETS: dict[str, list[str]] = {
         "mycelial cycle status",
         "mycelial verify cycles",
         "mycelial verify dimension_progression",
+        "mycelial status",
+    ],
+    "sinkhole_and_worldgen": [
+        "mycelial verify sinkhole",
+        "mycelial verify worldgen",
+        "mycelial status",
+    ],
+    "audio_and_ai": [
+        "mycelial audio status",
+        "mycelial ai",
+        "mycelial verify hive_ai",
+        "mycelial verify hyphal_siege",
         "mycelial status",
     ],
 }

@@ -39,10 +39,15 @@ return {"models": m["ok"], "textures": t["ok"], "structures": s["ok"], "smoke": 
 ## Playbook 3 — Depuración de IA / GameTests / JUnit
 ```python
 ai = await call_tool("get_hive_ai_overview", {})
-gt = await call_tool("list_gametests", {"batch_filter": "tactical_ai"})
-res = await call_tool("run_gradle_task", {"tasks": ["test", "runGameTestServer"]})
+ut = await call_tool("list_unit_tests", {"suite_filter": "HiveBrainEngineUnitTest"})
+gt = await call_tool("list_gametests", {"batch_filter": "hive_brain"})
+res = await call_tool("run_gradle_task", {
+    "tasks": ["test", "runGameTestServer"],
+    "isolated_gametests": True,
+    "test_filter": "HiveBrainEngineUnitTest",
+})
 junit = await call_tool("get_latest_junit_report", {})
-return {"enums": ai["enums"], "tactical_tests": gt["count"], "gradle_ok": res["ok"], "junit": junit}
+return {"enums": ai["enums"], "unit_tests": ut["count"], "gametests": gt["count"], "gradle_ok": res["ok"], "junit": junit}
 ```
 
 ## Playbook 4 — Diagnóstico Guiado por Síntoma y Comparativa A/B (`/mycelial-diagnostics`)
@@ -106,6 +111,26 @@ return {
     "dialect_ui_ok": ui["ok"],
 }
 ```
+
+## Playbook 6 — Audio OpenAL EFX, Física de Hifas y DataGen/Compat
+```python
+import asyncio
+
+mask, efx, hyphal, dg = await asyncio.gather(
+    call_tool("audit_sound_masking", {"top_n": 10}),
+    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "OpenAlEfxLoopbackTest"}),
+    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "HyphalPhysicsTest"}),
+    call_tool("run_gradle_task", {"tasks": ["runData", "test"], "test_filter": "DataGenIntegrityTest"}),
+)
+return {
+    "masking_ok": mask.get("ok"),
+    "efx_ok": efx.get("ok"),
+    "hyphal_ok": hyphal.get("ok"),
+    "datagen_ok": dg.get("ok"),
+}
+```
+
+Catálogo completo de suites JUnit (`147`), batches `@GameTest` (`201`) y modos visuales: [test-matrix.md](test-matrix.md).
 
 ### Alternativas Reproducibles (`Taskfile.yml` + `uv`) y Fallback Gradle Offline
 - **Aliases locales (`Taskfile.yml` / CI GitHub Actions):** `task verify:assets` (usa `uv` para modelos/texturas/partículas), `task verify`, `task verify:server`, `task verify:visual`, `task verify:renovate`, `task release:dry-run`.
