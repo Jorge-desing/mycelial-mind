@@ -4878,3 +4878,12 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `renovate.json`, `docs/development-automation.md`, `MEMORY.md`, GitHub Issue `#3`.
 - **Skills revisadas:** Ninguna skill requirió edición (`validate_agent_skills.py`: `8/8` OK).
 - **Estado / Siguiente paso:** `task verify:renovate` en verde; commit, push a `origin/main` y comprobación de checks de GitHub del commit publicado.
+
+## [2026-11-26 10:59] — Corrección de fallos de CI en Linux (`test_reclaimed_blooms.py` y `forceArenaChunks`)
+- **Tipo:** `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:** Al verificar los checks de GitHub Actions del commit `dd6614b` (run `45871011389` en `ubuntu-latest`), se detectaron y corrigieron 2 causas raíz:
+  1. `scripts/texture_studio/tests/test_reclaimed_blooms.py`: sustituida la comparación byte-a-byte de PNG comprimido (`read_bytes()`, sensible a diferencias de `zlib`/Pillow entre Windows y Linux) por comparación determinista de tamaño, modo y píxeles decodificados (`tobytes()`).
+  2. `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`: actualizado `forceArenaChunks`/`releaseArenaChunks` para usar `TicketType.create("mycelial_gametest_arena", ...)` con `addRegionTicket(..., 2, cp, true)` / `removeRegionTicket(..., 2, cp, true)` (`forceTicks = true`, nivel `31` `ENTITY_TICKING`) en lugar de `setChunkForced`, evitando timeouts de `entityChunksReady` cuando el origen aleatorio del GameTest cae cerca de un borde de chunk (`hyphalSeveredDownstreamBranchWithersProgressivelyWithin90Ticks` y `hyphalFilamentEntitySimulatesVerletAndSnapsWhenAnchorBreaks`).
+- **Archivos / Símbolos:** `scripts/texture_studio/tests/test_reclaimed_blooms.py`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`ARENA_ENTITY_TICKET`, `forceArenaChunks`, `releaseArenaChunks`), `MEMORY.md`.
+- **Skills revisadas:** Ninguna skill requirió edición.
+- **Estado / Siguiente paso:** Validado en local (`test_reclaimed_blooms` OK; CodeMode `run_gradle_task(["compileJava", "runGameTestServer"])`: `All 205 required tests passed :)` en `20.89 s`). Commit, push a `origin/main` y verificación en vivo de los 3 jobs de `Verify Mycelial Mind`.

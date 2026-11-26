@@ -40,9 +40,11 @@ class ReclaimedBloomAssetsTest(unittest.TestCase):
                     generated = Path(directory) / filename
                     actual = resources / 'textures/model_atlas' / filename
                     self.assertTrue(actual.is_file(), f'Missing {actual}')
-                    self.assertEqual(generated.read_bytes(), actual.read_bytes())
-                    with Image.open(generated) as image:
-                        self.assertEqual(image.size, size)
+                    with Image.open(generated) as gen_img, Image.open(actual) as act_img:
+                        self.assertEqual(gen_img.size, size)
+                        self.assertEqual(act_img.size, size)
+                        self.assertEqual(gen_img.mode, act_img.mode)
+                        self.assertEqual(gen_img.tobytes(), act_img.tobytes(), f'Pixel mismatch in {filename}')
                 self.assertEqual(model['textures']['particle'], f'mycelialmind:model_atlas/reclaimed_bloom_{kind}_particle')
                 parts = model['elements']
                 neighbours = [set() for _ in parts]

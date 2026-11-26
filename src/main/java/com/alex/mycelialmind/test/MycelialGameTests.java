@@ -714,6 +714,8 @@ public final class MycelialGameTests {
     }
 
     private static final java.util.Map<Long, Integer> ARENA_CHUNK_REFS = new java.util.HashMap<>();
+    private static final net.minecraft.server.level.TicketType<ChunkPos> ARENA_ENTITY_TICKET =
+            net.minecraft.server.level.TicketType.create("mycelial_gametest_arena", java.util.Comparator.comparingLong(ChunkPos::toLong));
 
     private static List<ChunkPos> forceArenaChunks(GameTestHelper helper, int minX, int maxX, int minZ, int maxZ) {
         ServerLevel level = helper.getLevel();
@@ -724,20 +726,19 @@ public final class MycelialGameTests {
         int minCz = Math.min(minPos.getZ(), maxPos.getZ()) >> 4;
         int maxCz = Math.max(minPos.getZ(), maxPos.getZ()) >> 4;
         List<ChunkPos> tracked = new ArrayList<>();
-        var alreadyForced = level.getForcedChunks();
         for (int cx = minCx; cx <= maxCx; cx++) {
             for (int cz = minCz; cz <= maxCz; cz++) {
-                long key = ChunkPos.asLong(cx, cz);
+                ChunkPos cp = new ChunkPos(cx, cz);
+                long key = cp.toLong();
                 int refs = ARENA_CHUNK_REFS.getOrDefault(key, 0);
                 if (refs > 0) {
                     ARENA_CHUNK_REFS.put(key, refs + 1);
-                    tracked.add(new ChunkPos(cx, cz));
-                } else if (!alreadyForced.contains(key)) {
-                    level.setChunkForced(cx, cz, true);
+                } else {
+                    level.getChunkSource().addRegionTicket(ARENA_ENTITY_TICKET, cp, 2, cp, true);
                     level.getChunk(cx, cz);
                     ARENA_CHUNK_REFS.put(key, 1);
-                    tracked.add(new ChunkPos(cx, cz));
                 }
+                tracked.add(cp);
             }
         }
         return tracked;
@@ -764,7 +765,7 @@ public final class MycelialGameTests {
             int refs = ARENA_CHUNK_REFS.getOrDefault(key, 0);
             if (refs <= 1) {
                 ARENA_CHUNK_REFS.remove(key);
-                level.setChunkForced(cp.x, cp.z, false);
+                level.getChunkSource().removeRegionTicket(ARENA_ENTITY_TICKET, cp, 2, cp, true);
             } else {
                 ARENA_CHUNK_REFS.put(key, refs - 1);
             }
