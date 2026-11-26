@@ -2,8 +2,11 @@ package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.world.structure.ArchitecturalAccentProcessor;
+import com.alex.mycelialmind.world.structure.HiveSanctumStructure;
 import com.alex.mycelialmind.world.structure.MatriarchCitadelPiece;
 import com.alex.mycelialmind.world.structure.MatriarchCitadelStructure;
+import com.alex.mycelialmind.world.structure.MycelialFluidClearProcessor;
+import com.alex.mycelialmind.world.structure.MycelialFoundationPillarProcessor;
 import com.alex.mycelialmind.world.structure.TwistedCitadelPiece;
 import com.alex.mycelialmind.world.structure.TwistedCitadelStructure;
 import net.minecraft.core.registries.Registries;
@@ -27,6 +30,9 @@ public final class ModStructures {
     public static final DeferredRegister<StructureProcessorType<?>> STRUCTURE_PROCESSORS =
             DeferredRegister.create(Registries.STRUCTURE_PROCESSOR, MycelialMind.MODID);
 
+    public static final DeferredHolder<StructureType<?>, StructureType<HiveSanctumStructure>> HIVE_SANCTUM =
+            STRUCTURE_TYPES.register("hive_sanctum", () -> () -> HiveSanctumStructure.CODEC);
+
     public static final DeferredHolder<StructureType<?>, StructureType<MatriarchCitadelStructure>> MATRIARCH_CITADEL =
             STRUCTURE_TYPES.register("matriarch_citadel", () -> () -> MatriarchCitadelStructure.CODEC);
 
@@ -43,6 +49,12 @@ public final class ModStructures {
 
     public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<ArchitecturalAccentProcessor>> ARCHITECTURAL_ACCENT_PROCESSOR =
             STRUCTURE_PROCESSORS.register("architectural_accent", () -> () -> ArchitecturalAccentProcessor.CODEC);
+
+    public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<MycelialFluidClearProcessor>> FLUID_CLEAR_PROCESSOR =
+            STRUCTURE_PROCESSORS.register("fluid_clear", () -> () -> MycelialFluidClearProcessor.CODEC);
+
+    public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<MycelialFoundationPillarProcessor>> FOUNDATION_PILLAR_PROCESSOR =
+            STRUCTURE_PROCESSORS.register("foundation_pillar", () -> () -> MycelialFoundationPillarProcessor.CODEC);
 
     private ModStructures() {
     }

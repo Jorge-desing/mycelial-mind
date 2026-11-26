@@ -2551,4 +2551,54 @@ class HiveAlgorithmsUnitTest {
         assertEquals(44, com.alex.mycelialmind.world.TerrainPlacementPolicy.selectBestCavernAnchorY(
                 new int[]{}, 44, 28, 128));
     }
+
+    @Test
+    void cavernFloorSpreadRejectsSteepVarianceAndAcceptsLevelChamber() {
+        var flat = com.alex.mycelialmind.world.TerrainPlacementPolicy.evaluateCavernFloorSpread(
+                new int[]{46, 48, 50, 47, 52}, 12);
+        assertTrue(flat.valid());
+        assertEquals(6, flat.deltaY());
+
+        var cliff = com.alex.mycelialmind.world.TerrainPlacementPolicy.evaluateCavernFloorSpread(
+                new int[]{34, 48, 62, 50, 44}, 12);
+        assertFalse(cliff.valid());
+        assertEquals(28, cliff.deltaY());
+
+        int[] withShelfOutlier = {48, 49, 50, 47, 84};
+        int[] clusterOk = com.alex.mycelialmind.world.TerrainPlacementPolicy.selectConsistentFloorCluster(
+                withShelfOutlier, 49, 14);
+        assertEquals(4, clusterOk.length);
+        assertTrue(com.alex.mycelialmind.world.TerrainPlacementPolicy.evaluateCavernFloorSpread(clusterOk, 14).valid());
+
+        int[] scatteredSlope = {30, 40, 50, 65, 80};
+        int[] clusterRejected = com.alex.mycelialmind.world.TerrainPlacementPolicy.selectConsistentFloorCluster(
+                scatteredSlope, 50, 14);
+        assertTrue(clusterRejected.length < 4);
+    }
+
+    @Test
+    void subterraneanChamberVolumeSafetyRejectsLavaAndVoid() {
+        assertTrue(com.alex.mycelialmind.world.TerrainPlacementPolicy.isSubterraneanChamberVolumeSafe(
+                60, 4, 0, 100));
+        assertFalse(com.alex.mycelialmind.world.TerrainPlacementPolicy.isSubterraneanChamberVolumeSafe(
+                60, 4, 1, 100));
+        assertFalse(com.alex.mycelialmind.world.TerrainPlacementPolicy.isSubterraneanChamberVolumeSafe(
+                60, 16, 0, 100));
+        assertFalse(com.alex.mycelialmind.world.TerrainPlacementPolicy.isSubterraneanChamberVolumeSafe(
+                20, 0, 0, 100));
+    }
+
+    @Test
+    void surfaceBiomeStyleClassifierMapsAllClimates() {
+        assertEquals(com.alex.mycelialmind.world.TerrainPlacementPolicy.SurfaceBiomeStyle.COLD_SNOW,
+                com.alex.mycelialmind.world.TerrainPlacementPolicy.classifySurfaceBiomeStyle(true, false, false, false));
+        assertEquals(com.alex.mycelialmind.world.TerrainPlacementPolicy.SurfaceBiomeStyle.ARID_SAND,
+                com.alex.mycelialmind.world.TerrainPlacementPolicy.classifySurfaceBiomeStyle(false, true, false, false));
+        assertEquals(com.alex.mycelialmind.world.TerrainPlacementPolicy.SurfaceBiomeStyle.SWAMP_MUD,
+                com.alex.mycelialmind.world.TerrainPlacementPolicy.classifySurfaceBiomeStyle(false, false, true, false));
+        assertEquals(com.alex.mycelialmind.world.TerrainPlacementPolicy.SurfaceBiomeStyle.TAIGA_PODZOL,
+                com.alex.mycelialmind.world.TerrainPlacementPolicy.classifySurfaceBiomeStyle(false, false, false, true));
+        assertEquals(com.alex.mycelialmind.world.TerrainPlacementPolicy.SurfaceBiomeStyle.TEMPERATE,
+                com.alex.mycelialmind.world.TerrainPlacementPolicy.classifySurfaceBiomeStyle(false, false, false, false));
+    }
 }

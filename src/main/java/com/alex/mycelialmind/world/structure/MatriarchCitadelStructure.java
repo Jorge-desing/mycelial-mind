@@ -32,9 +32,10 @@ public class MatriarchCitadelStructure extends Structure {
                 z,
                 28,
                 128,
-                36,
+                28,
                 48,
-                12
+                12,
+                16
         );
         if (floorY.isEmpty()) {
             return Optional.empty();

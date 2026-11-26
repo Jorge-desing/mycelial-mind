@@ -102,6 +102,7 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
         int spawnedRimStrands = 0;
 
         long noiseSeed = origin.asLong() ^ 0x53494E4B484F4C45L;
+        var biomePalette = TerrainPlacementPolicy.resolveSurfaceBiomePalette(level, origin);
 
         // 1) Stratum 1: Surface Crown (irregular organic crater rim + outer creeping mycelium)
         for (int dx = -10; dx <= 10; dx++) {
@@ -141,9 +142,16 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                         }
                     }
                 } else {
+                    boolean outerBiomeBlend = dist > 7.2D;
                     safeSetBlock(level, floorPos, random.nextFloat() < 0.72F ? mycelium : stone);
                     TerrainPlacementPolicy.anchorOrganicFoundation(
-                            level, floorPos.below(), dist <= 8.0D ? 6 : 4, stone, null, pos -> isSafeToOverwrite(level, pos));
+                            level,
+                            floorPos.below(),
+                            dist <= 8.0D ? 6 : 4,
+                            outerBiomeBlend ? biomePalette.outerSubFoundation() : stone,
+                            outerBiomeBlend ? biomePalette.rimAccent() : null,
+                            pos -> isSafeToOverwrite(level, pos)
+                    );
                     BlockPos top = floorPos.above();
                     if (isOpenAirOrReplaceable(level, top)) {
                         if (dist > 6.8D && spawnedRimStrands < 6 && random.nextFloat() < 0.14F) {
@@ -317,42 +325,47 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
         }
 
         // 3b) Lateral Gallery South: Winding Root Tunnel (dz = 7 .. 21) opening toward adjacent caves
+        int targetFloorDy = findSouthCaveTargetFloorDy(level, origin);
+        int floorDelta = targetFloorDy - (-31);
         for (int dz = 7; dz <= 21; dz++) {
             int cx = dz <= 9 ? 0 : (int) Math.round(Math.sin((dz - 9) * 0.45D) * 1.5D);
+            int floorDy = dz <= 10
+                    ? -31
+                    : (-31 + Integer.signum(floorDelta) * Math.min(Math.abs(floorDelta), (dz - 9) / 2));
             boolean pillarRib = dz == 11 || dz == 15 || dz == 19;
             boolean southMouth = dz == 21;
             for (int ox = -2; ox <= 2; ox++) {
                 int rx = cx + ox;
-                for (int dy = -26; dy >= -32; dy--) {
+                for (int dy = floorDy + 5; dy >= floorDy - 1; dy--) {
                     BlockPos p = origin.offset(rx, dy, dz);
-                    boolean insidePassage = (Math.abs(ox) <= 1 && dy >= -30 && dy <= -28)
-                            || (ox == 0 && dy == -27);
+                    boolean insidePassage = (Math.abs(ox) <= 1 && dy >= floorDy + 1 && dy <= floorDy + 3)
+                            || (ox == 0 && dy == floorDy + 4);
                     if (insidePassage) {
                         safeSetBlock(level, p, air);
                     } else if (!southMouth) {
-                        if (dy == -32) {
+                        if (dy == floorDy - 1) {
                             safeSetBlock(level, p, stone);
                             anchorBaseDown(level, p.below(), 3, stone);
-                        } else if (dy == -31) {
+                        } else if (dy == floorDy) {
                             BlockState fState = (Math.abs(ox) == 1 && random.nextFloat() < 0.25F) ? mycelium : stone;
                             safeSetBlock(level, p, fState);
-                        } else if (pillarRib && Math.abs(ox) == 2 && dy >= -30 && dy <= -27) {
+                        } else if (pillarRib && Math.abs(ox) == 2 && dy >= floorDy + 1 && dy <= floorDy + 4) {
                             safeSetBlock(level, p, pillar);
-                        } else if (pillarRib && dy == -26 && Math.abs(ox) <= 1) {
+                        } else if (pillarRib && dy == floorDy + 5 && Math.abs(ox) <= 1) {
                             safeSetBlock(level, p, archBrick);
-                        } else if (Math.abs(ox) == 2 && dy == -29 && random.nextFloat() < 0.30F) {
+                        } else if (Math.abs(ox) == 2 && dy == floorDy + 2 && random.nextFloat() < 0.30F) {
                             safeSetBlock(level, p, amberVein);
                         } else {
                             safeSetBlock(level, p, random.nextFloat() < 0.15F ? archBrick : stone);
                         }
-                    } else if (dy == -31 && Math.abs(ox) <= 1) {
+                    } else if (dy == floorDy && Math.abs(ox) <= 1) {
                         safeSetBlock(level, p, stone);
                         anchorBaseDown(level, p.below(), 3, stone);
                     }
                 }
             }
             if (!southMouth && (dz == 12 || dz == 18)) {
-                BlockPos veinPos = origin.offset(cx, -30, dz);
+                BlockPos veinPos = origin.offset(cx, floorDy + 1, dz);
                 if (level.getBlockState(veinPos.below()).isSolid()) {
                     var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(
                             level.getLevel(), veinPos, veinPos.south(2), 5, true, 0.72F);
@@ -361,7 +374,7 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                 }
             }
             if (dz == 15) {
-                BlockPos ventTunnelPos = origin.offset(cx + 1, -30, dz);
+                BlockPos ventTunnelPos = origin.offset(cx + 1, floorDy + 1, dz);
                 if (level.getBlockState(ventTunnelPos.below()).isSolid()) {
                     safeSetBlock(level, ventTunnelPos, sporeVent);
                 }
@@ -471,6 +484,33 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
         }
 
         return true;
+    }
+
+    private static int findSouthCaveTargetFloorDy(WorldGenLevel level, BlockPos origin) {
+        int bestDy = -31;
+        int bestDist = Integer.MAX_VALUE;
+        for (int dz = 16; dz <= 24; dz += 2) {
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dy = -27; dy >= -33; dy--) {
+                    BlockPos floor = origin.offset(dx, dy, dz);
+                    if (level.isOutsideBuildHeight(floor) || level.isOutsideBuildHeight(floor.above(3))) {
+                        continue;
+                    }
+                    if (level.getFluidState(floor).isEmpty()
+                            && level.getBlockState(floor).isFaceSturdy(level, floor, Direction.UP)
+                            && isOpenAirOrReplaceable(level, floor.above(1))
+                            && isOpenAirOrReplaceable(level, floor.above(2))
+                            && isOpenAirOrReplaceable(level, floor.above(3))) {
+                        int dist = Math.abs(dy - (-31));
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            bestDy = dy;
+                        }
+                    }
+                }
+            }
+        }
+        return bestDy;
     }
 
     private static Direction horizontalFacingTowardCenter(int lx, int lz) {

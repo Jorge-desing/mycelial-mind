@@ -108,7 +108,49 @@ public final class MycelialDimensionBootstrap {
                 DensityFunctions.constant(-1_000_000.0D),
                 pillars
         );
-        DensityFunction cavernTerrain = DensityFunctions.max(base3dNoise, gatedPillars);
+
+        // Multi-tier terraced cavern shelves inspired by Terralith (ev_54003e81...)
+        DensityFunction cheeseCaves = DensityFunctions.cacheOnce(
+                DensityFunctions.add(
+                        DensityFunctions.noise(noises.getOrThrow(Noises.CAVE_CHEESE), 1.0D, 0.6666666666666666D),
+                        DensityFunctions.constant(-0.05D)
+                ).clamp(-1.0D, 1.0D)
+        );
+        DensityFunction caveLayerShelves = DensityFunctions.rangeChoice(
+                cheeseCaves,
+                -1_000_000.0D,
+                0.15D,
+                DensityFunctions.add(
+                        DensityFunctions.constant(0.45D),
+                        DensityFunctions.mul(
+                                DensityFunctions.constant(-2.5D),
+                                DensityFunctions.noise(noises.getOrThrow(Noises.CAVE_LAYER), 0.8D, 5.0D).square()
+                        )
+                ).clamp(-0.6D, 0.45D),
+                DensityFunctions.constant(-0.20D)
+        );
+        DensityFunction midBand = DensityFunctions.min(
+                DensityFunctions.yClampedGradient(28, 44, 0.0D, 1.0D),
+                DensityFunctions.yClampedGradient(140, 156, 1.0D, 0.0D)
+        );
+        DensityFunction shelfModulated = DensityFunctions.add(
+                cheeseCaves,
+                DensityFunctions.mul(DensityFunctions.constant(0.35D), caveLayerShelves)
+        );
+        DensityFunction tieredCavern = DensityFunctions.add(
+                base3dNoise,
+                DensityFunctions.mul(
+                        midBand,
+                        DensityFunctions.mul(
+                                DensityFunctions.constant(0.22D),
+                                DensityFunctions.add(
+                                        shelfModulated,
+                                        DensityFunctions.mul(DensityFunctions.constant(-1.0D), base3dNoise)
+                                )
+                        )
+                )
+        );
+        DensityFunction cavernTerrain = DensityFunctions.max(tieredCavern, gatedPillars);
 
         DensityFunction topSlide = DensityFunctions.add(
                 DensityFunctions.constant(0.9375D),

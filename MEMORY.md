@@ -4718,3 +4718,33 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `HiveBrainSignal`, `HiveBrainKey`, `HiveBrainBlackboard`, `HiveBrainSnapshot`, `HiveBrain`, `HiveBrainOwner`, `HiveBrainScheduler`, las 5 entidades raíz (`MycelialMob`, `MycelialChimeraEntity`, `ColonySymbiontEntity`, `PurifierDroneEntity`, `SporeGliderEntity`), `HiveSwarmCoordinator`, `MycorrhizalAcousticTracker`, `MycelialCommands`, `BioScannerItem`, `HiveBrainEngineUnitTest`, `MycelialGameTests`, `docs/HIVE_BRAIN_ARCHITECTURE.md`, `.agents/skills/mycelial-ai-hive/SKILL.md`.
 - **Skills:** Actualizada `.agents/skills/mycelial-ai-hive/SKILL.md`; revisadas `mycelial-codemode`, `mycelial-diagnostics`, `neoforge-gametest` y estudios de activos sin requerir cambios.
 - **Estado / Siguiente paso:** Commit y push de los archivos propios de HiveBrain 2.0 en `main`, preservando intacto el WIP ajeno de worldgen en el working tree.
+
+
+## [2026-11-26 02:19] — Pase 3 de Ingeniería Inversa con REA y Mejora Integral de Terreno/Estructuras en 4 Frentes (`/goal` + `/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:**
+  1. **Análisis complementario con `/reverse-engineer-anything` (REA):** Inspeccionados y extraídos **5 JARs adicionales** en `artifacts/diagnostics/rea-worldgen-reference-report.md`:
+     - `integrated_api-1.5.1+1.20.1-fabric.jar` (`c5068115c7435d71f07a25c248e848a163e1406fe8663f12b18bc37ebd7347b7`, `ev_6942504e...`, `ev_657f3135...`, `ev_f1f8d3ff...`): `CloseOffFluidSourcesProcessor`, `WaterloggingFixProcessor`, `RemoveFloatingBlocksProcessor`, `JigsawStructure` y `NetherJigsawStructure`.
+     - `dungeons-and-taverns-nether-fortress-overhaul-v3.jar` (`2b19e21270243b10dbac44b352d4ea1cb4c5f61d3e10a0c482ef69fa3e9950db`, `ev_bdae9fe5...`, `ev_56be3588...`, `ev_f2b67c75...`).
+     - `dungeons-and-taverns-ancient-city-overhaul-v3.1.jar` (`2cca5ffad7a51d16aab4fd3a1e2d334605c4f97806d0a699ac04a4690cba5d39`, `ev_3e14da0b...`, `ev_604a1d65...`, `ev_f5c8fcd9...`).
+     - `Terralith_1.21.x_v2.5.11.jar` (`fdad23fc7fd2fc1e2cc8f4969dd2df027ea0371d27046dea68c644da32a7b1de`, `ev_54003e81...`, `ev_38a36ab5...`, `ev_798ab5e9...`): `cave_cheese` + `cave_layer` para terrazas multi-nivel.
+     - `HopoBetterMineshaft-[1.21.5]-1.3.1.jar` (`df7c15502723f637e8aff4d77dcfa7b877b66308775fda2f08e7b8a930af84f8`, `ev_667be23d...`, `ev_78e11da6...`, `ev_e60b4b0a...`).
+  2. **Frente 1 — `HiveSanctumStructure` y Procesadores Java (`MycelialFluidClearProcessor`, `MycelialFoundationPillarProcessor`):** `hive_sanctum` migrado de `JigsawStructure` genérico a `HiveSanctumStructure` (spawn-safe `>= 160m` y sondeo `NoiseColumn` vía `hasDrySolidSubterraneanEnvelope` con reintento `±10 Y`), manteniendo `ENCAPSULATE`, `IGNORE_WATERLOGGING` y `DimensionPadding(8, 224)`; `ARCHITECTURAL_REFLECTION` encadena ambos procesadores registrados en `ModStructures` (cero escrituras fuera de `WorldGenRegion` gracias a `ensureCanWrite`).
+  3. **Frente 2 — Terrazas Multi-Nivel y Features por Bioma en `deep_mycelium`:** `MycelialDimensionBootstrap` integra terrazas acotadas (`Noises.CAVE_CHEESE` + `Noises.CAVE_LAYER` en `Y=28..156`) junto a pilares verticales; añadido `DeepMyceliumTerrainFeature` (`CAVERN_STALACTITES` en `deep_mycelium_caverns`, `SPORE_CANOPY_ARCH` en `latent_spore_forest` y `SANCTUM_AMBER_MONOLITH` en `hive_heart_sanctum`).
+  4. **Frente 3 — Ciudadelas (`MatriarchCitadel*`, `TwistedCitadel*`, `TerrainPlacementPolicy`):** Ampliado `findCavernPlacementY` a `9` columnas con validación de esquinas y cluster consistente (`selectConsistentFloorCluster`); `MatriarchCitadelPiece` incorpora `2` pilares de aproximación (`dz=24`) y una rampa Sur escalonada 6-conectada (`dz=25..26`); `TwistedCitadelPiece` refuerza puntos medios de borde (`groundTemplateCorners`) y añade pilares centrales bajo puentes (`anchorBridgePier`).
+  5. **Frente 4 — Superficie, Subsuelo y Auditoría Multi-Dimensión:** `SurfaceHiveFeature` y `MycelialSinkholeFeature` adaptan la sub-cimentación exterior al bioma (`resolveSurfaceBiomePalette`: `COLD_SNOW`, `ARID_SAND`, `SWAMP_MUD`, `TAIGA_PODZOL`, `TEMPERATE`), el Túnel Sur de la Sima acopla su altura al suelo cavernoso real (`findSouthCaveTargetFloorDy`), `MycelialOutbreakFeature` subterráneo exige `hasSafeSubterraneanOutbreakFooting`, y `WorldgenAuditEngine` audita Overworld y `mycelialmind:deep_mycelium` (`DeepMyceliumStats`).
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/world/{TerrainPlacementPolicy,DeepMyceliumTerrainFeature,ModWorldgenKeys,SurfaceHiveFeature,MycelialSinkholeFeature,MycelialOutbreakFeature,WorldgenAuditEngine}.java`
+  - `src/main/java/com/alex/mycelialmind/world/structure/{HiveSanctumStructure,MycelialFluidClearProcessor,MycelialFoundationPillarProcessor,MatriarchCitadelStructure,MatriarchCitadelPiece,TwistedCitadelStructure,TwistedCitadelPiece}.java`
+  - `src/main/java/com/alex/mycelialmind/registry/{ModStructures,ModFeatures}.java`
+  - `src/main/java/com/alex/mycelialmind/datagen/Mycelial{Dimension,Feature,Biome,Structure}Bootstrap.java` y `src/generated/resources/data/mycelialmind/worldgen/**` (`33` builtin JSONs / `133` DataGen total)
+  - `src/test/java/com/alex/mycelialmind/{HiveAlgorithmsUnitTest,DataGenIntegrityTest}.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`
+  - `artifacts/diagnostics/rea-worldgen-reference-report.md`, `.agents/skills/{mycelial-ai-hive,mycelial-diagnostics,neoforge-gametest}/SKILL.md`
+- **Skills revisadas y actualizadas:**
+  - Actualizadas `mycelial-ai-hive/SKILL.md`, `mycelial-diagnostics/SKILL.md` y `neoforge-gametest/SKILL.md`; las otras `5` skills revisadas sin requerir cambios (`validate_skills` = `8/8 OK`).
+- **Verificación (`CodeMode` `mycelial-mind-dev`):**
+  - `run_gradle_task(["runData", "test", "build", "runGameTestServer"], isolated_gametests=True, no_daemon=True, max_workers=1)`: **`BUILD SUCCESSFUL` (`57s`)**, **`150/150` JUnit en `17` suites (`2.857s`, `0` fallos)**, **`202/202` `@GameTest`s PASS en `7.499 s`** (`All 202 required tests passed :)`), `audit_mod_assets` (`ok: true`, `2235/2235` EN/ES).
+  - Smoke `flat`: `run_rcon_verify_suite` -> **`ALL 24 automated scenario checks PASSED`**.
+  - Smoke `default` (Overworld + `deep_mycelium`, cero warnings de chunk lejano):
+    - Overworld `mycelial worldgen audit 8 64`: **`PASS`** (`chunks=289, terrain(float=0,fluid=0,spawn=0,biome=0)`) + `locate structure mycelialmind:hive_sanctum` -> **`[-720, ~, 304]`**.
+    - `deep_mycelium`: `locate` **`matriarch_citadel` `[-3200, ~, 160]`**, **`twisted_citadel` `[-368, ~, 176]`**; `mycelial worldgen audit 6 64` -> **`PASS`** (`cols=676, cavern=671, tiers=574, br_err=0, feat=808, mat_cand=1, tw_cand=7`).

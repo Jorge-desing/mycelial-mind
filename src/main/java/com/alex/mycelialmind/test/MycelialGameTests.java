@@ -11515,9 +11515,9 @@ public final class MycelialGameTests {
         var matriarchCitadel = structReg.get(com.alex.mycelialmind.world.ModWorldgenKeys.MATRIARCH_CITADEL);
         var twistedCitadel = structReg.get(com.alex.mycelialmind.world.ModWorldgenKeys.TWISTED_CITADEL);
 
-        helper.assertTrue(hiveSanctum != null
+        helper.assertTrue(hiveSanctum instanceof com.alex.mycelialmind.world.structure.HiveSanctumStructure
                         && hiveSanctum.terrainAdaptation() == net.minecraft.world.level.levelgen.structure.TerrainAdjustment.ENCAPSULATE,
-                "Expected hive_sanctum to use TerrainAdjustment.ENCAPSULATE.");
+                "Expected hive_sanctum to use HiveSanctumStructure + TerrainAdjustment.ENCAPSULATE.");
         helper.assertTrue(matriarchCitadel != null
                         && matriarchCitadel.terrainAdaptation() == net.minecraft.world.level.levelgen.structure.TerrainAdjustment.BEARD_THIN,
                 "Expected matriarch_citadel to use TerrainAdjustment.BEARD_THIN.");
@@ -11526,21 +11526,70 @@ public final class MycelialGameTests {
                 "Expected twisted_citadel to use TerrainAdjustment.BEARD_THIN.");
 
         // Probe real deep_mycelium 0..192 NoiseColumn generator across deterministic coordinates
-        boolean foundCavernAnchor = false;
-        for (int idx = 0; idx < 24 && !foundCavernAnchor; idx++) {
-            int px = (idx * 73) - 640;
-            int pz = ((idx * 131) % 768) - 384;
-            var optY = com.alex.mycelialmind.world.TerrainPlacementPolicy.findCavernPlacementY(
-                    deepGen, deepHeightAccessor, deepRandomState, px, pz, 28, 144, 22, 64, 10);
-            if (optY.isPresent()) {
-                int y = optY.getAsInt();
-                helper.assertTrue(y >= 28 && y <= 144,
-                        "Expected probed cavern floor within 28..144, got " + y);
-                foundCavernAnchor = true;
+        boolean foundTwistedAnchor = false;
+        boolean foundMatriarchAnchor = false;
+        boolean foundMultiTierColumn = false;
+        for (int idx = 0; idx < 64; idx++) {
+            int px = (idx * 73) - 1600;
+            int pz = ((idx * 131) % 1024) - 512;
+            if (!foundTwistedAnchor) {
+                var optY = com.alex.mycelialmind.world.TerrainPlacementPolicy.findCavernPlacementY(
+                        deepGen, deepHeightAccessor, deepRandomState, px, pz, 28, 144, 22, 64, 10, 12);
+                if (optY.isPresent()) {
+                    int y = optY.getAsInt();
+                    helper.assertTrue(y >= 28 && y <= 144,
+                            "Expected probed TwistedCitadel cavern floor within 28..144, got " + y);
+                    foundTwistedAnchor = true;
+                }
+            }
+            if (!foundMatriarchAnchor) {
+                var optMat = com.alex.mycelialmind.world.TerrainPlacementPolicy.findCavernPlacementY(
+                        deepGen, deepHeightAccessor, deepRandomState, px, pz, 28, 128, 28, 48, 12, 16);
+                if (optMat.isPresent()) {
+                    int y = optMat.getAsInt();
+                    helper.assertTrue(y >= 28 && y <= 128,
+                            "Expected probed MatriarchCitadel cavern floor within 28..128, got " + y);
+                    foundMatriarchAnchor = true;
+                }
+            }
+            if (!foundMultiTierColumn) {
+                var col = deepGen.getBaseColumn(px, pz, deepHeightAccessor, deepRandomState);
+                int bands = 0;
+                int lastFloor = Integer.MIN_VALUE;
+                boolean prevSolid = false;
+                int airStreak = 0;
+                int candY = 0;
+                for (int y = 24; y <= 164; y++) {
+                    BlockState st = col.getBlock(y);
+                    boolean fluid = !st.getFluidState().isEmpty();
+                    boolean solid = !fluid && !st.isAir() && !st.canBeReplaced();
+                    boolean air = !fluid && (st.isAir() || st.canBeReplaced());
+                    if (solid) {
+                        prevSolid = true;
+                        airStreak = 0;
+                        candY = y;
+                    } else if (air && prevSolid) {
+                        airStreak++;
+                        if (airStreak == 4 && (lastFloor == Integer.MIN_VALUE || candY - lastFloor >= 6)) {
+                            bands++;
+                            lastFloor = candY;
+                        }
+                    } else {
+                        prevSolid = false;
+                        airStreak = 0;
+                    }
+                }
+                if (bands >= 2) {
+                    foundMultiTierColumn = true;
+                }
             }
         }
-        helper.assertTrue(foundCavernAnchor,
-                "Expected TerrainPlacementPolicy.findCavernPlacementY to locate valid dry cavern floor in 0..192 deep_mycelium.");
+        helper.assertTrue(foundTwistedAnchor,
+                "Expected TerrainPlacementPolicy.findCavernPlacementY (9-col variance) to locate TwistedCitadel floor in 0..192 deep_mycelium.");
+        helper.assertTrue(foundMatriarchAnchor,
+                "Expected TerrainPlacementPolicy.findCavernPlacementY (9-col variance) to locate MatriarchCitadel floor in 0..192 deep_mycelium.");
+        helper.assertTrue(foundMultiTierColumn,
+                "Expected upgraded Terralith-style deep_mycelium density to produce multi-tier cavern floors.");
 
         // Verify MatriarchCitadelPiece & TwistedCitadelPiece support buttresses maintain zero floating blocks
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
@@ -11560,13 +11609,15 @@ public final class MycelialGameTests {
                     level.getRandom(), citadelBox, new ChunkPos(citadelCenter), citadelCenter);
             helper.assertFalse(level.getBlockState(citadelCenter.offset(14, -6, 0)).isAir(),
                     "MatriarchCitadelPiece must generate vertical support buttresses under mid-arena ring.");
+            helper.assertFalse(level.getBlockState(citadelCenter.offset(0, -1, 25)).isAir(),
+                    "MatriarchCitadelPiece must generate 6-connected South approach ramp.");
 
             java.util.function.Predicate<BlockState> isModStructure =
                     s -> !s.isAir() && !s.is(Blocks.STONE) && !s.is(Blocks.BEDROCK) && !s.is(Blocks.BARRIER);
             var citadelFloating = com.alex.mycelialmind.world.structure.VoxelStructureOps.findDisconnectedPositions(
                     level, citadelBox, citadelCenter.above(4), isModStructure);
             helper.assertTrue(citadelFloating.isEmpty(),
-                    "MatriarchCitadelPiece with buttresses must have zero floating blocks, found " + citadelFloating.size());
+                    "MatriarchCitadelPiece with buttresses & ramp must have zero floating blocks, found " + citadelFloating.size());
         } finally {
             var citadelGuardians = level.getEntitiesOfClass(com.alex.mycelialmind.entity.MycelialMob.class,
                     new AABB(citadelCenter).inflate(26.0D),
@@ -11580,6 +11631,116 @@ public final class MycelialGameTests {
                 }
             }
             tracker.clearAll();
+        }
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "worldgen_terrain_balance")
+    public static void worldgenProcessorsAndDeepMyceliumBiomeFeaturesWorkEndToEnd(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var registries = level.registryAccess();
+
+        // 1. Processor list includes FluidClear + FoundationPillar + ArchitecturalAccent + Rule + Protected
+        var procList = registries.registryOrThrow(Registries.PROCESSOR_LIST)
+                .get(com.alex.mycelialmind.world.ModWorldgenKeys.ARCHITECTURAL_REFLECTION);
+        helper.assertTrue(procList != null && procList.list().size() >= 5,
+                "Expected architectural_reflection processor list to include >= 5 processors.");
+        boolean hasFluidClear = procList.list().stream().anyMatch(
+                p -> p instanceof com.alex.mycelialmind.world.structure.MycelialFluidClearProcessor);
+        boolean hasPillar = procList.list().stream().anyMatch(
+                p -> p instanceof com.alex.mycelialmind.world.structure.MycelialFoundationPillarProcessor);
+        helper.assertTrue(hasFluidClear && hasPillar,
+                "Expected MycelialFluidClearProcessor and MycelialFoundationPillarProcessor in architectural_reflection.");
+
+        // 2. All 3 deep_mycelium biome-specific placed features registered
+        var pfReg = registries.registryOrThrow(Registries.PLACED_FEATURE);
+        helper.assertTrue(pfReg.containsKey(com.alex.mycelialmind.world.ModWorldgenKeys.DEEP_MYCELIUM_STALACTITES_PF)
+                        && pfReg.containsKey(com.alex.mycelialmind.world.ModWorldgenKeys.LATENT_SPORE_CANOPY_PF)
+                        && pfReg.containsKey(com.alex.mycelialmind.world.ModWorldgenKeys.SANCTUM_AMBER_MONOLITH_PF),
+                "Expected all 3 Deep Mycelium biome terrain features registered.");
+
+        // 3. Unit behavior of MycelialFluidClearProcessor & MycelialFoundationPillarProcessor inside test area
+        BlockPos boxMin = helper.absolutePos(new BlockPos(1, 6, 1));
+        BlockPos boxMax = helper.absolutePos(new BlockPos(19, 29, 19));
+        try {
+            BlockPos wallPos = helper.absolutePos(new BlockPos(5, 16, 5));
+            BlockPos waterNeighbor = wallPos.north();
+            level.setBlock(waterNeighbor, Blocks.WATER.defaultBlockState(), 18);
+
+            var fluidProc = new com.alex.mycelialmind.world.structure.MycelialFluidClearProcessor();
+            var settings = new net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings();
+            BlockState waterloggedStair = Blocks.DEEPSLATE_BRICK_STAIRS.defaultBlockState()
+                    .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED, true);
+            var processed = fluidProc.processBlock(
+                    level, wallPos, wallPos,
+                    new net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo(
+                            BlockPos.ZERO, waterloggedStair, null),
+                    new net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo(
+                            wallPos, waterloggedStair, null),
+                    settings
+            );
+            helper.assertTrue(processed != null
+                            && !processed.state().getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED),
+                    "MycelialFluidClearProcessor must strip WATERLOGGED from placed structural blocks.");
+            helper.assertTrue(level.getBlockState(waterNeighbor).is(ModBlocks.MYCELIAL_STONE.get()),
+                    "MycelialFluidClearProcessor must seal adjacent fluid neighbor with mycelial_stone.");
+
+            BlockPos overhangBase = helper.absolutePos(new BlockPos(8, 20, 8));
+            BlockPos overhangPos = ((overhangBase.getX() ^ overhangBase.getZ()) & 1) == 0
+                    ? overhangBase
+                    : overhangBase.east();
+            level.setBlock(overhangPos.below(5), Blocks.DEEPSLATE.defaultBlockState(), 18);
+            var pillarProc = new com.alex.mycelialmind.world.structure.MycelialFoundationPillarProcessor();
+            pillarProc.processBlock(
+                    level, overhangPos, overhangPos,
+                    new net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo(
+                            BlockPos.ZERO, Blocks.DEEPSLATE_BRICKS.defaultBlockState(), null),
+                    new net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo(
+                            overhangPos, Blocks.DEEPSLATE_BRICKS.defaultBlockState(), null),
+                    settings
+            );
+            helper.assertFalse(level.getBlockState(overhangPos.below(2)).isAir(),
+                    "MycelialFoundationPillarProcessor must extend foundation column downward to cavern floor.");
+
+            // 4. All 3 DeepMyceliumTerrainFeature variants generate cleanly
+            BlockPos stalactiteCeil = helper.absolutePos(new BlockPos(14, 26, 6));
+            level.setBlock(stalactiteCeil, ModBlocks.MYCELIAL_STONE.get().defaultBlockState(), 18);
+            level.setBlock(stalactiteCeil.below(10), ModBlocks.MYCELIAL_STONE.get().defaultBlockState(), 18);
+            helper.assertTrue(com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.placeVariant(
+                    level, stalactiteCeil, level.getRandom(),
+                    com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.Variant.CAVERN_STALACTITES),
+                    "CAVERN_STALACTITES variant should generate beneath dry cavern ceiling.");
+
+            BlockPos canopyFloor = helper.absolutePos(new BlockPos(14, 12, 14));
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    level.setBlock(canopyFloor.offset(dx, 0, dz), ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState(), 18);
+                }
+            }
+            helper.assertTrue(com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.placeVariant(
+                    level, canopyFloor, level.getRandom(),
+                    com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.Variant.SPORE_CANOPY_ARCH),
+                    "SPORE_CANOPY_ARCH variant should generate on dry mycelium floor.");
+
+            BlockPos monolithFloor = helper.absolutePos(new BlockPos(5, 12, 14));
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    level.setBlock(monolithFloor.offset(dx, 0, dz), ModBlocks.MYCELIAL_STONE.get().defaultBlockState(), 18);
+                }
+            }
+            helper.assertTrue(com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.placeVariant(
+                    level, monolithFloor, level.getRandom(),
+                    com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.Variant.SANCTUM_AMBER_MONOLITH),
+                    "SANCTUM_AMBER_MONOLITH variant should generate on dry stone floor.");
+        } finally {
+            for (BlockPos pos : BlockPos.betweenClosed(
+                    boxMin.getX(), boxMin.getY(), boxMin.getZ(),
+                    boxMax.getX(), boxMax.getY(), boxMax.getZ())) {
+                if (!level.getBlockState(pos).isAir()) {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
         }
 
         helper.succeed();

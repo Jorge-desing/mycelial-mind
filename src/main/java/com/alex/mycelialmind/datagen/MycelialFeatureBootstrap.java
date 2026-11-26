@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.datagen;
 
 import com.alex.mycelialmind.registry.ModFeatures;
+import com.alex.mycelialmind.world.DeepMyceliumTerrainFeature;
 import com.alex.mycelialmind.world.HiveTierRarityPlacement;
 import com.alex.mycelialmind.world.ModWorldgenKeys;
 import net.minecraft.core.HolderGetter;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
+import net.minecraft.world.level.levelgen.placement.CountPlacement;
 import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
 import net.minecraft.world.level.levelgen.placement.HeightmapPlacement;
 import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
@@ -38,6 +40,27 @@ public final class MycelialFeatureBootstrap {
                 ModWorldgenKeys.SURFACE_HIVE_CF,
                 new ConfiguredFeature<>(ModFeatures.SURFACE_HIVE.get(), NoneFeatureConfiguration.INSTANCE)
         );
+        context.register(
+                ModWorldgenKeys.DEEP_MYCELIUM_STALACTITES_CF,
+                new ConfiguredFeature<>(
+                        ModFeatures.DEEP_MYCELIUM_TERRAIN.get(),
+                        new DeepMyceliumTerrainFeature.Config(DeepMyceliumTerrainFeature.Variant.CAVERN_STALACTITES)
+                )
+        );
+        context.register(
+                ModWorldgenKeys.LATENT_SPORE_CANOPY_CF,
+                new ConfiguredFeature<>(
+                        ModFeatures.DEEP_MYCELIUM_TERRAIN.get(),
+                        new DeepMyceliumTerrainFeature.Config(DeepMyceliumTerrainFeature.Variant.SPORE_CANOPY_ARCH)
+                )
+        );
+        context.register(
+                ModWorldgenKeys.SANCTUM_AMBER_MONOLITH_CF,
+                new ConfiguredFeature<>(
+                        ModFeatures.DEEP_MYCELIUM_TERRAIN.get(),
+                        new DeepMyceliumTerrainFeature.Config(DeepMyceliumTerrainFeature.Variant.SANCTUM_AMBER_MONOLITH)
+                )
+        );
     }
 
     public static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
@@ -49,6 +72,36 @@ public final class MycelialFeatureBootstrap {
                         new HiveTierRarityPlacement(32, 24, 18, 12),
                         InSquarePlacement.spread(),
                         HeightRangePlacement.uniform(VerticalAnchor.absolute(28), VerticalAnchor.absolute(168)),
+                        BiomeFilter.biome()
+                )
+        ));
+
+        context.register(ModWorldgenKeys.DEEP_MYCELIUM_STALACTITES_PF, new PlacedFeature(
+                configured.getOrThrow(ModWorldgenKeys.DEEP_MYCELIUM_STALACTITES_CF),
+                List.of(
+                        CountPlacement.of(4),
+                        InSquarePlacement.spread(),
+                        HeightRangePlacement.uniform(VerticalAnchor.absolute(30), VerticalAnchor.absolute(156)),
+                        BiomeFilter.biome()
+                )
+        ));
+
+        context.register(ModWorldgenKeys.LATENT_SPORE_CANOPY_PF, new PlacedFeature(
+                configured.getOrThrow(ModWorldgenKeys.LATENT_SPORE_CANOPY_CF),
+                List.of(
+                        CountPlacement.of(4),
+                        InSquarePlacement.spread(),
+                        HeightRangePlacement.uniform(VerticalAnchor.absolute(30), VerticalAnchor.absolute(156)),
+                        BiomeFilter.biome()
+                )
+        ));
+
+        context.register(ModWorldgenKeys.SANCTUM_AMBER_MONOLITH_PF, new PlacedFeature(
+                configured.getOrThrow(ModWorldgenKeys.SANCTUM_AMBER_MONOLITH_CF),
+                List.of(
+                        CountPlacement.of(3),
+                        InSquarePlacement.spread(),
+                        HeightRangePlacement.uniform(VerticalAnchor.absolute(30), VerticalAnchor.absolute(156)),
                         BiomeFilter.biome()
                 )
         ));

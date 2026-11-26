@@ -5,6 +5,7 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.world.structure.HiveSanctumStructure;
 import com.alex.mycelialmind.world.structure.StructureProgressionPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -180,6 +181,39 @@ public final class WorldgenAuditEngine {
         }
     }
 
+    public record DeepMyceliumStats(
+            boolean isDeepMycelium,
+            int sampledColumns,
+            int cavernColumns,
+            int multiTierColumns,
+            int bedrockViolations,
+            int biomeFeatureBlocks,
+            SanctumGridStats matriarchGrid,
+            SanctumGridStats twistedGrid,
+            boolean passed
+    ) {
+        public static DeepMyceliumStats inactive() {
+            return new DeepMyceliumStats(
+                    false, 0, 0, 0, 0, 0,
+                    emptyGridStats(), emptyGridStats(), true
+            );
+        }
+
+        public JsonObject toJson() {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("is_deep_mycelium", isDeepMycelium);
+            obj.addProperty("sampled_columns", sampledColumns);
+            obj.addProperty("cavern_columns", cavernColumns);
+            obj.addProperty("multi_tier_columns", multiTierColumns);
+            obj.addProperty("bedrock_violations", bedrockViolations);
+            obj.addProperty("biome_feature_blocks", biomeFeatureBlocks);
+            obj.add("matriarch_citadel_grid", matriarchGrid.toJson());
+            obj.add("twisted_citadel_grid", twistedGrid.toJson());
+            obj.addProperty("passed", passed);
+            return obj;
+        }
+    }
+
     public record WorldgenAuditReport(
             String dimension,
             long seed,
@@ -206,15 +240,17 @@ public final class WorldgenAuditEngine {
             List<HiveIntegrityReport> hiveIntegrityReports,
             SanctumGridStats sanctumGridStats,
             TerrainQualityStats terrainQualityStats,
+            DeepMyceliumStats deepMyceliumStats,
             List<String> failures,
             boolean passed
     ) {
         public String toCompactAgentLine() {
             int validHives = (int) hiveIntegrityReports.stream().filter(HiveIntegrityReport::valid).count();
-            return String.format(
+            String base = String.format(
                     Locale.ROOT,
-                    "[Mycelial WorldgenAudit] %s | chunks=%d ms=%d | outbreaks=%d(cave=%d,surf=%d) hives=%d(valid=%d/%d) nodes=%d(R=%d,I=%d,S=%d) | nn_xz(outbreak=%.1f/%.1f/%.1f,hive=%.1f,o2h=%.1f) | net(links=%d,clusters=%d,max=%d,iso=%.2f) | sanctum(cand=%d,min_chk=%.1f,sep=%d) | terrain(sites=%d,float=%d,fluid=%d,spawn=%d,biome=%d)",
+                    "[Mycelial WorldgenAudit] %s | dim=%s | chunks=%d ms=%d | outbreaks=%d(cave=%d,surf=%d) hives=%d(valid=%d/%d) nodes=%d(R=%d,I=%d,S=%d) | nn_xz(outbreak=%.1f/%.1f/%.1f,hive=%.1f,o2h=%.1f) | net(links=%d,clusters=%d,max=%d,iso=%.2f) | sanctum(cand=%d,min_chk=%.1f,sep=%d) | terrain(sites=%d,float=%d,fluid=%d,spawn=%d,biome=%d)",
                     passed ? "PASS" : "FAIL",
+                    dimension,
                     chunksScanned,
                     durationMs,
                     caveOutbreaks + surfaceOutbreaks,
@@ -244,6 +280,20 @@ public final class WorldgenAuditEngine {
                     terrainQualityStats.fluidIntrusionViolations(),
                     terrainQualityStats.spawnSafeZoneViolations(),
                     terrainQualityStats.excludedBiomeViolations()
+            );
+            if (!deepMyceliumStats.isDeepMycelium()) {
+                return base;
+            }
+            return base + String.format(
+                    Locale.ROOT,
+                    " | deep(cols=%d,cavern=%d,tiers=%d,br_err=%d,feat=%d,mat_cand=%d,tw_cand=%d)",
+                    deepMyceliumStats.sampledColumns(),
+                    deepMyceliumStats.cavernColumns(),
+                    deepMyceliumStats.multiTierColumns(),
+                    deepMyceliumStats.bedrockViolations(),
+                    deepMyceliumStats.biomeFeatureBlocks(),
+                    deepMyceliumStats.matriarchGrid().candidateCount(),
+                    deepMyceliumStats.twistedGrid().candidateCount()
             );
         }
 
@@ -298,6 +348,7 @@ public final class WorldgenAuditEngine {
 
             root.add("sanctum_jigsaw_grid", sanctumGridStats.toJson());
             root.add("terrain_quality", terrainQualityStats.toJson());
+            root.add("deep_mycelium", deepMyceliumStats.toJson());
 
             JsonObject invariants = new JsonObject();
             invariants.addProperty("passed", passed);
@@ -325,6 +376,11 @@ public final class WorldgenAuditEngine {
         Block capBlock = ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get();
         Block bulbBlock = ModBlocks.SPORE_BULB.get();
         Block tendrilsBlock = ModBlocks.MYCELIAL_TENDRILS.get();
+        Block sapMossBlock = ModBlocks.ROOT_SAP_MOSS.get();
+        Block amberBlock = ModBlocks.LUMINESCENT_AMBER_VEIN.get();
+        Block archBrickBlock = ModBlocks.MYCELIAL_ARCH_BRICK.get();
+        Block chitinPillarBlock = ModBlocks.CHITIN_PILLAR.get();
+        boolean isDeepMycelium = ModDimensions.DEEP_MYCELIUM_LEVEL.equals(level.dimension());
 
         Predicate<BlockState> sectionInteresting = state ->
                 state.is(relayBlock)
@@ -335,12 +391,21 @@ public final class WorldgenAuditEngine {
                         || state.is(ventBlock)
                         || state.is(capBlock)
                         || state.is(bulbBlock)
-                        || state.is(tendrilsBlock);
+                        || state.is(tendrilsBlock)
+                        || (isDeepMycelium && (state.is(sapMossBlock)
+                                || state.is(amberBlock)
+                                || state.is(archBrickBlock)
+                                || state.is(chitinPillarBlock)));
 
         Map<BlockPos, SynapticNodeType> detectedNodes = new HashMap<>();
         int myceliumCount = 0;
         int stoneCount = 0;
         int floraCount = 0;
+        int deepFeatureBlocks = 0;
+        int sampledColumns = 0;
+        int cavernColumns = 0;
+        int multiTierColumns = 0;
+        int bedrockViolations = 0;
         int chunksScanned = 0;
 
         ServerChunkCache chunkSource = level.getChunkSource();
@@ -354,10 +419,15 @@ public final class WorldgenAuditEngine {
             }
         }
 
+        int[][] columnProbes = {{3, 3}, {3, 12}, {12, 3}, {12, 12}};
+        BlockPos.MutableBlockPos probePos = new BlockPos.MutableBlockPos();
+
         for (int cx = minCx; cx <= maxCx; cx++) {
             for (int cz = minCz; cz <= maxCz; cz++) {
                 LevelChunk chunk = level.getChunk(cx, cz);
                 chunksScanned++;
+                int baseX = chunk.getPos().getMinBlockX();
+                int baseZ = chunk.getPos().getMinBlockZ();
                 LevelChunkSection[] sections = chunk.getSections();
                 int minSectionY = chunk.getMinSection();
 
@@ -367,8 +437,6 @@ public final class WorldgenAuditEngine {
                         continue;
                     }
                     int baseY = (minSectionY + sIdx) << 4;
-                    int baseX = chunk.getPos().getMinBlockX();
-                    int baseZ = chunk.getPos().getMinBlockZ();
                     for (int ly = 0; ly < 16; ly++) {
                         int wy = baseY + ly;
                         for (int lz = 0; lz < 16; lz++) {
@@ -388,8 +456,56 @@ public final class WorldgenAuditEngine {
                                     stoneCount++;
                                 } else if (block == ventBlock || block == capBlock || block == bulbBlock || block == tendrilsBlock) {
                                     floraCount++;
+                                } else if (isDeepMycelium && (block == sapMossBlock || block == amberBlock
+                                        || block == archBrickBlock || block == chitinPillarBlock)) {
+                                    deepFeatureBlocks++;
                                 }
                             }
+                        }
+                    }
+                }
+
+                if (isDeepMycelium) {
+                    for (int[] col : columnProbes) {
+                        sampledColumns++;
+                        int wx = baseX + col[0];
+                        int wz = baseZ + col[1];
+                        if (!chunk.getBlockState(probePos.set(wx, 0, wz)).is(Blocks.BEDROCK)
+                                || !chunk.getBlockState(probePos.set(wx, 191, wz)).is(Blocks.BEDROCK)) {
+                            bedrockViolations++;
+                        }
+                        int floorBands = 0;
+                        int lastFloorY = Integer.MIN_VALUE;
+                        boolean prevSolidDry = false;
+                        int dryAirStreak = 0;
+                        int candidateFloorY = 0;
+                        for (int y = 20; y <= 168; y++) {
+                            BlockState st = chunk.getBlockState(probePos.set(wx, y, wz));
+                            boolean hasFluid = !st.getFluidState().isEmpty();
+                            boolean solidDry = !hasFluid && !st.isAir() && !st.canBeReplaced();
+                            boolean openDry = !hasFluid && (st.isAir() || st.canBeReplaced());
+                            if (solidDry) {
+                                prevSolidDry = true;
+                                dryAirStreak = 0;
+                                candidateFloorY = y;
+                            } else if (openDry && prevSolidDry) {
+                                dryAirStreak++;
+                                if (dryAirStreak == 3) {
+                                    if (lastFloorY == Integer.MIN_VALUE || candidateFloorY - lastFloorY >= 6) {
+                                        floorBands++;
+                                        lastFloorY = candidateFloorY;
+                                    }
+                                }
+                            } else {
+                                prevSolidDry = false;
+                                dryAirStreak = 0;
+                            }
+                        }
+                        if (floorBands >= 1) {
+                            cavernColumns++;
+                        }
+                        if (floorBands >= 2) {
+                            multiTierColumns++;
                         }
                     }
                 }
@@ -453,6 +569,25 @@ public final class WorldgenAuditEngine {
         NetworkStats networkStats = computeNetworkStats(allNodes, MycelialConfig.SYNAPTIC_NODE_LINK_RADIUS.get(), tracker);
         SanctumGridStats sanctumGridStats = auditSanctumJigsawGrid(level, centerChunk, sanctumGridChunks);
         TerrainQualityStats terrainQualityStats = auditTerrainQuality(level, surfaceHives, surfaceOutbreaks);
+        DeepMyceliumStats deepMyceliumStats;
+        if (isDeepMycelium) {
+            SanctumGridStats matriarchGrid = auditStructureSetGrid(
+                    level, ModWorldgenKeys.MATRIARCH_CITADEL_SET, centerChunk, Math.max(sanctumGridChunks, 96));
+            SanctumGridStats twistedGrid = auditStructureSetGrid(
+                    level, ModWorldgenKeys.TWISTED_CITADEL_SET, centerChunk, sanctumGridChunks);
+            boolean deepOk = cavernColumns > 0
+                    && bedrockViolations == 0
+                    && matriarchGrid.structureSetRegistered()
+                    && matriarchGrid.separationInvariantOk()
+                    && twistedGrid.structureSetRegistered()
+                    && twistedGrid.separationInvariantOk();
+            deepMyceliumStats = new DeepMyceliumStats(
+                    true, sampledColumns, cavernColumns, multiTierColumns, bedrockViolations,
+                    deepFeatureBlocks, matriarchGrid, twistedGrid, deepOk
+            );
+        } else {
+            deepMyceliumStats = DeepMyceliumStats.inactive();
+        }
 
         List<String> failures = new ArrayList<>();
         if (chunksScanned > 0
@@ -481,6 +616,12 @@ public final class WorldgenAuditEngine {
                     sanctumGridStats.separationChunks()
             ));
         }
+        boolean hiveSanctumCustom = level.registryAccess().registry(Registries.STRUCTURE)
+                .map(reg -> reg.get(ModWorldgenKeys.HIVE_SANCTUM) instanceof HiveSanctumStructure)
+                .orElse(false);
+        if (!hiveSanctumCustom) {
+            failures.add("Structure mycelialmind:hive_sanctum is not registered as HiveSanctumStructure");
+        }
         if (!terrainQualityStats.passed()) {
             failures.add(String.format(
                     Locale.ROOT,
@@ -489,6 +630,17 @@ public final class WorldgenAuditEngine {
                     terrainQualityStats.fluidIntrusionViolations(),
                     terrainQualityStats.spawnSafeZoneViolations(),
                     terrainQualityStats.excludedBiomeViolations()
+            ));
+        }
+        if (isDeepMycelium && !deepMyceliumStats.passed()) {
+            failures.add(String.format(
+                    Locale.ROOT,
+                    "Deep Mycelium audit failed: cavern=%d/%d, bedrock_err=%d, mat_ok=%s, tw_ok=%s",
+                    deepMyceliumStats.cavernColumns(),
+                    deepMyceliumStats.sampledColumns(),
+                    deepMyceliumStats.bedrockViolations(),
+                    deepMyceliumStats.matriarchGrid().separationInvariantOk(),
+                    deepMyceliumStats.twistedGrid().separationInvariantOk()
             ));
         }
 
@@ -519,6 +671,7 @@ public final class WorldgenAuditEngine {
                 hiveIntegrityReports,
                 sanctumGridStats,
                 terrainQualityStats,
+                deepMyceliumStats,
                 failures,
                 failures.isEmpty()
         );
@@ -685,13 +838,27 @@ public final class WorldgenAuditEngine {
         );
     }
 
+    private static SanctumGridStats emptyGridStats() {
+        return new SanctumGridStats(false, 0, 0, 0, "none", 0,
+                DistanceStats.empty(), DistanceStats.empty(), false);
+    }
+
     public static SanctumGridStats auditSanctumJigsawGrid(ServerLevel level, ChunkPos centerChunk, int gridChunks) {
+        return auditStructureSetGrid(level, HIVE_SANCTUM_SET, centerChunk, gridChunks);
+    }
+
+    public static SanctumGridStats auditStructureSetGrid(
+            ServerLevel level,
+            ResourceKey<StructureSet> setKey,
+            ChunkPos centerChunk,
+            int gridChunks
+    ) {
         Optional<Registry<StructureSet>> optReg = level.registryAccess().registry(Registries.STRUCTURE_SET);
         if (optReg.isEmpty()) {
             return new SanctumGridStats(false, gridChunks, 0, 0, "none", 0,
                     DistanceStats.empty(), DistanceStats.empty(), false);
         }
-        StructureSet set = optReg.get().get(HIVE_SANCTUM_SET);
+        StructureSet set = optReg.get().get(setKey);
         if (set == null || !(set.placement() instanceof RandomSpreadStructurePlacement spread)) {
             return new SanctumGridStats(false, gridChunks, 0, 0, "none", 0,
                     DistanceStats.empty(), DistanceStats.empty(), false);

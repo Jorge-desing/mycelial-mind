@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.world;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -65,6 +67,22 @@ public final class TerrainPlacementPolicy {
     }
 
     public record CavernAnchorResult(int floorY, int headroom, boolean valid) {
+    }
+
+    public enum SurfaceBiomeStyle {
+        TEMPERATE,
+        COLD_SNOW,
+        ARID_SAND,
+        SWAMP_MUD,
+        TAIGA_PODZOL
+    }
+
+    public record BiomeBlendPalette(
+            SurfaceBiomeStyle style,
+            BlockState outerSubFoundation,
+            BlockState rimAccent,
+            BlockState trimStone
+    ) {
     }
 
     private TerrainPlacementPolicy() {
@@ -429,6 +447,228 @@ public final class TerrainPlacementPolicy {
     }
 
     /**
+     * Evaluates floor height variance across sampled cavern probes.
+     */
+    public static SlopeEvaluation evaluateCavernFloorSpread(int[] validFloors, int maxFloorVariance) {
+        return evaluateSlopeMetrics(validFloors, Math.max(0, maxFloorVariance));
+    }
+
+    /**
+     * Filters {@code validFloors} down to the cluster consistent with {@code anchorY}
+     * within {@code maxFloorVariance / 2} so single upper/lower cavern shelf outliers do
+     * not reject a level main cavern chamber.
+     */
+    public static int[] selectConsistentFloorCluster(int[] validFloors, int anchorY, int maxFloorVariance) {
+        if (validFloors == null || validFloors.length == 0) {
+            return new int[0];
+        }
+        int halfWindow = Math.max(1, maxFloorVariance / 2);
+        int[] buf = new int[validFloors.length];
+        int count = 0;
+        for (int y : validFloors) {
+            if (Math.abs(y - anchorY) <= halfWindow) {
+                buf[count++] = y;
+            }
+        }
+        return Arrays.copyOf(buf, count);
+    }
+
+    /**
+     * Checks whether a subterranean Jigsaw chamber envelope has sufficient dry solid rock
+     * and stays free of lava and major aquifers.
+     */
+    public static boolean isSubterraneanChamberVolumeSafe(int solidCells, int fluidCells, int lavaCells, int totalCells) {
+        if (lavaCells > 0 || totalCells <= 0) {
+            return false;
+        }
+        double fluidRatio = (double) fluidCells / (double) totalCells;
+        double solidRatio = (double) solidCells / (double) totalCells;
+        return fluidRatio <= 0.10D && solidRatio >= 0.45D;
+    }
+
+    /**
+     * Probes 5 noise columns around {@code (centerX, centerZ)} around {@code anchorY}
+     * via {@link ChunkGenerator#getBaseColumn} without forcing chunk loads.
+     */
+    public static boolean hasDrySolidSubterraneanEnvelope(
+            ChunkGenerator generator,
+            LevelHeightAccessor heightAccessor,
+            RandomState randomState,
+            int centerX,
+            int centerZ,
+            int anchorY,
+            int sampleRadius
+    ) {
+        if (generator == null || heightAccessor == null || randomState == null) {
+            return false;
+        }
+        int r = Math.max(2, sampleRadius);
+        int[][] probes = {
+                {0, 0},
+                {r, 0},
+                {-r, 0},
+                {0, r},
+                {0, -r}
+        };
+        int scanMinY = Math.max(heightAccessor.getMinBuildHeight() + 1, anchorY - 4);
+        int scanMaxY = Math.min(heightAccessor.getMaxBuildHeight() - 1, anchorY + 12);
+        if (scanMaxY <= scanMinY) {
+            return false;
+        }
+        int solidCells = 0;
+        int fluidCells = 0;
+        int lavaCells = 0;
+        int totalCells = 0;
+
+        for (int[] offset : probes) {
+            NoiseColumn column = generator.getBaseColumn(
+                    centerX + offset[0], centerZ + offset[1], heightAccessor, randomState);
+            for (int y = scanMinY; y <= scanMaxY; y += 2) {
+                totalCells++;
+                BlockState state = column.getBlock(y);
+                FluidState fluid = state.getFluidState();
+                if (!fluid.isEmpty()) {
+                    fluidCells++;
+                    if (fluid.is(FluidTags.LAVA)) {
+                        lavaCells++;
+                    }
+                } else if (!state.isAir() && !state.canBeReplaced()) {
+                    solidCells++;
+                }
+            }
+        }
+        return isSubterraneanChamberVolumeSafe(solidCells, fluidCells, lavaCells, totalCells);
+    }
+
+    /**
+     * Checks that a subterranean outbreak center has dry lateral footing and is not
+     * surrounded by lava or submerged in deep cave aquifers.
+     */
+    public static boolean hasSafeSubterraneanOutbreakFooting(WorldGenLevel level, BlockPos center) {
+        if (level == null || center == null || level.isOutsideBuildHeight(center)) {
+            return false;
+        }
+        if (!level.getFluidState(center).isEmpty() || !level.getFluidState(center.above()).isEmpty()) {
+            return false;
+        }
+        int waterNeighbors = 0;
+        int solidFootNeighbors = 0;
+        for (Direction dir : Direction.Plane.HORIZONTAL) {
+            BlockPos side = center.relative(dir);
+            if (level.isOutsideBuildHeight(side)) {
+                continue;
+            }
+            FluidState f0 = level.getFluidState(side);
+            FluidState f1 = !level.isOutsideBuildHeight(side.above()) ? level.getFluidState(side.above()) : f0;
+            if (f0.is(FluidTags.LAVA) || f1.is(FluidTags.LAVA)) {
+                return false;
+            }
+            if (!f0.isEmpty() || !f1.isEmpty()) {
+                waterNeighbors++;
+            }
+            for (int dy = -2; dy <= 2; dy++) {
+                BlockPos p = side.offset(0, dy, 0);
+                if (!level.isOutsideBuildHeight(p)
+                        && level.getFluidState(p).isEmpty()
+                        && level.getBlockState(p).isFaceSturdy(level, p, Direction.UP)) {
+                    solidFootNeighbors++;
+                    break;
+                }
+            }
+        }
+        return waterNeighbors < 3 && solidFootNeighbors >= 2;
+    }
+
+    /**
+     * Pure climate classifier for surface structure rim/foundation blending.
+     */
+    public static SurfaceBiomeStyle classifySurfaceBiomeStyle(
+            boolean isSnowy,
+            boolean isArid,
+            boolean isSwamp,
+            boolean isTaiga
+    ) {
+        if (isSnowy) {
+            return SurfaceBiomeStyle.COLD_SNOW;
+        }
+        if (isArid) {
+            return SurfaceBiomeStyle.ARID_SAND;
+        }
+        if (isSwamp) {
+            return SurfaceBiomeStyle.SWAMP_MUD;
+        }
+        if (isTaiga) {
+            return SurfaceBiomeStyle.TAIGA_PODZOL;
+        }
+        return SurfaceBiomeStyle.TEMPERATE;
+    }
+
+    /**
+     * Resolves an organic sub-foundation palette matched to the host Overworld biome.
+     */
+    public static BiomeBlendPalette resolveSurfaceBiomePalette(LevelReader level, BlockPos pos) {
+        if (level == null || pos == null) {
+            return paletteForStyle(SurfaceBiomeStyle.TEMPERATE);
+        }
+        Holder<Biome> biome = level.getBiome(pos);
+        String keyPath = biome.unwrapKey()
+                .map(k -> k.location().getPath().toLowerCase(java.util.Locale.ROOT))
+                .orElse("");
+        float temp = biome.value().getBaseTemperature();
+
+        boolean isSnowy = temp < 0.15F
+                || keyPath.contains("snow")
+                || keyPath.contains("frozen")
+                || keyPath.contains("ice")
+                || keyPath.contains("grove");
+        boolean isArid = temp >= 1.5F
+                || biome.is(BiomeTags.IS_BADLANDS)
+                || biome.is(BiomeTags.IS_SAVANNA)
+                || keyPath.contains("desert")
+                || keyPath.contains("badlands")
+                || keyPath.contains("savanna");
+        boolean isSwamp = keyPath.contains("swamp") || keyPath.contains("mangrove") || keyPath.contains("marsh");
+        boolean isTaiga = biome.is(BiomeTags.IS_TAIGA) || keyPath.contains("taiga") || keyPath.contains("spruce");
+
+        return paletteForStyle(classifySurfaceBiomeStyle(isSnowy, isArid, isSwamp, isTaiga));
+    }
+
+    private static BiomeBlendPalette paletteForStyle(SurfaceBiomeStyle style) {
+        return switch (style) {
+            case COLD_SNOW -> new BiomeBlendPalette(
+                    style,
+                    Blocks.PACKED_ICE.defaultBlockState(),
+                    Blocks.SNOW_BLOCK.defaultBlockState(),
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState()
+            );
+            case ARID_SAND -> new BiomeBlendPalette(
+                    style,
+                    Blocks.SANDSTONE.defaultBlockState(),
+                    Blocks.TERRACOTTA.defaultBlockState(),
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState()
+            );
+            case SWAMP_MUD -> new BiomeBlendPalette(
+                    style,
+                    Blocks.MUD.defaultBlockState(),
+                    Blocks.MOSSY_COBBLESTONE.defaultBlockState(),
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState()
+            );
+            case TAIGA_PODZOL -> new BiomeBlendPalette(
+                    style,
+                    Blocks.PODZOL.defaultBlockState(),
+                    Blocks.MOSSY_COBBLESTONE.defaultBlockState(),
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState()
+            );
+            case TEMPERATE -> new BiomeBlendPalette(
+                    style,
+                    ModBlocks.MYCELIAL_STONE.get().defaultBlockState(),
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState(),
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState()
+            );
+        };
+    }
+
+    /**
      * Probes 5 noise columns around {@code (centerX, centerZ)} via {@link ChunkGenerator#getBaseColumn}
      * without forcing chunk loads, returning a median dry cavern floor Y with required headroom.
      */
@@ -444,6 +684,30 @@ public final class TerrainPlacementPolicy {
             int preferredY,
             int sampleRadius
     ) {
+        return findCavernPlacementY(
+                generator, heightAccessor, randomState,
+                centerX, centerZ, minY, maxY, minHeadroom, preferredY, sampleRadius, 18
+        );
+    }
+
+    /**
+     * Probes 9 noise columns (center + 4 cardinal + 4 diagonal) via {@link ChunkGenerator#getBaseColumn}
+     * without forcing chunk loads, validating cavern floor variance and multi-corner headroom before
+     * returning the median dry cavern floor Y.
+     */
+    public static OptionalInt findCavernPlacementY(
+            ChunkGenerator generator,
+            LevelHeightAccessor heightAccessor,
+            RandomState randomState,
+            int centerX,
+            int centerZ,
+            int minY,
+            int maxY,
+            int minHeadroom,
+            int preferredY,
+            int sampleRadius,
+            int maxFloorVariance
+    ) {
         if (generator == null || heightAccessor == null || randomState == null) {
             return OptionalInt.empty();
         }
@@ -453,15 +717,17 @@ public final class TerrainPlacementPolicy {
             return OptionalInt.empty();
         }
         int span = scanTopY - clampedMinY + 1;
+        int r = Math.max(1, sampleRadius);
+        int d = Math.max(1, (int) Math.round(r * 0.7071D));
         int[][] probes = {
                 {0, 0},
-                {sampleRadius, 0},
-                {-sampleRadius, 0},
-                {0, sampleRadius},
-                {0, -sampleRadius}
+                {r, 0}, {-r, 0}, {0, r}, {0, -r},
+                {d, d}, {d, -d}, {-d, d}, {-d, -d}
         };
         int[] validFloors = new int[probes.length];
         int validCount = 0;
+        int cardinalHeadroomOk = 0;
+        int minCardinalHeadroom = Math.max(8, (int) Math.round(minHeadroom * 0.75D));
         boolean centerValid = false;
 
         for (int p = 0; p < probes.length; p++) {
@@ -481,13 +747,27 @@ public final class TerrainPlacementPolicy {
                 if (p == 0) {
                     centerValid = true;
                 }
+                if (p >= 1 && p <= 4 && res.headroom() >= minCardinalHeadroom) {
+                    cardinalHeadroomOk++;
+                }
+            } else if (p >= 1 && p <= 4) {
+                CavernAnchorResult relaxed = findCavernFloorInColumn(
+                        solid, fluid, clampedMinY, minCardinalHeadroom, preferredY);
+                if (relaxed.valid()) {
+                    cardinalHeadroomOk++;
+                }
             }
         }
 
-        if ((!centerValid && validCount < 3) || validCount < 2) {
+        if ((!centerValid && validCount < 5) || validCount < 4 || cardinalHeadroomOk < 3) {
             return OptionalInt.empty();
         }
         int[] trimmed = Arrays.copyOf(validFloors, validCount);
-        return OptionalInt.of(selectBestCavernAnchorY(trimmed, preferredY, minY, maxY));
+        int anchorY = selectBestCavernAnchorY(trimmed, preferredY, minY, maxY);
+        int[] cluster = selectConsistentFloorCluster(trimmed, anchorY, maxFloorVariance);
+        if (cluster.length < 4 || !evaluateCavernFloorSpread(cluster, maxFloorVariance).valid()) {
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(selectBestCavernAnchorY(cluster, preferredY, minY, maxY));
     }
 }

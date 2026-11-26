@@ -104,6 +104,7 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
         BlockState stairBase = Blocks.DEEPSLATE_BRICK_STAIRS.defaultBlockState();
 
         // 1) Organic creeping mycelium carpet & sub-foundation (radius 10.5, slope-adaptive outer rim)
+        var biomePalette = TerrainPlacementPolicy.resolveSurfaceBiomePalette(level, origin);
         long noiseSeed = origin.asLong() ^ 0x5355524641434548L;
         for (int dx = -11; dx <= 11; dx++) {
             for (int dz = -11; dz <= 11; dz++) {
@@ -137,7 +138,13 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                             && level.getBlockState(subPos).isFaceSturdy(level, subPos, Direction.UP);
                     if (!alreadySupported) {
                         TerrainPlacementPolicy.anchorOrganicFoundation(
-                                level, subPos, outerTransition ? 4 : 8, mycelialStone, deepslateBricks, pos -> isSafeToOverwrite(level, pos));
+                                level,
+                                subPos,
+                                outerTransition ? 4 : 8,
+                                outerTransition ? biomePalette.outerSubFoundation() : mycelialStone,
+                                outerTransition ? biomePalette.rimAccent() : deepslateBricks,
+                                pos -> isSafeToOverwrite(level, pos)
+                        );
                     }
                     if (dist >= 5.2 && dist <= 7.8) {
                         safeSetBlock(level, subPos, deepslateBricks);

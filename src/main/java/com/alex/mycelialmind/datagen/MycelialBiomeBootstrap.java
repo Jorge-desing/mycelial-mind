@@ -58,6 +58,7 @@ public final class MycelialBiomeBootstrap {
                 .generationSettings(new BiomeGenerationSettings.Builder(placedFeatures, carvers)
                         .addCarver(GenerationStep.Carving.AIR, Carvers.CAVE)
                         .addCarver(GenerationStep.Carving.AIR, Carvers.CAVE_EXTRA_UNDERGROUND)
+                        .addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, ModWorldgenKeys.DEEP_MYCELIUM_STALACTITES_PF)
                         .addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, ModWorldgenKeys.DEEP_MYCELIUM_OUTBREAK_PF)
                         .build())
                 .build());
@@ -84,6 +85,7 @@ public final class MycelialBiomeBootstrap {
                         .build())
                 .generationSettings(new BiomeGenerationSettings.Builder(placedFeatures, carvers)
                         .addCarver(GenerationStep.Carving.AIR, Carvers.CAVE)
+                        .addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, ModWorldgenKeys.SANCTUM_AMBER_MONOLITH_PF)
                         .addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, ModWorldgenKeys.DEEP_MYCELIUM_OUTBREAK_PF)
                         .build())
                 .build());
@@ -113,6 +115,7 @@ public final class MycelialBiomeBootstrap {
                         .addCarver(GenerationStep.Carving.AIR, Carvers.CAVE)
                         .addCarver(GenerationStep.Carving.AIR, Carvers.CAVE_EXTRA_UNDERGROUND)
                         .addCarver(GenerationStep.Carving.AIR, Carvers.CANYON)
+                        .addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, ModWorldgenKeys.LATENT_SPORE_CANOPY_PF)
                         .addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, ModWorldgenKeys.DEEP_MYCELIUM_OUTBREAK_PF)
                         .build())
                 .build());

@@ -366,6 +366,42 @@ public class MatriarchCitadelPiece extends StructurePiece {
             setIfInside(level, box, center.offset(-4, 1, dz), wall);
             setIfInside(level, box, center.offset(4, 1, dz), wall);
         }
+        // 2 vertical 6-connected approach bridge piers under South Bridge outer corners (dz = 24)
+        for (int px : new int[]{-3, 3}) {
+            for (int dy = -1; dy >= -12; dy--) {
+                BlockPos pierPos = center.offset(px, dy, 24);
+                if (!box.isInside(pierPos) || pierPos.getY() <= level.getMinBuildHeight() + 1) {
+                    break;
+                }
+                BlockState existing = level.getBlockState(pierPos);
+                if (!existing.isAir() && existing.isSolid() && existing.getFluidState().isEmpty()
+                        && !existing.is(archBrick.getBlock()) && !existing.is(chitinPillar.getBlock())) {
+                    break;
+                }
+                setIfInside(level, box, pierPos, (dy % 3 == 0) ? chitinPillar : archBrick);
+            }
+        }
+        // Stepped 6-connected South approach ramp (dz = 25..26, dx = -2..2) backed down into cavern ground
+        for (int dx = -2; dx <= 2; dx++) {
+            setIfInside(level, box, center.offset(dx, -1, 24), archBrick);
+            for (int step = 0; step < 2; step++) {
+                int dz = 25 + step;
+                int topY = -1 - step;
+                setIfInside(level, box, center.offset(dx, topY, dz), (Math.abs(dx) <= 1) ? basalt : archBrick);
+                for (int dy = 1; dy <= 6; dy++) {
+                    BlockPos backPos = center.offset(dx, topY - dy, dz);
+                    if (!box.isInside(backPos) || backPos.getY() <= level.getMinBuildHeight() + 1) {
+                        break;
+                    }
+                    BlockState existing = level.getBlockState(backPos);
+                    if (!existing.isAir() && existing.isSolid() && existing.getFluidState().isEmpty()
+                            && !existing.is(archBrick.getBlock())) {
+                        break;
+                    }
+                    setIfInside(level, box, backPos, archBrick);
+                }
+            }
+        }
         for (int ox : new int[]{-4, 4}) {
             for (int dy = 1; dy <= 6; dy++) {
                 setIfInside(level, box, center.offset(ox, dy, 22), chitinPillar);

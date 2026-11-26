@@ -1,6 +1,12 @@
 {
   "processors": [
     {
+      "processor_type": "mycelialmind:fluid_clear"
+    },
+    {
+      "processor_type": "mycelialmind:foundation_pillar"
+    },
+    {
       "processor_type": "mycelialmind:architectural_accent"
     },
     {

@@ -35,7 +35,8 @@ public class TwistedCitadelStructure extends Structure {
                 144,
                 22,
                 64,
-                10
+                10,
+                12
         );
         if (floorY.isEmpty()) {
             return Optional.empty();

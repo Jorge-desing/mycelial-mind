@@ -47,10 +47,22 @@ public final class ModWorldgenKeys {
             key(Registries.CONFIGURED_FEATURE, "mycelial_sinkhole");
     public static final ResourceKey<ConfiguredFeature<?, ?>> SURFACE_HIVE_CF =
             key(Registries.CONFIGURED_FEATURE, "surface_hive");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DEEP_MYCELIUM_STALACTITES_CF =
+            key(Registries.CONFIGURED_FEATURE, "deep_mycelium_stalactites");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> LATENT_SPORE_CANOPY_CF =
+            key(Registries.CONFIGURED_FEATURE, "latent_spore_canopy");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> SANCTUM_AMBER_MONOLITH_CF =
+            key(Registries.CONFIGURED_FEATURE, "sanctum_amber_monolith");
 
     // Placed Features
     public static final ResourceKey<PlacedFeature> DEEP_MYCELIUM_OUTBREAK_PF =
             key(Registries.PLACED_FEATURE, "deep_mycelium_outbreak");
+    public static final ResourceKey<PlacedFeature> DEEP_MYCELIUM_STALACTITES_PF =
+            key(Registries.PLACED_FEATURE, "deep_mycelium_stalactites");
+    public static final ResourceKey<PlacedFeature> LATENT_SPORE_CANOPY_PF =
+            key(Registries.PLACED_FEATURE, "latent_spore_canopy");
+    public static final ResourceKey<PlacedFeature> SANCTUM_AMBER_MONOLITH_PF =
+            key(Registries.PLACED_FEATURE, "sanctum_amber_monolith");
     public static final ResourceKey<PlacedFeature> MYCELIAL_OUTBREAK_PF =
             key(Registries.PLACED_FEATURE, "mycelial_outbreak");
     public static final ResourceKey<PlacedFeature> MYCELIAL_SINKHOLE_PF =

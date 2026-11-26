@@ -187,6 +187,10 @@ public class TwistedCitadelPiece extends StructurePiece {
                 {sizeX - 1, 0},
                 {0, sizeZ - 1},
                 {sizeX - 1, sizeZ - 1},
+                {sizeX / 2, 0},
+                {sizeX / 2, sizeZ - 1},
+                {0, sizeZ / 2},
+                {sizeX - 1, sizeZ / 2},
                 {sizeX / 2, sizeZ / 2}
         };
         for (int[] c : corners) {
@@ -263,6 +267,8 @@ public class TwistedCitadelPiece extends StructurePiece {
             }
         }
         if (startTop != null && endTop != null && !startTop.equals(endTop)) {
+            int midX = (lo + hi) / 2;
+            anchorBridgePier(level, box, midX, y, centerZ, palette);
             int nodes = Math.max(4, Math.min(24, (hi - lo) + 2));
             HyphalVeinEntity strand = new HyphalVeinEntity(level.getLevel(), startTop, endTop, nodes, true, 0.80F);
             strand.setStrengthFloor(3);
@@ -305,10 +311,37 @@ public class TwistedCitadelPiece extends StructurePiece {
             }
         }
         if (startTop != null && endTop != null && !startTop.equals(endTop)) {
+            int midZ = (lo + hi) / 2;
+            anchorBridgePier(level, box, centerX, y, midZ, palette);
             int nodes = Math.max(4, Math.min(24, (hi - lo) + 2));
             HyphalVeinEntity strand = new HyphalVeinEntity(level.getLevel(), startTop, endTop, nodes, true, 0.80F);
             strand.setStrengthFloor(3);
             level.addFreshEntity(strand);
+        }
+    }
+
+    private static void anchorBridgePier(
+            WorldGenLevel level,
+            BoundingBox box,
+            int x,
+            int bridgeY,
+            int z,
+            ResolvedPalette palette
+    ) {
+        BlockPos bridgeFloor = new BlockPos(x, bridgeY, z);
+        if (!box.isInside(bridgeFloor) || level.getBlockState(bridgeFloor).isAir()) {
+            return;
+        }
+        for (int dy = 1; dy <= 10; dy++) {
+            BlockPos pierPos = bridgeFloor.below(dy);
+            if (!box.isInside(pierPos) || pierPos.getY() <= level.getMinBuildHeight() + 1) {
+                break;
+            }
+            BlockState existing = level.getBlockState(pierPos);
+            if (!existing.isAir() && existing.isSolid() && existing.getFluidState().isEmpty()) {
+                break;
+            }
+            level.setBlock(pierPos, (dy % 2 == 0) ? palette.structuralPillar() : palette.primaryWall(), 2);
         }
     }
 }

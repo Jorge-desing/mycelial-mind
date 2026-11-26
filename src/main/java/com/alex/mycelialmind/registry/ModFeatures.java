@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.world.DeepMyceliumTerrainFeature;
 import com.alex.mycelialmind.world.HiveTierRarityPlacement;
 import com.alex.mycelialmind.world.MycelialOutbreakFeature;
 import com.alex.mycelialmind.world.MycelialSinkholeFeature;
@@ -31,6 +32,10 @@ public final class ModFeatures {
 
     public static final DeferredHolder<Feature<?>, MycelialSinkholeFeature> MYCELIAL_SINKHOLE =
             FEATURES.register("mycelial_sinkhole", () -> new MycelialSinkholeFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final DeferredHolder<Feature<?>, DeepMyceliumTerrainFeature> DEEP_MYCELIUM_TERRAIN =
+            FEATURES.register("deep_mycelium_terrain",
+                    () -> new DeepMyceliumTerrainFeature(DeepMyceliumTerrainFeature.Config.CODEC));
 
     public static final DeferredHolder<PlacementModifierType<?>, PlacementModifierType<HiveTierRarityPlacement>> HIVE_TIER_RARITY =
             PLACEMENT_MODIFIER_TYPES.register("hive_tier_rarity", () -> () -> HiveTierRarityPlacement.CODEC);

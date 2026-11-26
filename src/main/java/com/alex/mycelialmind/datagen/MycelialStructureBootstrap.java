@@ -3,7 +3,10 @@ package com.alex.mycelialmind.datagen;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.world.ModWorldgenKeys;
 import com.alex.mycelialmind.world.structure.ArchitecturalAccentProcessor;
+import com.alex.mycelialmind.world.structure.HiveSanctumStructure;
 import com.alex.mycelialmind.world.structure.MatriarchCitadelStructure;
+import com.alex.mycelialmind.world.structure.MycelialFluidClearProcessor;
+import com.alex.mycelialmind.world.structure.MycelialFoundationPillarProcessor;
 import com.alex.mycelialmind.world.structure.TwistedCitadelStructure;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
@@ -27,7 +30,6 @@ import net.minecraft.world.level.levelgen.structure.pools.DimensionPadding;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool.Projection;
-import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
 import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.ProcessorRule;
@@ -74,6 +76,8 @@ public final class MycelialStructureBootstrap {
         context.register(
                 ModWorldgenKeys.ARCHITECTURAL_REFLECTION,
                 new StructureProcessorList(List.of(
+                        new MycelialFluidClearProcessor(),
+                        new MycelialFoundationPillarProcessor(),
                         new ArchitecturalAccentProcessor(),
                         organicWeathering,
                         new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)
@@ -129,19 +133,15 @@ public final class MycelialStructureBootstrap {
         HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
         HolderGetter<StructureTemplatePool> pools = context.lookup(Registries.TEMPLATE_POOL);
 
-        context.register(ModWorldgenKeys.HIVE_SANCTUM, new JigsawStructure(
+        context.register(ModWorldgenKeys.HIVE_SANCTUM, new HiveSanctumStructure(
                 new Structure.StructureSettings.Builder(biomes.getOrThrow(BiomeTags.IS_OVERWORLD))
                         .generationStep(GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
                         .terrainAdapation(TerrainAdjustment.ENCAPSULATE)
                         .build(),
                 pools.getOrThrow(ModWorldgenKeys.HIVE_SANCTUM_START),
-                Optional.empty(),
                 5,
                 UniformHeight.of(VerticalAnchor.absolute(-36), VerticalAnchor.absolute(-4)),
-                false,
-                Optional.empty(),
                 64,
-                List.of(),
                 new DimensionPadding(8, 224),
                 LiquidSettings.IGNORE_WATERLOGGING
         ));

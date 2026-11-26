@@ -59,6 +59,9 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
         boolean isSubterranean = center.getY() < surfaceY - 6;
 
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
+        if (isSubterranean && enforceWorldgenGates && !TerrainPlacementPolicy.hasSafeSubterraneanOutbreakFooting(level, center)) {
+            return false;
+        }
         if (isOverworld && !isSubterranean) {
             if (enforceWorldgenGates) {
                 if (TerrainPlacementPolicy.isExcludedSurfaceBiome(level, center)
