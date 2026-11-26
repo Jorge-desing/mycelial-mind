@@ -4833,3 +4833,30 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `.github/workflows/{verify,release}.yml`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/{config,bug_report,feature_request}.yml`, `scripts/Invoke-Gh.ps1`, `Taskfile.yml`, `docs/{development-automation,releasing}.md`, `MEMORY.md`.
 - **Skills revisadas:** Revisadas las 8 skills (`validate_agent_skills.py`: `8/8` OK, `27` enlaces); ninguna requirió modificación.
 - **Estado / Siguiente paso:** Validado `task verify:renovate`, `task gh:status`, `git diff --check`. Nota detectada en `gh run view 45798968312`: los runners de GitHub Actions en este repositorio privado están bloqueados temporalmente por cuota/límite de facturación de la cuenta (`The job was not started because recent account payments have failed or your spending limit needs to be increased`). Se hace commit y push de esta configuración a `origin/main` y se verifica el estado de la ejecución resultante.
+
+
+## [2026-11-26 10:29] — Deduplicación, Refactoring Conservador y Data Scrubbing/Munging Integral del Proyecto (`/goal` + `/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:** Ejecutada pasada integral en 4 frentes acordada por `/grill-me` (refactoring conservador sin dividir monolitos ni romper compatibilidad NBT/red/registros/tests, más scrubbing/munging seguro de datos y limpieza del repositorio):
+  1. **Frente 1 — Datos, Localización y Codex (`2a30a49`):**
+     - Cerradas las `12` brechas de cobertura de `scripts/codex_studio/content_part3.py` (`deep_mycelium_terrain`, `nether_mycelial_breach`, `nether_breach_piece`, `end_spore_spire`, `end_spire_piece`, `fluid_clear`, `foundation_pillar`, `biome_degrade`, `chests/end_spire_vault`, `chests/nether_breach_reliquary`, `chests/sanctum_quarantine_cache`, `respectClaimedChunks`), alcanzando **100%** (`chapters=12`, `entries=62`, `pages=254`, `ok=True`, `5/5` tests).
+     - Añadida poda automática de archivos obsoletos en `scripts/codex_studio/exporters.py` (`export_modonomicon_book` y `export_vanilla_written_books`).
+     - Sincronizados `src/main/resources/data/mycelialmind/codex/codex_book.json`, los `75/75` JSON de `src/main/resources/data/mycelialmind/modonomicon/books/mycelial_codex/` (cero diferencias y cero huérfanos frente a `docs/codex/book_export/`) y `en_us.json`/`es_es.json` (`2305/2305` claves simétricas: `8` claves huérfanas eliminadas, `78` añadidas y `106` actualizadas).
+  2. **Frente 2 — Scripts Python (`8503dfa`):**
+     - Eliminadas las `3` definiciones muertas duplicadas de `_circular_loop_crossfade` (`ai_stem_generator.py`, `mastering.py`, `system_env_synth.py`, reemplazadas por `dsp_engine.fold_seamless_loop`).
+     - Limpiados todos los imports no usados en `18` archivos Python (`0` archivos con imports sin usar en `scripts/`).
+  3. **Frente 3 — Java y Model Studio (`8d85aee`):**
+     - Extraídos helpers compartidos conservando firmas y compatibilidad: `ModelAnimationMath` (`damperExact`, `stepSpringDamperExact`, `solveTwoBoneIK`, `solveFabrikChainAngles` cableado en `scripts/model_studio/java_emitter.py` y `SpringAnimationTest`, con import condicional de `CubeDeformation`), `WorldgenFeatureSupport` (usado por `DeepMyceliumTerrainFeature`, `MycelialOutbreakFeature`, `MycelialSinkholeFeature`, `SurfaceHiveFeature`), `StructurePieceSupport` (usado por `ArchitecturalStructureAdapter`, `EndSpirePiece`, `MatriarchCitadelPiece`, `NetherBreachPiece`), `MycelialBossMob.findOpenAnchorPosition` (compartido por `HiveCoreBossEntity` y `ApexMatriarchEntity`), `AdaptationTrait.decodeMask` (compartido por `MycelialMob` y `HiveSyncPayload`) y `TestRepoPaths.resolveRepoRoot` (compartido por `DataGenIntegrityTest` y `ModCompatTest`).
+     - Corregida colisión de recursos en `scripts/model_studio/block_item_3d.py` eliminando la re-emisión duplicada de los `5` modelos `reclaimed_bloom_*.json` ya generados por DataGen en `src/generated/resources/`.
+     - Eliminados `44` imports no usados en `34` archivos Java (`0` imports no usados y `0` helpers `private static` duplicados en todo `src/`).
+  4. **Frente 4 — Limpieza, Docs y Skills (`f2bce17`):**
+     - Eliminado archivo basura local `neoforge-21.1.235-installer.jar.log` (`498 KB`).
+     - Actualizados `AGENTS.md` (NeoForge `21.1.267`, ModDevGradle `2.0.148`, Git en `main`), `.agents/skills/mycelial-ai-hive/{SKILL.md,references/world-ecosystems-and-integration.md}` (`2305/2305` EN/ES, `WorldgenFeatureSupport`/`StructurePieceSupport`) y `.agents/skills/mycelial-model-studio/SKILL.md` (`ModelAnimationMath`, `block_item_3d.py`); resto de las `8` skills revisadas sin cambios requeridos.
+- **Archivos / Símbolos:** `ModelAnimationMath`, `WorldgenFeatureSupport`, `StructurePieceSupport`, `TestRepoPaths`, `MycelialBossMob.findOpenAnchorPosition`, `AdaptationTrait.decodeMask`, `scripts/model_studio/{java_emitter,block_item_3d}.py`, `scripts/codex_studio/{content_part3,exporters}.py`, `src/main/resources/assets/mycelialmind/lang/{en_us,es_es}.json`, `src/main/resources/data/mycelialmind/{codex,modonomicon}/`, `AGENTS.md`, `.agents/skills/{mycelial-ai-hive,mycelial-model-studio}/`.
+- **Verificación (`CodeMode` `mycelial-mind-dev`):**
+  - `validate_skills`: **`8/8` OK**.
+  - `audit_mod_assets`: **`ok=true`**, `2305/2305` EN/ES, `0` faltantes.
+  - Studios Python (`check_only=True, run_tests=True`): `model_studio` (`26/26`), `texture_studio`, `particle_studio`, `sound_studio`, `codex_studio` (`5/5`) y `structure_studio` todos **`ok=true`**.
+  - `run_gradle_task(["runData", "test", "build", "runGameTestServer"], isolated_gametests=True)`: **`BUILD SUCCESSFUL` (`35s`)**, **`157/157` JUnit (`17` suites, `0` fallos)**, **`205/205` `@GameTest`s PASS**.
+  - Smoke RCON (`start_smoke_server` `flat` -> `run_rcon_verify_suite` -> `stop_smoke_server`): **`ALL 24 automated scenario checks PASSED`** (`graceful_rcon_stop=true`, `cleaned_dir=true`).
+- **Estado:** Todos los commits atómicos verificados y publicados en `origin/main`.
