@@ -10,16 +10,12 @@ from __future__ import annotations
 import os
 import numpy as np
 
-from ..compositor import channels_to_labpbr_s, normals_to_labpbr
-from ..icon_language import IconCanvas, rot_box, rot_diamond
-from ..materials import MATERIALS, Material
+from ..icon_language import IconCanvas, rot_box
 from ..palette_oklab import PALETTES
 from ..sdf_engine import (
     add_pixel_outline,
     bayer_quantize,
-    compute_sdf_ao,
     compute_sdf_lighting_v2,
-    compute_sdf_normals,
     make_grid,
     save_flipbook,
     save_rgba,
@@ -31,7 +27,6 @@ from ..sdf_engine import (
     sdf_onion,
     sdf_polygon,
     sdf_subtract,
-    sdf_to_pom_height,
 )
 
 ITEM_RES = 16

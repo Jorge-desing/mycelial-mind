@@ -14,13 +14,11 @@ import numpy as np
 
 from ..palette_oklab import PALETTES, oklab_to_rgb, rgb_to_oklab
 from ..sdf_engine import (
-    bayer_quantize,
     cell_plate_field,
     compute_height_normals,
     fast_cellular_warped,
     make_grid,
     meijering_neuriteness_toroidal,
-    poisson_disc_toroidal,
     ridged_fbm,
     sdf_bezier,
     sdf_circle,

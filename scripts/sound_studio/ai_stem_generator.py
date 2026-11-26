@@ -1274,23 +1274,6 @@ def _envelope_follower(wave: np.ndarray, window_ms: float = 18.0) -> np.ndarray:
     return np.clip(env / peak, 0.0, 1.0)
 
 
-def _circular_loop_crossfade(wave: np.ndarray, crossfade_ms: float = 120.0) -> np.ndarray:
-    """Apply an equal-power circular crossfade so multi-second ambient loops wrap without seams."""
-    n = len(wave)
-    cf = min(n // 5, int(SAMPLE_RATE * crossfade_ms / 1000.0))
-    if cf < 32:
-        return wave
-    out = wave.copy()
-    theta = np.linspace(0.0, 0.5 * np.pi, cf, dtype=np.float64)
-    fade_in = np.sin(theta)
-    fade_out = np.cos(theta)
-    head = out[:cf].copy()
-    tail = out[-cf:].copy()
-    out[:cf] = head * fade_in + tail * fade_out
-    out[-cf:] = tail * fade_out + head * fade_in
-    return out
-
-
 def _cpu_hpss_harmonic_soft(sig: np.ndarray, sample_rate: int = SAMPLE_RATE, strength: float = 0.60) -> np.ndarray:
     """CPU STFT Wiener Harmonic/Percussive separation matching cuda_dsp._gpu_hpss_harmonic_soft."""
     n = len(sig)

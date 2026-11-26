@@ -36,7 +36,7 @@ REPO_ROOT = MCP_DIR.parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.rcon_verify import recv_packet, send_packet
+from scripts.rcon_verify import recv_packet
 
 
 def _start_mock_rcon_server() -> tuple[socket.socket, int, threading.Thread]:

@@ -188,23 +188,6 @@ def _apply_fade_guards(wave: np.ndarray, fade_in_ms: float = 3.0, fade_out_ms: f
     return out
 
 
-def _circular_loop_crossfade(wave: np.ndarray, crossfade_ms: float = 90.0) -> np.ndarray:
-    """Wrap end-of-buffer reverb & drone tails smoothly into start-of-buffer for seamless looping."""
-    n = len(wave)
-    cf = min(n // 5, int(SAMPLE_RATE * crossfade_ms / 1000.0))
-    if cf < 32:
-        return wave
-    out = wave.copy()
-    theta = np.linspace(0.0, 0.5 * np.pi, cf, dtype=np.float64)
-    fade_in = np.sin(theta)
-    fade_out = np.cos(theta)
-    head = out[:cf].copy()
-    tail = out[-cf:].copy()
-    out[:cf] = head * fade_in + tail * fade_out
-    out[-cf:] = tail * fade_out + head * fade_in
-    return out
-
-
 def measure_true_peak_linear(wave: np.ndarray) -> float:
     """Measure 4x oversampled inter-sample linear true peak."""
     w = np.nan_to_num(np.asarray(wave, dtype=np.float64), nan=0.0, posinf=0.0, neginf=0.0)

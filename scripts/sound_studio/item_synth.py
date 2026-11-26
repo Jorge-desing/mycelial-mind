@@ -9,7 +9,6 @@ from __future__ import annotations
 import numpy as np
 
 from scripts.sound_studio.block_synth import (
-    _bounce_train,
     _micro_arc_zaps,
     _modal_bank,
 )
@@ -31,7 +30,6 @@ from scripts.sound_studio.dsp_engine import (
     _pink_noise,
     _sos_bandpass,
     _sos_highpass,
-    _sos_lowpass,
     _swept_resonant_filter,
     _wet_squelch_layer,
     adsr_envelope,

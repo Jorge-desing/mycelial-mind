@@ -6,7 +6,7 @@ model definitions stay readable and the upgrade stays diff-friendly.
 
 from __future__ import annotations
 
-from typing import Iterable, List, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
 from .uv_packer import CubeSpec, ModelDef, PartNode
 

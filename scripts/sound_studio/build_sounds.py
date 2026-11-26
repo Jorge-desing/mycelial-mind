@@ -35,14 +35,12 @@ from scripts.sound_studio.dsp_engine import (
 from scripts.sound_studio.metrics import (
     BARK_CENTERS_HZ,
     analyze_event_variations,
-    analyze_waveform,
     audit_spectral_masking,
     build_audition_html,
     compare_against_baseline,
     compute_timbral_diversity,
     evaluate_quality,
     load_acoustic_baseline,
-    max_pairwise_correlation,
     save_acoustic_baseline,
 )
 

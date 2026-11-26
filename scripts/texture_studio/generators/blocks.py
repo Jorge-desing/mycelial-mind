@@ -16,7 +16,6 @@ from ..sdf_engine import (
     compute_sdf_lighting_v2,
     compute_sdf_normals,
     domain_warp,
-    floyd_steinberg_quantize,
     frangi_vesselness_toroidal,
     gray_scott_toroidal,
     make_grid,

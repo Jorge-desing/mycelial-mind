@@ -28,7 +28,6 @@ from scripts.texture_studio.sdf_engine import (
     sdf_polygon,
     sdf_subtract,
     sdf_to_pom_height,
-    sdf_union,
     toroidal_fbm,
     toroidal_value_fbm,
     toroidal_value_noise,

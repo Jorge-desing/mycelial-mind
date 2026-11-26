@@ -25,7 +25,6 @@ from scripts.sound_studio.dsp_engine import (
     _pink_noise,
     _sos_bandpass,
     _sos_highpass,
-    _sos_lowpass,
     _swept_resonant_filter,
     _wet_squelch_layer,
     adsr_envelope,

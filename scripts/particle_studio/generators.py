@@ -9,7 +9,7 @@ PNG per frame and a ``particles/<id>.json`` list in frame order.
 
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import List
 
 import numpy as np
 

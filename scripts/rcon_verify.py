@@ -1,7 +1,6 @@
 import argparse
 import socket
 import struct
-import sys
 
 
 def send_packet(sock, req_id, ptype, payload):
