@@ -69,50 +69,16 @@ class SoundStudioTests(unittest.TestCase):
                 or spec.recipe.startswith("surface_")
             )
             self.assertTrue(is_dedicated, msg=f"{spec.sound_id} fell back to generic recipe")
-            wave = synthesize_waveform(
-                spec.sound_id,
-                recipe=spec.recipe,
-                duration=spec.duration,
-                base_freq=spec.base_freq,
-                mod_freq=spec.mod_freq,
-                variant=spec.variant,
-                species=spec.species,
-                loudness_group=spec.loudness_group,
-                seed_offset=spec.seed_offset,
-                variation_idx=0,
-            )
+            wave, m = self._synth_spec(spec.sound_id)
             self.assertEqual(wave.ndim, 1)
             self.assertGreater(len(wave), int(SAMPLE_RATE * 0.08))
             self.assertTrue(np.all(np.isfinite(wave)))
-            m = analyze_waveform(wave, SAMPLE_RATE)
             issues = evaluate_quality(m, spec.loudness_group, is_loop=spec.sound_id in SEAMLESS_LOOP_IDS)
             self.assertEqual(issues, [], msg=f"{spec.sound_id} failed QA: {issues}")
 
     def test_loudness_hierarchy_footsteps_vs_boss_cinematic(self) -> None:
-        step = SOUND_BY_ID["mob_step_chitin"]
-        boss = SOUND_BY_ID["apex_matriarch_wail"]
-        w_step = synthesize_waveform(
-            step.sound_id,
-            recipe=step.recipe,
-            duration=step.duration,
-            base_freq=step.base_freq,
-            mod_freq=step.mod_freq,
-            species=step.species,
-            loudness_group=step.loudness_group,
-            seed_offset=step.seed_offset,
-        )
-        w_boss = synthesize_waveform(
-            boss.sound_id,
-            recipe=boss.recipe,
-            duration=boss.duration,
-            base_freq=boss.base_freq,
-            mod_freq=boss.mod_freq,
-            species=boss.species,
-            loudness_group=boss.loudness_group,
-            seed_offset=boss.seed_offset,
-        )
-        m_step = analyze_waveform(w_step)
-        m_boss = analyze_waveform(w_boss)
+        _, m_step = self._synth_spec("mob_step_chitin")
+        _, m_boss = self._synth_spec("apex_matriarch_wail")
         self.assertGreaterEqual(m_boss["active_rms_dbfs"] - m_step["active_rms_dbfs"], 7.0)
 
     def test_variation_determinism_and_pairwise_distinctiveness(self) -> None:
@@ -127,78 +93,21 @@ class SoundStudioTests(unittest.TestCase):
         )
         for sid in sample_ids:
             spec = SOUND_BY_ID[sid]
-            waves = [
-                synthesize_waveform(
-                    spec.sound_id,
-                    recipe=spec.recipe,
-                    duration=spec.duration,
-                    base_freq=spec.base_freq,
-                    mod_freq=spec.mod_freq,
-                    variant=spec.variant,
-                    species=spec.species,
-                    loudness_group=spec.loudness_group,
-                    seed_offset=spec.seed_offset,
-                    variation_idx=i,
-                )
-                for i in range(spec.variations)
-            ]
+            waves = [self._synth_spec(sid, variation_idx=i)[0] for i in range(spec.variations)]
             # Determinism check
-            again = synthesize_waveform(
-                spec.sound_id,
-                recipe=spec.recipe,
-                duration=spec.duration,
-                base_freq=spec.base_freq,
-                mod_freq=spec.mod_freq,
-                variant=spec.variant,
-                species=spec.species,
-                loudness_group=spec.loudness_group,
-                seed_offset=spec.seed_offset,
-                variation_idx=0,
-            )
+            again, _ = self._synth_spec(sid, variation_idx=0)
             np.testing.assert_allclose(waves[0], again)
             corr = max_pairwise_correlation(waves)
             self.assertLess(corr, 0.85, msg=f"{sid} variations too correlated: {corr}")
 
     def test_bio_horror_vs_purifier_tech_spectral_contrast(self) -> None:
-        brute = SOUND_BY_ID["chitin_brute_growl"]
-        scanner = SOUND_BY_ID["bio_scanner_ping"]
-        w_brute = synthesize_waveform(
-            brute.sound_id,
-            recipe=brute.recipe,
-            duration=brute.duration,
-            base_freq=brute.base_freq,
-            mod_freq=brute.mod_freq,
-            species=brute.species,
-            loudness_group=brute.loudness_group,
-            seed_offset=brute.seed_offset,
-        )
-        w_scan = synthesize_waveform(
-            scanner.sound_id,
-            recipe=scanner.recipe,
-            duration=scanner.duration,
-            base_freq=scanner.base_freq,
-            mod_freq=scanner.mod_freq,
-            species=scanner.species,
-            loudness_group=scanner.loudness_group,
-            seed_offset=scanner.seed_offset,
-        )
-        m_brute = analyze_waveform(w_brute)
-        m_scan = analyze_waveform(w_scan)
+        _, m_brute = self._synth_spec("chitin_brute_growl")
+        _, m_scan = self._synth_spec("bio_scanner_ping")
         self.assertGreater(m_brute["low_band_ratio"], 0.25)
         self.assertGreater(m_scan["spectral_centroid_hz"], m_brute["spectral_centroid_hz"] * 2.0)
 
     def test_ogg_vorbis_44100hz_mono_encode_and_decode_roundtrip(self) -> None:
-        spec = SOUND_BY_ID["synaptic_pulse"]
-        wave = synthesize_waveform(
-            spec.sound_id,
-            recipe=spec.recipe,
-            duration=spec.duration,
-            base_freq=spec.base_freq,
-            mod_freq=spec.mod_freq,
-            species=spec.species,
-            loudness_group=spec.loudness_group,
-            seed_offset=spec.seed_offset,
-        )
+        wave, _ = self._synth_spec("synaptic_pulse")
         pcm = float_to_pcm16(wave)
         with tempfile.TemporaryDirectory() as tmp:
             ogg = Path(tmp) / "test_mono_44k.ogg"

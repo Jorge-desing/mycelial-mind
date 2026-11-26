@@ -747,6 +747,27 @@ async def _run_studio_with_tests(
     return out
 
 
+def _build_studio_cli_args(
+    script_path: str,
+    *,
+    check_only: bool,
+    export_extras: bool = False,
+    extra_flags: list[str] | None = None,
+    include_check_on_rebuild: bool = True,
+) -> list[str]:
+    """Assemble standard `--check` / `--all` / `--export-extras` flags for studio builders."""
+    args = [sys.executable, script_path]
+    if check_only or include_check_on_rebuild:
+        args.append("--check")
+    if not check_only:
+        args.append("--all")
+        if export_extras:
+            args.append("--export-extras")
+    if extra_flags:
+        args.extend(extra_flags)
+    return args
+
+
 @_tool(tags={"studios"})
 async def run_model_studio(check_only: bool = True, run_tests: bool = True) -> dict[str, Any]:
     """Run Mycelial Mind 3D Model Studio (emit or check EntityModels) and its unit tests.
@@ -755,7 +776,11 @@ async def run_model_studio(check_only: bool = True, run_tests: bool = True) -> d
         check_only: If True, validates UV packing without overwriting Java files.
         run_tests: If True, also runs scripts/model_studio/tests.
     """
-    args = [sys.executable, "scripts/model_studio/build_models.py", "--check" if check_only else "--all"]
+    args = _build_studio_cli_args(
+        "scripts/model_studio/build_models.py",
+        check_only=check_only,
+        include_check_on_rebuild=False,
+    )
     return await _run_studio_with_tests(
         "model_studio",
         args,
@@ -781,13 +806,12 @@ async def run_texture_studio(
         export_extras: Export palettes and UV guides (used when check_only=False).
         run_tests: Also run scripts/texture_studio/tests.
     """
-    args = [sys.executable, "scripts/texture_studio/build_textures.py", "--check"]
-    if not check_only:
-        args.append("--all")
-        if export_extras:
-            args.append("--export-extras")
-    if pbr:
-        args.append("--pbr")
+    args = _build_studio_cli_args(
+        "scripts/texture_studio/build_textures.py",
+        check_only=check_only,
+        export_extras=export_extras,
+        extra_flags=["--pbr"] if pbr else None,
+    )
     return await _run_studio_with_tests(
         "texture_studio",
         args,
@@ -810,11 +834,11 @@ async def run_particle_studio(
         export_extras: Export the contact sheet and HTML gallery (used when check_only=False).
         run_tests: Also run scripts/particle_studio/tests.
     """
-    args = [sys.executable, "scripts/particle_studio/build_particles.py", "--check"]
-    if not check_only:
-        args.append("--all")
-        if export_extras:
-            args.append("--export-extras")
+    args = _build_studio_cli_args(
+        "scripts/particle_studio/build_particles.py",
+        check_only=check_only,
+        export_extras=export_extras,
+    )
     return await _run_studio_with_tests(
         "particle_studio",
         args,
@@ -990,11 +1014,11 @@ async def run_codex_studio(
         report: If True, emits full JSON coverage report to stdout.
         run_tests: Also run scripts/codex_studio/tests.
     """
-    args = [sys.executable, "scripts/codex_studio/build_codex.py", "--check"]
-    if not check_only:
-        args.append("--all")
-    if report:
-        args.append("--report")
+    args = _build_studio_cli_args(
+        "scripts/codex_studio/build_codex.py",
+        check_only=check_only,
+        extra_flags=["--report"] if report else None,
+    )
     return await _run_studio_with_tests(
         "codex_studio",
         args,
