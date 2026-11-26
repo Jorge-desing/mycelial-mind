@@ -51,10 +51,11 @@ Contrato primario en las clases raíz:
 - **12 registros en `ModMemoryTypes`:**
   - **11 `MemoryModuleType`:** `SHARED_TARGET_POS`, `HIVE_ALERT_LEVEL`, `NEAREST_NODE_POS`, `STALKER_FLANK_POS`, `WEAVER_SUPPORT_POS`, `NEAREST_PYLON_POS`, `HIVE_ORDER`, `MOB_COMBAT_XP`, `LAST_ATTACK_STIMULUS`, `NEARBY_ALLY_COUNT`, `INCOMING_PROJECTILE_POS`.
   - **1 `SensorType`:** `hive_mind_sensor`.
-- **Sensores en `HiveBrainBridge`:**
+- **Sensores y fábricas de grupos en `HiveBrainBridge`:**
   - `createDefaultHiveSensors()`: `NearbyLivingEntitySensor`, `NearbyPlayersSensor`, `HurtBySensor`, `UnreachableTargetSensor`, `HiveMindSensor`.
   - `createDefaultHiveSensorsWithProjectiles()`: añade `IncomingProjectilesSensor`.
   - `createFightTasks(...)` incorpora `ReactToUnreachableTarget`.
+  - `createInvestigateTasks(...)` / `createNodeInvestigateTasks()`: bloque reutilizable de investigación hacia nodos/rastros miceliales.
 - **Sincronización en `HiveMindSensor`:**
   - Nunca fija `NEAREST_NODE_POS` sobre nodos aliados `SYMBIOTIC` ni nodos protegidos por Pilón (`PurificationZoneTracker.findNearestEnemyNode`).
   - Detecta `PurifierDroneEntity`, `ColonySymbiontEntity`, nodos `SYMBIOTIC` y `SovereignColonySavedData.findContainingColony` para erosionar `control` (`[0, 1]`) y registrar amenaza en `HiveInfluenceMap`.
@@ -68,7 +69,7 @@ Contrato primario en las clases raíz:
 
 - **`HiveBehaviorTree` (`entity/ai/brain/btree/`) + `HiveTacticalTree` + `HiveAiBlackboard`:**
   - Arquitectura *"BT outside, utility inside"* con `HiveBtComposite` (base compartida para `HiveBtDynamicGuardSelector`, `HiveBtSelector`, `HiveBtSequence`) y `HiveBtLeafTask`.
-  - Utilidades transversales de soporte: `EnumBitmask` (`util/EnumBitmask.java`, codificación/decodificación pura de máscaras enum), `ModNetworking.sendToPlayerIfReady` (envío seguro de payloads), `MycelialBossMob.{getIdleTasks,assignBossPartIds}`, `ColonyGoalSupport` (`entity/ai/colony/`) y `HiveBrainFactory.createDefaultFlyingNavigation`.
+  - Utilidades transversales de soporte: `EnumBitmask` (`util/EnumBitmask.java`, codificación/decodificación pura de máscaras enum), `ModNetworking.sendToPlayerIfReady` (envío seguro de payloads), `MycelialMob.{registerStandardAmbientGoals,registerStandardPlayerTargets}` (metas base de ambulación/objetivos), `MycelialBossMob.{getIdleTasks,assignBossPartIds}`, `AbstractSymbiontCasteGoal` y `ColonyGoalSupport` (`entity/ai/colony/`) y `HiveBrainFactory.createDefaultFlyingNavigation`.
   - `HiveAiBlackboard` es zero-allocation y expone `HiveDoctrine`, `influenceTrauma01`, `MobEpisodicMemory` y cooldowns persistentes en cadencia adaptativa (`4`/`10`/`20` ticks con despertar al adquirir objetivo o señal).
   - En `MycelialMob`, `HiveTacticalTree` ordena `DesyncLeaf` > `FRENZY_CHARGE` > `PHALANX_GUARD`.
 - **`HiveSteeringEngine` (`entity/ai/brain/steering/`) + `HiveSwarmCoordinator`:**
