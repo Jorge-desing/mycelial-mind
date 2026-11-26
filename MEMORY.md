@@ -4913,3 +4913,24 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `.github/workflows/{verify,dependency-review,cleanup-caches}.yml`, `.github/CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md`, `README.md`, `MEMORY.md`.
 - **Skills revisadas:** Ninguna skill requirió edición (`validate_agent_skills.py`: `8/8` OK).
 - **Estado / Siguiente paso:** Commit, push a `origin/main` y verificación en vivo de los checks de GitHub del commit publicado.
+
+## [2026-11-26 12:28] — Segunda Pasada Estructural de Deduplicación, Refactoring y Data Scrubbing (`/goal` + `/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `DOCUMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Ejecutada segunda pasada estructural en 4 frentes preservando 100% compatibilidad NBT/red/registros/tests y el protocolo `append-only` de `MEMORY.md`:
+  1. **Frente 1 — Refactoring estructural Java (`b71da72`):**
+     - `HiveBtComposite<T, S>` (`entity/ai/brain/btree/HiveBtComposite.java`): base compartida (`children`, `addChild`, `getChildren`, `resetChildren`) para `HiveBtSelector`, `HiveBtSequence` y `HiveBtDynamicGuardSelector`.
+     - `EnumBitmask` (`util/EnumBitmask.java`): utilidad pura `encode`, `decode`, `has`, `with` adoptada en `AdaptationTrait.decodeMask`, `HiveSyncPayload`, `MycelialMob`, `PlayerSymbiosisData`, `SymbiosisSyncPayload` y `HiveMindSavedData`.
+     - `MycelialBossMob`: subidos `getIdleTasks()` y `assignBossPartIds(int, MycelialBossPart...)` compartidos por `SporeBehemothEntity`, `HiveCoreBossEntity` y `ApexMatriarchEntity`.
+     - `StructurePieceSupport.saveCenterAndGuardians(...)`: compartido por `EndSpirePiece`, `MatriarchCitadelPiece` y `NetherBreachPiece` (claves `"CenterX/Y/Z"`, `"SpawnedGuardians"` intactas).
+     - `ModNetworking.sendToPlayerIfReady(...)`: compartido en `DiplomacySyncPayload`, `DiscoverySyncPayload`, `SymbiosisSyncPayload`, `SovereignColonySyncPayload`, `CycleProtocolSyncPayload` y `PostMatriarchExpeditionSyncPayload.syncSummaryToPlayer`.
+     - `ColonyGoalSupport.releaseOrderReservationAndReset(...)` (`SymbiontExcavatorGoal`, `SymbiontHarvesterGoal`) y `HiveBrainFactory.createDefaultFlyingNavigation(...)` (`PurifierDroneEntity`, `SporeGliderEntity`).
+  2. **Frente 2 — Boilerplate Python/PowerShell (`90e29ff`):**
+     - `scripts/Resolve-Jdk21.ps1` dot-sourceado en `Verify-Mod.ps1`, `Build-McPilotCompat.ps1`, `Prepare-McPilotClient.ps1` e `Invoke-Jfr.ps1` (`0` errores de parseo PS).
+     - `scripts/sound_studio/_cuda_compat.py` unificando los bloques `try/except ImportError` de `cuda_dsp` en `boss_synth.py`, `dsp_engine.py`, `mastering.py`, `ai_stem_generator.py` y `metrics.py`.
+  3. **Frente 3 — Data Scrubbing y Docs (`ef3c2e2`):**
+     - Auditoría cruzada completa de las `2305` claves `en_us.json`/`es_es.json` contra Java/JSON/Python: `0` claves muertas (las candidatas se construyen dinámicamente por prefijo/enum en Java); conservados `empty.nbt` (compatibilidad `@GameTest`) y PNGs esperados por `Asset checks`.
+     - Sincronizados `AGENTS.md` (`ModNetworking` v`"27"`, `28` bloques, `61` loot tables, `2305` claves EN/ES, `226` eventos / `596` `.ogg`) y `README.md` (`2305` claves, `12` capítulos / `62` entradas / `254` páginas).
+  4. **Frente 4 — Skills (`0d24a49`) y Verificación:**
+     - Actualizadas `.agents/skills/mycelial-ai-hive/references/hive-brain-engine.md` y `.agents/skills/mycelial-sound-studio/SKILL.md`; las 6 skills restantes revisadas sin requerir cambios.
+- **Verificación (`CodeMode` `mycelial-mind-dev`):** `validate_skills` (`8/8` OK), `audit_mod_assets` (`ok=true`, `2305/2305` EN/ES), los 6 studios (`model`, `texture`, `particle`, `sound`, `codex`, `structure` todos `ok=true`), `run_gradle_task(["runData", "test", "build", "runGameTestServer"], isolated_gametests=True)` (`BUILD SUCCESSFUL`, `157/157` JUnit, `205/205` `@GameTest`s PASS) y smoke RCON `flat` (`ALL 24 automated scenario checks PASSED`).
+- **Estado:** Commit de `MEMORY.md`, `git push origin main` y verificación en vivo de GitHub Actions.
