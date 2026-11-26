@@ -33,11 +33,31 @@ $env:JAVA_TOOL_OPTIONS = ('{0} -Djava.io.tmpdir="{1}" -Djna.tmpdir="{1}"' -f $en
 task verify:visual
 ```
 
-## GitHub Actions
+## GitHub Actions (optimizado para GitHub Free)
 
-**Verify Mycelial Mind** se ejecuta en los pull requests a `main`, en los pushes a `main` y bajo demanda desde la pestaña **Actions**. **Asset checks** ejecuta el mismo script que `task verify:assets`. **Build and GameTests** ejecuta JUnit, compila el mod y verifica que NeoForge informe que aprobó los GameTests requeridos.
+**Verify Mycelial Mind** (`.github/workflows/verify.yml`) se ejecuta en los pull requests a `main`, en los pushes a `main` y bajo demanda desde la pestaña **Actions** o mediante `gh`. Para ahorrar minutos del plan **GitHub Free** (2,000 min/mes en repositorios privados):
+
+- Los 3 jobs (`automation-config`, `assets`, `gradle`) corren en **`ubuntu-latest`** (consumo `1x` frente a `2x` de Windows).
+- Se ignoran cambios puramente documentales o de memoria/skills (`paths-ignore` para `MEMORY.md`, `AGENTS.md`, `GEMINI.md`, `README.md`, `docs/**`, `.agents/**`).
+- `concurrency` cancela automáticamente ejecuciones previas en el mismo PR cuando se sube un nuevo commit.
+- El job `gradle` anula `org.gradle.jvmargs` con `-Xmx2G` para evitar `WINDOWS-ROOT` en Linux y retiene los artefactos durante 7 días.
+
+**Asset checks** ejecuta las mismas pruebas que `task verify:assets`. **Build and GameTests** ejecuta JUnit, compila el mod y verifica que NeoForge informe que aprobó los GameTests requeridos.
 
 En la página de la ejecución, **Artifacts → gradle-verification** contiene la salida de Gradle y los informes JUnit disponibles. Consulta los logs de **Asset checks** para los fallos de recursos. Las pruebas gráficas, RCON y los estudios de audio con CUDA se ejecutan localmente.
+
+## Integración con GitHub CLI (`gh`) y Taskfile
+
+Toda la operativa diaria con GitHub está disponible en `Taskfile.yml` mediante `scripts/Invoke-Gh.ps1` (funciona tanto si `gh` está en `PATH` como en `C:\Program Files\GitHub CLI\gh.exe`, sin requerir funciones de pago como branch protection en repos privados):
+
+| Tarea | Qué ejecuta |
+| --- | --- |
+| `task gh:status` | Estado de autenticación, resumen del repo, PRs e issues abiertos. |
+| `task gh:ci` | Lista las últimas 10 ejecuciones de GitHub Actions. |
+| `task gh:ci:watch` | Sigue en vivo la ejecución más reciente hasta que termine. |
+| `task gh:pr:list` | Lista los Pull Requests abiertos. |
+| `task gh:issues` | Lista los issues abiertos. |
+| `task gh:release:draft` | Lanza `.github/workflows/release.yml` creando una Release en modo borrador (`draft=true`). |
 
 ## Actualizaciones de dependencias
 

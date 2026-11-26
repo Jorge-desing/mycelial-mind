@@ -3,9 +3,27 @@ name: Verify Mycelial Mind
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'MEMORY.md'
+      - 'AGENTS.md'
+      - 'GEMINI.md'
+      - 'README.md'
+      - 'docs/**'
+      - '.agents/**'
   push:
     branches: [main]
+    paths-ignore:
+      - 'MEMORY.md'
+      - 'AGENTS.md'
+      - 'GEMINI.md'
+      - 'README.md'
+      - 'docs/**'
+      - '.agents/**'
   workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -13,7 +31,7 @@ permissions:
 jobs:
   automation-config:
     name: Validate automation config
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -24,7 +42,7 @@ jobs:
 
   assets:
     name: Asset checks
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -35,13 +53,24 @@ jobs:
           version: '0.13.9'
           enable-cache: true
       - name: Verify models, textures, and particles
-        run: ./scripts/Verify-Assets.ps1
+        shell: bash
+        run: |
+          set -euo pipefail
+          for studio in model texture particle; do
+            studio_dir="scripts/${studio}_studio"
+            uv run --locked python -m unittest discover -s "${studio_dir}/tests" -v
+            if [ "${studio}" = "texture" ]; then
+              uv run --locked python "${studio_dir}/build_${studio}s.py" --check --pbr
+            else
+              uv run --locked python "${studio_dir}/build_${studio}s.py" --check
+            fi
+          done
       - name: Confirm checks leave versioned files intact
         run: git diff --exit-code HEAD
 
   gradle:
     name: Build and GameTests
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -56,25 +85,19 @@ jobs:
           cache-provider: basic
       - name: Run JUnit, build, GameTests, and release dry-run
         id: gradle-verification
+        shell: bash
         run: |
-          ./gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true 2>&1 |
-            Tee-Object -FilePath gradle-ci.log
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          if (-not (Select-String -Path gradle-ci.log -Pattern 'All [1-9][0-9]* required tests passed' -Quiet)) {
-            throw 'NeoForge did not report that the required GameTests passed.'
-          }
-          if (-not (Select-String -Path gradle-ci.log -Pattern 'Dry run publishGithub' -Quiet)) {
-            throw 'Mod Publish did not report the expected release dry-run.'
-          }
-      - name: Release Gradle cache locks on Windows
-        if: always() && steps.gradle-verification.outcome != 'skipped'
-        continue-on-error: true
-        run: ./gradlew.bat --stop
+          set -euo pipefail
+          chmod +x ./gradlew
+          ./gradlew --console=plain --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2G test build runGameTestServer publishMods -PpublishDryRun=true 2>&1 | tee gradle-ci.log
+          grep -Eq 'All [1-9][0-9]* required tests passed' gradle-ci.log
+          grep -Fq 'Dry run publishGithub' gradle-ci.log
       - name: Upload verification reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: gradle-verification
+          retention-days: 7
           path: |
             gradle-ci.log
             build/test-results/test/

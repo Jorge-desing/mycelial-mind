@@ -36,3 +36,42 @@ tasks:
     dir: '{{.ROOT_DIR}}'
     cmds:
       - cmd.exe /d /c gradlew.bat publishMods
+
+  gh:status:
+    desc: Muestra autenticación de gh, datos del repo, PRs e issues abiertos
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 auth status
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 repo view
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 pr list --state open
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 issue list --state open
+
+  gh:ci:
+    desc: Lista las últimas 10 ejecuciones de GitHub Actions
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 run list -L 10
+
+  gh:ci:watch:
+    desc: Sigue en vivo la ejecución más reciente de GitHub Actions
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 run watch --exit-status
+
+  gh:pr:list:
+    desc: Lista los Pull Requests abiertos
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 pr list
+
+  gh:issues:
+    desc: Lista los issues abiertos
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 issue list
+
+  gh:release:draft:
+    desc: Dispara el workflow de Release en modo Draft desde GitHub Actions
+    dir: '{{.ROOT_DIR}}'
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-Gh.ps1 workflow run release.yml -f draft=true

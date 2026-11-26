@@ -1,0 +1,16 @@
+name: Feature Request
+description: Proponer una mecánica, criatura, estructura, mejora de IA o herramienta
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Objetivo y motivación
+      placeholder: Qué problema resuelve o qué aporta a Mycelial Mind.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Detalles de diseño y criterios de verificación
+      placeholder: Mecánica propuesta, impacto en progresión/red y pruebas esperadas.

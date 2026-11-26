@@ -1,0 +1,29 @@
+name: Bug Report
+description: Reportar un fallo de gameplay, worldgen, IA, renderizado, red o CI
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción del problema
+      placeholder: Qué ocurrió y qué esperabas que ocurriera.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Subsistema afectado
+      options:
+        - Hive Mind / IA (HiveBrain)
+        - Worldgen / Estructuras
+        - Visual / Modelos / Texturas / Partículas
+        - Audio / Sound Studio
+        - Gameplay / Combate / Progresión
+        - CI / Automatización / MCP
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Pasos para reproducir y evidencia
+      placeholder: Comandos /mycelial, semilla, GameTest o fragmento de latest.log.
