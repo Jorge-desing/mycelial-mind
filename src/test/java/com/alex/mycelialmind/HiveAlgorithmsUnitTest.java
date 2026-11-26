@@ -2506,4 +2506,49 @@ class HiveAlgorithmsUnitTest {
         assertEquals(72, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.surfaceHiveMinSpawnDistance(
                 com.alex.mycelialmind.hive.HiveProgressionTier.OVERMIND));
     }
+
+    @Test
+    void cavernColumnProbingSelectsDryFloorWithHeadroomClosestToPreferred() {
+        int baseY = 20;
+        boolean[] solid = new boolean[100];
+        boolean[] fluid = new boolean[100];
+        for (int i = 0; i <= 10; i++) {
+            solid[i] = true; // lower floor at offset 10 (Y=30), headroom 12
+        }
+        for (int i = 23; i <= 40; i++) {
+            if (i >= 25 && i <= 35) {
+                fluid[i] = true; // flooded aquifer pocket
+            } else {
+                solid[i] = true; // main floor at offset 40 (Y=60), headroom 32
+            }
+        }
+        for (int i = 73; i <= 75; i++) {
+            solid[i] = true; // upper balcony at offset 75 (Y=95), headroom 22
+        }
+        solid[98] = true;
+        solid[99] = true;
+
+        var mainRes = com.alex.mycelialmind.world.TerrainPlacementPolicy.findCavernFloorInColumn(
+                solid, fluid, baseY, 20, 64);
+        assertTrue(mainRes.valid());
+        assertEquals(60, mainRes.floorY());
+        assertEquals(32, mainRes.headroom());
+
+        var upperRes = com.alex.mycelialmind.world.TerrainPlacementPolicy.findCavernFloorInColumn(
+                solid, fluid, baseY, 20, 92);
+        assertTrue(upperRes.valid());
+        assertEquals(95, upperRes.floorY());
+        assertEquals(22, upperRes.headroom());
+
+        var crampedRes = com.alex.mycelialmind.world.TerrainPlacementPolicy.findCavernFloorInColumn(
+                solid, fluid, baseY, 40, 64);
+        assertFalse(crampedRes.valid());
+
+        assertEquals(52, com.alex.mycelialmind.world.TerrainPlacementPolicy.selectBestCavernAnchorY(
+                new int[]{32, 60, 48, 70, 52}, 40, 28, 128));
+        assertEquals(50, com.alex.mycelialmind.world.TerrainPlacementPolicy.selectBestCavernAnchorY(
+                new int[]{60, 70, 52}, 40, 28, 50));
+        assertEquals(44, com.alex.mycelialmind.world.TerrainPlacementPolicy.selectBestCavernAnchorY(
+                new int[]{}, 44, 28, 128));
+    }
 }

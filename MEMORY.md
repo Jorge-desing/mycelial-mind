@@ -4651,3 +4651,32 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Skills revisadas/actualizadas:** Actualizada `.agents/skills/mycelial-ai-hive/SKILL.md`; las demás skills (`neoforge-gametest`, `mycelial-codemode`, `mycelial-diagnostics`, `mycelial-model-studio`, `mycelial-particle-studio`, `mycelial-sound-studio`, `mycelial-texture-studio`) revisadas y vigentes sin requerir cambios.
 - **Archivos / Símbolos:** `HyphalVerletRope`, `HyphalVeinEntity`, `HyphalVeinRenderer`, `HyphalPhysicsTest`, `MycelialGameTests`, `.agents/skills/mycelial-ai-hive/SKILL.md`.
 - **Estado / Siguiente paso:** Completado, verificado y listo para commit y push a `origin/main`.
+
+
+## [2026-11-25 19:13] — Ingeniería Inversa con REA y Mejora Integral de Terreno/Estructuras (Superficie, Subsuelo y `deep_mycelium` `0..192`) (`/grill-me`)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:**
+  1. **Análisis con `/reverse-engineer-anything` (REA):** Inspeccionados y extraídos **4 JARs de referencia** (`lithostitched-neoforge-1.21.5-1.4.8.jar` `ev_4813879a...`, `Incendium_1.21.x_v5.4.8.jar` `ev_f6248c4b...`, `dungeons-and-taverns-stronghold-overhaul-v2.3.1.jar` `ev_4b9e15d6...`, `YungsApi-1.20-Fabric-4.0.6.jar` `ev_37721ce5...`); documentado el reporte técnico en `artifacts/diagnostics/rea-worldgen-reference-report.md` (conservado localmente al estar `artifacts/` en `.gitignore`).
+  2. **Topografía `deep_mycelium` (`0..192`, Pilares y `SurfaceRules` por Bioma):**
+     - `MycelialDimensionBootstrap`: ampliado `DEEP_MYCELIUM_TYPE` y `DEEP_MYCELIUM_NOISE` de `0..128` a **`0..192`** (`seaLevel=28`, gradientes `-8..28` y `156..192`), añadidos pilares verticales cavernosos (`Noises.PILLAR`, `PILLAR_RARENESS`, `PILLAR_THICKNESS` al cubo + `rangeChoice`/`max`) y `SurfaceRules` diferenciadas para `LATENT_SPORE_FOREST` (`root_sap_moss` / `mud`), `HIVE_HEART_SANCTUM` (`mycelial_arch_brick` / `deepslate_tiles` + techos `luminescent_amber_vein`) y `DEEP_MYCELIUM_CAVERNS` (`creeping_mycelium` / `deepslate`).
+     - `MycelialFeatureBootstrap`: `DEEP_MYCELIUM_OUTBREAK_PF` expandido a `Y=28..168`; `ModDimensions`: `Y=76` preferida al entrar en `deep_mycelium`.
+  3. **Sondeo `NoiseColumn` y Adaptación de Estructuras:**
+     - `TerrainPlacementPolicy`: añadidos `findCavernFloorInColumn`, `selectBestCavernAnchorY` y `findCavernPlacementY` (`ChunkGenerator.getBaseColumn` sin cargar chunks extra).
+     - `MycelialStructureBootstrap`: `HIVE_SANCTUM` con `TerrainAdjustment.ENCAPSULATE`, `LiquidSettings.IGNORE_WATERLOGGING` y `DimensionPadding(8, 224)`; `ARCHITECTURAL_REFLECTION` con desgaste orgánico de pizarra abismal y `ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)`; `MATRIARCH_CITADEL` (`UNDERGROUND_STRUCTURES`) y `TWISTED_CITADEL` con `TerrainAdjustment.BEARD_THIN`.
+     - `MatriarchCitadelStructure`/`TwistedCitadelStructure` reemplazan `Y=32` fijo por `findCavernPlacementY` (abortando si no hay cámara seca con altura libre); `MatriarchCitadelPiece` (`8` contrafuertes a `r=14`) y `TwistedCitadelPiece` (`groundTemplateCorners` incluyendo centro) anclan soportes 6-conectados hacia el suelo cavernoso.
+     - Pulido radial exterior de transición en `SurfaceHiveFeature` (`dist <= 10.5` con anclaje) y `MycelialSinkholeFeature` (`dist > 8..10` profundidad `4`).
+  4. **DataGen y Pruebas:** Regenerado `src/generated/resources/` vía `:runData`, añadido JUnit `cavernColumnProbingSelectsDryFloorWithHeadroomClosestToPreferred` en `HiveAlgorithmsUnitTest` y `@GameTest deepMyceliumTopographyAndAllStructureTerrainAdaptationsWorkEndToEnd` en `MycelialGameTests`.
+- **Archivos / Símbolos:**
+  - `src/main/java/com/alex/mycelialmind/datagen/{MycelialDimensionBootstrap,MycelialFeatureBootstrap,MycelialStructureBootstrap}.java`
+  - `src/main/java/com/alex/mycelialmind/world/{ModDimensions,TerrainPlacementPolicy,SurfaceHiveFeature,MycelialSinkholeFeature}.java`
+  - `src/main/java/com/alex/mycelialmind/world/structure/{MatriarchCitadelStructure,MatriarchCitadelPiece,TwistedCitadelStructure,TwistedCitadelPiece}.java`
+  - `src/generated/resources/data/mycelialmind/{dimension_type/deep_mycelium,worldgen/{noise_settings/deep_mycelium,placed_feature/deep_mycelium_outbreak,processor_list/architectural_reflection,structure/{hive_sanctum,matriarch_citadel,twisted_citadel}}}.json`
+  - `src/test/java/com/alex/mycelialmind/HiveAlgorithmsUnitTest.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`
+  - `.agents/skills/mycelial-ai-hive/SKILL.md`, `MEMORY.md`, `artifacts/diagnostics/rea-worldgen-reference-report.md`
+- **Skills revisadas y actualizadas:**
+  - Actualizada `.agents/skills/mycelial-ai-hive/SKILL.md`; las otras `7` skills revisadas sin requerir cambios (`validate_skills` = `8/8 OK`).
+- **Verificación (`CodeMode` `mycelial-mind-dev`):**
+  - `run_gradle_task(["runData", "test", "build", "runGameTestServer"], isolated_gametests=True, no_daemon=True, max_workers=1)`: **`BUILD SUCCESSFUL`**, **`147/147` JUnit en `17` suites (`2.316s`, `0` fallos)**, **`201/201` `@GameTest`s PASS en `6.058 s`** (`All 201 required tests passed :)`).
+  - `audit_mod_assets` (`ok: true`, `2235/2235` EN/ES, `839` claves referenciadas, `0` faltantes), `validate_skills` (`8/8 OK`). *(Nota: `run_codex_studio` reportó únicamente la clave preexistente `respectClaimedChunks` pendiente en `server_configs`).*
+  - Smoke `flat`: `run_rcon_verify_suite` -> **`ALL 24 automated scenario checks PASSED`**.
+  - Smoke `default`: `/mycelial worldgen audit 8 64` PASS (`289` chunks, `terrain(sites=0,float=0,fluid=0,spawn=0,biome=0)`) y `execute in mycelialmind:deep_mycelium run locate structure mycelialmind:matriarch_citadel` -> `[-880, ~, 1712] (1983 blocks away)`.

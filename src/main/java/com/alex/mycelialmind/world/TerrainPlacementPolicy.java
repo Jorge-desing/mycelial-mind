@@ -13,19 +13,25 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.StructureTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.material.FluidState;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -56,6 +62,9 @@ public final class TerrainPlacementPolicy {
     );
 
     public record SlopeEvaluation(int minY, int maxY, int deltaY, boolean valid) {
+    }
+
+    public record CavernAnchorResult(int floorY, int headroom, boolean valid) {
     }
 
     private TerrainPlacementPolicy() {
@@ -355,5 +364,130 @@ public final class TerrainPlacementPolicy {
                 return;
             }
         }
+    }
+
+    /**
+     * Scans a pre-sampled vertical column for a dry solid floor with at least {@code minHeadroom}
+     * contiguous dry open blocks above it, picking the valid floor closest to {@code preferredY}.
+     */
+    public static CavernAnchorResult findCavernFloorInColumn(
+            boolean[] solidByOffset,
+            boolean[] fluidByOffset,
+            int baseY,
+            int minHeadroom,
+            int preferredY
+    ) {
+        if (solidByOffset == null || fluidByOffset == null
+                || solidByOffset.length == 0
+                || solidByOffset.length != fluidByOffset.length
+                || minHeadroom <= 0) {
+            return new CavernAnchorResult(baseY, 0, false);
+        }
+        int n = solidByOffset.length;
+        int bestFloorY = baseY;
+        int bestHeadroom = 0;
+        int bestDist = Integer.MAX_VALUE;
+        boolean found = false;
+
+        for (int i = 0; i <= n - 1 - minHeadroom; i++) {
+            if (!solidByOffset[i] || fluidByOffset[i]) {
+                continue;
+            }
+            int headroom = 0;
+            for (int k = i + 1; k < n; k++) {
+                if (!solidByOffset[k] && !fluidByOffset[k]) {
+                    headroom++;
+                } else {
+                    break;
+                }
+            }
+            if (headroom >= minHeadroom) {
+                int floorY = baseY + i;
+                int dist = Math.abs(floorY - preferredY);
+                if (!found || dist < bestDist) {
+                    found = true;
+                    bestDist = dist;
+                    bestFloorY = floorY;
+                    bestHeadroom = headroom;
+                }
+            }
+        }
+        return new CavernAnchorResult(bestFloorY, bestHeadroom, found);
+    }
+
+    /**
+     * Computes the median of candidate cavern floor heights clamped to {@code [minY, maxY]}.
+     */
+    public static int selectBestCavernAnchorY(int[] candidateFloorYs, int fallbackY, int minY, int maxY) {
+        if (candidateFloorYs == null || candidateFloorYs.length == 0) {
+            return Math.max(minY, Math.min(maxY, fallbackY));
+        }
+        int[] sorted = Arrays.copyOf(candidateFloorYs, candidateFloorYs.length);
+        Arrays.sort(sorted);
+        int median = sorted[sorted.length / 2];
+        return Math.max(minY, Math.min(maxY, median));
+    }
+
+    /**
+     * Probes 5 noise columns around {@code (centerX, centerZ)} via {@link ChunkGenerator#getBaseColumn}
+     * without forcing chunk loads, returning a median dry cavern floor Y with required headroom.
+     */
+    public static OptionalInt findCavernPlacementY(
+            ChunkGenerator generator,
+            LevelHeightAccessor heightAccessor,
+            RandomState randomState,
+            int centerX,
+            int centerZ,
+            int minY,
+            int maxY,
+            int minHeadroom,
+            int preferredY,
+            int sampleRadius
+    ) {
+        if (generator == null || heightAccessor == null || randomState == null) {
+            return OptionalInt.empty();
+        }
+        int clampedMinY = Math.max(heightAccessor.getMinBuildHeight() + 1, minY);
+        int scanTopY = Math.min(heightAccessor.getMaxBuildHeight() - 1, maxY + minHeadroom);
+        if (scanTopY <= clampedMinY + minHeadroom) {
+            return OptionalInt.empty();
+        }
+        int span = scanTopY - clampedMinY + 1;
+        int[][] probes = {
+                {0, 0},
+                {sampleRadius, 0},
+                {-sampleRadius, 0},
+                {0, sampleRadius},
+                {0, -sampleRadius}
+        };
+        int[] validFloors = new int[probes.length];
+        int validCount = 0;
+        boolean centerValid = false;
+
+        for (int p = 0; p < probes.length; p++) {
+            NoiseColumn column = generator.getBaseColumn(
+                    centerX + probes[p][0], centerZ + probes[p][1], heightAccessor, randomState);
+            boolean[] solid = new boolean[span];
+            boolean[] fluid = new boolean[span];
+            for (int i = 0; i < span; i++) {
+                BlockState state = column.getBlock(clampedMinY + i);
+                boolean hasFluid = !state.getFluidState().isEmpty();
+                fluid[i] = hasFluid;
+                solid[i] = !hasFluid && !state.isAir() && !state.canBeReplaced();
+            }
+            CavernAnchorResult res = findCavernFloorInColumn(solid, fluid, clampedMinY, minHeadroom, preferredY);
+            if (res.valid()) {
+                validFloors[validCount++] = res.floorY();
+                if (p == 0) {
+                    centerValid = true;
+                }
+            }
+        }
+
+        if ((!centerValid && validCount < 3) || validCount < 2) {
+            return OptionalInt.empty();
+        }
+        int[] trimmed = Arrays.copyOf(validFloors, validCount);
+        return OptionalInt.of(selectBestCavernAnchorY(trimmed, preferredY, minY, maxY));
     }
 }

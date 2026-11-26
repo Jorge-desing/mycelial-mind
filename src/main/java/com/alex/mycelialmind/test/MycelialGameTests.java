@@ -11381,4 +11381,108 @@ public final class MycelialGameTests {
                     helper.succeed();
                 });
     }
+
+    @GameTest(template = "empty", batch = "worldgen_terrain_balance")
+    public static void deepMyceliumTopographyAndAllStructureTerrainAdaptationsWorkEndToEnd(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var registries = level.registryAccess();
+
+        var dimType = registries.registryOrThrow(Registries.DIMENSION_TYPE).get(com.alex.mycelialmind.world.ModWorldgenKeys.DEEP_MYCELIUM_TYPE);
+        helper.assertTrue(dimType != null && dimType.minY() == 0 && dimType.height() == 192 && dimType.logicalHeight() == 192,
+                "Expected deep_mycelium DimensionType height 0..192.");
+
+        var noiseReg = registries.registryOrThrow(Registries.NOISE_SETTINGS);
+        var deepNoiseHolder = noiseReg.getHolderOrThrow(com.alex.mycelialmind.world.ModWorldgenKeys.DEEP_MYCELIUM_NOISE);
+        helper.assertTrue(deepNoiseHolder.value().noiseSettings().minY() == 0
+                        && deepNoiseHolder.value().noiseSettings().height() == 192
+                        && deepNoiseHolder.value().seaLevel() == 28,
+                "Expected deep_mycelium NoiseSettings height 0..192 and seaLevel 28.");
+
+        var biomeReg = registries.registryOrThrow(Registries.BIOME);
+        var biomeSource = net.minecraft.world.level.biome.MultiNoiseBiomeSource.createFromList(
+                new net.minecraft.world.level.biome.Climate.ParameterList<>(java.util.List.of(
+                        com.mojang.datafixers.util.Pair.of(
+                                net.minecraft.world.level.biome.Climate.parameters(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F),
+                                biomeReg.getHolderOrThrow(com.alex.mycelialmind.world.ModWorldgenKeys.DEEP_MYCELIUM_CAVERNS))
+                ))
+        );
+        var deepGen = new net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator(biomeSource, deepNoiseHolder);
+        var deepRandomState = net.minecraft.world.level.levelgen.RandomState.create(
+                deepNoiseHolder.value(), registries.lookupOrThrow(Registries.NOISE), 123456789L);
+        var deepHeightAccessor = net.minecraft.world.level.LevelHeightAccessor.create(0, 192);
+
+        var structReg = registries.registryOrThrow(Registries.STRUCTURE);
+        var hiveSanctum = structReg.get(com.alex.mycelialmind.world.ModWorldgenKeys.HIVE_SANCTUM);
+        var matriarchCitadel = structReg.get(com.alex.mycelialmind.world.ModWorldgenKeys.MATRIARCH_CITADEL);
+        var twistedCitadel = structReg.get(com.alex.mycelialmind.world.ModWorldgenKeys.TWISTED_CITADEL);
+
+        helper.assertTrue(hiveSanctum != null
+                        && hiveSanctum.terrainAdaptation() == net.minecraft.world.level.levelgen.structure.TerrainAdjustment.ENCAPSULATE,
+                "Expected hive_sanctum to use TerrainAdjustment.ENCAPSULATE.");
+        helper.assertTrue(matriarchCitadel != null
+                        && matriarchCitadel.terrainAdaptation() == net.minecraft.world.level.levelgen.structure.TerrainAdjustment.BEARD_THIN,
+                "Expected matriarch_citadel to use TerrainAdjustment.BEARD_THIN.");
+        helper.assertTrue(twistedCitadel != null
+                        && twistedCitadel.terrainAdaptation() == net.minecraft.world.level.levelgen.structure.TerrainAdjustment.BEARD_THIN,
+                "Expected twisted_citadel to use TerrainAdjustment.BEARD_THIN.");
+
+        // Probe real deep_mycelium 0..192 NoiseColumn generator across deterministic coordinates
+        boolean foundCavernAnchor = false;
+        for (int idx = 0; idx < 24 && !foundCavernAnchor; idx++) {
+            int px = (idx * 73) - 640;
+            int pz = ((idx * 131) % 768) - 384;
+            var optY = com.alex.mycelialmind.world.TerrainPlacementPolicy.findCavernPlacementY(
+                    deepGen, deepHeightAccessor, deepRandomState, px, pz, 28, 144, 22, 64, 10);
+            if (optY.isPresent()) {
+                int y = optY.getAsInt();
+                helper.assertTrue(y >= 28 && y <= 144,
+                        "Expected probed cavern floor within 28..144, got " + y);
+                foundCavernAnchor = true;
+            }
+        }
+        helper.assertTrue(foundCavernAnchor,
+                "Expected TerrainPlacementPolicy.findCavernPlacementY to locate valid dry cavern floor in 0..192 deep_mycelium.");
+
+        // Verify MatriarchCitadelPiece & TwistedCitadelPiece support buttresses maintain zero floating blocks
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        BlockPos citadelCenter = helper.absolutePos(new BlockPos(26, 120, 26));
+        var piece = new com.alex.mycelialmind.world.structure.MatriarchCitadelPiece(citadelCenter);
+        var citadelBox = piece.getBoundingBox();
+        try {
+            for (BlockPos pos : BlockPos.betweenClosed(
+                    citadelBox.minX(), citadelBox.minY(), citadelBox.minZ(),
+                    citadelBox.maxX(), citadelBox.maxY(), citadelBox.maxZ())) {
+                if (!level.getBlockState(pos).isAir()) {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+            piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                    level.getRandom(), citadelBox, new ChunkPos(citadelCenter), citadelCenter);
+            helper.assertFalse(level.getBlockState(citadelCenter.offset(14, -6, 0)).isAir(),
+                    "MatriarchCitadelPiece must generate vertical support buttresses under mid-arena ring.");
+
+            java.util.function.Predicate<BlockState> isModStructure =
+                    s -> !s.isAir() && !s.is(Blocks.STONE) && !s.is(Blocks.BEDROCK) && !s.is(Blocks.BARRIER);
+            var citadelFloating = com.alex.mycelialmind.world.structure.VoxelStructureOps.findDisconnectedPositions(
+                    level, citadelBox, citadelCenter.above(4), isModStructure);
+            helper.assertTrue(citadelFloating.isEmpty(),
+                    "MatriarchCitadelPiece with buttresses must have zero floating blocks, found " + citadelFloating.size());
+        } finally {
+            var citadelGuardians = level.getEntitiesOfClass(com.alex.mycelialmind.entity.MycelialMob.class,
+                    new AABB(citadelCenter).inflate(26.0D),
+                    m -> m instanceof com.alex.mycelialmind.entity.SporeBehemothEntity || m instanceof ColonyWardenEntity);
+            citadelGuardians.forEach(net.minecraft.world.entity.Entity::discard);
+            for (BlockPos pos : BlockPos.betweenClosed(
+                    citadelBox.minX(), citadelBox.minY(), citadelBox.minZ(),
+                    citadelBox.maxX(), citadelBox.maxY(), citadelBox.maxZ())) {
+                if (!level.getBlockState(pos).isAir()) {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+            tracker.clearAll();
+        }
+
+        helper.succeed();
+    }
 }

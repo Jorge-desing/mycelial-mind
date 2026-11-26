@@ -103,12 +103,12 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
         BlockState wall = Blocks.DEEPSLATE_BRICK_WALL.defaultBlockState();
         BlockState stairBase = Blocks.DEEPSLATE_BRICK_STAIRS.defaultBlockState();
 
-        // 1) Organic creeping mycelium carpet & sub-foundation (radius 10, slope-adaptive outer rim)
+        // 1) Organic creeping mycelium carpet & sub-foundation (radius 10.5, slope-adaptive outer rim)
         long noiseSeed = origin.asLong() ^ 0x5355524641434548L;
-        for (int dx = -10; dx <= 10; dx++) {
-            for (int dz = -10; dz <= 10; dz++) {
+        for (int dx = -11; dx <= 11; dx++) {
+            for (int dz = -11; dz <= 11; dz++) {
                 double dist = Math.sqrt(dx * dx + dz * dz);
-                if (dist > 10.2) {
+                if (dist > 10.5) {
                     continue;
                 }
                 var cell = MycelialFastNoise.domainWarpedCellular2D(
@@ -117,13 +117,16 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                         noiseSeed,
                         0.32D
                 );
-                boolean inFootprint = dist <= 6.8 || (dist <= 10.0 && cell.edge() >= 0.40D);
+                boolean outerTransition = dist > 8.5;
+                boolean inFootprint = dist <= 6.8
+                        || (!outerTransition && dist <= 10.0 && cell.edge() >= 0.40D)
+                        || (outerTransition && cell.edge() >= 0.48D && random.nextFloat() < 0.38F);
                 if (!inFootprint) {
                     continue;
                 }
                 BlockPos floorPos = dist <= 6.8
                         ? ground.offset(dx, 0, dz)
-                        : findCarpetFloor(level, origin.getX() + dx, ground.getY(), origin.getZ() + dz, 2);
+                        : findCarpetFloor(level, origin.getX() + dx, ground.getY(), origin.getZ() + dz, outerTransition ? 3 : 2);
                 if (floorPos == null) {
                     continue;
                 }
@@ -134,7 +137,7 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                             && level.getBlockState(subPos).isFaceSturdy(level, subPos, Direction.UP);
                     if (!alreadySupported) {
                         TerrainPlacementPolicy.anchorOrganicFoundation(
-                                level, subPos, 8, mycelialStone, deepslateBricks, pos -> isSafeToOverwrite(level, pos));
+                                level, subPos, outerTransition ? 4 : 8, mycelialStone, deepslateBricks, pos -> isSafeToOverwrite(level, pos));
                     }
                     if (dist >= 5.2 && dist <= 7.8) {
                         safeSetBlock(level, subPos, deepslateBricks);

@@ -73,7 +73,7 @@ public final class ModDimensions {
 
         BlockPos targetOrigin = new BlockPos(
                 player.blockPosition().getX(),
-                targetKey.equals(DEEP_MYCELIUM_LEVEL) ? 64 : targetLevel.getSeaLevel() + 2,
+                targetKey.equals(DEEP_MYCELIUM_LEVEL) ? 76 : targetLevel.getSeaLevel() + 2,
                 player.blockPosition().getZ()
         );
         Optional<SafeArrival> safeArrivalResult = findSafeArrival(targetLevel, targetOrigin, player);

@@ -50,7 +50,7 @@ public class TwistedCitadelPiece extends StructurePiece {
 
     public TwistedCitadelPiece(BlockPos center) {
         super(ModStructures.TWISTED_CITADEL_PIECE.get(), 0, new BoundingBox(
-                center.getX() - RADIUS, center.getY() - 4, center.getZ() - RADIUS,
+                center.getX() - RADIUS, center.getY() - 12, center.getZ() - RADIUS,
                 center.getX() + RADIUS, center.getY() + HEIGHT, center.getZ() + RADIUS
         ));
         this.center = center.immutable();
@@ -114,6 +114,7 @@ public class TwistedCitadelPiece extends StructurePiece {
         BlockPos primaryOrigin = center.offset(-centerHalfX, 0, -centerHalfZ);
         clearInteriorIfNeeded(level, box, primaryOrigin, primaryTpl.getSize().getX(), primaryTpl.getSize().getY(), primaryTpl.getSize().getZ());
         primaryTpl.placeInWorld(level, primaryOrigin, primaryOrigin, settings, random, 2);
+        groundTemplateCorners(level, box, primaryOrigin, primaryTpl.getSize().getX(), primaryTpl.getSize().getZ(), palette);
 
         // 2. Place flanking wing templates (West & East, plus North Keep for TOWER_SPIRE) + grounded bridges
         Optional<StructureTemplate> wingOpt = tplMgr.get(wingTemplateId);
@@ -127,6 +128,7 @@ public class TwistedCitadelPiece extends StructurePiece {
             BlockPos westOrigin = westCenter.offset(-wingHalfX, 0, -wingHalfZ);
             clearInteriorIfNeeded(level, box, westOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getY(), wingTpl.getSize().getZ());
             wingTpl.placeInWorld(level, westOrigin, westOrigin, settings, random, 2);
+            groundTemplateCorners(level, box, westOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getZ(), palette);
             placeWalkwayBridgeX(level, box, center.getX() - 15 + wingHalfX - 1, center.getX() - centerHalfX + 1,
                     center.getY(), center.getZ(), palette);
 
@@ -135,6 +137,7 @@ public class TwistedCitadelPiece extends StructurePiece {
             BlockPos eastOrigin = eastCenter.offset(-wingHalfX, 0, -wingHalfZ);
             clearInteriorIfNeeded(level, box, eastOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getY(), wingTpl.getSize().getZ());
             wingTpl.placeInWorld(level, eastOrigin, eastOrigin, settings, random, 2);
+            groundTemplateCorners(level, box, eastOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getZ(), palette);
             placeWalkwayBridgeX(level, box, center.getX() + centerHalfX - 1, center.getX() + 15 - wingHalfX + 1,
                     center.getY(), center.getZ(), palette);
 
@@ -143,6 +146,7 @@ public class TwistedCitadelPiece extends StructurePiece {
                 BlockPos northOrigin = northCenter.offset(-wingHalfX, 0, -wingHalfZ);
                 clearInteriorIfNeeded(level, box, northOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getY(), wingTpl.getSize().getZ());
                 wingTpl.placeInWorld(level, northOrigin, northOrigin, settings, random, 2);
+                groundTemplateCorners(level, box, northOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getZ(), palette);
                 placeWalkwayBridgeZ(level, box, center.getZ() - 15 + wingHalfZ - 1, center.getZ() - centerHalfZ + 1,
                         center.getY(), center.getX(), palette);
             }
@@ -163,6 +167,43 @@ public class TwistedCitadelPiece extends StructurePiece {
             level.setBlock(nodePos, ModBlocks.SENTINEL_NODE.get().defaultBlockState(), 2);
             if (level.getLevel() instanceof ServerLevel serverLevel) {
                 PurificationZoneTracker.get(serverLevel).addNode(nodePos, SynapticNodeType.SENTINEL);
+            }
+        }
+    }
+
+    private static void groundTemplateCorners(
+            WorldGenLevel level,
+            BoundingBox box,
+            BlockPos origin,
+            int sizeX,
+            int sizeZ,
+            ResolvedPalette palette
+    ) {
+        if (sizeX <= 0 || sizeZ <= 0) {
+            return;
+        }
+        int[][] corners = {
+                {0, 0},
+                {sizeX - 1, 0},
+                {0, sizeZ - 1},
+                {sizeX - 1, sizeZ - 1},
+                {sizeX / 2, sizeZ / 2}
+        };
+        for (int[] c : corners) {
+            BlockPos baseBlock = origin.offset(c[0], 0, c[1]);
+            if (!box.isInside(baseBlock) || level.getBlockState(baseBlock).isAir()) {
+                continue;
+            }
+            for (int dy = 1; dy <= 10; dy++) {
+                BlockPos supportPos = baseBlock.below(dy);
+                if (!box.isInside(supportPos) || supportPos.getY() <= level.getMinBuildHeight() + 1) {
+                    break;
+                }
+                BlockState existing = level.getBlockState(supportPos);
+                if (!existing.isAir() && existing.isSolid() && existing.getFluidState().isEmpty()) {
+                    break;
+                }
+                level.setBlock(supportPos, (dy % 2 == 0) ? palette.structuralPillar() : palette.primaryWall(), 2);
             }
         }
     }

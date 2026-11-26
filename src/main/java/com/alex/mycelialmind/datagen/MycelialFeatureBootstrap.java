@@ -48,7 +48,7 @@ public final class MycelialFeatureBootstrap {
                 List.of(
                         new HiveTierRarityPlacement(32, 24, 18, 12),
                         InSquarePlacement.spread(),
-                        HeightRangePlacement.uniform(VerticalAnchor.absolute(25), VerticalAnchor.absolute(112)),
+                        HeightRangePlacement.uniform(VerticalAnchor.absolute(28), VerticalAnchor.absolute(168)),
                         BiomeFilter.biome()
                 )
         ));

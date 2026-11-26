@@ -2,5 +2,6 @@
   "type": "mycelialmind:twisted_citadel",
   "biomes": "#mycelialmind:has_structure/twisted_citadel",
   "spawn_overrides": {},
-  "step": "underground_structures"
+  "step": "underground_structures",
+  "terrain_adaptation": "beard_thin"
 }

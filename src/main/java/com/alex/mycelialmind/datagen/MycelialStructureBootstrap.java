@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.datagen;
 
+import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.world.ModWorldgenKeys;
 import com.alex.mycelialmind.world.structure.ArchitecturalAccentProcessor;
 import com.alex.mycelialmind.world.structure.MatriarchCitadelStructure;
@@ -11,7 +12,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.Pools;
 import net.minecraft.tags.BiomeTags;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
@@ -20,11 +23,17 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.TerrainAdjustment;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType;
+import net.minecraft.world.level.levelgen.structure.pools.DimensionPadding;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool.Projection;
 import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
+import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.ProcessorRule;
+import net.minecraft.world.level.levelgen.structure.templatesystem.ProtectedBlockProcessor;
+import net.minecraft.world.level.levelgen.structure.templatesystem.RandomBlockMatchTest;
+import net.minecraft.world.level.levelgen.structure.templatesystem.RuleProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 
 import java.util.List;
@@ -39,9 +48,36 @@ public final class MycelialStructureBootstrap {
     }
 
     public static void bootstrapProcessorLists(BootstrapContext<StructureProcessorList> context) {
+        RuleProcessor organicWeathering = new RuleProcessor(List.of(
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.DEEPSLATE_BRICKS, 0.18F),
+                        AlwaysTrueTest.INSTANCE,
+                        Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState()
+                ),
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.DEEPSLATE_BRICKS, 0.12F),
+                        AlwaysTrueTest.INSTANCE,
+                        ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState()
+                ),
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.DEEPSLATE_TILES, 0.18F),
+                        AlwaysTrueTest.INSTANCE,
+                        Blocks.CRACKED_DEEPSLATE_TILES.defaultBlockState()
+                ),
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.DEEPSLATE_TILES, 0.10F),
+                        AlwaysTrueTest.INSTANCE,
+                        ModBlocks.MYCELIAL_STONE.get().defaultBlockState()
+                )
+        ));
+
         context.register(
                 ModWorldgenKeys.ARCHITECTURAL_REFLECTION,
-                new StructureProcessorList(List.of(new ArchitecturalAccentProcessor()))
+                new StructureProcessorList(List.of(
+                        new ArchitecturalAccentProcessor(),
+                        organicWeathering,
+                        new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)
+                ))
         );
     }
 
@@ -96,7 +132,7 @@ public final class MycelialStructureBootstrap {
         context.register(ModWorldgenKeys.HIVE_SANCTUM, new JigsawStructure(
                 new Structure.StructureSettings.Builder(biomes.getOrThrow(BiomeTags.IS_OVERWORLD))
                         .generationStep(GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
-                        .terrainAdapation(TerrainAdjustment.BURY)
+                        .terrainAdapation(TerrainAdjustment.ENCAPSULATE)
                         .build(),
                 pools.getOrThrow(ModWorldgenKeys.HIVE_SANCTUM_START),
                 Optional.empty(),
@@ -106,20 +142,21 @@ public final class MycelialStructureBootstrap {
                 Optional.empty(),
                 64,
                 List.of(),
-                JigsawStructure.DEFAULT_DIMENSION_PADDING,
-                LiquidSettings.APPLY_WATERLOGGING
+                new DimensionPadding(8, 224),
+                LiquidSettings.IGNORE_WATERLOGGING
         ));
 
         context.register(ModWorldgenKeys.MATRIARCH_CITADEL, new MatriarchCitadelStructure(
                 new Structure.StructureSettings.Builder(biomes.getOrThrow(ModWorldgenKeys.HAS_MATRIARCH_CITADEL))
-                        .generationStep(GenerationStep.Decoration.SURFACE_STRUCTURES)
+                        .generationStep(GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
+                        .terrainAdapation(TerrainAdjustment.BEARD_THIN)
                         .build()
         ));
 
         context.register(ModWorldgenKeys.TWISTED_CITADEL, new TwistedCitadelStructure(
                 new Structure.StructureSettings.Builder(biomes.getOrThrow(ModWorldgenKeys.HAS_TWISTED_CITADEL))
                         .generationStep(GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
-                        .terrainAdapation(TerrainAdjustment.NONE)
+                        .terrainAdapation(TerrainAdjustment.BEARD_THIN)
                         .build()
         ));
     }

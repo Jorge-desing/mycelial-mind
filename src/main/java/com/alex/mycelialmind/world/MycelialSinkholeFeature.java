@@ -142,10 +142,8 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                     }
                 } else {
                     safeSetBlock(level, floorPos, random.nextFloat() < 0.72F ? mycelium : stone);
-                    if (dist <= 8.0D) {
-                        TerrainPlacementPolicy.anchorOrganicFoundation(
-                                level, floorPos.below(), 6, stone, null, pos -> isSafeToOverwrite(level, pos));
-                    }
+                    TerrainPlacementPolicy.anchorOrganicFoundation(
+                            level, floorPos.below(), dist <= 8.0D ? 6 : 4, stone, null, pos -> isSafeToOverwrite(level, pos));
                     BlockPos top = floorPos.above();
                     if (isOpenAirOrReplaceable(level, top)) {
                         if (dist > 6.8D && spawnedRimStrands < 6 && random.nextFloat() < 0.14F) {

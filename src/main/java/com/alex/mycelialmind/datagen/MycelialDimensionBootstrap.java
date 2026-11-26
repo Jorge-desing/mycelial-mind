@@ -57,8 +57,8 @@ public final class MycelialDimensionBootstrap {
                 false,
                 false,
                 0,
-                128,
-                128,
+                192,
+                192,
                 BlockTags.INFINIBURN_OVERWORLD,
                 BuiltinDimensionTypes.NETHER_EFFECTS,
                 0.15F,
@@ -79,17 +79,48 @@ public final class MycelialDimensionBootstrap {
         DensityFunction vegetation = DensityFunctions.shiftedNoise2d(
                 shiftX, shiftZ, 0.25D, noises.getOrThrow(Noises.VEGETATION));
 
+        // Organic multi-tier cavern pillars inspired by Incendium (ev_f6248c4b...)
+        DensityFunction pillarNoise = DensityFunctions.mul(
+                DensityFunctions.constant(2.0D),
+                DensityFunctions.noise(noises.getOrThrow(Noises.PILLAR), 25.0D, 0.3D)
+        );
+        DensityFunction pillarRareness = DensityFunctions.add(
+                DensityFunctions.constant(-1.0D),
+                DensityFunctions.mul(
+                        DensityFunctions.constant(-1.0D),
+                        DensityFunctions.noise(noises.getOrThrow(Noises.PILLAR_RARENESS), 1.0D, 1.0D)
+                )
+        );
+        DensityFunction pillarThickness = DensityFunctions.add(
+                DensityFunctions.constant(0.95D),
+                DensityFunctions.mul(
+                        DensityFunctions.constant(0.55D),
+                        DensityFunctions.noise(noises.getOrThrow(Noises.PILLAR_THICKNESS), 1.0D, 1.0D)
+                )
+        ).cube();
+        DensityFunction pillars = DensityFunctions.cacheOnce(
+                DensityFunctions.mul(DensityFunctions.add(pillarNoise, pillarRareness), pillarThickness)
+        );
+        DensityFunction gatedPillars = DensityFunctions.rangeChoice(
+                pillars,
+                -1_000_000.0D,
+                0.03D,
+                DensityFunctions.constant(-1_000_000.0D),
+                pillars
+        );
+        DensityFunction cavernTerrain = DensityFunctions.max(base3dNoise, gatedPillars);
+
         DensityFunction topSlide = DensityFunctions.add(
                 DensityFunctions.constant(0.9375D),
                 DensityFunctions.mul(
-                        DensityFunctions.yClampedGradient(104, 128, 1.0D, 0.0D),
-                        DensityFunctions.add(DensityFunctions.constant(-0.9375D), base3dNoise)
+                        DensityFunctions.yClampedGradient(156, 192, 1.0D, 0.0D),
+                        DensityFunctions.add(DensityFunctions.constant(-0.9375D), cavernTerrain)
                 )
         );
         DensityFunction fullSlide = DensityFunctions.add(
                 DensityFunctions.constant(2.5D),
                 DensityFunctions.mul(
-                        DensityFunctions.yClampedGradient(-8, 24, 0.0D, 1.0D),
+                        DensityFunctions.yClampedGradient(-8, 28, 0.0D, 1.0D),
                         DensityFunctions.add(DensityFunctions.constant(-2.5D), topSlide)
                 )
         );
@@ -124,19 +155,100 @@ public final class MycelialDimensionBootstrap {
                 SurfaceRules.not(SurfaceRules.verticalGradient("bedrock_roof", VerticalAnchor.belowTop(5), VerticalAnchor.top())),
                 SurfaceRules.state(Blocks.BEDROCK.defaultBlockState())
         );
+
+        SurfaceRules.RuleSource sporeForestSurface = SurfaceRules.ifTrue(
+                SurfaceRules.isBiome(ModWorldgenKeys.LATENT_SPORE_FOREST),
+                SurfaceRules.sequence(
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.stoneDepthCheck(0, false, CaveSurface.FLOOR),
+                                SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(
+                                                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(28), 0),
+                                                SurfaceRules.ifTrue(
+                                                        SurfaceRules.noiseCondition(Noises.SURFACE, 0.15D, 1.0D),
+                                                        SurfaceRules.state(ModBlocks.ROOT_SAP_MOSS.get().defaultBlockState())
+                                                )
+                                        ),
+                                        SurfaceRules.state(ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState())
+                                )
+                        ),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.stoneDepthCheck(0, true, 1, CaveSurface.FLOOR),
+                                SurfaceRules.state(Blocks.MUD.defaultBlockState())
+                        )
+                )
+        );
+
+        SurfaceRules.RuleSource sanctumSurface = SurfaceRules.ifTrue(
+                SurfaceRules.isBiome(ModWorldgenKeys.HIVE_HEART_SANCTUM),
+                SurfaceRules.sequence(
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.stoneDepthCheck(0, false, CaveSurface.FLOOR),
+                                SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(
+                                                SurfaceRules.noiseCondition(Noises.SURFACE, 0.25D, 1.0D),
+                                                SurfaceRules.state(ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState())
+                                        ),
+                                        SurfaceRules.ifTrue(
+                                                SurfaceRules.noiseCondition(Noises.SURFACE, -0.15D, 0.25D),
+                                                SurfaceRules.state(Blocks.DEEPSLATE_TILES.defaultBlockState())
+                                        ),
+                                        SurfaceRules.state(ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState())
+                                )
+                        ),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.stoneDepthCheck(0, false, CaveSurface.CEILING),
+                                SurfaceRules.ifTrue(
+                                        SurfaceRules.noiseCondition(Noises.CALCITE, 0.45D, 1.0D),
+                                        SurfaceRules.state(ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState())
+                                )
+                        )
+                )
+        );
+
+        SurfaceRules.RuleSource cavernsSurface = SurfaceRules.ifTrue(
+                SurfaceRules.isBiome(ModWorldgenKeys.DEEP_MYCELIUM_CAVERNS),
+                SurfaceRules.sequence(
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.stoneDepthCheck(0, false, CaveSurface.FLOOR),
+                                SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(
+                                                SurfaceRules.yBlockCheck(VerticalAnchor.absolute(28), 0),
+                                                SurfaceRules.state(ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState())
+                                        ),
+                                        SurfaceRules.state(Blocks.DEEPSLATE.defaultBlockState())
+                                )
+                        ),
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.stoneDepthCheck(0, true, 1, CaveSurface.FLOOR),
+                                SurfaceRules.ifTrue(
+                                        SurfaceRules.noiseCondition(Noises.SURFACE, 0.35D, 1.0D),
+                                        SurfaceRules.state(Blocks.DEEPSLATE.defaultBlockState())
+                                )
+                        )
+                )
+        );
+
         SurfaceRules.RuleSource floorCover = SurfaceRules.ifTrue(
                 SurfaceRules.stoneDepthCheck(0, false, CaveSurface.FLOOR),
                 SurfaceRules.state(ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState())
         );
 
         context.register(ModWorldgenKeys.DEEP_MYCELIUM_NOISE, new NoiseGeneratorSettings(
-                NoiseSettings.create(0, 128, 1, 2),
+                NoiseSettings.create(0, 192, 1, 2),
                 ModBlocks.MYCELIAL_STONE.get().defaultBlockState(),
                 Blocks.WATER.defaultBlockState(),
                 router,
-                SurfaceRules.sequence(bedrockFloor, bedrockRoof, floorCover),
+                SurfaceRules.sequence(
+                        bedrockFloor,
+                        bedrockRoof,
+                        sporeForestSurface,
+                        sanctumSurface,
+                        cavernsSurface,
+                        floorCover
+                ),
                 List.of(),
-                24,
+                28,
                 false,
                 false,
                 false,

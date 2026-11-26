@@ -1,12 +1,14 @@
 package com.alex.mycelialmind.world.structure;
 
 import com.alex.mycelialmind.registry.ModStructures;
+import com.alex.mycelialmind.world.TerrainPlacementPolicy;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * Legendary Deep Mycelium mega-structure: the Cathedral-Citadel of the Apex Matriarch.
@@ -22,8 +24,22 @@ public class MatriarchCitadelStructure extends Structure {
     protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
         int x = context.chunkPos().getMiddleBlockX();
         int z = context.chunkPos().getMiddleBlockZ();
-        // Deep Mycelium cavern floor sits around Y=24..34 with open space up to Y=104
-        BlockPos center = new BlockPos(x, 32, z);
+        OptionalInt floorY = TerrainPlacementPolicy.findCavernPlacementY(
+                context.chunkGenerator(),
+                context.heightAccessor(),
+                context.randomState(),
+                x,
+                z,
+                28,
+                128,
+                36,
+                48,
+                12
+        );
+        if (floorY.isEmpty()) {
+            return Optional.empty();
+        }
+        BlockPos center = new BlockPos(x, floorY.getAsInt() + 1, z);
         return Optional.of(new GenerationStub(center, builder -> builder.addPiece(new MatriarchCitadelPiece(center))));
     }
 

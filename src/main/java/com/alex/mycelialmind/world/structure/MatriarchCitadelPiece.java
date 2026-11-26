@@ -173,6 +173,29 @@ public class MatriarchCitadelPiece extends StructurePiece {
                     (step % 5 == 0) ? amberVein : ((step % 3 == 0) ? cryingObsidian : ((step % 2 == 0) ? chitinPillar : archBrick)));
         }
 
+        // 8 vertical 6-connected support buttresses under the mid-arena ring descending onto cavern bedrock/stone
+        for (int i = 0; i < 8; i++) {
+            double ang = (Math.PI / 4.0) * i;
+            int bx = (int) Math.round(Math.cos(ang) * 14.0);
+            int bz = (int) Math.round(Math.sin(ang) * 14.0);
+            BlockPos topFloor = center.offset(bx, 0, bz);
+            if (!box.isInside(topFloor) || level.getBlockState(topFloor).isAir()) {
+                continue;
+            }
+            for (int dy = -1; dy >= -12; dy--) {
+                BlockPos colPos = center.offset(bx, dy, bz);
+                if (!box.isInside(colPos) || colPos.getY() <= level.getMinBuildHeight() + 1) {
+                    break;
+                }
+                BlockState existing = level.getBlockState(colPos);
+                if (!existing.isAir() && existing.isSolid() && existing.getFluidState().isEmpty()
+                        && !existing.is(archBrick.getBlock()) && !existing.is(chitinPillar.getBlock())) {
+                    break;
+                }
+                setIfInside(level, box, colPos, (dy % 3 == 0) ? chitinPillar : archBrick);
+            }
+        }
+
         // 2) Crypt Beneath the Throne (dy = -5..-1, radius 8)
         for (int dy = -5; dy <= -1; dy++) {
             for (int dx = -8; dx <= 8; dx++) {
