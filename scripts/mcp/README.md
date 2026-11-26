@@ -41,28 +41,21 @@ Agrega esta entrada en tu configuración de servidores MCP (`mcp_config.json`):
 }
 ```
 
-## Registro en DeepSeek Harness (DSH)
+## Coexistencia entre clientes MCP (`.mcp.json`, Antigravity, Codex)
 
-DSH monta el servidor con la fila `mcp-manager` (`@deepseek-ai/dsh-mcp-manager`) en `~/.dsh/profiles/desktop/cordis.patch.yml`. `dsh-hmr` aplica el cambio en vivo; el namespace produce `mcp__mycelial-mind-dev__search`, `...__get_schema` y `...__execute`:
+Cada cliente MCP levanta su propio subproceso `stdio` (`scripts/mcp/.venv/Scripts/python.exe` → `scripts/mcp/server.py`).
 
-```yaml
-- id: mcp-manager
-  config:
-    servers:
-      mycelial-mind-dev:
-        transport: stdio
-        command: 'C:\Users\Alex\Documents\Mod Minecraft\scripts\mcp\.venv\Scripts\python.exe'
-        args: ['C:\Users\Alex\Documents\Mod Minecraft\scripts\mcp\server.py']
-        cwd: 'C:\Users\Alex\Documents\Mod Minecraft'
-        startupTimeoutMs: 180000
-        toolCallTimeoutMs: 1800000   # run_verify_mod / build superan los 60 s por defecto
-        enabled: true
-```
+| Cliente | Archivo de configuración | Notas |
+| --- | --- | --- |
+| Workspace estándar | `.mcp.json` (raíz del repo) | Ya configurado con `mycelial-mind-dev` |
+| Antigravity | `~/.gemini/config/mcp_config.json` | Usa rutas absolutas al `.venv` y `server.py` |
+| Codex | `~/.codex/config.toml` | Bloque `[mcp_servers.mycelial-mind-dev]` en modo `stdio` |
 
-Verificación: debe existir un `python.exe` hijo del proceso de la GUI con `scripts\mcp\server.py`; después `execute` → `get_bridge_health()` reporta `ok=true` y `tool_count=67`. Guía completa: [.agents/skills/mycelial-codemode/references/deepseek-harness.md](../../.agents/skills/mycelial-codemode/references/deepseek-harness.md).
+- **Verificación rápida:** dentro de `execute`, llama `get_bridge_health()` → debe devolver `ok=true`, `tool_count=67`, `java_home_detected` con JDK 21 e `instance_id`/`instance_pid` propios del proceso.
+- **Regla de coexistencia:** aunque varios clientes estén conectados a la vez, **no lances `run_gradle_task` ni `run_verify_mod` en paralelo** desde dos clientes distintos para evitar bloqueos sobre `build/` y `.gradle/`.
 
 ## Recursos MCP y esquemas de las meta-herramientas
 
 - `get_schema` resuelve también las propias meta-herramientas: `get_schema(["search", "get_schema", "execute"])` devuelve sus contratos en lugar de `Tools not found`.
-- Recursos de solo lectura (visibles en `list_mcp_resources` / `list_mcp_resource_templates`): `mycelial://bridge/health`, `mycelial://bridge/tools`, `mycelial://bridge/tags`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}` (`*` acepta rutas como `references/deepseek-harness.md`).
-- `get_bridge_health()` incluye `instance_id`, `instance_pid`, `instance_started_utc` e `instance_uptime_secs`: con varios clientes (DSH, Codex, Antigravity) cada uno tiene su propio proceso y así se distinguen.
+- Recursos de solo lectura (visibles en `list_mcp_resources` / `list_mcp_resource_templates`): `mycelial://bridge/health`, `mycelial://bridge/tools`, `mycelial://bridge/tags`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}` (`*` acepta rutas como `references/test-matrix.md`).
+- `get_bridge_health()` incluye `instance_id`, `instance_pid`, `instance_started_utc` e `instance_uptime_secs`: con varios clientes (Antigravity, Codex, otros clientes MCP) cada uno tiene su propio proceso y así se distinguen.

@@ -8,7 +8,7 @@ description: Política obligatoria para usar FastMCP CodeMode (mycelial-mind-dev
 Cuando **`mycelial-mind-dev`** ([scripts/mcp/server.py](file:///c:/Users/Alex/Documents/Mod%20Minecraft/scripts/mcp/server.py)) esté conectado, **usa siempre FastMCP `CodeMode` (`search`, `get_schema`, `execute`) para auditar suites, inspeccionar registros/activos y operar Minecraft/NeoForge** en vez de lanzar scripts manuales por consola. Guía completa: [.agents/skills/mycelial-codemode/SKILL.md](file:///c:/Users/Alex/Documents/Mod%20Minecraft/.agents/skills/mycelial-codemode/SKILL.md).
 
 ## 1. Operación en `execute` (`MontySandboxProvider`)
-- En DeepSeek Harness las meta-herramientas se llaman `mcp__mycelial-mind-dev__{search,get_schema,execute}` ([deepseek-harness.md](../skills/mycelial-codemode/references/deepseek-harness.md)).
+- Clientes MCP activos (`.mcp.json` en raíz, Antigravity y Codex): cada cliente lanza su propio proceso `stdio` (`get_bridge_health()` los distingue por `instance_id`/`instance_pid`); no lances `run_gradle_task` ni `run_verify_mod` en paralelo desde dos clientes.
 - Invoca con `await call_tool("nombre", {...})` (devuelven `dict`); paraleliza checks independientes con `asyncio.gather(...)`.
 - Límite duro por `execute()`: **50 `call_tool()`**, **600 s** y **100 MB**. Sin I/O de disco/red directo; devuelve un `dict` resumen compacto.
 

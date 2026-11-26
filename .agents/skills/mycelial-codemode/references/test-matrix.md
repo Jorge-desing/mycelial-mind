@@ -4,6 +4,20 @@ Mapa canónico de las suites actuales del repositorio (`147` JUnit, `201` `@Game
 
 ---
 
+## 0. Qué correr según qué archivo tocaste
+
+| Área modificada | Verificación mínima recomendada en `execute` |
+| --- | --- |
+| `hive/` / `colony/` / `entity/ai/` | `run_gradle_task(["test"], test_filter="HiveBrainEngineUnitTest")` + `run_gradle_task(["runGameTestServer"], isolated_gametests=True)` + preset `colony_and_dialects` / `audio_and_ai` |
+| `hyphal/` / `audio/` / `scripts/sound_studio/` | `run_sound_studio(check_only=True, run_tests=True)` + `audit_sound_masking()` + `test_filter="OpenAlEfxLoopbackTest"` / `"HyphalPhysicsTest"` / `"AcousticPhysicsEngineTest"` |
+| `datagen/` / `compat/` / recetas / `lang/` | `run_gradle_task(["runData", "test"], test_filter="DataGenIntegrityTest")` + `test_filter="ModCompatTest"` + `audit_mod_assets()` |
+| `scripts/{model,texture,particle,codex}_studio/` | Estudio correspondiente (`check_only=True, run_tests=True`) + `runVisualSmoke` (`visual_smoke_mode="default"` o `"particle"`) + `check_visual_regression()` |
+| `worldgen/` / `structure/` / `scripts/build_structures.py` | `run_structure_studio()` + `runStructureVisualSmoke` + `check_structure_visual_regression()` + preset `sinkhole_and_worldgen` |
+| Pantallas UI / Dialectos / Reliquias / Expediciones | `run_gradle_task(["runVisualSmoke"], visual_smoke_mode="dialect\|relic\|expedition")` + `test_filter="CodexBookScreenLogicTest"` / `"PostMatriarchExpeditionRulesTest"` |
+| `scripts/mcp/` / `.agents/skills/` | `validate_skills()` + `get_bridge_health()` + `python -m py_compile scripts/mcp/server.py scripts/mcp/test_server.py` (y `test_server.py` en host) |
+
+---
+
 ## 1. Pruebas Headless JUnit 6 (**147** tests en **17** suites, ~2–4 s)
 
 Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind/*.java`).

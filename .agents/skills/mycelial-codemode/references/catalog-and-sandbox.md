@@ -3,7 +3,6 @@
 ## 0. Identidad y nombres
 
 - El bridge registra **67 herramientas** (`get_bridge_health()["tool_count"]`) y las expone con CodeMode detrás de **3 meta-herramientas**: `search`, `get_schema`, `execute`.
-- En DSH cada herramienta pública se llama `mcp__mycelial-mind-dev__<rawName>` (el sufijo `rawName` es idéntico al nombre del catálogo, p. ej. `mcp__mycelial-mind-dev__run_gradle_task`).
 - `get_schema` resuelve las 67 del catálogo **y** las 3 meta-herramientas (un `get_schema` propio, `MycelialCodeMode`, fusiona ambas listas); solo responde `Tools not found` para nombres inexistentes. Dentro de `execute` solo existe `call_tool`, no los meta-tools.
 - `list_tool_tags()` devuelve `{"ok", "tags", "tagged_tools"}`; un tool puede pertenecer a varias etiquetas.
 
@@ -44,8 +43,8 @@
 | `run_particle_studio` | `check_only=true`, `export_extras=false`, `run_tests=true`; valida sprites/descriptores/registro y paridad con `particles.json`. |
 | `run_texture_studio` | `check_only=true`, **`pbr=true`**, `export_extras=false`, `run_tests=true`. |
 | `run_sound_studio` | `check_only=true`, `run_tests=true`, `only=None`, `changed_only=false`, `check_baseline=false`, `update_baseline=false`; no expone `--regen-ai-stems` (hazlo por consola con `build_sounds.py --regen-ai-stems`). |
-| `inspect_sound_event` | `sound_id` obligatorio; inspecciona telemetría acústica + QA v4 (`lra_lu`, `short_term_lufs_max`, `mud_ratio`, `harshness_ratio`, `bark_peak_band`, `timbral_diversity`), IR room, stem IA, `.ogg` y delta respecto a `sound_baseline.json`. |
-| `audit_sound_masking` | `top_n=12`; audita enmascaramiento espectral Bark 24-bandas entre camas y primer plano, headroom dB, LRA, diversidad tímbrica y QC de los 66 stems RTX. |
+| `inspect_sound_event` | `sound_id` obligatorio; inspecciona telemetría acústica + QA psicoacústico Sound Studio v5 (clave `psychoacoustic_v4`: `lra_lu`, `short_term_lufs_max`, `mud_ratio`, `harshness_ratio`, `bark_peak_band`, `timbral_diversity`), IR room, stem IA, `.ogg` y delta respecto a `sound_baseline.json`. |
+| `audit_sound_masking` | `top_n=12`; audita enmascaramiento espectral Bark 24-bandas en matriz 11×20 (`220` pares Bark) entre camas y primer plano, headroom dB, LRA, diversidad tímbrica y QC de los `69` stems RTX. |
 | `run_codex_studio` | `check_only=true`, `report=false`, `run_tests=true`; valida cobertura/refs/presupuesto del códice o exporta con `check_only=false`. |
 | `get_hive_ai_overview` | Sin args; resume `hive/` (`enums`, `hive_files`), **`colony/` (`colony_enums`, `colony_files`)**, `entity/ai/**` (`ai_files`) y `ModMemoryTypes`. |
 | `get_live_colony_status` | `host="127.0.0.1"`, `port=25575`, `password="mycelialtest"`, `include_cycle=true`; parsa `/mycelial colony status` y `/mycelial cycle status`. |
@@ -84,6 +83,7 @@ return await call_tool("diff_audit_snapshots", {"before_label": "before", "after
 - Sin acceso al host: nada de `open()`, `pathlib`, `requests` ni `subprocess`; usa `read_mod_file`/`search_mod_code`/`read_diagnostic_logs`.
 - Devuelve un `dict` compacto; para listas largas devuelve conteos, rutas y los primeros N elementos.
 - En el servidor MCP (`_run_subprocess`), si `%TEMP%` del host no es utilizable, hace fallback automático a `artifacts/diagnostics/.tmp` y propaga `TEMP`/`TMP` a los subprocesos.
+
 ## 6. Recursos MCP publicados (solo lectura)
 
 `list_mcp_resources` devuelve 5 recursos estáticos y `list_mcp_resource_templates` 2 plantillas; ninguno muta el repo ni arranca JVMs:
@@ -96,6 +96,6 @@ return await call_tool("diff_audit_snapshots", {"before_label": "before", "after
 | `mycelial://memory/tail` | Markdown | últimas 60 líneas de `MEMORY.md` |
 | `mycelial://skills` | JSON | índice de skills y sus referencias |
 | `mycelial://skills/{skill_name}` | Markdown | `SKILL.md` de la skill |
-| `mycelial://skills/{skill_name}/{document*}` | Markdown | cualquier doc, p. ej. `references/deepseek-harness.md` (el `*` acepta `/`) |
+| `mycelial://skills/{skill_name}/{document*}` | Markdown | cualquier doc, p. ej. `references/test-matrix.md` (el `*` acepta `/`) |
 
 Los recursos se leen con `read_mcp_resource(server=..., uri=...)` en el cliente; `get_schema` sigue siendo el canal para parámetros de herramientas.

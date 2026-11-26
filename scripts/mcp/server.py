@@ -1,4 +1,4 @@
-"""FastMCP CodeMode server for Mycelial Mind (Minecraft 1.21.1 / NeoForge 21.1.176).
+"""FastMCP CodeMode server for Mycelial Mind (Minecraft 1.21.1 / NeoForge 21.1.267).
 
 Exposes repository discovery, registry inspection, Python asset studios,
 Gradle build/GameTest runners, visual regression checks, and RCON controls
@@ -230,7 +230,7 @@ mcp = FastMCP(
         "list_datapack_content, get_gradle_config, list_skills, get_skill_guide('mycelial-codemode'), "
         "validate_skills; "
         "(3) Studios & Visual QA: run_model_studio, run_texture_studio, run_particle_studio, run_sound_studio, "
-        "inspect_sound_event, run_codex_studio, run_structure_studio, get_uv_manifest, audit_mod_assets, check_visual_regression, "
+        "inspect_sound_event, audit_sound_masking, run_codex_studio, run_structure_studio, get_uv_manifest, audit_mod_assets, check_visual_regression, "
         "check_structure_visual_regression, get_latest_structure_visual_smoke; "
         "(4) Build/Suites/Cache/Reports: manage_verify_cache, run_gradle_task, run_verify_mod, "
         "get_latest_junit_report, get_latest_pitest_report, get_latest_worldgen_audit; "
@@ -282,8 +282,8 @@ _METRICS: dict[str, dict[str, Any]] = {}
 _AUDIT_SNAPSHOTS: dict[str, dict[str, Any]] = {}
 _TOOL_TAGS: dict[str, list[str]] = {}
 _LIVE_SESSIONS: dict[str, dict[str, Any]] = {}
-# Identity of this particular bridge process: several clients (DSH, Codex,
-# Antigravity, ...) each spawn their own stdio instance of this server.
+# Identity of this particular bridge process: several clients (Antigravity, Codex,
+# etc.) each spawn their own stdio instance of this server.
 _INSTANCE_ID = uuid.uuid4().hex[:8]
 _PROCESS_STARTED_EPOCH = time.time()
 
@@ -2526,7 +2526,7 @@ def get_latest_pitest_report(max_survived: int = 20) -> dict[str, Any]:
 
 @_tool(tags={"gradle", "reports"})
 def get_latest_junit_report() -> dict[str, Any]:
-    """Summarize JUnit 5 XML reports in build/test-results/test/TEST-*.xml."""
+    """Summarize JUnit 6 XML reports in build/test-results/test/TEST-*.xml."""
     results_dir = REPO_ROOT / "build" / "test-results" / "test"
     xml_files = sorted(results_dir.glob("TEST-*.xml")) if results_dir.is_dir() else []
     if not xml_files:
@@ -3587,7 +3587,7 @@ def resource_skill_guide(skill_name: str) -> str:
 @mcp.resource(
     "mycelial://skills/{skill_name}/{document*}",
     name="skill_reference",
-    description="A reference document inside a skill (for example references/deepseek-harness.md).",
+    description="A reference document inside a skill (for example references/test-matrix.md).",
     mime_type="text/markdown",
 )
 def resource_skill_reference(skill_name: str, document: str) -> str:

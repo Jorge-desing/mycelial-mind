@@ -4,11 +4,14 @@
 ```python
 import asyncio
 
-skills, models, textures, sounds, assets, cache = await asyncio.gather(
+skills, models, textures, particles, sounds, masking, codex, assets, cache = await asyncio.gather(
     call_tool("validate_skills", {}),
     call_tool("run_model_studio", {"check_only": True, "run_tests": True}),
     call_tool("run_texture_studio", {"check_only": True, "pbr": True, "run_tests": True}),
+    call_tool("run_particle_studio", {"check_only": True, "run_tests": True}),
     call_tool("run_sound_studio", {"check_only": True, "run_tests": True}),
+    call_tool("audit_sound_masking", {"top_n": 8}),
+    call_tool("run_codex_studio", {"check_only": True, "run_tests": True}),
     call_tool("audit_mod_assets", {}),
     call_tool("manage_verify_cache", {"action": "status", "scope": "all"}),
 )
@@ -17,7 +20,10 @@ return {
     "skills_ok": skills["ok"],
     "models_ok": models["ok"],
     "textures_ok": textures["ok"],
+    "particles_ok": particles["ok"],
     "sounds_ok": sounds["ok"],
+    "masking_ok": masking["ok"],
+    "codex_ok": codex["ok"],
     "assets_ok": assets["ok"],
     "all_cached": cache.get("all_cached"),
     "verify_ok": verify["ok"],
@@ -101,7 +107,8 @@ gt = await call_tool("run_gradle_task", {
     "timeout_secs": 300,
 })
 ui = await call_tool("run_gradle_task", {
-    "tasks": ["runVisualSmoke", "-PdialectVisualSmoke=true"],
+    "tasks": ["runVisualSmoke"],
+    "visual_smoke_mode": "dialect",
     "timeout_secs": 240,
 })
 return {
@@ -139,5 +146,5 @@ Catálogo completo de suites JUnit (`147`), batches `@GameTest` (`201`) y modos 
 ## Anti-Patrones a Evitar
 1. **Devolver logs crudos enteros:** filtra siempre con `read_diagnostic_logs(..., filter_pattern="ERROR|WARN|FAIL|Exception")` o usa `error_lines`.
 2. **Olvidar `stop_live_session`:** cierra siempre el servidor smoke/cliente al terminar el bloque `execute`.
-3. **Llamar secuencialmente checks independientes:** usa `asyncio.gather(...)` para `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_sound_studio` y `audit_mod_assets`.
+3. **Llamar secuencialmente checks independientes:** usa `asyncio.gather(...)` para `validate_skills`, `run_model_studio`, `run_texture_studio`, `run_particle_studio`, `run_sound_studio`, `audit_sound_masking`, `run_codex_studio` y `audit_mod_assets`.
 4. **Confiar en caché tras editar archivos manualmente:** ejecuta `clear_bridge_cache()` antes de `capture_audit_snapshot("after")`.

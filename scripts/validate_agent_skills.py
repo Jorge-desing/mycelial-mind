@@ -9,6 +9,34 @@ import sys
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SKILLS_DIR = os.path.join(REPO_ROOT, ".agents", "skills")
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+FENCED_CODE_RE = re.compile(r"```[\s\S]*?```")
+MD_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)\s]+)\)")
+IGNORED_SCHEMES = ("http://", "https://", "mailto:", "file://", "mycelial://")
+
+
+def validate_markdown_links(skill_dir: str) -> int:
+    """Validate relative Markdown links inside a skill folder, returning checked link count."""
+    checked = 0
+    for root, _, files in os.walk(skill_dir):
+        for fname in sorted(files):
+            if not fname.endswith(".md"):
+                continue
+            md_path = os.path.join(root, fname)
+            with open(md_path, "r", encoding="utf-8") as f:
+                stripped = FENCED_CODE_RE.sub("", f.read())
+            for match in MD_LINK_RE.finditer(stripped):
+                raw_target = match.group(1)
+                if raw_target.startswith("#") or raw_target.startswith(IGNORED_SCHEMES):
+                    continue
+                target_path = raw_target.split("#", 1)[0]
+                if not target_path:
+                    continue
+                checked += 1
+                resolved = os.path.normpath(os.path.join(root, target_path))
+                if not os.path.exists(resolved):
+                    rel_md = os.path.relpath(md_path, REPO_ROOT).replace("\\", "/")
+                    raise AssertionError(f"{rel_md}: broken link '{raw_target}' -> '{resolved}'")
+    return checked
 
 
 def parse_frontmatter(text: str) -> dict[str, str]:
@@ -53,8 +81,10 @@ def validate_all() -> int:
         print("ERROR: No skill folders found.")
         return 1
 
+    total_links = 0
     for folder in entries:
-        skill_md = os.path.join(SKILLS_DIR, folder, "SKILL.md")
+        skill_dir = os.path.join(SKILLS_DIR, folder)
+        skill_md = os.path.join(skill_dir, "SKILL.md")
         if not os.path.isfile(skill_md):
             raise AssertionError(f"Missing SKILL.md in {folder}")
         with open(skill_md, "r", encoding="utf-8") as f:
@@ -65,8 +95,10 @@ def validate_all() -> int:
         assert NAME_RE.match(name), f"{skill_md}: invalid name '{name}'"
         assert name == folder, f"{skill_md}: name '{name}' != folder '{folder}'"
         assert len(desc) >= 15, f"{skill_md}: description too short"
-        print(f"OK: .agents/skills/{folder}/SKILL.md (name={name})")
-    print(f"Validated {len(entries)} Open Agent Skills successfully.")
+        links = validate_markdown_links(skill_dir)
+        total_links += links
+        print(f"OK: .agents/skills/{folder}/SKILL.md (name={name}, links={links})")
+    print(f"Validated {len(entries)} Open Agent Skills ({total_links} links) successfully.")
     return 0
 
 

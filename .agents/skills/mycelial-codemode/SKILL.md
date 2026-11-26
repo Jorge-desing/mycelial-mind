@@ -2,9 +2,9 @@
 name: mycelial-codemode
 description: >-
   Guía operativa maestra de FastMCP CodeMode (mycelial-mind-dev) para Mycelial
-  Mind: conexión con DeepSeek Harness y otros clientes MCP, descubrimiento con
-  search/get_schema, sandbox Monty en execute (50 llamadas, 600 s, 100 MB), las
-  67 herramientas del bridge (NeoForge 21.1.267, Colonia Soberana/Dialectos,
+  Mind: conexión con clientes MCP (.mcp.json, Antigravity, Codex), descubrimiento
+  con search/get_schema, sandbox Monty en execute (50 llamadas, 600 s, 100 MB),
+  las 67 herramientas del bridge (NeoForge 21.1.267, Colonia Soberana/Dialectos,
   Ciclos, Expediciones, HiveBrain y Sound Studio v5), matriz de 147 JUnit / 201
   GameTests, ciclo servidor+cliente aislado, auditorías y fallback de consola.
 ---
@@ -15,8 +15,8 @@ description: >-
 
 ## 1. Conexión, salud y coexistencia
 
-- **Montaje activo:** `.mcp.json` en la raíz declara `mycelial-mind-dev` (`scripts/mcp/.venv/Scripts/python.exe` → `scripts/mcp/server.py`). En DeepSeek Harness (`mcp-manager`, `mcp__mycelial-mind-dev__{search,get_schema,execute}`), Codex y Antigravity cada cliente lanza su propio proceso `stdio` (`toolCallTimeoutMs: 1800000` en DSH) y se distingue por `instance_id`/`instance_pid`.
-- **Instalación del venv, YAML DSH y tabla de clientes:** ver [references/deepseek-harness.md](references/deepseek-harness.md) (incluye `.mcp.json`, `~/.codex/config.toml`, `~/.gemini/config/mcp_config.json` y regla de no lanzar `run_gradle_task`/`run_verify_mod` en paralelo entre clientes).
+- **Montaje activo:** `.mcp.json` en la raíz declara `mycelial-mind-dev` (`scripts/mcp/.venv/Scripts/python.exe` → `scripts/mcp/server.py`), y cada cliente activo (Antigravity `~/.gemini/config/mcp_config.json`, Codex `~/.codex/config.toml`) lanza su propio subproceso `stdio` identificado por `instance_id`/`instance_pid`.
+- **Instalación y coexistencia:** el setup del `.venv` y la tabla de registro viven en [scripts/mcp/README.md](../../../scripts/mcp/README.md); con varios clientes abiertos a la vez, **no lances `run_gradle_task` ni `run_verify_mod` en paralelo** desde dos instancias distintas.
 - **Recursos MCP de solo lectura (7):** `mycelial://bridge/{health,tools,tags}`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}`.
 - **Autocomprobación:** `get_bridge_health()` devuelve en `<1 ms` `ok=true`, `tool_count=67`, `server="MycelialMindDev"`, `fastmcp_version`, `python_executable`, `java_home_detected`, `jcmd_available`, `temp_dir`, `repo_root`, `active_live_sessions`, `cache_entries` e identidad de instancia (`instance_id`, `instance_pid`, `instance_started_utc`, `instance_uptime_secs`). Es el primer `call_tool` de cualquier pasada.
 
@@ -54,18 +54,23 @@ Para revisar una release sin subirla, `run_gradle_task` acepta `publishMods` y f
 
 ```python
 import asyncio
-health, skills, models, textures, sounds, assets = await asyncio.gather(
+health, skills, models, textures, particles, sounds, masking, codex, assets = await asyncio.gather(
     call_tool("get_bridge_health", {}),
     call_tool("validate_skills", {}),
     call_tool("run_model_studio", {"check_only": True, "run_tests": True}),
     call_tool("run_texture_studio", {"check_only": True, "pbr": True, "run_tests": True}),
+    call_tool("run_particle_studio", {"check_only": True, "run_tests": True}),
     call_tool("run_sound_studio", {"check_only": True, "run_tests": True}),
+    call_tool("audit_sound_masking", {"top_n": 8}),
+    call_tool("run_codex_studio", {"check_only": True, "run_tests": True}),
     call_tool("audit_mod_assets", {}),
 )
 return {"health": health["ok"], "tools": health["tool_count"],
         "skills": skills["ok"], "models": models["ok"],
-        "textures": textures["ok"], "sounds": sounds["ok"],
-        "assets": assets["ok"], "lang": assets.get("lang", {}).get("en_count")}
+        "textures": textures["ok"], "particles": particles["ok"],
+        "sounds": sounds["ok"], "masking": masking["ok"],
+        "codex": codex["ok"], "assets": assets["ok"],
+        "lang": assets.get("lang", {}).get("en_count")}
 ```
 
 **Build + tests completos (o suite puntual con `test_filter`):**
@@ -103,7 +108,7 @@ return {"status": status.get("threat_pct"), "verify_ok": verify.get("ok"), "stop
 
 - **Nunca** `/mycelial reset` ni escenarios RCON sobre mundos de usuario: usa `start_smoke_server`/`start_live_session` (directorios `artifacts/diagnostics/live-smoke-*`).
 - Cierra siempre con `stop_live_session(cleanup_dir=True)` / `stop_smoke_server`; nunca mates procesos ajenos.
-- En este harness la política de aprobación es **sin confirmaciones interactivas**: la disciplina de las reglas anteriores es la única barrera, así que no lances comandos destructivos "para probar".
+- Las llamadas dentro de `execute` no piden confirmación interactiva: la disciplina de estas reglas es la única barrera, así que no lances comandos destructivos "para probar".
 - Tras editar Java/JSON por fuera del bridge, llama `clear_bridge_cache()` (TTL de 30 s) antes de capturar métricas o snapshots.
 - Filtra logs con `filter_pattern` (`ERROR|WARN|FAIL|Exception`) en lugar de leer archivos completos.
 

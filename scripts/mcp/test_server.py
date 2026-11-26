@@ -509,7 +509,7 @@ import asyncio
     call_tool("run_sound_studio", {{"check_only": True, "run_tests": True}}),
     call_tool("run_codex_studio", {{"check_only": True, "run_tests": True}}),
 )
-latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony, unit_efx, diag_audio = await asyncio.gather(
+latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony, unit_efx, diag_audio, ref_matrix = await asyncio.gather(
     call_tool("get_latest_live_report", {{}}),
     call_tool("collect_diagnostic_bundle", {{"log_tail_lines": 20, "max_artifacts": 5}}),
     call_tool("list_diagnostic_artifacts", {{"subdir": "nonexistent_subdir_12345"}}),
@@ -519,6 +519,7 @@ latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_
     call_tool("diagnose_symptom", {{"symptom": "dialecto", "include_live_state": False}}),
     call_tool("list_unit_tests", {{"suite_filter": "OpenAlEfxLoopbackTest"}}),
     call_tool("diagnose_symptom", {{"symptom": "openal", "include_live_state": False}}),
+    call_tool("get_skill_guide", {{"skill_name": "mycelial-codemode", "doc": "references/test-matrix.md"}}),
 )
 return {{
     "bad_sess_rejected": bad_sess.get("ok") is False and "Unknown session_id" in bad_sess.get("error", ""),
@@ -562,6 +563,7 @@ return {{
     "diag_colony_ok": diag_colony.get("ok") is True and diag_colony.get("symptom") == "colony_dialects",
     "unit_efx_ok": unit_efx.get("ok") is True and unit_efx.get("count", 0) >= 6,
     "diag_audio_ok": diag_audio.get("ok") is True and diag_audio.get("symptom") == "audio_efx",
+    "ref_matrix_ok": ref_matrix.get("ok") is True and "OpenAlEfxLoopbackTest" in ref_matrix.get("content", ""),
 }}
 """
                 exec_live = await client.call_tool("execute", {"code": code_live})
@@ -678,6 +680,7 @@ return {{
             assert payload["snap_diff_ok"] is True
             assert payload["smoke_stat_ok"] is True
             assert payload["codemode_refs_ok"] is True
+            assert payload["ref_matrix_ok"] is True
             assert payload["bad_regex_ok"] is False
             assert payload["bad_log_regex_ok"] is False
             assert payload["missing_file_ok"] is False
