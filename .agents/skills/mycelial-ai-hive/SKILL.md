@@ -11,7 +11,7 @@ description: >-
 
 Guía modular de arquitectura, flujos de desarrollo y diagnóstico para los subsistemas de IA, Colmena, Colonia y ecosistemas de **Mycelial Mind** (`2.0.0`, Minecraft `1.21.1`, NeoForge `21.1.267`, Java `21`, `ModNetworking v"27"`).
 
-> **Línea base verificada (`HEAD 47e4a24`):** `20/20` entidades sobre `HiveBrainOwner` (`62` clases en `entity/ai/brain/`, `85` en `entity/ai/`, `47` en `hive/`, `19` en `colony/`), `12` registros `ModMemoryTypes` (`11` `MemoryModuleType` + `1` `SensorType`), `157` tests JUnit (`17` suites), `205` `@GameTest`s, `2235/2235` claves EN/ES, `226` eventos de sonido / `596` `.ogg`.
+> **Línea base verificada:** `20/20` entidades sobre `HiveBrainOwner` (`62` clases en `entity/ai/brain/`, `85` en `entity/ai/`, `47` en `hive/`, `19` en `colony/`), `12` registros `ModMemoryTypes` (`11` `MemoryModuleType` + `1` `SensorType`), `157` tests JUnit (`17` suites), `205` `@GameTest`s, `2305/2305` claves EN/ES, `226` eventos de sonido / `596` `.ogg`.
 
 ---
 

@@ -16,9 +16,9 @@ Este archivo actúa como memoria persistente del proyecto para agentes y desarro
 - **Versión actual:** `2.0.0` (Licencia `MIT`, Autor: `Alex`; confirmada en `gradle.properties`)
 - **Paquete base:** `com.alex.mycelialmind`
 - **Minecraft:** `1.21.1` (rango `[1.21.1, 1.22)`)
-- **Mod Loader:** NeoForge `21.1.176` (`neo_version_range = [21.1.0,)`, `loader_version_range = [4,)`)
-- **Toolchain / Mappings:** Java `21`, ModDevGradle `2.0.91`, Parchment `2024.11.17` (`1.21.1`)
-- **Control de versiones:** El directorio raíz (`c:\Users\Alex\Documents\Mod Minecraft`) aún **no** está inicializado como repositorio Git.
+- **Mod Loader:** NeoForge `21.1.267` (`neo_version_range = [21.1.0,)`, `loader_version_range = [4,)`)
+- **Toolchain / Mappings:** Java `21`, ModDevGradle `2.0.148`, Parchment `2024.11.17` (`1.21.1`)
+- **Control de versiones:** Repositorio Git inicializado en la raíz (`main` sincronizado con `origin`).
 - **Idiomas / Localización:** `en_us.json` y `es_es.json` en `src/main/resources/assets/mycelialmind/lang/`.
 
 ---
