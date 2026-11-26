@@ -2131,6 +2131,16 @@ def get_hive_ai_overview() -> dict[str, Any]:
         if path.is_file():
             colony_enums[enum_name] = _parse_java_enum_constants(path, enum_name)
 
+    brain_core_enums: dict[str, list[str]] = {}
+    for file_name, enum_name in (
+        ("HiveResourceChannel", "HiveResourceChannel"),
+        ("HiveBrainSignal", "SignalType"),
+        ("HiveBrainTrace", "EventKind"),
+    ):
+        path = JAVA_SRC_ROOT / "entity" / "ai" / "brain" / "core" / f"{file_name}.java"
+        if path.is_file():
+            brain_core_enums[enum_name] = _parse_java_enum_constants(path, enum_name)
+
     hive_files = [
         p.relative_to(REPO_ROOT).as_posix()
         for p in sorted((JAVA_SRC_ROOT / "hive").glob("*.java"))
@@ -2143,6 +2153,7 @@ def get_hive_ai_overview() -> dict[str, Any]:
         p.relative_to(REPO_ROOT).as_posix()
         for p in sorted((JAVA_SRC_ROOT / "entity" / "ai").rglob("*.java"))
     ] if (JAVA_SRC_ROOT / "entity" / "ai").is_dir() else []
+    brain_files_count = sum(1 for p in ai_files if "/entity/ai/brain/" in p)
     mem_types = get_registered_content().get("ModMemoryTypes", [])
     return _cache_set(
         "hive_ai_overview",
@@ -2151,8 +2162,10 @@ def get_hive_ai_overview() -> dict[str, Any]:
             "hive_files": hive_files,
             "colony_files": colony_files,
             "ai_files": ai_files,
+            "brain_files_count": brain_files_count,
             "enums": enums,
             "colony_enums": colony_enums,
+            "brain_core_enums": brain_core_enums,
             "memory_types": mem_types,
         },
     )

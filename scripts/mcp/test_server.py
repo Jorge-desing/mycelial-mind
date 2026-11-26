@@ -393,6 +393,8 @@ return {{
     "uv_models": uv.get("count", 0),
     "uv_behemoth_ok": uv_behemoth.get("ok"),
     "hive_enums": {{k: len(v) for k, v in hive_ai.get("enums", {{}}).items()}},
+    "hive_brain_core_enums": {{k: len(v) for k, v in hive_ai.get("brain_core_enums", {{}}).items()}},
+    "hive_brain_files_count": hive_ai.get("brain_files_count", 0),
     "hive_mem_types": len(hive_ai.get("memory_types", [])),
     "asset_audit_ok": asset_audit.get("ok"),
     "asset_lang": asset_audit.get("lang"),
@@ -509,7 +511,7 @@ import asyncio
     call_tool("run_sound_studio", {{"check_only": True, "run_tests": True}}),
     call_tool("run_codex_studio", {{"check_only": True, "run_tests": True}}),
 )
-latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony, unit_efx, diag_audio, ref_matrix = await asyncio.gather(
+latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony, unit_efx, diag_audio, ref_matrix, ai_ref_brain, ai_ref_combat, ai_ref_colony, ai_ref_eco, ai_ref_recipes = await asyncio.gather(
     call_tool("get_latest_live_report", {{}}),
     call_tool("collect_diagnostic_bundle", {{"log_tail_lines": 20, "max_artifacts": 5}}),
     call_tool("list_diagnostic_artifacts", {{"subdir": "nonexistent_subdir_12345"}}),
@@ -520,6 +522,11 @@ latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_
     call_tool("list_unit_tests", {{"suite_filter": "OpenAlEfxLoopbackTest"}}),
     call_tool("diagnose_symptom", {{"symptom": "openal", "include_live_state": False}}),
     call_tool("get_skill_guide", {{"skill_name": "mycelial-codemode", "doc": "references/test-matrix.md"}}),
+    call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/hive-brain-engine.md"}}),
+    call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/hive-mind-and-combat.md"}}),
+    call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/sovereign-colony-and-endgame.md"}}),
+    call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/world-ecosystems-and-integration.md"}}),
+    call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/recipes-and-pitfalls.md"}}),
 )
 return {{
     "bad_sess_rejected": bad_sess.get("ok") is False and "Unknown session_id" in bad_sess.get("error", ""),
@@ -564,6 +571,13 @@ return {{
     "unit_efx_ok": unit_efx.get("ok") is True and unit_efx.get("count", 0) >= 6,
     "diag_audio_ok": diag_audio.get("ok") is True and diag_audio.get("symptom") == "audio_efx",
     "ref_matrix_ok": ref_matrix.get("ok") is True and "OpenAlEfxLoopbackTest" in ref_matrix.get("content", ""),
+    "ai_refs_ok": (
+        ai_ref_brain.get("ok") is True and "HiveBrainOwner" in ai_ref_brain.get("content", "")
+        and ai_ref_combat.get("ok") is True and "HiveMindSavedData" in ai_ref_combat.get("content", "")
+        and ai_ref_colony.get("ok") is True and "ColonySymbiontEntity" in ai_ref_colony.get("content", "")
+        and ai_ref_eco.get("ok") is True and "HyphalVeinEntity" in ai_ref_eco.get("content", "")
+        and ai_ref_recipes.get("ok") is True and "/mycelial ai" in ai_ref_recipes.get("content", "")
+    ),
 }}
 """
                 exec_live = await client.call_tool("execute", {"code": code_live})
@@ -602,6 +616,10 @@ return {{
             assert payload["hive_enums"].get("HiveStrain") == 3
             assert payload["hive_enums"].get("PlayerHabit", 0) >= 3
             assert payload["hive_enums"].get("SwarmRole", 0) >= 3
+            assert payload["hive_brain_core_enums"].get("HiveResourceChannel") == 5
+            assert payload["hive_brain_core_enums"].get("SignalType") == 8
+            assert payload["hive_brain_core_enums"].get("EventKind") == 7
+            assert payload["hive_brain_files_count"] >= 60
             assert payload["hive_mem_types"] >= 10
             assert payload["registries"]["ModMemoryTypes"] == payload["hive_mem_types"]
             assert payload["asset_audit_ok"] is True, f"Asset audit failed: {payload}"
@@ -621,6 +639,7 @@ return {{
             assert payload["diag_colony_ok"] is True
             assert payload["unit_efx_ok"] is True
             assert payload["diag_audio_ok"] is True
+            assert payload["ai_refs_ok"] is True
             assert payload["entities_without_uv"] == []
             assert payload["datapack_total"] > 0
             assert payload["datapack_external_total"] >= 15

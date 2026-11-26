@@ -8,6 +8,7 @@ import sys
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SKILLS_DIR = os.path.join(REPO_ROOT, ".agents", "skills")
+MAX_SKILL_MD_BYTES = 32_768
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FENCED_CODE_RE = re.compile(r"```[\s\S]*?```")
 MD_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)\s]+)\)")
@@ -89,6 +90,11 @@ def validate_all() -> int:
             raise AssertionError(f"Missing SKILL.md in {folder}")
         with open(skill_md, "r", encoding="utf-8") as f:
             content = f.read()
+        size_bytes = len(content.encode("utf-8"))
+        assert size_bytes <= MAX_SKILL_MD_BYTES, (
+            f"{skill_md}: {size_bytes} bytes exceeds MAX_SKILL_MD_BYTES={MAX_SKILL_MD_BYTES}; "
+            "move details into references/"
+        )
         fm = parse_frontmatter(content)
         name = fm.get("name", "")
         desc = fm.get("description", "")
@@ -97,7 +103,7 @@ def validate_all() -> int:
         assert len(desc) >= 15, f"{skill_md}: description too short"
         links = validate_markdown_links(skill_dir)
         total_links += links
-        print(f"OK: .agents/skills/{folder}/SKILL.md (name={name}, links={links})")
+        print(f"OK: .agents/skills/{folder}/SKILL.md (name={name}, bytes={size_bytes}, links={links})")
     print(f"Validated {len(entries)} Open Agent Skills ({total_links} links) successfully.")
     return 0
 

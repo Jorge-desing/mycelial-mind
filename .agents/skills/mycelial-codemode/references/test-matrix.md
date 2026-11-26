@@ -1,6 +1,6 @@
 # Matriz Completa de Tests de Mycelial Mind (`CodeMode` `mycelial-mind-dev`)
 
-Mapa canónico de las suites actuales del repositorio (`147` JUnit, `201` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
+Mapa canónico de las suites actuales del repositorio (`157` JUnit, `205` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
 
 ---
 
@@ -18,7 +18,7 @@ Mapa canónico de las suites actuales del repositorio (`147` JUnit, `201` `@Game
 
 ---
 
-## 1. Pruebas Headless JUnit 6 (**147** tests en **17** suites, ~2–4 s)
+## 1. Pruebas Headless JUnit 6 (**157** tests en **17** suites, ~2–4 s)
 
 Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind/*.java`).
 
@@ -50,7 +50,7 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 
 ---
 
-## 2. `@GameTest` NeoForge (**201** tests en **41** batches, ~6 s)
+## 2. `@GameTest` NeoForge (**205** tests en **41** batches, ~6 s)
 
 - **Ejecución aislada canónica:** `await call_tool("run_gradle_task", {"tasks": ["runGameTestServer"], "isolated_gametests": True, "no_daemon": True, "max_workers": 1})` (usa `artifacts/diagnostics/isolated-gametest-server` sin contaminar mundos del usuario).
 - **Inspección por batch:** `await call_tool("list_gametests", {"batch_filter": "hive_brain"})`.
