@@ -43,6 +43,8 @@ public class TwistedCitadelPiece extends StructurePiece {
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "twisted_reflection/spire_tower");
     public static final ResourceLocation GALLERY_TEMPLATE =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "twisted_reflection/gallery_hall");
+    public static final ResourceLocation CLOISTER_TEMPLATE =
+            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "twisted_reflection/sentinel_cloister");
     public static final ResourceLocation VAULT_TEMPLATE =
             ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "twisted_reflection/vault_bunker");
 
@@ -134,15 +136,18 @@ public class TwistedCitadelPiece extends StructurePiece {
             placeWalkwayBridgeX(level, box, center.getX() - 15 + wingHalfX - 1, center.getX() - centerHalfX + 1,
                     westCenter.getY(), center.getY(), center.getZ(), palette);
 
-            // East wing centered at (+15, deltaY, 0)
+            // East wing centered at (+15, deltaY, 0): asymmetric Sentinel Cloister when available
+            StructureTemplate eastTpl = tplMgr.get(CLOISTER_TEMPLATE).orElse(wingTpl);
+            int eastHalfX = eastTpl.getSize().getX() / 2;
+            int eastHalfZ = eastTpl.getSize().getZ() / 2;
             BlockPos eastProbe = center.offset(15, 0, 0);
             int eastDy = probeWingDeltaY(level, eastProbe);
             BlockPos eastCenter = eastProbe.offset(0, eastDy, 0);
-            BlockPos eastOrigin = eastCenter.offset(-wingHalfX, 0, -wingHalfZ);
-            clearInteriorIfNeeded(level, box, eastOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getY(), wingTpl.getSize().getZ());
-            wingTpl.placeInWorld(level, eastOrigin, eastOrigin, settings, random, 2);
-            groundTemplateCorners(level, box, eastOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getZ(), palette);
-            placeWalkwayBridgeX(level, box, center.getX() + centerHalfX - 1, center.getX() + 15 - wingHalfX + 1,
+            BlockPos eastOrigin = eastCenter.offset(-eastHalfX, 0, -eastHalfZ);
+            clearInteriorIfNeeded(level, box, eastOrigin, eastTpl.getSize().getX(), eastTpl.getSize().getY(), eastTpl.getSize().getZ());
+            eastTpl.placeInWorld(level, eastOrigin, eastOrigin, settings, random, 2);
+            groundTemplateCorners(level, box, eastOrigin, eastTpl.getSize().getX(), eastTpl.getSize().getZ(), palette);
+            placeWalkwayBridgeX(level, box, center.getX() + centerHalfX - 1, center.getX() + 15 - eastHalfX + 1,
                     center.getY(), eastCenter.getY(), center.getZ(), palette);
 
             if (proportion == ArchitecturalProportion.TOWER_SPIRE) {

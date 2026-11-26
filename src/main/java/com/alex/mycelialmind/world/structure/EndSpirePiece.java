@@ -176,7 +176,7 @@ public class EndSpirePiece extends StructurePiece {
             level.setBlock(chestPos, Blocks.CHEST.defaultBlockState(), 2);
             if (level.getBlockEntity(chestPos) instanceof ChestBlockEntity chest) {
                 MycelialLootSystem.populateStructureChest(
-                        level, chestPos, chest, MycelialLootSystem.CITADEL_AMBER_CHAPEL, random, HiveProgressionTier.ADAPTIVE, false
+                        level, chestPos, chest, MycelialLootSystem.END_SPIRE_VAULT, random, HiveProgressionTier.ADAPTIVE, false
                 );
             }
         }

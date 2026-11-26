@@ -236,6 +236,26 @@ public class MatriarchCitadelPiece extends StructurePiece {
             }
         }
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
+        // Illuminated amber veins, tactical Spore Vents & hidden cracked-wall alcoves inside underground Crypt
+        for (int z = -3; z <= 3; z++) {
+            if (z != 0) {
+                setIfInside(level, box, center.offset(0, -5, z), amberVein);
+            }
+        }
+        setIfInside(level, box, center.offset(-2, -4, 0), ModBlocks.SPORE_VENT.get().defaultBlockState());
+        setIfInside(level, box, center.offset(2, -4, 0), ModBlocks.SPORE_VENT.get().defaultBlockState());
+        for (int zSign : new int[]{-1, 1}) {
+            setIfInside(level, box, center.offset(-1, -4, zSign * 7), archBrick);
+            setIfInside(level, box, center.offset(-1, -3, zSign * 7), archBrick);
+            setIfInside(level, box, center.offset(1, -4, zSign * 7), archBrick);
+            setIfInside(level, box, center.offset(1, -3, zSign * 7), archBrick);
+            setIfInside(level, box, center.offset(0, -4, zSign * 8), archBrick);
+            setIfInside(level, box, center.offset(0, -3, zSign * 8), archBrick);
+            setIfInside(level, box, center.offset(0, -4, zSign * 7), amberVein);
+            setIfInside(level, box, center.offset(0, -3, zSign * 7), amethyst);
+            setIfInside(level, box, center.offset(0, -4, zSign * 6), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState());
+            setIfInside(level, box, center.offset(0, -3, zSign * 6), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState());
+        }
         BlockPos cryptChestPos = center.offset(0, -4, 0);
         if (box.isInside(cryptChestPos)) {
             level.setBlock(cryptChestPos, Blocks.CHEST.defaultBlockState(), 2);

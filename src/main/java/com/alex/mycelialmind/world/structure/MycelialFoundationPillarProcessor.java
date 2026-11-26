@@ -70,6 +70,10 @@ public class MycelialFoundationPillarProcessor extends StructureProcessor {
         return state.is(Blocks.DEEPSLATE_BRICKS)
                 || state.is(Blocks.DEEPSLATE_TILES)
                 || state.is(ModBlocks.MYCELIAL_ARCH_BRICK.get())
-                || state.is(Blocks.POLISHED_BASALT);
+                || state.is(Blocks.POLISHED_BASALT)
+                || state.is(Blocks.NETHER_BRICKS)
+                || state.is(Blocks.POLISHED_BLACKSTONE_BRICKS)
+                || state.is(Blocks.END_STONE_BRICKS)
+                || state.is(Blocks.PURPUR_BLOCK);
     }
 }

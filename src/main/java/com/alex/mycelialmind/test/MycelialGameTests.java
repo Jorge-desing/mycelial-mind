@@ -3627,21 +3627,44 @@ public final class MycelialGameTests {
         ServerLevel level = helper.getLevel();
         var registries = level.registryAccess();
         var poolReg = registries.registryOrThrow(Registries.TEMPLATE_POOL);
-        for (String pool : List.of("start_pool", "corridors", "rooms", "caps")) {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "hive_sanctum/" + pool);
-            if (!poolReg.containsKey(id)) {
-                helper.fail("Missing hive_sanctum template pool: " + id);
+        for (String nsPrefix : List.of("hive_sanctum/", "nether_breach/", "end_spore_spire/")) {
+            List<String> expectedPools = nsPrefix.equals("hive_sanctum/")
+                    ? List.of("start_pool", "corridors", "rooms", "caps")
+                    : List.of("start_pool", "bridges", "wings", "caps");
+            for (String pool : expectedPools) {
+                ResourceLocation id = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, nsPrefix + pool);
+                if (!poolReg.containsKey(id)) {
+                    helper.fail("Missing template pool: " + id);
+                    return;
+                }
+            }
+        }
+        var procReg = registries.registryOrThrow(Registries.PROCESSOR_LIST);
+        for (String proc : List.of("architectural_reflection", "nether_breach_degrade", "end_spire_degrade")) {
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, proc);
+            if (!procReg.containsKey(id)) {
+                helper.fail("Missing processor list: " + id);
                 return;
             }
         }
         var tm = level.getStructureManager();
         for (String piece : List.of(
-                "sanctum_atrium", "corridor_straight", "corridor_turn", "corridor_cross",
-                "vertical_shaft", "ribbed_nave", "forbidden_lab", "ossuary_crypt", "spore_vault", "incubation_wing", "cap_end"
+                "hive_sanctum/sanctum_atrium", "hive_sanctum/corridor_straight", "hive_sanctum/corridor_turn",
+                "hive_sanctum/corridor_cross", "hive_sanctum/vertical_shaft", "hive_sanctum/ribbed_nave",
+                "hive_sanctum/forbidden_lab", "hive_sanctum/ossuary_crypt", "hive_sanctum/spore_vault",
+                "hive_sanctum/incubation_wing", "hive_sanctum/quarantine_ward", "hive_sanctum/tactical_gallery",
+                "hive_sanctum/secret_reliquary", "hive_sanctum/cap_end",
+                "twisted_reflection/spire_tower", "twisted_reflection/gallery_hall",
+                "twisted_reflection/vault_bunker", "twisted_reflection/sentinel_cloister",
+                "nether_breach/breach_sanctum", "nether_breach/basalt_bridge", "nether_breach/pyro_barracks",
+                "nether_breach/magma_conduit", "nether_breach/watchtower_keep", "nether_breach/breach_cap",
+                "end_spore_spire/spire_keep", "end_spore_spire/void_bridge",
+                "end_spore_spire/resonance_observatory", "end_spore_spire/void_crypt",
+                "end_spore_spire/purpur_bastion", "end_spore_spire/spire_cap"
         )) {
-            ResourceLocation pid = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "hive_sanctum/" + piece);
+            ResourceLocation pid = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, piece);
             if (tm.get(pid).isEmpty()) {
-                helper.fail("Failed to load hive_sanctum NBT template: " + pid);
+                helper.fail("Failed to load NBT template: " + pid);
                 return;
             }
         }
@@ -11992,6 +12015,39 @@ public final class MycelialGameTests {
                     com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.LUSH,
                     Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 0, 0).is(Blocks.MOSS_BLOCK),
                     "LUSH degrade should produce moss_block at floor hash 0.");
+
+            // 5. Verify dimensional chest loot tables roll valid items without endgame leak & foundation processor grounds Nether/End floors
+            var reloadables = level.getServer().reloadableRegistries();
+            var chestParams = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+                    .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN,
+                            Vec3.atCenterOf(netherCenter))
+                    .create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.CHEST);
+            for (ResourceKey<LootTable> chestKey : List.of(
+                    com.alex.mycelialmind.world.MycelialLootSystem.NETHER_BREACH_RELIQUARY,
+                    com.alex.mycelialmind.world.MycelialLootSystem.END_SPIRE_VAULT,
+                    com.alex.mycelialmind.world.MycelialLootSystem.SANCTUM_QUARANTINE_CACHE)) {
+                LootTable table = reloadables.getLootTable(chestKey);
+                helper.assertFalse(table == LootTable.EMPTY, "Expected registered dimensional chest loot table: " + chestKey.location());
+                var rolled = table.getRandomItems(chestParams, 4242L);
+                helper.assertFalse(rolled.isEmpty(), "Expected non-empty roll from " + chestKey.location());
+                for (ItemStack s : rolled) {
+                    helper.assertFalse(s.is(ModItems.OVERMIND_ESSENCE.get()) || s.is(ModItems.HIVE_HEART.get()),
+                            "Mid-tier dimensional/sanctum chest must not leak Overmind Essence or Hive Heart.");
+                }
+            }
+            BlockPos pillarBase = helper.absolutePos(new BlockPos(20, 44, 20));
+            BlockPos pillarProbe = ((pillarBase.getX() ^ pillarBase.getZ()) & 1) == 0 ? pillarBase : pillarBase.east();
+            level.setBlock(pillarProbe.below(4), Blocks.NETHERRACK.defaultBlockState(), 18);
+            var pillarProc = new com.alex.mycelialmind.world.structure.MycelialFoundationPillarProcessor();
+            pillarProc.processBlock(
+                    level, pillarProbe, pillarProbe,
+                    new net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo(
+                            BlockPos.ZERO, Blocks.NETHER_BRICKS.defaultBlockState(), null),
+                    new net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo(
+                            pillarProbe, Blocks.NETHER_BRICKS.defaultBlockState(), null),
+                    new net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings());
+            helper.assertFalse(level.getBlockState(pillarProbe.below(1)).isAir(),
+                    "MycelialFoundationPillarProcessor must ground NETHER_BRICKS floors.");
         } finally {
             var nearby = level.getEntitiesOfClass(
                     com.alex.mycelialmind.entity.MycelialMob.class,

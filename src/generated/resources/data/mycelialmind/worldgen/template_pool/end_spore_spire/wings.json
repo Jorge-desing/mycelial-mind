@@ -1,0 +1,32 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:end_spore_spire/resonance_observatory",
+        "processors": "mycelialmind:end_spire_degrade",
+        "projection": "rigid"
+      },
+      "weight": 3
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:end_spore_spire/void_crypt",
+        "processors": "mycelialmind:end_spire_degrade",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:end_spore_spire/purpur_bastion",
+        "processors": "mycelialmind:end_spire_degrade",
+        "projection": "rigid"
+      },
+      "weight": 2
+    }
+  ],
+  "fallback": "mycelialmind:end_spore_spire/caps"
+}

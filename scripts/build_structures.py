@@ -108,10 +108,18 @@ class StructureBuilder:
                 for z in range(min(z1, z2), max(z1, z2) + 1):
                     self.set(x, y, z, block, props)
 
-    def stair(self, x: int, y: int, z: int, facing: str, half: str = "bottom") -> None:
+    def stair(
+        self,
+        x: int,
+        y: int,
+        z: int,
+        facing: str,
+        half: str = "bottom",
+        block: str = "minecraft:deepslate_brick_stairs",
+    ) -> None:
         self.set(
             x, y, z,
-            "minecraft:deepslate_brick_stairs",
+            block,
             {"facing": facing, "half": half, "shape": "straight", "waterlogged": "false"},
         )
 
@@ -821,10 +829,377 @@ def build_vertical_shaft() -> StructureBuilder:
     return s
 
 
+def _carve_themed_room(
+    s: StructureBuilder,
+    floor_block: str,
+    wall_block: str,
+    ceil_block: str,
+    pillar_block: str = "mycelialmind:chitin_pillar",
+) -> None:
+    """Hollows a room shell (floor y=0, ceiling y=sy-1, 1-thick perimeter walls, corner pillars)."""
+    s.fill(0, 0, 0, s.sx - 1, 0, s.sz - 1, floor_block)
+    s.fill(0, s.sy - 1, 0, s.sx - 1, s.sy - 1, s.sz - 1, ceil_block)
+    for x in range(s.sx):
+        for z in range(s.sz):
+            if x in (0, s.sx - 1) or z in (0, s.sz - 1):
+                for y in range(1, s.sy - 1):
+                    s.set(x, y, z, wall_block)
+    for cx in (1, s.sx - 2):
+        for cz in (1, s.sz - 2):
+            for y in range(1, s.sy - 1):
+                s.set(cx, y, cz, pillar_block, {"axis": "y"})
+
+
+def _open_z_doorway(s: StructureBuilder, cx: int, z_face: int, height: int = 4) -> None:
+    s.fill(cx - 1, 1, z_face, cx + 1, height, z_face, "minecraft:air")
+
+
+def _open_x_doorway(s: StructureBuilder, x_face: int, cz: int, height: int = 4) -> None:
+    s.fill(x_face, 1, cz - 1, x_face, height, cz + 1, "minecraft:air")
+
+
+def build_quarantine_ward() -> StructureBuilder:
+    s = StructureBuilder(13, 10, 13)
+    _carve_themed_room(s, "minecraft:deepslate_bricks", "mycelialmind:mycelial_arch_brick", "mycelialmind:mycelial_arch_brick")
+    # 3 glass/iron-bar containment cells along West, East, and North holding Antibody Cysts
+    for cell_x, cell_z in ((3, 4), (9, 4), (6, 3)):
+        s.fill(cell_x - 1, 1, cell_z - 1, cell_x + 1, 4, cell_z + 1, "minecraft:tinted_glass")
+        s.fill(cell_x, 1, cell_z, cell_x, 3, cell_z, "minecraft:air")
+        s.set(cell_x, 1, cell_z, "mycelialmind:antibody_cyst")
+        s.set(cell_x, 4, cell_z, "minecraft:iron_bars")
+        s.fill(cell_x - 1, 5, cell_z - 1, cell_x + 1, 8, cell_z + 1, "mycelialmind:chitin_pillar", {"axis": "y"})
+    # Purge floor traps + overhead amber light
+    s.set(6, 1, 7, "mycelialmind:spore_vent")
+    s.set(4, 1, 8, "mycelialmind:spore_vent")
+    s.set(8, 1, 8, "mycelialmind:spore_vent")
+    s.set(6, 8, 6, "minecraft:chain")
+    s.set(6, 7, 6, "mycelialmind:luminescent_amber_vein")
+    # Secret cracked alcove on West wall (x=1, z=9) hiding quarantine chest
+    s.set(2, 1, 9, "minecraft:cracked_deepslate_bricks")
+    s.set(2, 2, 9, "minecraft:cracked_deepslate_bricks")
+    s.chest(1, 1, 9, "east", [], loot_table="mycelialmind:chests/sanctum_quarantine_cache")
+    _open_z_doorway(s, 6, 12)
+    s.jigsaw(6, 1, 12, "south", "mycelialmind:hive_sanctum/caps")
+    return s
+
+
+def build_tactical_gallery() -> StructureBuilder:
+    s = StructureBuilder(13, 11, 13)
+    _carve_themed_room(s, "minecraft:deepslate_bricks", "mycelialmind:mycelial_arch_brick", "mycelialmind:mycelial_stone")
+    # Elevated East & West balconies at y=5
+    for x in range(1, 4):
+        for z in range(2, 11):
+            s.set(x, 5, z, "mycelialmind:mycelial_arch_brick")
+            s.set(12 - x, 5, z, "mycelialmind:mycelial_arch_brick")
+    for z in range(2, 11):
+        if z % 2 == 0:
+            s.set(3, 6, z, "minecraft:deepslate_brick_wall")
+            s.set(9, 6, z, "minecraft:deepslate_brick_wall")
+    # Dual access staircases along North flanks (z=2..6 -> x=4 & x=8)
+    for step in range(4):
+        z = 7 - step
+        y = step + 1
+        for fy in range(1, y):
+            s.set(4, fy, z, "minecraft:deepslate_bricks")
+            s.set(8, fy, z, "minecraft:deepslate_bricks")
+        s.stair(4, y, z, "north", "bottom")
+        s.stair(8, y, z, "north", "bottom")
+    s.set(4, 5, 3, "mycelialmind:mycelial_arch_brick")
+    s.set(8, 5, 3, "mycelialmind:mycelial_arch_brick")
+    # Overlook Sentinel Node & tactical Spore Vents + chandeliers
+    s.set(2, 6, 6, "mycelialmind:sentinel_node")
+    s.set(6, 1, 6, "mycelialmind:spore_vent")
+    s.set(6, 9, 4, "minecraft:chain")
+    s.set(6, 8, 4, "mycelialmind:luminescent_amber_vein")
+    s.set(6, 9, 8, "minecraft:chain")
+    s.set(6, 8, 8, "mycelialmind:luminescent_amber_vein")
+    _open_z_doorway(s, 6, 12)
+    _open_z_doorway(s, 6, 0)
+    s.jigsaw(6, 1, 12, "south", "mycelialmind:hive_sanctum/corridors")
+    s.jigsaw(6, 1, 0, "north", "mycelialmind:hive_sanctum/rooms")
+    return s
+
+
+def build_secret_reliquary() -> StructureBuilder:
+    s = StructureBuilder(11, 9, 11)
+    _carve_themed_room(s, "minecraft:deepslate_bricks", "mycelialmind:mycelial_arch_brick", "mycelialmind:mycelial_arch_brick")
+    # False cracked partition wall at z=4 hiding inner reliquary (z=1..3)
+    for x in range(1, 10):
+        for y in range(1, 8):
+            s.set(x, y, 4, "minecraft:cracked_deepslate_bricks" if (4 <= x <= 6 and y <= 3) else "mycelialmind:mycelial_arch_brick")
+    s.set(5, 1, 2, "mycelialmind:luminescent_amber_vein")
+    s.set(5, 2, 2, "minecraft:amethyst_block")
+    s.chest(3, 1, 2, "south", [], loot_table="mycelialmind:chests/sanctum_spore_vault")
+    s.chest(7, 1, 2, "south", [], loot_table="mycelialmind:chests/sanctum_quarantine_cache")
+    s.set(5, 1, 7, "mycelialmind:spore_vent")
+    s.set(5, 7, 7, "minecraft:chain")
+    s.set(5, 6, 7, "mycelialmind:luminescent_amber_vein")
+    _open_z_doorway(s, 5, 10)
+    s.jigsaw(5, 1, 10, "south", "mycelialmind:hive_sanctum/caps")
+    return s
+
+
+def build_twisted_sentinel_cloister() -> StructureBuilder:
+    s = StructureBuilder(11, 11, 11)
+    _carve_themed_room(s, "minecraft:polished_basalt", "mycelialmind:mycelial_arch_brick", "mycelialmind:mycelial_stone")
+    # Catwalk ring at y=5 supported by pillars
+    for x in range(2, 9):
+        for z in range(2, 9):
+            if x in (2, 8) or z in (2, 8):
+                s.set(x, 5, z, "mycelialmind:mycelial_arch_brick")
+                if (x + z) % 2 == 0:
+                    s.set(x, 6, z, "minecraft:deepslate_brick_wall")
+    for px, pz in ((2, 2), (8, 2), (2, 8), (8, 8)):
+        for y in range(1, 10):
+            s.set(px, y, pz, "mycelialmind:chitin_pillar", {"axis": "y"})
+    s.set(5, 1, 5, "mycelialmind:sentinel_node")
+    s.set(3, 1, 5, "mycelialmind:spore_vent")
+    s.set(7, 1, 5, "mycelialmind:spore_vent")
+    s.set(5, 2, 2, "minecraft:cracked_deepslate_bricks")
+    s.set(5, 1, 2, "minecraft:cracked_deepslate_bricks")
+    s.chest(5, 1, 1, "south", [], loot_table="mycelialmind:chests/sanctum_quarantine_cache")
+    _open_z_doorway(s, 5, 10)
+    return s
+
+
+def build_nether_breach_sanctum() -> StructureBuilder:
+    s = StructureBuilder(15, 13, 15)
+    _carve_themed_room(s, "minecraft:polished_blackstone_bricks", "minecraft:nether_bricks", "mycelialmind:mycelial_arch_brick")
+    for px, pz in ((4, 4), (10, 4), (4, 10), (10, 10)):
+        for y in range(1, 12):
+            s.set(px, y, pz, "minecraft:crying_obsidian" if y in (5, 10) else "mycelialmind:chitin_pillar", {"axis": "y"} if y not in (5, 10) else {})
+    # Central raised altar court & sentinel node
+    s.fill(5, 1, 5, 9, 1, 9, "minecraft:polished_basalt")
+    s.fill(6, 2, 6, 8, 2, 8, "mycelialmind:mycelial_arch_brick")
+    s.set(7, 3, 7, "mycelialmind:hive_altar")
+    s.set(7, 2, 5, "mycelialmind:sentinel_node")
+    s.set(7, 11, 7, "minecraft:shroomlight")
+    # Hidden reliquary vault in NE corner behind cracked blackstone
+    s.set(11, 1, 3, "minecraft:cracked_polished_blackstone_bricks")
+    s.set(11, 2, 3, "minecraft:cracked_polished_blackstone_bricks")
+    s.chest(12, 1, 2, "west", [], loot_table="mycelialmind:chests/nether_breach_reliquary")
+    # 4 cardinal exits targeting bridges
+    for dx, dz, facing, z_edge in ((7, 0, "north", True), (7, 14, "south", True), (0, 7, "west", False), (14, 7, "east", False)):
+        if z_edge:
+            _open_z_doorway(s, dx, dz)
+        else:
+            _open_x_doorway(s, dx, dz)
+        s.jigsaw(dx, 1, dz, facing, "mycelialmind:nether_breach/bridges", name="mycelialmind:nether_socket")
+    return s
+
+
+def build_nether_basalt_bridge() -> StructureBuilder:
+    s = StructureBuilder(7, 9, 11)
+    _carve_themed_room(s, "minecraft:polished_blackstone_bricks", "minecraft:polished_basalt", "minecraft:nether_bricks")
+    for z in (2, 5, 8):
+        for y in range(1, 8):
+            s.set(1, y, z, "mycelialmind:chitin_pillar", {"axis": "y"})
+            s.set(5, y, z, "mycelialmind:chitin_pillar", {"axis": "y"})
+        s.set(1, 5, z, "mycelialmind:luminescent_amber_vein")
+        s.set(5, 5, z, "mycelialmind:luminescent_amber_vein")
+    s.set(3, 0, 5, "mycelialmind:creeping_mycelium")
+    _open_z_doorway(s, 3, 10)
+    _open_z_doorway(s, 3, 0)
+    s.jigsaw(3, 1, 10, "south", "mycelialmind:nether_breach/bridges", name="mycelialmind:nether_socket")
+    s.jigsaw(3, 1, 0, "north", "mycelialmind:nether_breach/wings", name="mycelialmind:nether_socket")
+    return s
+
+
+def build_nether_pyro_barracks() -> StructureBuilder:
+    s = StructureBuilder(11, 11, 11)
+    _carve_themed_room(s, "minecraft:polished_blackstone_bricks", "minecraft:nether_bricks", "mycelialmind:mycelial_arch_brick")
+    # Elevated firing gallery along North (z=1..3, y=5) + West stairs
+    s.fill(1, 5, 1, 9, 5, 3, "minecraft:polished_basalt")
+    for step in range(4):
+        z = 7 - step
+        y = step + 1
+        for fy in range(1, y):
+            s.set(2, fy, z, "minecraft:polished_blackstone_bricks")
+        s.stair(2, y, z, "north", "bottom", block="minecraft:polished_blackstone_brick_stairs")
+    s.set(5, 1, 5, "mycelialmind:incubator_node")
+    s.set(4, 1, 7, "mycelialmind:spore_vent")
+    s.set(6, 1, 7, "mycelialmind:spore_vent")
+    s.set(8, 1, 2, "minecraft:cracked_nether_bricks")
+    s.set(8, 2, 2, "minecraft:cracked_nether_bricks")
+    s.chest(8, 6, 2, "south", [], loot_table="mycelialmind:chests/nether_breach_reliquary")
+    _open_z_doorway(s, 5, 10)
+    s.jigsaw(5, 1, 10, "south", "mycelialmind:nether_breach/caps", name="mycelialmind:nether_socket")
+    return s
+
+
+def build_nether_magma_conduit() -> StructureBuilder:
+    s = StructureBuilder(11, 11, 11)
+    _carve_themed_room(s, "minecraft:polished_basalt", "minecraft:polished_blackstone_bricks", "minecraft:nether_bricks")
+    # Recessed conduit of magma_block + amber spanned by iron bars and central walkway
+    for x in (3, 7):
+        for z in range(2, 9):
+            s.set(x, 0, z, "minecraft:magma_block")
+            s.set(x - 1, 1, z, "minecraft:iron_bars")
+    s.set(5, 1, 5, "mycelialmind:mycelial_node")
+    s.set(5, 9, 5, "minecraft:chain")
+    s.set(5, 8, 5, "minecraft:shroomlight")
+    _open_z_doorway(s, 5, 10)
+    _open_z_doorway(s, 5, 0)
+    s.jigsaw(5, 1, 10, "south", "mycelialmind:nether_breach/caps", name="mycelialmind:nether_socket")
+    s.jigsaw(5, 1, 0, "north", "mycelialmind:nether_breach/wings", name="mycelialmind:nether_socket")
+    return s
+
+
+def build_nether_watchtower_keep() -> StructureBuilder:
+    s = StructureBuilder(9, 15, 9)
+    _carve_themed_room(s, "minecraft:polished_blackstone_bricks", "minecraft:nether_bricks", "mycelialmind:mycelial_arch_brick")
+    # Intermediate battlement landing at y=8
+    s.fill(1, 8, 1, 7, 8, 7, "minecraft:polished_basalt")
+    for step in range(7):
+        z = 7 - step
+        y = step + 1
+        for fy in range(1, y):
+            s.set(6, fy, z, "minecraft:polished_blackstone_bricks")
+        s.stair(6, y, z, "north", "bottom", block="minecraft:polished_blackstone_brick_stairs")
+    # Stairwell opening through y=8 at (6, 8, 2)
+    s.set(6, 8, 2, "minecraft:air")
+    s.set(6, 8, 1, "minecraft:air")
+    s.set(4, 9, 4, "mycelialmind:sentinel_node")
+    s.chest(2, 9, 4, "east", [], loot_table="mycelialmind:chests/nether_breach_reliquary")
+    s.set(4, 13, 4, "minecraft:crying_obsidian")
+    _open_z_doorway(s, 4, 8)
+    s.jigsaw(4, 1, 8, "south", "mycelialmind:nether_breach/caps", name="mycelialmind:nether_socket")
+    return s
+
+
+def build_nether_breach_cap() -> StructureBuilder:
+    s = StructureBuilder(7, 8, 3)
+    _carve_themed_room(s, "minecraft:polished_blackstone_bricks", "minecraft:nether_bricks", "minecraft:polished_basalt")
+    s.set(3, 3, 0, "mycelialmind:luminescent_amber_vein")
+    s.set(2, 1, 1, "minecraft:crying_obsidian")
+    s.set(4, 1, 1, "minecraft:crying_obsidian")
+    _open_z_doorway(s, 3, 2)
+    s.jigsaw(3, 1, 2, "south", "mycelialmind:nether_breach/caps", name="mycelialmind:nether_socket")
+    return s
+
+
+def build_end_spire_keep() -> StructureBuilder:
+    s = StructureBuilder(13, 21, 13)
+    _carve_themed_room(s, "minecraft:end_stone_bricks", "minecraft:purpur_block", "mycelialmind:mycelial_arch_brick")
+    # Upper observatory deck (y=12) + crystalline crown (y=17..20)
+    s.fill(1, 12, 1, 11, 12, 11, "minecraft:end_stone_bricks")
+    for step in range(11):
+        z = 11 - step
+        y = step + 1
+        for fy in range(1, y):
+            s.set(10, fy, z, "minecraft:purpur_pillar")
+        s.stair(10, y, z, "north", "bottom", block="minecraft:purpur_stairs")
+    s.set(10, 12, 1, "minecraft:air")
+    s.set(10, 12, 2, "minecraft:air")
+    s.set(6, 1, 6, "mycelialmind:incubator_node")
+    s.set(6, 13, 6, "mycelialmind:sentinel_node")
+    s.chest(4, 1, 6, "east", [], loot_table="mycelialmind:chests/end_spire_vault")
+    for y in range(13, 20):
+        s.set(6, y, 6, "minecraft:amethyst_block" if y >= 17 else "mycelialmind:chitin_pillar", {"axis": "y"} if y < 17 else {})
+    s.set(6, 19, 6, "mycelialmind:luminescent_amber_vein")
+    for dx, dz, facing, z_edge in ((6, 0, "north", True), (6, 12, "south", True), (0, 6, "west", False), (12, 6, "east", False)):
+        if z_edge:
+            _open_z_doorway(s, dx, dz)
+        else:
+            _open_x_doorway(s, dx, dz)
+        s.jigsaw(dx, 1, dz, facing, "mycelialmind:end_spore_spire/bridges", name="mycelialmind:end_socket")
+    return s
+
+
+def build_end_void_bridge() -> StructureBuilder:
+    s = StructureBuilder(7, 9, 11)
+    _carve_themed_room(s, "minecraft:end_stone_bricks", "minecraft:purpur_block", "mycelialmind:mycelial_arch_brick")
+    for z in (2, 5, 8):
+        for y in range(1, 8):
+            s.set(1, y, z, "minecraft:purpur_pillar")
+            s.set(5, y, z, "minecraft:purpur_pillar")
+        s.set(3, 7, z, "minecraft:amethyst_block")
+    _open_z_doorway(s, 3, 10)
+    _open_z_doorway(s, 3, 0)
+    s.jigsaw(3, 1, 10, "south", "mycelialmind:end_spore_spire/bridges", name="mycelialmind:end_socket")
+    s.jigsaw(3, 1, 0, "north", "mycelialmind:end_spore_spire/wings", name="mycelialmind:end_socket")
+    return s
+
+
+def build_end_resonance_observatory() -> StructureBuilder:
+    s = StructureBuilder(11, 11, 11)
+    _carve_themed_room(s, "minecraft:end_stone_bricks", "minecraft:purpur_block", "mycelialmind:mycelial_arch_brick")
+    s.fill(1, 5, 1, 9, 5, 3, "minecraft:purpur_block")
+    for step in range(4):
+        z = 7 - step
+        y = step + 1
+        for fy in range(1, y):
+            s.set(2, fy, z, "minecraft:end_stone_bricks")
+        s.stair(2, y, z, "north", "bottom", block="minecraft:purpur_stairs")
+    s.set(5, 1, 5, "mycelialmind:mycelial_node")
+    s.set(3, 6, 2, "mycelialmind:spore_bulb")
+    s.set(7, 6, 2, "mycelialmind:spore_bulb")
+    s.chest(5, 6, 2, "south", [], loot_table="mycelialmind:chests/end_spire_vault")
+    _open_z_doorway(s, 5, 10)
+    s.jigsaw(5, 1, 10, "south", "mycelialmind:end_spore_spire/caps", name="mycelialmind:end_socket")
+    return s
+
+
+def build_end_void_crypt() -> StructureBuilder:
+    s = StructureBuilder(11, 10, 11)
+    _carve_themed_room(s, "minecraft:end_stone_bricks", "minecraft:purpur_block", "mycelialmind:mycelial_arch_brick")
+    # Disguised cracked rear partition wall hiding secret vault
+    for x in range(1, 10):
+        for y in range(1, 9):
+            s.set(x, y, 4, "minecraft:cracked_stone_bricks" if (4 <= x <= 6 and y <= 3) else "minecraft:purpur_block")
+    s.set(5, 1, 2, "minecraft:amethyst_block")
+    s.chest(3, 1, 2, "south", [], loot_table="mycelialmind:chests/end_spire_vault")
+    s.set(3, 1, 7, "mycelialmind:reinforced_bio_barrier")
+    s.set(7, 1, 7, "mycelialmind:reinforced_bio_barrier")
+    s.set(5, 1, 6, "mycelialmind:spore_vent")
+    _open_z_doorway(s, 5, 10)
+    s.jigsaw(5, 1, 10, "south", "mycelialmind:end_spore_spire/caps", name="mycelialmind:end_socket")
+    return s
+
+
+def build_end_purpur_bastion() -> StructureBuilder:
+    s = StructureBuilder(9, 13, 9)
+    _carve_themed_room(s, "minecraft:end_stone_bricks", "minecraft:purpur_block", "mycelialmind:mycelial_arch_brick")
+    s.fill(1, 6, 1, 7, 6, 7, "minecraft:end_stone_bricks")
+    for step in range(5):
+        z = 7 - step
+        y = step + 1
+        for fy in range(1, y):
+            s.set(6, fy, z, "minecraft:purpur_pillar")
+        s.stair(6, y, z, "north", "bottom", block="minecraft:purpur_stairs")
+    s.set(6, 6, 2, "minecraft:air")
+    s.set(6, 6, 3, "minecraft:air")
+    s.set(4, 7, 4, "mycelialmind:sentinel_node")
+    s.set(4, 11, 4, "minecraft:amethyst_block")
+    _open_z_doorway(s, 4, 8)
+    s.jigsaw(4, 1, 8, "south", "mycelialmind:end_spore_spire/caps", name="mycelialmind:end_socket")
+    return s
+
+
+def build_end_spire_cap() -> StructureBuilder:
+    s = StructureBuilder(7, 8, 3)
+    _carve_themed_room(s, "minecraft:end_stone_bricks", "minecraft:purpur_block", "minecraft:purpur_pillar")
+    s.set(3, 3, 0, "minecraft:amethyst_block")
+    s.set(2, 1, 1, "mycelialmind:luminescent_amber_vein")
+    s.set(4, 1, 1, "mycelialmind:luminescent_amber_vein")
+    _open_z_doorway(s, 3, 2)
+    s.jigsaw(3, 1, 2, "south", "mycelialmind:end_spore_spire/caps", name="mycelialmind:end_socket")
+    return s
+
+
+def _emit_group(rel_dir: str, pieces: dict[str, StructureBuilder]) -> None:
+    target_dir = os.path.join("src", "main", "resources", "data", "mycelialmind", "structure", rel_dir)
+    os.makedirs(target_dir, exist_ok=True)
+    for fname, builder in pieces.items():
+        verify_6_connected(builder, f"{rel_dir}/{fname}")
+        path = os.path.join(target_dir, fname)
+        with open(path, "wb") as f:
+            f.write(builder.to_nbt_bytes())
+        print(f"Generated {path} ({builder.sx}x{builder.sy}x{builder.sz}, {len(builder.grid)} blocks)")
+
+
 def main() -> None:
-    out_dir = os.path.join("src", "main", "resources", "data", "mycelialmind", "structure", "hive_sanctum")
-    os.makedirs(out_dir, exist_ok=True)
-    pieces = {
+    _emit_group("hive_sanctum", {
         "sanctum_atrium.nbt": build_sanctum_atrium(),
         "corridor_straight.nbt": build_corridor_straight(),
         "corridor_turn.nbt": build_corridor_turn(),
@@ -835,28 +1210,33 @@ def main() -> None:
         "ossuary_crypt.nbt": build_ossuary_crypt(),
         "spore_vault.nbt": build_spore_vault(),
         "incubation_wing.nbt": build_incubation_wing(),
+        "quarantine_ward.nbt": build_quarantine_ward(),
+        "tactical_gallery.nbt": build_tactical_gallery(),
+        "secret_reliquary.nbt": build_secret_reliquary(),
         "cap_end.nbt": build_cap_end(),
-    }
-    for fname, builder in pieces.items():
-        verify_6_connected(builder, fname)
-        path = os.path.join(out_dir, fname)
-        with open(path, "wb") as f:
-            f.write(builder.to_nbt_bytes())
-        print(f"Generated {path} ({builder.sx}x{builder.sy}x{builder.sz}, {len(builder.grid)} blocks)")
-
-    refl_dir = os.path.join("src", "main", "resources", "data", "mycelialmind", "structure", "twisted_reflection")
-    os.makedirs(refl_dir, exist_ok=True)
-    refl_pieces = {
+    })
+    _emit_group("twisted_reflection", {
         "spire_tower.nbt": build_twisted_spire_tower(),
         "gallery_hall.nbt": build_twisted_gallery_hall(),
         "vault_bunker.nbt": build_twisted_vault_bunker(),
-    }
-    for fname, builder in refl_pieces.items():
-        verify_6_connected(builder, fname)
-        path = os.path.join(refl_dir, fname)
-        with open(path, "wb") as f:
-            f.write(builder.to_nbt_bytes())
-        print(f"Generated {path} ({builder.sx}x{builder.sy}x{builder.sz}, {len(builder.grid)} blocks)")
+        "sentinel_cloister.nbt": build_twisted_sentinel_cloister(),
+    })
+    _emit_group("nether_breach", {
+        "breach_sanctum.nbt": build_nether_breach_sanctum(),
+        "basalt_bridge.nbt": build_nether_basalt_bridge(),
+        "pyro_barracks.nbt": build_nether_pyro_barracks(),
+        "magma_conduit.nbt": build_nether_magma_conduit(),
+        "watchtower_keep.nbt": build_nether_watchtower_keep(),
+        "breach_cap.nbt": build_nether_breach_cap(),
+    })
+    _emit_group("end_spore_spire", {
+        "spire_keep.nbt": build_end_spire_keep(),
+        "void_bridge.nbt": build_end_void_bridge(),
+        "resonance_observatory.nbt": build_end_resonance_observatory(),
+        "void_crypt.nbt": build_end_void_crypt(),
+        "purpur_bastion.nbt": build_end_purpur_bastion(),
+        "spire_cap.nbt": build_end_spire_cap(),
+    })
 
 
 if __name__ == "__main__":

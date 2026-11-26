@@ -1,0 +1,32 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:nether_breach/pyro_barracks",
+        "processors": "mycelialmind:nether_breach_degrade",
+        "projection": "rigid"
+      },
+      "weight": 3
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:nether_breach/watchtower_keep",
+        "processors": "mycelialmind:nether_breach_degrade",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:nether_breach/magma_conduit",
+        "processors": "mycelialmind:nether_breach_degrade",
+        "projection": "rigid"
+      },
+      "weight": 2
+    }
+  ],
+  "fallback": "mycelialmind:nether_breach/caps"
+}

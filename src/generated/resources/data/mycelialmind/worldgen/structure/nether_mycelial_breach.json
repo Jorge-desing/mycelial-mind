@@ -1,7 +1,14 @@
 {
   "type": "mycelialmind:nether_mycelial_breach",
   "biomes": "#mycelialmind:has_structure/nether_mycelial_breach",
+  "dimension_padding": {
+    "bottom": 4,
+    "top": 14
+  },
+  "max_distance_from_center": 48,
+  "size": 4,
   "spawn_overrides": {},
+  "start_pool": "mycelialmind:nether_breach/start_pool",
   "step": "underground_structures",
   "terrain_adaptation": "beard_thin"
 }

@@ -189,6 +189,23 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
         safeSetBlock(level, origin.offset(0, -2, 0), amberVein);
         safeSetBlock(level, origin.offset(-2, -4, 0), ModBlocks.SPORE_VENT.get().defaultBlockState());
         safeSetBlock(level, origin.offset(2, -4, 1), ModBlocks.SPORE_VENT.get().defaultBlockState());
+        safeSetBlock(level, origin.offset(-1, -5, 1), ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState());
+        safeSetBlock(level, origin.offset(1, -5, -1), ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState());
+        safeSetBlock(level, origin.offset(0, -1, 2), deepslateBricks);
+        safeSetBlock(level, origin.offset(0, -2, 2), ModBlocks.MYCELIAL_TENDRILS.get().defaultBlockState());
+        safeSetBlock(level, origin.offset(-2, -1, -1), deepslateBricks);
+        safeSetBlock(level, origin.offset(-2, -2, -1), ModBlocks.MYCELIAL_TENDRILS.get().defaultBlockState());
+        // Secret cracked-brick crypt alcove on West side (-4, -4..-3, 0) behind cracked seal at -3
+        for (int sy = -4; sy <= -3; sy++) {
+            safeSetBlock(level, origin.offset(-5, sy, 0), archBrick);
+            safeSetBlock(level, origin.offset(-4, sy, -1), archBrick);
+            safeSetBlock(level, origin.offset(-4, sy, 1), archBrick);
+            safeSetBlock(level, origin.offset(-3, sy, 0), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState());
+        }
+        safeSetBlock(level, origin.offset(-4, -5, 0), deepslateBricks);
+        safeSetBlock(level, origin.offset(-4, -2, 0), archBrick);
+        safeSetBlock(level, origin.offset(-4, -4, 0), amethyst);
+        safeSetBlock(level, origin.offset(-4, -3, 0), amberVein);
         // Clean 2-wide stairwell descent (w=2..3, z=0..-3) with >=3 blocks headroom and sealed crypt walls
         for (int w = 2; w <= 3; w++) {
             safeSetBlock(level, origin.offset(w, -5, -3), deepslateBricks);

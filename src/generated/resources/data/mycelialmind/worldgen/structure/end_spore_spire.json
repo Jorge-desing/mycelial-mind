@@ -1,7 +1,10 @@
 {
   "type": "mycelialmind:end_spore_spire",
   "biomes": "#mycelialmind:has_structure/end_spore_spire",
+  "max_distance_from_center": 44,
+  "size": 4,
   "spawn_overrides": {},
+  "start_pool": "mycelialmind:end_spore_spire/start_pool",
   "step": "surface_structures",
   "terrain_adaptation": "beard_thin"
 }

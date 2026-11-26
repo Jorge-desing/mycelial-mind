@@ -79,6 +79,10 @@ public final class ModWorldgenKeys {
     // Processor Lists & Template Pools
     public static final ResourceKey<StructureProcessorList> ARCHITECTURAL_REFLECTION =
             key(Registries.PROCESSOR_LIST, "architectural_reflection");
+    public static final ResourceKey<StructureProcessorList> NETHER_BREACH_DEGRADE =
+            key(Registries.PROCESSOR_LIST, "nether_breach_degrade");
+    public static final ResourceKey<StructureProcessorList> END_SPIRE_DEGRADE =
+            key(Registries.PROCESSOR_LIST, "end_spire_degrade");
     public static final ResourceKey<StructureTemplatePool> HIVE_SANCTUM_START =
             key(Registries.TEMPLATE_POOL, "hive_sanctum/start_pool");
     public static final ResourceKey<StructureTemplatePool> HIVE_SANCTUM_CORRIDORS =
@@ -87,6 +91,22 @@ public final class ModWorldgenKeys {
             key(Registries.TEMPLATE_POOL, "hive_sanctum/rooms");
     public static final ResourceKey<StructureTemplatePool> HIVE_SANCTUM_CAPS =
             key(Registries.TEMPLATE_POOL, "hive_sanctum/caps");
+    public static final ResourceKey<StructureTemplatePool> NETHER_BREACH_START =
+            key(Registries.TEMPLATE_POOL, "nether_breach/start_pool");
+    public static final ResourceKey<StructureTemplatePool> NETHER_BREACH_BRIDGES =
+            key(Registries.TEMPLATE_POOL, "nether_breach/bridges");
+    public static final ResourceKey<StructureTemplatePool> NETHER_BREACH_WINGS =
+            key(Registries.TEMPLATE_POOL, "nether_breach/wings");
+    public static final ResourceKey<StructureTemplatePool> NETHER_BREACH_CAPS =
+            key(Registries.TEMPLATE_POOL, "nether_breach/caps");
+    public static final ResourceKey<StructureTemplatePool> END_SPIRE_START =
+            key(Registries.TEMPLATE_POOL, "end_spore_spire/start_pool");
+    public static final ResourceKey<StructureTemplatePool> END_SPIRE_BRIDGES =
+            key(Registries.TEMPLATE_POOL, "end_spore_spire/bridges");
+    public static final ResourceKey<StructureTemplatePool> END_SPIRE_WINGS =
+            key(Registries.TEMPLATE_POOL, "end_spore_spire/wings");
+    public static final ResourceKey<StructureTemplatePool> END_SPIRE_CAPS =
+            key(Registries.TEMPLATE_POOL, "end_spore_spire/caps");
 
     // Structures & Structure Sets
     public static final ResourceKey<Structure> HIVE_SANCTUM =

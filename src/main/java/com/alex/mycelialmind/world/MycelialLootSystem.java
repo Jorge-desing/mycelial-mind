@@ -57,6 +57,9 @@ public final class MycelialLootSystem {
     public static final ResourceKey<LootTable> CITADEL_CRIMSON_CHAPEL = chestKey("citadel_crimson_chapel");
     public static final ResourceKey<LootTable> CITADEL_ROYAL_CRYPT = chestKey("citadel_royal_crypt");
     public static final ResourceKey<LootTable> SINKHOLE_ROOT_VAULT = chestKey("sinkhole_root_vault");
+    public static final ResourceKey<LootTable> SANCTUM_QUARANTINE_CACHE = chestKey("sanctum_quarantine_cache");
+    public static final ResourceKey<LootTable> NETHER_BREACH_RELIQUARY = chestKey("nether_breach_reliquary");
+    public static final ResourceKey<LootTable> END_SPIRE_VAULT = chestKey("end_spire_vault");
 
     public static final List<ResourceKey<LootTable>> ALL_CHEST_TABLES = List.of(
             OUTBREAK_SEALED_VAULT,
@@ -66,10 +69,13 @@ public final class MycelialLootSystem {
             SANCTUM_FORBIDDEN_LAB,
             SANCTUM_OSSUARY_CRYPT,
             SANCTUM_SPORE_VAULT,
+            SANCTUM_QUARANTINE_CACHE,
             CITADEL_AMBER_CHAPEL,
             CITADEL_CRIMSON_CHAPEL,
             CITADEL_ROYAL_CRYPT,
-            SINKHOLE_ROOT_VAULT
+            SINKHOLE_ROOT_VAULT,
+            NETHER_BREACH_RELIQUARY,
+            END_SPIRE_VAULT
     );
 
     public static ResourceKey<LootTable> selectSealedBioVaultTable(HiveProgressionTier tier, RandomSource random) {

@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-25T14:04:06.3652723	Loot Tables
+// 1.21.1	2026-11-26T03:04:24.0735976	Loot Tables
 2a6f69018a0c88ddbebe2ae3182e9b5f0274d589 data/mycelialmind/loot_table/blocks/antibody_cyst.json
 89be14cddb48d8cd1fcdcd8696958e5ed61ebcd1 data/mycelialmind/loot_table/blocks/bioluminescent_mycelial_cap.json
 44dd048b5441f34a91a621994ce422e12410f983 data/mycelialmind/loot_table/blocks/bio_chitin_lattice.json
@@ -28,9 +28,12 @@ ee1d080ff802db33a3e9c1d132ed42996e339722 data/mycelialmind/loot_table/blocks/syn
 5e06d7ccbc36c0a15e40b2d79ea93d967c514b66 data/mycelialmind/loot_table/chests/citadel_amber_chapel.json
 80ed7a0a8205c49f0cbdb8d7072af91486ab2569 data/mycelialmind/loot_table/chests/citadel_crimson_chapel.json
 a1d0960b9531b28b60eb44c2164c2c2e4bcdf15b data/mycelialmind/loot_table/chests/citadel_royal_crypt.json
+54c8527f5812c39856fceb50002ed4c9316493d9 data/mycelialmind/loot_table/chests/end_spire_vault.json
+df6512a024352d6870fe57107cd566d3e6afdd00 data/mycelialmind/loot_table/chests/nether_breach_reliquary.json
 fbd1c16a95e1b8d1d85ac331da4ca95f703dc85c data/mycelialmind/loot_table/chests/outbreak_sealed_vault.json
 f1f33e6c5d367330bb64e40148962da52da1eb28 data/mycelialmind/loot_table/chests/sanctum_forbidden_lab.json
 9adf23b142a93eccf493ccb6b05e485c7c5dba11 data/mycelialmind/loot_table/chests/sanctum_ossuary_crypt.json
+54870105ca48ea477c4dc7afb0bac0a9dfd85faa data/mycelialmind/loot_table/chests/sanctum_quarantine_cache.json
 938f1f9ee0c9e8cbf892223dad434ea1d123e27a data/mycelialmind/loot_table/chests/sanctum_spore_vault.json
 f55933c85aedbc450ead57e3348b9c9db44b22c6 data/mycelialmind/loot_table/chests/sinkhole_root_vault.json
 6fe6bf8299bac4dce9e4aa5079f9a5c32464e5f8 data/mycelialmind/loot_table/chests/surface_hive_cache.json

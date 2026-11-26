@@ -194,7 +194,7 @@ class DataGenIntegrityTest {
             }
         }
 
-        assertEquals(139, parsedFiles, "Expected 139 generated JSON files across recipes/loot/worldgen/dimension/neoforge");
+        assertEquals(152, parsedFiles, "Expected 152 generated JSON files across recipes/loot/worldgen/dimension/neoforge");
     }
 
     private static Set<String> extractMatches(Path sourceFile, Pattern pattern) throws IOException {

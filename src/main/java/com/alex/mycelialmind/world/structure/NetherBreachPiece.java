@@ -182,7 +182,7 @@ public class NetherBreachPiece extends StructurePiece {
             level.setBlock(chestPos, Blocks.CHEST.defaultBlockState(), 2);
             if (level.getBlockEntity(chestPos) instanceof ChestBlockEntity chest) {
                 MycelialLootSystem.populateStructureChest(
-                        level, chestPos, chest, MycelialLootSystem.CITADEL_CRIMSON_CHAPEL, random, HiveProgressionTier.ADAPTIVE, false
+                        level, chestPos, chest, MycelialLootSystem.NETHER_BREACH_RELIQUARY, random, HiveProgressionTier.ADAPTIVE, false
                 );
             }
         }

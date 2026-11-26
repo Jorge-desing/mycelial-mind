@@ -1,0 +1,14 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:end_spore_spire/void_bridge",
+        "processors": "mycelialmind:end_spire_degrade",
+        "projection": "rigid"
+      },
+      "weight": 4
+    }
+  ],
+  "fallback": "mycelialmind:end_spore_spire/caps"
+}

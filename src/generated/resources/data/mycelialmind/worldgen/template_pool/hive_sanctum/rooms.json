@@ -39,6 +39,24 @@
     {
       "element": {
         "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/quarantine_ward",
+        "processors": "mycelialmind:architectural_reflection",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/secret_reliquary",
+        "processors": "mycelialmind:architectural_reflection",
+        "projection": "rigid"
+      },
+      "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
         "location": "mycelialmind:hive_sanctum/corridor_straight",
         "processors": "mycelialmind:architectural_reflection",
         "projection": "rigid"

@@ -87,6 +87,55 @@ public final class MycelialStructureBootstrap {
                         new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)
                 ))
         );
+
+        RuleProcessor netherWeathering = new RuleProcessor(List.of(
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.POLISHED_BLACKSTONE_BRICKS, 0.22F),
+                        AlwaysTrueTest.INSTANCE,
+                        Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState()
+                ),
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.NETHER_BRICKS, 0.18F),
+                        AlwaysTrueTest.INSTANCE,
+                        Blocks.CRACKED_NETHER_BRICKS.defaultBlockState()
+                ),
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.NETHER_BRICKS, 0.08F),
+                        AlwaysTrueTest.INSTANCE,
+                        ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState()
+                )
+        ));
+        context.register(
+                ModWorldgenKeys.NETHER_BREACH_DEGRADE,
+                new StructureProcessorList(List.of(
+                        new MycelialFluidClearProcessor(),
+                        new MycelialFoundationPillarProcessor(),
+                        netherWeathering,
+                        new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)
+                ))
+        );
+
+        RuleProcessor endWeathering = new RuleProcessor(List.of(
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.END_STONE_BRICKS, 0.14F),
+                        AlwaysTrueTest.INSTANCE,
+                        ModBlocks.MYCELIAL_STONE.get().defaultBlockState()
+                ),
+                new ProcessorRule(
+                        new RandomBlockMatchTest(Blocks.PURPUR_BLOCK, 0.12F),
+                        AlwaysTrueTest.INSTANCE,
+                        ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState()
+                )
+        ));
+        context.register(
+                ModWorldgenKeys.END_SPIRE_DEGRADE,
+                new StructureProcessorList(List.of(
+                        new MycelialFluidClearProcessor(),
+                        new MycelialFoundationPillarProcessor(),
+                        endWeathering,
+                        new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)
+                ))
+        );
     }
 
     public static void bootstrapTemplatePools(BootstrapContext<StructureTemplatePool> context) {
@@ -96,6 +145,8 @@ public final class MycelialStructureBootstrap {
         Holder<StructureTemplatePool> empty = pools.getOrThrow(Pools.EMPTY);
         Holder<StructureTemplatePool> caps = pools.getOrThrow(ModWorldgenKeys.HIVE_SANCTUM_CAPS);
         Holder<StructureProcessorList> reflection = processors.getOrThrow(ModWorldgenKeys.ARCHITECTURAL_REFLECTION);
+        Holder<StructureProcessorList> netherDegrade = processors.getOrThrow(ModWorldgenKeys.NETHER_BREACH_DEGRADE);
+        Holder<StructureProcessorList> endDegrade = processors.getOrThrow(ModWorldgenKeys.END_SPIRE_DEGRADE);
 
         context.register(ModWorldgenKeys.HIVE_SANCTUM_CAPS, new StructureTemplatePool(
                 empty,
@@ -110,6 +161,7 @@ public final class MycelialStructureBootstrap {
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/corridor_turn", reflection), 3),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/corridor_cross", reflection), 2),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/vertical_shaft", reflection), 2),
+                        Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/tactical_gallery", reflection), 2),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/ribbed_nave", reflection), 2)
                 ),
                 Projection.RIGID
@@ -122,6 +174,8 @@ public final class MycelialStructureBootstrap {
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/incubation_wing", reflection), 3),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/forbidden_lab", reflection), 2),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/ossuary_crypt", reflection), 2),
+                        Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/quarantine_ward", reflection), 2),
+                        Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/secret_reliquary", reflection), 1),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/corridor_straight", reflection), 2)
                 ),
                 Projection.RIGID
@@ -130,6 +184,63 @@ public final class MycelialStructureBootstrap {
         context.register(ModWorldgenKeys.HIVE_SANCTUM_START, new StructureTemplatePool(
                 empty,
                 List.of(Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/sanctum_atrium", reflection), 1)),
+                Projection.RIGID
+        ));
+
+        Holder<StructureTemplatePool> netherCaps = pools.getOrThrow(ModWorldgenKeys.NETHER_BREACH_CAPS);
+        context.register(ModWorldgenKeys.NETHER_BREACH_CAPS, new StructureTemplatePool(
+                empty,
+                List.of(Pair.of(StructurePoolElement.single("mycelialmind:nether_breach/breach_cap", netherDegrade), 1)),
+                Projection.RIGID
+        ));
+        context.register(ModWorldgenKeys.NETHER_BREACH_BRIDGES, new StructureTemplatePool(
+                netherCaps,
+                List.of(
+                        Pair.of(StructurePoolElement.single("mycelialmind:nether_breach/basalt_bridge", netherDegrade), 4),
+                        Pair.of(StructurePoolElement.single("mycelialmind:nether_breach/magma_conduit", netherDegrade), 2)
+                ),
+                Projection.RIGID
+        ));
+        context.register(ModWorldgenKeys.NETHER_BREACH_WINGS, new StructureTemplatePool(
+                netherCaps,
+                List.of(
+                        Pair.of(StructurePoolElement.single("mycelialmind:nether_breach/pyro_barracks", netherDegrade), 3),
+                        Pair.of(StructurePoolElement.single("mycelialmind:nether_breach/watchtower_keep", netherDegrade), 2),
+                        Pair.of(StructurePoolElement.single("mycelialmind:nether_breach/magma_conduit", netherDegrade), 2)
+                ),
+                Projection.RIGID
+        ));
+        context.register(ModWorldgenKeys.NETHER_BREACH_START, new StructureTemplatePool(
+                empty,
+                List.of(Pair.of(StructurePoolElement.single("mycelialmind:nether_breach/breach_sanctum", netherDegrade), 1)),
+                Projection.RIGID
+        ));
+
+        Holder<StructureTemplatePool> endCaps = pools.getOrThrow(ModWorldgenKeys.END_SPIRE_CAPS);
+        context.register(ModWorldgenKeys.END_SPIRE_CAPS, new StructureTemplatePool(
+                empty,
+                List.of(Pair.of(StructurePoolElement.single("mycelialmind:end_spore_spire/spire_cap", endDegrade), 1)),
+                Projection.RIGID
+        ));
+        context.register(ModWorldgenKeys.END_SPIRE_BRIDGES, new StructureTemplatePool(
+                endCaps,
+                List.of(
+                        Pair.of(StructurePoolElement.single("mycelialmind:end_spore_spire/void_bridge", endDegrade), 4)
+                ),
+                Projection.RIGID
+        ));
+        context.register(ModWorldgenKeys.END_SPIRE_WINGS, new StructureTemplatePool(
+                endCaps,
+                List.of(
+                        Pair.of(StructurePoolElement.single("mycelialmind:end_spore_spire/resonance_observatory", endDegrade), 3),
+                        Pair.of(StructurePoolElement.single("mycelialmind:end_spore_spire/void_crypt", endDegrade), 2),
+                        Pair.of(StructurePoolElement.single("mycelialmind:end_spore_spire/purpur_bastion", endDegrade), 2)
+                ),
+                Projection.RIGID
+        ));
+        context.register(ModWorldgenKeys.END_SPIRE_START, new StructureTemplatePool(
+                empty,
+                List.of(Pair.of(StructurePoolElement.single("mycelialmind:end_spore_spire/spire_keep", endDegrade), 1)),
                 Projection.RIGID
         ));
     }
@@ -169,14 +280,24 @@ public final class MycelialStructureBootstrap {
                 new Structure.StructureSettings.Builder(biomes.getOrThrow(ModWorldgenKeys.HAS_NETHER_BREACH))
                         .generationStep(GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
                         .terrainAdapation(TerrainAdjustment.BEARD_THIN)
-                        .build()
+                        .build(),
+                pools.getOrThrow(ModWorldgenKeys.NETHER_BREACH_START),
+                4,
+                48,
+                new DimensionPadding(4, 14),
+                LiquidSettings.IGNORE_WATERLOGGING
         ));
 
         context.register(ModWorldgenKeys.END_SPORE_SPIRE, new EndSpireStructure(
                 new Structure.StructureSettings.Builder(biomes.getOrThrow(ModWorldgenKeys.HAS_END_SPIRE))
                         .generationStep(GenerationStep.Decoration.SURFACE_STRUCTURES)
                         .terrainAdapation(TerrainAdjustment.BEARD_THIN)
-                        .build()
+                        .build(),
+                pools.getOrThrow(ModWorldgenKeys.END_SPIRE_START),
+                4,
+                44,
+                DimensionPadding.ZERO,
+                LiquidSettings.IGNORE_WATERLOGGING
         ));
     }
 

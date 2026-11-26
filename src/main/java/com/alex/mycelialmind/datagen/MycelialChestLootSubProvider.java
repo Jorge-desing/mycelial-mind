@@ -63,6 +63,7 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
     public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
         generateCitadelTables(output);
         generateSanctumTables(output);
+        generateDimensionalBreachTables(output);
         generateOutbreakAndSinkholeTables(output);
         generateSurfaceHiveTables(output);
     }
@@ -232,6 +233,88 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
                         .add(entry(ModItems.NEUTRALIZING_SPORE_LAUNCHER.get(), 24))
                         .add(entry(ModItems.CHITIN_BOOTS.get(), 24))
                         .add(entry(Items.GOLDEN_APPLE, 24))));
+
+        output.accept(chest("sanctum_quarantine_cache"), LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .setRolls(UniformGenerator.between(2.0F, 3.0F))
+                        .add(entry(ModItems.MYCELIAL_BIOMASS.get(), 36, 4.0F, 8.0F))
+                        .add(entry(ModItems.CHITIN_PLATE.get(), 34, 3.0F, 5.0F))
+                        .add(entry(ModItems.LATENT_SPORE.get(), 30, 2.0F, 5.0F)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(UniformGenerator.between(1.0F, 2.0F))
+                        .add(entry(ModItems.CONCENTRATED_ANTIDOTE.get(), 32))
+                        .add(entry(ModItems.SPORE_ANTIDOTE.get(), 26, 2.0F, 4.0F))
+                        .add(entry(ModItems.PURIFIER_GRENADE.get(), 24, 2.0F, 3.0F))
+                        .add(traitSample(18, AdaptationTrait.BLAST_SHIELDED)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .add(entry(ModItems.SYNAPTIC_CORE.get(), 35))
+                        .add(entry(ModItems.NEURAL_ECHO_DECOY.get(), 35))
+                        .add(entry(ModItems.VOLATILE_ENGRAM.get(), 30)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .when(LootItemRandomChanceCondition.randomChance(0.40F))
+                        .add(fieldEngram(100, FieldEngramId.HOMEOSTASIS_TRAUMA))));
+    }
+
+    private static void generateDimensionalBreachTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
+        output.accept(chest("nether_breach_reliquary"), LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .setRolls(UniformGenerator.between(2.0F, 3.0F))
+                        .add(entry(ModItems.CHITIN_PLATE.get(), 34, 3.0F, 6.0F))
+                        .add(entry(Items.CRYING_OBSIDIAN, 26, 2.0F, 4.0F))
+                        .add(entry(Items.MAGMA_CREAM, 20, 2.0F, 4.0F))
+                        .add(entry(Items.BLAZE_POWDER, 20, 2.0F, 5.0F)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(UniformGenerator.between(1.0F, 2.0F))
+                        .add(entry(ModItems.CONCENTRATED_ANTIDOTE.get(), 28))
+                        .add(entry(ModItems.PURIFIER_GRENADE.get(), 26, 2.0F, 4.0F))
+                        .add(entry(ModItems.TRUCE_PHEROMONE.get(), 22, 1.0F, 2.0F))
+                        .add(traitSample(24, AdaptationTrait.FIRE_RESISTANT)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .add(entry(ModItems.SYNAPTIC_CORE.get(), 40, 1.0F, 2.0F))
+                        .add(entry(ModItems.NEURAL_ECHO_CORE.get(), 35))
+                        .add(entry(Items.GOLD_INGOT, 25, 4.0F, 8.0F)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .when(LootItemRandomChanceCondition.randomChance(0.35F))
+                        .add(entry(ModItems.ENZYME_LANCE.get(), 35))
+                        .add(entry(ModItems.SYMBIOTIC_BLADE.get(), 35))
+                        .add(entry(ModItems.CHITIN_CHESTPLATE.get(), 30)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .when(LootItemRandomChanceCondition.randomChance(0.45F))
+                        .add(fieldEngram(100, FieldEngramId.TIDE_PRESSURE))));
+
+        output.accept(chest("end_spire_vault"), LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .setRolls(UniformGenerator.between(2.0F, 3.0F))
+                        .add(entry(ModItems.CHITIN_PLATE.get(), 32, 3.0F, 6.0F))
+                        .add(entry(Items.AMETHYST_SHARD, 26, 3.0F, 6.0F))
+                        .add(entry(Items.ENDER_PEARL, 24, 2.0F, 4.0F))
+                        .add(entry(Items.CHORUS_FRUIT, 18, 2.0F, 5.0F)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(UniformGenerator.between(1.0F, 2.0F))
+                        .add(traitSample(28, AdaptationTrait.MAGIC_CARAPACE))
+                        .add(traitSample(24, AdaptationTrait.PROJECTILE_DEFLECT))
+                        .add(entry(ModItems.FALSE_ENGRAM_INJECTOR.get(), 24))
+                        .add(entry(ModItems.QUORUM_SEAL.get(), 24)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .add(entry(ModItems.NEURAL_ECHO_CORE.get(), 38))
+                        .add(entry(ModItems.SYNAPTIC_GRAFT.get(), 32))
+                        .add(entry(ModItems.SYNAPTIC_CORE.get(), 30, 1.0F, 2.0F)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .when(LootItemRandomChanceCondition.randomChance(0.35F))
+                        .add(entry(ModItems.CHIMERA_OVUM.get(), 36))
+                        .add(entry(Items.ECHO_SHARD, 34, 1.0F, 2.0F))
+                        .add(entry(Items.SHULKER_SHELL, 30, 1.0F, 2.0F)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .when(LootItemRandomChanceCondition.randomChance(0.45F))
+                        .add(fieldEngram(100, FieldEngramId.MIMIC_DECEPTION))));
     }
 
     private static void generateOutbreakAndSinkholeTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {

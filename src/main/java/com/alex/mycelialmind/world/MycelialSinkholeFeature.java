@@ -416,6 +416,20 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
             }
         }
 
+        // Secret cracked-stone Root Vault chest alcove in NE North Chamber (4, -31, -16) behind cracked bricks
+        safeSetBlock(level, origin.offset(3, -31, -16), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState());
+        safeSetBlock(level, origin.offset(3, -30, -16), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState());
+        safeSetBlock(level, origin.offset(4, -31, -15), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState());
+        safeSetBlock(level, origin.offset(4, -30, -15), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState());
+        safeSetBlock(level, origin.offset(4, -32, -16), stone);
+        BlockPos sapVaultPos = origin.offset(4, -31, -16);
+        if (safeSetBlock(level, sapVaultPos, Blocks.CHEST.defaultBlockState())
+                && level.getBlockEntity(sapVaultPos) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity sapChest) {
+            MycelialLootSystem.populateStructureChest(
+                    level, sapVaultPos, sapChest, MycelialLootSystem.SINKHOLE_ROOT_VAULT,
+                    random, com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(level), false);
+        }
+
         // Central Spore Updraft Vent at origin.below(30) sitting on arch-brick socket
         BlockPos ventPos = origin.below(30);
         safeSetBlock(level, ventPos.below(), archBrick);
