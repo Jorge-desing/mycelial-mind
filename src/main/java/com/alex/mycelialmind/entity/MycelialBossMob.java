@@ -1,5 +1,7 @@
 package com.alex.mycelialmind.entity;
 
+import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
+import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainProfile;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSignal;
@@ -678,5 +680,19 @@ public abstract class MycelialBossMob extends MycelialMob {
             }
         }
         return null;
+    }
+
+    @Override
+    public BrainActivityGroup<MycelialMob> getIdleTasks() {
+        return BrainActivityGroup.idleTasks(
+                new SetPlayerLookTarget<>(),
+                new Idle<MycelialMob>().runFor(mob -> 40)
+        );
+    }
+
+    protected static void assignBossPartIds(int baseId, MycelialBossPart... parts) {
+        for (int i = 0; i < parts.length; i++) {
+            parts[i].setId(baseId + i + 1);
+        }
     }
 }

@@ -42,6 +42,7 @@ import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.util.EnumBitmask;
 import com.alex.mycelialmind.world.ModDimensions;
 import com.alex.mycelialmind.world.MycelialLootSystem;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
@@ -639,14 +640,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     }
 
     public Set<HiveSynergy> getSynergies() {
-        EnumSet<HiveSynergy> synergies = EnumSet.noneOf(HiveSynergy.class);
-        int mask = getSynergyMask();
-        for (HiveSynergy synergy : HiveSynergy.values()) {
-            if ((mask & (1 << synergy.ordinal())) != 0) {
-                synergies.add(synergy);
-            }
-        }
-        return synergies;
+        return EnumBitmask.decode(HiveSynergy.class, getSynergyMask());
     }
 
     private static Set<AdaptationTrait> decodeTraits(int mask) {

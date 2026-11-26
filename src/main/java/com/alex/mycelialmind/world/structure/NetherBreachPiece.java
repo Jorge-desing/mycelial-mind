@@ -52,10 +52,7 @@ public class NetherBreachPiece extends StructurePiece {
 
     @Override
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
-        tag.putInt("CenterX", center.getX());
-        tag.putInt("CenterY", center.getY());
-        tag.putInt("CenterZ", center.getZ());
-        tag.putBoolean("SpawnedGuardians", spawnedGuardians);
+        StructurePieceSupport.saveCenterAndGuardians(tag, center, spawnedGuardians);
     }
 
     @Override

@@ -184,7 +184,7 @@ public record PostMatriarchExpeditionSyncPayload(
     }
 
     public static void syncSummaryToPlayer(ServerPlayer player) {
-        if (player != null && player.connection != null) PacketDistributor.sendToPlayer(player, forPlayer(player));
+        ModNetworking.sendToPlayerIfReady(player, () -> forPlayer(player));
     }
 
     public static void syncToAll(ServerLevel deepLevel) {

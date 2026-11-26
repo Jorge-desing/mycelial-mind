@@ -10,7 +10,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
@@ -138,10 +137,7 @@ public record DiscoverySyncPayload(
     }
 
     public static void syncToPlayer(ServerPlayer player) {
-        if (player == null || player.connection == null) {
-            return;
-        }
-        PacketDistributor.sendToPlayer(player, forPlayer(player));
+        ModNetworking.sendToPlayerIfReady(player, () -> forPlayer(player));
     }
 
     public static void handleOnClient(DiscoverySyncPayload payload, IPayloadContext context) {

@@ -1,26 +1,10 @@
 package com.alex.mycelialmind.entity.ai.brain.btree;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Fallback selector composite: tries children sequentially until one succeeds or keeps running.
  */
-public final class HiveBtSelector<T> extends HiveBtTask<T> {
-    private final List<HiveBtTask<T>> children = new ArrayList<>();
+public final class HiveBtSelector<T> extends HiveBtComposite<T, HiveBtSelector<T>> {
     private int currentChildIndex = 0;
-
-    public HiveBtSelector<T> addChild(HiveBtTask<T> child) {
-        if (child != null) {
-            this.children.add(child);
-        }
-        return this;
-    }
-
-    public List<HiveBtTask<T>> getChildren() {
-        return Collections.unmodifiableList(this.children);
-    }
 
     @Override
     protected void start(T blackboard) {
@@ -59,9 +43,7 @@ public final class HiveBtSelector<T> extends HiveBtTask<T> {
     @Override
     public void reset() {
         this.currentChildIndex = 0;
-        for (int i = 0, size = this.children.size(); i < size; i++) {
-            this.children.get(i).reset();
-        }
+        resetChildren();
         super.reset();
     }
 }

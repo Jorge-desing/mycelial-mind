@@ -11,6 +11,7 @@ import com.alex.mycelialmind.hive.PlayerHabit;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModEffects;
+import com.alex.mycelialmind.util.EnumBitmask;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
@@ -29,7 +30,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -723,19 +723,11 @@ public record HiveSyncPayload(
     }
 
     public static int encodeTraits(Set<AdaptationTrait> traits) {
-        int mask = 0;
-        for (AdaptationTrait trait : traits) {
-            mask |= (1 << trait.ordinal());
-        }
-        return mask;
+        return EnumBitmask.encode(traits);
     }
 
     public static int encodeSynergies(Set<HiveSynergy> synergies) {
-        int mask = 0;
-        for (HiveSynergy synergy : synergies) {
-            mask |= (1 << synergy.ordinal());
-        }
-        return mask;
+        return EnumBitmask.encode(synergies);
     }
 
     public Set<AdaptationTrait> decodeTraits() {
@@ -747,13 +739,7 @@ public record HiveSyncPayload(
     }
 
     public Set<HiveSynergy> decodeSynergies() {
-        EnumSet<HiveSynergy> synergies = EnumSet.noneOf(HiveSynergy.class);
-        for (HiveSynergy synergy : HiveSynergy.values()) {
-            if ((synergyMask & (1 << synergy.ordinal())) != 0) {
-                synergies.add(synergy);
-            }
-        }
-        return synergies;
+        return EnumBitmask.decode(HiveSynergy.class, synergyMask);
     }
 
     @Override

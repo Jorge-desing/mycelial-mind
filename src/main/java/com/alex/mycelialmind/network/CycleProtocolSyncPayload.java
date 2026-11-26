@@ -96,10 +96,7 @@ public record CycleProtocolSyncPayload(
     }
 
     public static void syncToPlayer(ServerPlayer player, boolean openScreen) {
-        if (player == null || player.connection == null) {
-            return;
-        }
-        PacketDistributor.sendToPlayer(player, forLevel(player.serverLevel(), openScreen));
+        ModNetworking.sendToPlayerIfReady(player, () -> forLevel(player.serverLevel(), openScreen));
     }
 
     public static void syncToAll(ServerLevel level) {

@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.symbiosis;
 
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.util.EnumBitmask;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -55,11 +56,7 @@ public class PlayerSymbiosisData implements INBTSerializable<CompoundTag> {
 
     public int encodeMask() {
         normalizeSlotLimit();
-        int mask = 0;
-        for (SymbioticMutagen mutagen : equippedMutagens) {
-            mask |= (1 << mutagen.ordinal());
-        }
-        return mask;
+        return EnumBitmask.encode(equippedMutagens);
     }
 
     public double getThreatAmplifier() {

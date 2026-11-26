@@ -1,5 +1,7 @@
 package com.alex.mycelialmind.hive;
 
+import com.alex.mycelialmind.util.EnumBitmask;
+
 import java.util.EnumSet;
 
 /**
@@ -35,12 +37,6 @@ public enum AdaptationTrait {
     }
 
     public static EnumSet<AdaptationTrait> decodeMask(int mask) {
-        EnumSet<AdaptationTrait> traits = EnumSet.noneOf(AdaptationTrait.class);
-        for (AdaptationTrait trait : values()) {
-            if ((mask & (1 << trait.ordinal())) != 0) {
-                traits.add(trait);
-            }
-        }
-        return traits;
+        return EnumBitmask.decode(AdaptationTrait.class, mask);
     }
 }

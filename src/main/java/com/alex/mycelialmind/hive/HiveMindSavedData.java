@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.hive;
 
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.util.EnumBitmask;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -2003,36 +2004,20 @@ public class HiveMindSavedData extends SavedData {
     }
 
     private static int encodeTraitMask(Set<AdaptationTrait> traits) {
-        int mask = 0;
-        for (AdaptationTrait trait : traits) {
-            mask |= 1 << trait.ordinal();
-        }
-        return mask;
+        return EnumBitmask.encode(traits);
     }
 
     private static void decodeTraitMask(int mask, EnumSet<AdaptationTrait> traits) {
         traits.clear();
-        for (AdaptationTrait trait : AdaptationTrait.values()) {
-            if ((mask & (1 << trait.ordinal())) != 0) {
-                traits.add(trait);
-            }
-        }
+        traits.addAll(EnumBitmask.decode(AdaptationTrait.class, mask));
     }
 
     private static int encodeSynergyMask(Set<HiveSynergy> synergies) {
-        int mask = 0;
-        for (HiveSynergy synergy : synergies) {
-            mask |= 1 << synergy.ordinal();
-        }
-        return mask;
+        return EnumBitmask.encode(synergies);
     }
 
     private static void decodeSynergyMask(int mask, EnumSet<HiveSynergy> synergies) {
         synergies.clear();
-        for (HiveSynergy synergy : HiveSynergy.values()) {
-            if ((mask & (1 << synergy.ordinal())) != 0) {
-                synergies.add(synergy);
-            }
-        }
+        synergies.addAll(EnumBitmask.decode(HiveSynergy.class, mask));
     }
 }

@@ -59,15 +59,9 @@ public class SymbiontHarvesterGoal extends Goal {
 
     @Override
     public void stop() {
-        if (activeOrder != null && worker.level() instanceof ServerLevel level) {
-            SovereignColonyData colony = worker.getColonyData(level);
-            if (colony != null) {
-                colony.getOrderBoard().releaseWorkerReservations(worker.getUUID());
-            }
-        }
+        ColonyGoalSupport.releaseOrderReservationAndReset(worker, activeOrder != null);
         activeOrder = null;
         depositing = false;
-        worker.setTaskState("idle");
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.symbiosis.PlayerSymbiosisData;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
+import com.alex.mycelialmind.util.EnumBitmask;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -12,10 +13,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -41,20 +40,11 @@ public record SymbiosisSyncPayload(int mutagenMask, int infectionLevel) implemen
     }
 
     public static void syncToPlayer(ServerPlayer player) {
-        if (player == null || player.connection == null) {
-            return;
-        }
-        PacketDistributor.sendToPlayer(player, forPlayer(player));
+        ModNetworking.sendToPlayerIfReady(player, () -> forPlayer(player));
     }
 
     public Set<SymbioticMutagen> decodeMutagens() {
-        EnumSet<SymbioticMutagen> set = EnumSet.noneOf(SymbioticMutagen.class);
-        for (SymbioticMutagen m : SymbioticMutagen.values()) {
-            if ((mutagenMask & (1 << m.ordinal())) != 0) {
-                set.add(m);
-            }
-        }
-        return set;
+        return EnumBitmask.decode(SymbioticMutagen.class, mutagenMask);
     }
 
     @Override

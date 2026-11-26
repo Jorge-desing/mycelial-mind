@@ -1,29 +1,14 @@
 package com.alex.mycelialmind.entity.ai.brain.btree;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Reactive selector that re-evaluates child guards in priority order on every tick,
  * immediately cancelling a running child when a higher-priority branch becomes valid.
  */
-public final class HiveBtDynamicGuardSelector<T> extends HiveBtTask<T> {
-    private final List<HiveBtTask<T>> children = new ArrayList<>();
+public final class HiveBtDynamicGuardSelector<T> extends HiveBtComposite<T, HiveBtDynamicGuardSelector<T>> {
     @Nullable
     private HiveBtTask<T> runningChild;
-
-    public HiveBtDynamicGuardSelector<T> addChild(HiveBtTask<T> child) {
-        if (child != null) {
-            this.children.add(child);
-        }
-        return this;
-    }
-
-    public List<HiveBtTask<T>> getChildren() {
-        return Collections.unmodifiableList(this.children);
-    }
 
     @Override
     protected HiveBtStatus run(T blackboard) {
@@ -66,9 +51,7 @@ public final class HiveBtDynamicGuardSelector<T> extends HiveBtTask<T> {
     @Override
     public void reset() {
         this.runningChild = null;
-        for (int i = 0, size = this.children.size(); i < size; i++) {
-            this.children.get(i).reset();
-        }
+        resetChildren();
         super.reset();
     }
 }

@@ -1,15 +1,29 @@
 package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.MycelialMind;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 /**
  * Registers custom network payloads for Mycelial Mind.
  */
 public final class ModNetworking {
     private ModNetworking() {
+    }
+
+    public static void sendToPlayerIfReady(
+            @Nullable ServerPlayer player, Supplier<? extends CustomPacketPayload> payloadSupplier) {
+        if (player == null || player.connection == null) {
+            return;
+        }
+        PacketDistributor.sendToPlayer(player, payloadSupplier.get());
     }
 
     public static void register(IEventBus modEventBus) {

@@ -6,11 +6,15 @@ import com.mojang.serialization.Dynamic;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.schedule.Activity;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
@@ -41,6 +45,14 @@ public final class HiveBrainFactory {
 
     public static int getCachedMemoryClassCount() {
         return MEMORY_CACHE.size();
+    }
+
+    public static PathNavigation createDefaultFlyingNavigation(Mob mob, Level level) {
+        FlyingPathNavigation nav = new FlyingPathNavigation(mob, level);
+        nav.setCanOpenDoors(false);
+        nav.setCanFloat(true);
+        nav.setCanPassDoors(true);
+        return nav;
     }
 
     public static <E extends LivingEntity & HiveBrainOwner<E>> Brain.Provider<E> createProvider(E owner) {

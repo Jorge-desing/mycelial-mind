@@ -1,11 +1,9 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
-import com.alex.mycelialmind.entity.ai.brain.behaviour.Idle;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.InvalidateAttackTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.LookAtTarget;
 import com.alex.mycelialmind.entity.ai.brain.behaviour.ReactToUnreachableTarget;
-import com.alex.mycelialmind.entity.ai.brain.behaviour.SetPlayerLookTarget;
 import com.alex.mycelialmind.entity.ai.brain.core.BrainActivityGroup;
 import com.alex.mycelialmind.entity.ai.brain.core.CustomBehaviour;
 import com.alex.mycelialmind.entity.ai.brain.core.DelayedBehaviour;
@@ -162,9 +160,7 @@ public class ApexMatriarchEntity extends MycelialBossMob {
     @Override
     public void setId(int id) {
         super.setId(id);
-        for (int i = 0; i < this.bossParts.length; i++) {
-            this.bossParts[i].setId(id + i + 1);
-        }
+        assignBossPartIds(id, this.bossParts);
     }
 
     @Override
@@ -236,14 +232,6 @@ public class ApexMatriarchEntity extends MycelialBossMob {
                 new LookAtTarget<>(),
                 multiPlayerAwareness,
                 projectileFlare
-        );
-    }
-
-    @Override
-    public BrainActivityGroup<MycelialMob> getIdleTasks() {
-        return BrainActivityGroup.idleTasks(
-                new SetPlayerLookTarget<>(),
-                new Idle<MycelialMob>().runFor(mob -> 40)
         );
     }
 

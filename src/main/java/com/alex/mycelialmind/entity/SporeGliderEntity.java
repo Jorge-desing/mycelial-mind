@@ -36,7 +36,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
@@ -184,11 +183,7 @@ public class SporeGliderEntity extends PathfinderMob implements HiveBrainOwner<S
 
     @Override
     protected PathNavigation createNavigation(Level level) {
-        FlyingPathNavigation nav = new FlyingPathNavigation(this, level);
-        nav.setCanOpenDoors(false);
-        nav.setCanFloat(true);
-        nav.setCanPassDoors(true);
-        return nav;
+        return HiveBrainFactory.createDefaultFlyingNavigation(this, level);
     }
 
     @Override

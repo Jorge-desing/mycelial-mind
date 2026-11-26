@@ -1,26 +1,10 @@
 package com.alex.mycelialmind.entity.ai.brain.btree;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Sequential composite: executes children in order until all succeed or one fails.
  */
-public final class HiveBtSequence<T> extends HiveBtTask<T> {
-    private final List<HiveBtTask<T>> children = new ArrayList<>();
+public final class HiveBtSequence<T> extends HiveBtComposite<T, HiveBtSequence<T>> {
     private int currentChildIndex = 0;
-
-    public HiveBtSequence<T> addChild(HiveBtTask<T> child) {
-        if (child != null) {
-            this.children.add(child);
-        }
-        return this;
-    }
-
-    public List<HiveBtTask<T>> getChildren() {
-        return Collections.unmodifiableList(this.children);
-    }
 
     @Override
     protected void start(T blackboard) {
@@ -60,9 +44,7 @@ public final class HiveBtSequence<T> extends HiveBtTask<T> {
     @Override
     public void reset() {
         this.currentChildIndex = 0;
-        for (int i = 0, size = this.children.size(); i < size; i++) {
-            this.children.get(i).reset();
-        }
+        resetChildren();
         super.reset();
     }
 }

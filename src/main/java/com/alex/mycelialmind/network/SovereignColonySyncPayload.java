@@ -356,10 +356,7 @@ public record SovereignColonySyncPayload(
     }
 
     public static void syncToPlayer(ServerPlayer player, @Nullable BlockPos nexusPos, boolean openScreen) {
-        if (player == null || player.connection == null) {
-            return;
-        }
-        PacketDistributor.sendToPlayer(player, forNexus(player.serverLevel(), nexusPos, openScreen));
+        ModNetworking.sendToPlayerIfReady(player, () -> forNexus(player.serverLevel(), nexusPos, openScreen));
     }
 
     public static void handleOnClient(SovereignColonySyncPayload payload, IPayloadContext context) {

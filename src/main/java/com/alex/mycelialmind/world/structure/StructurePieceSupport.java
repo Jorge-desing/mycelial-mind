@@ -3,6 +3,7 @@ package com.alex.mycelialmind.world.structure;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,5 +27,12 @@ public final class StructurePieceSupport {
         if (box.isInside(pos) && level.getLevel() instanceof ServerLevel serverLevel) {
             PurificationZoneTracker.get(serverLevel).addNode(pos, type);
         }
+    }
+
+    public static void saveCenterAndGuardians(CompoundTag tag, BlockPos center, boolean spawnedGuardians) {
+        tag.putInt("CenterX", center.getX());
+        tag.putInt("CenterY", center.getY());
+        tag.putInt("CenterZ", center.getZ());
+        tag.putBoolean("SpawnedGuardians", spawnedGuardians);
     }
 }
