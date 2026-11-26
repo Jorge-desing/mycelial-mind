@@ -12,25 +12,11 @@ from typing import Any
 import numpy as np
 from scipy import signal
 
-try:
-    from .cuda_dsp import (
-        gpu_fftconvolve_1d as _gpu_fftconvolve_1d,
-        gpu_harmonic_sum as _gpu_harmonic_sum,
-        gpu_spectral_noise as _gpu_spectral_noise,
-    )
-except ImportError:
-    try:
-        from cuda_dsp import (
-            gpu_fftconvolve_1d as _gpu_fftconvolve_1d,
-            gpu_harmonic_sum as _gpu_harmonic_sum,
-            gpu_spectral_noise as _gpu_spectral_noise,
-        )
-    except ImportError:
-        from sound_studio.cuda_dsp import (
-            gpu_fftconvolve_1d as _gpu_fftconvolve_1d,
-            gpu_harmonic_sum as _gpu_harmonic_sum,
-            gpu_spectral_noise as _gpu_spectral_noise,
-        )
+from ._cuda_compat import cuda_dsp as _cuda
+
+_gpu_fftconvolve_1d = _cuda.gpu_fftconvolve_1d
+_gpu_harmonic_sum = _cuda.gpu_harmonic_sum
+_gpu_spectral_noise = _cuda.gpu_spectral_noise
 
 SAMPLE_RATE = 44100
 VORBIS_QUALITY = "4"

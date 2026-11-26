@@ -27,8 +27,7 @@ if (-not $text.Contains($filter)) {
     $text = $text.Replace($needle, "$needle`n$filter")
     [System.IO.File]::WriteAllText($settings, $text, [System.Text.UTF8Encoding]::new($false))
 }
-$env:JAVA_HOME = 'C:\Program Files\Java\jdk-21'
-$env:GRADLE_OPTS = '-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT'
+. (Join-Path $PSScriptRoot 'Resolve-Jdk21.ps1')
 Push-Location (Join-Path $sourcePath 'client-mod')
 try {
     & .\gradlew.bat :version-1.21.1-neoforge:build --no-daemon --max-workers=2

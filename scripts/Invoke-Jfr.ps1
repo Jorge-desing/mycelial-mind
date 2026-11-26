@@ -5,7 +5,8 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
-$jcmd = Join-Path 'C:\Program Files\Java\jdk-21' 'bin\jcmd.exe'
+. (Join-Path $PSScriptRoot 'Resolve-Jdk21.ps1')
+$jcmd = Join-Path $script:ResolvedJavaHome 'bin\jcmd.exe'
 if (!(Test-Path $jcmd)) { throw 'JDK 21 jcmd not found.' }
 
 function Get-DiagnosticsDirectory {

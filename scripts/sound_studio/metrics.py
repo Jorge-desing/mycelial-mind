@@ -304,22 +304,10 @@ def audit_spectral_masking(manifest_entries: list[dict[str, Any]]) -> dict[str, 
         "layer_bark_averages": layer_barks,
     }
 
-try:
-    from .cuda_dsp import (
-        gpu_analyze_event_variations as _gpu_analyze_event_variations,
-        gpu_max_pairwise_correlation as _gpu_max_pairwise_correlation,
-    )
-except ImportError:
-    try:
-        from cuda_dsp import (
-            gpu_analyze_event_variations as _gpu_analyze_event_variations,
-            gpu_max_pairwise_correlation as _gpu_max_pairwise_correlation,
-        )
-    except ImportError:
-        from sound_studio.cuda_dsp import (
-            gpu_analyze_event_variations as _gpu_analyze_event_variations,
-            gpu_max_pairwise_correlation as _gpu_max_pairwise_correlation,
-        )
+from ._cuda_compat import cuda_dsp as _cuda
+
+_gpu_analyze_event_variations = _cuda.gpu_analyze_event_variations
+_gpu_max_pairwise_correlation = _cuda.gpu_max_pairwise_correlation
 
 
 def decode_ogg_to_float(ogg_path: Path, ffmpeg_exe: str | None = None) -> np.ndarray:

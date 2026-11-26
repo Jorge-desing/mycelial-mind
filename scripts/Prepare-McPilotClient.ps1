@@ -12,8 +12,7 @@ $client = @($state.data.clients | Where-Object { $_.name -eq $ClientName })
 if ($client.Count -ne 1 -or $client[0].loader -ne 'neoforge' -or $client[0].mcVersion -ne '1.21.1') { throw 'Expected one existing NeoForge 1.21.1 client.' }
 if ($client[0].running) { throw 'Stop the client before replacing its JARs.' }
 if (@(Get-NetTCPConnection -LocalPort ([int]$client[0].wsPort) -State Listen -ErrorAction SilentlyContinue).Count -gt 0) { throw 'Client port is still in use; no files changed.' }
-$env:JAVA_HOME = 'C:\Program Files\Java\jdk-21'
-$env:GRADLE_OPTS = '-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT'
+. (Join-Path $PSScriptRoot 'Resolve-Jdk21.ps1')
 Push-Location $root
 try {
     & .\gradlew.bat build

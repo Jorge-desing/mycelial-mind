@@ -24,25 +24,11 @@ from scipy import signal
 
 from scripts.sound_studio.ir_bank import ensure_ir_bank, select_ir_space
 
-try:
-    from .cuda_dsp import (
-        gpu_ir_convolve as _gpu_ir_convolve,
-        is_cuda_available as _is_cuda_available,
-        preload_ir_bank_gpu as _preload_ir_bank_gpu,
-    )
-except ImportError:
-    try:
-        from cuda_dsp import (
-            gpu_ir_convolve as _gpu_ir_convolve,
-            is_cuda_available as _is_cuda_available,
-            preload_ir_bank_gpu as _preload_ir_bank_gpu,
-        )
-    except ImportError:
-        from sound_studio.cuda_dsp import (
-            gpu_ir_convolve as _gpu_ir_convolve,
-            is_cuda_available as _is_cuda_available,
-            preload_ir_bank_gpu as _preload_ir_bank_gpu,
-        )
+from ._cuda_compat import cuda_dsp as _cuda
+
+_gpu_ir_convolve = _cuda.gpu_ir_convolve
+_is_cuda_available = _cuda.is_cuda_available
+_preload_ir_bank_gpu = _cuda.preload_ir_bank_gpu
 
 SAMPLE_RATE = 44100
 TRUE_PEAK_CEILING = 0.94

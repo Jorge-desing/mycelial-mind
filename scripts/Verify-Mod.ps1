@@ -15,14 +15,7 @@ if ($IncludeWorldgenAudit) {
 $ErrorActionPreference = "Stop"
 $totalTimer = [System.Diagnostics.Stopwatch]::StartNew()
 
-$preferredJavaHome = "C:\Program Files\Java\jdk-21"
-if (-not (Test-Path $preferredJavaHome)) {
-    $preferredJavaHome = "C:\Program Files\Java\graalvm-jdk-21.0.7+8.1"
-}
-if (Test-Path $preferredJavaHome) {
-    $env:JAVA_HOME = $preferredJavaHome
-}
-$env:GRADLE_OPTS = "-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT"
+. (Join-Path $PSScriptRoot 'Resolve-Jdk21.ps1')
 
 $resolvedPythonExe = (& python -c "import sys; print(sys.executable)" 2>$null)
 if (-not $resolvedPythonExe -or -not (Test-Path $resolvedPythonExe)) {

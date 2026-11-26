@@ -27,25 +27,11 @@ import wave
 import numpy as np
 from scipy import ndimage, signal
 
-try:
-    from .cuda_dsp import (
-        gpu_blend_ai_stem as _gpu_blend_ai_stem,
-        gpu_dualband_blend_shape as _gpu_dualband_blend_shape,
-        preload_ai_stems_gpu as _preload_ai_stems_gpu,
-    )
-except ImportError:
-    try:
-        from cuda_dsp import (
-            gpu_blend_ai_stem as _gpu_blend_ai_stem,
-            gpu_dualband_blend_shape as _gpu_dualband_blend_shape,
-            preload_ai_stems_gpu as _preload_ai_stems_gpu,
-        )
-    except ImportError:
-        from sound_studio.cuda_dsp import (
-            gpu_blend_ai_stem as _gpu_blend_ai_stem,
-            gpu_dualband_blend_shape as _gpu_dualband_blend_shape,
-            preload_ai_stems_gpu as _preload_ai_stems_gpu,
-        )
+from ._cuda_compat import cuda_dsp as _cuda
+
+_gpu_blend_ai_stem = _cuda.gpu_blend_ai_stem
+_gpu_dualband_blend_shape = _cuda.gpu_dualband_blend_shape
+_preload_ai_stems_gpu = _cuda.preload_ai_stems_gpu
 
 SAMPLE_RATE = 44100
 AI_STEMS_DIR = Path(__file__).resolve().parent / "ai_stems"

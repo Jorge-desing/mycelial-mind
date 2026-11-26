@@ -12,13 +12,9 @@ from __future__ import annotations
 
 import numpy as np
 
-try:
-    from .cuda_dsp import gpu_harmonic_sum as _gpu_harmonic_sum
-except ImportError:
-    try:
-        from cuda_dsp import gpu_harmonic_sum as _gpu_harmonic_sum
-    except ImportError:
-        from sound_studio.cuda_dsp import gpu_harmonic_sum as _gpu_harmonic_sum
+from ._cuda_compat import cuda_dsp as _cuda
+
+_gpu_harmonic_sum = _cuda.gpu_harmonic_sum
 
 from scripts.sound_studio.block_synth import (
     _bounce_train,
