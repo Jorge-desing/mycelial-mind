@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 58291403,
+    "separation": 14,
+    "spacing": 28
+  },
+  "structures": [
+    {
+      "structure": "mycelialmind:nether_mycelial_breach",
+      "weight": 1
+    }
+  ]
+}

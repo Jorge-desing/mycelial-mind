@@ -143,12 +143,13 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
                     }
                 } else {
                     boolean outerBiomeBlend = dist > 7.2D;
-                    safeSetBlock(level, floorPos, random.nextFloat() < 0.72F ? mycelium : stone);
+                    boolean slopedRim = Math.abs(floorPos.getY() - (origin.getY() - 1)) >= 1;
+                    safeSetBlock(level, floorPos, random.nextFloat() < 0.72F ? mycelium : (slopedRim ? biomePalette.trimStone() : stone));
                     TerrainPlacementPolicy.anchorOrganicFoundation(
                             level,
                             floorPos.below(),
                             dist <= 8.0D ? 6 : 4,
-                            outerBiomeBlend ? biomePalette.outerSubFoundation() : stone,
+                            (outerBiomeBlend || slopedRim) ? biomePalette.outerSubFoundation() : stone,
                             outerBiomeBlend ? biomePalette.rimAccent() : null,
                             pos -> isSafeToOverwrite(level, pos)
                     );

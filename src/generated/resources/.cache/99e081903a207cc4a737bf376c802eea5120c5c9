@@ -1,4 +1,6 @@
-// 1.21.1	2026-11-24T23:35:08.3260474	Tags for minecraft:worldgen/biome mod id mycelialmind
+// 1.21.1	2026-11-26T02:45:54.7501867	Tags for minecraft:worldgen/biome mod id mycelialmind
+91b0eb2c9a1bca9eaa7aeb065cf6566cc9ef4ef6 data/mycelialmind/tags/worldgen/biome/has_structure/end_spore_spire.json
 0b38eaefee0198be6d6469d84eae073ca9c8d6b5 data/mycelialmind/tags/worldgen/biome/has_structure/matriarch_citadel.json
+a24545b58f3f91c6c033586e2b2ae12f1e8131b1 data/mycelialmind/tags/worldgen/biome/has_structure/nether_mycelial_breach.json
 d3be4299b2c91838176bec145f038791dd61059d data/mycelialmind/tags/worldgen/biome/has_structure/twisted_citadel.json
 c03d56649819c6d5a6998a7df62fe82e1cec0c62 data/mycelialmind/tags/worldgen/biome/surface_excluded.json

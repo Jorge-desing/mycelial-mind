@@ -51,7 +51,7 @@ public class TwistedCitadelPiece extends StructurePiece {
     public TwistedCitadelPiece(BlockPos center) {
         super(ModStructures.TWISTED_CITADEL_PIECE.get(), 0, new BoundingBox(
                 center.getX() - RADIUS, center.getY() - 12, center.getZ() - RADIUS,
-                center.getX() + RADIUS, center.getY() + HEIGHT, center.getZ() + RADIUS
+                center.getX() + RADIUS, center.getY() + 24, center.getZ() + RADIUS
         ));
         this.center = center.immutable();
     }
@@ -123,32 +123,38 @@ public class TwistedCitadelPiece extends StructurePiece {
             int wingHalfX = wingTpl.getSize().getX() / 2;
             int wingHalfZ = wingTpl.getSize().getZ() / 2;
 
-            // West wing centered at (-15, 0, 0)
-            BlockPos westCenter = center.offset(-15, 0, 0);
+            // West wing centered at (-15, deltaY, 0)
+            BlockPos westProbe = center.offset(-15, 0, 0);
+            int westDy = probeWingDeltaY(level, westProbe);
+            BlockPos westCenter = westProbe.offset(0, westDy, 0);
             BlockPos westOrigin = westCenter.offset(-wingHalfX, 0, -wingHalfZ);
             clearInteriorIfNeeded(level, box, westOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getY(), wingTpl.getSize().getZ());
             wingTpl.placeInWorld(level, westOrigin, westOrigin, settings, random, 2);
             groundTemplateCorners(level, box, westOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getZ(), palette);
             placeWalkwayBridgeX(level, box, center.getX() - 15 + wingHalfX - 1, center.getX() - centerHalfX + 1,
-                    center.getY(), center.getZ(), palette);
+                    westCenter.getY(), center.getY(), center.getZ(), palette);
 
-            // East wing centered at (+15, 0, 0)
-            BlockPos eastCenter = center.offset(15, 0, 0);
+            // East wing centered at (+15, deltaY, 0)
+            BlockPos eastProbe = center.offset(15, 0, 0);
+            int eastDy = probeWingDeltaY(level, eastProbe);
+            BlockPos eastCenter = eastProbe.offset(0, eastDy, 0);
             BlockPos eastOrigin = eastCenter.offset(-wingHalfX, 0, -wingHalfZ);
             clearInteriorIfNeeded(level, box, eastOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getY(), wingTpl.getSize().getZ());
             wingTpl.placeInWorld(level, eastOrigin, eastOrigin, settings, random, 2);
             groundTemplateCorners(level, box, eastOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getZ(), palette);
             placeWalkwayBridgeX(level, box, center.getX() + centerHalfX - 1, center.getX() + 15 - wingHalfX + 1,
-                    center.getY(), center.getZ(), palette);
+                    center.getY(), eastCenter.getY(), center.getZ(), palette);
 
             if (proportion == ArchitecturalProportion.TOWER_SPIRE) {
-                BlockPos northCenter = center.offset(0, 0, -15);
+                BlockPos northProbe = center.offset(0, 0, -15);
+                int northDy = probeWingDeltaY(level, northProbe);
+                BlockPos northCenter = northProbe.offset(0, northDy, 0);
                 BlockPos northOrigin = northCenter.offset(-wingHalfX, 0, -wingHalfZ);
                 clearInteriorIfNeeded(level, box, northOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getY(), wingTpl.getSize().getZ());
                 wingTpl.placeInWorld(level, northOrigin, northOrigin, settings, random, 2);
                 groundTemplateCorners(level, box, northOrigin, wingTpl.getSize().getX(), wingTpl.getSize().getZ(), palette);
                 placeWalkwayBridgeZ(level, box, center.getZ() - 15 + wingHalfZ - 1, center.getZ() - centerHalfZ + 1,
-                        center.getY(), center.getX(), palette);
+                        northCenter.getY(), center.getY(), center.getX(), palette);
             }
         }
 
@@ -232,31 +238,61 @@ public class TwistedCitadelPiece extends StructurePiece {
         }
     }
 
+    private static int probeWingDeltaY(WorldGenLevel level, BlockPos wingProbe) {
+        for (int step = 0; step <= 4; step++) {
+            int[] candidates = step == 0 ? new int[]{0} : new int[]{-step, step};
+            for (int dy : candidates) {
+                BlockPos floorProbe = wingProbe.offset(0, dy - 1, 0);
+                BlockPos headProbe = wingProbe.offset(0, dy, 0);
+                if (!level.isOutsideBuildHeight(floorProbe)
+                        && !level.isOutsideBuildHeight(headProbe)
+                        && level.getFluidState(floorProbe).isEmpty()
+                        && level.getBlockState(floorProbe).isSolid()
+                        && level.getBlockState(headProbe).isAir()) {
+                    return dy;
+                }
+            }
+        }
+        return 0;
+    }
+
     private static void placeWalkwayBridgeX(
             WorldGenLevel level,
             BoundingBox box,
             int minX,
             int maxX,
-            int y,
+            int minEndY,
+            int maxEndY,
             int centerZ,
             ResolvedPalette palette
     ) {
         int lo = Math.min(minX, maxX);
         int hi = Math.max(minX, maxX);
+        int startY = (minX <= maxX) ? minEndY : maxEndY;
+        int endY = (minX <= maxX) ? maxEndY : minEndY;
+        int span = Math.max(1, hi - lo);
         BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
         BlockPos startTop = null;
         BlockPos endTop = null;
+        int prevY = startY;
         for (int x = lo; x <= hi; x++) {
+            double t = (double) (x - lo) / (double) span;
+            int y = (int) Math.round(startY + (endY - startY) * t);
+            int stepLoY = Math.min(prevY, y);
+            int stepHiY = Math.max(prevY, y);
             for (int dz = -1; dz <= 1; dz++) {
-                BlockPos floor = new BlockPos(x, y, centerZ + dz);
-                if (box.isInside(floor)) {
-                    level.setBlock(floor, (dz == 0 && Math.floorMod(x, 2) == 0) ? mycelium : palette.primaryWall(), 2);
-                }
-                if (dz == 0 && box.isInside(floor.above())) {
-                    if (startTop == null) {
-                        startTop = floor.above();
+                for (int sy = stepLoY; sy <= stepHiY; sy++) {
+                    BlockPos floor = new BlockPos(x, sy, centerZ + dz);
+                    if (box.isInside(floor)) {
+                        boolean top = sy == y;
+                        level.setBlock(floor, (top && dz == 0 && Math.floorMod(x, 2) == 0) ? mycelium : palette.primaryWall(), 2);
                     }
-                    endTop = floor.above();
+                }
+                if (dz == 0 && box.isInside(new BlockPos(x, y + 1, centerZ))) {
+                    if (startTop == null) {
+                        startTop = new BlockPos(x, y + 1, centerZ);
+                    }
+                    endTop = new BlockPos(x, y + 1, centerZ);
                 }
             }
             for (int wallZ : new int[]{-1, 1}) {
@@ -265,10 +301,12 @@ public class TwistedCitadelPiece extends StructurePiece {
                     level.setBlock(parapet, palette.wallOrFence(), 2);
                 }
             }
+            prevY = y;
         }
         if (startTop != null && endTop != null && !startTop.equals(endTop)) {
             int midX = (lo + hi) / 2;
-            anchorBridgePier(level, box, midX, y, centerZ, palette);
+            int midY = (startY + endY) / 2;
+            anchorBridgePier(level, box, midX, midY, centerZ, palette);
             int nodes = Math.max(4, Math.min(24, (hi - lo) + 2));
             HyphalVeinEntity strand = new HyphalVeinEntity(level.getLevel(), startTop, endTop, nodes, true, 0.80F);
             strand.setStrengthFloor(3);
@@ -281,26 +319,38 @@ public class TwistedCitadelPiece extends StructurePiece {
             BoundingBox box,
             int minZ,
             int maxZ,
-            int y,
+            int minEndY,
+            int maxEndY,
             int centerX,
             ResolvedPalette palette
     ) {
         int lo = Math.min(minZ, maxZ);
         int hi = Math.max(minZ, maxZ);
+        int startY = (minZ <= maxZ) ? minEndY : maxEndY;
+        int endY = (minZ <= maxZ) ? maxEndY : minEndY;
+        int span = Math.max(1, hi - lo);
         BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
         BlockPos startTop = null;
         BlockPos endTop = null;
+        int prevY = startY;
         for (int z = lo; z <= hi; z++) {
+            double t = (double) (z - lo) / (double) span;
+            int y = (int) Math.round(startY + (endY - startY) * t);
+            int stepLoY = Math.min(prevY, y);
+            int stepHiY = Math.max(prevY, y);
             for (int dx = -1; dx <= 1; dx++) {
-                BlockPos floor = new BlockPos(centerX + dx, y, z);
-                if (box.isInside(floor)) {
-                    level.setBlock(floor, (dx == 0 && Math.floorMod(z, 2) == 0) ? mycelium : palette.primaryWall(), 2);
-                }
-                if (dx == 0 && box.isInside(floor.above())) {
-                    if (startTop == null) {
-                        startTop = floor.above();
+                for (int sy = stepLoY; sy <= stepHiY; sy++) {
+                    BlockPos floor = new BlockPos(centerX + dx, sy, z);
+                    if (box.isInside(floor)) {
+                        boolean top = sy == y;
+                        level.setBlock(floor, (top && dx == 0 && Math.floorMod(z, 2) == 0) ? mycelium : palette.primaryWall(), 2);
                     }
-                    endTop = floor.above();
+                }
+                if (dx == 0 && box.isInside(new BlockPos(centerX, y + 1, z))) {
+                    if (startTop == null) {
+                        startTop = new BlockPos(centerX, y + 1, z);
+                    }
+                    endTop = new BlockPos(centerX, y + 1, z);
                 }
             }
             for (int wallX : new int[]{-1, 1}) {
@@ -309,10 +359,12 @@ public class TwistedCitadelPiece extends StructurePiece {
                     level.setBlock(parapet, palette.wallOrFence(), 2);
                 }
             }
+            prevY = y;
         }
         if (startTop != null && endTop != null && !startTop.equals(endTop)) {
             int midZ = (lo + hi) / 2;
-            anchorBridgePier(level, box, centerX, y, midZ, palette);
+            int midY = (startY + endY) / 2;
+            anchorBridgePier(level, box, centerX, midY, midZ, palette);
             int nodes = Math.max(4, Math.min(24, (hi - lo) + 2));
             HyphalVeinEntity strand = new HyphalVeinEntity(level.getLevel(), startTop, endTop, nodes, true, 0.80F);
             strand.setStrengthFloor(3);

@@ -61,6 +61,13 @@ public final class MycelialFeatureBootstrap {
                         new DeepMyceliumTerrainFeature.Config(DeepMyceliumTerrainFeature.Variant.SANCTUM_AMBER_MONOLITH)
                 )
         );
+        context.register(
+                ModWorldgenKeys.DEEP_MYCELIUM_SPORE_POOL_CF,
+                new ConfiguredFeature<>(
+                        ModFeatures.DEEP_MYCELIUM_TERRAIN.get(),
+                        new DeepMyceliumTerrainFeature.Config(DeepMyceliumTerrainFeature.Variant.GLOWING_SPORE_POOL)
+                )
+        );
     }
 
     public static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
@@ -102,6 +109,16 @@ public final class MycelialFeatureBootstrap {
                         CountPlacement.of(3),
                         InSquarePlacement.spread(),
                         HeightRangePlacement.uniform(VerticalAnchor.absolute(30), VerticalAnchor.absolute(156)),
+                        BiomeFilter.biome()
+                )
+        ));
+
+        context.register(ModWorldgenKeys.DEEP_MYCELIUM_SPORE_POOL_PF, new PlacedFeature(
+                configured.getOrThrow(ModWorldgenKeys.DEEP_MYCELIUM_SPORE_POOL_CF),
+                List.of(
+                        CountPlacement.of(2),
+                        InSquarePlacement.spread(),
+                        HeightRangePlacement.uniform(VerticalAnchor.absolute(32), VerticalAnchor.absolute(136)),
                         BiomeFilter.biome()
                 )
         ));

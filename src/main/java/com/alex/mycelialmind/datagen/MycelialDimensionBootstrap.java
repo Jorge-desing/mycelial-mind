@@ -150,7 +150,28 @@ public final class MycelialDimensionBootstrap {
                         )
                 )
         );
-        DensityFunction cavernTerrain = DensityFunctions.max(tieredCavern, gatedPillars);
+        DensityFunction tunnelBand = DensityFunctions.min(
+                DensityFunctions.yClampedGradient(22, 34, 0.0D, 1.0D),
+                DensityFunctions.yClampedGradient(148, 162, 1.0D, 0.0D)
+        );
+        DensityFunction spaghettiNoodle = DensityFunctions.noise(
+                noises.getOrThrow(Noises.SPAGHETTI_2D), 1.0D, 1.0D
+        ).abs();
+        DensityFunction tunnelCut = DensityFunctions.mul(
+                tunnelBand,
+                DensityFunctions.rangeChoice(
+                        spaghettiNoodle,
+                        0.0D,
+                        0.085D,
+                        DensityFunctions.constant(-0.35D),
+                        DensityFunctions.zero()
+                )
+        );
+        DensityFunction cavernTerrain = DensityFunctions.max(
+                DensityFunctions.add(tieredCavern, tunnelCut),
+                gatedPillars
+        );
+        DensityFunction depthGradient = DensityFunctions.yClampedGradient(0, 192, -0.8D, 0.8D);
 
         DensityFunction topSlide = DensityFunctions.add(
                 DensityFunctions.constant(0.9375D),
@@ -180,7 +201,7 @@ public final class MycelialDimensionBootstrap {
                 vegetation,
                 DensityFunctions.zero(),
                 DensityFunctions.zero(),
-                DensityFunctions.zero(),
+                depthGradient,
                 DensityFunctions.zero(),
                 DensityFunctions.zero(),
                 finalDensity,
@@ -308,10 +329,10 @@ public final class MycelialDimensionBootstrap {
                         Climate.parameters(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F),
                         biomes.getOrThrow(ModWorldgenKeys.DEEP_MYCELIUM_CAVERNS)),
                 com.mojang.datafixers.util.Pair.of(
-                        Climate.parameters(0.4F, 0.4F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F),
+                        Climate.parameters(0.4F, 0.4F, 0.0F, 0.0F, 0.45F, 0.0F, 0.0F),
                         biomes.getOrThrow(ModWorldgenKeys.LATENT_SPORE_FOREST)),
                 com.mojang.datafixers.util.Pair.of(
-                        Climate.parameters(-0.4F, -0.4F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F),
+                        Climate.parameters(-0.4F, -0.4F, 0.0F, 0.0F, -0.45F, 0.0F, 0.0F),
                         biomes.getOrThrow(ModWorldgenKeys.HIVE_HEART_SANCTUM))
         )));
 

@@ -30,6 +30,15 @@
     {
       "element": {
         "element_type": "minecraft:single_pool_element",
+        "location": "mycelialmind:hive_sanctum/vertical_shaft",
+        "processors": "mycelialmind:architectural_reflection",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
         "location": "mycelialmind:hive_sanctum/ribbed_nave",
         "processors": "mycelialmind:architectural_reflection",
         "projection": "rigid"

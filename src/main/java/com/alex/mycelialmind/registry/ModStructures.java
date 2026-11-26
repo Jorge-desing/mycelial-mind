@@ -2,11 +2,16 @@ package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.world.structure.ArchitecturalAccentProcessor;
+import com.alex.mycelialmind.world.structure.EndSpirePiece;
+import com.alex.mycelialmind.world.structure.EndSpireStructure;
 import com.alex.mycelialmind.world.structure.HiveSanctumStructure;
 import com.alex.mycelialmind.world.structure.MatriarchCitadelPiece;
 import com.alex.mycelialmind.world.structure.MatriarchCitadelStructure;
+import com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor;
 import com.alex.mycelialmind.world.structure.MycelialFluidClearProcessor;
 import com.alex.mycelialmind.world.structure.MycelialFoundationPillarProcessor;
+import com.alex.mycelialmind.world.structure.NetherBreachPiece;
+import com.alex.mycelialmind.world.structure.NetherBreachStructure;
 import com.alex.mycelialmind.world.structure.TwistedCitadelPiece;
 import com.alex.mycelialmind.world.structure.TwistedCitadelStructure;
 import net.minecraft.core.registries.Registries;
@@ -47,6 +52,20 @@ public final class ModStructures {
             STRUCTURE_PIECES.register("twisted_citadel_piece",
                     () -> (StructurePieceType.ContextlessType) TwistedCitadelPiece::new);
 
+    public static final DeferredHolder<StructureType<?>, StructureType<NetherBreachStructure>> NETHER_MYCELIAL_BREACH =
+            STRUCTURE_TYPES.register("nether_mycelial_breach", () -> () -> NetherBreachStructure.CODEC);
+
+    public static final DeferredHolder<StructurePieceType, StructurePieceType> NETHER_BREACH_PIECE =
+            STRUCTURE_PIECES.register("nether_breach_piece",
+                    () -> (StructurePieceType.ContextlessType) NetherBreachPiece::new);
+
+    public static final DeferredHolder<StructureType<?>, StructureType<EndSpireStructure>> END_SPORE_SPIRE =
+            STRUCTURE_TYPES.register("end_spore_spire", () -> () -> EndSpireStructure.CODEC);
+
+    public static final DeferredHolder<StructurePieceType, StructurePieceType> END_SPIRE_PIECE =
+            STRUCTURE_PIECES.register("end_spire_piece",
+                    () -> (StructurePieceType.ContextlessType) EndSpirePiece::new);
+
     public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<ArchitecturalAccentProcessor>> ARCHITECTURAL_ACCENT_PROCESSOR =
             STRUCTURE_PROCESSORS.register("architectural_accent", () -> () -> ArchitecturalAccentProcessor.CODEC);
 
@@ -55,6 +74,9 @@ public final class ModStructures {
 
     public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<MycelialFoundationPillarProcessor>> FOUNDATION_PILLAR_PROCESSOR =
             STRUCTURE_PROCESSORS.register("foundation_pillar", () -> () -> MycelialFoundationPillarProcessor.CODEC);
+
+    public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<MycelialBiomeDegradeProcessor>> BIOME_DEGRADE_PROCESSOR =
+            STRUCTURE_PROCESSORS.register("biome_degrade", () -> () -> MycelialBiomeDegradeProcessor.CODEC);
 
     private ModStructures() {
     }

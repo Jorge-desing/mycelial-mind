@@ -5,7 +5,9 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.world.structure.EndSpireStructure;
 import com.alex.mycelialmind.world.structure.HiveSanctumStructure;
+import com.alex.mycelialmind.world.structure.NetherBreachStructure;
 import com.alex.mycelialmind.world.structure.StructureProgressionPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -381,6 +383,8 @@ public final class WorldgenAuditEngine {
         Block archBrickBlock = ModBlocks.MYCELIAL_ARCH_BRICK.get();
         Block chitinPillarBlock = ModBlocks.CHITIN_PILLAR.get();
         boolean isDeepMycelium = ModDimensions.DEEP_MYCELIUM_LEVEL.equals(level.dimension());
+        boolean isNether = Level.NETHER.equals(level.dimension());
+        boolean isEnd = Level.END.equals(level.dimension());
 
         Predicate<BlockState> sectionInteresting = state ->
                 state.is(relayBlock)
@@ -567,7 +571,20 @@ public final class WorldgenAuditEngine {
         DistanceStats nodeNearest3d = computeNearestNeighbor(allNodes, allNodes, true, false);
 
         NetworkStats networkStats = computeNetworkStats(allNodes, MycelialConfig.SYNAPTIC_NODE_LINK_RADIUS.get(), tracker);
-        SanctumGridStats sanctumGridStats = auditSanctumJigsawGrid(level, centerChunk, sanctumGridChunks);
+        SanctumGridStats sanctumGridStats;
+        String activeSetLabel;
+        if (isNether) {
+            sanctumGridStats = auditStructureSetGrid(
+                    level, ModWorldgenKeys.NETHER_MYCELIAL_BREACH_SET, centerChunk, Math.max(sanctumGridChunks, 96));
+            activeSetLabel = "nether_mycelial_breach";
+        } else if (isEnd) {
+            sanctumGridStats = auditStructureSetGrid(
+                    level, ModWorldgenKeys.END_SPORE_SPIRE_SET, centerChunk, Math.max(sanctumGridChunks, 96));
+            activeSetLabel = "end_spore_spire";
+        } else {
+            sanctumGridStats = auditSanctumJigsawGrid(level, centerChunk, sanctumGridChunks);
+            activeSetLabel = "hive_sanctum";
+        }
         TerrainQualityStats terrainQualityStats = auditTerrainQuality(level, surfaceHives, surfaceOutbreaks);
         DeepMyceliumStats deepMyceliumStats;
         if (isDeepMycelium) {
@@ -590,7 +607,7 @@ public final class WorldgenAuditEngine {
         }
 
         List<String> failures = new ArrayList<>();
-        if (chunksScanned > 0
+        if (!isNether && !isEnd && chunksScanned > 0
                 && detectedNodes.isEmpty()
                 && myceliumCount == 0
                 && stoneCount == 0
@@ -606,21 +623,38 @@ public final class WorldgenAuditEngine {
             }
         }
         if (!sanctumGridStats.structureSetRegistered()) {
-            failures.add("StructureSet mycelialmind:hive_sanctum is not registered");
+            failures.add("StructureSet mycelialmind:" + activeSetLabel + " is not registered");
         }
         if (!sanctumGridStats.separationInvariantOk()) {
             failures.add(String.format(
                     Locale.ROOT,
-                    "hive_sanctum min chunk distance %.1f < separation %d",
+                    "%s min chunk distance %.1f < separation %d",
+                    activeSetLabel,
                     sanctumGridStats.chunkNearestNeighbor().min(),
                     sanctumGridStats.separationChunks()
             ));
         }
-        boolean hiveSanctumCustom = level.registryAccess().registry(Registries.STRUCTURE)
-                .map(reg -> reg.get(ModWorldgenKeys.HIVE_SANCTUM) instanceof HiveSanctumStructure)
-                .orElse(false);
-        if (!hiveSanctumCustom) {
-            failures.add("Structure mycelialmind:hive_sanctum is not registered as HiveSanctumStructure");
+        if (isNether) {
+            boolean netherCustom = level.registryAccess().registry(Registries.STRUCTURE)
+                    .map(reg -> reg.get(ModWorldgenKeys.NETHER_MYCELIAL_BREACH) instanceof NetherBreachStructure)
+                    .orElse(false);
+            if (!netherCustom) {
+                failures.add("Structure mycelialmind:nether_mycelial_breach is not registered as NetherBreachStructure");
+            }
+        } else if (isEnd) {
+            boolean endCustom = level.registryAccess().registry(Registries.STRUCTURE)
+                    .map(reg -> reg.get(ModWorldgenKeys.END_SPORE_SPIRE) instanceof EndSpireStructure)
+                    .orElse(false);
+            if (!endCustom) {
+                failures.add("Structure mycelialmind:end_spore_spire is not registered as EndSpireStructure");
+            }
+        } else {
+            boolean hiveSanctumCustom = level.registryAccess().registry(Registries.STRUCTURE)
+                    .map(reg -> reg.get(ModWorldgenKeys.HIVE_SANCTUM) instanceof HiveSanctumStructure)
+                    .orElse(false);
+            if (!hiveSanctumCustom) {
+                failures.add("Structure mycelialmind:hive_sanctum is not registered as HiveSanctumStructure");
+            }
         }
         if (!terrainQualityStats.passed()) {
             failures.add(String.format(

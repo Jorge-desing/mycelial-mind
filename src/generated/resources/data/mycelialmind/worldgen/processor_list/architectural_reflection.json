@@ -7,6 +7,9 @@
       "processor_type": "mycelialmind:foundation_pillar"
     },
     {
+      "processor_type": "mycelialmind:biome_degrade"
+    },
+    {
       "processor_type": "mycelialmind:architectural_accent"
     },
     {

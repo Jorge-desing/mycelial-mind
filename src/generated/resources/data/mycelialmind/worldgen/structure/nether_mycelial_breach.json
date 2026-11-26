@@ -1,0 +1,7 @@
+{
+  "type": "mycelialmind:nether_mycelial_breach",
+  "biomes": "#mycelialmind:has_structure/nether_mycelial_breach",
+  "spawn_overrides": {},
+  "step": "underground_structures",
+  "terrain_adaptation": "beard_thin"
+}

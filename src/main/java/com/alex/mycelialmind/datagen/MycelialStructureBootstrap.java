@@ -3,10 +3,13 @@ package com.alex.mycelialmind.datagen;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.world.ModWorldgenKeys;
 import com.alex.mycelialmind.world.structure.ArchitecturalAccentProcessor;
+import com.alex.mycelialmind.world.structure.EndSpireStructure;
 import com.alex.mycelialmind.world.structure.HiveSanctumStructure;
 import com.alex.mycelialmind.world.structure.MatriarchCitadelStructure;
+import com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor;
 import com.alex.mycelialmind.world.structure.MycelialFluidClearProcessor;
 import com.alex.mycelialmind.world.structure.MycelialFoundationPillarProcessor;
+import com.alex.mycelialmind.world.structure.NetherBreachStructure;
 import com.alex.mycelialmind.world.structure.TwistedCitadelStructure;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
@@ -78,6 +81,7 @@ public final class MycelialStructureBootstrap {
                 new StructureProcessorList(List.of(
                         new MycelialFluidClearProcessor(),
                         new MycelialFoundationPillarProcessor(),
+                        new MycelialBiomeDegradeProcessor(),
                         new ArchitecturalAccentProcessor(),
                         organicWeathering,
                         new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)
@@ -105,6 +109,7 @@ public final class MycelialStructureBootstrap {
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/corridor_straight", reflection), 4),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/corridor_turn", reflection), 3),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/corridor_cross", reflection), 2),
+                        Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/vertical_shaft", reflection), 2),
                         Pair.of(StructurePoolElement.single("mycelialmind:hive_sanctum/ribbed_nave", reflection), 2)
                 ),
                 Projection.RIGID
@@ -139,7 +144,7 @@ public final class MycelialStructureBootstrap {
                         .terrainAdapation(TerrainAdjustment.ENCAPSULATE)
                         .build(),
                 pools.getOrThrow(ModWorldgenKeys.HIVE_SANCTUM_START),
-                5,
+                6,
                 UniformHeight.of(VerticalAnchor.absolute(-36), VerticalAnchor.absolute(-4)),
                 64,
                 new DimensionPadding(8, 224),
@@ -156,6 +161,20 @@ public final class MycelialStructureBootstrap {
         context.register(ModWorldgenKeys.TWISTED_CITADEL, new TwistedCitadelStructure(
                 new Structure.StructureSettings.Builder(biomes.getOrThrow(ModWorldgenKeys.HAS_TWISTED_CITADEL))
                         .generationStep(GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
+                        .terrainAdapation(TerrainAdjustment.BEARD_THIN)
+                        .build()
+        ));
+
+        context.register(ModWorldgenKeys.NETHER_MYCELIAL_BREACH, new NetherBreachStructure(
+                new Structure.StructureSettings.Builder(biomes.getOrThrow(ModWorldgenKeys.HAS_NETHER_BREACH))
+                        .generationStep(GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
+                        .terrainAdapation(TerrainAdjustment.BEARD_THIN)
+                        .build()
+        ));
+
+        context.register(ModWorldgenKeys.END_SPORE_SPIRE, new EndSpireStructure(
+                new Structure.StructureSettings.Builder(biomes.getOrThrow(ModWorldgenKeys.HAS_END_SPIRE))
+                        .generationStep(GenerationStep.Decoration.SURFACE_STRUCTURES)
                         .terrainAdapation(TerrainAdjustment.BEARD_THIN)
                         .build()
         ));
@@ -177,6 +196,16 @@ public final class MycelialStructureBootstrap {
         context.register(ModWorldgenKeys.TWISTED_CITADEL_SET, new StructureSet(
                 structures.getOrThrow(ModWorldgenKeys.TWISTED_CITADEL),
                 new RandomSpreadStructurePlacement(24, 12, RandomSpreadType.LINEAR, 91472835)
+        ));
+
+        context.register(ModWorldgenKeys.NETHER_MYCELIAL_BREACH_SET, new StructureSet(
+                structures.getOrThrow(ModWorldgenKeys.NETHER_MYCELIAL_BREACH),
+                new RandomSpreadStructurePlacement(28, 14, RandomSpreadType.LINEAR, 58291403)
+        ));
+
+        context.register(ModWorldgenKeys.END_SPORE_SPIRE_SET, new StructureSet(
+                structures.getOrThrow(ModWorldgenKeys.END_SPORE_SPIRE),
+                new RandomSpreadStructurePlacement(32, 16, RandomSpreadType.LINEAR, 69412751)
         ));
     }
 }

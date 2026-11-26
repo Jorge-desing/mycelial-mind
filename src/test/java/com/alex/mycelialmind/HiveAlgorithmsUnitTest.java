@@ -2601,4 +2601,35 @@ class HiveAlgorithmsUnitTest {
         assertEquals(com.alex.mycelialmind.world.TerrainPlacementPolicy.SurfaceBiomeStyle.TEMPERATE,
                 com.alex.mycelialmind.world.TerrainPlacementPolicy.classifySurfaceBiomeStyle(false, false, false, false));
     }
+
+    @Test
+    void endIslandFootprintRejectsMainArenaAndAcceptsOuterRing() {
+        assertFalse(com.alex.mycelialmind.world.TerrainPlacementPolicy.isEndIslandFootprintSafe(0, 0));
+        assertFalse(com.alex.mycelialmind.world.TerrainPlacementPolicy.isEndIslandFootprintSafe(700, 700));
+        assertTrue(com.alex.mycelialmind.world.TerrainPlacementPolicy.isEndIslandFootprintSafe(1000, 0));
+        assertTrue(com.alex.mycelialmind.world.TerrainPlacementPolicy.isEndIslandFootprintSafe(-900, 500));
+    }
+
+    @Test
+    void caveBiomeDegradeSelectsDistinctBlocksForAllArchetypes() {
+        String base = "minecraft:deepslate_bricks";
+        assertEquals("minecraft:moss_block",
+                com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.selectAdaptedBlockId(
+                        com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.LUSH, base, 0, 0));
+        assertEquals("minecraft:dripstone_block",
+                com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.selectAdaptedBlockId(
+                        com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.DRIPSTONE, base, 1, 0));
+        assertEquals("minecraft:sculk",
+                com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.selectAdaptedBlockId(
+                        com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.DEEP_DARK, base, 0, 0));
+        assertEquals("mycelialmind:creeping_mycelium",
+                com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.selectAdaptedBlockId(
+                        com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.DEEP_MYCELIUM, base, 0, 0));
+        assertEquals(base,
+                com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.selectAdaptedBlockId(
+                        com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.TEMPERATE, base, 0, 0));
+        assertEquals(base,
+                com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.selectAdaptedBlockId(
+                        com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.LUSH, base, 0, 5));
+    }
 }

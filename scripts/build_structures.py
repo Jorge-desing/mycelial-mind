@@ -756,6 +756,71 @@ def build_twisted_vault_bunker() -> StructureBuilder:
     return s
 
 
+def build_vertical_shaft() -> StructureBuilder:
+    """
+    6-connected stepped vertical shaft connecting two horizontal hive_sanctum levels (deltaY = +8).
+    South entrance (3, 1, 10) -> Stepped Deepslate/Arch staircase -> North upper exit (3, 9, 0).
+    """
+    s = StructureBuilder(7, 15, 11)
+    # Build solid stepped prism shell: floor at y=0, sloped roof y_ceil(z)
+    for z in range(s.sz):
+        if z >= 8:
+            y_floor = 0
+            y_ceil = 6
+        elif z >= 2:
+            step = 8 - z  # 1..6
+            y_floor = step
+            y_ceil = min(14, step + 7)
+        else:
+            y_floor = 8
+            y_ceil = 14
+
+        for x in range(s.sx):
+            # Solid base foundation under sloped corridor so exterior never leaves floating gaps
+            for y in range(0, y_floor + 1):
+                s.set(x, y, z, "minecraft:deepslate_bricks")
+            is_wall_x = x in (0, 6)
+            is_end_wall = (z == 0) or (z == 10)
+            for y in range(y_floor + 1, y_ceil):
+                if is_wall_x or is_end_wall:
+                    s.set(x, y, z, "mycelialmind:mycelial_arch_brick")
+                else:
+                    s.set(x, y, z, "minecraft:air")
+            s.set(x, y_ceil, z, "mycelialmind:mycelial_arch_brick")
+
+    # Carve North (upper) and South (lower) 3x4 doorways
+    s.fill(2, 1, 10, 4, 4, 10, "minecraft:air")
+    s.fill(2, 9, 0, 4, 12, 0, "minecraft:air")
+
+    # Real climbable staircase steps ascending North across z = 8..2 (y = 1..7, landing onto y = 8 at z = 1)
+    for step in range(7):
+        z = 8 - step
+        stair_y = step + 1
+        for x in range(2, 5):
+            s.stair(x, stair_y, z, "north", "bottom")
+        # Raised stringer trim on side walkways (x = 1, 5)
+        s.set(1, stair_y, z, "mycelialmind:chitin_pillar" if step % 3 == 0 else "mycelialmind:mycelial_arch_brick", {"axis": "y"} if step % 3 == 0 else {})
+        s.set(5, stair_y, z, "mycelialmind:chitin_pillar" if step % 3 == 0 else "mycelialmind:mycelial_arch_brick", {"axis": "y"} if step % 3 == 0 else {})
+
+    # Structural chitin ribs & amber lighting at lower and upper landings
+    for y in range(1, 6):
+        s.set(1, y, 9, "mycelialmind:chitin_pillar", {"axis": "y"})
+        s.set(5, y, 9, "mycelialmind:chitin_pillar", {"axis": "y"})
+    for y in range(9, 14):
+        s.set(1, y, 1, "mycelialmind:chitin_pillar", {"axis": "y"})
+        s.set(5, y, 1, "mycelialmind:chitin_pillar", {"axis": "y"})
+    s.set(1, 4, 8, "mycelialmind:luminescent_amber_vein")
+    s.set(5, 4, 8, "mycelialmind:luminescent_amber_vein")
+    s.set(1, 12, 2, "mycelialmind:luminescent_amber_vein")
+    s.set(5, 12, 2, "mycelialmind:luminescent_amber_vein")
+    s.set(3, 0, 9, "mycelialmind:creeping_mycelium")
+    s.set(3, 8, 1, "mycelialmind:creeping_mycelium")
+
+    s.jigsaw(3, 1, 10, "south", "mycelialmind:hive_sanctum/corridors")
+    s.jigsaw(3, 9, 0, "north", "mycelialmind:hive_sanctum/rooms")
+    return s
+
+
 def main() -> None:
     out_dir = os.path.join("src", "main", "resources", "data", "mycelialmind", "structure", "hive_sanctum")
     os.makedirs(out_dir, exist_ok=True)
@@ -764,6 +829,7 @@ def main() -> None:
         "corridor_straight.nbt": build_corridor_straight(),
         "corridor_turn.nbt": build_corridor_turn(),
         "corridor_cross.nbt": build_corridor_cross(),
+        "vertical_shaft.nbt": build_vertical_shaft(),
         "ribbed_nave.nbt": build_ribbed_nave(),
         "forbidden_lab.nbt": build_forbidden_lab(),
         "ossuary_crypt.nbt": build_ossuary_crypt(),

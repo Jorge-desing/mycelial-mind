@@ -29,7 +29,9 @@ public final class MycelialStructureTagsProvider extends TagsProvider<Structure>
         tag(ModWorldgenKeys.SANCTUMS)
                 .add(
                         ModWorldgenKeys.HIVE_SANCTUM,
-                        ModWorldgenKeys.MATRIARCH_CITADEL
+                        ModWorldgenKeys.MATRIARCH_CITADEL,
+                        ModWorldgenKeys.NETHER_MYCELIAL_BREACH,
+                        ModWorldgenKeys.END_SPORE_SPIRE
                 );
     }
 }

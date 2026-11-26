@@ -4769,3 +4769,28 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `validate_skills`: **`8/8` OK** (actualizada `.agents/skills/mycelial-ai-hive/SKILL.md`; resto revisadas sin requerir cambios).
   - `audit_mod_assets`: **`0` errores**.
 - **Estado:** Cambios propios staged selectivamente, validados con `git diff --cached --check` y publicados en `origin/main`.
+
+
+## [2026-11-26 02:53] — Pase 4 de Worldgen y Estructuras Multi-Dimensión (Overworld, Deep Mycelium, Nether y End)
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:**
+  1. **Reutilización de análisis REA (`artifacts/diagnostics/rea-worldgen-reference-report.md`):** Aplicados patrones de los 9 JARs ya inspeccionados sin abrir artefactos nuevos.
+  2. **Frente 1 — `hive_sanctum` Multi-Nivel y Meteorización por Bioma:** Añadida pieza 6-conectada `vertical_shaft.nbt` (`7x15x11`, escalera + sockets Jigsaw Norte/Sur con desnivel `+8 Y`) en `scripts/build_structures.py` (profundidad `5 -> 6` en `HIVE_SANCTUM`), más `MycelialBiomeDegradeProcessor` (`LUSH`, `DRIPSTONE`, `DEEP_DARK`, `DEEP_MYCELIUM`, `TEMPERATE`) cableado en `ARCHITECTURAL_REFLECTION`.
+  3. **Frente 2 — Estructuras en Nether y End (`NetherBreachStructure`/`Piece`, `EndSpireStructure`/`Piece`):**
+     - `mycelialmind:nether_mycelial_breach` (`BiomeTags.IS_NETHER`, `Y >= 33` sobre el mar de lava, pilares continuos desde `dy=-1..-10`, arcos cuádruples, zarcillos de techo condicionales `dy=10..14`, `HIVE_ALTAR`, `SENTINEL_NODE`, cofre `CITADEL_CRIMSON_CHAPEL` y guardianes `PyroShroom` + `ColonyWarden`).
+     - `mycelialmind:end_spore_spire` (`Biomes.END_HIGHLANDS` / `END_MIDLANDS`, anillo exterior `r >= 1000m` mediante `TerrainPlacementPolicy.isEndIslandFootprintSafe`, `>= 7/9` columnas secas `Y >= 50` con pendiente `<= 4` en `findEndIslandPlacementY`, falda escalonada sin voladizos al vacío, `INCUBATOR_NODE` + `SENTINEL_NODE`, cofre `CITADEL_AMBER_CHAPEL` y guardianes `MycelialStalker` + `ColonyWarden`).
+  4. **Frente 3 — Estratificación 3D en `deep_mycelium` y `GLOWING_SPORE_POOL`:** Añadidos conectores `Noises.SPAGHETTI_2D` y gradiente vertical `depth` en el slot 9 de `NoiseRouter` acoplado al `MultiNoiseBiomeSource` (`+0.45F` `LATENT_SPORE_FOREST`, `-0.45F` `HIVE_HEART_SANCTUM`), junto con la 4.ª variante `GLOWING_SPORE_POOL` en `DeepMyceliumTerrainFeature` / `MycelialBiomeBootstrap`.
+  5. **Frente 4 — Ciudadelas, Bordes Overworld y `WorldgenAuditEngine` en 4 Dimensiones:** Anclajes superiores al techo (`dy=32..46`) y collar radial en `MatriarchCitadelPiece`; detección adaptativa de pendiente `probeWingDeltaY` + puentes escalonados 6-conectados en `TwistedCitadelPiece`; refino de bordes en pendiente con `trimStone` en `SurfaceHiveFeature`/`MycelialSinkholeFeature`; auditoría multi-dimensión (`OVERWORLD`, `deep_mycelium`, `the_nether`, `the_end`) en `WorldgenAuditEngine`.
+- **Archivos / Símbolos:**
+  - Nuevos: `src/main/java/com/alex/mycelialmind/world/structure/{MycelialBiomeDegradeProcessor,NetherBreachStructure,NetherBreachPiece,EndSpireStructure,EndSpirePiece}.java`, `src/main/resources/data/mycelialmind/structure/hive_sanctum/vertical_shaft.nbt`, y `6` JSON generados + tags Nether/End en `src/generated/resources/`.
+  - Modificados: `TerrainPlacementPolicy.java`, `ModWorldgenKeys.java`, `ModStructures.java`, `DeepMyceliumTerrainFeature.java`, `SurfaceHiveFeature.java`, `MycelialSinkholeFeature.java`, `MatriarchCitadelPiece.java`, `TwistedCitadelPiece.java`, `WorldgenAuditEngine.java`, `Mycelial{BiomeTags,StructureTags,Structure,Dimension,Feature,Biome}Bootstrap/Provider`, `scripts/build_structures.py`, `DataGenIntegrityTest.java` (`139`), `HiveAlgorithmsUnitTest.java`, `MycelialGameTests.java`.
+- **Skills:** Actualizadas `.agents/skills/mycelial-diagnostics/SKILL.md` y `.agents/skills/neoforge-gametest/SKILL.md`; `mycelial-ai-hive` y resto revisadas sin cambios (`validate_skills` = `8/8 OK`).
+- **Verificación (`CodeMode` `mycelial-mind-dev`):**
+  - `run_structure_studio` (`vertical_shaft.nbt` 7x15x11); `run_gradle_task(["runData", "test", "build", "runGameTestServer"])`: **`BUILD SUCCESSFUL` (`38s`)**, **`157/157` JUnit en `17` suites (`2.552s`)**, **`205/205` `@GameTest`s PASS en `7.734s`**, `audit_mod_assets` (`ok: true`, `2235/2235` EN/ES, `596` `.ogg`).
+  - Smoke `flat`: `run_rcon_verify_suite` -> **`ALL 24 automated scenario checks PASSED`**.
+  - Smoke `default` (4 dimensiones, 0 warnings `setBlock in a far chunk`):
+    - Overworld: `audit 8 64` **`PASS`** (`chunks=289, float=0, fluid=0`) + `locate hive_sanctum` **`[-784, ~, -832]`**.
+    - `deep_mycelium`: `audit 6 64` **`PASS`** (`cols=676, cavern=632, tiers=494, br_err=0, feat=2235`) + `locate matriarch_citadel` **`[560, ~, 496]`** + `locate twisted_citadel` **`[-352, ~, 32]`**.
+    - Nether: `audit 4 96` **`PASS`** (`cand=9, min_chk=17.7, sep=14`) + `locate nether_mycelial_breach` **`[-448, ~, -256]`**.
+    - End: `audit 4 96` **`PASS`** (`cand=9, min_chk=19.2, sep=16`) + `locate end_spore_spire` **`[1712, ~, 224]`**.
+- **Estado / Siguiente paso:** Commit selectivo de Pass 4 y push a `origin/main` preservando intacto el WIP concurrente de HiveBrain 3.0 en el working tree.

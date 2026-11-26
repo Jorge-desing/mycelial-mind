@@ -3637,7 +3637,7 @@ public final class MycelialGameTests {
         var tm = level.getStructureManager();
         for (String piece : List.of(
                 "sanctum_atrium", "corridor_straight", "corridor_turn", "corridor_cross",
-                "ribbed_nave", "forbidden_lab", "ossuary_crypt", "spore_vault", "incubation_wing", "cap_end"
+                "vertical_shaft", "ribbed_nave", "forbidden_lab", "ossuary_crypt", "spore_vault", "incubation_wing", "cap_end"
         )) {
             ResourceLocation pid = ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "hive_sanctum/" + piece);
             if (tm.get(pid).isEmpty()) {
@@ -3647,13 +3647,17 @@ public final class MycelialGameTests {
         }
         var structReg = registries.registryOrThrow(Registries.STRUCTURE);
         if (!structReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "hive_sanctum"))
-                || !structReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "matriarch_citadel"))) {
-            helper.fail("Missing hive_sanctum or matriarch_citadel in Structure registry.");
+                || !structReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "matriarch_citadel"))
+                || !structReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "nether_mycelial_breach"))
+                || !structReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "end_spore_spire"))) {
+            helper.fail("Missing hive_sanctum, matriarch_citadel, nether_mycelial_breach, or end_spore_spire in Structure registry.");
             return;
         }
         var setReg = registries.registryOrThrow(Registries.STRUCTURE_SET);
-        if (!setReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "matriarch_citadel"))) {
-            helper.fail("Missing matriarch_citadel in StructureSet registry.");
+        if (!setReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "matriarch_citadel"))
+                || !setReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "nether_mycelial_breach"))
+                || !setReg.containsKey(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "end_spore_spire"))) {
+            helper.fail("Missing matriarch_citadel, nether_mycelial_breach, or end_spore_spire in StructureSet registry.");
             return;
         }
         helper.succeed();
@@ -11888,6 +11892,21 @@ public final class MycelialGameTests {
                     level, monolithFloor, level.getRandom(),
                     com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.Variant.SANCTUM_AMBER_MONOLITH),
                     "SANCTUM_AMBER_MONOLITH variant should generate on dry stone floor.");
+
+            BlockPos poolCenter = helper.absolutePos(new BlockPos(10, 14, 10));
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    level.setBlock(poolCenter.offset(dx, -2, dz), Blocks.STONE.defaultBlockState(), 18);
+                    level.setBlock(poolCenter.offset(dx, -1, dz), ModBlocks.MYCELIAL_STONE.get().defaultBlockState(), 18);
+                    level.setBlock(poolCenter.offset(dx, 0, dz), ModBlocks.MYCELIAL_STONE.get().defaultBlockState(), 18);
+                }
+            }
+            helper.assertTrue(com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.placeVariant(
+                    level, poolCenter, level.getRandom(),
+                    com.alex.mycelialmind.world.DeepMyceliumTerrainFeature.Variant.GLOWING_SPORE_POOL),
+                    "GLOWING_SPORE_POOL variant should carve glowing contained pool on solid basin.");
+            helper.assertTrue(level.getBlockState(poolCenter).is(Blocks.WATER),
+                    "GLOWING_SPORE_POOL center must contain water.");
         } finally {
             for (BlockPos pos : BlockPos.betweenClosed(
                     boxMin.getX(), boxMin.getY(), boxMin.getZ(),
@@ -11898,6 +11917,102 @@ public final class MycelialGameTests {
             }
         }
 
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "structures", timeoutTicks = 400)
+    public static void netherEndDimensionalStructuresAndBiomeDegradeWorkEndToEnd(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        List<ChunkPos> forced = forceArenaChunks(helper, -12, 44, -12, 44);
+        BlockPos netherCenter = helper.absolutePos(new BlockPos(12, 45, 12));
+        BlockPos endCenter = helper.absolutePos(new BlockPos(32, 58, 12));
+        try {
+            // 1. Place dry supporting ground under both test footprints
+            for (int dx = -8; dx <= 8; dx++) {
+                for (int dz = -8; dz <= 8; dz++) {
+                    level.setBlock(netherCenter.offset(dx, -1, dz), Blocks.NETHERRACK.defaultBlockState(), 18);
+                    level.setBlock(endCenter.offset(dx, -1, dz), Blocks.END_STONE.defaultBlockState(), 18);
+                }
+            }
+
+            var netherPiece = new com.alex.mycelialmind.world.structure.NetherBreachPiece(netherCenter);
+            netherPiece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                    level.getRandom(), netherPiece.getBoundingBox(), new ChunkPos(netherCenter), netherCenter);
+            helper.assertTrue(level.getBlockState(netherCenter.above(1)).is(ModBlocks.HIVE_ALTAR.get()),
+                    "NetherBreachPiece must place Hive Altar at breach center.");
+            helper.assertTrue(level.getBlockState(netherCenter.offset(0, 1, -3)).is(ModBlocks.SENTINEL_NODE.get()),
+                    "NetherBreachPiece must place Sentinel Node.");
+            helper.assertTrue(level.getBlockState(netherCenter.offset(-3, 1, 0)).is(Blocks.CHEST),
+                    "NetherBreachPiece must place reliquary chest.");
+
+            var endPiece = new com.alex.mycelialmind.world.structure.EndSpirePiece(endCenter);
+            endPiece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                    level.getRandom(), endPiece.getBoundingBox(), new ChunkPos(endCenter), endCenter);
+            helper.assertTrue(level.getBlockState(endCenter.offset(0, 1, -2)).is(ModBlocks.INCUBATOR_NODE.get()),
+                    "EndSpirePiece must place Incubator Node.");
+            helper.assertTrue(level.getBlockState(endCenter.offset(0, 13, -1)).is(ModBlocks.SENTINEL_NODE.get()),
+                    "EndSpirePiece must place observatory Sentinel Node.");
+            helper.assertTrue(level.getBlockState(endCenter.offset(2, 1, 0)).is(Blocks.CHEST),
+                    "EndSpirePiece must place treasure chest.");
+
+            // 2. Verify zero disconnected mod-structure blocks inside both pieces
+            var netherDisconnected = com.alex.mycelialmind.world.structure.VoxelStructureOps.findDisconnectedPositions(
+                    level, netherPiece.getBoundingBox(), netherCenter,
+                    s -> !s.isAir() && s.getFluidState().isEmpty() && !s.is(Blocks.NETHERRACK) && !s.is(Blocks.END_STONE));
+            helper.assertTrue(netherDisconnected.isEmpty(),
+                    "Expected 0 disconnected blocks in NetherBreachPiece, found " + netherDisconnected.size());
+            var endDisconnected = com.alex.mycelialmind.world.structure.VoxelStructureOps.findDisconnectedPositions(
+                    level, endPiece.getBoundingBox(), endCenter,
+                    s -> !s.isAir() && s.getFluidState().isEmpty() && !s.is(Blocks.NETHERRACK) && !s.is(Blocks.END_STONE));
+            helper.assertTrue(endDisconnected.isEmpty(),
+                    "Expected 0 disconnected blocks in EndSpirePiece, found " + endDisconnected.size());
+
+            // 3. Verify live StructureSets registered in Level.NETHER & Level.END
+            ServerLevel netherLevel = level.getServer().getLevel(net.minecraft.world.level.Level.NETHER);
+            ServerLevel endLevel = level.getServer().getLevel(net.minecraft.world.level.Level.END);
+            helper.assertTrue(netherLevel != null && endLevel != null,
+                    "Expected both Level.NETHER and Level.END to exist on server.");
+            var netherGrid = com.alex.mycelialmind.world.WorldgenAuditEngine.auditStructureSetGrid(
+                    netherLevel, com.alex.mycelialmind.world.ModWorldgenKeys.NETHER_MYCELIAL_BREACH_SET, new ChunkPos(0, 0), 96);
+            var endGrid = com.alex.mycelialmind.world.WorldgenAuditEngine.auditStructureSetGrid(
+                    endLevel, com.alex.mycelialmind.world.ModWorldgenKeys.END_SPORE_SPIRE_SET, new ChunkPos(75, 0), 96);
+            helper.assertTrue(netherGrid.structureSetRegistered() && netherGrid.separationInvariantOk(),
+                    "Expected Nether Breach StructureSet registered with valid separation.");
+            helper.assertTrue(endGrid.structureSetRegistered() && endGrid.separationInvariantOk(),
+                    "Expected End Spire StructureSet registered with valid separation.");
+
+            // 4. Verify MycelialBiomeDegradeProcessor guards & CaveBiomeDegradeStyle adaptation
+            helper.assertTrue(com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.isDegradableShellBlock(
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState()),
+                    "Deepslate bricks should be degradable shell blocks.");
+            helper.assertFalse(com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.isDegradableShellBlock(
+                    Blocks.CHEST.defaultBlockState()),
+                    "Chests must never be degraded by MycelialBiomeDegradeProcessor.");
+            helper.assertTrue(com.alex.mycelialmind.world.structure.MycelialBiomeDegradeProcessor.selectAdaptedBlock(
+                    com.alex.mycelialmind.world.TerrainPlacementPolicy.CaveBiomeDegradeStyle.LUSH,
+                    Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 0, 0).is(Blocks.MOSS_BLOCK),
+                    "LUSH degrade should produce moss_block at floor hash 0.");
+        } finally {
+            var nearby = level.getEntitiesOfClass(
+                    com.alex.mycelialmind.entity.MycelialMob.class,
+                    new net.minecraft.world.phys.AABB(netherCenter).inflate(36.0D));
+            for (var mob : nearby) {
+                mob.discard();
+            }
+            BlockPos minClear = helper.absolutePos(new BlockPos(-1, 32, -1));
+            BlockPos maxClear = helper.absolutePos(new BlockPos(43, 84, 24));
+            for (BlockPos p : BlockPos.betweenClosed(
+                    minClear.getX(), minClear.getY(), minClear.getZ(),
+                    maxClear.getX(), maxClear.getY(), maxClear.getZ())) {
+                if (!level.getBlockState(p).isAir()) {
+                    level.setBlock(p, Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+            PurificationZoneTracker.get(level).removeNode(netherCenter.offset(0, 1, -3));
+            PurificationZoneTracker.get(level).removeNode(endCenter.offset(0, 1, -2));
+            PurificationZoneTracker.get(level).removeNode(endCenter.offset(0, 13, -1));
+            releaseArenaChunks(level, forced);
+        }
         helper.succeed();
     }
 }

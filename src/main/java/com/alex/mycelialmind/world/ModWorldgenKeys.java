@@ -53,6 +53,8 @@ public final class ModWorldgenKeys {
             key(Registries.CONFIGURED_FEATURE, "latent_spore_canopy");
     public static final ResourceKey<ConfiguredFeature<?, ?>> SANCTUM_AMBER_MONOLITH_CF =
             key(Registries.CONFIGURED_FEATURE, "sanctum_amber_monolith");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DEEP_MYCELIUM_SPORE_POOL_CF =
+            key(Registries.CONFIGURED_FEATURE, "deep_mycelium_spore_pool");
 
     // Placed Features
     public static final ResourceKey<PlacedFeature> DEEP_MYCELIUM_OUTBREAK_PF =
@@ -63,6 +65,8 @@ public final class ModWorldgenKeys {
             key(Registries.PLACED_FEATURE, "latent_spore_canopy");
     public static final ResourceKey<PlacedFeature> SANCTUM_AMBER_MONOLITH_PF =
             key(Registries.PLACED_FEATURE, "sanctum_amber_monolith");
+    public static final ResourceKey<PlacedFeature> DEEP_MYCELIUM_SPORE_POOL_PF =
+            key(Registries.PLACED_FEATURE, "deep_mycelium_spore_pool");
     public static final ResourceKey<PlacedFeature> MYCELIAL_OUTBREAK_PF =
             key(Registries.PLACED_FEATURE, "mycelial_outbreak");
     public static final ResourceKey<PlacedFeature> MYCELIAL_SINKHOLE_PF =
@@ -91,6 +95,10 @@ public final class ModWorldgenKeys {
             key(Registries.STRUCTURE, "matriarch_citadel");
     public static final ResourceKey<Structure> TWISTED_CITADEL =
             key(Registries.STRUCTURE, "twisted_citadel");
+    public static final ResourceKey<Structure> NETHER_MYCELIAL_BREACH =
+            key(Registries.STRUCTURE, "nether_mycelial_breach");
+    public static final ResourceKey<Structure> END_SPORE_SPIRE =
+            key(Registries.STRUCTURE, "end_spore_spire");
 
     public static final ResourceKey<StructureSet> HIVE_SANCTUM_SET =
             key(Registries.STRUCTURE_SET, "hive_sanctum");
@@ -98,6 +106,10 @@ public final class ModWorldgenKeys {
             key(Registries.STRUCTURE_SET, "matriarch_citadel");
     public static final ResourceKey<StructureSet> TWISTED_CITADEL_SET =
             key(Registries.STRUCTURE_SET, "twisted_citadel");
+    public static final ResourceKey<StructureSet> NETHER_MYCELIAL_BREACH_SET =
+            key(Registries.STRUCTURE_SET, "nether_mycelial_breach");
+    public static final ResourceKey<StructureSet> END_SPORE_SPIRE_SET =
+            key(Registries.STRUCTURE_SET, "end_spore_spire");
 
     // NeoForge Biome Modifiers
     public static final ResourceKey<BiomeModifier> ADD_MYCELIAL_FEATURES =
@@ -110,6 +122,10 @@ public final class ModWorldgenKeys {
             TagKey.create(Registries.BIOME, id("has_structure/matriarch_citadel"));
     public static final TagKey<Biome> HAS_TWISTED_CITADEL =
             TagKey.create(Registries.BIOME, id("has_structure/twisted_citadel"));
+    public static final TagKey<Biome> HAS_NETHER_BREACH =
+            TagKey.create(Registries.BIOME, id("has_structure/nether_mycelial_breach"));
+    public static final TagKey<Biome> HAS_END_SPIRE =
+            TagKey.create(Registries.BIOME, id("has_structure/end_spore_spire"));
     public static final TagKey<Structure> SANCTUMS =
             TagKey.create(Registries.STRUCTURE, id("sanctums"));
 

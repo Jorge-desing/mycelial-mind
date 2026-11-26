@@ -22,7 +22,8 @@ public class DeepMyceliumTerrainFeature extends Feature<DeepMyceliumTerrainFeatu
     public enum Variant implements StringRepresentable {
         CAVERN_STALACTITES("cavern_stalactites"),
         SPORE_CANOPY_ARCH("spore_canopy_arch"),
-        SANCTUM_AMBER_MONOLITH("sanctum_amber_monolith");
+        SANCTUM_AMBER_MONOLITH("sanctum_amber_monolith"),
+        GLOWING_SPORE_POOL("glowing_spore_pool");
 
         public static final Codec<Variant> CODEC = StringRepresentable.fromEnum(Variant::values);
         private final String serializedName;
@@ -67,7 +68,60 @@ public class DeepMyceliumTerrainFeature extends Feature<DeepMyceliumTerrainFeatu
             case CAVERN_STALACTITES -> placeCavernStalactites(level, origin, random);
             case SPORE_CANOPY_ARCH -> placeSporeCanopyArch(level, origin, random);
             case SANCTUM_AMBER_MONOLITH -> placeSanctumAmberMonolith(level, origin, random);
+            case GLOWING_SPORE_POOL -> placeGlowingSporePool(level, origin, random);
         };
+    }
+
+    private static boolean placeGlowingSporePool(WorldGenLevel level, BlockPos origin, RandomSource random) {
+        BlockPos floor = findDryFloorWithHeadroom(level, origin, 8, 4);
+        if (floor == null) {
+            return false;
+        }
+        // Require solid ground under the entire 4-block basin envelope so pool water is strictly contained.
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                double dist = Math.hypot(dx, dz);
+                if (dist > 4.1) {
+                    continue;
+                }
+                BlockPos cell = floor.offset(dx, 0, dz);
+                if (!isDrySolid(level, cell) || !isDrySolid(level, cell.below())) {
+                    return false;
+                }
+            }
+        }
+
+        BlockState stone = ModBlocks.MYCELIAL_STONE.get().defaultBlockState();
+        BlockState moss = ModBlocks.ROOT_SAP_MOSS.get().defaultBlockState();
+        BlockState amber = ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState();
+        BlockState water = Blocks.WATER.defaultBlockState();
+        BlockState cap = ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get().defaultBlockState();
+        BlockState bulb = ModBlocks.SPORE_BULB.get().defaultBlockState();
+
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                double dist = Math.hypot(dx, dz);
+                if (dist > 4.1) {
+                    continue;
+                }
+                BlockPos surface = floor.offset(dx, 0, dz);
+                if (dist <= 2.35) {
+                    safeSetBlock(level, surface.below(2), stone);
+                    safeSetBlock(level, surface.below(), (Math.abs(dx) + Math.abs(dz) <= 1) ? amber : stone);
+                    safeSetBlock(level, surface, water);
+                    safeSetBlock(level, surface.above(), Blocks.AIR.defaultBlockState());
+                } else if (dist <= 3.6) {
+                    safeSetBlock(level, surface.below(), stone);
+                    safeSetBlock(level, surface, (random.nextInt(4) == 0) ? moss : stone);
+                    if (random.nextInt(6) == 0 && isOpenDryAir(level, surface.above())) {
+                        safeSetBlock(level, surface.above(), random.nextBoolean() ? cap : bulb);
+                    }
+                } else {
+                    safeSetBlock(level, surface, (random.nextInt(3) == 0) ? moss : stone);
+                }
+            }
+        }
+        return true;
     }
 
     private static boolean placeCavernStalactites(WorldGenLevel level, BlockPos origin, RandomSource random) {

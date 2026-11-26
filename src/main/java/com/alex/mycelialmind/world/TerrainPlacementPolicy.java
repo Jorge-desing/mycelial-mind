@@ -19,11 +19,13 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -666,6 +668,131 @@ public final class TerrainPlacementPolicy {
                     Blocks.DEEPSLATE_BRICKS.defaultBlockState()
             );
         };
+    }
+
+    /**
+     * Cave biome degradation archetype used by {@code MycelialBiomeDegradeProcessor} to adapt
+     * subterranean structures (such as {@code hive_sanctum}) to their enclosing cave biome.
+     */
+    public enum CaveBiomeDegradeStyle {
+        LUSH,
+        DRIPSTONE,
+        DEEP_DARK,
+        DEEP_MYCELIUM,
+        TEMPERATE
+    }
+
+    /**
+     * Classifies a cave or subterranean biome into its mycelial weathering archetype.
+     */
+    public static CaveBiomeDegradeStyle classifyCaveBiomeStyle(Holder<Biome> biome) {
+        if (biome == null) {
+            return CaveBiomeDegradeStyle.TEMPERATE;
+        }
+        if (biome.is(Biomes.LUSH_CAVES)) {
+            return CaveBiomeDegradeStyle.LUSH;
+        }
+        if (biome.is(Biomes.DRIPSTONE_CAVES)) {
+            return CaveBiomeDegradeStyle.DRIPSTONE;
+        }
+        if (biome.is(Biomes.DEEP_DARK)) {
+            return CaveBiomeDegradeStyle.DEEP_DARK;
+        }
+        if (biome.is(ModWorldgenKeys.DEEP_MYCELIUM_CAVERNS)
+                || biome.is(ModWorldgenKeys.HIVE_HEART_SANCTUM)
+                || biome.is(ModWorldgenKeys.LATENT_SPORE_FOREST)) {
+            return CaveBiomeDegradeStyle.DEEP_MYCELIUM;
+        }
+        return CaveBiomeDegradeStyle.TEMPERATE;
+    }
+
+    /**
+     * Enforces outer End island ring exclusion ({@code r >= 1000m} from origin), keeping structures
+     * off the main Ender Dragon arena island and outer void gap.
+     */
+    public static boolean isEndIslandFootprintSafe(int blockX, int blockZ) {
+        long dx = blockX;
+        long dz = blockZ;
+        return dx * dx + dz * dz >= 1000L * 1000L;
+    }
+
+    /**
+     * Evaluates 9 End island columns around {@code (centerX, centerZ)} using {@link ChunkGenerator#getBaseHeight}
+     * and {@link ChunkGenerator#getBaseColumn} without loading chunks, requiring at least 7/9 solid columns
+     * above {@code minDryY} with surface variance {@code <= maxSlope} and a solid core base.
+     */
+    public static OptionalInt findEndIslandPlacementY(
+            ChunkGenerator generator,
+            LevelHeightAccessor heightAccessor,
+            RandomState randomState,
+            int centerX,
+            int centerZ,
+            int minDryY,
+            int sampleRadius,
+            int maxSlope
+    ) {
+        if (!isEndIslandFootprintSafe(centerX, centerZ)) {
+            return OptionalInt.empty();
+        }
+        int r = Math.max(2, sampleRadius);
+        int[][] offsets = {
+                {0, 0}, {r, 0}, {-r, 0}, {0, r}, {0, -r},
+                {r, r}, {r, -r}, {-r, r}, {-r, -r}
+        };
+        int[] validYs = new int[offsets.length];
+        int validCount = 0;
+        int centerSurface = -1;
+        for (int i = 0; i < offsets.length; i++) {
+            int sx = centerX + offsets[i][0];
+            int sz = centerZ + offsets[i][1];
+            int surfaceY = generator.getBaseHeight(sx, sz, Heightmap.Types.WORLD_SURFACE_WG, heightAccessor, randomState);
+            if (surfaceY < minDryY) {
+                if (i == 0) {
+                    return OptionalInt.empty();
+                }
+                continue;
+            }
+            NoiseColumn column = generator.getBaseColumn(sx, sz, heightAccessor, randomState);
+            BlockState floorState = column.getBlock(surfaceY - 1);
+            if (floorState.isAir() || !floorState.getFluidState().isEmpty()) {
+                if (i == 0) {
+                    return OptionalInt.empty();
+                }
+                continue;
+            }
+            // Reject thin overhanging crusts over open void.
+            int solidDepth = 0;
+            for (int dy = 1; dy <= 5; dy++) {
+                BlockState below = column.getBlock(surfaceY - dy);
+                if (!below.isAir() && below.getFluidState().isEmpty()) {
+                    solidDepth++;
+                }
+            }
+            if (solidDepth < 3) {
+                if (i == 0) {
+                    return OptionalInt.empty();
+                }
+                continue;
+            }
+            if (i == 0) {
+                centerSurface = surfaceY;
+            }
+            validYs[validCount++] = surfaceY;
+        }
+        if (centerSurface < minDryY || validCount < 7) {
+            return OptionalInt.empty();
+        }
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for (int i = 0; i < validCount; i++) {
+            minY = Math.min(minY, validYs[i]);
+            maxY = Math.max(maxY, validYs[i]);
+        }
+        if (maxY - minY > maxSlope) {
+            return OptionalInt.empty();
+        }
+        Arrays.sort(validYs, 0, validCount);
+        return OptionalInt.of(validYs[validCount / 2]);
     }
 
     /**

@@ -50,7 +50,7 @@ public class MatriarchCitadelPiece extends StructurePiece {
     public MatriarchCitadelPiece(BlockPos center) {
         super(ModStructures.MATRIARCH_CITADEL_PIECE.get(), 0, new BoundingBox(
                 center.getX() - RADIUS, center.getY() - 32, center.getZ() - RADIUS,
-                center.getX() + RADIUS, center.getY() + HEIGHT, center.getZ() + RADIUS
+                center.getX() + RADIUS, center.getY() + 48, center.getZ() + RADIUS
         ));
         this.center = center;
         this.spawnedGuardians = false;
@@ -320,6 +320,52 @@ public class MatriarchCitadelPiece extends StructurePiece {
                             b = deepslateTiles;
                         }
                         setIfInside(level, box, p, b);
+                    }
+                }
+            }
+        }
+
+        // Ceiling root anchor tendons rising from cardinal dome ribs (dy = 32) up to dy = 46 when roof rock is nearby
+        for (int[] tPos : new int[][]{{-7, 0}, {7, 0}, {0, -7}, {0, 7}}) {
+            boolean hasRoof = false;
+            for (int dy = 38; dy <= 56; dy++) {
+                BlockPos probe = center.offset(tPos[0], dy, tPos[1]);
+                if (!level.isOutsideBuildHeight(probe)) {
+                    BlockState st = level.getBlockState(probe);
+                    if (!st.isAir() && st.isSolid() && st.getFluidState().isEmpty()) {
+                        hasRoof = true;
+                        break;
+                    }
+                }
+            }
+            if (hasRoof) {
+                for (int dy = 32; dy <= 46; dy++) {
+                    BlockPos tp = center.offset(tPos[0], dy, tPos[1]);
+                    if (!box.isInside(tp) || level.isOutsideBuildHeight(tp)) {
+                        break;
+                    }
+                    if (dy >= 38) {
+                        BlockState existing = level.getBlockState(tp);
+                        if (!existing.isAir() && existing.isSolid() && existing.getFluidState().isEmpty()) {
+                            break;
+                        }
+                    }
+                    setIfInside(level, box, tp, (dy % 4 == 0) ? amberVein : chitinPillar);
+                }
+            }
+        }
+
+        // Radial outer floor collar (r in 23.6..25.0) grounding Citadel perimeter into uneven cavern floors
+        for (int dx = -25; dx <= 25; dx++) {
+            for (int dz = -25; dz <= 25; dz++) {
+                double dist = Math.hypot(dx, dz);
+                if (dist > 23.5 && dist <= 25.0 && ((Math.abs(dx) + Math.abs(dz)) & 1) == 0) {
+                    BlockPos collar = center.offset(dx, 0, dz);
+                    if (box.isInside(collar) && !level.isOutsideBuildHeight(collar.below())) {
+                        BlockState below = level.getBlockState(collar.below());
+                        if (!below.isAir() && below.isSolid() && below.getFluidState().isEmpty()) {
+                            setIfInside(level, box, collar, stone);
+                        }
                     }
                 }
             }

@@ -148,6 +148,8 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                     }
                     if (dist >= 5.2 && dist <= 7.8) {
                         safeSetBlock(level, subPos, deepslateBricks);
+                    } else if (outerTransition || Math.abs(floorPos.getY() - ground.getY()) >= 1) {
+                        safeSetBlock(level, subPos, biomePalette.trimStone());
                     }
                     safeSetBlock(level, floorPos, mycelium);
                 }

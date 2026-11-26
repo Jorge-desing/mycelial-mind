@@ -48,5 +48,14 @@ public final class MycelialBiomeTagsProvider extends BiomeTagsProvider {
                         ModWorldgenKeys.HIVE_HEART_SANCTUM,
                         ModWorldgenKeys.LATENT_SPORE_FOREST
                 );
+
+        tag(ModWorldgenKeys.HAS_NETHER_BREACH)
+                .addTag(BiomeTags.IS_NETHER);
+
+        tag(ModWorldgenKeys.HAS_END_SPIRE)
+                .add(
+                        Biomes.END_HIGHLANDS,
+                        Biomes.END_MIDLANDS
+                );
     }
 }

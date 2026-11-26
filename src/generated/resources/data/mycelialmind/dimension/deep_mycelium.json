@@ -21,7 +21,7 @@
           "biome": "mycelialmind:latent_spore_forest",
           "parameters": {
             "continentalness": 0.0,
-            "depth": 0.0,
+            "depth": 0.45,
             "erosion": 0.0,
             "humidity": 0.4,
             "offset": 0.0,
@@ -33,7 +33,7 @@
           "biome": "mycelialmind:hive_heart_sanctum",
           "parameters": {
             "continentalness": 0.0,
-            "depth": 0.0,
+            "depth": -0.45,
             "erosion": 0.0,
             "humidity": -0.4,
             "offset": 0.0,
