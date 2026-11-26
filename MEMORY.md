@@ -4860,3 +4860,10 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `run_gradle_task(["runData", "test", "build", "runGameTestServer"], isolated_gametests=True)`: **`BUILD SUCCESSFUL` (`35s`)**, **`157/157` JUnit (`17` suites, `0` fallos)**, **`205/205` `@GameTest`s PASS**.
   - Smoke RCON (`start_smoke_server` `flat` -> `run_rcon_verify_suite` -> `stop_smoke_server`): **`ALL 24 automated scenario checks PASSED`** (`graceful_rcon_stop=true`, `cleaned_dir=true`).
 - **Estado:** Todos los commits atómicos verificados y publicados en `origin/main`.
+
+## [2026-11-26 10:46] — Regla obligatoria de verificación de checks de GitHub y corrección tras cada commit/push
+- **Tipo:** `DECISIÓN` | `IMPLEMENTACIÓN`
+- **Resumen:** Se reforzaron la regla global (`C:\Users\Alex\.gemini\GEMINI.md`) y las reglas del proyecto (`.agents/rules/git-auto-commit.md` y `GEMINI.md`) para exigir que cualquier agente verifique los checks/workflows de GitHub después de cada commit y push (`gh run list --commit <sha>`, `task gh:ci:watch` / `gh pr checks`), inspeccione `--log-failed` y corrija errores de código/tests/assets/workflow hasta dejarlos en verde (o informe bloqueos externos exactos sin darlos por aprobados).
+- **Archivos / Símbolos:** `C:\Users\Alex\.gemini\GEMINI.md`, `.agents/rules/git-auto-commit.md`, `GEMINI.md`, `MEMORY.md`.
+- **Skills revisadas:** Ninguna skill requirió edición (`validate_agent_skills.py`).
+- **Estado / Siguiente paso:** Validado, commiteado y subido a `origin/main`.

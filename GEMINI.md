@@ -12,5 +12,6 @@
 # Revisión, commit, push y merge obligatorios
 
 - Revisa todos los cambios propios y corrige los problemas detectados; ejecuta las verificaciones pertinentes. Selecciona solo los archivos propios, haz commit descriptivo, push y comprueba su publicación.
+- Tras cada `commit` y `push`, verifica los checks/workflows de GitHub del commit publicado (`scripts/Invoke-Gh.ps1` / `task gh:ci:watch` / `gh pr checks`); si detectas fallos de código, tests, assets o configuración, lee los logs (`gh run view <id> --log-failed`), corrígelos, vuelve a subir y re-verifica hasta quedar en verde (o informa el bloqueo exacto si es externo, como cuota de GitHub Actions).
 - Integra cada rama creada para la tarea en su destino: actualiza la base, resuelve conflictos, revisa el diff final, comprueba los checks, haz merge y confirma el commit integrado y CI en destino. Sigue `.agents/rules/git-auto-commit.md`.
 - Respeta las instrucciones explícitas del usuario; informa cualquier bloqueo de permisos, remoto, conflictos, checks o protección de rama y deja claro lo pendiente.
