@@ -67,7 +67,8 @@ Contrato primario en las clases raíz:
 ## 4. Steering, BehaviorTree, Utilidad y Mapa de Influencia
 
 - **`HiveBehaviorTree` (`entity/ai/brain/btree/`) + `HiveTacticalTree` + `HiveAiBlackboard`:**
-  - Arquitectura *"BT outside, utility inside"* con `HiveBtDynamicGuardSelector`, `HiveBtSelector`, `HiveBtSequence` y `HiveBtLeafTask`.
+  - Arquitectura *"BT outside, utility inside"* con `HiveBtComposite` (base compartida para `HiveBtDynamicGuardSelector`, `HiveBtSelector`, `HiveBtSequence`) y `HiveBtLeafTask`.
+  - Utilidades transversales de soporte: `EnumBitmask` (`util/EnumBitmask.java`, codificación/decodificación pura de máscaras enum), `ModNetworking.sendToPlayerIfReady` (envío seguro de payloads), `MycelialBossMob.{getIdleTasks,assignBossPartIds}`, `ColonyGoalSupport` (`entity/ai/colony/`) y `HiveBrainFactory.createDefaultFlyingNavigation`.
   - `HiveAiBlackboard` es zero-allocation y expone `HiveDoctrine`, `influenceTrauma01`, `MobEpisodicMemory` y cooldowns persistentes en cadencia adaptativa (`4`/`10`/`20` ticks con despertar al adquirir objetivo o señal).
   - En `MycelialMob`, `HiveTacticalTree` ordena `DesyncLeaf` > `FRENZY_CHARGE` > `PHALANX_GUARD`.
 - **`HiveSteeringEngine` (`entity/ai/brain/steering/`) + `HiveSwarmCoordinator`:**
