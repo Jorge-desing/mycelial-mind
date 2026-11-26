@@ -81,7 +81,7 @@ build = await call_tool("run_gradle_task", {
     "isolated_gametests": True, "no_daemon": True, "max_workers": 1, "timeout_secs": 600,
 })
 # Iteración rápida: run_gradle_task({"tasks": ["test"], "test_filter": "OpenAlEfxLoopbackTest"})
-# Nota: :pitest tiene incompatibilidad conocida con ModDevGradle 2.0.148 + Pitest 1.19.0
+# :pitest filtrado perezosamente vía objects.fileCollection() (reporte en build/reports/pitest/mutations.csv)
 return {"ok": build["ok"], "markers": build.get("summary_markers"),
         "errors": build.get("error_lines", [])[:10],
         "junit": await call_tool("get_latest_junit_report", {})}

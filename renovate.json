@@ -79,8 +79,7 @@
         "maven.modrinth:observable",
         "dev.emi:emi-neoforge",
         "mezz.jei:jei-1.21.1-neoforge-api",
-        "com.klikli_dev:modonomicon-1.21.1-neoforge",
-        "net.tslat.smartbrainlib:SmartBrainLib-neoforge-1.21.1"
+        "com.klikli_dev:modonomicon-1.21.1-neoforge"
       ],
       "groupName": "MC 1.21.1 mod dependencies"
     },
