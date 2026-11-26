@@ -26,7 +26,7 @@ A diferencia de los enemigos estáticos tradicionales, la **Mente Colmena** (*Hi
   - **Análisis y Códice:** Usa el **Bio-Escáner** (`bio_scanner`, con visión sináptica 3D) para consultar el HUD, inspeccionar bloques/entidades y abrir el Códice con radar territorial 2D, mapa de calor homeostático y compatibilidad opcional JEI/EMI/Jade.
   - **Arsenal evolutivo:** Extrae muestras genéticas con `bio_extractor`, sintetiza en la **Mesa de Investigación Sináptica** (`synaptic_research_bench`), evoluciona la **Armadura de Quitina** (`BASE -> MUTATED -> ELITE`) y empuna `symbiotic_blade`, `enzyme_lance`, `neutralizing_spore_launcher`, `purifier_grenade` y `synaptic_suppressor`.
 - **Exploración y Homeostasis Dimensional (`mycelialmind:deep_mycelium`):** Descubre brotes miceliales, colmenas de superficie y el santuario `hive_sanctum` en el Overworld, y cruza mediante `mycelial_rift` a `deep_mycelium`, una dimensión viva con homeostasis por chunk (`STABLE`/`IRRITATED`/`IMMUNE_RESPONSE`), sensibilización antigénica, difusión inflamatoria, lluvia ácida enzimática, `AntibodyCystBlock` y patrullas leucocitarias.
-- **Idiomas:** Localización completa bilingüe (`en_us` / `es_es`, 653 claves sincronizadas por idioma), logros y recetas integradas.
+- **Idiomas:** Localización completa bilingüe (`en_us` / `es_es`, 2305 claves sincronizadas por idioma), logros y recetas integradas.
 
 ---
 
@@ -90,6 +90,6 @@ Dentro del juego (con permisos de operador) están disponibles comandos de diagn
 
 - [AGENTS.md](AGENTS.md) — Arquitectura detallada, inventario de contenido y reglas del proyecto.
 - [MEMORY.md](MEMORY.md) — Bitácora cronológica de desarrollo y verificaciones (`append-only`).
-- [docs/codex/CODICE_MICELIAL.md](docs/codex/CODICE_MICELIAL.md) — Códice enciclopédico completo de **Mycelial Mind v2.0.0** (12 capítulos, 51 entradas, 226 páginas).
+- [docs/codex/CODICE_MICELIAL.md](docs/codex/CODICE_MICELIAL.md) — Códice enciclopédico completo de **Mycelial Mind v2.0.0** (12 capítulos, 62 entradas, 254 páginas).
 - [docs/codex/INTEGRACION_LIBRO_JUEGO.md](docs/codex/INTEGRACION_LIBRO_JUEGO.md) — Guía de integración del libro en Minecraft (`Native`, `Modonomicon 1.123.0` y `Vanilla written_book`).
 - [scripts/mcp/README.md](scripts/mcp/README.md) — Documentación del servidor MCP `mycelial-mind-dev` (FastMCP `CodeMode`) para auditoría, Gradle, JFR, MC Pilot y control en vivo.
