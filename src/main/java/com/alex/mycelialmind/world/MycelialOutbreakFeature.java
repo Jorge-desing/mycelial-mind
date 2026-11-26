@@ -508,30 +508,11 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
     }
 
     private static boolean isSafeToOverwrite(WorldGenLevel level, BlockPos pos) {
-        if (level.isOutsideBuildHeight(pos) || level.getBlockEntity(pos) != null) {
-            return false;
-        }
-        BlockState state = level.getBlockState(pos);
-        if (state.getDestroySpeed(level, pos) < 0.0F) {
-            return false;
-        }
-        return !state.is(ModBlocks.PURIFICATION_PYLON.get())
-                && !state.is(ModBlocks.HIVE_ALTAR.get())
-                && !state.is(ModBlocks.MATRIARCH_ALTAR.get())
-                && !state.is(ModBlocks.MYCELIAL_RIFT.get())
-                && !state.is(ModBlocks.SOVEREIGN_NEXUS.get())
-                && !state.is(ModBlocks.RECLAIMED_BLOOM.get());
+        return WorldgenFeatureSupport.isSafeToOverwrite(level, pos);
     }
 
     private static boolean isOpenAirOrReplaceable(WorldGenLevel level, BlockPos pos) {
-        if (level.isOutsideBuildHeight(pos) || level.getBlockEntity(pos) != null) {
-            return false;
-        }
-        if (!level.getFluidState(pos).isEmpty()) {
-            return false;
-        }
-        BlockState state = level.getBlockState(pos);
-        return state.isAir() || state.canBeReplaced();
+        return WorldgenFeatureSupport.isOpenAirOrReplaceable(level, pos);
     }
 
     private static boolean isOwnCanopyBlock(BlockState state) {

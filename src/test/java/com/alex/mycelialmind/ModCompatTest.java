@@ -4,7 +4,6 @@ import com.alex.mycelialmind.compat.claims.ClaimProtectionCompat;
 import com.alex.mycelialmind.compat.combat.ModdedDamageClassifier;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.core.BlockPos;
@@ -144,13 +143,6 @@ class ModCompatTest {
     }
 
     private static Path resolveRepoRoot() {
-        Path cursor = Path.of("").toAbsolutePath().normalize();
-        while (cursor != null) {
-            if (Files.isRegularFile(cursor.resolve("build.gradle"))) {
-                return cursor;
-            }
-            cursor = cursor.getParent();
-        }
-        throw new IllegalStateException("Unable to locate repository root containing build.gradle");
+        return TestRepoPaths.resolveRepoRoot();
     }
 }

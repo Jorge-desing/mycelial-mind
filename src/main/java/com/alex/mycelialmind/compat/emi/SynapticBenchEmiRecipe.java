@@ -10,7 +10,6 @@ import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.List;
 import java.util.ArrayList;
 
 /**

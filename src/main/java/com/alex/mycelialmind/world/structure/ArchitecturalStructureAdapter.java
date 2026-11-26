@@ -361,8 +361,6 @@ public final class ArchitecturalStructureAdapter {
     }
 
     private static void setIfInside(WorldGenLevel level, BoundingBox box, BlockPos pos, BlockState state) {
-        if (box.isInside(pos)) {
-            level.setBlock(pos, state, 2);
-        }
+        StructurePieceSupport.setIfInside(level, box, pos, state);
     }
 }

@@ -345,25 +345,10 @@ public class DeepMyceliumTerrainFeature extends Feature<DeepMyceliumTerrainFeatu
     }
 
     private static boolean isSafeToOverwrite(WorldGenLevel level, BlockPos pos) {
-        if (level.isOutsideBuildHeight(pos) || level.getBlockEntity(pos) != null) {
-            return false;
-        }
-        BlockState state = level.getBlockState(pos);
-        if (state.getDestroySpeed(level, pos) < 0.0F) {
-            return false;
-        }
-        return !state.is(ModBlocks.PURIFICATION_PYLON.get())
-                && !state.is(ModBlocks.HIVE_ALTAR.get())
-                && !state.is(ModBlocks.MATRIARCH_ALTAR.get())
-                && !state.is(ModBlocks.MYCELIAL_RIFT.get())
-                && !state.is(ModBlocks.SOVEREIGN_NEXUS.get())
-                && !state.is(ModBlocks.RECLAIMED_BLOOM.get());
+        return WorldgenFeatureSupport.isSafeToOverwrite(level, pos);
     }
 
     private static boolean safeSetBlock(WorldGenLevel level, BlockPos pos, BlockState state) {
-        if (!isSafeToOverwrite(level, pos)) {
-            return false;
-        }
-        return level.setBlock(pos, state, 2);
+        return WorldgenFeatureSupport.safeSetBlock(level, pos, state);
     }
 }

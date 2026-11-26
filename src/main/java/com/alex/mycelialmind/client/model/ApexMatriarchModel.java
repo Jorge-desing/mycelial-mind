@@ -519,9 +519,9 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float dVert = (float) entity.getDeltaMovement().y;
         float yawGoal = Mth.clamp(dYaw * 0.016F, -0.42F, 0.42F);
         float pitchGoal = Mth.clamp(dVert * 0.38F, -0.42F, 0.42F);
-        stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);
-        stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);
-        float jiggle = damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);
+        ModelAnimationMath.stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);
+        ModelAnimationMath.stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);
+        float jiggle = ModelAnimationMath.damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);
         float br_body = 1.0F + Mth.sin(ageInTicks * 0.09F + 0.0F) * 0.025F * 1.0F;
         this.body.xScale = br_body;
         this.body.zScale = br_body;
@@ -615,7 +615,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegR1Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 0.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegR1Tibia = Mth.sin(ageInTicks * 0.08F + 0.0F) * 0.35F;
         float ikReach_mLegR1Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 0.0F) * 1.10F * limbSwingAmount + idleFlex_mLegR1Tibia;
-        float[] fabrik_mLegR1Tibia = solveFabrikChainAngles(ikReach_mLegR1Tibia, -1.5F + stepLift_mLegR1Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegR1Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegR1Tibia, -1.5F + stepLift_mLegR1Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegR1Tibia.zRot = -0.72F + (fabrik_mLegR1Tibia[1] - 1.15F) * 0.38F;
         float gait_mLegR2 = Mth.cos(limbSwing * 0.85F + 1.5F);
         this.mLegR2.yRot = 0.0F + gait_mLegR2 * 0.38F * limbSwingAmount;
@@ -623,7 +623,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegR2Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 1.5F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegR2Tibia = Mth.sin(ageInTicks * 0.08F + 1.5F) * 0.35F;
         float ikReach_mLegR2Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 1.5F) * 1.10F * limbSwingAmount + idleFlex_mLegR2Tibia;
-        float[] fabrik_mLegR2Tibia = solveFabrikChainAngles(ikReach_mLegR2Tibia, -1.5F + stepLift_mLegR2Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegR2Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegR2Tibia, -1.5F + stepLift_mLegR2Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegR2Tibia.zRot = -0.72F + (fabrik_mLegR2Tibia[1] - 1.15F) * 0.38F;
         float gait_mLegR3 = Mth.cos(limbSwing * 0.85F + 3.0F);
         this.mLegR3.yRot = -0.48F + gait_mLegR3 * 0.38F * limbSwingAmount;
@@ -631,7 +631,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegR3Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 3.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegR3Tibia = Mth.sin(ageInTicks * 0.08F + 3.0F) * 0.35F;
         float ikReach_mLegR3Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 3.0F) * 1.10F * limbSwingAmount + idleFlex_mLegR3Tibia;
-        float[] fabrik_mLegR3Tibia = solveFabrikChainAngles(ikReach_mLegR3Tibia, -1.5F + stepLift_mLegR3Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegR3Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegR3Tibia, -1.5F + stepLift_mLegR3Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegR3Tibia.zRot = -0.72F + (fabrik_mLegR3Tibia[1] - 1.15F) * 0.38F;
         float gait_mLegL1 = Mth.cos(limbSwing * 0.85F + 1.5F);
         this.mLegL1.yRot = -0.48F - gait_mLegL1 * 0.38F * limbSwingAmount;
@@ -639,7 +639,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegL1Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 1.5F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegL1Tibia = Mth.sin(ageInTicks * 0.08F + 1.5F) * 0.35F;
         float ikReach_mLegL1Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 1.5F) * 1.10F * limbSwingAmount + idleFlex_mLegL1Tibia;
-        float[] fabrik_mLegL1Tibia = solveFabrikChainAngles(ikReach_mLegL1Tibia, -1.5F + stepLift_mLegL1Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegL1Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegL1Tibia, -1.5F + stepLift_mLegL1Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegL1Tibia.zRot = 0.72F + (fabrik_mLegL1Tibia[1] - 1.15F) * 0.38F;
         float gait_mLegL2 = Mth.cos(limbSwing * 0.85F + 3.0F);
         this.mLegL2.yRot = 0.0F - gait_mLegL2 * 0.38F * limbSwingAmount;
@@ -647,7 +647,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegL2Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 3.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegL2Tibia = Mth.sin(ageInTicks * 0.08F + 3.0F) * 0.35F;
         float ikReach_mLegL2Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 3.0F) * 1.10F * limbSwingAmount + idleFlex_mLegL2Tibia;
-        float[] fabrik_mLegL2Tibia = solveFabrikChainAngles(ikReach_mLegL2Tibia, -1.5F + stepLift_mLegL2Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegL2Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegL2Tibia, -1.5F + stepLift_mLegL2Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegL2Tibia.zRot = 0.72F + (fabrik_mLegL2Tibia[1] - 1.15F) * 0.38F;
         float gait_mLegL3 = Mth.cos(limbSwing * 0.85F + 0.0F);
         this.mLegL3.yRot = 0.48F - gait_mLegL3 * 0.38F * limbSwingAmount;
@@ -655,7 +655,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegL3Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 0.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegL3Tibia = Mth.sin(ageInTicks * 0.08F + 0.0F) * 0.35F;
         float ikReach_mLegL3Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 0.0F) * 1.10F * limbSwingAmount + idleFlex_mLegL3Tibia;
-        float[] fabrik_mLegL3Tibia = solveFabrikChainAngles(ikReach_mLegL3Tibia, -1.5F + stepLift_mLegL3Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegL3Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegL3Tibia, -1.5F + stepLift_mLegL3Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegL3Tibia.zRot = 0.72F + (fabrik_mLegL3Tibia[1] - 1.15F) * 0.38F;
         float gait_mLegR4 = Mth.cos(limbSwing * 0.85F + 0.0F);
         this.mLegR4.yRot = 0.48F + gait_mLegR4 * 0.38F * limbSwingAmount;
@@ -663,7 +663,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegR4Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 0.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegR4Tibia = Mth.sin(ageInTicks * 0.08F + 0.0F) * 0.35F;
         float ikReach_mLegR4Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 0.0F) * 1.10F * limbSwingAmount + idleFlex_mLegR4Tibia;
-        float[] fabrik_mLegR4Tibia = solveFabrikChainAngles(ikReach_mLegR4Tibia, -1.5F + stepLift_mLegR4Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegR4Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegR4Tibia, -1.5F + stepLift_mLegR4Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegR4Tibia.zRot = -0.72F + (fabrik_mLegR4Tibia[1] - 1.15F) * 0.38F;
         float gait_mLegL4 = Mth.cos(limbSwing * 0.85F + 1.5F);
         this.mLegL4.yRot = -0.48F - gait_mLegL4 * 0.38F * limbSwingAmount;
@@ -671,7 +671,7 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
         float stepLift_mLegL4Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 1.5F)) * 1.45F * limbSwingAmount;
         float idleFlex_mLegL4Tibia = Mth.sin(ageInTicks * 0.08F + 1.5F) * 0.35F;
         float ikReach_mLegL4Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 1.5F) * 1.10F * limbSwingAmount + idleFlex_mLegL4Tibia;
-        float[] fabrik_mLegL4Tibia = solveFabrikChainAngles(ikReach_mLegL4Tibia, -1.5F + stepLift_mLegL4Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_mLegL4Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_mLegL4Tibia, -1.5F + stepLift_mLegL4Tibia, new float[]{4.5F, 5.5F}, 4);
         this.mLegL4Tibia.zRot = 0.72F + (fabrik_mLegL4Tibia[1] - 1.15F) * 0.38F;
         if (entity instanceof com.alex.mycelialmind.entity.MycelialBossMob boss) {
             float bossProg = boss.getStateProgress();
@@ -705,64 +705,6 @@ public class ApexMatriarchModel<T extends Entity> extends EntityModel<T> {
                 }
             }
         }
-    }
-
-    private static float damperExact(float x, float goal, float halflife, float dt) {
-        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);
-        float ydt = y * dt;
-        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);
-        return goal + (x - goal) * e;
-    }
-
-    private static void stepSpringDamperExact(float[] state, int offset, float targetGoal, float halflife, float dt) {
-        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);
-        float ydt = y * dt;
-        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);
-        float j0 = state[offset] - targetGoal;
-        float j1 = state[offset + 1] + j0 * y;
-        state[offset] = Mth.clamp(e * (j0 + j1 * dt) + targetGoal, -0.45F, 0.45F);
-        state[offset + 1] = e * (state[offset + 1] - j1 * y * dt);
-    }
-
-    private static float solveTwoBoneIK(float targetDist, float l1, float l2) {
-        float clamped = Mth.clamp(targetDist, Math.abs(l1 - l2) + 0.05F, l1 + l2 - 0.05F);
-        float cosAngle = (l1 * l1 + l2 * l2 - clamped * clamped) / (2.0F * l1 * l2);
-        return (float) Math.acos(Mth.clamp(cosAngle, -1.0F, 1.0F));
-    }
-
-    private static float[] solveFabrikChainAngles(float targetX, float targetY, float[] lengths, int iterations) {
-        int n = lengths.length;
-        float[] px = new float[n + 1];
-        float[] py = new float[n + 1];
-        for (int i = 0; i < n; i++) {
-            px[i + 1] = px[i] + lengths[i];
-            py[i + 1] = 0.0F;
-        }
-        for (int iter = 0; iter < Math.max(1, iterations); iter++) {
-            px[n] = targetX;
-            py[n] = targetY;
-            for (int i = n - 1; i >= 0; i--) {
-                float dx = px[i] - px[i + 1];
-                float dy = py[i] - py[i + 1];
-                float d = Math.max(1.0E-4F, (float) Math.sqrt(dx * dx + dy * dy));
-                px[i] = px[i + 1] + (dx / d) * lengths[i];
-                py[i] = py[i + 1] + (dy / d) * lengths[i];
-            }
-            px[0] = 0.0F;
-            py[0] = 0.0F;
-            for (int i = 0; i < n; i++) {
-                float dx = px[i + 1] - px[i];
-                float dy = py[i + 1] - py[i];
-                float d = Math.max(1.0E-4F, (float) Math.sqrt(dx * dx + dy * dy));
-                px[i + 1] = px[i] + (dx / d) * lengths[i];
-                py[i + 1] = py[i] + (dy / d) * lengths[i];
-            }
-        }
-        float[] angles = new float[n];
-        for (int i = 0; i < n; i++) {
-            angles[i] = (float) Math.atan2(py[i + 1] - py[i], px[i + 1] - px[i]);
-        }
-        return angles;
     }
 
     @Override

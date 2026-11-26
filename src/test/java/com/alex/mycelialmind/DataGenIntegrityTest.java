@@ -208,14 +208,7 @@ class DataGenIntegrityTest {
     }
 
     private static Path resolveRepoRoot() {
-        Path cursor = Path.of("").toAbsolutePath().normalize();
-        while (cursor != null) {
-            if (Files.isRegularFile(cursor.resolve("build.gradle"))) {
-                return cursor;
-            }
-            cursor = cursor.getParent();
-        }
-        throw new IllegalStateException("Unable to locate repository root containing build.gradle");
+        return TestRepoPaths.resolveRepoRoot();
     }
 
     private static void collectRelativeFiles(Path root, String subDir, Set<String> out) throws IOException {

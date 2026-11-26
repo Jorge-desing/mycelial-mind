@@ -159,9 +159,9 @@ public class PyroShroomModel<T extends Entity> extends EntityModel<T> {
         float dVert = (float) entity.getDeltaMovement().y;
         float yawGoal = Mth.clamp(dYaw * 0.016F, -0.42F, 0.42F);
         float pitchGoal = Mth.clamp(dVert * 0.38F, -0.42F, 0.42F);
-        stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);
-        stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);
-        float jiggle = damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);
+        ModelAnimationMath.stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);
+        ModelAnimationMath.stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);
+        float jiggle = ModelAnimationMath.damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);
         this.headSeg.yRot = netHeadYaw * ((float) Math.PI / 180F);
         this.headSeg.xRot = 0.0F + headPitch * ((float) Math.PI / 180F);
         this.mutatedEmberHorns.visible = isMutatedOrHigher;
@@ -187,23 +187,6 @@ public class PyroShroomModel<T extends Entity> extends EntityModel<T> {
         this.pLegFr.xRot = 0.0F + Mth.cos(limbSwing * 0.6662F + (float) Math.PI + 0.0F) * 0.9F * limbSwingAmount * 1.0F;
         this.pLegBl.xRot = 0.0F + Mth.cos(limbSwing * 0.6662F + (float) Math.PI + 0.5F) * 0.9F * limbSwingAmount * 1.0F;
         this.pLegBr.xRot = 0.0F + Mth.cos(limbSwing * 0.6662F + 0.5F) * 0.9F * limbSwingAmount * 1.0F;
-    }
-
-    private static float damperExact(float x, float goal, float halflife, float dt) {
-        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);
-        float ydt = y * dt;
-        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);
-        return goal + (x - goal) * e;
-    }
-
-    private static void stepSpringDamperExact(float[] state, int offset, float targetGoal, float halflife, float dt) {
-        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);
-        float ydt = y * dt;
-        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);
-        float j0 = state[offset] - targetGoal;
-        float j1 = state[offset + 1] + j0 * y;
-        state[offset] = Mth.clamp(e * (j0 + j1 * dt) + targetGoal, -0.45F, 0.45F);
-        state[offset + 1] = e * (state[offset + 1] - j1 * y * dt);
     }
 
     @Override

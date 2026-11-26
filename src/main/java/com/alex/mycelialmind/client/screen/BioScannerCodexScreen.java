@@ -24,7 +24,6 @@ import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
 import com.alex.mycelialmind.util.MycelialText;
-import com.alex.mycelialmind.world.SynapticNodeType;
 import com.alex.mycelialmind.world.ModDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -37,7 +36,6 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

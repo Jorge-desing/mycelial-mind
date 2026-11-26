@@ -1,5 +1,7 @@
 package com.alex.mycelialmind.hive;
 
+import java.util.EnumSet;
+
 /**
  * Adaptive mutations that the Hive Mind can express across its organisms.
  */
@@ -30,5 +32,15 @@ public enum AdaptationTrait {
 
     public StimulusType trigger() {
         return trigger;
+    }
+
+    public static EnumSet<AdaptationTrait> decodeMask(int mask) {
+        EnumSet<AdaptationTrait> traits = EnumSet.noneOf(AdaptationTrait.class);
+        for (AdaptationTrait trait : values()) {
+            if ((mask & (1 << trait.ordinal())) != 0) {
+                traits.add(trait);
+            }
+        }
+        return traits;
     }
 }

@@ -158,9 +158,9 @@ def emit_java_model(model: ModelDef) -> str:
         anim_lines.append("        float dVert = (float) entity.getDeltaMovement().y;")
         anim_lines.append("        float yawGoal = Mth.clamp(dYaw * 0.016F, -0.42F, 0.42F);")
         anim_lines.append("        float pitchGoal = Mth.clamp(dVert * 0.38F, -0.42F, 0.42F);")
-        anim_lines.append("        stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);")
-        anim_lines.append("        stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);")
-        anim_lines.append("        float jiggle = damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);")
+        anim_lines.append("        ModelAnimationMath.stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);")
+        anim_lines.append("        ModelAnimationMath.stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);")
+        anim_lines.append("        float jiggle = ModelAnimationMath.damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);")
 
     for var, p, _ in nodes:
         if p.rank_min == "MUTATED":
@@ -230,7 +230,7 @@ def emit_java_model(model: ModelDef) -> str:
             anim_lines.append(f"        float stepLift_{var} = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + {ph})) * 1.45F * limbSwingAmount;")
             anim_lines.append(f"        float idleFlex_{var} = Mth.sin(ageInTicks * 0.08F + {ph}) * 0.35F;")
             anim_lines.append(f"        float ikReach_{var} = 6.2F + Mth.cos(limbSwing * 0.85F + {ph}) * 1.10F * limbSwingAmount + idleFlex_{var};")
-            anim_lines.append(f"        float[] fabrik_{var} = solveFabrikChainAngles(ikReach_{var}, -1.5F + stepLift_{var}, new float[]{{4.5F, 5.5F}}, 4);")
+            anim_lines.append(f"        float[] fabrik_{var} = ModelAnimationMath.solveFabrikChainAngles(ikReach_{var}, -1.5F + stepLift_{var}, new float[]{{4.5F, 5.5F}}, 4);")
             anim_lines.append(f"        this.{var}.zRot = {_fmt_f(p.rotation[2])} + (fabrik_{var}[1] - 1.15F) * 0.38F;")
         elif role == "piston_pump":
             anim_lines.append(f"        float piston_{var} = Mth.sin(ageInTicks * 0.22F + {ph}) * 0.06F * {amp};")
@@ -407,66 +407,11 @@ def emit_java_model(model: ModelDef) -> str:
     spring_import = "import java.util.Map;\nimport java.util.WeakHashMap;\n" if uses_spring else ""
     spring_field = "    private final Map<Entity, float[]> springState = new WeakHashMap<>();\n" if uses_spring else ""
     combat_field = "    private final CombatPoseTransition<Entity> combatPose = new CombatPoseTransition<>();\n" if uses_aggro else ""
-    spring_helper = (
-        "\n    private static float damperExact(float x, float goal, float halflife, float dt) {\n"
-        "        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);\n"
-        "        float ydt = y * dt;\n"
-        "        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);\n"
-        "        return goal + (x - goal) * e;\n"
-        "    }\n\n"
-        "    private static void stepSpringDamperExact(float[] state, int offset, float targetGoal, float halflife, float dt) {\n"
-        "        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);\n"
-        "        float ydt = y * dt;\n"
-        "        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);\n"
-        "        float j0 = state[offset] - targetGoal;\n"
-        "        float j1 = state[offset + 1] + j0 * y;\n"
-        "        state[offset] = Mth.clamp(e * (j0 + j1 * dt) + targetGoal, -0.45F, 0.45F);\n"
-        "        state[offset + 1] = e * (state[offset + 1] - j1 * y * dt);\n"
-        "    }\n"
-        if uses_spring
-        else ""
-    )
-    ik_helper = (
-        "\n    private static float solveTwoBoneIK(float targetDist, float l1, float l2) {\n"
-        "        float clamped = Mth.clamp(targetDist, Math.abs(l1 - l2) + 0.05F, l1 + l2 - 0.05F);\n"
-        "        float cosAngle = (l1 * l1 + l2 * l2 - clamped * clamped) / (2.0F * l1 * l2);\n"
-        "        return (float) Math.acos(Mth.clamp(cosAngle, -1.0F, 1.0F));\n"
-        "    }\n\n"
-        "    private static float[] solveFabrikChainAngles(float targetX, float targetY, float[] lengths, int iterations) {\n"
-        "        int n = lengths.length;\n"
-        "        float[] px = new float[n + 1];\n"
-        "        float[] py = new float[n + 1];\n"
-        "        for (int i = 0; i < n; i++) {\n"
-        "            px[i + 1] = px[i] + lengths[i];\n"
-        "            py[i + 1] = 0.0F;\n"
-        "        }\n"
-        "        for (int iter = 0; iter < Math.max(1, iterations); iter++) {\n"
-        "            px[n] = targetX;\n"
-        "            py[n] = targetY;\n"
-        "            for (int i = n - 1; i >= 0; i--) {\n"
-        "                float dx = px[i] - px[i + 1];\n"
-        "                float dy = py[i] - py[i + 1];\n"
-        "                float d = Math.max(1.0E-4F, (float) Math.sqrt(dx * dx + dy * dy));\n"
-        "                px[i] = px[i + 1] + (dx / d) * lengths[i];\n"
-        "                py[i] = py[i + 1] + (dy / d) * lengths[i];\n"
-        "            }\n"
-        "            px[0] = 0.0F;\n"
-        "            py[0] = 0.0F;\n"
-        "            for (int i = 0; i < n; i++) {\n"
-        "                float dx = px[i + 1] - px[i];\n"
-        "                float dy = py[i + 1] - py[i];\n"
-        "                float d = Math.max(1.0E-4F, (float) Math.sqrt(dx * dx + dy * dy));\n"
-        "                px[i + 1] = px[i] + (dx / d) * lengths[i];\n"
-        "                py[i + 1] = py[i] + (dy / d) * lengths[i];\n"
-        "            }\n"
-        "        }\n"
-        "        float[] angles = new float[n];\n"
-        "        for (int i = 0; i < n; i++) {\n"
-        "            angles[i] = (float) Math.atan2(py[i + 1] - py[i], px[i + 1] - px[i]);\n"
-        "        }\n"
-        "        return angles;\n"
-        "    }\n"
-        if uses_ik
+    spring_helper = ""
+    ik_helper = ""
+    deform_import = (
+        "import net.minecraft.client.model.geom.builders.CubeDeformation;\n"
+        if any("CubeDeformation" in line for line in builder_lines)
         else ""
     )
 
@@ -484,8 +429,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.model.geom.builders.CubeDeformation;
-import net.minecraft.client.model.geom.builders.CubeListBuilder;
+{deform_import}import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;

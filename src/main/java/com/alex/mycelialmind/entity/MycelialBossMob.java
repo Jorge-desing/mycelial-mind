@@ -15,6 +15,7 @@ import com.alex.mycelialmind.hive.PlayerHabit;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -32,6 +33,7 @@ import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -660,5 +662,21 @@ public abstract class MycelialBossMob extends MycelialMob {
         if (tag.contains(TAG_CARAPACE_BROKEN_TICKS)) {
             this.entityData.set(DATA_CARAPACE_BROKEN_TICKS, Math.max(0, tag.getInt(TAG_CARAPACE_BROKEN_TICKS)));
         }
+    }
+
+    @Nullable
+    protected static BlockPos findOpenAnchorPosition(ServerLevel level, BlockPos preferred) {
+        for (int distance = 0; distance <= 4; distance++) {
+            int[] offsets = distance == 0 ? new int[]{0} : new int[]{distance, -distance};
+            for (int offset : offsets) {
+                BlockPos candidate = preferred.offset(0, offset, 0);
+                if (level.isInWorldBounds(candidate) && level.isEmptyBlock(candidate)
+                        && level.getBlockEntity(candidate) == null
+                        && level.getEntitiesOfClass(LivingEntity.class, new AABB(candidate), LivingEntity::isAlive).isEmpty()) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
     }
 }

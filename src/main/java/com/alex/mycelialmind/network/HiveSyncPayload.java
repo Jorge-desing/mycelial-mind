@@ -739,21 +739,11 @@ public record HiveSyncPayload(
     }
 
     public Set<AdaptationTrait> decodeTraits() {
-        return decodeTraitsFromMask(traitMask);
+        return AdaptationTrait.decodeMask(traitMask);
     }
 
     public Set<AdaptationTrait> decodeTier2Traits() {
-        return decodeTraitsFromMask(tier2Mask);
-    }
-
-    private static Set<AdaptationTrait> decodeTraitsFromMask(int mask) {
-        EnumSet<AdaptationTrait> traits = EnumSet.noneOf(AdaptationTrait.class);
-        for (AdaptationTrait trait : AdaptationTrait.values()) {
-            if ((mask & (1 << trait.ordinal())) != 0) {
-                traits.add(trait);
-            }
-        }
-        return traits;
+        return AdaptationTrait.decodeMask(tier2Mask);
     }
 
     public Set<HiveSynergy> decodeSynergies() {

@@ -42,7 +42,6 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleProcessor
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Datapack bootstrap definitions for processor lists, Jigsaw template pools, structures,

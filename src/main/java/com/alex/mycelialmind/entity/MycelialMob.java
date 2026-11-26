@@ -79,7 +79,6 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -651,13 +650,7 @@ public abstract class MycelialMob extends Monster implements HiveBrainOwner<Myce
     }
 
     private static Set<AdaptationTrait> decodeTraits(int mask) {
-        EnumSet<AdaptationTrait> traits = EnumSet.noneOf(AdaptationTrait.class);
-        for (AdaptationTrait trait : AdaptationTrait.values()) {
-            if ((mask & (1 << trait.ordinal())) != 0) {
-                traits.add(trait);
-            }
-        }
-        return traits;
+        return AdaptationTrait.decodeMask(mask);
     }
 
     public void applyHiveTraits(Set<AdaptationTrait> traits) {

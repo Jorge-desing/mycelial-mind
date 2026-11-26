@@ -8,7 +8,6 @@ import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModStructures;
 import com.alex.mycelialmind.world.MycelialLootSystem;
-import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -206,14 +205,10 @@ public class EndSpirePiece extends StructurePiece {
     }
 
     private static void setIfInside(WorldGenLevel level, BoundingBox box, BlockPos pos, BlockState state) {
-        if (box.isInside(pos)) {
-            level.setBlock(pos, state, 2);
-        }
+        StructurePieceSupport.setIfInside(level, box, pos, state);
     }
 
     private static void registerNodeIfInside(WorldGenLevel level, BoundingBox box, BlockPos pos, SynapticNodeType type) {
-        if (box.isInside(pos) && level.getLevel() instanceof ServerLevel serverLevel) {
-            PurificationZoneTracker.get(serverLevel).addNode(pos, type);
-        }
+        StructurePieceSupport.registerNodeIfInside(level, box, pos, type);
     }
 }

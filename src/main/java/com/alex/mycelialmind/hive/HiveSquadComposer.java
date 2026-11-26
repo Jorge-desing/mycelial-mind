@@ -7,7 +7,6 @@ import net.minecraft.world.entity.EntityType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Counter-tactical squad composer: picks MycelialMob types that counter the player's

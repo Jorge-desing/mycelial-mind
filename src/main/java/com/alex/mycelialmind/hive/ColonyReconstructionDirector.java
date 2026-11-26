@@ -1,6 +1,5 @@
 package com.alex.mycelialmind.hive;
 
-import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.colony.ColonyReconstruction;
 import com.alex.mycelialmind.colony.ColonyReconstructionStatus;
 import com.alex.mycelialmind.colony.ColonyReconstructionRules;

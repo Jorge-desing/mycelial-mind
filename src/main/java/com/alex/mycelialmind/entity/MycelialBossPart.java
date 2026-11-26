@@ -1,7 +1,6 @@
 package com.alex.mycelialmind.entity;
 
 import com.alex.mycelialmind.hive.BossCombatArchitectureEngine;
-import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.tags.DamageTypeTags;

@@ -1,7 +1,6 @@
 package com.alex.mycelialmind.world;
 
 import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.AntibodyCystBlock;
 import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;

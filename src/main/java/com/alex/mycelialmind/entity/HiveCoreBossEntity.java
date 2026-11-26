@@ -50,7 +50,6 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
@@ -382,21 +381,6 @@ public class HiveCoreBossEntity extends MycelialBossMob {
         updateBossBarAppearance();
         level.playSound(null, this.blockPosition(), ModSounds.BOSS_PHASE_SHIFT.get(), SoundSource.HOSTILE, 1.65F, 0.92F);
         level.playSound(null, this.blockPosition(), ModSounds.HIVE_CORE_SHIELD.get(), SoundSource.HOSTILE, 1.40F, 0.92F);
-    }
-
-    private static BlockPos findOpenAnchorPosition(ServerLevel level, BlockPos preferred) {
-        for (int distance = 0; distance <= 4; distance++) {
-            int[] offsets = distance == 0 ? new int[]{0} : new int[]{distance, -distance};
-            for (int offset : offsets) {
-                BlockPos candidate = preferred.offset(0, offset, 0);
-                if (level.isInWorldBounds(candidate) && level.isEmptyBlock(candidate)
-                        && level.getBlockEntity(candidate) == null
-                        && level.getEntitiesOfClass(LivingEntity.class, new AABB(candidate), LivingEntity::isAlive).isEmpty()) {
-                    return candidate;
-                }
-            }
-        }
-        return null;
     }
 
     private void onPhaseTwoShieldCollapsed(ServerLevel level) {

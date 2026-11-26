@@ -6,7 +6,6 @@ import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.item.ChitinArmorItem;
-import com.alex.mycelialmind.item.GeneticSampleItem;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModEffects;

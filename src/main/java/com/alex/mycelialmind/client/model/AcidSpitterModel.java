@@ -227,9 +227,9 @@ public class AcidSpitterModel<T extends Entity> extends EntityModel<T> {
         float dVert = (float) entity.getDeltaMovement().y;
         float yawGoal = Mth.clamp(dYaw * 0.016F, -0.42F, 0.42F);
         float pitchGoal = Mth.clamp(dVert * 0.38F, -0.42F, 0.42F);
-        stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);
-        stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);
-        float jiggle = damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);
+        ModelAnimationMath.stepSpringDamperExact(sp, 0, yawGoal, 0.18F, dt);
+        ModelAnimationMath.stepSpringDamperExact(sp, 3, pitchGoal, 0.22F, dt);
+        float jiggle = ModelAnimationMath.damperExact(sp[0] + sp[3] * 0.6F, sp[0] + sp[3] * 0.6F, 0.08F, dt);
         float br_thorax = 1.0F + Mth.sin(ageInTicks * 0.09F + 0.0F) * 0.025F * 1.0F;
         this.thorax.xScale = br_thorax;
         this.thorax.zScale = br_thorax;
@@ -264,7 +264,7 @@ public class AcidSpitterModel<T extends Entity> extends EntityModel<T> {
         float stepLift_legR1Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 0.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_legR1Tibia = Mth.sin(ageInTicks * 0.08F + 0.0F) * 0.35F;
         float ikReach_legR1Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 0.0F) * 1.10F * limbSwingAmount + idleFlex_legR1Tibia;
-        float[] fabrik_legR1Tibia = solveFabrikChainAngles(ikReach_legR1Tibia, -1.5F + stepLift_legR1Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_legR1Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_legR1Tibia, -1.5F + stepLift_legR1Tibia, new float[]{4.5F, 5.5F}, 4);
         this.legR1Tibia.zRot = -0.72F + (fabrik_legR1Tibia[1] - 1.15F) * 0.38F;
         float gait_legR2 = Mth.cos(limbSwing * 0.85F + 1.5F);
         this.legR2.yRot = 0.0F + gait_legR2 * 0.38F * limbSwingAmount;
@@ -272,7 +272,7 @@ public class AcidSpitterModel<T extends Entity> extends EntityModel<T> {
         float stepLift_legR2Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 1.5F)) * 1.45F * limbSwingAmount;
         float idleFlex_legR2Tibia = Mth.sin(ageInTicks * 0.08F + 1.5F) * 0.35F;
         float ikReach_legR2Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 1.5F) * 1.10F * limbSwingAmount + idleFlex_legR2Tibia;
-        float[] fabrik_legR2Tibia = solveFabrikChainAngles(ikReach_legR2Tibia, -1.5F + stepLift_legR2Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_legR2Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_legR2Tibia, -1.5F + stepLift_legR2Tibia, new float[]{4.5F, 5.5F}, 4);
         this.legR2Tibia.zRot = -0.72F + (fabrik_legR2Tibia[1] - 1.15F) * 0.38F;
         float gait_legR3 = Mth.cos(limbSwing * 0.85F + 3.0F);
         this.legR3.yRot = -0.45F + gait_legR3 * 0.38F * limbSwingAmount;
@@ -280,7 +280,7 @@ public class AcidSpitterModel<T extends Entity> extends EntityModel<T> {
         float stepLift_legR3Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 3.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_legR3Tibia = Mth.sin(ageInTicks * 0.08F + 3.0F) * 0.35F;
         float ikReach_legR3Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 3.0F) * 1.10F * limbSwingAmount + idleFlex_legR3Tibia;
-        float[] fabrik_legR3Tibia = solveFabrikChainAngles(ikReach_legR3Tibia, -1.5F + stepLift_legR3Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_legR3Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_legR3Tibia, -1.5F + stepLift_legR3Tibia, new float[]{4.5F, 5.5F}, 4);
         this.legR3Tibia.zRot = -0.72F + (fabrik_legR3Tibia[1] - 1.15F) * 0.38F;
         float gait_legL1 = Mth.cos(limbSwing * 0.85F + 1.5F);
         this.legL1.yRot = -0.45F - gait_legL1 * 0.38F * limbSwingAmount;
@@ -288,7 +288,7 @@ public class AcidSpitterModel<T extends Entity> extends EntityModel<T> {
         float stepLift_legL1Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 1.5F)) * 1.45F * limbSwingAmount;
         float idleFlex_legL1Tibia = Mth.sin(ageInTicks * 0.08F + 1.5F) * 0.35F;
         float ikReach_legL1Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 1.5F) * 1.10F * limbSwingAmount + idleFlex_legL1Tibia;
-        float[] fabrik_legL1Tibia = solveFabrikChainAngles(ikReach_legL1Tibia, -1.5F + stepLift_legL1Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_legL1Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_legL1Tibia, -1.5F + stepLift_legL1Tibia, new float[]{4.5F, 5.5F}, 4);
         this.legL1Tibia.zRot = 0.72F + (fabrik_legL1Tibia[1] - 1.15F) * 0.38F;
         float gait_legL2 = Mth.cos(limbSwing * 0.85F + 3.0F);
         this.legL2.yRot = 0.0F - gait_legL2 * 0.38F * limbSwingAmount;
@@ -296,7 +296,7 @@ public class AcidSpitterModel<T extends Entity> extends EntityModel<T> {
         float stepLift_legL2Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 3.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_legL2Tibia = Mth.sin(ageInTicks * 0.08F + 3.0F) * 0.35F;
         float ikReach_legL2Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 3.0F) * 1.10F * limbSwingAmount + idleFlex_legL2Tibia;
-        float[] fabrik_legL2Tibia = solveFabrikChainAngles(ikReach_legL2Tibia, -1.5F + stepLift_legL2Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_legL2Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_legL2Tibia, -1.5F + stepLift_legL2Tibia, new float[]{4.5F, 5.5F}, 4);
         this.legL2Tibia.zRot = 0.72F + (fabrik_legL2Tibia[1] - 1.15F) * 0.38F;
         float gait_legL3 = Mth.cos(limbSwing * 0.85F + 0.0F);
         this.legL3.yRot = 0.45F - gait_legL3 * 0.38F * limbSwingAmount;
@@ -304,66 +304,8 @@ public class AcidSpitterModel<T extends Entity> extends EntityModel<T> {
         float stepLift_legL3Tibia = Math.max(0.0F, Mth.sin(limbSwing * 0.85F + 0.0F)) * 1.45F * limbSwingAmount;
         float idleFlex_legL3Tibia = Mth.sin(ageInTicks * 0.08F + 0.0F) * 0.35F;
         float ikReach_legL3Tibia = 6.2F + Mth.cos(limbSwing * 0.85F + 0.0F) * 1.10F * limbSwingAmount + idleFlex_legL3Tibia;
-        float[] fabrik_legL3Tibia = solveFabrikChainAngles(ikReach_legL3Tibia, -1.5F + stepLift_legL3Tibia, new float[]{4.5F, 5.5F}, 4);
+        float[] fabrik_legL3Tibia = ModelAnimationMath.solveFabrikChainAngles(ikReach_legL3Tibia, -1.5F + stepLift_legL3Tibia, new float[]{4.5F, 5.5F}, 4);
         this.legL3Tibia.zRot = 0.72F + (fabrik_legL3Tibia[1] - 1.15F) * 0.38F;
-    }
-
-    private static float damperExact(float x, float goal, float halflife, float dt) {
-        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);
-        float ydt = y * dt;
-        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);
-        return goal + (x - goal) * e;
-    }
-
-    private static void stepSpringDamperExact(float[] state, int offset, float targetGoal, float halflife, float dt) {
-        float y = (4.0F * 0.6931472F) / Math.max(1.0E-4F, halflife);
-        float ydt = y * dt;
-        float e = 1.0F / (1.0F + ydt + 0.48F * ydt * ydt + 0.235F * ydt * ydt * ydt);
-        float j0 = state[offset] - targetGoal;
-        float j1 = state[offset + 1] + j0 * y;
-        state[offset] = Mth.clamp(e * (j0 + j1 * dt) + targetGoal, -0.45F, 0.45F);
-        state[offset + 1] = e * (state[offset + 1] - j1 * y * dt);
-    }
-
-    private static float solveTwoBoneIK(float targetDist, float l1, float l2) {
-        float clamped = Mth.clamp(targetDist, Math.abs(l1 - l2) + 0.05F, l1 + l2 - 0.05F);
-        float cosAngle = (l1 * l1 + l2 * l2 - clamped * clamped) / (2.0F * l1 * l2);
-        return (float) Math.acos(Mth.clamp(cosAngle, -1.0F, 1.0F));
-    }
-
-    private static float[] solveFabrikChainAngles(float targetX, float targetY, float[] lengths, int iterations) {
-        int n = lengths.length;
-        float[] px = new float[n + 1];
-        float[] py = new float[n + 1];
-        for (int i = 0; i < n; i++) {
-            px[i + 1] = px[i] + lengths[i];
-            py[i + 1] = 0.0F;
-        }
-        for (int iter = 0; iter < Math.max(1, iterations); iter++) {
-            px[n] = targetX;
-            py[n] = targetY;
-            for (int i = n - 1; i >= 0; i--) {
-                float dx = px[i] - px[i + 1];
-                float dy = py[i] - py[i + 1];
-                float d = Math.max(1.0E-4F, (float) Math.sqrt(dx * dx + dy * dy));
-                px[i] = px[i + 1] + (dx / d) * lengths[i];
-                py[i] = py[i + 1] + (dy / d) * lengths[i];
-            }
-            px[0] = 0.0F;
-            py[0] = 0.0F;
-            for (int i = 0; i < n; i++) {
-                float dx = px[i + 1] - px[i];
-                float dy = py[i + 1] - py[i];
-                float d = Math.max(1.0E-4F, (float) Math.sqrt(dx * dx + dy * dy));
-                px[i + 1] = px[i] + (dx / d) * lengths[i];
-                py[i + 1] = py[i] + (dy / d) * lengths[i];
-            }
-        }
-        float[] angles = new float[n];
-        for (int i = 0; i < n; i++) {
-            angles[i] = (float) Math.atan2(py[i + 1] - py[i], px[i + 1] - px[i]);
-        }
-        return angles;
     }
 
     @Override

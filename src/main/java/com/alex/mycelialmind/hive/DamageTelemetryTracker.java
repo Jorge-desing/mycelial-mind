@@ -16,7 +16,6 @@ import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.network.DiplomacySyncPayload;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
-import com.alex.mycelialmind.network.SymbiosisSyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;

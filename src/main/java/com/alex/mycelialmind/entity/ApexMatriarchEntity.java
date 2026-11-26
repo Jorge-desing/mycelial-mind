@@ -56,7 +56,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -359,7 +358,7 @@ public class ApexMatriarchEntity extends MycelialBossMob {
     }
 
     private void placeSentinelIfOpen(ServerLevel level, BlockPos preferred) {
-        BlockPos candidate = findOpenSentinelPosition(level, preferred);
+        BlockPos candidate = findOpenAnchorPosition(level, preferred);
         if (candidate != null && level.setBlockAndUpdate(candidate, ModBlocks.SENTINEL_NODE.get().defaultBlockState())) {
             if (level.getBlockEntity(candidate) instanceof SynapticNodeBlockEntity node) {
                 node.markBossAnchor(this.getUUID());
@@ -368,21 +367,6 @@ public class ApexMatriarchEntity extends MycelialBossMob {
                 level.destroyBlock(candidate, false);
             }
         }
-    }
-
-    private static BlockPos findOpenSentinelPosition(ServerLevel level, BlockPos preferred) {
-        for (int distance = 0; distance <= 4; distance++) {
-            int[] offsets = distance == 0 ? new int[]{0} : new int[]{distance, -distance};
-            for (int offset : offsets) {
-                BlockPos candidate = preferred.offset(0, offset, 0);
-                if (level.isInWorldBounds(candidate) && level.isEmptyBlock(candidate)
-                        && level.getBlockEntity(candidate) == null
-                        && level.getEntitiesOfClass(LivingEntity.class, new AABB(candidate), LivingEntity::isAlive).isEmpty()) {
-                    return candidate;
-                }
-            }
-        }
-        return null;
     }
 
     private void enterPhaseThree(ServerLevel level) {

@@ -1530,9 +1530,4 @@ def emit_block_and_item_3d_models(check_only: bool = False) -> Tuple[int, int]:
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(payload, f, indent=2)
 
-        for kind in ("melee", "projectile", "fire", "explosion", "magic"):
-            out_path = os.path.join(ITEM_MODEL_DIR, f"reclaimed_bloom_{kind}.json")
-            with open(out_path, "w", encoding="utf-8") as f:
-                json.dump({"parent": f"mycelialmind:block/reclaimed_bloom_{kind}"}, f, indent=2)
-
     return len(block_models), len(item_models)

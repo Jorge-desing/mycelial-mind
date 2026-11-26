@@ -5,8 +5,6 @@ import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.AlliedEscortSavedData;
-import com.alex.mycelialmind.entity.MycelialStalkerEntity;
-import com.alex.mycelialmind.entity.SporelingEntity;
 import com.alex.mycelialmind.hive.HiveStrain;
 import com.alex.mycelialmind.network.DiplomacySyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;

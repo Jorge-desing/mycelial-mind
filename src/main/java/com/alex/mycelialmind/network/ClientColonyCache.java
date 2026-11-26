@@ -1,7 +1,6 @@
 package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.colony.SymbiontCaste;
-import com.alex.mycelialmind.colony.ColonyWitnessMemory;
 import com.alex.mycelialmind.colony.SymbiontRank;
 import com.alex.mycelialmind.colony.SymbiontTemperament;
 import net.minecraft.core.BlockPos;
