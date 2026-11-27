@@ -35,6 +35,8 @@ DEFAULT_BASELINE_DIR = os.path.join(
 
 EXPECTED_SHOTS: tuple[tuple[str, str], ...] = (
     ("structure_outbreak_and_hive.png", "Outbreak + Surface Hive"),
+    ("outbreak_surface.png", "Surface outbreak"),
+    ("outbreak_cave.png", "Cave outbreak"),
     ("structure_hive_sanctum.png", "Hive Sanctum (Exterior)"),
     ("structure_sanctum_interior.png", "Hive Sanctum (Interior)"),
     ("structure_matriarch_citadel.png", "Matriarch Citadel (Front)"),

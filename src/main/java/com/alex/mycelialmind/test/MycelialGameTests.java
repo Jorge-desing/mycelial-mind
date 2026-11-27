@@ -3643,7 +3643,7 @@ public final class MycelialGameTests {
         java.util.function.Predicate<BlockState> isModStructure =
                 s -> !s.isAir() && !s.is(Blocks.STONE) && !s.is(Blocks.BEDROCK) && !s.is(Blocks.BARRIER);
 
-        // 1) MycelialOutbreakFeature 6-connectivity (stalk, counter-rib, cap, and censer)
+        // 1) MycelialOutbreakFeature exposes amber at its supported fissure floor
         BlockPos outbreakPos = helper.absolutePos(new BlockPos(8, 120, 8));
         for (int dx = -5; dx <= 5; dx++) {
             for (int dz = -5; dz <= 5; dz++) {
@@ -3657,16 +3657,10 @@ public final class MycelialGameTests {
             helper.fail("MycelialOutbreakFeature.place returned false on flat stone platform.");
             return;
         }
-        var outbreakBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(
-                outbreakPos.getX() - 4, outbreakPos.getY() + 2, outbreakPos.getZ() - 4,
-                outbreakPos.getX() + 4, outbreakPos.getY() + 10, outbreakPos.getZ() + 4);
-        var outbreakFloating = com.alex.mycelialmind.world.structure.VoxelStructureOps.findDisconnectedPositions(
-                level, outbreakBox, outbreakPos.above(6), isModStructure);
-        if (!outbreakFloating.isEmpty()) {
-            helper.fail("MycelialOutbreakFeature has " + outbreakFloating.size()
-                    + " disconnected canopy/stalk blocks, sample=" + outbreakFloating.get(0));
-            return;
-        }
+        long fissureCells = BlockPos.betweenClosedStream(outbreakPos.offset(-5, -1, -5),
+                outbreakPos.offset(5, -1, 5)).filter(pos -> level.getBlockState(pos).isAir()
+                && level.getBlockState(pos.below()).is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())).count();
+        helper.assertTrue(fissureCells >= 2, "Outbreak fissure must expose supported amber near the node.");
         PurificationZoneTracker.get(level).removeNode(outbreakPos);
 
         // 2) MatriarchCitadelPiece 6-connectivity
@@ -8199,7 +8193,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "outbreak_and_hive_fixes")
-    public static void outbreakDeepMyceliumSubstrateStairsVaultAndCryptIntegrity(GameTestHelper helper) {
+    public static void outbreakDeepMyceliumSubstrateFissureVaultAndCryptIntegrity(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
         tracker.clearAll();
@@ -8212,7 +8206,7 @@ public final class MycelialGameTests {
         BlockPos protectedBedrock = outbreakGround.offset(1, 0, 1);
 
         try {
-            // 1. MycelialOutbreakFeature on MYCELIAL_STONE with visible cardinal stairs and BlockEntity/Bedrock protection
+            // 1. MycelialOutbreakFeature on MYCELIAL_STONE with BlockEntity/Bedrock protection
             for (int dx = -6; dx <= 6; dx++) {
                 for (int dz = -6; dz <= 6; dz++) {
                     for (int dy = -5; dy <= 9; dy++) {
@@ -8232,11 +8226,10 @@ public final class MycelialGameTests {
                     level, outbreakGround, level.getRandom());
             helper.assertTrue(placedDeep, "MycelialOutbreakFeature must place on MYCELIAL_STONE substrate.");
 
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                BlockPos stairPos = outbreakGround.relative(dir).above();
-                helper.assertTrue(level.getBlockState(stairPos).is(Blocks.DEEPSLATE_BRICK_STAIRS),
-                        "Expected visible cardinal stair at " + stairPos + " on flat substrate.");
-            }
+            helper.assertTrue(level.getBlockState(outbreakGround).is(ModBlocks.MYCELIAL_NODE.get())
+                            || level.getBlockState(outbreakGround).is(ModBlocks.INCUBATOR_NODE.get())
+                            || level.getBlockState(outbreakGround).is(ModBlocks.SENTINEL_NODE.get()),
+                    "Outbreak must retain its central synaptic node.");
             helper.assertTrue(level.getBlockEntity(protectedChest) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity,
                     "Outbreak carpet must never overwrite an existing BlockEntity.");
             helper.assertTrue(level.getBlockState(protectedBedrock).is(Blocks.BEDROCK),
@@ -8295,7 +8288,7 @@ public final class MycelialGameTests {
     }
 
     @GameTest(template = "empty", batch = "outbreak_vertical_taproot")
-    public static void subterraneanOutbreakCaveCrownAndSurfaceTaprootConnectionWork(GameTestHelper helper) {
+    public static void subterraneanOutbreakFissureAndSurfaceTaprootConnectionWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
         tracker.clearAll();
@@ -8304,7 +8297,7 @@ public final class MycelialGameTests {
         BlockPos lowerCaveGround = surfaceGround.below(24);
 
         try {
-            // 1. Low-ceiling subterranean cave (headroom = 5) generates compact ceiling-welded crown
+            // 1. Low-ceiling subterranean cave (headroom = 5) generates a fissure
             for (int dx = -4; dx <= 4; dx++) {
                 for (int dz = -4; dz <= 4; dz++) {
                     level.setBlock(caveGround.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
@@ -8320,8 +8313,9 @@ public final class MycelialGameTests {
                     net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
                     level, level.getChunkSource().getGenerator(), level.getRandom(), caveGround);
             helper.assertTrue(cavePlaced, "Subterranean outbreak must place in low-ceiling cave.");
-            helper.assertTrue(level.getBlockState(caveGround.above(5)).is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()),
-                    "Compact cave crown must place luminescent_amber_vein core welded at ceiling headroom.");
+            long caveAmber = BlockPos.betweenClosedStream(caveGround.offset(-4, -1, -4), caveGround.offset(4, -1, 4))
+                    .filter(pos -> level.getBlockState(pos).is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())).count();
+            helper.assertTrue(caveAmber >= 2, "Cave fissure must expose amber in its floor.");
 
             // 2. Surface outbreak above a subterranean cavern weaves vertical taproot & links both nodes
             tracker.clearAll();
@@ -12181,4 +12175,38 @@ public final class MycelialGameTests {
         }
         helper.succeed();
     }
+    @GameTest(template = "empty", batch = "outbreak_fissure_terrain")
+    public static void outbreakFissureRespectsSlopesAndProtectedBlocks(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos center = helper.absolutePos(new BlockPos(8, 210, 8));
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        for (int x = -8; x <= 8; x++) {
+            for (int z = -8; z <= 8; z++) {
+                int height = x >= 2 ? 1 : 0;
+                for (int y = -2; y <= 4; y++) {
+                    level.setBlock(center.offset(x, y, z), y <= height
+                            ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+        }
+        BlockPos chest = center.offset(2, 1, 1);
+        BlockPos bedrock = center.offset(-2, 0, 1);
+        level.setBlock(chest, Blocks.CHEST.defaultBlockState(), 18);
+        level.setBlock(bedrock, Blocks.BEDROCK.defaultBlockState(), 18);
+        try {
+            helper.assertTrue(MycelialOutbreakFeature.generateOutbreakAt(level, center,
+                    net.minecraft.util.RandomSource.create(481516L)), "Fissure should generate on supported sloping terrain.");
+            helper.assertTrue(level.getBlockEntity(chest) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity,
+                    "Fissure must preserve block entities.");
+            helper.assertTrue(level.getBlockState(bedrock).is(Blocks.BEDROCK), "Fissure must preserve bedrock.");
+            long exposedAmber = BlockPos.betweenClosedStream(center.offset(-6, -1, -6), center.offset(6, 0, 6))
+                    .filter(pos -> level.getBlockState(pos).is(ModBlocks.LUMINESCENT_AMBER_VEIN.get())
+                            && level.getBlockState(pos.above()).isAir()).count();
+            helper.assertTrue(exposedAmber >= 2, "Fissure should expose amber near its central node.");
+        } finally {
+            tracker.removeNode(center);
+        }
+        helper.succeed();
+    }
+
 }

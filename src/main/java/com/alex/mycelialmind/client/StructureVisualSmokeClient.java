@@ -2,7 +2,6 @@ package com.alex.mycelialmind.client;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.registry.ModBlocks;
-import com.alex.mycelialmind.registry.ModFeatures;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SurfaceHiveFeature;
 import com.alex.mycelialmind.world.SynapticNodeType;
@@ -35,8 +34,6 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
-import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -52,14 +49,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Optional automated in-game visual smoke harness for Mycelial Mind structures,
  * active only when -Dmycelialmind.structureVisualSmoke=true.
- * Generates 4 structure showcases in 3 spatially isolated zones (>= 240 blocks apart)
- * and captures 5 deterministic screenshots (3 exterior + 2 interior) plus metadata JSON.
+ * Generates structure showcases and captures deterministic screenshots plus metadata JSON.
  */
 public final class StructureVisualSmokeClient {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -88,7 +83,11 @@ public final class StructureVisualSmokeClient {
             new ShotSpec("structure_matriarch_citadel.png", -224.0, 30.0, 64.0, 166.0F, 12.0F, 16,
                     new BlockPos(-240, 17, 0), new BlockPos(-260, -1, -50)),
             new ShotSpec("structure_citadel_interior.png", -239.5, 19.5, 16.0, 180.0F, 6.0F, 10,
-                    new BlockPos(-240, 17, 0), null)
+                    new BlockPos(-240, 17, 0), null),
+            new ShotSpec("outbreak_surface.png", -13.0, 5.0, 8.0, 0.0F, 22.0F, 16,
+                    new BlockPos(-13, -1, 16), null),
+            new ShotSpec("outbreak_cave.png", -100.0, 22.5, -5.0, 0.0F, 12.0F, 16,
+                    new BlockPos(-100, 20, 0), null)
     );
 
     private static boolean worldRequested = false;
@@ -104,6 +103,7 @@ public final class StructureVisualSmokeClient {
 
     private static volatile boolean outbreakPlaced = false;
     private static volatile boolean hivePlaced = false;
+    private static volatile boolean caveOutbreakPlaced = false;
     private static volatile boolean sanctumPlaced = false;
     private static volatile boolean citadelPlaced = false;
     private static volatile int frozenGuardians = 0;
@@ -316,19 +316,30 @@ public final class StructureVisualSmokeClient {
 
         // Zone A (x = 0, z = 16): MycelialOutbreakFeature + SurfaceHiveFeature side-by-side
         BlockPos outbreakPos = new BlockPos(-13, y, 16);
-        for (int dx = -3; dx <= 3; dx++) {
-            for (int dz = -3; dz <= 3; dz++) {
-                level.setBlock(outbreakPos.below().offset(dx, 0, dz), Blocks.DIRT.defaultBlockState(), 18);
+        for (int dx = -8; dx <= 8; dx++) {
+            for (int dz = -8; dz <= 8; dz++) {
+                level.setBlock(outbreakPos.below().offset(dx, 0, dz), Blocks.GRASS_BLOCK.defaultBlockState(), 18);
+                level.setBlock(outbreakPos.below(2).offset(dx, 0, dz), Blocks.STONE.defaultBlockState(), 18);
             }
         }
-        outbreakPlaced = ModFeatures.MYCELIAL_OUTBREAK.get().place(new FeaturePlaceContext<>(
-                Optional.empty(),
-                level,
-                level.getChunkSource().getGenerator(),
-                RandomSource.create(0x4D594301L),
-                outbreakPos.below(),
-                NoneFeatureConfiguration.INSTANCE
-        ));
+        outbreakPlaced = com.alex.mycelialmind.world.MycelialOutbreakFeature.generateOutbreakAt(
+                level, outbreakPos.below(), RandomSource.create(0x4D594301L));
+
+        BlockPos cave = new BlockPos(-100, y + 20, 0);
+        for (int dx = -9; dx <= 9; dx++) {
+            for (int dz = -9; dz <= 9; dz++) {
+                level.setBlock(cave.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
+                level.setBlock(cave.offset(dx, 0, dz), Blocks.STONE.defaultBlockState(), 18);
+                level.setBlock(cave.offset(dx, 7, dz), Blocks.STONE.defaultBlockState(), 18);
+                if (Math.abs(dx) == 9 || Math.abs(dz) == 9) {
+                    for (int height = 1; height < 7; height++) {
+                        level.setBlock(cave.offset(dx, height, dz), Blocks.STONE.defaultBlockState(), 18);
+                    }
+                }
+            }
+        }
+        caveOutbreakPlaced = com.alex.mycelialmind.world.MycelialOutbreakFeature.generateOutbreakAt(
+                level, cave, RandomSource.create(0x4D594305L));
         // Clear outbreak tracker nodes so SurfaceHiveFeature's minNodeClearance never rejects the side-by-side hive
         for (Map.Entry<BlockPos, SynapticNodeType> entry : tracker.getNodesWithin(outbreakPos, 16, 32)) {
             tracker.removeNode(entry.getKey());
@@ -403,6 +414,7 @@ public final class StructureVisualSmokeClient {
             JsonObject meta = new JsonObject();
             meta.addProperty("outbreak_placed", outbreakPlaced);
             meta.addProperty("hive_placed", hivePlaced);
+            meta.addProperty("cave_outbreak_placed", caveOutbreakPlaced);
             meta.addProperty("sanctum_placed", sanctumPlaced);
             meta.addProperty("citadel_placed", citadelPlaced);
             meta.addProperty("frozen_guardians", frozenGuardians);
@@ -411,7 +423,7 @@ public final class StructureVisualSmokeClient {
                 arr.add(s);
             }
             meta.add("shots_captured", arr);
-            boolean allPlaced = outbreakPlaced && hivePlaced && sanctumPlaced && citadelPlaced;
+            boolean allPlaced = outbreakPlaced && caveOutbreakPlaced && hivePlaced && sanctumPlaced && citadelPlaced;
             meta.addProperty("all_placed", allPlaced);
             meta.addProperty("timed_out", timedOut);
             Files.writeString(shotsDir.resolve("structure_smoke_meta.json"), GSON.toJson(meta), StandardCharsets.UTF_8);

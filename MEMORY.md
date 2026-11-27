@@ -5137,3 +5137,10 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `CodeMode` (`mycelial-mind-dev`): `run_model_studio` (`26/26` OK), `run_texture_studio` (`41/41` OK), `run_particle_studio` (`6/6` OK), `run_codex_studio` (`5/5` OK), `run_sound_studio` OK, `audit_mod_assets` OK (`2322/2322` EN/ES), `validate_skills` (`8/8` OK).
   - `gradlew.bat runData test build runGameTestServer -PisolatedGameTests=true --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL in 46s`**, **`169/169` JUnit PASS** (`18` suites, `0` fallos/omisiones), **`205/205` `@GameTest`s PASS** en `7.172 s`.
 - **Estado / Siguiente paso:** Commit selectivo, push a `origin/main` y verificación en vivo de los 3 jobs de `Verify Mycelial Mind`.
+
+
+## [2026-11-26 23:20] — Brotes como grietas miceliales
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
+- **Resumen:** Rediseñados los brotes de superficie y cueva como surcos con fondo de ámbar, bordes de piedra micelial, flora y nodo central. Se conservaron la bóveda y las conexiones verticales; el generador valida soporte y protege bloques sensibles.
+- **Archivos / Símbolos:** `MycelialOutbreakFeature`, `MycelialGameTests`, `StructureVisualSmokeClient`, `scripts/structure_visual_check.py`, referencias visuales de brotes y skill `mycelial-diagnostics`.
+- **Verificación:** `test build runGameTestServer -PisolatedGameTests=true` completó con 206/206 GameTests. `runStructureVisualSmoke` capturó siete vistas y confirmó todos los emplazamientos. Las nuevas vistas de brotes pasan su comparación; la comparación global señala diferencias en tres capturas preexistentes del santuario y la ciudadela, cuya causa queda pendiente.
