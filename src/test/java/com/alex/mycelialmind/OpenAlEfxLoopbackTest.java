@@ -579,6 +579,52 @@ public class OpenAlEfxLoopbackTest {
         }
     }
 
+    @Test
+    void farDistanceAttenuatesHighFrequenciesMoreThanNearFieldOnSameSource() {
+        short[] pcm = synthesizeMultiTonePcm(
+                SAMPLE_RATE,
+                new double[]{260.0D, 850.0D, 4200.0D, 7600.0D},
+                0.24D
+        );
+        int bufferId = createMono16Buffer(pcm);
+        try {
+            SpectralMeasurement near = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(
+                            AcousticEnvironment.DEEP_MYCELIUM_ABYSS,
+                            0.0F,
+                            AcousticPhysicsEngine.SubmersionState.NONE,
+                            true,
+                            40L,
+                            1.0F,
+                            1.0F,
+                            0.0F,
+                            1.0F
+                    )
+            );
+            SpectralMeasurement far = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(
+                            AcousticEnvironment.DEEP_MYCELIUM_ABYSS,
+                            0.0F,
+                            AcousticPhysicsEngine.SubmersionState.NONE,
+                            true,
+                            41L,
+                            1.0F,
+                            1.0F,
+                            0.0F,
+                            40.0F
+                    )
+            );
+            assertTrue(near.highPower() > far.highPower() * 1.20D,
+                    "Far distance (40 m) must damp HF air absorption more than near field (1 m) (near="
+                            + near.highPower() + ", far=" + far.highPower() + ")");
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError());
+        } finally {
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
     private SpectralMeasurement measurePlaybackSpectrum(int bufferId, SourceAcousticSnapshot snapshot) {
         int sourceId = createUnitSource(bufferId);
         try {

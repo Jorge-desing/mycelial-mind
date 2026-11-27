@@ -450,32 +450,45 @@ def _surf_hive_altar(action: str, n: int, dur: float, bf: float, rng: np.random.
     bell_ratios = (0.5, 1.0, 1.189, 1.498, 2.0, 2.996, 4.18)
     bell_amps = (0.52, 0.65, 0.48, 0.42, 0.32, 0.22, 0.14)
     brown = _brown_noise(rng, n)
+    bf_var = bf * rng.uniform(0.86, 1.16)
 
     if action == "break":
         # Monolith shatter + descending minor-third funeral bell + subterranean avalanche
         decays = (0.34, 0.28, 0.22, 0.17, 0.12, 0.08, 0.05)
-        bell = _modal_bank(t, bf, bell_ratios, decays, bell_amps, rng, glide_factor=-0.22, glide_tau=dur * 0.45) * 1.15
+        bell = _modal_bank(t, bf_var, bell_ratios, decays, bell_amps, rng, glide_factor=-0.22, glide_tau=dur * 0.45) * 1.15
         seismic = _sos_bandpass(brown, 42.0, 220.0) * exp_decay(t, dur * 0.42) * 0.62
         crack = _apply_formant_bank(_pink_noise(rng, n) * exp_decay(t, 0.075), [(310.0, 2.0, 0.9), (1250.0, 2.4, 0.70)])
         raw = np.tanh((bell + seismic + crack) * 1.2)
     elif action == "step":
         # Solemn stone-cathedral step + ghostly obsidian bell resonance underfoot
         thud = _sos_bandpass(brown, 48.0, 260.0) * exp_decay(t, 0.065) * 0.60
-        ghost_bell = _modal_bank(t, bf * 0.95, bell_ratios, (0.14, 0.12, 0.09, 0.07, 0.05, 0.03, 0.02), bell_amps, rng) * 0.95
+        ghost_bell = _modal_bank(t, bf_var * 0.95, bell_ratios, (0.14, 0.12, 0.09, 0.07, 0.05, 0.03, 0.02), bell_amps, rng) * 0.95
         raw = thud + ghost_bell
     elif action == "place":
         # Monumental altar slam + ominous temple gong
         slam = _sos_bandpass(brown, 44.0, 240.0) * exp_decay(t, 0.10) * 0.65
-        gong = _modal_bank(t, bf, bell_ratios, (0.26, 0.22, 0.17, 0.12, 0.08, 0.05, 0.03), bell_amps, rng) * 1.15
+        gong = _modal_bank(t, bf_var, bell_ratios, (0.26, 0.22, 0.17, 0.12, 0.08, 0.05, 0.03), bell_amps, rng) * 1.15
         raw = np.tanh((slam + gong) * 1.2)
     elif action == "hit":
-        # Heavy obsidian-gong knock
-        stone = _sos_bandpass(brown, 52.0, 360.0) * exp_decay(t, 0.048) * 0.58
-        toll = _modal_bank(t, bf * 1.05, bell_ratios, (0.16, 0.14, 0.10, 0.075, 0.05, 0.035, 0.02), bell_amps, rng) * 1.15
-        raw = stone + toll
+        # Heavy obsidian-gong knock with per-hit timber & decay variance
+        onset = int(rng.uniform(0.0, 0.04) * n)
+        rem = max(32, n - onset)
+        ht = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
+        stone = wooden_chitin_knock(rem, bf_var * rng.uniform(1.1, 1.8), rng, decay=rng.uniform(0.028, 0.055), hollowness=0.55) * 0.72
+        d_scale = rng.uniform(0.75, 1.35)
+        toll = _modal_bank(
+            ht,
+            bf_var * rng.uniform(0.95, 1.15),
+            bell_ratios,
+            tuple(d * d_scale for d in (0.16, 0.14, 0.10, 0.075, 0.05, 0.035, 0.02)),
+            bell_amps,
+            rng,
+        ) * 1.10
+        raw = np.zeros(n, dtype=np.float64)
+        raw[onset:] = stone + toll
     else:  # fall
         quake = _sos_bandpass(brown, 40.0, 230.0) * exp_decay(t, dur * 0.42) * 0.72
-        toll = _modal_bank(t, bf * 0.92, bell_ratios, (0.32, 0.26, 0.20, 0.14, 0.09, 0.06, 0.03), bell_amps, rng) * 1.10
+        toll = _modal_bank(t, bf_var * 0.92, bell_ratios, (0.32, 0.26, 0.20, 0.14, 0.09, 0.06, 0.03), bell_amps, rng) * 1.10
         raw = np.tanh((quake + toll) * 1.2)
 
     return _cavern_reverb(raw, rng, wet=0.34, rt60=0.82, lp_hz=3200.0)
@@ -927,16 +940,18 @@ def synthesize_block_functional(
         return fdn4_hadamard_diffuser(np.tanh(wave * 1.12), rng, rt60=0.62, wet=0.28, damping_hz=6400.0)
 
     if sound_id == "station_upkeep_low":
-        # Two weakening chitin knocks flag maintenance without an electronic alarm.
+        # Two crisp copper-amethyst warning taps + higher resonant bronze tone so upkeep clears forest canopy beds.
         wave = np.zeros(n, dtype=np.float64)
-        for frac, mult in ((0.03, 1.00), (0.42, 0.74)):
+        for frac, mult in ((0.02, 1.00), (0.34, 0.82)):
             pos = int(frac * n)
-            plen = min(n - pos, int(SAMPLE_RATE * 0.16))
+            plen = min(n - pos, int(SAMPLE_RATE * 0.28))
             if plen > 32:
                 pt = np.arange(plen, dtype=np.float64) / SAMPLE_RATE
-                knock = wooden_chitin_knock(plen, base_freq * 1.3 * mult, rng, decay=0.035, hollowness=0.75)
-                wet = _wet_squelch_layer(plen, rng, 280.0 * mult, 2, intensity=0.45) * exp_decay(pt, 0.08)
-                wave[pos : pos + plen] += knock * mult + wet * 0.35
-        return _cavern_reverb(_sos_highpass(wave, 150.0), rng, wet=0.06, rt60=0.20, lp_hz=4900.0)
+                knock = wooden_chitin_knock(plen, base_freq * 1.65 * mult, rng, decay=0.060, hollowness=0.68)
+                ring = amethyst_copper_chime(pt, base_freq * 2.15 * mult, rng, decay=0.22, crystal_mix=0.52) * 0.65
+                wet = _wet_squelch_layer(plen, rng, 340.0 * mult, 2, intensity=0.40) * exp_decay(pt, 0.10)
+                wave[pos : pos + plen] += knock * mult + ring + wet * 0.25
+        bed = _modal_bank(t, base_freq * 1.75, (1.0, 1.498, 2.0), (0.55, 0.42, 0.28), (0.48, 0.34, 0.20), rng) * adsr_envelope(n, 0.02, 0.12, 0.82, 0.28) * 0.56
+        return _cavern_reverb(_sos_highpass(wave + bed, 220.0), rng, wet=0.05, rt60=0.20, lp_hz=5600.0)
 
     raise ValueError(f"Unknown functional block sound_id: {sound_id}")

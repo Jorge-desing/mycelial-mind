@@ -50,68 +50,68 @@ def _synthesize_ir_profile(space_name: str) -> np.ndarray:
     profiles = {
         "abyssal_cavern": {
             "duration": 1.35,
-            "early_ms": (17.0, 39.0, 71.0, 119.0, 178.0),
+            "early_ms": (17.0, 29.0, 39.0, 59.0, 71.0, 119.0, 178.0, 223.0),
             "modes_hz": (68.0, 142.0, 285.0),
             "mode_taus": (0.48, 0.36, 0.24),
             "lp_hz": 1850.0,
             "hp_hz": 32.0,
             "tail_tau": 0.42,
-            "velvet_density": 1400.0,
+            "velvet_density": 1750.0,
             "diffusion_mix": 0.85,
         },
         "monolith_vault": {
             "duration": 1.45,
-            "early_ms": (21.0, 53.0, 97.0, 163.0, 236.0),
+            "early_ms": (21.0, 37.0, 53.0, 79.0, 97.0, 163.0, 236.0, 277.0),
             "modes_hz": (220.0, 554.0, 1108.0, 2480.0),
             "mode_taus": (0.52, 0.44, 0.34, 0.22),
             "lp_hz": 5400.0,
             "hp_hz": 40.0,
             "tail_tau": 0.46,
-            "velvet_density": 1900.0,
+            "velvet_density": 2375.0,
             "diffusion_mix": 0.80,
         },
         "fungal_chamber": {
             "duration": 0.72,
-            "early_ms": (9.0, 23.0, 47.0, 82.0),
+            "early_ms": (9.0, 17.0, 23.0, 37.0, 47.0, 82.0, 107.0),
             "modes_hz": (118.0, 295.0, 610.0),
             "mode_taus": (0.24, 0.17, 0.12),
             "lp_hz": 2600.0,
             "hp_hz": 45.0,
             "tail_tau": 0.21,
-            "velvet_density": 2200.0,
+            "velvet_density": 2750.0,
             "diffusion_mix": 0.76,
         },
         "purifier_hall": {
             "duration": 0.58,
-            "early_ms": (5.0, 13.0, 29.0, 51.0, 79.0),
+            "early_ms": (5.0, 11.0, 13.0, 23.0, 29.0, 51.0, 79.0),
             "modes_hz": (380.0, 920.0, 1860.0),
             "mode_taus": (0.20, 0.16, 0.11),
             "lp_hz": 7600.0,
             "hp_hz": 75.0,
             "tail_tau": 0.18,
-            "velvet_density": 2600.0,
+            "velvet_density": 3250.0,
             "diffusion_mix": 0.72,
         },
         "spore_canopy": {
             "duration": 1.10,
-            "early_ms": (14.0, 33.0, 64.0, 108.0, 162.0),
+            "early_ms": (14.0, 23.0, 33.0, 47.0, 64.0, 108.0, 162.0),
             "modes_hz": (145.0, 340.0, 780.0),
             "mode_taus": (0.36, 0.28, 0.20),
             "lp_hz": 4200.0,
             "hp_hz": 55.0,
             "tail_tau": 0.34,
-            "velvet_density": 1700.0,
+            "velvet_density": 2125.0,
             "diffusion_mix": 0.80,
         },
         "dimensional_rift": {
             "duration": 1.60,
-            "early_ms": (27.0, 67.0, 124.0, 198.0, 284.0),
+            "early_ms": (27.0, 43.0, 67.0, 97.0, 124.0, 198.0, 284.0, 331.0),
             "modes_hz": (185.0, 523.0, 1175.0, 2960.0),
             "mode_taus": (0.62, 0.50, 0.38, 0.26),
             "lp_hz": 6800.0,
             "hp_hz": 35.0,
             "tail_tau": 0.54,
-            "velvet_density": 2100.0,
+            "velvet_density": 2625.0,
             "diffusion_mix": 0.84,
         },
     }
@@ -119,14 +119,17 @@ def _synthesize_ir_profile(space_name: str) -> np.ndarray:
     n = int(round(float(cfg["duration"]) * SAMPLE_RATE))
     t = np.arange(n, dtype=np.float64) / SAMPLE_RATE
 
-    # Crisp initial early reference + specular reflections
+    # Crisp initial early reference + dense organic specular reflections
     ir = np.zeros(n, dtype=np.float64)
     ir[0] = 0.22
     for idx, ms in enumerate(cfg["early_ms"]):
         pos = min(n - 1, max(1, int(round(ms * SAMPLE_RATE / 1000.0))))
         sign = 1.0 if idx % 2 == 0 else -1.0
-        amp = 0.55 * (0.76**idx) * rng.uniform(0.88, 1.12)
+        amp = 0.52 * (0.80**idx) * rng.uniform(0.88, 1.12)
         ir[pos] += sign * amp
+    if n > 4:
+        # Organic wall-surface scatter smoothing across specular early taps without smearing dry direct tap
+        ir[1:] = np.convolve(ir[1:], np.array([0.2, 0.6, 0.2], dtype=np.float64), mode="same")
 
     # Velvet noise + Gaussian dense late tail
     velvet_count = max(64, int(cfg["velvet_density"] * cfg["duration"]))

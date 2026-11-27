@@ -249,4 +249,27 @@ public class AcousticPhysicsEngineTest {
             assertTrue(envs[i - 1].decayTime() < envs[i].decayTime());
         }
     }
+
+    @Test
+    void v8DistanceAirDampingAndNearFieldSendBiasFollowPhysicalOrdering() {
+        assertEquals(0.0F, AcousticPhysicsEngine.computeDistanceAirDamping(
+                -1.0F, AcousticEnvironment.DEEP_MYCELIUM_ABYSS, AcousticPhysicsEngine.SubmersionState.NONE), 1e-6F);
+        assertEquals(0.0F, AcousticPhysicsEngine.computeDistanceAirDamping(
+                2.0F, AcousticEnvironment.DEEP_MYCELIUM_ABYSS, AcousticPhysicsEngine.SubmersionState.NONE), 1e-6F);
+        assertEquals(0.0F, AcousticPhysicsEngine.computeDistanceSendBias(-1.0F), 1e-6F);
+
+        float farOpen = AcousticPhysicsEngine.computeDistanceAirDamping(
+                32.0F, AcousticEnvironment.OPEN_AIR, AcousticPhysicsEngine.SubmersionState.NONE);
+        float farCavern = AcousticPhysicsEngine.computeDistanceAirDamping(
+                32.0F, AcousticEnvironment.CAVERN_SINKHOLE, AcousticPhysicsEngine.SubmersionState.NONE);
+        float farAbyss = AcousticPhysicsEngine.computeDistanceAirDamping(
+                32.0F, AcousticEnvironment.DEEP_MYCELIUM_ABYSS, AcousticPhysicsEngine.SubmersionState.NONE);
+        assertTrue(farOpen > 0.0F && farOpen < farCavern && farCavern < farAbyss && farAbyss <= 0.28F);
+
+        float nearBias = AcousticPhysicsEngine.computeDistanceSendBias(1.0F);
+        float midBias = AcousticPhysicsEngine.computeDistanceSendBias(6.0F);
+        float farBias = AcousticPhysicsEngine.computeDistanceSendBias(14.0F);
+        assertEquals(0.35F, nearBias, 1e-5F);
+        assertTrue(nearBias > midBias && midBias > farBias && farBias == 0.0F);
+    }
 }

@@ -173,7 +173,7 @@ class SoundStudioTests(unittest.TestCase):
         self.assertIn("hive_tension_bed_low", html_text)
         self.assertIn("sanctum_harmonic_chime", html_text)
         self.assertIn("44100", html_text)
-        self.assertIn("Consola Local de Audio v7", html_text)
+        self.assertIn("Consola Local de Audio v8", html_text)
         self.assertIn("mean_organic_index", html_text)
         self.assertIn("Bloques Físicos", html_text)
         self.assertIn("Biomas y Ambiente (23)", html_text)
@@ -439,7 +439,7 @@ class SoundStudioTests(unittest.TestCase):
         self.assertTrue(-35.0 < measure_integrated_lufs(mastered, SAMPLE_RATE) < -3.0)
 
     def test_stage2_rtx4060_stable_audio_open_small_stems_and_hybrid_blend(self) -> None:
-        """Stage 2: 95 RTX 4060 Stable Audio Open Small stems (steps=28) must back all 226 sounds with worst_corr < 0.55."""
+        """Stage 2: 95 RTX 4060 Stable Audio Open Small stems (steps=64) must back all 226 sounds with worst_corr < 0.55."""
         import wave as std_wave
         from scripts.sound_studio.ai_stem_generator import (
             AI_STEMS_DIR,
@@ -450,14 +450,14 @@ class SoundStudioTests(unittest.TestCase):
             audit_all_stems,
         )
 
-        self.assertEqual(INFERENCE_STEPS, 28)
+        self.assertEqual(INFERENCE_STEPS, 64)
         self.assertEqual(len(AI_STEM_ARCHETYPES), 95)
         self.assertEqual(len(SOUND_TO_ARCHETYPE), 226)
         self.assertTrue(STEM_MANIFEST_PATH.is_file(), f"Missing stem manifest: {STEM_MANIFEST_PATH}")
         stem_manifest = json.loads(STEM_MANIFEST_PATH.read_text(encoding="utf-8"))
         self.assertEqual(stem_manifest["stem_count"], 95)
         self.assertEqual(stem_manifest["mapped_sound_events"], 226)
-        self.assertEqual(stem_manifest["steps"], 28)
+        self.assertEqual(stem_manifest["steps"], 64)
         self.assertIn("RTX 4060", stem_manifest["device_name"])
         self.assertEqual(stem_manifest["sample_rate"], SAMPLE_RATE)
 
@@ -894,7 +894,36 @@ class SoundStudioTests(unittest.TestCase):
 
         if BASELINE_PATH.is_file():
             base = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
-            self.assertEqual(base.get("schema_version"), 7)
+            self.assertEqual(base.get("schema_version"), 8)
+
+    def test_stage8_high_step_64_heavy_weight_vorbis_q6_and_dense_irs(self) -> None:
+        """Stage 8: 64-step stems, 0.65-0.85 mix_weight, Vorbis -q:a 6, and dense organic IRs."""
+        import wave as std_wave
+        from scripts.sound_studio import ai_stem_generator, dsp_engine, ir_bank
+
+        self.assertEqual(ai_stem_generator.INFERENCE_STEPS, 64)
+        self.assertEqual(dsp_engine.VORBIS_QUALITY, "6")
+        for arch in ai_stem_generator.AI_STEM_ARCHETYPES:
+            self.assertGreaterEqual(arch.mix_weight, 0.65, msg=arch.stem_id)
+            self.assertLessEqual(arch.mix_weight, 0.85, msg=arch.stem_id)
+
+        ir_paths = ir_bank.ensure_ir_bank(force=False)
+        self.assertEqual(len(ir_paths), 6)
+        for space_name, wav_path in ir_paths.items():
+            self.assertTrue(wav_path.is_file(), msg=space_name)
+            with std_wave.open(str(wav_path), "rb") as wf:
+                self.assertEqual(wf.getnchannels(), 1)
+                self.assertEqual(wf.getframerate(), SAMPLE_RATE)
+                pcm = np.frombuffer(wf.readframes(wf.getnframes()), dtype="<i2").astype(np.float64) / 32768.0
+            self.assertGreater(float(np.sqrt(np.mean(pcm * pcm))), 1e-4, msg=space_name)
+            self.assertLessEqual(float(np.max(np.abs(pcm))), 0.95, msg=space_name)
+
+        t = np.linspace(0.0, 0.5, int(SAMPLE_RATE * 0.5), endpoint=False)
+        probe_dsp = np.sin(2.0 * np.pi * 160.0 * t) * 0.45
+        blended = ai_stem_generator.blend_with_ai_stem(probe_dsp, "hive_core_roar", variation_idx=0)
+        self.assertEqual(len(blended), len(probe_dsp))
+        self.assertFalse(np.any(np.isnan(blended)))
+        self.assertGreater(float(np.sqrt(np.mean(blended * blended))), 0.05)
 
 
 if __name__ == "__main__":

@@ -194,6 +194,51 @@ public final class AcousticPhysicsEngine {
     }
 
     /**
+     * Computes additional distance-based high-frequency air damping [0.0, 0.28] beyond 4.0 m,
+     * scaled by environment atmospheric density so distant sounds soften naturally while near impacts hit hard.
+     */
+    public static float computeDistanceAirDamping(
+            float distanceMeters,
+            AcousticEnvironment env,
+            SubmersionState submersion
+    ) {
+        if (!Float.isFinite(distanceMeters) || distanceMeters <= 4.0F) {
+            return 0.0F;
+        }
+        float norm = Math.max(0.0F, Math.min(1.0F, (distanceMeters - 4.0F) / 44.0F));
+        AcousticEnvironment safeEnv = env != null ? env : AcousticEnvironment.OPEN_AIR;
+        float envDensity = switch (safeEnv) {
+            case OPEN_AIR -> 0.45F;
+            case FOREST_CANOPY -> 0.65F;
+            case SANCTUM_VAULT -> 0.72F;
+            case CAVERN_SINKHOLE -> 0.85F;
+            case DEEP_MYCELIUM_ABYSS -> 1.0F;
+        };
+        float fluidBoost = submersion == SubmersionState.WATER
+                ? 0.0F
+                : (submersion == SubmersionState.SPORE_FOG ? 1.15F : 1.0F);
+        return Math.max(0.0F, Math.min(0.28F, norm * 0.24F * envDensity * fluidBoost));
+    }
+
+    /**
+     * Computes near-field reverb send bias [0.0, 0.35]: close impacts (&lt;= 1.5 m) keep a drier, heavier
+     * direct body while distant sources (&gt;= 12.0 m) feed full cavern reverb tail.
+     */
+    public static float computeDistanceSendBias(float distanceMeters) {
+        if (!Float.isFinite(distanceMeters) || distanceMeters < 0.0F) {
+            return 0.0F;
+        }
+        if (distanceMeters <= 1.5F) {
+            return 0.35F;
+        }
+        if (distanceMeters >= 12.0F) {
+            return 0.0F;
+        }
+        float t = (distanceMeters - 1.5F) / 10.5F;
+        return Math.max(0.0F, Math.min(0.35F, 0.35F * (1.0F - t)));
+    }
+
+    /**
      * Layered sidechain ducking multiplier stacking alert ducking with active boss combat suppression.
      */
     public static float computeLayerDuckMultiplier(

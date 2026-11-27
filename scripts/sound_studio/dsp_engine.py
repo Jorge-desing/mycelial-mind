@@ -21,7 +21,7 @@ _gpu_harmonic_sum = _cuda.gpu_harmonic_sum
 _gpu_spectral_noise = _cuda.gpu_spectral_noise
 
 SAMPLE_RATE = 44100
-VORBIS_QUALITY = "4"
+VORBIS_QUALITY = "6"
 TRUE_PEAK_CEILING = 0.94
 DEFAULT_PEAK = TRUE_PEAK_CEILING
 PHYSICAL_MACHINE_CUES = frozenset({

@@ -807,12 +807,12 @@ def synthesize_entity_sound(
     if sound_id.startswith("spore_glider_"):
         action = sound_id.removeprefix("spore_glider_")
         if action == "ambient":
-            s0 = int(rng.uniform(0.01, 0.14) * n)
+            s0 = int(rng.uniform(0.01, 0.06) * n)
             rt = t[s0:] - t[s0]
             flutter_hz = rng.uniform(14.0, 24.0)
             wing = _swept_resonant_filter(pink[s0:], rng.uniform(520.0, 880.0), rng.uniform(1600.0, 2900.0), q=2.8)
-            wing *= (0.55 + 0.45 * np.sin(2.0 * np.pi * flutter_hz * rt + pjit))
-            chime = _modal_bank(rt, bf * rng.uniform(0.92, 1.12), (1.0, 1.50, 2.25), (0.16, 0.11, 0.06), (0.65, 0.42, 0.22), rng)
+            wing *= (0.68 + 0.32 * np.sin(2.0 * np.pi * flutter_hz * rt + pjit)) * 1.15
+            chime = _modal_bank(rt, bf * rng.uniform(0.92, 1.12), (1.0, 1.50, 2.25), (0.24, 0.16, 0.10), (0.72, 0.48, 0.26), rng)
             wave = np.zeros(n, dtype=np.float64)
             wave[s0:] = (wing * 0.55 + chime * 0.72) * adsr_envelope(len(rt), 0.08, 0.22, 0.50, 0.36)
             return _cavern_reverb(_sos_highpass(wave, 190.0), rng, wet=0.22, rt60=0.45, lp_hz=7200.0)

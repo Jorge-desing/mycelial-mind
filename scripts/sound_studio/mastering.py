@@ -59,7 +59,7 @@ def apply_bark_unmasking_carve(wave: np.ndarray, sample_rate: int = SAMPLE_RATE)
         return wave
     out = np.asarray(wave, dtype=np.float64)
     nyq = 0.5 * float(sample_rate)
-    for center_hz, q_val, db_cut in ((1450.0, 1.2, -2.0), (3200.0, 1.4, -2.2)):
+    for center_hz, q_val, db_cut in ((1450.0, 1.3, -2.8), (3200.0, 1.5, -3.0)):
         if center_hz >= nyq * 0.90:
             continue
         gain = 10.0 ** (db_cut / 20.0)
@@ -257,31 +257,31 @@ def _profile_params(sound_id: str, species: str, loudness_group: str, ir_space: 
 
     if is_boss or sp == "colossal_organic":
         hp_hz = 26.0
-        low_db = 1.6
+        low_db = 2.4
         peak_hz, peak_db, peak_q = 420.0, 0.8, 0.9
         high_db = 0.0 if "matriarch" in sound_id else -1.0
         comp_thresh, comp_ratio = -17.0, 2.8
     elif ir_space in ("purifier_hall",) or "purif" in sp or "synaptic_node" in sound_id:
         hp_hz = 42.0
-        low_db = -0.3
+        low_db = 0.1
         peak_hz, peak_db, peak_q = 2400.0, 1.2, 1.0
         high_db = 0.6
         comp_thresh, comp_ratio = -18.5, 2.2
     elif ir_space == "spore_canopy":
         hp_hz = 36.0
-        low_db = 0.2
+        low_db = 0.4
         peak_hz, peak_db, peak_q = 1250.0, 0.9, 0.9
         high_db = -0.8
         comp_thresh, comp_ratio = -19.0, 2.0
     elif loudness_group in ("footstep", "block_light"):
         hp_hz = 38.0
-        low_db = 0.0
+        low_db = 0.6
         peak_hz, peak_db, peak_q = 1400.0, 0.8, 1.0
         high_db = -1.2
         comp_thresh, comp_ratio = -20.0, 1.9
     else:
         hp_hz = 32.0
-        low_db = 0.8
+        low_db = 1.5
         peak_hz, peak_db, peak_q = 950.0, 0.9, 0.9
         high_db = -1.2
         comp_thresh, comp_ratio = -18.0, 2.2
@@ -303,10 +303,10 @@ def _build_pre_chain(key: tuple[Any, ...]) -> list[Any]:
     _, hp_hz, low_db, peak_hz, peak_db, peak_q, high_db, comp_thresh, comp_ratio, _, chorus_mix = key
     chain: list[Any] = [
         HighpassFilter(cutoff_frequency_hz=hp_hz),
-        LowShelfFilter(cutoff_frequency_hz=110.0, gain_db=low_db, q=0.75),
+        LowShelfFilter(cutoff_frequency_hz=95.0, gain_db=low_db, q=0.72),
         PeakFilter(cutoff_frequency_hz=peak_hz, gain_db=peak_db, q=peak_q),
         HighShelfFilter(cutoff_frequency_hz=5200.0, gain_db=high_db, q=0.75),
-        Compressor(threshold_db=comp_thresh, ratio=comp_ratio, attack_ms=6.0, release_ms=80.0),
+        Compressor(threshold_db=comp_thresh, ratio=comp_ratio, attack_ms=8.0, release_ms=85.0),
     ]
     if chorus_mix > 0.0:
         chain.append(Chorus(rate_hz=0.85, depth=0.08, centre_delay_ms=7.0, feedback=0.12, mix=float(chorus_mix)))
@@ -412,6 +412,9 @@ def master_with_pedalboard(
     processed = processed - np.mean(processed)
 
     target_dbfs = LOUDNESS_TARGETS_DBFS.get(loudness_group, -14.0)
+    if is_loop:
+        # Keep continuous ambient/bed loops 1.6 dB softer so foreground combat/alert cues keep clear LUFS headroom.
+        target_dbfs -= 1.6
     target_rms = 10.0 ** (target_dbfs / 20.0)
     ceiling = float(target_peak) if target_peak is not None else TRUE_PEAK_CEILING
 
@@ -440,14 +443,14 @@ def master_with_pedalboard(
             processed = processed * gain
         processed = _soft_knee_limit(processed, threshold=min(0.76, ceiling * 0.82), ceiling=ceiling)
 
-    # Strict post-fade active RMS lock so no short percussive hit drifts > +-1.2 dB
-    for _ in range(2):
+    # Strict post-fade active RMS lock so even high-crest transients converge cleanly within +-1.2 dB
+    for _ in range(5):
         cur_rms = _active_rms(processed)
         if cur_rms > 1e-7:
             delta_db = 20.0 * np.log10(cur_rms) - target_dbfs
             if abs(delta_db) > 1.2:
                 processed *= float(np.clip(target_rms / cur_rms, 0.25, 4.0))
-                processed = _soft_knee_limit(processed, threshold=min(0.76, ceiling * 0.82), ceiling=ceiling)
+                processed = _soft_knee_limit(processed, threshold=min(0.68, ceiling * 0.72), ceiling=ceiling)
 
     if is_loop and postroll >= 32 and len(processed) >= n + postroll:
         seg = processed[: n + postroll]

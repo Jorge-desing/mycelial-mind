@@ -238,9 +238,12 @@ public final class ClientAcousticController {
             return;
         }
 
+        Vec3 listenerEye = player.getEyePosition();
+        Vec3 sourcePos = new Vec3(sound.getX(), sound.getY(), sound.getZ());
+        float distanceMeters = (float) listenerEye.distanceTo(sourcePos);
         float occlusion = 0.0F;
         if (MycelialClientConfig.caveSoundOcclusion()) {
-            occlusion = computeMaterialOcclusion(level, player.getEyePosition(), new Vec3(sound.getX(), sound.getY(), sound.getZ()));
+            occlusion = computeMaterialOcclusion(level, listenerEye, sourcePos);
             lastComputedOcclusion = occlusion;
         }
 
@@ -262,7 +265,8 @@ public final class ClientAcousticController {
                         nowMs,
                         humanized.pitchMultiplier(),
                         humanized.gainMultiplier(),
-                        humanized.timbreDamping()
+                        humanized.timbreDamping(),
+                        distanceMeters
                 )
         );
     }
@@ -394,8 +398,10 @@ public final class ClientAcousticController {
                 tc.y = snd.getY();
                 tc.z = snd.getZ();
             }
+            Vec3 sourcePos = new Vec3(tc.x, tc.y, tc.z);
+            float distanceMeters = (float) listenerEye.distanceTo(sourcePos);
             float rawOcc = occlusionEnabled
-                    ? computeMaterialOcclusion(mc.level, listenerEye, new Vec3(tc.x, tc.y, tc.z))
+                    ? computeMaterialOcclusion(mc.level, listenerEye, sourcePos)
                     : 0.0F;
             float smoothOcc = AcousticPhysicsEngine.smoothOcclusion(tc.smoothedOcclusion, rawOcc, 0.45F);
             tc.smoothedOcclusion = smoothOcc;
@@ -403,7 +409,7 @@ public final class ClientAcousticController {
                     ch,
                     tc,
                     new OpenAlEfxBridge.SourceAcousticSnapshot(
-                            env, smoothOcc, submersion, tc.applyReverb, now, 1.0F, 1.0F, tc.timbreDamping
+                            env, smoothOcc, submersion, tc.applyReverb, now, 1.0F, 1.0F, tc.timbreDamping, distanceMeters
                     )
             ));
         }

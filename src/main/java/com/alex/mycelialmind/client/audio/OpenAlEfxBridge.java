@@ -56,8 +56,23 @@ public final class OpenAlEfxBridge {
             long createdAtMs,
             float pitchMultiplier,
             float gainMultiplier,
-            float timbreDamping
+            float timbreDamping,
+            float distanceMeters
     ) {
+        public SourceAcousticSnapshot(
+                AcousticEnvironment environment,
+                float occlusionFactor,
+                SubmersionState submersion,
+                boolean applyReverb,
+                long createdAtMs,
+                float pitchMultiplier,
+                float gainMultiplier,
+                float timbreDamping
+        ) {
+            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs,
+                    pitchMultiplier, gainMultiplier, timbreDamping, -1.0F);
+        }
+
         public SourceAcousticSnapshot(
                 AcousticEnvironment environment,
                 float occlusionFactor,
@@ -67,7 +82,8 @@ public final class OpenAlEfxBridge {
                 float pitchMultiplier,
                 float gainMultiplier
         ) {
-            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs, pitchMultiplier, gainMultiplier, 0.0F);
+            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs,
+                    pitchMultiplier, gainMultiplier, 0.0F, -1.0F);
         }
 
         public SourceAcousticSnapshot(
@@ -77,7 +93,8 @@ public final class OpenAlEfxBridge {
                 boolean applyReverb,
                 long createdAtMs
         ) {
-            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs, 1.0F, 1.0F, 0.0F);
+            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs,
+                    1.0F, 1.0F, 0.0F, -1.0F);
         }
 
         public SourceAcousticSnapshot(
@@ -95,7 +112,8 @@ public final class OpenAlEfxBridge {
                     createdAtMs,
                     1.0F,
                     1.0F,
-                    0.0F
+                    0.0F,
+                    -1.0F
             );
         }
 
@@ -297,9 +315,13 @@ public final class OpenAlEfxBridge {
 
             float baseOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(
                     snapshot.occlusionFactor(), snapshot.submersion());
-            float effectiveDirectOcc = Math.min(1.0F, baseOcc + safeTimbre);
+            float distAirDamp = AcousticPhysicsEngine.computeDistanceAirDamping(
+                    snapshot.distanceMeters(), snapshot.environment(), snapshot.submersion());
+            float nearSendBias = AcousticPhysicsEngine.computeDistanceSendBias(snapshot.distanceMeters());
+            float effectiveDirectOcc = Math.min(1.0F, baseOcc + safeTimbre + distAirDamp);
+            float effectiveSendOcc = Math.min(1.0F, baseOcc + nearSendBias);
             int directBucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(effectiveDirectOcc * (OCCLUSION_BUCKETS - 1))));
-            int sendBucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(baseOcc * (OCCLUSION_BUCKETS - 1))));
+            int sendBucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(effectiveSendOcc * (OCCLUSION_BUCKETS - 1))));
 
             // 1) Direct path material occlusion, submersion & per-hit HF timbre low-pass filter
             int directFilter = (directBucket > 0) ? DIRECT_LPF_POOL[directBucket] : EXTEfx.AL_FILTER_NULL;

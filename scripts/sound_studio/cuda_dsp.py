@@ -395,9 +395,9 @@ def _apply_bandpass_and_envelope_gpu(
             [win_sub, win_body, win_air],
         )
         return (
-            bands[0, 0] * (0.38 + 0.62 * envs[0])
-            + bands[1, 0] * (0.38 + 0.62 * envs[1])
-            + bands[2, 0] * (0.38 + 0.62 * envs[2])
+            bands[0, 0] * (0.50 + 0.50 * envs[0])
+            + bands[1, 0] * (0.50 + 0.50 * envs[1])
+            + bands[2, 0] * (0.50 + 0.50 * envs[2])
         )
 
     if dual:
@@ -411,13 +411,13 @@ def _apply_bandpass_and_envelope_gpu(
         win_lo = max(8, int(sample_rate * 48.0 / 1000.0))
         win_hi = max(8, int(sample_rate * 34.0 / 1000.0))
         envs = _gpu_envelope_batch(torch, torch.stack([dsp_lo, dsp_hi], dim=0), [win_lo, win_hi])
-        return (stem_lo * (0.38 + 0.62 * envs[0])) + (stem_hi * (0.38 + 0.62 * envs[1]))
+        return (stem_lo * (0.50 + 0.50 * envs[0])) + (stem_hi * (0.50 + 0.50 * envs[1]))
 
     m_bp = _bandpass_mask_torch(torch, freqs, band_lo_hz, band_hi_hz, sample_rate)
     stem_bp = torch.fft.irfft(spec_pair[0] * m_bp, n=n_fft_bp)[:n]
     win = max(8, int(sample_rate * 40.0 / 1000.0))
     env = _gpu_envelope_batch(torch, pair_t[1:2], [win])[0]
-    return stem_bp * (0.38 + 0.62 * env)
+    return stem_bp * (0.50 + 0.50 * env)
 
 
 def gpu_dualband_blend_shape(
@@ -560,7 +560,7 @@ def gpu_blend_ai_stem(
 
         matched_stem = shaped_t * (dsp_rms / stem_rms)
         w_stem = float(mix_weight)
-        w_dsp = 1.0 - (w_stem * 0.78)
+        w_dsp = 1.0 - (w_stem * 0.90)
         out_t = (dsp_t * w_dsp) + (matched_stem * w_stem)
         return np.asarray(out_t.cpu().numpy(), dtype=np.float64)
 
