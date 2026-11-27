@@ -5126,3 +5126,14 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - `gradlew.bat runData test build runGameTestServer -PisolatedGameTests=true --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL in 45s`** (`0` diffs nuevos en `src/generated/resources/`), **`205/205` `@GameTest`s PASS** (`All 205 required tests passed :)` en `7.684 s`).
   - `CodeMode` (`mycelial-mind-dev`): `get_latest_junit_report` (**`169/169` JUnit PASS** en `18` suites, `2.041s`, `0` fallos/omisiones), `run_codex_studio` (`ok=True`, `12` capítulos / `62` entradas / `254` páginas, **`5/5` tests** incl. `test_100_percent_live_repo_coverage`), `audit_mod_assets` (`ok=true`, `2322/2322` EN/ES, `0` faltantes), `run_sound_studio(check_only=True, run_tests=False)` (`ok=true`, `226` eventos / `596` `.ogg`), `validate_skills` (`8/8 OK`).
 - **Estado / Siguiente paso:** Commit selectivo en `main`, push a `origin/main` y verificación de GitHub Actions CI.
+
+
+## [2026-11-26 18:07] — Corrección de contrato regex de hitboxes en `ModEntities.java` tras revisión de CI
+- **Tipo:** `CORRECCIÓN` | `VERIFICACIÓN`
+- **Resumen:** Al verificar el run `45920362560` de GitHub Actions (`Verify Mycelial Mind`), `Build and GameTests` (`1m7s`) y `Validate automation config` (`34s`) aprobaron en verde, mientras `Asset checks` falló en `test_entity_specs.py::test_runtime_render_scale_shadow_and_hitbox_sync` porque `_entity_hitboxes()` extrae `.sized(wF, hF)` directamente dentro de cada `ENTITY_TYPES.register("<id>", ...)`. Se restauraron los `.sized(...)` en línea en `ModEntities.java` manteniendo la factoría `projectile(...)`.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/registry/ModEntities.java`, `MEMORY.md`.
+- **Skills revisadas:** Ninguna skill requirió edición (`validate_skills` = `8/8 OK`).
+- **Verificación:**
+  - `CodeMode` (`mycelial-mind-dev`): `run_model_studio` (`26/26` OK), `run_texture_studio` (`41/41` OK), `run_particle_studio` (`6/6` OK), `run_codex_studio` (`5/5` OK), `run_sound_studio` OK, `audit_mod_assets` OK (`2322/2322` EN/ES), `validate_skills` (`8/8` OK).
+  - `gradlew.bat runData test build runGameTestServer -PisolatedGameTests=true --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL in 46s`**, **`169/169` JUnit PASS** (`18` suites, `0` fallos/omisiones), **`205/205` `@GameTest`s PASS** en `7.172 s`.
+- **Estado / Siguiente paso:** Commit selectivo, push a `origin/main` y verificación en vivo de los 3 jobs de `Verify Mycelial Mind`.

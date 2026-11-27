@@ -50,64 +50,84 @@ public final class ModEntities {
             DeferredRegister.create(Registries.ENTITY_TYPE, MycelialMind.MODID);
 
     public static final DeferredHolder<EntityType<?>, EntityType<SporelingEntity>> SPORELING =
-            ENTITY_TYPES.register("sporeling", mob("sporeling", SporelingEntity::new, MobCategory.MONSTER, 0.6F, 0.5F));
+            ENTITY_TYPES.register("sporeling", () -> EntityType.Builder.of(SporelingEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 0.5F).build("sporeling"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<ChitinBruteEntity>> CHITIN_BRUTE =
-            ENTITY_TYPES.register("chitin_brute", mob("chitin_brute", ChitinBruteEntity::new, MobCategory.MONSTER, 0.95F, 2.1F));
+            ENTITY_TYPES.register("chitin_brute", () -> EntityType.Builder.of(ChitinBruteEntity::new, MobCategory.MONSTER)
+                    .sized(0.95F, 2.1F).build("chitin_brute"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<MycelialStalkerEntity>> MYCELIAL_STALKER =
-            ENTITY_TYPES.register("mycelial_stalker", mob("mycelial_stalker", MycelialStalkerEntity::new, MobCategory.MONSTER, 0.7F, 1.8F));
+            ENTITY_TYPES.register("mycelial_stalker", () -> EntityType.Builder.of(MycelialStalkerEntity::new, MobCategory.MONSTER)
+                    .sized(0.7F, 1.8F).build("mycelial_stalker"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<AcidSpitterEntity>> ACID_SPITTER =
-            ENTITY_TYPES.register("acid_spitter", mob("acid_spitter", AcidSpitterEntity::new, MobCategory.MONSTER, 0.8F, 1.6F));
+            ENTITY_TYPES.register("acid_spitter", () -> EntityType.Builder.of(AcidSpitterEntity::new, MobCategory.MONSTER)
+                    .sized(0.8F, 1.6F).build("acid_spitter"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<BurrowerEntity>> BURROWER =
-            ENTITY_TYPES.register("burrower", mob("burrower", BurrowerEntity::new, MobCategory.MONSTER, 0.9F, 1.4F));
+            ENTITY_TYPES.register("burrower", () -> EntityType.Builder.of(BurrowerEntity::new, MobCategory.MONSTER)
+                    .sized(0.9F, 1.4F).build("burrower"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<PyroShroomEntity>> PYRO_SHROOM =
-            ENTITY_TYPES.register("pyro_shroom", fireImmuneMob("pyro_shroom", PyroShroomEntity::new, 0.8F, 1.5F));
+            ENTITY_TYPES.register("pyro_shroom", () -> EntityType.Builder.of(PyroShroomEntity::new, MobCategory.MONSTER)
+                    .sized(0.8F, 1.5F).fireImmune().build("pyro_shroom"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SynapseWeaverEntity>> SYNAPSE_WEAVER =
-            ENTITY_TYPES.register("synapse_weaver", mob("synapse_weaver", SynapseWeaverEntity::new, MobCategory.MONSTER, 0.8F, 1.9F));
+            ENTITY_TYPES.register("synapse_weaver", () -> EntityType.Builder.of(SynapseWeaverEntity::new, MobCategory.MONSTER)
+                    .sized(0.8F, 1.9F).build("synapse_weaver"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<GoliathCarrierEntity>> GOLIATH_CARRIER =
-            ENTITY_TYPES.register("goliath_carrier", mob("goliath_carrier", GoliathCarrierEntity::new, MobCategory.MONSTER, 1.6F, 2.8F));
+            ENTITY_TYPES.register("goliath_carrier", () -> EntityType.Builder.of(GoliathCarrierEntity::new, MobCategory.MONSTER)
+                    .sized(1.6F, 2.8F).build("goliath_carrier"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<LeechParasiteEntity>> LEECH_PARASITE =
-            ENTITY_TYPES.register("leech_parasite", mob("leech_parasite", LeechParasiteEntity::new, MobCategory.MONSTER, 0.5F, 0.4F));
+            ENTITY_TYPES.register("leech_parasite", () -> EntityType.Builder.of(LeechParasiteEntity::new, MobCategory.MONSTER)
+                    .sized(0.5F, 0.4F).build("leech_parasite"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<ColonyWardenEntity>> COLONY_WARDEN =
-            ENTITY_TYPES.register("colony_warden", mob("colony_warden", ColonyWardenEntity::new, MobCategory.MONSTER, 1.5F, 3.1F));
+            ENTITY_TYPES.register("colony_warden", () -> EntityType.Builder.of(ColonyWardenEntity::new, MobCategory.MONSTER)
+                    .sized(1.5F, 3.1F).build("colony_warden"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SporeArchitectEntity>> SPORE_ARCHITECT =
-            ENTITY_TYPES.register("spore_architect", mob("spore_architect", SporeArchitectEntity::new, MobCategory.MONSTER, 0.75F, 1.95F));
+            ENTITY_TYPES.register("spore_architect", () -> EntityType.Builder.of(SporeArchitectEntity::new, MobCategory.MONSTER)
+                    .sized(0.75F, 1.95F).build("spore_architect"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SporeBehemothEntity>> SPORE_BEHEMOTH =
-            ENTITY_TYPES.register("spore_behemoth", fireImmuneMob("spore_behemoth", SporeBehemothEntity::new, 2.2F, 4.0F));
+            ENTITY_TYPES.register("spore_behemoth", () -> EntityType.Builder.of(SporeBehemothEntity::new, MobCategory.MONSTER)
+                    .sized(2.2F, 4.0F).fireImmune().build("spore_behemoth"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SynapticMimicEntity>> SYNAPTIC_MIMIC =
-            ENTITY_TYPES.register("synaptic_mimic", mob("synaptic_mimic", SynapticMimicEntity::new, MobCategory.MONSTER, 0.75F, 1.95F));
+            ENTITY_TYPES.register("synaptic_mimic", () -> EntityType.Builder.of(SynapticMimicEntity::new, MobCategory.MONSTER)
+                    .sized(0.75F, 1.95F).build("synaptic_mimic"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<PurifierDroneEntity>> PURIFIER_DRONE =
-            ENTITY_TYPES.register("purifier_drone", mob("purifier_drone", PurifierDroneEntity::new, MobCategory.CREATURE, 0.7F, 0.7F));
+            ENTITY_TYPES.register("purifier_drone", () -> EntityType.Builder.of(PurifierDroneEntity::new, MobCategory.CREATURE)
+                    .sized(0.7F, 0.7F).build("purifier_drone"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<MycelialChimeraEntity>> MYCELIAL_CHIMERA =
-            ENTITY_TYPES.register("mycelial_chimera", mob("mycelial_chimera", MycelialChimeraEntity::new, MobCategory.CREATURE, 1.25F, 1.55F));
+            ENTITY_TYPES.register("mycelial_chimera", () -> EntityType.Builder.of(MycelialChimeraEntity::new, MobCategory.CREATURE)
+                    .sized(1.25F, 1.55F).build("mycelial_chimera"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<ColonySymbiontEntity>> COLONY_SYMBIONT =
-            ENTITY_TYPES.register("colony_symbiont", mob("colony_symbiont", ColonySymbiontEntity::new, MobCategory.CREATURE, 0.75F, 1.55F));
+            ENTITY_TYPES.register("colony_symbiont", () -> EntityType.Builder.of(ColonySymbiontEntity::new, MobCategory.CREATURE)
+                    .sized(0.75F, 1.55F).build("colony_symbiont"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<HiveCoreBossEntity>> HIVE_CORE =
-            ENTITY_TYPES.register("hive_core", fireImmuneMob("hive_core", HiveCoreBossEntity::new, 3.0F, 4.5F));
+            ENTITY_TYPES.register("hive_core", () -> EntityType.Builder.of(HiveCoreBossEntity::new, MobCategory.MONSTER)
+                    .sized(3.0F, 4.5F).fireImmune().build("hive_core"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<ApexMatriarchEntity>> APEX_MATRIARCH =
-            ENTITY_TYPES.register("apex_matriarch", fireImmuneMob("apex_matriarch", ApexMatriarchEntity::new, 3.6F, 5.6F));
+            ENTITY_TYPES.register("apex_matriarch", () -> EntityType.Builder.of(ApexMatriarchEntity::new, MobCategory.MONSTER)
+                    .sized(3.6F, 5.6F).fireImmune().build("apex_matriarch"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SporeGliderEntity>> SPORE_GLIDER =
-            ENTITY_TYPES.register("spore_glider", mob("spore_glider", SporeGliderEntity::new, MobCategory.CREATURE, 0.85F, 0.55F));
+            ENTITY_TYPES.register("spore_glider", () -> EntityType.Builder.of(SporeGliderEntity::new, MobCategory.CREATURE)
+                    .sized(0.85F, 0.55F).build("spore_glider"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<RootKeeperEntity>> ROOT_KEEPER =
-            ENTITY_TYPES.register("root_keeper", mob("root_keeper", RootKeeperEntity::new, MobCategory.MONSTER, 1.15F, 2.3F));
+            ENTITY_TYPES.register("root_keeper", () -> EntityType.Builder.of(RootKeeperEntity::new, MobCategory.MONSTER)
+                    .sized(1.15F, 2.3F).build("root_keeper"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<AcidSpitProjectile>> ACID_SPIT =
             ENTITY_TYPES.register("acid_spit", projectile("acid_spit", AcidSpitProjectile::new));
@@ -123,16 +143,6 @@ public final class ModEntities {
                     .sized(0.8F, 0.5F).clientTrackingRange(10).updateInterval(2).build("hyphal_vein"));
 
     private ModEntities() {
-    }
-
-    private static <T extends Entity> Supplier<EntityType<T>> mob(
-            String name, EntityType.EntityFactory<T> factory, MobCategory category, float width, float height) {
-        return () -> EntityType.Builder.of(factory, category).sized(width, height).build(name);
-    }
-
-    private static <T extends Entity> Supplier<EntityType<T>> fireImmuneMob(
-            String name, EntityType.EntityFactory<T> factory, float width, float height) {
-        return () -> EntityType.Builder.of(factory, MobCategory.MONSTER).sized(width, height).fireImmune().build(name);
     }
 
     private static <T extends Entity> Supplier<EntityType<T>> projectile(
