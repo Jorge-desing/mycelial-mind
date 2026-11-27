@@ -112,10 +112,18 @@ public final class ClientAcousticController {
         }
     }
 
+    private record ChannelUpdate(
+            Channel channel,
+            TrackedChannel tracked,
+            OpenAlEfxBridge.SourceAcousticSnapshot snapshot
+    ) {
+    }
+
     private ClientAcousticController() {
     }
 
     public static void onSoundEngineLoad(SoundEngineLoadEvent event) {
+        PENDING_SNAPSHOTS.clear();
         TRACKED_CHANNELS.clear();
         audioExecutorResolved = false;
         cachedAudioExecutor = null;
@@ -263,9 +271,20 @@ public final class ClientAcousticController {
      * Runs on the OpenAL SoundEngine executor thread right after static source playback begins.
      */
     public static void onPlaySoundSource(PlaySoundSourceEvent event) {
+        Channel channel = event.getChannel();
         OpenAlEfxBridge.SourceAcousticSnapshot snap = PENDING_SNAPSHOTS.remove(event.getSound());
-        if (snap != null && OpenAlEfxBridge.applyToChannel(event.getChannel(), snap)) {
-            trackActiveChannel(event.getChannel(), event.getSound(), snap);
+        if (channel == null) {
+            return;
+        }
+        if (snap != null) {
+            if (OpenAlEfxBridge.applyToChannel(channel, snap)) {
+                trackActiveChannel(channel, event.getSound(), snap);
+            } else {
+                TRACKED_CHANNELS.remove(channel);
+            }
+        } else {
+            TRACKED_CHANNELS.remove(channel);
+            OpenAlEfxBridge.resetChannel(channel);
         }
     }
 
@@ -273,9 +292,20 @@ public final class ClientAcousticController {
      * Runs on the OpenAL SoundEngine executor thread right after streaming source playback begins.
      */
     public static void onPlayStreamingSource(PlayStreamingSourceEvent event) {
+        Channel channel = event.getChannel();
         OpenAlEfxBridge.SourceAcousticSnapshot snap = PENDING_SNAPSHOTS.remove(event.getSound());
-        if (snap != null && OpenAlEfxBridge.applyToChannel(event.getChannel(), snap)) {
-            trackActiveChannel(event.getChannel(), event.getSound(), snap);
+        if (channel == null) {
+            return;
+        }
+        if (snap != null) {
+            if (OpenAlEfxBridge.applyToChannel(channel, snap)) {
+                trackActiveChannel(channel, event.getSound(), snap);
+            } else {
+                TRACKED_CHANNELS.remove(channel);
+            }
+        } else {
+            TRACKED_CHANNELS.remove(channel);
+            OpenAlEfxBridge.resetChannel(channel);
         }
     }
 
@@ -285,9 +315,31 @@ public final class ClientAcousticController {
             OpenAlEfxBridge.SourceAcousticSnapshot snap
     ) {
         if (channel == null || sound == null || sound.isRelative()
-                || !MycelialClientConfig.openAlEfxDynamicTrackingEnabled()
-                || TRACKED_CHANNELS.size() >= MAX_TRACKED_CHANNELS) {
+                || !MycelialClientConfig.openAlEfxDynamicTrackingEnabled()) {
             return;
+        }
+        if (TRACKED_CHANNELS.size() >= MAX_TRACKED_CHANNELS) {
+            long now = System.currentTimeMillis();
+            Channel oldestNonLoop = null;
+            long oldestCreatedAt = Long.MAX_VALUE;
+            for (Map.Entry<Channel, TrackedChannel> entry : TRACKED_CHANNELS.entrySet()) {
+                TrackedChannel existing = entry.getValue();
+                SoundInstance existingSnd = existing.soundRef.get();
+                if ((existingSnd instanceof TickableSoundInstance t && t.isStopped())
+                        || ((existingSnd == null || !existingSnd.isLooping())
+                                && (now - existing.createdAtMs) > TRACKED_CHANNEL_TTL_MS)) {
+                    TRACKED_CHANNELS.remove(entry.getKey(), existing);
+                } else if ((existingSnd == null || !existingSnd.isLooping()) && existing.createdAtMs < oldestCreatedAt) {
+                    oldestCreatedAt = existing.createdAtMs;
+                    oldestNonLoop = entry.getKey();
+                }
+            }
+            if (TRACKED_CHANNELS.size() >= MAX_TRACKED_CHANNELS && oldestNonLoop != null) {
+                TRACKED_CHANNELS.remove(oldestNonLoop);
+            }
+            if (TRACKED_CHANNELS.size() >= MAX_TRACKED_CHANNELS) {
+                return;
+            }
         }
         TRACKED_CHANNELS.put(
                 channel,
@@ -323,18 +375,18 @@ public final class ClientAcousticController {
         AcousticEnvironment env = currentEnvironment;
         SubmersionState submersion = currentSubmersion;
         boolean occlusionEnabled = MycelialClientConfig.caveSoundOcclusion();
-        List<Map.Entry<Channel, OpenAlEfxBridge.SourceAcousticSnapshot>> updates = new ArrayList<>();
+        List<ChannelUpdate> updates = new ArrayList<>();
 
         for (Map.Entry<Channel, TrackedChannel> entry : TRACKED_CHANNELS.entrySet()) {
             Channel ch = entry.getKey();
             TrackedChannel tc = entry.getValue();
             SoundInstance snd = tc.soundRef.get();
             if (snd instanceof TickableSoundInstance tickable && tickable.isStopped()) {
-                TRACKED_CHANNELS.remove(ch);
+                TRACKED_CHANNELS.remove(ch, tc);
                 continue;
             }
             if ((snd == null || !snd.isLooping()) && (now - tc.createdAtMs) > TRACKED_CHANNEL_TTL_MS) {
-                TRACKED_CHANNELS.remove(ch);
+                TRACKED_CHANNELS.remove(ch, tc);
                 continue;
             }
             if (snd != null) {
@@ -347,8 +399,9 @@ public final class ClientAcousticController {
                     : 0.0F;
             float smoothOcc = AcousticPhysicsEngine.smoothOcclusion(tc.smoothedOcclusion, rawOcc, 0.45F);
             tc.smoothedOcclusion = smoothOcc;
-            updates.add(new AbstractMap.SimpleImmutableEntry<>(
+            updates.add(new ChannelUpdate(
                     ch,
+                    tc,
                     new OpenAlEfxBridge.SourceAcousticSnapshot(
                             env, smoothOcc, submersion, tc.applyReverb, now, 1.0F, 1.0F, tc.timbreDamping
                     )
@@ -360,8 +413,8 @@ public final class ClientAcousticController {
         }
         audioExecutor.execute(() -> {
             for (var item : updates) {
-                if (!OpenAlEfxBridge.updateActiveChannel(item.getKey(), item.getValue())) {
-                    TRACKED_CHANNELS.remove(item.getKey());
+                if (!OpenAlEfxBridge.updateActiveChannel(item.channel(), item.snapshot())) {
+                    TRACKED_CHANNELS.remove(item.channel(), item.tracked());
                 }
             }
         });

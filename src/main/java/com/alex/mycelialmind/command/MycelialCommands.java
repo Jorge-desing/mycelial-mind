@@ -2337,7 +2337,7 @@ public final class MycelialCommands {
         }
         ServerLevel level = source.getLevel();
         BlockPos pos = BlockPos.containing(source.getPosition());
-        level.playSound(null, pos, matched, net.minecraft.sounds.SoundSource.MASTER, 1.0F, 1.0F);
+        level.playSound(null, pos, matched, net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.0F);
         final String playedPath = normalized;
         return pass(source, "[Mycelial Audio] Played mycelialmind:" + playedPath
                 + " @ " + pos.toShortString());

@@ -45,6 +45,7 @@ public final class ClientSoundscapeDirector {
     private static int duckTotalTicks = 0;
     private static float duckMaxReduction = 0.0F;
     private static boolean lastBossNearby = false;
+    private static float lastBossHpRatio = 1.0F;
     private static int lastNearbyHostileCount = 0;
 
     @Nullable
@@ -87,6 +88,7 @@ public final class ClientSoundscapeDirector {
         duckTotalTicks = 0;
         duckMaxReduction = 0.0F;
         lastBossNearby = false;
+        lastBossHpRatio = 1.0F;
         lastNearbyHostileCount = 0;
 
         Minecraft mc = Minecraft.getInstance();
@@ -393,17 +395,15 @@ public final class ClientSoundscapeDirector {
         );
 
         // 2e. Boss combat tension bed (sub-harmonic drone bed scaling as boss HP drops)
-        float bossBedVol = 0.0F;
-        float bossBedPitch = 1.0F;
         if (tickCounter % 5 == 0) {
-            List<MycelialBossMob> bosses = envVol > 0.01F
+            List<MycelialBossMob> bosses = envVol > 0.01F && MycelialClientConfig.bossTensionBedEnabled()
                     ? mc.level.getEntitiesOfClass(
                             MycelialBossMob.class,
                             mc.player.getBoundingBox().inflate(48.0D),
                             m -> m.isAlive())
                     : List.of();
             lastBossNearby = !bosses.isEmpty();
-            if (envVol > 0.01F && MycelialClientConfig.bossTensionBedEnabled() && !bosses.isEmpty()) {
+            if (!bosses.isEmpty()) {
                 MycelialBossMob nearestBoss = bosses.get(0);
                 double bestDist = nearestBoss.distanceToSqr(mc.player);
                 for (int i = 1; i < bosses.size(); i++) {
@@ -413,25 +413,24 @@ public final class ClientSoundscapeDirector {
                         nearestBoss = bosses.get(i);
                     }
                 }
-                float hpRatio = nearestBoss.getMaxHealth() > 0.0F
+                lastBossHpRatio = nearestBoss.getMaxHealth() > 0.0F
                         ? nearestBoss.getHealth() / nearestBoss.getMaxHealth()
                         : 1.0F;
-                bossBedVol = EvolutionRank.computeBossTensionBedVolume(true, hpRatio, envVol, alertDuck);
-                bossBedPitch = 0.96F + 0.10F * (1.0F - Math.max(0.0F, Math.min(1.0F, hpRatio)));
+            } else {
+                lastBossHpRatio = 1.0F;
             }
-            bossTensionBedLoop = updateReactiveLoop(
-                    mc, bossTensionBedLoop, ModSounds.BOSS_COMBAT_TENSION_BED.get(), SoundSource.AMBIENT,
-                    false, 0.0D, 0.0D, 0.0D,
-                    MycelialClientConfig.bossTensionBedEnabled() ? bossBedVol : 0.0F,
-                    bossBedPitch, 0.025F
-            );
         } else if (envVol <= 0.01F || !MycelialClientConfig.bossTensionBedEnabled()) {
             lastBossNearby = false;
-            bossTensionBedLoop = updateReactiveLoop(
-                    mc, bossTensionBedLoop, ModSounds.BOSS_COMBAT_TENSION_BED.get(), SoundSource.AMBIENT,
-                    false, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, 0.04F
-            );
+            lastBossHpRatio = 1.0F;
         }
+        float bossBedVol = (envVol > 0.01F && MycelialClientConfig.bossTensionBedEnabled() && lastBossNearby)
+                ? EvolutionRank.computeBossTensionBedVolume(true, lastBossHpRatio, envVol, alertDuck)
+                : 0.0F;
+        float bossBedPitch = 0.96F + 0.10F * (1.0F - Math.max(0.0F, Math.min(1.0F, lastBossHpRatio)));
+        bossTensionBedLoop = updateReactiveLoop(
+                mc, bossTensionBedLoop, ModSounds.BOSS_COMBAT_TENSION_BED.get(), SoundSource.AMBIENT,
+                false, 0.0D, 0.0D, 0.0D, bossBedVol, bossBedPitch, 0.025F
+        );
 
         float layerDuck = AcousticPhysicsEngine.computeLayerDuckMultiplier(
                 lastBossNearby, alertDuck, MycelialClientConfig.dynamicAudioDucking());

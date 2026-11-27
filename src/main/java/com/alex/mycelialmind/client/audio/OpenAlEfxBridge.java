@@ -29,6 +29,7 @@ public final class OpenAlEfxBridge {
     private static final AtomicLong APPLIED_SOURCES = new AtomicLong(0L);
     private static final AtomicLong DYNAMIC_UPDATES = new AtomicLong(0L);
     private static final AtomicLong HUMANIZED_SOURCES = new AtomicLong(0L);
+    private static final AtomicLong RESET_SOURCES = new AtomicLong(0L);
 
     private static volatile boolean externalModConflict = false;
     private static volatile boolean efxSupported = false;
@@ -200,6 +201,50 @@ public final class OpenAlEfxBridge {
     }
 
     /**
+     * Clears any EFX direct filter, auxiliary reverb send, and air absorption attached to a pooled channel
+     * so subsequent non-spatial / non-EFX sounds never inherit stale occlusion or cavern reverb.
+     */
+    public static synchronized boolean resetChannel(Channel channel) {
+        if (channel == null || !initialized || !efxSupported) {
+            return false;
+        }
+        long ctx = safeGetCurrentContext();
+        if (ctx == 0L || ctx != boundContext || !resolveChannelReflection()) {
+            return false;
+        }
+        int sourceId = extractSourceId(channel);
+        return resetSource(sourceId);
+    }
+
+    /**
+     * Clears any EFX direct filter, auxiliary reverb send, and air absorption on a raw OpenAL source handle.
+     */
+    public static synchronized boolean resetSource(int sourceId) {
+        if (sourceId <= 0 || !initialized || !efxSupported) {
+            return false;
+        }
+        long ctx = safeGetCurrentContext();
+        if (ctx == 0L || ctx != boundContext || !AL10.alIsSource(sourceId)) {
+            return false;
+        }
+        try {
+            AL10.alGetError();
+            AL10.alSourcei(sourceId, EXTEfx.AL_DIRECT_FILTER, EXTEfx.AL_FILTER_NULL);
+            AL11.alSource3i(sourceId, EXTEfx.AL_AUXILIARY_SEND_FILTER,
+                    EXTEfx.AL_EFFECTSLOT_NULL, 0, EXTEfx.AL_FILTER_NULL);
+            AL10.alSourcef(sourceId, EXTEfx.AL_AIR_ABSORPTION_FACTOR, 0.0F);
+            int err = AL10.alGetError();
+            if (err == AL10.AL_NO_ERROR) {
+                RESET_SOURCES.incrementAndGet();
+                return true;
+            }
+            return false;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /**
      * Applies precomputed environment reverb, direct occlusion low-pass filter, air absorption,
      * and initial micro-prosody pitch/gain directly to a raw OpenAL source handle on the audio thread.
      */
@@ -222,9 +267,12 @@ public final class OpenAlEfxBridge {
             return false;
         }
         try {
+            // Drain any unrelated prior AL error so it does not taint this source's EFX status check.
+            AL10.alGetError();
             float safeTimbre = Float.isFinite(snapshot.timbreDamping())
                     ? Math.max(0.0F, Math.min(0.24F, snapshot.timbreDamping()))
                     : 0.0F;
+            boolean humanizedApplied = false;
             if (applyInitialHumanization) {
                 float pMul = Float.isFinite(snapshot.pitchMultiplier())
                         ? Math.max(0.75F, Math.min(1.25F, snapshot.pitchMultiplier()))
@@ -232,21 +280,18 @@ public final class OpenAlEfxBridge {
                 float gMul = Float.isFinite(snapshot.gainMultiplier())
                         ? Math.max(0.65F, Math.min(1.15F, snapshot.gainMultiplier()))
                         : 1.0F;
-                boolean modified = safeTimbre > 1e-4F;
+                humanizedApplied = safeTimbre > 1e-4F;
                 if (Math.abs(pMul - 1.0F) > 1e-4F) {
                     float basePitch = AL10.alGetSourcef(sourceId, AL10.AL_PITCH);
                     float safeBasePitch = (Float.isFinite(basePitch) && basePitch > 0.05F) ? basePitch : 1.0F;
                     AL10.alSourcef(sourceId, AL10.AL_PITCH, Math.max(0.5F, Math.min(2.0F, safeBasePitch * pMul)));
-                    modified = true;
+                    humanizedApplied = true;
                 }
                 if (Math.abs(gMul - 1.0F) > 1e-4F) {
                     float baseGain = AL10.alGetSourcef(sourceId, AL10.AL_GAIN);
                     float safeBaseGain = (Float.isFinite(baseGain) && baseGain > 0.0F) ? baseGain : 1.0F;
                     AL10.alSourcef(sourceId, AL10.AL_GAIN, Math.max(0.02F, Math.min(1.5F, safeBaseGain * gMul)));
-                    modified = true;
-                }
-                if (modified) {
-                    HUMANIZED_SOURCES.incrementAndGet();
+                    humanizedApplied = true;
                 }
             }
 
@@ -280,6 +325,9 @@ public final class OpenAlEfxBridge {
             int err = AL10.alGetError();
             if (err == AL10.AL_NO_ERROR) {
                 APPLIED_SOURCES.incrementAndGet();
+                if (humanizedApplied) {
+                    HUMANIZED_SOURCES.incrementAndGet();
+                }
                 return true;
             }
             return false;
@@ -572,6 +620,10 @@ public final class OpenAlEfxBridge {
 
     public static long getHumanizedSourcesCount() {
         return HUMANIZED_SOURCES.get();
+    }
+
+    public static long getResetSourcesCount() {
+        return RESET_SOURCES.get();
     }
 
     public static int getActiveSlotCount() {

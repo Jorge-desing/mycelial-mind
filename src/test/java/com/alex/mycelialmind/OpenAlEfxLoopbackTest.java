@@ -518,6 +518,67 @@ public class OpenAlEfxLoopbackTest {
         }
     }
 
+    @Test
+    void resetSourceClearsStaleReverbAndOcclusionAndIgnoresPriorAlErrors() {
+        short[] pcm = synthesizeMultiTonePcm(
+                SAMPLE_RATE,
+                new double[]{260.0D, 850.0D, 4200.0D, 7600.0D},
+                0.24D
+        );
+        int bufferId = createMono16Buffer(pcm);
+        int src = createUnitSource(bufferId);
+        try {
+            // Inject an unrelated stale OpenAL error prior to applyToSource.
+            AL10.alGetInteger(0xDEADBEEF);
+            SourceAcousticSnapshot occludedReverb = new SourceAcousticSnapshot(
+                    AcousticEnvironment.DEEP_MYCELIUM_ABYSS,
+                    0.85F,
+                    AcousticPhysicsEngine.SubmersionState.NONE,
+                    true,
+                    30L,
+                    1.0F,
+                    1.0F,
+                    0.20F
+            );
+            assertTrue(OpenAlEfxBridge.applyToSource(src, occludedReverb),
+                    "applyToSource must drain prior AL errors and configure EFX cleanly");
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError());
+            assertTrue(AL10.alGetSourcef(src, EXTEfx.AL_AIR_ABSORPTION_FACTOR) > 0.0F);
+
+            AL10.alSourcei(src, AL10.AL_LOOPING, AL10.AL_TRUE);
+            AL10.alSourcePlay(src);
+            renderStereoFrames(2048);
+            double muffledHf = bandPower(
+                    computeStereoPowerSpectrum(renderStereoFrames(FFT_SIZE), 0, FFT_SIZE),
+                    2000.0D,
+                    16000.0D
+            );
+            AL10.alSourceStop(src);
+
+            // Simulate channel pooling reuse by a vanilla/non-EFX sound via resetSource(src).
+            long resetsBefore = OpenAlEfxBridge.getResetSourcesCount();
+            assertTrue(OpenAlEfxBridge.resetSource(src), "resetSource should clear pooled channel EFX state");
+            assertEquals(resetsBefore + 1L, OpenAlEfxBridge.getResetSourcesCount());
+            assertEquals(0.0F, AL10.alGetSourcef(src, EXTEfx.AL_AIR_ABSORPTION_FACTOR), 1e-5F);
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError());
+
+            AL10.alSourcePlay(src);
+            renderStereoFrames(2048);
+            double cleanHf = bandPower(
+                    computeStereoPowerSpectrum(renderStereoFrames(FFT_SIZE), 0, FFT_SIZE),
+                    2000.0D,
+                    16000.0D
+            );
+            assertTrue(cleanHf > muffledHf * 4.0D,
+                    "resetSource must remove stale direct LPF muffling on reused sources (muffledHf="
+                            + muffledHf + ", cleanHf=" + cleanHf + ")");
+        } finally {
+            AL10.alSourceStop(src);
+            AL10.alDeleteSources(src);
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
     private SpectralMeasurement measurePlaybackSpectrum(int bufferId, SourceAcousticSnapshot snapshot) {
         int sourceId = createUnitSource(bufferId);
         try {
