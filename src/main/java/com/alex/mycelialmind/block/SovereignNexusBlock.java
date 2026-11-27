@@ -31,7 +31,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -46,7 +45,7 @@ import java.util.List;
  * Endgame Sovereign Hive Nexus block anchoring a player's cooperative colony,
  * worker incubation, biomass reserve, and Symbiotic Node outpost links.
  */
-public class SovereignNexusBlock extends Block implements EntityBlock {
+public class SovereignNexusBlock extends Block implements ServerTickingEntityBlock {
     public SovereignNexusBlock(Properties properties) {
         super(properties);
     }
@@ -60,14 +59,8 @@ public class SovereignNexusBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide() || type != ModBlockEntities.SOVEREIGN_NEXUS.get()) {
-            return null;
-        }
-        return (lvl, p, st, be) -> {
-            if (be instanceof SovereignNexusBlockEntity nexus) {
-                SovereignNexusBlockEntity.serverTick(lvl, p, st, nexus);
-            }
-        };
+        return ServerTickingEntityBlock.createServerTicker(
+                level, type, ModBlockEntities.SOVEREIGN_NEXUS.get(), SovereignNexusBlockEntity::serverTick);
     }
 
     @Override

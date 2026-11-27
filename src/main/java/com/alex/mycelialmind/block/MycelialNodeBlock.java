@@ -19,7 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -32,13 +31,21 @@ import java.util.List;
  * Synaptic Relay anchor for the Mycelial Network. Amplifies local Hive learning,
  * links nearby nodes, and periodically spawns patrols when threat escalates.
  */
-public class MycelialNodeBlock extends Block implements EntityBlock {
+public class MycelialNodeBlock extends Block implements ServerTickingEntityBlock {
     public MycelialNodeBlock(Properties properties) {
         super(properties);
     }
 
-    protected SynapticNodeType nodeType() {
+    public SynapticNodeType nodeType() {
         return SynapticNodeType.RELAY;
+    }
+
+    protected String tooltipKey() {
+        return "tooltip.mycelialmind.block.mycelial_node";
+    }
+
+    protected ChatFormatting tooltipColor() {
+        return ChatFormatting.LIGHT_PURPLE;
     }
 
     @Override
@@ -86,12 +93,8 @@ public class MycelialNodeBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return null;
-        }
-        return type == ModBlockEntities.SYNAPTIC_NODE.get()
-                ? (lvl, p, st, be) -> SynapticNodeBlockEntity.serverTick(lvl, p, st, (SynapticNodeBlockEntity) be)
-                : null;
+        return ServerTickingEntityBlock.createServerTicker(
+                level, type, ModBlockEntities.SYNAPTIC_NODE.get(), SynapticNodeBlockEntity::serverTick);
     }
 
     @Override
@@ -112,6 +115,6 @@ public class MycelialNodeBlock extends Block implements EntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.mycelialmind.block.mycelial_node").withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(Component.translatable(tooltipKey()).withStyle(tooltipColor()));
     }
 }

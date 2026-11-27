@@ -5,25 +5,26 @@ import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.network.ModNetworking;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModSounds;
-import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.util.MycelialParticles;
+import com.alex.mycelialmind.util.MycelialText;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Targeted Counter-Serum synthesized from a GeneticSample.
@@ -49,9 +50,7 @@ public class CounterSerumItem extends Item {
                     serverLevel.getGameTime()
             );
 
-            for (ServerPlayer sp : serverLevel.players()) {
-                PacketDistributor.sendToPlayer(sp, HiveSyncPayload.forPlayer(serverLevel, sp));
-            }
+            ModNetworking.sendToPlayersInLevelReady(serverLevel, sp -> HiveSyncPayload.forPlayer(serverLevel, sp));
             MycelialParticles.counterSerum(serverLevel, player, trait.trigger());
             serverLevel.playSound(null, player.blockPosition(), ModSounds.COUNTER_SERUM_INJECT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
 
@@ -69,12 +68,12 @@ public class CounterSerumItem extends Item {
     }
 
     @Override
-    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+    public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         AdaptationTrait trait = GeneticSampleItem.getTrait(stack);
         if (trait == null) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
-        return java.util.Optional.of(new MycelialTooltipData.TraitBadgeTooltip(
+        return Optional.of(new MycelialTooltipData.TraitBadgeTooltip(
                 MycelialTooltipData.colorForTrait(trait),
                 MycelialText.stimulus(trait.trigger()),
                 MycelialText.trait(trait)

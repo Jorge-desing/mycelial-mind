@@ -7,57 +7,61 @@ import com.alex.mycelialmind.hive.HiveStrain;
  * Client-side cache for the local player's Hive Strain Diplomacy state.
  */
 public final class ClientDiplomacyCache {
-    private static int amberRep = 0;
-    private static int crimsonRep = 0;
-    private static int truceTicks = 0;
-    private static int betrayalTicks = 0;
-    private static HiveStrain selectedStrain = HiveStrain.AMBER;
+    private record Snapshot(
+            int amberRep,
+            int crimsonRep,
+            int truceTicks,
+            int betrayalTicks,
+            HiveStrain selectedStrain
+    ) {
+    }
+
+    private static final Snapshot EMPTY = new Snapshot(0, 0, 0, 0, HiveStrain.AMBER);
+    private static Snapshot state = EMPTY;
 
     private ClientDiplomacyCache() {
     }
 
     public static void clear() {
-        amberRep = 0;
-        crimsonRep = 0;
-        truceTicks = 0;
-        betrayalTicks = 0;
-        selectedStrain = HiveStrain.AMBER;
+        state = EMPTY;
     }
 
     public static void update(DiplomacySyncPayload payload) {
-        amberRep = payload.amberRep();
-        crimsonRep = payload.crimsonRep();
-        truceTicks = payload.truceTicks();
-        betrayalTicks = payload.betrayalTicks();
-        HiveStrain s = HiveStrain.byId(payload.selectedStrainId());
-        selectedStrain = s.isSchismStrain() ? s : HiveStrain.AMBER;
+        HiveStrain strain = HiveStrain.byId(payload.selectedStrainId());
+        state = new Snapshot(
+                payload.amberRep(),
+                payload.crimsonRep(),
+                payload.truceTicks(),
+                payload.betrayalTicks(),
+                strain.isSchismStrain() ? strain : HiveStrain.AMBER
+        );
     }
 
     public static int getAmberRep() {
-        return amberRep;
+        return state.amberRep();
     }
 
     public static int getCrimsonRep() {
-        return crimsonRep;
+        return state.crimsonRep();
     }
 
     public static int getTruceSeconds() {
-        return (truceTicks + 19) / 20;
+        return (state.truceTicks() + 19) / 20;
     }
 
     public static int getBetrayalSeconds() {
-        return (betrayalTicks + 19) / 20;
+        return (state.betrayalTicks() + 19) / 20;
     }
 
     public static HiveStrain getSelectedStrain() {
-        return selectedStrain;
+        return state.selectedStrain();
     }
 
     public static PlayerDiplomacyData.Standing getStanding(HiveStrain strain) {
         if (strain == HiveStrain.ORTHODOX) {
             return PlayerDiplomacyData.Standing.HOSTILE;
         }
-        int rep = strain == HiveStrain.AMBER ? amberRep : crimsonRep;
+        int rep = strain == HiveStrain.AMBER ? state.amberRep() : state.crimsonRep();
         if (rep >= PlayerDiplomacyData.ALLIED_THRESHOLD) {
             return PlayerDiplomacyData.Standing.ALLIED;
         }

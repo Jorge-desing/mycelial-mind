@@ -2,12 +2,6 @@ package com.alex.mycelialmind.block;
 
 import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-
-import java.util.List;
 
 /**
  * Sentinel Synaptic Node: projects defensive auras to nearby MycelialMobs
@@ -19,12 +13,17 @@ public class SentinelNodeBlock extends MycelialNodeBlock {
     }
 
     @Override
-    protected SynapticNodeType nodeType() {
+    public SynapticNodeType nodeType() {
         return SynapticNodeType.SENTINEL;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.mycelialmind.block.sentinel_node").withStyle(ChatFormatting.AQUA));
+    protected String tooltipKey() {
+        return "tooltip.mycelialmind.block.sentinel_node";
+    }
+
+    @Override
+    protected ChatFormatting tooltipColor() {
+        return ChatFormatting.AQUA;
     }
 }

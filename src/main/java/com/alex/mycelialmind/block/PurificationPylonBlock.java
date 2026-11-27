@@ -7,18 +7,22 @@ import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.PurifierDroneEntity;
+import com.alex.mycelialmind.hive.AcquisitionDifficultyEngine;
 import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
+import com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDamageTypes;
 import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.util.ClientTooltipHelper;
 import com.alex.mycelialmind.util.MycelialRedstoneTelemetry;
 import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
+import com.alex.mycelialmind.world.MycelialChunkTicketManager;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -112,8 +116,8 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
-            com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(serverLevel, pos);
-            com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(serverLevel, pos, false);
+            PostMatriarchExpeditionDirector.onDefensePylonDisabled(serverLevel, pos);
+            MycelialChunkTicketManager.syncPylonChunkTicket(serverLevel, pos, false);
             PurificationZoneTracker.get(serverLevel).removePylon(pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
@@ -151,7 +155,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
                     player.displayClientMessage(Component.translatable(
                             "message.mycelialmind.pylon_recharged",
                             focus.getPurificationCharge(),
-                            com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE)
+                            AcquisitionDifficultyEngine.PYLON_MAX_CHARGE)
                             .withStyle(ChatFormatting.AQUA), true);
                 }
                 return ItemInteractionResult.sidedSuccess(level.isClientSide());
@@ -245,7 +249,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         boolean smothered = AntibodyCystBlock.countAdjacentCysts(level, pos) >= DimensionalHomeostasisEngine.SMOTHER_FACE_THRESHOLD;
         tracker.setPylonSmothered(pos, smothered);
         if (smothered && !wasSmothered) {
-            com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
+            PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
         }
         MonumentFocusBlockEntity focus = (level.getBlockEntity(pos) instanceof MonumentFocusBlockEntity mf) ? mf : null;
         int tier = focus != null ? focus.getTier() : 1;
@@ -253,7 +257,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
         boolean wasDepleted = tracker.isPylonDepleted(pos);
         tracker.setPylonDepleted(pos, depleted);
         if (depleted && !wasDepleted && !smothered && !wasSmothered) {
-            com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
+            PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
         }
         if (tracker.getPylonTier(pos) != tier) {
             tracker.setPylonTier(pos, tier);
@@ -262,7 +266,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
             level.updateNeighbourForOutputSignal(pos, state.getBlock());
             level.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(), SoundSource.BLOCKS, 0.85F, (smothered || depleted) ? 0.65F : 1.25F);
         }
-        com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(level, pos, tier >= 3 && !smothered && !depleted);
+        MycelialChunkTicketManager.syncPylonChunkTicket(level, pos, tier >= 3 && !smothered && !depleted);
         if (smothered) {
             level.sendParticles(ModParticles.NECROTIC_MIST.get(),
                     pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5,
@@ -337,15 +341,15 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
             level.playSound(null, pos, ModSounds.PURIFICATION_PYLON_PULSE.get(), SoundSource.BLOCKS, 0.6F, 1.05F);
         }
         if (focus != null) {
-            int drain = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.computePylonDrain(
+            int drain = AcquisitionDifficultyEngine.computePylonDrain(
                     tier, purifiedAny, DimensionalHomeostasisDirector.isHomeostasisDimension(level), hasAmberConduit);
             if (drain > 0) {
                 focus.consumePurificationCharge(drain);
                 if (focus.isDepleted()) {
                     tracker.setPylonDepleted(pos, true);
                     level.updateNeighbourForOutputSignal(pos, state.getBlock());
-                    com.alex.mycelialmind.hive.PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
-                    com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(level, pos, false);
+                    PostMatriarchExpeditionDirector.onDefensePylonDisabled(level, pos);
+                    MycelialChunkTicketManager.syncPylonChunkTicket(level, pos, false);
                 }
             }
         }
@@ -377,7 +381,7 @@ public class PurificationPylonBlock extends Block implements EntityBlock {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.block.purification_pylon").withStyle(ChatFormatting.AQUA));
-        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+        ClientTooltipHelper.appendShiftDetails(tooltip,
                 "tooltip.mycelialmind.block.purification_pylon.shift_gate",
                 "tooltip.mycelialmind.block.purification_pylon.shift_upkeep");
     }

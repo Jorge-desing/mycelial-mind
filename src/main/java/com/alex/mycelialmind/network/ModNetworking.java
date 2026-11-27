@@ -2,6 +2,7 @@ package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.MycelialMind;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -9,6 +10,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -24,6 +26,23 @@ public final class ModNetworking {
             return;
         }
         PacketDistributor.sendToPlayer(player, payloadSupplier.get());
+    }
+
+    public static void sendToAllReady(ServerLevel level, CustomPacketPayload payload) {
+        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+            if (player.connection != null) {
+                PacketDistributor.sendToPlayer(player, payload);
+            }
+        }
+    }
+
+    public static void sendToPlayersInLevelReady(
+            ServerLevel level, Function<ServerPlayer, ? extends CustomPacketPayload> payloadFactory) {
+        for (ServerPlayer player : level.players()) {
+            if (player.connection != null) {
+                PacketDistributor.sendToPlayer(player, payloadFactory.apply(player));
+            }
+        }
     }
 
     public static void register(IEventBus modEventBus) {

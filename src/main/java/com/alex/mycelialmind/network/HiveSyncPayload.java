@@ -18,7 +18,6 @@ import com.alex.mycelialmind.world.DimensionalHomeostasisSavedData;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.DecoderException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -441,20 +440,12 @@ public record HiveSyncPayload(
         ByteBufCodecs.VAR_INT.encode(buf, payload.linkRadius());
         BlockPos.STREAM_CODEC.encode(buf, payload.playerAnchorPos());
 
-        List<NodeMarker> nodes = payload.nearbyNodes();
-        int nodeCount = Math.min(MAX_SYNC_NODES, nodes.size());
-        ByteBufCodecs.VAR_INT.encode(buf, nodeCount);
-        for (int i = 0; i < nodeCount; i++) {
-            NodeMarker marker = nodes.get(i);
-            BlockPos.STREAM_CODEC.encode(buf, marker.pos());
-            ByteBufCodecs.VAR_INT.encode(buf, marker.type().ordinal());
-        }
-        List<BlockPos> pylons = payload.nearbyPylons();
-        int pylonCount = Math.min(MAX_SYNC_PYLONS, pylons.size());
-        ByteBufCodecs.VAR_INT.encode(buf, pylonCount);
-        for (int i = 0; i < pylonCount; i++) {
-            BlockPos.STREAM_CODEC.encode(buf, pylons.get(i));
-        }
+        NetworkCodecSupport.encodeBoundedList(buf, payload.nearbyNodes(), MAX_SYNC_NODES, (b, marker) -> {
+            BlockPos.STREAM_CODEC.encode(b, marker.pos());
+            ByteBufCodecs.VAR_INT.encode(b, marker.type().ordinal());
+        });
+        NetworkCodecSupport.encodeBoundedList(buf, payload.nearbyPylons(), MAX_SYNC_PYLONS,
+                (b, pos) -> BlockPos.STREAM_CODEC.encode(b, pos));
         ByteBufCodecs.VAR_INT.encode(buf, payload.fungalTideSecondsRemaining());
         ByteBufCodecs.DOUBLE.encode(buf, payload.medicHabitScore());
         ByteBufCodecs.DOUBLE.encode(buf, payload.mobilityHabitScore());
@@ -473,23 +464,15 @@ public record HiveSyncPayload(
         ByteBufCodecs.DOUBLE.encode(buf, payload.traitActivationThreshold());
         ByteBufCodecs.DOUBLE.encode(buf, payload.tier2ActivationThreshold());
         ByteBufCodecs.VAR_INT.encode(buf, payload.homeostasisSensitization());
-        List<BlockPos> smotheredList = payload.smotheredPylons();
-        int smotheredCount = Math.min(MAX_SYNC_PYLONS, smotheredList.size());
-        ByteBufCodecs.VAR_INT.encode(buf, smotheredCount);
-        for (int i = 0; i < smotheredCount; i++) {
-            BlockPos.STREAM_CODEC.encode(buf, smotheredList.get(i));
-        }
-        List<InflamedChunkMarker> inflamedList = payload.inflamedChunks();
-        int inflamedCount = Math.min(MAX_SYNC_INFLAMED_CHUNKS, inflamedList.size());
-        ByteBufCodecs.VAR_INT.encode(buf, inflamedCount);
-        for (int i = 0; i < inflamedCount; i++) {
-            InflamedChunkMarker ic = inflamedList.get(i);
-            ByteBufCodecs.VAR_INT.encode(buf, ic.chunkX());
-            ByteBufCodecs.VAR_INT.encode(buf, ic.chunkZ());
-            ByteBufCodecs.VAR_INT.encode(buf, ic.stressPercent());
-            ByteBufCodecs.VAR_INT.encode(buf, ic.stageId());
-            ByteBufCodecs.VAR_INT.encode(buf, ic.sensitization());
-        }
+        NetworkCodecSupport.encodeBoundedList(buf, payload.smotheredPylons(), MAX_SYNC_PYLONS,
+                (b, pos) -> BlockPos.STREAM_CODEC.encode(b, pos));
+        NetworkCodecSupport.encodeBoundedList(buf, payload.inflamedChunks(), MAX_SYNC_INFLAMED_CHUNKS, (b, ic) -> {
+            ByteBufCodecs.VAR_INT.encode(b, ic.chunkX());
+            ByteBufCodecs.VAR_INT.encode(b, ic.chunkZ());
+            ByteBufCodecs.VAR_INT.encode(b, ic.stressPercent());
+            ByteBufCodecs.VAR_INT.encode(b, ic.stageId());
+            ByteBufCodecs.VAR_INT.encode(b, ic.sensitization());
+        });
         ByteBufCodecs.BOOL.encode(buf, payload.deepMyceliumBreached());
         ByteBufCodecs.BOOL.encode(buf, payload.matriarchDefeated());
         ByteBufCodecs.VAR_INT.encode(buf, payload.matriarchRemissionSecondsRemaining());
@@ -516,20 +499,15 @@ public record HiveSyncPayload(
         int linkRadius = ByteBufCodecs.VAR_INT.decode(buf);
         BlockPos anchor = BlockPos.STREAM_CODEC.decode(buf);
 
-        int nodeCount = decodeBoundedCount(buf, MAX_SYNC_NODES, "nearby nodes");
-        List<NodeMarker> nodes = new ArrayList<>(nodeCount);
         SynapticNodeType[] types = SynapticNodeType.values();
-        for (int i = 0; i < nodeCount; i++) {
-            BlockPos pos = BlockPos.STREAM_CODEC.decode(buf);
-            int ord = ByteBufCodecs.VAR_INT.decode(buf);
+        List<NodeMarker> nodes = NetworkCodecSupport.decodeBoundedList(buf, MAX_SYNC_NODES, "nearby nodes", b -> {
+            BlockPos pos = BlockPos.STREAM_CODEC.decode(b);
+            int ord = ByteBufCodecs.VAR_INT.decode(b);
             SynapticNodeType type = (ord >= 0 && ord < types.length) ? types[ord] : SynapticNodeType.RELAY;
-            nodes.add(new NodeMarker(pos, type));
-        }
-        int pylonCount = decodeBoundedCount(buf, MAX_SYNC_PYLONS, "nearby pylons");
-        List<BlockPos> pylons = new ArrayList<>(pylonCount);
-        for (int i = 0; i < pylonCount; i++) {
-            pylons.add(BlockPos.STREAM_CODEC.decode(buf));
-        }
+            return new NodeMarker(pos, type);
+        });
+        List<BlockPos> pylons = NetworkCodecSupport.decodeBoundedList(buf, MAX_SYNC_PYLONS, "nearby pylons",
+                BlockPos.STREAM_CODEC::decode);
         int tideSec = ByteBufCodecs.VAR_INT.decode(buf);
         double hMedic = ByteBufCodecs.DOUBLE.decode(buf);
         double hMob = ByteBufCodecs.DOUBLE.decode(buf);
@@ -548,21 +526,15 @@ public record HiveSyncPayload(
         double traitThreshold = ByteBufCodecs.DOUBLE.decode(buf);
         double tier2Threshold = ByteBufCodecs.DOUBLE.decode(buf);
         int homeoSens = ByteBufCodecs.VAR_INT.decode(buf);
-        int smotheredSize = decodeBoundedCount(buf, MAX_SYNC_PYLONS, "smothered pylons");
-        List<BlockPos> smotheredList = new ArrayList<>(smotheredSize);
-        for (int i = 0; i < smotheredSize; i++) {
-            smotheredList.add(BlockPos.STREAM_CODEC.decode(buf));
-        }
-        int inflamedSize = decodeBoundedCount(buf, MAX_SYNC_INFLAMED_CHUNKS, "inflamed chunks");
-        List<InflamedChunkMarker> inflamedList = new ArrayList<>(inflamedSize);
-        for (int i = 0; i < inflamedSize; i++) {
-            int cx = ByteBufCodecs.VAR_INT.decode(buf);
-            int cz = ByteBufCodecs.VAR_INT.decode(buf);
-            int pct = ByteBufCodecs.VAR_INT.decode(buf);
-            int st = ByteBufCodecs.VAR_INT.decode(buf);
-            int sens = ByteBufCodecs.VAR_INT.decode(buf);
-            inflamedList.add(new InflamedChunkMarker(cx, cz, pct, st, sens));
-        }
+        List<BlockPos> smotheredList = NetworkCodecSupport.decodeBoundedList(buf, MAX_SYNC_PYLONS, "smothered pylons",
+                BlockPos.STREAM_CODEC::decode);
+        List<InflamedChunkMarker> inflamedList = NetworkCodecSupport.decodeBoundedList(
+                buf, MAX_SYNC_INFLAMED_CHUNKS, "inflamed chunks", b -> new InflamedChunkMarker(
+                        ByteBufCodecs.VAR_INT.decode(b),
+                        ByteBufCodecs.VAR_INT.decode(b),
+                        ByteBufCodecs.VAR_INT.decode(b),
+                        ByteBufCodecs.VAR_INT.decode(b),
+                        ByteBufCodecs.VAR_INT.decode(b)));
         boolean breached = ByteBufCodecs.BOOL.decode(buf);
         boolean defeated = ByteBufCodecs.BOOL.decode(buf);
         int remissionSec = ByteBufCodecs.VAR_INT.decode(buf);
@@ -571,14 +543,6 @@ public record HiveSyncPayload(
                 hMedic, hMob, hBastion, hShadow, falseOrd, decSec, decCd, nearestVol, squadStatus, squadSec,
                 homeoStress, homeoStage, acidExposed, smotheredPylons, traitThreshold, tier2Threshold,
                 homeoSens, smotheredList, inflamedList, breached, defeated, remissionSec);
-    }
-
-    private static int decodeBoundedCount(ByteBuf buf, int maximum, String fieldName) {
-        int count = ByteBufCodecs.VAR_INT.decode(buf);
-        if (count < 0 || count > maximum) {
-            throw new DecoderException("Invalid " + fieldName + " count in HiveSyncPayload: " + count);
-        }
-        return count;
     }
 
     public static HiveSyncPayload fromSavedData(HiveMindSavedData data) {

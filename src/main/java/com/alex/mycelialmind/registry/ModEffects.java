@@ -12,6 +12,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Registers custom MobEffects and NeoForge EffectCures for Mycelial Mind.
@@ -23,22 +24,23 @@ public final class ModEffects {
             DeferredRegister.create(Registries.MOB_EFFECT, MycelialMind.MODID);
 
     public static final DeferredHolder<MobEffect, MobEffect> MYCELIAL_INFECTION =
-            MOB_EFFECTS.register("mycelial_infection", () -> new MycelialStatusEffect(
-                    MobEffectCategory.HARMFUL, 0x7B2CBF, ModParticles.INFECTION::get, false));
+            registerEffect("mycelial_infection", MobEffectCategory.HARMFUL, 0x7B2CBF, ModParticles.INFECTION::get, false);
 
     public static final DeferredHolder<MobEffect, MobEffect> SPORE_ROT =
-            MOB_EFFECTS.register("spore_rot", () -> new MycelialStatusEffect(
-                    MobEffectCategory.HARMFUL, 0x9B2226, ModParticles.ROT::get, true));
+            registerEffect("spore_rot", MobEffectCategory.HARMFUL, 0x9B2226, ModParticles.ROT::get, true);
 
     public static final DeferredHolder<MobEffect, MobEffect> SYNAPTIC_INSIGHT =
-            MOB_EFFECTS.register("synaptic_insight", () -> new MycelialStatusEffect(
-                    MobEffectCategory.BENEFICIAL, 0x38B000, ModParticles.INSIGHT::get, false));
+            registerEffect("synaptic_insight", MobEffectCategory.BENEFICIAL, 0x38B000, ModParticles.INSIGHT::get, false);
 
     public static final DeferredHolder<MobEffect, MobEffect> SYNAPTIC_VISION =
-            MOB_EFFECTS.register("synaptic_vision", () -> new MycelialStatusEffect(
-                    MobEffectCategory.BENEFICIAL, 0x00F5D4, ModParticles.VISION::get, false));
+            registerEffect("synaptic_vision", MobEffectCategory.BENEFICIAL, 0x00F5D4, ModParticles.VISION::get, false);
 
     private ModEffects() {
+    }
+
+    private static DeferredHolder<MobEffect, MobEffect> registerEffect(
+            String name, MobEffectCategory category, int color, Supplier<ParticleOptions> particle, boolean requiresAntidoteOnly) {
+        return MOB_EFFECTS.register(name, () -> new MycelialStatusEffect(category, color, particle, requiresAntidoteOnly));
     }
 
     public static void register(IEventBus modEventBus) {
@@ -46,13 +48,13 @@ public final class ModEffects {
     }
 
     private static final class MycelialStatusEffect extends MobEffect {
-        private final java.util.function.Supplier<ParticleOptions> particle;
+        private final Supplier<ParticleOptions> particle;
         private final boolean requiresAntidoteOnly;
 
         private MycelialStatusEffect(
                 MobEffectCategory category,
                 int color,
-                java.util.function.Supplier<ParticleOptions> particle,
+                Supplier<ParticleOptions> particle,
                 boolean requiresAntidoteOnly
         ) {
             super(category, color);

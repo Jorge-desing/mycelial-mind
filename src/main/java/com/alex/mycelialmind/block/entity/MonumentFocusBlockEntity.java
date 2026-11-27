@@ -2,17 +2,23 @@ package com.alex.mycelialmind.block.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.alex.mycelialmind.hive.AcquisitionDifficultyEngine;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
+import com.alex.mycelialmind.hive.PlayerHabit;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.hive.SynapticMemoryRouter;
 import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.world.MycelialChunkTicketManager;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -28,12 +34,12 @@ import javax.annotation.Nullable;
  * BlockEntity anchoring animated 3D BlockEntityRenderers and persistent tier state
  * on Purification Pylons (T1-T3) and Ritual Altars.
  */
-public class MonumentFocusBlockEntity extends SyncingBlockEntity {
+public class MonumentFocusBlockEntity extends TieredStationBlockEntity {
     private static final String TAG_PYLON_TIER = "PylonTier";
     private static final String TAG_PURIFICATION_CHARGE = "PurificationCharge";
 
     private int tier = 1;
-    private int purificationCharge = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_INITIAL_CHARGE;
+    private int purificationCharge = AcquisitionDifficultyEngine.PYLON_INITIAL_CHARGE;
 
     public MonumentFocusBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.MONUMENT_FOCUS.get(), pos, state);
@@ -49,27 +55,16 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
         if (this.level instanceof ServerLevel serverLevel) {
             if (getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())) {
                 PurificationZoneTracker.get(serverLevel).setPylonTier(this.worldPosition, this.tier);
-                com.alex.mycelialmind.world.MycelialChunkTicketManager.syncPylonChunkTicket(serverLevel, this.worldPosition);
+                MycelialChunkTicketManager.syncPylonChunkTicket(serverLevel, this.worldPosition);
             }
-            BlockState state = getBlockState();
-            serverLevel.sendBlockUpdated(this.worldPosition, state, state, 3);
-            serverLevel.updateNeighbourForOutputSignal(this.worldPosition, state.getBlock());
+            syncToClients();
+            serverLevel.updateNeighbourForOutputSignal(this.worldPosition, getBlockState().getBlock());
         }
     }
 
     public boolean canUpgradeWith(ItemStack catalyst) {
         int nextTier = resolveNextTierForCatalyst(catalyst);
-        if (nextTier == 0) {
-            return false;
-        }
-        if (this.level instanceof ServerLevel serverLevel) {
-            com.alex.mycelialmind.hive.HiveProgressionTier effectiveAct =
-                    com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(serverLevel);
-            boolean defeated = com.alex.mycelialmind.hive.DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, null);
-            return com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
-                    nextTier, effectiveAct, defeated, false);
-        }
-        return true;
+        return nextTier > 0 && canPassTierUpgradeGate(nextTier, null, false);
     }
 
     public int resolveNextTierForCatalyst(ItemStack catalyst) {
@@ -101,33 +96,16 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
             return false;
         }
         int nextTier = resolveNextTierForCatalyst(catalyst);
-        if (nextTier == 0) {
-            return false;
-        }
-        com.alex.mycelialmind.hive.HiveProgressionTier effectiveAct =
-                com.alex.mycelialmind.world.structure.StructureProgressionPolicy.resolveTier(serverLevel);
-        boolean defeated = com.alex.mycelialmind.hive.DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, player);
-        boolean creative = player != null && (player.isCreative() || player.getAbilities().instabuild);
-        if (!com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.canUpgradeToTier(
-                nextTier, effectiveAct, defeated, creative)) {
-            if (player != null) {
-                com.alex.mycelialmind.hive.HiveProgressionTier reqAct =
-                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.requiredActForTier(nextTier);
-                player.displayClientMessage(
-                        net.minecraft.network.chat.Component.translatable(
-                                "message.mycelialmind.gate_requires_act", reqAct.name(), nextTier)
-                                .withStyle(net.minecraft.ChatFormatting.YELLOW),
-                        true);
-            }
+        if (nextTier == 0 || !canPassTierUpgradeGate(nextTier, player, true)) {
             return false;
         }
         setTier(nextTier);
-        if (player == null || (!player.isCreative() && !player.getAbilities().instabuild)) {
+        if (!isCreativeOrInstabuild(player)) {
             catalyst.shrink(1);
         }
         if (player != null && !player.isCreative()) {
-            com.alex.mycelialmind.hive.SynapticMemoryRouter.routeHabit(
-                    serverLevel, worldPosition, com.alex.mycelialmind.hive.PlayerHabit.BASTION_BUILDER, 4.0D * nextTier);
+            SynapticMemoryRouter.routeHabit(
+                    serverLevel, worldPosition, PlayerHabit.BASTION_BUILDER, 4.0D * nextTier);
         }
         int effectiveRadius = getEffectiveRadius(MycelialConfig.PYLON_PURIFICATION_RADIUS.get());
         serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),
@@ -157,7 +135,7 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
     }
 
     public void setPurificationCharge(int charge) {
-        int clamped = Math.max(0, Math.min(com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE, charge));
+        int clamped = Math.max(0, Math.min(AcquisitionDifficultyEngine.PYLON_MAX_CHARGE, charge));
         if (this.purificationCharge == clamped) {
             return;
         }
@@ -165,7 +143,7 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
         this.purificationCharge = clamped;
         if (this.level instanceof ServerLevel serverLevel) {
             if (getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())) {
-                com.alex.mycelialmind.world.PurificationZoneTracker.get(serverLevel)
+                PurificationZoneTracker.get(serverLevel)
                         .setPylonDepleted(getBlockPos(), this.purificationCharge <= 0);
                 boolean crossedLow = previous > 15 && clamped <= 15 && clamped > 0;
                 boolean crossedEmpty = previous > 0 && clamped == 0;
@@ -174,8 +152,7 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
                             SoundSource.BLOCKS, crossedEmpty ? 0.90F : 0.65F, crossedEmpty ? 0.86F : 1.0F);
                 }
             }
-            BlockState state = getBlockState();
-            serverLevel.sendBlockUpdated(this.worldPosition, state, state, 3);
+            syncToClients();
         }
         setChanged();
     }
@@ -191,9 +168,9 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
         if (catalyst.isEmpty() || !getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())) {
             return false;
         }
-        String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(catalyst.getItem()).getPath();
-        return com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.pylonRechargeAmount(path) > 0
-                && this.purificationCharge < com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE;
+        String path = BuiltInRegistries.ITEM.getKey(catalyst.getItem()).getPath();
+        return AcquisitionDifficultyEngine.pylonRechargeAmount(path) > 0
+                && this.purificationCharge < AcquisitionDifficultyEngine.PYLON_MAX_CHARGE;
     }
 
     public boolean tryRecharge(ItemStack catalyst, @Nullable Player player) {
@@ -202,13 +179,13 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
                 || catalyst.isEmpty()) {
             return false;
         }
-        String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(catalyst.getItem()).getPath();
-        int gain = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.pylonRechargeAmount(path);
-        if (gain <= 0 || this.purificationCharge >= com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE) {
+        String path = BuiltInRegistries.ITEM.getKey(catalyst.getItem()).getPath();
+        int gain = AcquisitionDifficultyEngine.pylonRechargeAmount(path);
+        if (gain <= 0 || this.purificationCharge >= AcquisitionDifficultyEngine.PYLON_MAX_CHARGE) {
             return false;
         }
         setPurificationCharge(this.purificationCharge + gain);
-        if (player == null || !player.getAbilities().instabuild) {
+        if (!isCreativeOrInstabuild(player)) {
             catalyst.shrink(1);
         }
         return true;
@@ -233,10 +210,10 @@ public class MonumentFocusBlockEntity extends SyncingBlockEntity {
         }
         if (tag.contains(TAG_PURIFICATION_CHARGE)) {
             this.purificationCharge = Math.max(0, Math.min(
-                    com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_MAX_CHARGE,
+                    AcquisitionDifficultyEngine.PYLON_MAX_CHARGE,
                     tag.getInt(TAG_PURIFICATION_CHARGE)));
         } else {
-            this.purificationCharge = com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.PYLON_INITIAL_CHARGE;
+            this.purificationCharge = AcquisitionDifficultyEngine.PYLON_INITIAL_CHARGE;
         }
     }
 }

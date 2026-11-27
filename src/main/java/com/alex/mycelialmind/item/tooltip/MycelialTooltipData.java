@@ -16,8 +16,12 @@ public final class MycelialTooltipData {
     private MycelialTooltipData() {
     }
 
+    public sealed interface MycelialTooltipComponent extends TooltipComponent
+            permits ThreatBarTooltip, TraitBadgeTooltip {
+    }
+
     public record ThreatBarTooltip(float threatPercent, boolean suppressed, int activeTraitCount)
-            implements TooltipComponent {
+            implements MycelialTooltipComponent {
         public float clampedThreat() {
             if (!Float.isFinite(threatPercent)) {
                 return 0.0F;
@@ -31,7 +35,7 @@ public final class MycelialTooltipData {
     }
 
     public record TraitBadgeTooltip(int accentRgb, Component badgeLabel, @Nullable Component subLabel)
-            implements TooltipComponent {
+            implements MycelialTooltipComponent {
     }
 
     public static int colorForStimulus(@Nullable StimulusType stimulus) {

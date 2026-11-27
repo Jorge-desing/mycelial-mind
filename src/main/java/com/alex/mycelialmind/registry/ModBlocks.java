@@ -18,8 +18,8 @@ import com.alex.mycelialmind.block.MycelialStoneBlock;
 import com.alex.mycelialmind.block.MycelialTendrilsBlock;
 import com.alex.mycelialmind.block.PurificationPylonBlock;
 import com.alex.mycelialmind.block.PurificationTurretBlock;
-import com.alex.mycelialmind.block.ReinforcedBioBarrierBlock;
 import com.alex.mycelialmind.block.ReclaimedBloomBlock;
+import com.alex.mycelialmind.block.ReinforcedBioBarrierBlock;
 import com.alex.mycelialmind.block.RootCapShelfBlock;
 import com.alex.mycelialmind.block.RootSapMossBlock;
 import com.alex.mycelialmind.block.SentinelNodeBlock;
@@ -29,6 +29,7 @@ import com.alex.mycelialmind.block.SporeUpdraftVentBlock;
 import com.alex.mycelialmind.block.SporeVentBlock;
 import com.alex.mycelialmind.block.SymbioticNodeBlock;
 import com.alex.mycelialmind.block.SynapticResearchBenchBlock;
+import com.alex.mycelialmind.item.ReclaimedBloomItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
@@ -39,9 +40,9 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -68,53 +69,23 @@ public final class ModBlocks {
                     .lightLevel(s -> 4)));
 
     public static final DeferredBlock<Block> MYCELIAL_NODE = registerBlock("mycelial_node",
-            () -> new MycelialNodeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_PURPLE)
-                    .strength(5.0F, 12.0F)
-                    .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 9)));
+            () -> new MycelialNodeBlock(synapticNodeProps(MapColor.COLOR_PURPLE, 5.0F, 12.0F, 9)));
 
     public static final DeferredBlock<Block> INCUBATOR_NODE = registerBlock("incubator_node",
-            () -> new IncubatorNodeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_MAGENTA)
-                    .strength(5.5F, 12.0F)
-                    .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 10)));
+            () -> new IncubatorNodeBlock(synapticNodeProps(MapColor.COLOR_MAGENTA, 5.5F, 12.0F, 10)));
 
     public static final DeferredBlock<Block> SENTINEL_NODE = registerBlock("sentinel_node",
-            () -> new SentinelNodeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_BLUE)
-                    .strength(4.0F, 16.0F)
-                    .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 11)));
+            () -> new SentinelNodeBlock(synapticNodeProps(MapColor.COLOR_BLUE, 4.0F, 16.0F, 11)));
 
     public static final DeferredBlock<Block> SYMBIOTIC_NODE = registerBlock("symbiotic_node",
-            () -> new SymbioticNodeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
-                    .strength(4.5F, 18.0F)
-                    .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 10)));
+            () -> new SymbioticNodeBlock(synapticNodeProps(MapColor.COLOR_LIGHT_GREEN, 4.5F, 18.0F, 10)));
 
     public static final DeferredBlock<Block> SOVEREIGN_NEXUS = registerBlock("sovereign_nexus",
-            () -> new SovereignNexusBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
-                    .strength(6.5F, 36.0F)
-                    .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 12)
+            () -> new SovereignNexusBlock(synapticNodeProps(MapColor.COLOR_LIGHT_GREEN, 6.5F, 36.0F, 12)
                     .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> PURIFICATION_PYLON = registerBlock("purification_pylon",
-            () -> new PurificationPylonBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_CYAN)
-                    .strength(4.0F, 24.0F)
-                    .sound(ModSounds.PURIFICATION_TECH_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 12)));
+            () -> new PurificationPylonBlock(purificationTechProps(4.0F, 24.0F, 12)));
 
     public static final DeferredBlock<Block> REINFORCED_BIO_BARRIER = registerBlock("reinforced_bio_barrier",
             () -> new ReinforcedBioBarrierBlock(BlockBehaviour.Properties.of()
@@ -133,57 +104,32 @@ public final class ModBlocks {
                     .lightLevel(s -> 11)));
 
     public static final DeferredBlock<Block> SYNAPTIC_RESEARCH_BENCH = registerBlock("synaptic_research_bench",
-            () -> new SynapticResearchBenchBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_CYAN)
-                    .strength(3.5F, 12.0F)
-                    .sound(ModSounds.PURIFICATION_TECH_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 7)
+            () -> new SynapticResearchBenchBlock(purificationTechProps(3.5F, 12.0F, 7)
                     .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> PURIFICATION_TURRET = registerBlock("purification_turret",
-            () -> new PurificationTurretBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_CYAN)
-                    .strength(4.0F, 24.0F)
-                    .sound(ModSounds.PURIFICATION_TECH_SOUNDS)
-                    .noOcclusion()
-                    .lightLevel(s -> 11)
+            () -> new PurificationTurretBlock(purificationTechProps(4.0F, 24.0F, 11)
                     .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<Block> BIOLUMINESCENT_MYCELIAL_CAP = registerBlock("bioluminescent_mycelial_cap",
-            () -> new BioluminescentMycelialCapBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
-                    .noCollission()
-                    .noOcclusion()
+            () -> new BioluminescentMycelialCapBlock(delicateFloraProps(MapColor.COLOR_LIGHT_BLUE)
                     .instabreak()
-                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
                     .lightLevel(s -> s.getValue(BioluminescentMycelialCapBlock.MATURE) ? 10 : 5)));
 
     public static final DeferredBlock<ReclaimedBloomBlock> RECLAIMED_BLOOM = registerBlock("reclaimed_bloom",
-            () -> new ReclaimedBloomBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_LIGHT_GREEN)
-                    .noCollission()
-                    .noOcclusion()
+            () -> new ReclaimedBloomBlock(delicateFloraProps(MapColor.COLOR_LIGHT_GREEN)
                     .instabreak()
-                    .noLootTable()
-                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)));
+                    .noLootTable()),
+            b -> new ReclaimedBloomItem(b, 0, new Item.Properties()));
 
     public static final DeferredBlock<Block> SPORE_BULB = registerBlock("spore_bulb",
-            () -> new SporeBulbBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_MAGENTA)
-                    .noCollission()
-                    .noOcclusion()
+            () -> new SporeBulbBlock(delicateFloraProps(MapColor.COLOR_MAGENTA)
                     .strength(0.4F)
-                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
                     .lightLevel(s -> 6)));
 
     public static final DeferredBlock<Block> MYCELIAL_TENDRILS = registerBlock("mycelial_tendrils",
-            () -> new MycelialTendrilsBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_CYAN)
-                    .noCollission()
-                    .noOcclusion()
+            () -> new MycelialTendrilsBlock(delicateFloraProps(MapColor.COLOR_CYAN)
                     .instabreak()
-                    .sound(ModSounds.MYCELIAL_FLORA_SOUNDS)
                     .lightLevel(s -> s.getValue(MycelialTendrilsBlock.MATURE) ? 8 : 3)));
 
     public static final DeferredBlock<Block> MYCELIAL_STONE = registerBlock("mycelial_stone",
@@ -288,17 +234,43 @@ public final class ModBlocks {
     private ModBlocks() {
     }
 
-    private static <T extends Block> DeferredBlock<T> registerBlock(String name, Supplier<T> blockSupplier) {
-        DeferredBlock<T> block = BLOCKS.register(name, blockSupplier);
-        registerBlockItem(name, block);
-        return block;
+    private static BlockBehaviour.Properties synapticNodeProps(
+            MapColor color, float destroyTime, float explosionResistance, int lightLevel) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(color)
+                .strength(destroyTime, explosionResistance)
+                .sound(ModSounds.SYNAPTIC_NODE_SOUNDS)
+                .noOcclusion()
+                .lightLevel(s -> lightLevel);
     }
 
-    private static <T extends Block> DeferredItem<BlockItem> registerBlockItem(String name, DeferredBlock<T> block) {
-        return ModItems.ITEMS.register(name, () -> name.equals("reclaimed_bloom")
-                ? new com.alex.mycelialmind.item.ReclaimedBloomItem(
-                        (ReclaimedBloomBlock) block.get(), 0, new Item.Properties())
-                : new BlockItem(block.get(), new Item.Properties()));
+    private static BlockBehaviour.Properties purificationTechProps(
+            float destroyTime, float explosionResistance, int lightLevel) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_CYAN)
+                .strength(destroyTime, explosionResistance)
+                .sound(ModSounds.PURIFICATION_TECH_SOUNDS)
+                .noOcclusion()
+                .lightLevel(s -> lightLevel);
+    }
+
+    private static BlockBehaviour.Properties delicateFloraProps(MapColor color) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(color)
+                .noCollission()
+                .noOcclusion()
+                .sound(ModSounds.MYCELIAL_FLORA_SOUNDS);
+    }
+
+    private static <T extends Block> DeferredBlock<T> registerBlock(String name, Supplier<T> blockSupplier) {
+        return registerBlock(name, blockSupplier, b -> new BlockItem(b, new Item.Properties()));
+    }
+
+    private static <T extends Block> DeferredBlock<T> registerBlock(
+            String name, Supplier<T> blockSupplier, Function<T, ? extends BlockItem> itemFactory) {
+        DeferredBlock<T> block = BLOCKS.register(name, blockSupplier);
+        ModItems.ITEMS.register(name, () -> itemFactory.apply(block.get()));
+        return block;
     }
 
     public static void register(IEventBus modEventBus) {

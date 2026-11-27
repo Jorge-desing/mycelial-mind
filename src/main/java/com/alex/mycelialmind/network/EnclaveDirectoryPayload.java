@@ -2,8 +2,8 @@ package com.alex.mycelialmind.network;
 
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.hive.PostMatriarchExpeditionData;
-import com.alex.mycelialmind.world.ModDimensions;
 import com.alex.mycelialmind.registry.ModAttachments;
+import com.alex.mycelialmind.world.ModDimensions;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -14,45 +14,50 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import java.util.ArrayList;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /** One bounded page of shared recovered enclaves. */
 public record EnclaveDirectoryPayload(int page, int total, List<Entry> entries, BlockPos pinned) implements CustomPacketPayload {
     public static final int PAGE_SIZE = 6;
-    private static final java.util.Map<ServerPlayer, Integer> VIEWER_PAGES =
-            java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
-    public static final Type<EnclaveDirectoryPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "enclave_directory"));
-    public record Entry(BlockPos pos, int outcome, int palette, String name) { }
+    private static final Map<ServerPlayer, Integer> VIEWER_PAGES =
+            Collections.synchronizedMap(new WeakHashMap<>());
+    public static final Type<EnclaveDirectoryPayload> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "enclave_directory"));
+
+    public record Entry(BlockPos pos, int outcome, int palette, String name) {
+    }
+
     public static final StreamCodec<ByteBuf, EnclaveDirectoryPayload> STREAM_CODEC = new StreamCodec<>() {
+        @Override
         public EnclaveDirectoryPayload decode(ByteBuf buf) {
             int page = ByteBufCodecs.VAR_INT.decode(buf);
             int total = ByteBufCodecs.VAR_INT.decode(buf);
-            int size = ByteBufCodecs.VAR_INT.decode(buf);
-            if (size < 0 || size > PAGE_SIZE) throw new io.netty.handler.codec.DecoderException("Invalid enclave page size");
-            List<Entry> entries = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                entries.add(new Entry(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
-                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf)));
-            }
-            BlockPos pinned = ByteBufCodecs.BOOL.decode(buf) ? BlockPos.STREAM_CODEC.decode(buf) : null;
+            List<Entry> entries = NetworkCodecSupport.decodeBoundedList(buf, PAGE_SIZE, "enclave page size",
+                    b -> new Entry(BlockPos.STREAM_CODEC.decode(b), ByteBufCodecs.VAR_INT.decode(b),
+                            ByteBufCodecs.VAR_INT.decode(b), ByteBufCodecs.STRING_UTF8.decode(b)));
+            BlockPos pinned = NetworkCodecSupport.readOptionalBlockPos(buf);
             return new EnclaveDirectoryPayload(page, total, entries, pinned);
         }
+
+        @Override
         public void encode(ByteBuf buf, EnclaveDirectoryPayload payload) {
-            if (payload.entries.size() > PAGE_SIZE) throw new io.netty.handler.codec.EncoderException("Invalid enclave page size");
             ByteBufCodecs.VAR_INT.encode(buf, payload.page);
             ByteBufCodecs.VAR_INT.encode(buf, payload.total);
-            ByteBufCodecs.VAR_INT.encode(buf, payload.entries.size());
-            for (Entry entry : payload.entries) {
-                BlockPos.STREAM_CODEC.encode(buf, entry.pos());
-                ByteBufCodecs.VAR_INT.encode(buf, entry.outcome());
-                ByteBufCodecs.VAR_INT.encode(buf, entry.palette());
-                ByteBufCodecs.STRING_UTF8.encode(buf, entry.name());
-            }
-            ByteBufCodecs.BOOL.encode(buf, payload.pinned != null);
-            if (payload.pinned != null) BlockPos.STREAM_CODEC.encode(buf, payload.pinned);
+            NetworkCodecSupport.encodeStrictBoundedList(buf, payload.entries, PAGE_SIZE, "enclave page size",
+                    (b, entry) -> {
+                        BlockPos.STREAM_CODEC.encode(b, entry.pos());
+                        ByteBufCodecs.VAR_INT.encode(b, entry.outcome());
+                        ByteBufCodecs.VAR_INT.encode(b, entry.palette());
+                        ByteBufCodecs.STRING_UTF8.encode(b, entry.name());
+                    });
+            NetworkCodecSupport.writeOptionalBlockPos(buf, payload.pinned);
         }
     };
+
     public static void sendPage(ServerPlayer player, int requestedPage) {
         ServerLevel level = player.server.getLevel(ModDimensions.DEEP_MYCELIUM_LEVEL);
         if (level == null || player.connection == null) return;
@@ -66,11 +71,17 @@ public record EnclaveDirectoryPayload(int page, int total, List<Entry> entries, 
         PacketDistributor.sendToPlayer(player, new EnclaveDirectoryPayload(page, all.size(), entries,
                 player.getData(ModAttachments.DISCOVERY).getPinnedEnclave()));
     }
+
     public static void refreshPage(ServerPlayer player) {
         sendPage(player, VIEWER_PAGES.getOrDefault(player, 0));
     }
+
     public static void handleOnClient(EnclaveDirectoryPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> ClientExpeditionCache.updateDirectory(payload));
     }
-    public Type<? extends CustomPacketPayload> type() { return TYPE; }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 }

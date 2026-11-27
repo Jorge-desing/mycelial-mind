@@ -26,6 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
+import javax.annotation.Nullable;
+
 /**
  * Server/Client container menu for the Synaptic Research Bench (3 inputs + 1 synthesis output).
  */
@@ -84,6 +86,10 @@ public class SynapticBenchMenu extends AbstractContainerMenu {
             }
         });
 
+        addPlayerInventorySlots(playerInventory);
+    }
+
+    private void addPlayerInventorySlots(Inventory playerInventory) {
         // Player inventory (3x9)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -146,7 +152,7 @@ public class SynapticBenchMenu extends AbstractContainerMenu {
         return blockEntity.getEffectiveLabTier();
     }
 
-    @javax.annotation.Nullable
+    @Nullable
     public HiveProgressionTier getBlockedAct(HiveProgressionTier clientEffectiveAct) {
         return blockEntity.computeSynthesisDetails(clientEffectiveAct).blockedByAct();
     }

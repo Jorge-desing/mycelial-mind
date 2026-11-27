@@ -4,8 +4,10 @@ import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.block.entity.MonumentFocusBlockEntity;
 import com.alex.mycelialmind.entity.ApexMatriarchEntity;
 import com.alex.mycelialmind.hive.EvolutionRank;
+import com.alex.mycelialmind.hive.HiveCycleDirector;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
+import com.alex.mycelialmind.network.CycleProtocolSyncPayload;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -18,6 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.player.Player;
@@ -66,12 +69,12 @@ public class MatriarchAltarBlock extends Block implements EntityBlock {
                 || stack.is(ModItems.TIDE_BEACON.get());
         if (!validOffering) {
             if (stack.isEmpty()) {
-                return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
             }
             if (level instanceof ServerLevel serverLevel) {
-                if (com.alex.mycelialmind.hive.HiveCycleDirector.isCycleUnlocked(serverLevel)) {
+                if (HiveCycleDirector.isCycleUnlocked(serverLevel)) {
                     if (player instanceof ServerPlayer serverPlayer) {
-                        com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToPlayer(serverPlayer, true);
+                        CycleProtocolSyncPayload.syncToPlayer(serverPlayer, true);
                     }
                     return ItemInteractionResult.CONSUME;
                 }
@@ -129,7 +132,7 @@ public class MatriarchAltarBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected net.minecraft.world.InteractionResult useWithoutItem(
+    protected InteractionResult useWithoutItem(
             BlockState state,
             Level level,
             BlockPos pos,
@@ -137,17 +140,17 @@ public class MatriarchAltarBlock extends Block implements EntityBlock {
             BlockHitResult hitResult
     ) {
         if (level instanceof ServerLevel serverLevel) {
-            if (com.alex.mycelialmind.hive.HiveCycleDirector.isCycleUnlocked(serverLevel)) {
+            if (HiveCycleDirector.isCycleUnlocked(serverLevel)) {
                 if (player instanceof ServerPlayer serverPlayer) {
-                    com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToPlayer(serverPlayer, true);
+                    CycleProtocolSyncPayload.syncToPlayer(serverPlayer, true);
                 }
-                return net.minecraft.world.InteractionResult.CONSUME;
+                return InteractionResult.CONSUME;
             }
             player.displayClientMessage(Component.translatable("message.mycelialmind.matriarch_altar_requires_offering")
                     .withStyle(ChatFormatting.DARK_PURPLE), true);
-            return net.minecraft.world.InteractionResult.FAIL;
+            return InteractionResult.FAIL;
         }
-        return net.minecraft.world.InteractionResult.PASS;
+        return InteractionResult.PASS;
     }
 
     @Override

@@ -1,19 +1,22 @@
 package com.alex.mycelialmind.block.entity;
 
-import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.block.LuminescentAmberVeinBlock;
+import com.alex.mycelialmind.hive.DamageTelemetryTracker;
+import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
+import com.alex.mycelialmind.hive.PlayerHabit;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.hive.SynapticMemoryRouter;
 import com.alex.mycelialmind.item.ReclaimedBloomItem;
-import com.alex.mycelialmind.recipe.SynapticSynthesisInput;
-import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.menu.SynapticBenchMenu;
+import com.alex.mycelialmind.recipe.SynapticSynthesisInput;
 import com.alex.mycelialmind.registry.ModBlockEntities;
+import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModRecipes;
 import com.alex.mycelialmind.registry.ModSounds;
-import com.alex.mycelialmind.hive.AcquisitionDifficultyEngine;
-import com.alex.mycelialmind.hive.DamageTelemetryTracker;
 import com.alex.mycelialmind.world.structure.StructureProgressionPolicy;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -30,6 +33,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -40,7 +44,7 @@ import javax.annotation.Nullable;
  * Synthesizes Symbiotic Mutagens, targeted Counter-Serums, Concentrated Antidotes,
  * Chimera Ovums, and 4 discoverable experimental biotechnology formulas across Lab Tiers 1-3.
  */
-public class SynapticBenchBlockEntity extends SyncingBlockEntity implements MenuProvider {
+public class SynapticBenchBlockEntity extends TieredStationBlockEntity implements MenuProvider {
     public static final int SLOT_SAMPLE = 0;
     public static final int SLOT_BIOMASS = 1;
     public static final int SLOT_CATALYST = 2;
@@ -67,9 +71,7 @@ public class SynapticBenchBlockEntity extends SyncingBlockEntity implements Menu
             if (slot != SLOT_OUTPUT && !consumingInputs) {
                 if (!outputInputsConsumed) refreshOutputSlot();
             }
-            if (level != null && !level.isClientSide()) {
-                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-            }
+            syncToClients();
         }
     };
 
@@ -108,18 +110,15 @@ public class SynapticBenchBlockEntity extends SyncingBlockEntity implements Menu
 
     public int getEffectiveLabTier() {
         boolean hasAmberConduit = this.level != null
-                && com.alex.mycelialmind.block.LuminescentAmberVeinBlock.hasAdjacentConduit(this.level, this.worldPosition);
-        return com.alex.mycelialmind.hive.EcosystemPurposeEngine.computeBenchEffectiveLabTier(this.labTier, hasAmberConduit);
+                && LuminescentAmberVeinBlock.hasAdjacentConduit(this.level, this.worldPosition);
+        return EcosystemPurposeEngine.computeBenchEffectiveLabTier(this.labTier, hasAmberConduit);
     }
 
     public void setLabTier(int tier) {
         this.labTier = Math.max(1, Math.min(3, tier));
         setChanged();
         refreshOutputSlot();
-        if (this.level != null && !this.level.isClientSide()) {
-            BlockState state = getBlockState();
-            this.level.sendBlockUpdated(this.worldPosition, state, state, 3);
-        }
+        syncToClients();
     }
 
     public boolean tryUpgradeLab(ItemStack stack, @Nullable Player player) {
@@ -133,28 +132,16 @@ public class SynapticBenchBlockEntity extends SyncingBlockEntity implements Menu
                 && (stack.is(ModItems.NEURAL_ECHO_CORE.get()) || stack.is(ModItems.OVERMIND_ESSENCE.get()))) {
             nextTier = 3;
         }
-        if (nextTier == 0) {
-            return false;
-        }
-        HiveProgressionTier effectiveAct = StructureProgressionPolicy.resolveTier(serverLevel);
-        boolean defeated = DamageTelemetryTracker.isHiveCoreDefeated(serverLevel, player);
-        boolean creative = player != null && (player.isCreative() || player.getAbilities().instabuild);
-        if (!AcquisitionDifficultyEngine.canUpgradeToTier(nextTier, effectiveAct, defeated, creative)) {
-            if (player != null) {
-                HiveProgressionTier reqAct = AcquisitionDifficultyEngine.requiredActForTier(nextTier);
-                player.displayClientMessage(Component.translatable(
-                        "message.mycelialmind.gate_requires_act", reqAct.name(), nextTier)
-                        .withStyle(ChatFormatting.YELLOW), true);
-            }
+        if (nextTier == 0 || !canPassTierUpgradeGate(nextTier, player, true)) {
             return false;
         }
         setLabTier(nextTier);
-        if (player == null || !creative) {
+        if (!isCreativeOrInstabuild(player)) {
             stack.shrink(1);
         }
         if (player != null && !player.isCreative()) {
-            com.alex.mycelialmind.hive.SynapticMemoryRouter.routeHabit(
-                    serverLevel, worldPosition, com.alex.mycelialmind.hive.PlayerHabit.BASTION_BUILDER, 3.0D * nextTier);
+            SynapticMemoryRouter.routeHabit(
+                    serverLevel, worldPosition, PlayerHabit.BASTION_BUILDER, 3.0D * nextTier);
         }
         serverLevel.sendParticles(ModParticles.PURIFIER_CROSS.get(),
                 worldPosition.getX() + 0.5, worldPosition.getY() + 1.15, worldPosition.getZ() + 0.5,
@@ -193,7 +180,7 @@ public class SynapticBenchBlockEntity extends SyncingBlockEntity implements Menu
     }
 
     @Override
-    public void setLevel(net.minecraft.world.level.Level level) {
+    public void setLevel(Level level) {
         super.setLevel(level);
         if (level != null && !level.isClientSide() && !outputInputsConsumed) {
             refreshOutputSlot();

@@ -1,9 +1,7 @@
 package com.alex.mycelialmind.block.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.block.IncubatorNodeBlock;
-import com.alex.mycelialmind.block.SentinelNodeBlock;
-import com.alex.mycelialmind.block.SymbioticNodeBlock;
+import com.alex.mycelialmind.block.MycelialNodeBlock;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.entity.MycelialSpawnUtil;
@@ -77,17 +75,9 @@ public class SynapticNodeBlockEntity extends BlockEntity {
     }
 
     public SynapticNodeType getNodeType() {
-        Block block = getBlockState().getBlock();
-        if (block instanceof SymbioticNodeBlock) {
-            return SynapticNodeType.SYMBIOTIC;
-        }
-        if (block instanceof IncubatorNodeBlock) {
-            return SynapticNodeType.INCUBATOR;
-        }
-        if (block instanceof SentinelNodeBlock) {
-            return SynapticNodeType.SENTINEL;
-        }
-        return SynapticNodeType.RELAY;
+        return getBlockState().getBlock() instanceof MycelialNodeBlock node
+                ? node.nodeType()
+                : SynapticNodeType.RELAY;
     }
 
     public int getSymbioticStability() {

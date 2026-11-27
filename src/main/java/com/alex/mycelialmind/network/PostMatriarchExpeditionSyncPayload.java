@@ -20,7 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /** Syncs the shared expedition and recovered enclave markers from the deep dimension. */
@@ -51,26 +51,14 @@ public record PostMatriarchExpeditionSyncPayload(
     private static final StreamCodec<ByteBuf, List<Marker>> MARKERS_CODEC = new StreamCodec<>() {
         @Override
         public List<Marker> decode(ByteBuf buffer) {
-            int size = ByteBufCodecs.VAR_INT.decode(buffer);
-            if (size < 0 || size > MAX_ENCLAVE_MARKERS) {
-                throw new io.netty.handler.codec.DecoderException("Invalid recovered enclave marker count: " + size);
-            }
-            List<Marker> markers = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                markers.add(Marker.STREAM_CODEC.decode(buffer));
-            }
-            return markers;
+            return NetworkCodecSupport.decodeBoundedList(buffer, MAX_ENCLAVE_MARKERS,
+                    "recovered enclave marker", Marker.STREAM_CODEC::decode);
         }
 
         @Override
         public void encode(ByteBuf buffer, List<Marker> markers) {
-            if (markers.size() > MAX_ENCLAVE_MARKERS) {
-                throw new io.netty.handler.codec.EncoderException("Too many recovered enclave markers: " + markers.size());
-            }
-            ByteBufCodecs.VAR_INT.encode(buffer, markers.size());
-            for (Marker marker : markers) {
-                Marker.STREAM_CODEC.encode(buffer, marker);
-            }
+            NetworkCodecSupport.encodeStrictBoundedList(buffer, markers, MAX_ENCLAVE_MARKERS,
+                    "recovered enclave markers", Marker.STREAM_CODEC::encode);
         }
     };
 
@@ -88,7 +76,7 @@ public record PostMatriarchExpeditionSyncPayload(
                             ByteBufCodecs.VAR_INT.decode(buffer),
                             ByteBufCodecs.VAR_INT.decode(buffer),
                             ByteBufCodecs.VAR_INT.decode(buffer),
-                            ByteBufCodecs.BOOL.decode(buffer) ? BlockPos.STREAM_CODEC.decode(buffer) : null,
+                            NetworkCodecSupport.readOptionalBlockPos(buffer),
                             ByteBufCodecs.BOOL.decode(buffer),
                             ByteBufCodecs.VAR_INT.decode(buffer),
                             MARKERS_CODEC.decode(buffer)
@@ -106,8 +94,7 @@ public record PostMatriarchExpeditionSyncPayload(
                     ByteBufCodecs.VAR_INT.encode(buffer, payload.linkedFlora());
                     ByteBufCodecs.VAR_INT.encode(buffer, payload.siteStress());
                     ByteBufCodecs.VAR_INT.encode(buffer, payload.siteFlags());
-                    ByteBufCodecs.BOOL.encode(buffer, payload.defensePylon() != null);
-                    if (payload.defensePylon() != null) BlockPos.STREAM_CODEC.encode(buffer, payload.defensePylon());
+                    NetworkCodecSupport.writeOptionalBlockPos(buffer, payload.defensePylon());
                     ByteBufCodecs.BOOL.encode(buffer, payload.pulseInProgress());
                     ByteBufCodecs.VAR_INT.encode(buffer, payload.attackersRemaining());
                     MARKERS_CODEC.encode(buffer, payload.enclaves());
@@ -153,7 +140,7 @@ public record PostMatriarchExpeditionSyncPayload(
         }
         BlockPos origin = player.blockPosition();
         List<Marker> markers = data.getEnclaves().stream()
-                .sorted(java.util.Comparator.comparingDouble(enclave -> enclave.pos().distSqr(origin)))
+                .sorted(Comparator.comparingDouble(enclave -> enclave.pos().distSqr(origin)))
                 .limit(MAX_ENCLAVE_MARKERS)
                 .map(enclave -> new Marker(enclave.pos(), enclave.outcome().id(), enclave.palette(),
                         enclave.floraPositions().size(), PurificationZoneTracker.get(deepLevel).isProtected(enclave.pos())))

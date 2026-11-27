@@ -6,7 +6,6 @@ import com.alex.mycelialmind.colony.SymbiontTemperament;
 import net.minecraft.core.BlockPos;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -75,165 +74,126 @@ public final class ClientColonyCache {
     ) {
     }
 
-    private static boolean hasColony = false;
-    private static boolean unlocked = false;
-    @Nullable
-    private static BlockPos nexusPos = null;
-    private static int tier = 1;
-    private static int radius = 24;
-    private static int popCap = 4;
-    private static int biomass = 0;
-    private static int domainXp = 0;
-    private static int traitMask = 0;
-    private static int moralePct = 70;
-    private static int linkedOutposts = 0;
-    private static int inputChests = 0;
-    private static int outputChests = 0;
-    private static int workZones = 0;
-    private static int activeOrders = 0;
-    private static int activeRaidRemaining = 0;
-    private static List<WorkerSnapshot> workers = List.of();
-    private static List<SiteMemorySnapshot> siteMemories = List.of();
-    private static boolean memoryTransferActive;
-    private static BlockPos memoryTransferSource = BlockPos.ZERO;
-    private static BlockPos memoryTransferTarget = BlockPos.ZERO;
-    private static int memoryTransferHabit;
-    private static boolean memoryTransferInTransit;
-    private static List<ReconstructionSnapshot> reconstructions = List.of();
+    private static final SovereignColonySyncPayload EMPTY = new SovereignColonySyncPayload(
+            false, false, BlockPos.ZERO, 1, 24, 4, 0, 0, 0, 70,
+            0, 0, 0, 0, 0, 0, List.of(), List.of(), false,
+            BlockPos.ZERO, BlockPos.ZERO, 0, false, List.of(), false);
+
+    private static SovereignColonySyncPayload state = EMPTY;
 
     private ClientColonyCache() {
     }
 
     public static void update(SovereignColonySyncPayload payload) {
-        hasColony = payload.hasColony();
-        unlocked = payload.unlocked();
-        nexusPos = payload.hasColony() ? payload.nexusPos() : null;
-        tier = payload.tier();
-        radius = payload.radius();
-        popCap = payload.popCap();
-        biomass = payload.biomass();
-        domainXp = payload.domainXp();
-        traitMask = payload.traitMask();
-        moralePct = payload.moralePct();
-        linkedOutposts = payload.linkedOutposts();
-        inputChests = payload.inputChests();
-        outputChests = payload.outputChests();
-        workZones = payload.workZones();
-        activeOrders = payload.activeOrders();
-        activeRaidRemaining = payload.activeRaidRemaining();
-        workers = List.copyOf(payload.workers());
-        siteMemories = List.copyOf(payload.siteMemories());
-        memoryTransferActive = payload.memoryTransferActive();
-        memoryTransferSource = payload.memoryTransferSource();
-        memoryTransferTarget = payload.memoryTransferTarget();
-        memoryTransferHabit = payload.memoryTransferHabit();
-        memoryTransferInTransit = payload.memoryTransferInTransit();
-        reconstructions = List.copyOf(payload.reconstructions());
+        state = new SovereignColonySyncPayload(
+                payload.hasColony(),
+                payload.unlocked(),
+                payload.nexusPos(),
+                payload.tier(),
+                payload.radius(),
+                payload.popCap(),
+                payload.biomass(),
+                payload.domainXp(),
+                payload.traitMask(),
+                payload.moralePct(),
+                payload.linkedOutposts(),
+                payload.inputChests(),
+                payload.outputChests(),
+                payload.workZones(),
+                payload.activeOrders(),
+                payload.activeRaidRemaining(),
+                List.copyOf(payload.workers()),
+                List.copyOf(payload.siteMemories()),
+                payload.memoryTransferActive(),
+                payload.memoryTransferSource(),
+                payload.memoryTransferTarget(),
+                payload.memoryTransferHabit(),
+                payload.memoryTransferInTransit(),
+                List.copyOf(payload.reconstructions()),
+                payload.openScreen()
+        );
     }
 
     public static void reset() {
-        hasColony = false;
-        unlocked = false;
-        nexusPos = null;
-        tier = 1;
-        radius = 24;
-        popCap = 4;
-        biomass = 0;
-        domainXp = 0;
-        traitMask = 0;
-        moralePct = 70;
-        linkedOutposts = 0;
-        inputChests = 0;
-        outputChests = 0;
-        workZones = 0;
-        activeOrders = 0;
-        activeRaidRemaining = 0;
-        workers = List.of();
-        siteMemories = List.of();
-        memoryTransferActive = false;
-        memoryTransferSource = BlockPos.ZERO;
-        memoryTransferTarget = BlockPos.ZERO;
-        memoryTransferHabit = 0;
-        memoryTransferInTransit = false;
-        reconstructions = List.of();
+        state = EMPTY;
     }
 
     public static boolean hasColony() {
-        return hasColony;
+        return state.hasColony();
     }
 
     public static boolean isUnlocked() {
-        return unlocked;
+        return state.unlocked();
     }
 
     @Nullable
     public static BlockPos getNexusPos() {
-        return nexusPos;
+        return state.hasColony() ? state.nexusPos() : null;
     }
 
     public static int getTier() {
-        return tier;
+        return state.tier();
     }
 
     public static int getRadius() {
-        return radius;
+        return state.radius();
     }
 
     public static int getPopCap() {
-        return popCap;
+        return state.popCap();
     }
 
     public static int getBiomass() {
-        return biomass;
+        return state.biomass();
     }
 
     public static int getDomainXp() {
-        return domainXp;
+        return state.domainXp();
     }
 
     public static int getTraitMask() {
-        return traitMask;
+        return state.traitMask();
     }
 
     public static int getMoralePct() {
-        return moralePct;
+        return state.moralePct();
     }
 
     public static int getLinkedOutposts() {
-        return linkedOutposts;
+        return state.linkedOutposts();
     }
 
     public static int getInputChests() {
-        return inputChests;
+        return state.inputChests();
     }
 
     public static int getOutputChests() {
-        return outputChests;
+        return state.outputChests();
     }
 
     public static int getWorkZones() {
-        return workZones;
+        return state.workZones();
     }
 
     public static int getActiveOrders() {
-        return activeOrders;
+        return state.activeOrders();
     }
 
     public static int getActiveRaidRemaining() {
-        return activeRaidRemaining;
+        return state.activeRaidRemaining();
     }
 
     public static List<WorkerSnapshot> getWorkers() {
-        return Collections.unmodifiableList(workers);
+        return state.workers();
     }
 
     public static List<SiteMemorySnapshot> getSiteMemories() {
-        return Collections.unmodifiableList(siteMemories);
+        return state.siteMemories();
     }
 
     @Nullable
     public static SiteMemorySnapshot getSiteMemory(BlockPos pos) {
-        for (SiteMemorySnapshot memory : siteMemories) {
+        for (SiteMemorySnapshot memory : state.siteMemories()) {
             if (memory.sitePos().equals(pos)) {
                 return memory;
             }
@@ -242,26 +202,26 @@ public final class ClientColonyCache {
     }
 
     public static boolean hasMemoryTransfer() {
-        return memoryTransferActive;
+        return state.memoryTransferActive();
     }
 
     public static BlockPos getMemoryTransferSource() {
-        return memoryTransferSource;
+        return state.memoryTransferSource();
     }
 
     public static BlockPos getMemoryTransferTarget() {
-        return memoryTransferTarget;
+        return state.memoryTransferTarget();
     }
 
     public static int getMemoryTransferHabit() {
-        return memoryTransferHabit;
+        return state.memoryTransferHabit();
     }
 
     public static boolean isMemoryTransferInTransit() {
-        return memoryTransferInTransit;
+        return state.memoryTransferInTransit();
     }
 
     public static List<ReconstructionSnapshot> getReconstructions() {
-        return Collections.unmodifiableList(reconstructions);
+        return state.reconstructions();
     }
 }

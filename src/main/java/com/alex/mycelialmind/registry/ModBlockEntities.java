@@ -7,10 +7,15 @@ import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.Arrays;
 
 /**
  * Registers BlockEntityTypes for Mycelial Mind's active Synaptic Nodes.
@@ -20,41 +25,31 @@ public final class ModBlockEntities {
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MycelialMind.MODID);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SynapticNodeBlockEntity>> SYNAPTIC_NODE =
-            BLOCK_ENTITIES.register("synaptic_node", () -> BlockEntityType.Builder.of(
-                    SynapticNodeBlockEntity::new,
-                    ModBlocks.MYCELIAL_NODE.get(),
-                    ModBlocks.INCUBATOR_NODE.get(),
-                    ModBlocks.SENTINEL_NODE.get(),
-                    ModBlocks.SYMBIOTIC_NODE.get()
-            ).build(null));
+            register("synaptic_node", SynapticNodeBlockEntity::new,
+                    ModBlocks.MYCELIAL_NODE, ModBlocks.INCUBATOR_NODE, ModBlocks.SENTINEL_NODE, ModBlocks.SYMBIOTIC_NODE);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SynapticBenchBlockEntity>> SYNAPTIC_BENCH =
-            BLOCK_ENTITIES.register("synaptic_bench", () -> BlockEntityType.Builder.of(
-                    SynapticBenchBlockEntity::new,
-                    ModBlocks.SYNAPTIC_RESEARCH_BENCH.get()
-            ).build(null));
+            register("synaptic_bench", SynapticBenchBlockEntity::new, ModBlocks.SYNAPTIC_RESEARCH_BENCH);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PurificationTurretBlockEntity>> PURIFICATION_TURRET =
-            BLOCK_ENTITIES.register("purification_turret", () -> BlockEntityType.Builder.of(
-                    PurificationTurretBlockEntity::new,
-                    ModBlocks.PURIFICATION_TURRET.get()
-            ).build(null));
+            register("purification_turret", PurificationTurretBlockEntity::new, ModBlocks.PURIFICATION_TURRET);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MonumentFocusBlockEntity>> MONUMENT_FOCUS =
-            BLOCK_ENTITIES.register("monument_focus", () -> BlockEntityType.Builder.of(
-                    MonumentFocusBlockEntity::new,
-                    ModBlocks.PURIFICATION_PYLON.get(),
-                    ModBlocks.HIVE_ALTAR.get(),
-                    ModBlocks.MATRIARCH_ALTAR.get()
-            ).build(null));
+            register("monument_focus", MonumentFocusBlockEntity::new,
+                    ModBlocks.PURIFICATION_PYLON, ModBlocks.HIVE_ALTAR, ModBlocks.MATRIARCH_ALTAR);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SovereignNexusBlockEntity>> SOVEREIGN_NEXUS =
-            BLOCK_ENTITIES.register("sovereign_nexus", () -> BlockEntityType.Builder.of(
-                    SovereignNexusBlockEntity::new,
-                    ModBlocks.SOVEREIGN_NEXUS.get()
-            ).build(null));
+            register("sovereign_nexus", SovereignNexusBlockEntity::new, ModBlocks.SOVEREIGN_NEXUS);
 
     private ModBlockEntities() {
+    }
+
+    private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> register(
+            String name, BlockEntityType.BlockEntitySupplier<T> factory, DeferredBlock<?>... blocks) {
+        return BLOCK_ENTITIES.register(name, () -> {
+            Block[] validBlocks = Arrays.stream(blocks).map(DeferredBlock::get).toArray(Block[]::new);
+            return BlockEntityType.Builder.of(factory, validBlocks).build(null);
+        });
     }
 
     public static void register(IEventBus modEventBus) {

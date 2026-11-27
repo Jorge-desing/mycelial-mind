@@ -11,7 +11,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
@@ -100,12 +99,7 @@ public record CycleProtocolSyncPayload(
     }
 
     public static void syncToAll(ServerLevel level) {
-        CycleProtocolSyncPayload payload = forLevel(level, false);
-        for (ServerPlayer sp : level.getServer().getPlayerList().getPlayers()) {
-            if (sp.connection != null) {
-                PacketDistributor.sendToPlayer(sp, payload);
-            }
-        }
+        ModNetworking.sendToAllReady(level, forLevel(level, false));
     }
 
     public static void handleOnClient(CycleProtocolSyncPayload payload, IPayloadContext context) {

@@ -1,13 +1,18 @@
 package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.hive.FieldEngramId;
+import com.alex.mycelialmind.item.FieldEngramItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Supplier;
 
 /**
  * Creative tab for Mycelial Mind blocks, bio-tools, weapons, and spawn eggs.
@@ -21,111 +26,118 @@ public final class ModCreativeTabs {
                     .title(Component.translatable("itemGroup.mycelialmind"))
                     .icon(() -> new ItemStack(ModItems.BIO_SCANNER.get()))
                     .displayItems((params, output) -> {
-                        output.accept(ModItems.BIO_SCANNER.get());
-                        output.accept(ModItems.BIO_EXTRACTOR.get());
-                        output.accept(ModItems.MYCELIAL_CODEX.get());
-                        for (var engramId : com.alex.mycelialmind.hive.FieldEngramId.values()) {
-                            output.accept(com.alex.mycelialmind.item.FieldEngramItem.createStack(engramId));
+                        acceptAll(output,
+                                ModItems.BIO_SCANNER,
+                                ModItems.BIO_EXTRACTOR,
+                                ModItems.MYCELIAL_CODEX);
+                        for (FieldEngramId engramId : FieldEngramId.values()) {
+                            output.accept(FieldEngramItem.createStack(engramId));
                         }
-                        output.accept(ModItems.ENZYME_LANCE.get());
-                        output.accept(ModItems.NEUTRALIZING_SPORE_LAUNCHER.get());
-                        output.accept(ModItems.SYMBIOTIC_BLADE.get());
-                        output.accept(ModItems.SPORE_ANTIDOTE.get());
-                        output.accept(ModItems.CONCENTRATED_ANTIDOTE.get());
-                        output.accept(ModItems.PURIFIER_GRENADE.get());
-                        output.accept(ModItems.SYNAPTIC_SUPPRESSOR.get());
-                        output.accept(ModItems.GENETIC_SAMPLE.get());
-                        output.accept(ModItems.SYMBIOTIC_MUTAGEN.get());
-                        output.accept(ModItems.COUNTER_SERUM.get());
-                        output.accept(ModItems.CHITIN_HELMET.get());
-                        output.accept(ModItems.CHITIN_CHESTPLATE.get());
-                        output.accept(ModItems.CHITIN_LEGGINGS.get());
-                        output.accept(ModItems.CHITIN_BOOTS.get());
-                        output.accept(ModItems.RIFT_CATALYST.get());
-                        output.accept(ModItems.OVERMIND_ESSENCE.get());
-                        output.accept(ModItems.OVERMIND_CROWN.get());
-                        output.accept(ModItems.TIDE_BEACON.get());
-                        output.accept(ModItems.PURIFIER_DRONE_CORE.get());
-                        output.accept(ModItems.NEURAL_ECHO_CORE.get());
-                        output.accept(ModItems.SYNAPTIC_GRAFT.get());
-                        output.accept(ModBlocks.RECLAIMED_BLOOM.get());
-                        output.accept(ModItems.RECLAIMED_BLOOM_MELEE.get());
-                        output.accept(ModItems.RECLAIMED_BLOOM_PROJECTILE.get());
-                        output.accept(ModItems.RECLAIMED_BLOOM_FIRE.get());
-                        output.accept(ModItems.RECLAIMED_BLOOM_EXPLOSION.get());
-                        output.accept(ModItems.RECLAIMED_BLOOM_MAGIC.get());
-                        output.accept(ModItems.NEURAL_ECHO_DECOY.get());
-                        output.accept(ModItems.CHIMERA_OVUM.get());
-                        output.accept(ModItems.VOLATILE_ENGRAM.get());
-                        output.accept(ModItems.FALSE_ENGRAM_INJECTOR.get());
-                        output.accept(ModItems.SCHISM_INJECTOR.get());
-                        output.accept(ModItems.TRUCE_PHEROMONE.get());
-                        output.accept(ModItems.QUORUM_SEAL.get());
-                        output.accept(ModItems.SOVEREIGN_COMMAND_STAFF.get());
-
-                        output.accept(ModItems.MYCELIAL_BIOMASS.get());
-                        output.accept(ModItems.CHITIN_PLATE.get());
-                        output.accept(ModItems.LATENT_SPORE.get());
-                        output.accept(ModItems.SYNAPTIC_CORE.get());
-                        output.accept(ModItems.HIVE_HEART.get());
-                        output.accept(ModItems.ROOT_SAP_VIAL.get());
-                        output.accept(ModItems.RESONANT_SAP_ELIXIR.get());
-                        output.accept(ModItems.CANOPY_MEMBRANE.get());
-                        output.accept(ModItems.ROOT_HEART_RESIN.get());
-
-                        output.accept(ModBlocks.CREEPING_MYCELIUM.get());
-                        output.accept(ModItems.HYPHAL_VEIN.get());
-                        output.accept(ModBlocks.SPORE_VENT.get());
-                        output.accept(ModBlocks.SPORE_UPDRAFT_VENT.get());
-                        output.accept(ModBlocks.ROOT_SAP_MOSS.get());
-                        output.accept(ModBlocks.ROOT_CAP_SHELF.get());
-                        output.accept(ModBlocks.MYCELIAL_NODE.get());
-                        output.accept(ModBlocks.INCUBATOR_NODE.get());
-                        output.accept(ModBlocks.SENTINEL_NODE.get());
-                        output.accept(ModBlocks.SYMBIOTIC_NODE.get());
-                        output.accept(ModBlocks.SOVEREIGN_NEXUS.get());
-                        output.accept(ModBlocks.PURIFICATION_PYLON.get());
-                        output.accept(ModBlocks.PURIFICATION_TURRET.get());
-                        output.accept(ModBlocks.REINFORCED_BIO_BARRIER.get());
-                        output.accept(ModBlocks.SYNAPTIC_RESEARCH_BENCH.get());
-                        output.accept(ModBlocks.HIVE_ALTAR.get());
-                        output.accept(ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get());
-                        output.accept(ModBlocks.SPORE_BULB.get());
-                        output.accept(ModBlocks.MYCELIAL_TENDRILS.get());
-                        output.accept(ModBlocks.MYCELIAL_STONE.get());
-                        output.accept(ModBlocks.CHITIN_PILLAR.get());
-                        output.accept(ModBlocks.MYCELIAL_ARCH_BRICK.get());
-                        output.accept(ModBlocks.BIO_CHITIN_LATTICE.get());
-                        output.accept(ModBlocks.LUMINESCENT_AMBER_VEIN.get());
-                        output.accept(ModBlocks.MATRIARCH_ALTAR.get());
-                        output.accept(ModBlocks.MYCELIAL_RIFT.get());
-                        output.accept(ModBlocks.ANTIBODY_CYST.get());
-                        output.accept(ModBlocks.EPHEMERAL_CHITIN.get());
-
-                        output.accept(ModItems.SPORELING_SPAWN_EGG.get());
-                        output.accept(ModItems.CHITIN_BRUTE_SPAWN_EGG.get());
-                        output.accept(ModItems.MYCELIAL_STALKER_SPAWN_EGG.get());
-                        output.accept(ModItems.ACID_SPITTER_SPAWN_EGG.get());
-                        output.accept(ModItems.BURROWER_SPAWN_EGG.get());
-                        output.accept(ModItems.PYRO_SHROOM_SPAWN_EGG.get());
-                        output.accept(ModItems.SYNAPSE_WEAVER_SPAWN_EGG.get());
-                        output.accept(ModItems.GOLIATH_CARRIER_SPAWN_EGG.get());
-                        output.accept(ModItems.LEECH_PARASITE_SPAWN_EGG.get());
-                        output.accept(ModItems.COLONY_WARDEN_SPAWN_EGG.get());
-                        output.accept(ModItems.SPORE_ARCHITECT_SPAWN_EGG.get());
-                        output.accept(ModItems.SYNAPTIC_MIMIC_SPAWN_EGG.get());
-                        output.accept(ModItems.MYCELIAL_CHIMERA_SPAWN_EGG.get());
-                        output.accept(ModItems.COLONY_SYMBIONT_SPAWN_EGG.get());
-                        output.accept(ModItems.SPORE_BEHEMOTH_SPAWN_EGG.get());
-                        output.accept(ModItems.PURIFIER_DRONE_SPAWN_EGG.get());
-                        output.accept(ModItems.SPORE_GLIDER_SPAWN_EGG.get());
-                        output.accept(ModItems.ROOT_KEEPER_SPAWN_EGG.get());
-                        output.accept(ModItems.HIVE_CORE_SPAWN_EGG.get());
-                        output.accept(ModItems.APEX_MATRIARCH_SPAWN_EGG.get());
+                        acceptAll(output,
+                                ModItems.ENZYME_LANCE,
+                                ModItems.NEUTRALIZING_SPORE_LAUNCHER,
+                                ModItems.SYMBIOTIC_BLADE,
+                                ModItems.SPORE_ANTIDOTE,
+                                ModItems.CONCENTRATED_ANTIDOTE,
+                                ModItems.PURIFIER_GRENADE,
+                                ModItems.SYNAPTIC_SUPPRESSOR,
+                                ModItems.GENETIC_SAMPLE,
+                                ModItems.SYMBIOTIC_MUTAGEN,
+                                ModItems.COUNTER_SERUM,
+                                ModItems.CHITIN_HELMET,
+                                ModItems.CHITIN_CHESTPLATE,
+                                ModItems.CHITIN_LEGGINGS,
+                                ModItems.CHITIN_BOOTS,
+                                ModItems.RIFT_CATALYST,
+                                ModItems.OVERMIND_ESSENCE,
+                                ModItems.OVERMIND_CROWN,
+                                ModItems.TIDE_BEACON,
+                                ModItems.PURIFIER_DRONE_CORE,
+                                ModItems.NEURAL_ECHO_CORE,
+                                ModItems.SYNAPTIC_GRAFT,
+                                ModBlocks.RECLAIMED_BLOOM,
+                                ModItems.RECLAIMED_BLOOM_MELEE,
+                                ModItems.RECLAIMED_BLOOM_PROJECTILE,
+                                ModItems.RECLAIMED_BLOOM_FIRE,
+                                ModItems.RECLAIMED_BLOOM_EXPLOSION,
+                                ModItems.RECLAIMED_BLOOM_MAGIC,
+                                ModItems.NEURAL_ECHO_DECOY,
+                                ModItems.CHIMERA_OVUM,
+                                ModItems.VOLATILE_ENGRAM,
+                                ModItems.FALSE_ENGRAM_INJECTOR,
+                                ModItems.SCHISM_INJECTOR,
+                                ModItems.TRUCE_PHEROMONE,
+                                ModItems.QUORUM_SEAL,
+                                ModItems.SOVEREIGN_COMMAND_STAFF,
+                                ModItems.MYCELIAL_BIOMASS,
+                                ModItems.CHITIN_PLATE,
+                                ModItems.LATENT_SPORE,
+                                ModItems.SYNAPTIC_CORE,
+                                ModItems.HIVE_HEART,
+                                ModItems.ROOT_SAP_VIAL,
+                                ModItems.RESONANT_SAP_ELIXIR,
+                                ModItems.CANOPY_MEMBRANE,
+                                ModItems.ROOT_HEART_RESIN,
+                                ModBlocks.CREEPING_MYCELIUM,
+                                ModItems.HYPHAL_VEIN,
+                                ModBlocks.SPORE_VENT,
+                                ModBlocks.SPORE_UPDRAFT_VENT,
+                                ModBlocks.ROOT_SAP_MOSS,
+                                ModBlocks.ROOT_CAP_SHELF,
+                                ModBlocks.MYCELIAL_NODE,
+                                ModBlocks.INCUBATOR_NODE,
+                                ModBlocks.SENTINEL_NODE,
+                                ModBlocks.SYMBIOTIC_NODE,
+                                ModBlocks.SOVEREIGN_NEXUS,
+                                ModBlocks.PURIFICATION_PYLON,
+                                ModBlocks.PURIFICATION_TURRET,
+                                ModBlocks.REINFORCED_BIO_BARRIER,
+                                ModBlocks.SYNAPTIC_RESEARCH_BENCH,
+                                ModBlocks.HIVE_ALTAR,
+                                ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP,
+                                ModBlocks.SPORE_BULB,
+                                ModBlocks.MYCELIAL_TENDRILS,
+                                ModBlocks.MYCELIAL_STONE,
+                                ModBlocks.CHITIN_PILLAR,
+                                ModBlocks.MYCELIAL_ARCH_BRICK,
+                                ModBlocks.BIO_CHITIN_LATTICE,
+                                ModBlocks.LUMINESCENT_AMBER_VEIN,
+                                ModBlocks.MATRIARCH_ALTAR,
+                                ModBlocks.MYCELIAL_RIFT,
+                                ModBlocks.ANTIBODY_CYST,
+                                ModBlocks.EPHEMERAL_CHITIN,
+                                ModItems.SPORELING_SPAWN_EGG,
+                                ModItems.CHITIN_BRUTE_SPAWN_EGG,
+                                ModItems.MYCELIAL_STALKER_SPAWN_EGG,
+                                ModItems.ACID_SPITTER_SPAWN_EGG,
+                                ModItems.BURROWER_SPAWN_EGG,
+                                ModItems.PYRO_SHROOM_SPAWN_EGG,
+                                ModItems.SYNAPSE_WEAVER_SPAWN_EGG,
+                                ModItems.GOLIATH_CARRIER_SPAWN_EGG,
+                                ModItems.LEECH_PARASITE_SPAWN_EGG,
+                                ModItems.COLONY_WARDEN_SPAWN_EGG,
+                                ModItems.SPORE_ARCHITECT_SPAWN_EGG,
+                                ModItems.SYNAPTIC_MIMIC_SPAWN_EGG,
+                                ModItems.MYCELIAL_CHIMERA_SPAWN_EGG,
+                                ModItems.COLONY_SYMBIONT_SPAWN_EGG,
+                                ModItems.SPORE_BEHEMOTH_SPAWN_EGG,
+                                ModItems.PURIFIER_DRONE_SPAWN_EGG,
+                                ModItems.SPORE_GLIDER_SPAWN_EGG,
+                                ModItems.ROOT_KEEPER_SPAWN_EGG,
+                                ModItems.HIVE_CORE_SPAWN_EGG,
+                                ModItems.APEX_MATRIARCH_SPAWN_EGG
+                        );
                     })
                     .build());
 
     private ModCreativeTabs() {
+    }
+
+    @SafeVarargs
+    private static void acceptAll(CreativeModeTab.Output output, Supplier<? extends ItemLike>... items) {
+        for (Supplier<? extends ItemLike> item : items) {
+            output.accept(item.get());
+        }
     }
 
     public static void register(IEventBus modEventBus) {

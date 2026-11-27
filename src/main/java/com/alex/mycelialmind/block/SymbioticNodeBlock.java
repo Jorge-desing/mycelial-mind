@@ -24,16 +24,16 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Allied reprogrammed Synaptic Node created by applying a Synaptic Graft.
@@ -46,8 +46,18 @@ public class SymbioticNodeBlock extends MycelialNodeBlock {
     }
 
     @Override
-    protected SynapticNodeType nodeType() {
+    public SynapticNodeType nodeType() {
         return SynapticNodeType.SYMBIOTIC;
+    }
+
+    @Override
+    protected String tooltipKey() {
+        return "tooltip.mycelialmind.block.symbiotic_node";
+    }
+
+    @Override
+    protected ChatFormatting tooltipColor() {
+        return ChatFormatting.GREEN;
     }
 
     @Override
@@ -228,7 +238,7 @@ public class SymbioticNodeBlock extends MycelialNodeBlock {
             }
             player.getFoodData().setFoodLevel(Math.max(0, player.getFoodData().getFoodLevel() - TRAVEL_FOOD_COST));
             player.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 240, 0));
-            player.addEffect(new MobEffectInstance(net.minecraft.world.effect.MobEffects.CONFUSION, 60, 0, false, false));
+            player.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 60, 0, false, false));
             MycorrhizalAcousticTracker.setTravelCooldown(player.getUUID(), now + MycelialConfig.MYCORRHIZAL_TRAVEL_COOLDOWN_TICKS.get());
         }
 
@@ -258,13 +268,13 @@ public class SymbioticNodeBlock extends MycelialNodeBlock {
 
         int movedCompanions = 0;
         for (MycelialChimeraEntity chimera : chimeras) {
-            chimera.teleportTo(level, destX, destY, destZ, java.util.Set.of(), chimera.getYRot(), chimera.getXRot());
+            chimera.teleportTo(level, destX, destY, destZ, Set.of(), chimera.getYRot(), chimera.getXRot());
             chimera.setHomePos(destination);
             chimera.resetFallDistance();
             movedCompanions++;
         }
         for (PurifierDroneEntity drone : drones) {
-            drone.teleportTo(level, destX, destY + 1.2, destZ, java.util.Set.of(), drone.getYRot(), drone.getXRot());
+            drone.teleportTo(level, destX, destY + 1.2, destZ, Set.of(), drone.getYRot(), drone.getXRot());
             drone.resetFallDistance();
             movedCompanions++;
         }
@@ -297,10 +307,5 @@ public class SymbioticNodeBlock extends MycelialNodeBlock {
                 && level.getBlockState(destination).isFaceSturdy(level, destination, Direction.UP)
                 && level.isEmptyBlock(feet)
                 && level.isEmptyBlock(head);
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.mycelialmind.block.symbiotic_node").withStyle(ChatFormatting.GREEN));
     }
 }

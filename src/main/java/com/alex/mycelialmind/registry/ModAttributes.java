@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.registry;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -19,27 +20,22 @@ public final class ModAttributes {
     public static final DeferredRegister<Attribute> ATTRIBUTES =
             DeferredRegister.create(Registries.ATTRIBUTE, MycelialMind.MODID);
 
-    public static final DeferredHolder<Attribute, Attribute> INFECTION_RESISTANCE = ATTRIBUTES.register(
-            "infection_resistance",
-            () -> new RangedAttribute(
-                    "attribute.name.mycelialmind.infection_resistance",
-                    0.0D,
-                    0.0D,
-                    MAX_RESISTANCE
-            ).setSyncable(true)
-    );
+    public static final DeferredHolder<Attribute, Attribute> INFECTION_RESISTANCE =
+            registerResistanceAttribute("infection_resistance");
 
-    public static final DeferredHolder<Attribute, Attribute> ACID_RESISTANCE = ATTRIBUTES.register(
-            "acid_resistance",
-            () -> new RangedAttribute(
-                    "attribute.name.mycelialmind.acid_resistance",
-                    0.0D,
-                    0.0D,
-                    MAX_RESISTANCE
-            ).setSyncable(true)
-    );
+    public static final DeferredHolder<Attribute, Attribute> ACID_RESISTANCE =
+            registerResistanceAttribute("acid_resistance");
 
     private ModAttributes() {
+    }
+
+    private static DeferredHolder<Attribute, Attribute> registerResistanceAttribute(String name) {
+        return ATTRIBUTES.register(name, () -> new RangedAttribute(
+                "attribute.name." + MycelialMind.MODID + "." + name,
+                0.0D,
+                0.0D,
+                MAX_RESISTANCE
+        ).setSyncable(true));
     }
 
     public static void register(IEventBus modEventBus) {
@@ -53,7 +49,6 @@ public final class ModAttributes {
     }
 
     public static double computeMitigatedValue(double baseValue, double resistance, double minFloor) {
-        return com.alex.mycelialmind.world.DimensionalHomeostasisEngine.computeAttributeMitigatedValue(
-                baseValue, resistance, minFloor);
+        return DimensionalHomeostasisEngine.computeAttributeMitigatedValue(baseValue, resistance, minFloor);
     }
 }

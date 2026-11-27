@@ -7,6 +7,7 @@ import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.network.ModNetworking;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -15,7 +16,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -31,7 +31,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -114,10 +113,8 @@ public class HiveAltarBlock extends Block implements EntityBlock {
                 serverLevel.sendParticles(ModParticles.BIO_LUME.get(), pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5,
                         8, 1.0, 1.0, 1.0, 0.03);
                 HiveMindSavedData.get(serverLevel).promoteHighestTier(HiveProgressionTier.AWAKENED);
-                for (ServerPlayer sp : serverLevel.players()) {
-                    PacketDistributor.sendToPlayer(sp, HiveSyncPayload.forPlayer(serverLevel, sp));
-                    DiscoverySyncPayload.syncToPlayer(sp);
-                }
+                ModNetworking.sendToPlayersInLevelReady(serverLevel, sp -> HiveSyncPayload.forPlayer(serverLevel, sp));
+                serverLevel.players().forEach(DiscoverySyncPayload::syncToPlayer);
             }
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());

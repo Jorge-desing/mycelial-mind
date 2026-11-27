@@ -19,6 +19,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Synthesized Symbiotic Mutagen that implants an adaptive trait into the player's Symbiosis slots.
@@ -91,12 +93,12 @@ public class SymbioticMutagenItem extends Item {
     }
 
     @Override
-    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+    public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         SymbioticMutagen mutagen = getMutagen(stack);
         if (mutagen == null) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
-        return java.util.Optional.of(new MycelialTooltipData.TraitBadgeTooltip(
+        return Optional.of(new MycelialTooltipData.TraitBadgeTooltip(
                 MycelialTooltipData.colorForMutagen(mutagen),
                 MycelialText.mutagen(mutagen),
                 MycelialText.trait(mutagen.sourceTrait())

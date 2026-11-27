@@ -17,9 +17,7 @@ public final class ModDataComponents {
             DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, MycelialMind.MODID);
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> TRAIT_ID =
-            DATA_COMPONENTS.registerComponentType("trait_id", builder -> builder
-                    .persistent(Codec.STRING)
-                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+            registerStringComponent("trait_id");
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ARMOR_RANK =
             DATA_COMPONENTS.registerComponentType("armor_rank", builder -> builder
@@ -27,16 +25,18 @@ public final class ModDataComponents {
                     .networkSynchronized(ByteBufCodecs.VAR_INT));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> ENGRAM_ID =
-            DATA_COMPONENTS.registerComponentType("engram_id", builder -> builder
-                    .persistent(Codec.STRING)
-                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+            registerStringComponent("engram_id");
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> STAFF_MODE =
-            DATA_COMPONENTS.registerComponentType("staff_mode", builder -> builder
-                    .persistent(Codec.STRING)
-                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+            registerStringComponent("staff_mode");
 
     private ModDataComponents() {
+    }
+
+    private static DeferredHolder<DataComponentType<?>, DataComponentType<String>> registerStringComponent(String name) {
+        return DATA_COMPONENTS.registerComponentType(name, builder -> builder
+                .persistent(Codec.STRING)
+                .networkSynchronized(ByteBufCodecs.STRING_UTF8));
     }
 
     public static void register(IEventBus modEventBus) {

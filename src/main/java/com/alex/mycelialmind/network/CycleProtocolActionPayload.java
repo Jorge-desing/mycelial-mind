@@ -25,21 +25,13 @@ public record CycleProtocolActionPayload(
     public static final Type<CycleProtocolActionPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "cycle_protocol_action"));
 
-    public static final StreamCodec<ByteBuf, CycleProtocolActionPayload> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public CycleProtocolActionPayload decode(ByteBuf buf) {
-            return new CycleProtocolActionPayload(
-                    ByteBufCodecs.VAR_INT.decode(buf),
-                    ByteBufCodecs.VAR_INT.decode(buf)
-            );
-        }
-
-        @Override
-        public void encode(ByteBuf buf, CycleProtocolActionPayload payload) {
-            ByteBufCodecs.VAR_INT.encode(buf, payload.action());
-            ByteBufCodecs.VAR_INT.encode(buf, payload.mutatorMask());
-        }
-    };
+    public static final StreamCodec<ByteBuf, CycleProtocolActionPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT,
+            CycleProtocolActionPayload::action,
+            ByteBufCodecs.VAR_INT,
+            CycleProtocolActionPayload::mutatorMask,
+            CycleProtocolActionPayload::new
+    );
 
     public static void sendToServer(int action, int mutatorMask) {
         PacketDistributor.sendToServer(new CycleProtocolActionPayload(action, mutatorMask));

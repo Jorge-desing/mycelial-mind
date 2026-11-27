@@ -3,6 +3,8 @@ package com.alex.mycelialmind.block;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.util.ClientTooltipHelper;
 import com.alex.mycelialmind.util.MycelialRedstoneTelemetry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -53,8 +55,8 @@ public class SynapticResearchBenchBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (player.getMainHandItem().is(com.alex.mycelialmind.registry.ModItems.BIO_SCANNER.get())
-                || player.getOffhandItem().is(com.alex.mycelialmind.registry.ModItems.BIO_SCANNER.get())) {
+        if (player.getMainHandItem().is(ModItems.BIO_SCANNER.get())
+                || player.getOffhandItem().is(ModItems.BIO_SCANNER.get())) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer
@@ -126,7 +128,7 @@ public class SynapticResearchBenchBlock extends Block implements EntityBlock {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.block.synaptic_research_bench").withStyle(ChatFormatting.LIGHT_PURPLE));
-        com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
+        ClientTooltipHelper.appendShiftDetails(tooltip,
                 "tooltip.mycelialmind.block.synaptic_research_bench.shift_gate",
                 "tooltip.mycelialmind.block.synaptic_research_bench.shift_amber");
     }

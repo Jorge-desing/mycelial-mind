@@ -3,14 +3,17 @@ package com.alex.mycelialmind.network;
 import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.colony.ColonyDialectCallDirector;
-import com.alex.mycelialmind.colony.ColonySiteMemory;
 import com.alex.mycelialmind.colony.ColonyReconstruction;
 import com.alex.mycelialmind.colony.ColonyReconstructionStatus;
+import com.alex.mycelialmind.colony.ColonySiteHabit;
+import com.alex.mycelialmind.colony.ColonySiteMemory;
 import com.alex.mycelialmind.colony.ColonyWitnessMemory;
-import com.alex.mycelialmind.hive.ColonyReconstructionDirector;
 import com.alex.mycelialmind.colony.SovereignColonyData;
 import com.alex.mycelialmind.colony.SovereignColonySavedData;
 import com.alex.mycelialmind.colony.SymbiontCaste;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
+import com.alex.mycelialmind.hive.ColonyReconstructionDirector;
+import com.alex.mycelialmind.registry.ModSounds;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -20,6 +23,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -70,10 +74,10 @@ public record SovereignColonyActionPayload(
             int action = ByteBufCodecs.VAR_INT.decode(buf);
             BlockPos pos = BlockPos.of(buf.readLong());
             int param = ByteBufCodecs.VAR_INT.decode(buf);
-            UUID workerId = new UUID(buf.readLong(), buf.readLong());
+            UUID workerId = NetworkCodecSupport.readUuid(buf);
             BlockPos sourceSite = BlockPos.of(buf.readLong());
             BlockPos targetSite = BlockPos.of(buf.readLong());
-            UUID teacher = new UUID(buf.readLong(), buf.readLong());
+            UUID teacher = NetworkCodecSupport.readUuid(buf);
             return new SovereignColonyActionPayload(action, pos, param, workerId, sourceSite, targetSite, teacher);
         }
 
@@ -82,14 +86,10 @@ public record SovereignColonyActionPayload(
             ByteBufCodecs.VAR_INT.encode(buf, payload.action());
             buf.writeLong(payload.nexusPos().asLong());
             ByteBufCodecs.VAR_INT.encode(buf, payload.param());
-            UUID id = payload.targetWorkerId() != null ? payload.targetWorkerId() : ZERO_UUID;
-            buf.writeLong(id.getMostSignificantBits());
-            buf.writeLong(id.getLeastSignificantBits());
+            NetworkCodecSupport.writeUuid(buf, payload.targetWorkerId());
             buf.writeLong(payload.sourceSitePos().asLong());
             buf.writeLong(payload.targetSitePos().asLong());
-            UUID teacher = payload.teacherId() != null ? payload.teacherId() : ZERO_UUID;
-            buf.writeLong(teacher.getMostSignificantBits());
-            buf.writeLong(teacher.getLeastSignificantBits());
+            NetworkCodecSupport.writeUuid(buf, payload.teacherId());
         }
     };
 
@@ -155,12 +155,13 @@ public record SovereignColonyActionPayload(
             if (!SovereignNexusBlockEntity.isColonyActive(level, nexusPos) && !player.isCreative()) return;
             if (player.isCreative()) nexus.enableAdministrativeOverride(level);
             SovereignColonyData colony = nexus.getOrCreateColony(level);
+            boolean isOwner = player.getUUID().equals(colony.getOwnerId());
             switch (payload.action()) {
                 case ACTION_INCUBATE -> nexus.incubateSymbiont(level, player, SymbiontCaste.fromIndex(payload.param()), false);
                 case ACTION_UPGRADE_TIER -> nexus.upgradeTier(level, player, false);
                 case ACTION_RECALL_ALL -> nexus.recallAllWorkers(level);
                 case ACTION_CYCLE_WORKER_CASTE -> {
-                    if (level.getEntity(payload.targetWorkerId()) instanceof com.alex.mycelialmind.entity.ColonySymbiontEntity worker) {
+                    if (level.getEntity(payload.targetWorkerId()) instanceof ColonySymbiontEntity worker) {
                         nexus.setWorkerCaste(level, payload.targetWorkerId(), worker.getCaste().next());
                     }
                 }
@@ -168,7 +169,7 @@ public record SovereignColonyActionPayload(
                 case ACTION_REQUEST_SYNC -> {
                 }
                 case ACTION_ADOPT_SITE_MEMORY -> {
-                    if (player.getUUID().equals(colony.getOwnerId())) {
+                    if (isOwner) {
                         ColonySiteMemory memory = colony.getSiteMemory(payload.sourceSitePos());
                         if (memory != null && memory.adoptTrialHabit()) {
                             SovereignColonySavedData.get(level).setDirty();
@@ -176,7 +177,7 @@ public record SovereignColonyActionPayload(
                     }
                 }
                 case ACTION_FORGET_SITE_MEMORY -> {
-                    if (player.getUUID().equals(colony.getOwnerId())) {
+                    if (isOwner) {
                         ColonySiteMemory memory = colony.getSiteMemory(payload.sourceSitePos());
                         if (memory != null) {
                             memory.forget();
@@ -190,25 +191,25 @@ public record SovereignColonyActionPayload(
                     }
                 }
                 case ACTION_TEACH_SITE_MEMORY -> {
-                    if (player.getUUID().equals(colony.getOwnerId())
+                    if (isOwner
                             && colony.startMemoryTransfer(payload.sourceSitePos(), payload.targetSitePos(), level.getGameTime())) {
                         SovereignColonySavedData.get(level).setDirty();
                     }
                 }
                 case ACTION_CANCEL_MEMORY_TRANSFER -> {
-                    if (player.getUUID().equals(colony.getOwnerId()) && colony.getMemoryTransferSnapshot() != null) {
+                    if (isOwner && colony.getMemoryTransferSnapshot() != null) {
                         colony.cancelMemoryTransfer();
                         SovereignColonySavedData.get(level).setDirty();
                     }
                 }
                 case ACTION_SET_RECONSTRUCTION_SUCCESSOR -> {
-                    if (player.getUUID().equals(colony.getOwnerId())
+                    if (isOwner
                             && colony.setReconstructionSuccessor(payload.sourceSitePos(), payload.targetSitePos())) {
                         SovereignColonySavedData.get(level).setDirty();
                     }
                 }
                 case ACTION_CALL_RECONSTRUCTION_WITNESS -> {
-                    if (player.getUUID().equals(colony.getOwnerId())) {
+                    if (isOwner) {
                         ColonyWitnessMemory.Type type = ColonyWitnessMemory.Type.fromIndex(payload.param());
                         ColonyReconstruction entry = colony.getReconstruction(payload.sourceSitePos());
                         ColonyWitnessMemory memory = type == null ? null
@@ -229,7 +230,7 @@ public record SovereignColonyActionPayload(
                     }
                 }
                 case ACTION_ABANDON_RECONSTRUCTION -> {
-                    if (player.getUUID().equals(colony.getOwnerId())
+                    if (isOwner
                             && colony.abandonReconstruction(payload.sourceSitePos())) {
                         SovereignColonySavedData.get(level).setDirty();
                     }
@@ -238,33 +239,32 @@ public record SovereignColonyActionPayload(
                     int meaningIndex = payload.param() & 3;
                     int call = (payload.param() >> 2) & 15;
                     boolean coinage = (payload.param() & 64) != 0;
-                    if (player.getUUID().equals(colony.getOwnerId())) {
+                    if (isOwner) {
+                        ColonySiteHabit meaning = ColonySiteHabit.fromIndex(meaningIndex);
                         if (colony.startDialectLesson(payload.sourceSitePos(), payload.targetSitePos(),
-                                com.alex.mycelialmind.colony.ColonySiteHabit.fromIndex(meaningIndex), call,
-                                payload.targetWorkerId(), payload.teacherId(), coinage)) {
+                                meaning, call, payload.targetWorkerId(), payload.teacherId(), coinage)) {
                             SovereignColonySavedData.get(level).setDirty();
                         } else {
-                            var meaning = com.alex.mycelialmind.colony.ColonySiteHabit.fromIndex(meaningIndex);
                             var sourceDialect = colony.getDialect(payload.sourceSitePos());
                             var targetDialect = colony.getDialect(payload.targetSitePos());
-                            var sourceMeaning = sourceDialect == null ? com.alex.mycelialmind.colony.ColonySiteHabit.NONE : sourceDialect.meaningForCall(call);
-                            var targetMeaning = targetDialect == null ? com.alex.mycelialmind.colony.ColonySiteHabit.NONE : targetDialect.meaningForCall(call);
-                            var conflict = targetMeaning != meaning && targetMeaning != com.alex.mycelialmind.colony.ColonySiteHabit.NONE
-                                    ? targetMeaning : sourceMeaning != meaning ? sourceMeaning : com.alex.mycelialmind.colony.ColonySiteHabit.NONE;
-                            player.displayClientMessage(conflict == com.alex.mycelialmind.colony.ColonySiteHabit.NONE
+                            ColonySiteHabit sourceMeaning = sourceDialect == null ? ColonySiteHabit.NONE : sourceDialect.meaningForCall(call);
+                            ColonySiteHabit targetMeaning = targetDialect == null ? ColonySiteHabit.NONE : targetDialect.meaningForCall(call);
+                            ColonySiteHabit conflict = targetMeaning != meaning && targetMeaning != ColonySiteHabit.NONE
+                                    ? targetMeaning : sourceMeaning != meaning ? sourceMeaning : ColonySiteHabit.NONE;
+                            player.displayClientMessage(conflict == ColonySiteHabit.NONE
                                     ? Component.translatable("message.mycelialmind.colony.dialect_unavailable")
                                     : Component.translatable("message.mycelialmind.colony.dialect_conflict",
                                             Component.translatable(meaning.translationKey()), Component.translatable(conflict.translationKey())), true);
-                            if (conflict != com.alex.mycelialmind.colony.ColonySiteHabit.NONE) {
+                            if (conflict != ColonySiteHabit.NONE) {
                                 level.playSound(null, payload.sourceSitePos(),
-                                        com.alex.mycelialmind.registry.ModSounds.COLONY_DIALECT_CONFLICT.get(),
-                                        net.minecraft.sounds.SoundSource.BLOCKS, 0.78F, 0.96F);
+                                        ModSounds.COLONY_DIALECT_CONFLICT.get(),
+                                        SoundSource.BLOCKS, 0.78F, 0.96F);
                             }
                         }
                     }
                 }
                 case ACTION_CANCEL_DIALECT_LESSON -> {
-                    if (player.getUUID().equals(colony.getOwnerId()) && colony.getDialectLesson() != null) {
+                    if (isOwner && colony.getDialectLesson() != null) {
                         var cancelled = colony.getDialectLesson();
                         colony.cancelDialectLesson();
                         SovereignColonySavedData.get(level).setDirty();
@@ -276,12 +276,12 @@ public record SovereignColonyActionPayload(
                     }
                 }
                 case ACTION_CLEAR_DIALECT_CALL -> {
-                    if (player.getUUID().equals(colony.getOwnerId())
+                    if (isOwner
                             && colony.clearDialectCall(payload.sourceSitePos(), payload.param())) {
                         SovereignColonySavedData.get(level).setDirty();
                         level.playSound(null, payload.sourceSitePos(),
-                                com.alex.mycelialmind.registry.ModSounds.COLONY_DIALECT_CONFLICT.get(),
-                                net.minecraft.sounds.SoundSource.BLOCKS, 0.72F, 1.12F);
+                                ModSounds.COLONY_DIALECT_CONFLICT.get(),
+                                SoundSource.BLOCKS, 0.72F, 1.12F);
                         ColonyDialectCallDirector.notifyNearbyPlayers(
                                 level,
                                 payload.sourceSitePos(),

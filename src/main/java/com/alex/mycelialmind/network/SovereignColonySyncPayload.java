@@ -81,69 +81,57 @@ public record SovereignColonySyncPayload(
             int workZones = ByteBufCodecs.VAR_INT.decode(buf);
             int activeOrders = ByteBufCodecs.VAR_INT.decode(buf);
             int activeRaidRemaining = ByteBufCodecs.VAR_INT.decode(buf);
-            int count = Math.max(0, Math.min(32, ByteBufCodecs.VAR_INT.decode(buf)));
-            List<WorkerSnapshot> workers = new ArrayList<>(count);
-            for (int i = 0; i < count; i++) {
-                UUID id = new UUID(buf.readLong(), buf.readLong());
-                SymbiontCaste caste = SymbiontCaste.fromIndex(ByteBufCodecs.VAR_INT.decode(buf));
-                SymbiontRank rank = SymbiontRank.fromIndex(ByteBufCodecs.VAR_INT.decode(buf));
-                SymbiontTemperament temp = SymbiontTemperament.fromIndex(ByteBufCodecs.VAR_INT.decode(buf));
-                int nut = ByteBufCodecs.VAR_INT.decode(buf);
-                int fat = ByteBufCodecs.VAR_INT.decode(buf);
-                int mor = ByteBufCodecs.VAR_INT.decode(buf);
-                boolean standby = ByteBufCodecs.BOOL.decode(buf);
-                int xp = ByteBufCodecs.VAR_INT.decode(buf);
-                workers.add(new WorkerSnapshot(id, caste, rank, temp, nut, fat, mor, standby, xp));
-            }
-            int memoryCount = Math.max(0, Math.min(5, ByteBufCodecs.VAR_INT.decode(buf)));
-            List<ClientColonyCache.SiteMemorySnapshot> memories = new ArrayList<>(memoryCount);
-            for (int i = 0; i < memoryCount; i++) {
-                BlockPos sitePos = BlockPos.of(buf.readLong());
-                int learnedHabit = ByteBufCodecs.VAR_INT.decode(buf);
-                int trialHabit = ByteBufCodecs.VAR_INT.decode(buf);
-                int incidents = ByteBufCodecs.VAR_INT.decode(buf);
-                int successes = ByteBufCodecs.VAR_INT.decode(buf);
-                int failures = ByteBufCodecs.VAR_INT.decode(buf);
-                int incidentCode = ByteBufCodecs.VAR_INT.decode(buf);
-                int outcomeCode = ByteBufCodecs.VAR_INT.decode(buf);
-                memories.add(new ClientColonyCache.SiteMemorySnapshot(sitePos, learnedHabit, trialHabit,
-                        incidents, successes, failures, incidentCode, outcomeCode,
-                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
-                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
-                        ByteBufCodecs.VAR_INT.decode(buf), readOptionalUuid(buf), readOptionalUuid(buf), readOptionalUuid(buf)));
-            }
+            List<WorkerSnapshot> workers = NetworkCodecSupport.decodeClampedList(buf, 32, b -> new WorkerSnapshot(
+                    NetworkCodecSupport.readUuid(b),
+                    SymbiontCaste.fromIndex(ByteBufCodecs.VAR_INT.decode(b)),
+                    SymbiontRank.fromIndex(ByteBufCodecs.VAR_INT.decode(b)),
+                    SymbiontTemperament.fromIndex(ByteBufCodecs.VAR_INT.decode(b)),
+                    ByteBufCodecs.VAR_INT.decode(b),
+                    ByteBufCodecs.VAR_INT.decode(b),
+                    ByteBufCodecs.VAR_INT.decode(b),
+                    ByteBufCodecs.BOOL.decode(b),
+                    ByteBufCodecs.VAR_INT.decode(b)));
+            List<ClientColonyCache.SiteMemorySnapshot> memories = NetworkCodecSupport.decodeClampedList(buf, 5,
+                    b -> new ClientColonyCache.SiteMemorySnapshot(
+                            BlockPos.of(b.readLong()),
+                            ByteBufCodecs.VAR_INT.decode(b), ByteBufCodecs.VAR_INT.decode(b),
+                            ByteBufCodecs.VAR_INT.decode(b), ByteBufCodecs.VAR_INT.decode(b),
+                            ByteBufCodecs.VAR_INT.decode(b), ByteBufCodecs.VAR_INT.decode(b),
+                            ByteBufCodecs.VAR_INT.decode(b), ByteBufCodecs.VAR_INT.decode(b),
+                            ByteBufCodecs.VAR_INT.decode(b), ByteBufCodecs.VAR_INT.decode(b),
+                            ByteBufCodecs.VAR_INT.decode(b), ByteBufCodecs.VAR_INT.decode(b),
+                            NetworkCodecSupport.readOptionalUuid(b),
+                            NetworkCodecSupport.readOptionalUuid(b),
+                            NetworkCodecSupport.readOptionalUuid(b)));
             boolean transferActive = ByteBufCodecs.BOOL.decode(buf);
             BlockPos transferSource = BlockPos.of(buf.readLong());
             BlockPos transferTarget = BlockPos.of(buf.readLong());
             int transferHabit = ByteBufCodecs.VAR_INT.decode(buf);
             boolean transferInTransit = ByteBufCodecs.BOOL.decode(buf);
-            int reconstructionCount = Math.max(0, Math.min(4, ByteBufCodecs.VAR_INT.decode(buf)));
-            List<ClientColonyCache.ReconstructionSnapshot> reconstructions = new ArrayList<>(reconstructionCount);
-            for (int i = 0; i < reconstructionCount; i++) {
-                BlockPos ruined = BlockPos.of(buf.readLong());
-                boolean hasSuccessor = ByteBufCodecs.BOOL.decode(buf);
-                BlockPos successor = BlockPos.of(buf.readLong());
-                long createdTick = buf.readLong();
-                int requiredMask = ByteBufCodecs.VAR_INT.decode(buf);
-                int restoredMask = ByteBufCodecs.VAR_INT.decode(buf);
-                UUID activeWitness = readOptionalUuid(buf);
-                int activeType = ByteBufCodecs.VAR_INT.decode(buf);
-                UUID failedWitness = readOptionalUuid(buf);
-                int failedType = ByteBufCodecs.VAR_INT.decode(buf);
-                int failure = ByteBufCodecs.VAR_INT.decode(buf);
-                int witnessCount = Math.max(0, Math.min(128, ByteBufCodecs.VAR_INT.decode(buf)));
-                List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses = new ArrayList<>(witnessCount);
-                for (int j = 0; j < witnessCount; j++) {
-                    UUID witnessId = new UUID(buf.readLong(), buf.readLong());
-                    int type = ByteBufCodecs.VAR_INT.decode(buf);
-                    BlockPos memoryPos = BlockPos.of(buf.readLong());
-                    int status = ByteBufCodecs.VAR_INT.decode(buf);
-                    witnesses.add(new ClientColonyCache.ReconstructionWitnessSnapshot(witnessId, type, memoryPos, status));
-                }
-                reconstructions.add(new ClientColonyCache.ReconstructionSnapshot(ruined, successor, hasSuccessor,
-                        createdTick, requiredMask, restoredMask, activeWitness, activeType, failedWitness,
-                        failedType, failure, witnesses));
-            }
+            List<ClientColonyCache.ReconstructionSnapshot> reconstructions = NetworkCodecSupport.decodeClampedList(buf, 4,
+                    b -> {
+                        BlockPos ruined = BlockPos.of(b.readLong());
+                        boolean hasSuccessor = ByteBufCodecs.BOOL.decode(b);
+                        BlockPos successor = BlockPos.of(b.readLong());
+                        long createdTick = b.readLong();
+                        int requiredMask = ByteBufCodecs.VAR_INT.decode(b);
+                        int restoredMask = ByteBufCodecs.VAR_INT.decode(b);
+                        UUID activeWitness = NetworkCodecSupport.readOptionalUuid(b);
+                        int activeType = ByteBufCodecs.VAR_INT.decode(b);
+                        UUID failedWitness = NetworkCodecSupport.readOptionalUuid(b);
+                        int failedType = ByteBufCodecs.VAR_INT.decode(b);
+                        int failure = ByteBufCodecs.VAR_INT.decode(b);
+                        List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses =
+                                NetworkCodecSupport.decodeClampedList(b, 128, wb ->
+                                        new ClientColonyCache.ReconstructionWitnessSnapshot(
+                                                NetworkCodecSupport.readUuid(wb),
+                                                ByteBufCodecs.VAR_INT.decode(wb),
+                                                BlockPos.of(wb.readLong()),
+                                                ByteBufCodecs.VAR_INT.decode(wb)));
+                        return new ClientColonyCache.ReconstructionSnapshot(ruined, successor, hasSuccessor,
+                                createdTick, requiredMask, restoredMask, activeWitness, activeType, failedWitness,
+                                failedType, failure, witnesses);
+                    });
             boolean openScreen = ByteBufCodecs.BOOL.decode(buf);
             return new SovereignColonySyncPayload(
                     hasColony, unlocked, nexusPos, tier, radius, popCap, biomass, domainXp,
@@ -171,80 +159,59 @@ public record SovereignColonySyncPayload(
             ByteBufCodecs.VAR_INT.encode(buf, payload.workZones());
             ByteBufCodecs.VAR_INT.encode(buf, payload.activeOrders());
             ByteBufCodecs.VAR_INT.encode(buf, payload.activeRaidRemaining());
-            List<WorkerSnapshot> list = payload.workers() != null ? payload.workers() : List.of();
-            int count = Math.min(32, list.size());
-            ByteBufCodecs.VAR_INT.encode(buf, count);
-            for (int i = 0; i < count; i++) {
-                WorkerSnapshot w = list.get(i);
-                buf.writeLong(w.workerId().getMostSignificantBits());
-                buf.writeLong(w.workerId().getLeastSignificantBits());
-                ByteBufCodecs.VAR_INT.encode(buf, w.caste().index());
-                ByteBufCodecs.VAR_INT.encode(buf, w.rank().index());
-                ByteBufCodecs.VAR_INT.encode(buf, w.temperament().index());
-                ByteBufCodecs.VAR_INT.encode(buf, w.nutrition());
-                ByteBufCodecs.VAR_INT.encode(buf, w.fatigue());
-                ByteBufCodecs.VAR_INT.encode(buf, w.morale());
-                ByteBufCodecs.BOOL.encode(buf, w.standby());
-                ByteBufCodecs.VAR_INT.encode(buf, w.xp());
-            }
-            List<ClientColonyCache.SiteMemorySnapshot> memories = payload.siteMemories() != null
-                    ? payload.siteMemories() : List.of();
-            int memoryCount = Math.min(5, memories.size());
-            ByteBufCodecs.VAR_INT.encode(buf, memoryCount);
-            for (int i = 0; i < memoryCount; i++) {
-                ClientColonyCache.SiteMemorySnapshot memory = memories.get(i);
-                buf.writeLong(memory.sitePos().asLong());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.learnedHabit());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.trialHabit());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.incidentCount());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.successfulTrials());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.failedTrials());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.lastIncidentCode());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.lastOutcomeCode());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.episodeMask());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.escortCall());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.restCall());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.pickupCall());
-                ByteBufCodecs.VAR_INT.encode(buf, memory.lessonStage());
-                writeOptionalUuid(buf, memory.escortActor());
-                writeOptionalUuid(buf, memory.restActor());
-                writeOptionalUuid(buf, memory.pickupActor());
-            }
+            NetworkCodecSupport.encodeBoundedList(buf, payload.workers(), 32, (b, w) -> {
+                NetworkCodecSupport.writeUuid(b, w.workerId());
+                ByteBufCodecs.VAR_INT.encode(b, w.caste().index());
+                ByteBufCodecs.VAR_INT.encode(b, w.rank().index());
+                ByteBufCodecs.VAR_INT.encode(b, w.temperament().index());
+                ByteBufCodecs.VAR_INT.encode(b, w.nutrition());
+                ByteBufCodecs.VAR_INT.encode(b, w.fatigue());
+                ByteBufCodecs.VAR_INT.encode(b, w.morale());
+                ByteBufCodecs.BOOL.encode(b, w.standby());
+                ByteBufCodecs.VAR_INT.encode(b, w.xp());
+            });
+            NetworkCodecSupport.encodeBoundedList(buf, payload.siteMemories(), 5, (b, memory) -> {
+                b.writeLong(memory.sitePos().asLong());
+                ByteBufCodecs.VAR_INT.encode(b, memory.learnedHabit());
+                ByteBufCodecs.VAR_INT.encode(b, memory.trialHabit());
+                ByteBufCodecs.VAR_INT.encode(b, memory.incidentCount());
+                ByteBufCodecs.VAR_INT.encode(b, memory.successfulTrials());
+                ByteBufCodecs.VAR_INT.encode(b, memory.failedTrials());
+                ByteBufCodecs.VAR_INT.encode(b, memory.lastIncidentCode());
+                ByteBufCodecs.VAR_INT.encode(b, memory.lastOutcomeCode());
+                ByteBufCodecs.VAR_INT.encode(b, memory.episodeMask());
+                ByteBufCodecs.VAR_INT.encode(b, memory.escortCall());
+                ByteBufCodecs.VAR_INT.encode(b, memory.restCall());
+                ByteBufCodecs.VAR_INT.encode(b, memory.pickupCall());
+                ByteBufCodecs.VAR_INT.encode(b, memory.lessonStage());
+                NetworkCodecSupport.writeOptionalUuid(b, memory.escortActor());
+                NetworkCodecSupport.writeOptionalUuid(b, memory.restActor());
+                NetworkCodecSupport.writeOptionalUuid(b, memory.pickupActor());
+            });
             ByteBufCodecs.BOOL.encode(buf, payload.memoryTransferActive());
             buf.writeLong(payload.memoryTransferSource().asLong());
             buf.writeLong(payload.memoryTransferTarget().asLong());
             ByteBufCodecs.VAR_INT.encode(buf, payload.memoryTransferHabit());
             ByteBufCodecs.BOOL.encode(buf, payload.memoryTransferInTransit());
-            List<ClientColonyCache.ReconstructionSnapshot> reconstructions = payload.reconstructions() != null
-                    ? payload.reconstructions() : List.of();
-            int reconstructionCount = Math.min(4, reconstructions.size());
-            ByteBufCodecs.VAR_INT.encode(buf, reconstructionCount);
-            for (int i = 0; i < reconstructionCount; i++) {
-                ClientColonyCache.ReconstructionSnapshot reconstruction = reconstructions.get(i);
-                buf.writeLong(reconstruction.ruinedSite().asLong());
-                ByteBufCodecs.BOOL.encode(buf, reconstruction.hasSuccessor());
-                buf.writeLong(reconstruction.successorSite().asLong());
-                buf.writeLong(reconstruction.createdTick());
-                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.requiredMask());
-                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.restoredMask());
-                writeOptionalUuid(buf, reconstruction.activeWitness());
-                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.activeType());
-                writeOptionalUuid(buf, reconstruction.lastFailedWitness());
-                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.lastFailedType());
-                ByteBufCodecs.VAR_INT.encode(buf, reconstruction.lastFailure());
-                List<ClientColonyCache.ReconstructionWitnessSnapshot> witnesses = reconstruction.witnesses() != null
-                        ? reconstruction.witnesses() : List.of();
-                int witnessCount = Math.min(128, witnesses.size());
-                ByteBufCodecs.VAR_INT.encode(buf, witnessCount);
-                for (int j = 0; j < witnessCount; j++) {
-                    ClientColonyCache.ReconstructionWitnessSnapshot witness = witnesses.get(j);
-                    buf.writeLong(witness.witnessId().getMostSignificantBits());
-                    buf.writeLong(witness.witnessId().getLeastSignificantBits());
-                    ByteBufCodecs.VAR_INT.encode(buf, witness.type());
-                    buf.writeLong(witness.memoryPos().asLong());
-                    ByteBufCodecs.VAR_INT.encode(buf, witness.status());
-                }
-            }
+            NetworkCodecSupport.encodeBoundedList(buf, payload.reconstructions(), 4, (b, reconstruction) -> {
+                b.writeLong(reconstruction.ruinedSite().asLong());
+                ByteBufCodecs.BOOL.encode(b, reconstruction.hasSuccessor());
+                b.writeLong(reconstruction.successorSite().asLong());
+                b.writeLong(reconstruction.createdTick());
+                ByteBufCodecs.VAR_INT.encode(b, reconstruction.requiredMask());
+                ByteBufCodecs.VAR_INT.encode(b, reconstruction.restoredMask());
+                NetworkCodecSupport.writeOptionalUuid(b, reconstruction.activeWitness());
+                ByteBufCodecs.VAR_INT.encode(b, reconstruction.activeType());
+                NetworkCodecSupport.writeOptionalUuid(b, reconstruction.lastFailedWitness());
+                ByteBufCodecs.VAR_INT.encode(b, reconstruction.lastFailedType());
+                ByteBufCodecs.VAR_INT.encode(b, reconstruction.lastFailure());
+                NetworkCodecSupport.encodeBoundedList(b, reconstruction.witnesses(), 128, (wb, witness) -> {
+                    NetworkCodecSupport.writeUuid(wb, witness.witnessId());
+                    ByteBufCodecs.VAR_INT.encode(wb, witness.type());
+                    wb.writeLong(witness.memoryPos().asLong());
+                    ByteBufCodecs.VAR_INT.encode(wb, witness.status());
+                });
+            });
             ByteBufCodecs.BOOL.encode(buf, payload.openScreen());
         }
     };
@@ -340,18 +307,6 @@ public record SovereignColonySyncPayload(
                 reconstructions,
                 openScreen
         );
-    }
-
-    private static UUID readOptionalUuid(ByteBuf buf) {
-        return ByteBufCodecs.BOOL.decode(buf) ? new UUID(buf.readLong(), buf.readLong()) : null;
-    }
-
-    private static void writeOptionalUuid(ByteBuf buf, @Nullable UUID value) {
-        ByteBufCodecs.BOOL.encode(buf, value != null);
-        if (value != null) {
-            buf.writeLong(value.getMostSignificantBits());
-            buf.writeLong(value.getLeastSignificantBits());
-        }
     }
 
     public static void syncToPlayer(ServerPlayer player, @Nullable BlockPos nexusPos, boolean openScreen) {
