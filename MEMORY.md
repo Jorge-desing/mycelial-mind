@@ -5228,3 +5228,7 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## [2026-11-27] — Reglas de checks previos publicadas tras reparación
 - El usuario pidió corregir el GameTest de flanqueo que bloqueaba la publicación de reglas. La corrección `0448c02` pasó `test`, `build`, 213/213 GameTests y los tres trabajos de GitHub Actions `46032975665`. Se aplica ahora la regla preparada en `AGENTS.md` y `.agents/rules/git-auto-commit.md`, tras verificar el SHA de destino.
 - Antes de subir cambios ordinarios se revisan y corrigen checks de destino y se ejecutan controles locales; si CI requiere un push para comprobar una reparación, solo se publica la reparación acotada y validada. Tras el push se comprueba el SHA publicado. Los archivos de reglas y memoria están excluidos del workflow de push, por lo que no generan CI por sí solos.
+
+
+## [2026-11-27] — Reglas de pre-push sincronizadas
+- Sincronizado `GEMINI.md` con la comprobación de checks y validación local previa al push, manteniendo el caso de reparación CI acotada. El último commit de código `0448c02` pasó GitHub Actions `46032975665`; el commit de reglas `7698799` no genera checks por `paths-ignore` y se comprobó esa ausencia. `git diff --check` pasó.
