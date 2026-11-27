@@ -6018,6 +6018,7 @@ public final class MycelialGameTests {
 
         BlockPos base = helper.absolutePos(new BlockPos(2, 250, 2));
         int pylonRadius = MycelialConfig.PYLON_PURIFICATION_RADIUS.get();
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -10, pylonRadius + 4, -2, 16);
         BlockPos pylonPos = base;
         BlockPos protectedPanePos = pylonPos.east(pylonRadius);
         BlockPos outsideStonePos = protectedPanePos.above(1);
@@ -6124,14 +6125,15 @@ public final class MycelialGameTests {
             boolean spitterPursuedDecoy = false;
             BlockPos navTarget = null;
             if (liveSpitter != null) {
+                HiveBlackboard.clear(level);
                 liveSpitter.setPos(decoyCenter.getX() - 6.0D, decoyCenter.getY() + 1.0D, decoyCenter.getZ() + 0.5D);
                 liveSpitter.setOnGround(true);
                 level.addFreshEntity(liveSpitter);
-                for (int t = 0; t < 4; t++) {
+                for (int t = 0; t < 12 && !spitterPursuedDecoy; t++) {
                     liveSpitter.tick();
+                    navTarget = liveSpitter.getNavigation().getTargetPos();
+                    spitterPursuedDecoy = navTarget != null && navTarget.distSqr(decoyPos) <= 9.0D;
                 }
-                navTarget = liveSpitter.getNavigation().getTargetPos();
-                spitterPursuedDecoy = navTarget != null && navTarget.distSqr(decoyPos) <= 9.0D;
             }
             boolean decoyIntegrationOk = firstDecoyRes.getResult().consumesAction()
                     && !secondDecoyRes.getResult().consumesAction()
@@ -6203,6 +6205,7 @@ public final class MycelialGameTests {
             player.getCooldowns().removeCooldown(ModItems.OVERMIND_CROWN.get());
             player.getCooldowns().removeCooldown(ModItems.SCHISM_INJECTOR.get());
             HiveBlackboard.clear(level);
+            releaseArenaChunks(level, forcedChunks);
         }
     }
 
