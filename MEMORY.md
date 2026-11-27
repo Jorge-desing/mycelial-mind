@@ -5187,3 +5187,10 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Resumen:** En el Overworld la IA solo inicia brotes de puntos ciegos sobre micelio ya existente. Durante la construcción coloca cimientos de micelio únicamente si están conectados; usa piedra micelial para los demás. Micelio Profundo mantiene sus reglas anteriores.
 - **Archivos / Símbolos:** `HyphalSiegeDirector.tryNucleateBlindSpotNear`, `advanceBlindSpotGrowthStep`, `MycelialGameTests`, referencia `world-ecosystems-and-integration.md`.
 - **Verificación:** En worktree aislado sobre `98927c6b`, `test build` pasó y `runGameTestServer -PisolatedGameTests=true` pasó 213/213 en la repetición. Hubo fallos intermitentes previos en pruebas ajenas de dialectos, Quimera y Weaver.
+
+
+## [2026-11-27 02:20] — Brotes superficiales raros conectados a cuevas
+- **Tipo:** IMPLEMENTACIÓN / VERIFICACIÓN
+- **Resumen:** Reactivado `surface_spore_patch` en el Overworld con intentos de 1/192–1/56 por chunk según progresión. `SurfaceOutbreakFissure` exige cueva natural apta, posición alejada del spawn y ruta completa sin líquidos, bloques protegidos ni pilones; coloca un brote marcado en la cueva y abre una conexión descendente con suelo apto para la propagación. El micelio vivo sigue creciendo durante la partida; no se genera de antemano.
+- **Archivos:** `SurfaceOutbreakFissure.java`, `MycelialOutbreakFeature.java`, `MycelialBiomeBootstrap.java`, biome modifier generado, `MycelialGameTests.java` y skill `mycelial-diagnostics`.
+- **Verificación:** `runData`, `test` y `build` completados; GameTest del brote pasa con cueva ausente, agua, bedrock, ruta transitable y terreno apto para micelio. La suite completa presenta fallos intermitentes ajenos en Weaver, Acid Spitter y otras pruebas de IA; revisar CI. Vista cliente artificial de superficie capturada en `artifacts/diagnostics/surface-outbreak-connected-preview.png`; la vista interior resultó oscura y no permite validar bien su estética. No se ha medido la distribución en mundos naturales.

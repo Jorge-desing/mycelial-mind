@@ -8353,12 +8353,105 @@ public final class MycelialGameTests {
                 }
             }
 
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    for (int dy = 1; dy <= 5; dy++)
+                        level.setBlock(lowerCaveGround.offset(dx, dy, dz), Blocks.STONE.defaultBlockState(), 18);
+                }
+            }
+            boolean withoutCave = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), surfaceGround);
+            helper.assertFalse(withoutCave, "A surface outbreak must not generate without a suitable cave.");
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    for (int dy = 1; dy <= 5; dy++)
+                        level.setBlock(lowerCaveGround.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+
+            // A complete ring of water blocks every possible rotation, before any terrain is changed.
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) == 2)
+                        level.setBlock(surfaceGround.offset(dx, -3, dz), Blocks.WATER.defaultBlockState(), 18);
+                }
+            }
+            boolean wetSurface = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), surfaceGround);
+            helper.assertFalse(wetSurface, "A fissure must reject a route intersecting water.");
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) == 2) {
+                        BlockPos p = surfaceGround.offset(dx, -3, dz);
+                        helper.assertTrue(level.getBlockState(p).is(Blocks.WATER), "Rejected route changed water.");
+                        level.setBlock(p, Blocks.STONE.defaultBlockState(), 18);
+                    }
+                }
+            }
+
+            // Immutable blocks must also abort every possible orientation without being excavated.
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) == 2)
+                        level.setBlock(surfaceGround.offset(dx, -3, dz), Blocks.BEDROCK.defaultBlockState(), 18);
+                }
+            }
+            boolean blockedSurface = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+                    net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(), level.getRandom(), surfaceGround);
+            helper.assertFalse(blockedSurface, "A fissure must reject protected blocks.");
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) == 2) {
+                        BlockPos p = surfaceGround.offset(dx, -3, dz);
+                        helper.assertTrue(level.getBlockState(p).is(Blocks.BEDROCK), "Rejected route changed bedrock.");
+                        level.setBlock(p, Blocks.STONE.defaultBlockState(), 18);
+                    }
+                }
+            }
+
             boolean naturalSurface = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
                     net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
                     level, level.getChunkSource().getGenerator(), level.getRandom(), surfaceGround);
-            helper.assertFalse(naturalSurface, "Natural outbreaks must begin below ground.");
-            helper.assertFalse(level.getBlockState(lowerCaveGround).is(ModBlocks.MYCELIAL_NODE.get()),
-                    "Worldgen must not create an immediate linked surface patch.");
+            helper.assertTrue(naturalSurface, "A suitable cave must permit a connected surface opening.");
+            long origins = BlockPos.betweenClosedStream(lowerCaveGround.offset(-4, -2, -4), lowerCaveGround.offset(4, 4, 4))
+                    .filter(pos -> level.getBlockEntity(pos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity node
+                            && node.saveWithoutMetadata(level.registryAccess()).getBoolean("OutbreakOrigin")).count();
+            helper.assertTrue(origins == 1, "The surface opening must have exactly one marked cave origin.");
+            BlockPos caveNode = BlockPos.betweenClosedStream(lowerCaveGround.offset(-4, -2, -4), lowerCaveGround.offset(4, 4, 4))
+                    .filter(pos -> level.getBlockEntity(pos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity node
+                            && node.saveWithoutMetadata(level.registryAccess()).getBoolean("OutbreakOrigin"))
+                    .map(BlockPos::immutable).findFirst().orElseThrow();
+            java.util.ArrayDeque<BlockPos> frontier = new java.util.ArrayDeque<>();
+            java.util.Set<BlockPos> visited = new java.util.HashSet<>();
+            frontier.add(caveNode.below());
+            visited.add(caveNode.below());
+            boolean reachedSurface = false;
+            while (!frontier.isEmpty()) {
+                BlockPos floor = frontier.removeFirst();
+                if (floor.getY() >= surfaceGround.getY() - 1) { reachedSurface = true; break; }
+                for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                    for (int dy : new int[]{-1, 0, 1}) {
+                        BlockPos next = floor.relative(direction).offset(0, dy, 0);
+                        if (Math.abs(next.getX() - surfaceGround.getX()) > 5
+                                || Math.abs(next.getZ() - surfaceGround.getZ()) > 5
+                                || next.getY() < lowerCaveGround.getY() - 2 || !visited.add(next)) continue;
+                        if ((dy == 0 || level.getBlockState(floor.above(3)).isAir())
+                                && (level.getBlockState(next).is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+                                    || level.getBlockState(next).is(net.minecraft.tags.BlockTags.DIRT)
+                                    || level.getBlockState(next).is(ModBlocks.MYCELIAL_STONE.get()))
+                                && level.getBlockState(next).isFaceSturdy(level, next, net.minecraft.core.Direction.UP)
+                                && level.getBlockState(next.above()).isAir()
+                                && level.getBlockState(next.above(2)).isAir()) frontier.add(next);
+                    }
+                }
+            }
+            helper.assertTrue(reachedSurface, "A continuous walkable floor must connect cave origin to surface.");
+            long freshMycelium = BlockPos.betweenClosedStream(lowerCaveGround.offset(-4, -2, -4), surfaceGround.offset(4, 3, 4))
+                    .filter(pos -> level.getBlockState(pos).is(ModBlocks.CREEPING_MYCELIUM.get())).count();
+            helper.assertTrue(freshMycelium == 0, "Living mycelium must grow later from the cave origin.");
 
             helper.succeed();
         } finally {

@@ -131,7 +131,8 @@ public final class MycelialBiomeBootstrap {
         context.register(ModWorldgenKeys.ADD_MYCELIAL_FEATURES, new BiomeModifiers.AddFeaturesBiomeModifier(
                 overworld,
                 HolderSet.direct(
-                        placedFeatures.getOrThrow(ModWorldgenKeys.MYCELIAL_OUTBREAK_PF)
+                        placedFeatures.getOrThrow(ModWorldgenKeys.MYCELIAL_OUTBREAK_PF),
+                        placedFeatures.getOrThrow(ModWorldgenKeys.SURFACE_SPORE_PATCH_PF)
                 ),
                 GenerationStep.Decoration.VEGETAL_DECORATION
         ));

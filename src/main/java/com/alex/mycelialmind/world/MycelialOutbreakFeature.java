@@ -53,7 +53,7 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
 
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
         if (enforceWorldgenGates && isOverworld && !isSubterranean) {
-            return false;
+            return SurfaceOutbreakFissure.generate(level, center, random, tier);
         }
         if (isSubterranean && enforceWorldgenGates && !TerrainPlacementPolicy.hasSafeSubterraneanOutbreakFooting(level, center)) {
             return false;
@@ -114,7 +114,7 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
         return true;
     }
 
-    private static void buildFissure(WorldGenLevel level, BlockPos center, RandomSource random, boolean underground) {
+    static void buildFissure(WorldGenLevel level, BlockPos center, RandomSource random, boolean underground) {
         Direction axis = Direction.Plane.HORIZONTAL.getRandomDirection(random);
         Direction side = axis.getClockWise();
         int halfLength = 4 + random.nextInt(3);
@@ -302,7 +302,8 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
     }
 
     private static boolean isSafeToOverwrite(WorldGenLevel level, BlockPos pos) {
-        return WorldgenFeatureSupport.isSafeToOverwrite(level, pos);
+        return WorldgenFeatureSupport.isSafeToOverwrite(level, pos)
+                && !level.getBlockState(pos).is(ModBlocks.HIVE_PROTECTED_BLOCKS);
     }
 
     private static boolean isOpenAirOrReplaceable(WorldGenLevel level, BlockPos pos) {
