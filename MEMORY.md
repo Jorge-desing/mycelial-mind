@@ -5171,3 +5171,19 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   - **OpenAL EFX v8 Proximidad/Distancia (`AcousticPhysicsEngine.java`, `OpenAlEfxBridge.java`, `ClientAcousticController.java`):** `computeDistanceAirDamping` (`0.0–0.28F` desde `4 m`) y `computeDistanceSendBias` (`0.35F <= 1.5 m -> 0.0F >= 12 m`) conectados vía `distanceMeters` en `SourceAcousticSnapshot` (`-1.0F` en sobrecargas heredadas para mantener compatibilidad estricta).
 - **Archivos / Símbolos:** `scripts/sound_studio/{ai_stem_generator,cuda_dsp,ir_bank,dsp_engine,mastering,block_synth,entity_synth,metrics}.py`, `scripts/sound_studio/{irs/*.wav,ai_stems/*,exports/*}`, `scripts/sound_studio/tests/test_sound_studio.py`, `scripts/codex_studio/content_part3.py`, `scripts/mcp/test_server.py`, `src/main/resources/assets/mycelialmind/sounds/*.ogg`, `AcousticPhysicsEngine.java`, `OpenAlEfxBridge.java`, `ClientAcousticController.java`, `AcousticPhysicsEngineTest.java`, `OpenAlEfxLoopbackTest.java`, `dist/*`.
 - **Estado / Verificación:** Python `unittest` **`24/24`** (`test_stage8_high_step_64_heavy_weight_vorbis_q6_and_dense_irs`) OK en GPU CUDA y CPU fallback (`CUDA_VISIBLE_DEVICES='-1'`, `47.463s`); CodeMode `mycelial-mind-dev` (`run_sound_studio`, `audit_sound_masking`, `run_codex_studio` `5/5`, `audit_mod_assets`, `validate_skills` `8/8` / `27 links`) todo en verde; `0` referencias `SoundEvents.`/`SoundType.`. En *worktree* limpio sobre `HEAD 61c0bfd`: `gradlew.bat test build` (**`172/172` JUnit**, `AcousticPhysicsEngineTest` **`9/9`**, `OpenAlEfxLoopbackTest` **`10/10`**) y `runGameTestServer -PisolatedGameTests=true` (**`All 206 required tests passed`** en `11.53 s`). `dist/` actualizado (`SHA-256: C64BD7D5461C83043FAA3F6A9DB20242C202E4F3D6250746887180D6E2495A26`). Skill actualizada: `.agents/skills/mycelial-sound-studio/SKILL.md` (`v8`).
+
+
+## [2026-11-27 00:31] — Verificación real de brotes y CI
+- **Tipo:** `VERIFICACIÓN`
+- **Resumen:** El commit `d017844` fue publicado y GitHub Actions `45957983537` pasó sus tres trabajos en el segundo intento. El primero falló en `colonyDialectConflictClearanceAndScannerIntegrationTest`, prueba que también había fallado una vez localmente y pasó al repetir sin cambios.
+- **Mundo natural:** Servidor aislado con semilla `4815162342`; `/mycelial worldgen audit 8 32` informó PASS con 5 brotes subterráneos y 0 superficiales. En el nodo natural `(-20, 25, 177)` se observó `OutbreakOrigin: 1b` y micelio en seis posiciones cercanas después de cargar la zona. Servidor detenido correctamente.
+- **Límites:** La imagen antes/después usa una cueva de demostración y 140 pulsos simulados. La regresión visual global conserva tres diferencias previas en santuario/ciudadela. `origin/main` avanzó concurrentemente con el commit de audio `98927c6b`; se conservaron los cambios ajenos del árbol de trabajo.
+
+
+
+
+## [2026-11-27 00:39] — Puntos ciegos conectados a micelio existente
+- **Tipo:** `CORRECCIÓN` / `VERIFICACIÓN`
+- **Resumen:** En el Overworld la IA solo inicia brotes de puntos ciegos sobre micelio ya existente. Durante la construcción coloca cimientos de micelio únicamente si están conectados; usa piedra micelial para los demás. Micelio Profundo mantiene sus reglas anteriores.
+- **Archivos / Símbolos:** `HyphalSiegeDirector.tryNucleateBlindSpotNear`, `advanceBlindSpotGrowthStep`, `MycelialGameTests`, referencia `world-ecosystems-and-integration.md`.
+- **Verificación:** En worktree aislado sobre `98927c6b`, `test build` pasó y `runGameTestServer -PisolatedGameTests=true` pasó 213/213 en la repetición. Hubo fallos intermitentes previos en pruebas ajenas de dialectos, Quimera y Weaver.

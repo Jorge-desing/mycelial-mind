@@ -27,6 +27,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -930,6 +931,10 @@ public final class HyphalSiegeDirector {
                     if (candidate == null || tracker.isProtected(candidate) || level.getBlockEntity(candidate.below()) != null) {
                         continue;
                     }
+                    if (level.dimension().equals(Level.OVERWORLD)
+                            && !level.getBlockState(candidate.below()).is(ModBlocks.CREEPING_MYCELIUM.get())) {
+                        continue;
+                    }
                     int blockLight = measureEffectiveBlockLight(level, candidate);
                     double density = Math.max(hive.getHyphalDensityAt(candidate), hive.getHyphalDensityAt(origin));
                     BlockPos nearestNode = tracker.findNearestNode(candidate);
@@ -1132,6 +1137,11 @@ public final class HyphalSiegeDirector {
                     && targetPos.distManhattan(corePos) < 6
                     ? ModBlocks.ANTIBODY_CYST.get().defaultBlockState()
                     : resolveVoxelBlockState(voxel.role(), palette);
+            if (level.dimension().equals(Level.OVERWORLD) && voxel.role() == BlueprintVoxelRole.FOUNDATION_MYCELIUM
+                    && !existing.is(ModBlocks.CREEPING_MYCELIUM.get())
+                    && !hasAdjacentMycelium(level, targetPos)) {
+                toPlace = ModBlocks.MYCELIAL_STONE.get().defaultBlockState();
+            }
             level.setBlockAndUpdate(targetPos, toPlace);
             site.addPlacedBlock(targetPos);
             site.setLastStepTick(level.getGameTime());
@@ -1412,6 +1422,16 @@ public final class HyphalSiegeDirector {
             }
             step.set(x, y, z);
             if (level.isLoaded(step) && level.getBlockState(step).canOcclude()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasAdjacentMycelium(ServerLevel level, BlockPos pos) {
+        for (Direction direction : Direction.values()) {
+            BlockPos neighbor = pos.relative(direction);
+            if (level.isLoaded(neighbor) && level.getBlockState(neighbor).is(ModBlocks.CREEPING_MYCELIUM.get())) {
                 return true;
             }
         }

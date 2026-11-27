@@ -7172,6 +7172,13 @@ public final class MycelialGameTests {
             hive.setHyphalDensity(new ChunkPos(doorAnchor), 65.0, level.getGameTime());
             hive.setHyphalDensity(new ChunkPos(doorPos), 65.0, level.getGameTime());
             hive.recordBaseAnchor(doorPos);
+            var withoutMycelium = com.alex.mycelialmind.hive.HyphalSiegeDirector.tryNucleateBlindSpotNear(level, hive, doorAnchor);
+            helper.assertTrue(withoutMycelium == null, "A blind-spot outbreak must not create an isolated mycelium patch.");
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    level.setBlock(doorPos.below().offset(dx, 0, dz), ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState(), 18);
+                }
+            }
             var doorSite = com.alex.mycelialmind.hive.HyphalSiegeDirector.tryNucleateBlindSpotNear(level, hive, doorAnchor);
             boolean neglectedDoorPrioritized = doorSite != null && doorSite.getCorePos().distManhattan(doorPos) <= 4;
             if (doorSite != null) {
