@@ -22,7 +22,7 @@ Cuando **`mycelial-mind-dev`** ([scripts/mcp/server.py](file:///c:/Users/Alex/Do
 | `python scripts/model_studio/build_models.py ...` + `unittest` | `run_model_studio` / `get_uv_manifest` |
 | `python scripts/texture_studio/build_textures.py ...` + `unittest` | `run_texture_studio` / `audit_mod_assets` |
 | `python scripts/particle_studio/build_particles.py ...` + `unittest` | `run_particle_studio` / `audit_mod_assets` |
-| `python scripts/sound_studio/build_sounds.py ...` + `unittest` (v5) | `run_sound_studio` / `inspect_sound_event` / `audit_sound_masking` / `audit_mod_assets` |
+| `python scripts/sound_studio/build_sounds.py ...` + `unittest` (v9) | `run_sound_studio` / `inspect_sound_event` / `audit_sound_masking` / `audit_mod_assets` |
 | `python scripts/codex_studio/build_codex.py ...` + `unittest` | `run_codex_studio` |
 | `python scripts/build_structures.py` | `run_structure_studio` |
 | `python scripts/validate_agent_skills.py` | `validate_skills` / `list_skills` / `get_skill_guide` |

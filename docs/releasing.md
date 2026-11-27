@@ -1,6 +1,6 @@
 # Preparar una release
 
-El proyecto aplica Mod Publish Plugin `1.1.0`, compatible con el wrapper actual Gradle `8.14.2`. La serie `2.x` requiere Gradle `9.0.0` o posterior, así que no se añade hasta que el wrapper y la cadena NeoForge se actualicen y verifiquen juntos.
+El proyecto aplica Mod Publish Plugin `2.2.1`, compatible con el wrapper actual Gradle `8.14.8`.
 
 ## Simulación local
 

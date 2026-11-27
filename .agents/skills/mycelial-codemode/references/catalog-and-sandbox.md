@@ -43,7 +43,7 @@
 | `run_particle_studio` | `check_only=true`, `export_extras=false`, `run_tests=true`; valida sprites/descriptores/registro y paridad con `particles.json`. |
 | `run_texture_studio` | `check_only=true`, **`pbr=true`**, `export_extras=false`, `run_tests=true`. |
 | `run_sound_studio` | `check_only=true`, `run_tests=true`, `only=None`, `changed_only=false`, `check_baseline=false`, `update_baseline=false`; no expone `--regen-ai-stems` (hazlo por consola con `build_sounds.py --regen-ai-stems`). |
-| `inspect_sound_event` | `sound_id` obligatorio; inspecciona telemetría acústica + QA psicoacústico Sound Studio v5 (clave `psychoacoustic_v4`: `lra_lu`, `short_term_lufs_max`, `mud_ratio`, `harshness_ratio`, `bark_peak_band`, `timbral_diversity`), IR room, stem IA, `.ogg` y delta respecto a `sound_baseline.json`. |
+| `inspect_sound_event` | `sound_id` obligatorio; inspecciona telemetría acústica + QA psicoacústico Sound Studio v9 (clave `psychoacoustic_v4`: `lra_lu`, `short_term_lufs_max`, `mud_ratio`, `harshness_ratio`, `bark_peak_band`, `timbral_diversity`), IR room, stem IA, `.ogg` y delta respecto a `sound_baseline.json`. |
 | `audit_sound_masking` | `top_n=12`; audita enmascaramiento espectral Bark 24-bandas en matriz 11×20 (`220` pares Bark) entre camas y primer plano, headroom dB, LRA, diversidad tímbrica y QC de los `69` stems RTX. |
 | `run_codex_studio` | `check_only=true`, `report=false`, `run_tests=true`; valida cobertura/refs/presupuesto del códice o exporta con `check_only=false`. |
 | `get_hive_ai_overview` | Sin args; resume `hive/` (`enums`, `hive_files`), **`colony/` (`colony_enums`, `colony_files`)**, `entity/ai/**` (`ai_files`) y `ModMemoryTypes`. |
