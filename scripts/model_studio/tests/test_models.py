@@ -250,6 +250,24 @@ class TestModelStudio(unittest.TestCase):
         for name, m in items.items():
             self.assertIn("display", m, f"3D item {name} missing display transforms")
 
+    def test_reclaimed_blooms_are_distinct_and_fit_the_block(self):
+        from scripts.model_studio.block_item_3d import build_3d_block_models
+
+        models = build_3d_block_models()
+        names = ["reclaimed_bloom", *("reclaimed_bloom_" + name for name in
+                 ("melee", "projectile", "fire", "explosion", "magic"))]
+        fingerprints = set()
+        for name in names:
+            elements = models[name]["elements"]
+            if name == "reclaimed_bloom":
+                self.assertGreaterEqual(len(elements), 40)
+            else:
+                self.assertTrue(22 <= len(elements) <= 30, name)
+            for element in elements:
+                self.assertTrue(all(0 <= value <= 16 for value in element["from"] + element["to"]), name)
+            fingerprints.add(tuple(sorted((tuple(e["from"]), tuple(e["to"])) for e in elements)))
+        self.assertEqual(len(fingerprints), 6)
+
     def test_seven_hand_relics_use_individual_atlases(self):
         from scripts.model_studio.block_item_3d import build_3d_item_models
         from scripts.texture_studio.generators.atlas_3d import ATLAS_SPECS
