@@ -1,0 +1,21 @@
+{
+  "type": "mycelialmind:synaptic_synthesis",
+  "biomass": {
+    "item": "mycelialmind:mycelial_biomass"
+  },
+  "catalyst": {
+    "item": "mycelialmind:synaptic_core"
+  },
+  "copy_trait_from_sample": true,
+  "gating_mode": "mutagen_or_serum",
+  "min_act": "awakened",
+  "min_lab_tier": 2,
+  "requires_typed_sample": true,
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:symbiotic_mutagen"
+  },
+  "sample": {
+    "item": "mycelialmind:genetic_sample"
+  }
+}

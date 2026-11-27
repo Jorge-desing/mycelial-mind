@@ -7764,6 +7764,117 @@ public final class MycelialGameTests {
                                     dimType.effectsLocation()),
                     "Deep Mycelium DimensionType must reference custom effects mycelialmind:deep_mycelium");
 
+            // 6. Native Attributes, Synaptic RecipeType, Dispensers, ItemAbilities, CriteriaTriggers, CustomStats
+            var tester = FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(
+                    java.util.UUID.fromString("33333333-3333-3333-3333-333333333333"), "NeoForgeNativeTester"));
+            helper.assertTrue(tester.getAttributes().hasAttribute(com.alex.mycelialmind.registry.ModAttributes.INFECTION_RESISTANCE)
+                            && tester.getAttributes().hasAttribute(com.alex.mycelialmind.registry.ModAttributes.ACID_RESISTANCE),
+                    "Player must carry INFECTION_RESISTANCE and ACID_RESISTANCE attributes");
+
+            ItemStack evolvedChest = new ItemStack(ModItems.CHITIN_CHESTPLATE.get());
+            com.alex.mycelialmind.item.ChitinArmorItem.setArmorRank(
+                    evolvedChest, com.alex.mycelialmind.hive.EvolutionRank.ELITE);
+            tester.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, evolvedChest);
+            evolvedChest.forEachModifier(net.minecraft.world.entity.EquipmentSlot.CHEST, (attr, mod) -> {
+                var inst = tester.getAttribute(attr);
+                if (inst != null) {
+                    inst.addTransientModifier(mod);
+                }
+            });
+            helper.assertTrue(tester.getAttributeValue(com.alex.mycelialmind.registry.ModAttributes.INFECTION_RESISTANCE) >= 0.20D
+                            && tester.getAttributeValue(com.alex.mycelialmind.registry.ModAttributes.ACID_RESISTANCE) >= 0.15D,
+                    "ELITE Chitin Chestplate must populate native INFECTION_RESISTANCE and ACID_RESISTANCE attributes");
+            evolvedChest.forEachModifier(net.minecraft.world.entity.EquipmentSlot.CHEST, (attr, mod) -> {
+                var inst = tester.getAttribute(attr);
+                if (inst != null) {
+                    inst.removeModifier(mod.id());
+                }
+            });
+            tester.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, ItemStack.EMPTY);
+
+            var synapticRecipes = level.getRecipeManager().getAllRecipesFor(
+                    com.alex.mycelialmind.registry.ModRecipes.SYNAPTIC_SYNTHESIS_TYPE.get());
+            helper.assertTrue(synapticRecipes.size() == 15,
+                    "Expected 15 data-driven synaptic_synthesis recipes loaded, found " + synapticRecipes.size());
+
+            helper.assertTrue(ModItems.BIO_EXTRACTOR.get().canPerformAction(
+                            new ItemStack(ModItems.BIO_EXTRACTOR.get()),
+                            net.neoforged.neoforge.common.ItemAbilities.SHEARS_HARVEST),
+                    "BioExtractor must expose ItemAbilities.SHEARS_HARVEST");
+            helper.assertTrue(ModItems.ENZYME_LANCE.get().canPerformAction(
+                            new ItemStack(ModItems.ENZYME_LANCE.get()),
+                            com.alex.mycelialmind.item.EnzymeLanceItem.SHIELD_DISABLE)
+                            && ModItems.ENZYME_LANCE.get().canDisableShield(
+                                    new ItemStack(ModItems.ENZYME_LANCE.get()),
+                                    new ItemStack(net.minecraft.world.item.Items.SHIELD),
+                                    tester, tester),
+                    "EnzymeLance must expose SHIELD_DISABLE and canDisableShield");
+
+            BlockPos dispPos = pylonPos.east(5);
+            net.minecraft.world.entity.npc.Villager villager = null;
+            net.minecraft.server.level.ServerPlayer realAdvPlayer = null;
+            try {
+                level.setBlock(dispPos, net.minecraft.world.level.block.Blocks.DISPENSER.defaultBlockState()
+                        .setValue(net.minecraft.world.level.block.DispenserBlock.FACING, Direction.EAST), 18);
+                var dispBe = level.getBlockEntity(dispPos, net.minecraft.world.level.block.entity.BlockEntityType.DISPENSER).orElse(null);
+                helper.assertTrue(dispBe != null, "DispenserBlockEntity must exist at test position");
+                villager = net.minecraft.world.entity.EntityType.VILLAGER.create(level);
+                helper.assertTrue(villager != null, "Villager must spawn for Dispenser antidote test");
+                villager.setPos(dispPos.getX() + 1.5D, dispPos.getY() + 0.1D, dispPos.getZ() + 0.5D);
+                level.addFreshEntity(villager);
+                villager.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
+                var dispBehavior = net.minecraft.world.level.block.DispenserBlock.DISPENSER_REGISTRY.get(ModItems.SPORE_ANTIDOTE.get());
+                ItemStack dispRemainder = dispBehavior.dispense(
+                        new net.minecraft.core.dispenser.BlockSource(level, dispPos, level.getBlockState(dispPos), dispBe),
+                        new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 1));
+                helper.assertTrue(dispRemainder.isEmpty() && !villager.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                        "Dispenser SporeAntidote behavior must cure MYCELIAL_INFECTION in front of dispenser");
+
+                helper.assertTrue(ModItems.PURIFIER_GRENADE.get() instanceof net.minecraft.world.item.ProjectileItem pi
+                                && pi.asProjectile(level, new net.minecraft.world.phys.Vec3(dispPos.getX(), dispPos.getY(), dispPos.getZ()),
+                                        new ItemStack(ModItems.PURIFIER_GRENADE.get()), Direction.EAST)
+                                        instanceof com.alex.mycelialmind.entity.projectile.PurifierGrenadeProjectile,
+                        "PurifierGrenade must instantiate PurifierGrenadeProjectile via ProjectileItem");
+
+                realAdvPlayer = new net.minecraft.server.level.ServerPlayer(
+                        level.getServer(),
+                        level,
+                        new com.mojang.authlib.GameProfile(
+                                java.util.UUID.fromString("44444444-4444-4444-4444-444444444444"),
+                                "NeoForgeAdvTester"
+                        ),
+                        net.minecraft.server.level.ClientInformation.createDefault()
+                );
+                boolean advAwarded = com.alex.mycelialmind.registry.ModAdvancements.award(
+                        realAdvPlayer, com.alex.mycelialmind.registry.ModAdvancements.PURIFIER_DRONE_DEPLOYED);
+                var advHolder = level.getServer().getAdvancements().get(
+                        com.alex.mycelialmind.registry.ModAdvancements.PURIFIER_DRONE_DEPLOYED.id());
+                helper.assertTrue(advAwarded && advHolder != null
+                                && realAdvPlayer.getAdvancements().getOrStartProgress(advHolder).isDone(),
+                        "HiveMilestoneTrigger must award PURIFIER_DRONE_DEPLOYED without ImpossibleTrigger");
+
+                var customStatId = com.alex.mycelialmind.registry.ModStats.SYNAPTIC_SYNTHESES.get();
+                helper.assertTrue(net.minecraft.stats.Stats.CUSTOM.contains(customStatId)
+                                && net.minecraft.stats.Stats.CUSTOM.contains(com.alex.mycelialmind.registry.ModStats.NODES_DESTROYED.get())
+                                && net.minecraft.stats.Stats.CUSTOM.contains(com.alex.mycelialmind.registry.ModStats.SAMPLES_EXTRACTED.get())
+                                && net.minecraft.stats.Stats.CUSTOM.contains(com.alex.mycelialmind.registry.ModStats.MUTAGENS_IMPLANTED.get())
+                                && net.minecraft.stats.Stats.CUSTOM.contains(com.alex.mycelialmind.registry.ModStats.CYCLES_COMPLETED.get()),
+                        "All 5 custom stats must be registered in Stats.CUSTOM");
+                var customStat = net.minecraft.stats.Stats.CUSTOM.get(customStatId);
+                int statBefore = realAdvPlayer.getStats().getValue(customStat);
+                realAdvPlayer.awardStat(customStatId, 2);
+                int statAfter = realAdvPlayer.getStats().getValue(customStat);
+                helper.assertTrue(statAfter == statBefore + 2,
+                        "CustomStat SYNAPTIC_SYNTHESES must increment via ServerPlayer.awardStat");
+            } finally {
+                if (villager != null) villager.discard();
+                if (realAdvPlayer != null) {
+                    com.alex.mycelialmind.registry.ModCriteriaTriggers.HIVE_MILESTONE.get()
+                            .removePlayerListeners(realAdvPlayer.getAdvancements());
+                }
+                level.removeBlock(dispPos, false);
+            }
+
             helper.succeed();
         } finally {
             if (behemoth != null) behemoth.discard();

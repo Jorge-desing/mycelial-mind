@@ -1,17 +1,16 @@
 package com.alex.mycelialmind.block.entity;
 
 import com.alex.mycelialmind.registry.ModParticles;
-import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
-import com.alex.mycelialmind.item.GeneticSampleItem;
 import com.alex.mycelialmind.item.ReclaimedBloomItem;
+import com.alex.mycelialmind.recipe.SynapticSynthesisInput;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.menu.SynapticBenchMenu;
 import com.alex.mycelialmind.registry.ModBlockEntities;
-import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModRecipes;
 import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.hive.AcquisitionDifficultyEngine;
 import com.alex.mycelialmind.hive.DamageTelemetryTracker;
@@ -193,7 +192,18 @@ public class SynapticBenchBlockEntity extends SyncingBlockEntity implements Menu
         return computeSynthesisDetails(effectiveAct);
     }
 
+    @Override
+    public void setLevel(net.minecraft.world.level.Level level) {
+        super.setLevel(level);
+        if (level != null && !level.isClientSide() && !outputInputsConsumed) {
+            refreshOutputSlot();
+        }
+    }
+
     public SynthesisResult computeSynthesisDetails(HiveProgressionTier effectiveAct) {
+        if (this.level == null) {
+            return new SynthesisResult(ItemStack.EMPTY, -1, null);
+        }
         HiveProgressionTier safeAct = effectiveAct != null ? effectiveAct : HiveProgressionTier.DORMANT;
         int effectiveLabTier = getEffectiveLabTier();
         boolean hiveCoreDefeated = this.level instanceof ServerLevel sl
@@ -201,121 +211,11 @@ public class SynapticBenchBlockEntity extends SyncingBlockEntity implements Menu
         ItemStack s0 = inventory.getStackInSlot(SLOT_SAMPLE);
         ItemStack s1 = inventory.getStackInSlot(SLOT_BIOMASS);
         ItemStack s2 = inventory.getStackInSlot(SLOT_CATALYST);
-
-        if (isReclaimedBloom(s0) && s1.is(ModItems.MYCELIAL_BIOMASS.get()) && s2.isEmpty()) {
-            if (!AcquisitionDifficultyEngine.canSynthesizeBloomDuplication(
-                    safeAct, effectiveLabTier, hiveCoreDefeated)) {
-                return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.ADAPTIVE);
-            }
-            ItemStack output = s0.copyWithCount(2);
-            return new SynthesisResult(output, -1, null);
-        }
-
-        // Recipe A: GeneticSample (typed) + MycelialBiomass + SynapticCore -> SymbioticMutagen
-        if (s0.is(ModItems.GENETIC_SAMPLE.get())
-                && s1.is(ModItems.MYCELIAL_BIOMASS.get())
-                && s2.is(ModItems.SYNAPTIC_CORE.get())) {
-            AdaptationTrait trait = GeneticSampleItem.getTrait(s0);
-            if (trait != null) {
-                if (!AcquisitionDifficultyEngine.canSynthesizeMutagenOrSerum(safeAct, effectiveLabTier)) {
-                    return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.AWAKENED);
-                }
-                ItemStack out = new ItemStack(ModItems.SYMBIOTIC_MUTAGEN.get());
-                out.set(ModDataComponents.TRAIT_ID.get(), trait.id());
-                return new SynthesisResult(out, -1, null);
-            }
-        }
-
-        // Recipe B: GeneticSample (typed) + LatentSpore + (PurifierGrenade or AmethystShard) -> CounterSerum
-        if (s0.is(ModItems.GENETIC_SAMPLE.get())
-                && s1.is(ModItems.LATENT_SPORE.get())
-                && (s2.is(ModItems.PURIFIER_GRENADE.get()) || s2.is(Items.AMETHYST_SHARD))) {
-            AdaptationTrait trait = GeneticSampleItem.getTrait(s0);
-            if (trait != null) {
-                if (!AcquisitionDifficultyEngine.canSynthesizeMutagenOrSerum(safeAct, effectiveLabTier)) {
-                    return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.AWAKENED);
-                }
-                ItemStack out = new ItemStack(ModItems.COUNTER_SERUM.get(), effectiveLabTier >= 3 ? 2 : 1);
-                out.set(ModDataComponents.TRAIT_ID.get(), trait.id());
-                return new SynthesisResult(out, -1, null);
-            }
-        }
-
-        // Recipe C: SporeAntidote + LatentSpore + AmethystShard -> ConcentratedAntidote
-        if (s0.is(ModItems.SPORE_ANTIDOTE.get())
-                && s1.is(ModItems.LATENT_SPORE.get())
-                && s2.is(Items.AMETHYST_SHARD)) {
-            return new SynthesisResult(new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get(), effectiveLabTier >= 3 ? 2 : 1), -1, null);
-        }
-
-        // Recipe D: GeneticSample (typed) + MycelialBiomass + NeuralEchoCore -> ChimeraOvum
-        if (s0.is(ModItems.GENETIC_SAMPLE.get())
-                && GeneticSampleItem.getTrait(s0) != null
-                && s1.is(ModItems.MYCELIAL_BIOMASS.get())
-                && s2.is(ModItems.NEURAL_ECHO_CORE.get())) {
-            if (!AcquisitionDifficultyEngine.canSynthesizeChimeraOvum(
-                    safeAct, effectiveLabTier, hiveCoreDefeated)) {
-                return new SynthesisResult(ItemStack.EMPTY, -1, HiveProgressionTier.ADAPTIVE);
-            }
-            return new SynthesisResult(new ItemStack(ModItems.CHIMERA_OVUM.get()), -1, null);
-        }
-
-        // Recipe E: RootSapVial + MycelialBiomass + RootHeartResin -> ResonantSapElixir (+1 at T3)
-        if (s0.is(ModItems.ROOT_SAP_VIAL.get())
-                && s1.is(ModItems.MYCELIAL_BIOMASS.get())
-                && s2.is(ModItems.ROOT_HEART_RESIN.get())) {
-            return new SynthesisResult(
-                    new ItemStack(ModItems.RESONANT_SAP_ELIXIR.get(), effectiveLabTier >= 3 ? 2 : 1),
-                    -1, null);
-        }
-
-        // Secret #1: GeneticSample (typed) + MycelialBiomass + AmethystShard -> Artificial SynapticCore (Act II or Lab T2+)
-        if (s0.is(ModItems.GENETIC_SAMPLE.get())
-                && GeneticSampleItem.getTrait(s0) != null
-                && s1.is(ModItems.MYCELIAL_BIOMASS.get())
-                && s2.is(Items.AMETHYST_SHARD)) {
-            if (safeAct.meetsRequiredAct(HiveProgressionTier.AWAKENED) || effectiveLabTier >= 2) {
-                return new SynthesisResult(new ItemStack(ModItems.SYNAPTIC_CORE.get()),
-                        ProgressionGoalEngine.SECRET_EXP_SYNAPTIC_CORE, null);
-            }
-            return new SynthesisResult(ItemStack.EMPTY,
-                    ProgressionGoalEngine.SECRET_EXP_SYNAPTIC_CORE, HiveProgressionTier.AWAKENED);
-        }
-
-        // Secret #2: SporeAntidote + MycelialBiomass + AmethystShard -> 2x TrucePheromone (+1 at T3) [Act I+]
-        if (s0.is(ModItems.SPORE_ANTIDOTE.get())
-                && s1.is(ModItems.MYCELIAL_BIOMASS.get())
-                && s2.is(Items.AMETHYST_SHARD)) {
-            return new SynthesisResult(new ItemStack(ModItems.TRUCE_PHEROMONE.get(), effectiveLabTier >= 3 ? 3 : 2),
-                    ProgressionGoalEngine.SECRET_EXP_TRUCE_PHEROMONE, null);
-        }
-
-        // Secret #3: GeneticSample (typed) + LatentSpore + SynapticCore -> VolatileEngram (Act II or Lab T2+)
-        if (s0.is(ModItems.GENETIC_SAMPLE.get())
-                && GeneticSampleItem.getTrait(s0) != null
-                && s1.is(ModItems.LATENT_SPORE.get())
-                && s2.is(ModItems.SYNAPTIC_CORE.get())) {
-            if (safeAct.meetsRequiredAct(HiveProgressionTier.AWAKENED) || effectiveLabTier >= 2) {
-                return new SynthesisResult(new ItemStack(ModItems.VOLATILE_ENGRAM.get()),
-                        ProgressionGoalEngine.SECRET_EXP_VOLATILE_ENGRAM, null);
-            }
-            return new SynthesisResult(ItemStack.EMPTY,
-                    ProgressionGoalEngine.SECRET_EXP_VOLATILE_ENGRAM, HiveProgressionTier.AWAKENED);
-        }
-
-        // Secret #4: SporeAntidote + LatentSpore + SynapticCore -> NeuralEchoCore (Act III or Lab T3)
-        if (s0.is(ModItems.SPORE_ANTIDOTE.get())
-                && s1.is(ModItems.LATENT_SPORE.get())
-                && s2.is(ModItems.SYNAPTIC_CORE.get())) {
-            if (safeAct.meetsRequiredAct(HiveProgressionTier.ADAPTIVE) || effectiveLabTier >= 3) {
-                return new SynthesisResult(new ItemStack(ModItems.NEURAL_ECHO_CORE.get()),
-                        ProgressionGoalEngine.SECRET_EXP_NEURAL_ECHO, null);
-            }
-            return new SynthesisResult(ItemStack.EMPTY,
-                    ProgressionGoalEngine.SECRET_EXP_NEURAL_ECHO, HiveProgressionTier.ADAPTIVE);
-        }
-
-        return new SynthesisResult(ItemStack.EMPTY, -1, null);
+        SynapticSynthesisInput input = new SynapticSynthesisInput(s0, s1, s2);
+        return this.level.getRecipeManager()
+                .getRecipeFor(ModRecipes.SYNAPTIC_SYNTHESIS_TYPE.get(), input, this.level)
+                .map(holder -> holder.value().evaluate(input, safeAct, effectiveLabTier, hiveCoreDefeated))
+                .orElseGet(() -> new SynthesisResult(ItemStack.EMPTY, -1, null));
     }
 
     public void consumeInputsForSynthesis() {

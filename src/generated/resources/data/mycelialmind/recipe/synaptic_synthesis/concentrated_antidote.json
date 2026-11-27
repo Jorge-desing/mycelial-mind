@@ -1,0 +1,17 @@
+{
+  "type": "mycelialmind:synaptic_synthesis",
+  "biomass": {
+    "item": "mycelialmind:latent_spore"
+  },
+  "catalyst": {
+    "item": "minecraft:amethyst_shard"
+  },
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:concentrated_antidote"
+  },
+  "sample": {
+    "item": "mycelialmind:spore_antidote"
+  },
+  "t3_bonus_count": 1
+}

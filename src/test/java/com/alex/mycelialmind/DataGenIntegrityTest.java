@@ -195,8 +195,23 @@ class DataGenIntegrityTest {
             }
         }
 
-        assertEquals(157, parsedFiles,
-                "Expected 157 generated JSON files across recipes/loot/worldgen/dimension/damage_type/neoforge");
+        assertEquals(172, parsedFiles,
+                "Expected 172 generated JSON files across recipes/loot/worldgen/dimension/damage_type/neoforge");
+
+        Path synapticRecipesDir = genModData.resolve("recipe/synaptic_synthesis");
+        assertTrue(Files.isDirectory(synapticRecipesDir), "Missing generated recipe/synaptic_synthesis directory");
+        List<Path> synapticFiles;
+        try (Stream<Path> walk = Files.list(synapticRecipesDir)) {
+            synapticFiles = walk.filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().endsWith(".json"))
+                    .toList();
+        }
+        assertEquals(15, synapticFiles.size(), "Expected 15 generated synaptic_synthesis recipes");
+        for (Path synapticFile : synapticFiles) {
+            JsonObject obj = parseJson(synapticFile).getAsJsonObject();
+            assertEquals("mycelialmind:synaptic_synthesis", obj.get("type").getAsString(),
+                    "Unexpected recipe type in " + synapticFile.getFileName());
+        }
 
         for (String customDataMap : List.of(
                 "data_maps/damage_type/damage_stimulus.json",

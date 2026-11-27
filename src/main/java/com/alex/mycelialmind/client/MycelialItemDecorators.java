@@ -5,6 +5,7 @@ import com.alex.mycelialmind.hive.FieldEngramId;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.item.GeneticSampleItem;
 import com.alex.mycelialmind.item.SymbioticMutagenItem;
+import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModItems;
@@ -76,36 +77,19 @@ public final class MycelialItemDecorators {
     }
 
     public static int colorForStimulus(@Nullable StimulusType stimulus) {
-        if (stimulus == null) {
-            return 0;
-        }
-        return switch (stimulus) {
-            case MELEE -> 0xFFE05252;
-            case PROJECTILE -> 0xFF52D17A;
-            case FIRE -> 0xFFFF8C32;
-            case EXPLOSION -> 0xFFF4D35E;
-            case MAGIC -> 0xFFA970FF;
-        };
+        return MycelialTooltipData.colorForStimulus(stimulus);
     }
 
     public static int colorForTrait(@Nullable AdaptationTrait trait) {
-        return trait == null ? 0 : colorForStimulus(trait.trigger());
+        return MycelialTooltipData.colorForTrait(trait);
     }
 
     public static int colorForMutagen(@Nullable SymbioticMutagen mutagen) {
-        return mutagen == null ? 0 : colorForTrait(mutagen.sourceTrait());
+        return MycelialTooltipData.colorForMutagen(mutagen);
     }
 
     public static int colorForEngram(@Nullable FieldEngramId engram) {
-        if (engram == null) {
-            return 0;
-        }
-        return switch (engram.actNumber()) {
-            case 1 -> 0xFF4AD69D;
-            case 2 -> 0xFFFFB703;
-            case 3 -> 0xFFA970FF;
-            default -> 0xFFFF4D8D;
-        };
+        return MycelialTooltipData.colorForEngram(engram);
     }
 
     public static int threatBarWidth(double threat) {
@@ -114,15 +98,6 @@ public final class MycelialItemDecorators {
     }
 
     public static int threatBarColor(double threat) {
-        if (threat < 25.0D) {
-            return 0xFF38B000;
-        }
-        if (threat < 50.0D) {
-            return 0xFF2AE4CC;
-        }
-        if (threat < 75.0D) {
-            return 0xFFFFB703;
-        }
-        return 0xFFFF3366;
+        return MycelialTooltipData.threatBarColor(threat);
     }
 }

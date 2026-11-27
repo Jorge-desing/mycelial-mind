@@ -5,12 +5,15 @@ import com.alex.mycelialmind.client.MycelialItemDecorators;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.FieldEngramId;
 import com.alex.mycelialmind.hive.StimulusType;
+import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
+import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
@@ -125,5 +128,25 @@ class NeoForgeNativeIntegrationTest {
         int warnColor = MycelialItemDecorators.threatBarColor(60.0D);
         int critColor = MycelialItemDecorators.threatBarColor(90.0D);
         assertFalse(lowColor == midColor || midColor == warnColor || warnColor == critColor);
+    }
+
+    @Test
+    void nativeAttributesTooltipDataAndMilestoneTriggerValidateSafely() {
+        assertEquals(60.0D, DimensionalHomeostasisEngine.computeAttributeMitigatedValue(100.0D, 0.40D, 20.0D), 1.0e-5D);
+        assertEquals(20.0D, DimensionalHomeostasisEngine.computeAttributeMitigatedValue(100.0D, 0.90D, 20.0D), 1.0e-5D);
+        assertEquals(20.0D, DimensionalHomeostasisEngine.computeAttributeMitigatedValue(100.0D, 2.50D, 20.0D), 1.0e-5D);
+        assertEquals(100.0D, DimensionalHomeostasisEngine.computeAttributeMitigatedValue(100.0D, -0.50D, 20.0D), 1.0e-5D);
+
+        MycelialTooltipData.ThreatBarTooltip threatTooltip =
+                new MycelialTooltipData.ThreatBarTooltip(125.0F, true, -2);
+        assertEquals(100.0F, threatTooltip.clampedThreat(), 1.0e-5F);
+        assertEquals(0, threatTooltip.clampedTraitCount());
+
+        MycelialTooltipData.TraitBadgeTooltip badge = new MycelialTooltipData.TraitBadgeTooltip(
+                MycelialTooltipData.colorForTrait(AdaptationTrait.FIRE_RESISTANT),
+                Component.literal("Pyro Surge"),
+                null
+        );
+        assertTrue(badge.accentRgb() != 0);
     }
 }

@@ -1,6 +1,8 @@
 package com.alex.mycelialmind.datagen;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.recipe.SynapticSynthesisRecipe;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModItems;
 import net.minecraft.core.HolderLookup;
@@ -13,6 +15,7 @@ import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.conditions.IConditionBuilder;
@@ -43,6 +46,7 @@ public final class MycelialRecipeProvider extends RecipeProvider implements ICon
         buildEndgameAndDiplomacyRecipes(output);
         buildSinkholeAndConstructionRecipes(output);
         buildCookingAndStonecuttingRecipes(output);
+        buildSynapticSynthesisRecipes(output);
     }
 
     private static void buildEarlyProgressionRecipes(RecipeOutput output) {
@@ -480,5 +484,127 @@ public final class MycelialRecipeProvider extends RecipeProvider implements ICon
                 )
                 .unlockedBy(getHasName(ModItems.CHITIN_PLATE.get()), has(ModItems.CHITIN_PLATE.get()))
                 .save(output, modId("stonecut_chitin_plate_to_lattice"));
+    }
+
+    private static void buildSynapticSynthesisRecipes(RecipeOutput output) {
+        saveSynaptic(output, "symbiotic_mutagen",
+                Ingredient.of(ModItems.GENETIC_SAMPLE.get()),
+                Ingredient.of(ModItems.MYCELIAL_BIOMASS.get()),
+                Ingredient.of(ModItems.SYNAPTIC_CORE.get()),
+                new ItemStack(ModItems.SYMBIOTIC_MUTAGEN.get(), 1),
+                true, true, 0,
+                SynapticSynthesisRecipe.GATING_MUTAGEN_OR_SERUM, "awakened", 2, -1);
+
+        saveSynaptic(output, "counter_serum",
+                Ingredient.of(ModItems.GENETIC_SAMPLE.get()),
+                Ingredient.of(ModItems.LATENT_SPORE.get()),
+                Ingredient.of(ModItems.PURIFIER_GRENADE.get(), Items.AMETHYST_SHARD),
+                new ItemStack(ModItems.COUNTER_SERUM.get(), 1),
+                true, true, 1,
+                SynapticSynthesisRecipe.GATING_MUTAGEN_OR_SERUM, "awakened", 2, -1);
+
+        saveSynaptic(output, "concentrated_antidote",
+                Ingredient.of(ModItems.SPORE_ANTIDOTE.get()),
+                Ingredient.of(ModItems.LATENT_SPORE.get()),
+                Ingredient.of(Items.AMETHYST_SHARD),
+                new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get(), 1),
+                false, false, 1,
+                SynapticSynthesisRecipe.GATING_NONE, "dormant", 1, -1);
+
+        saveSynaptic(output, "chimera_ovum",
+                Ingredient.of(ModItems.GENETIC_SAMPLE.get()),
+                Ingredient.of(ModItems.MYCELIAL_BIOMASS.get()),
+                Ingredient.of(ModItems.NEURAL_ECHO_CORE.get()),
+                new ItemStack(ModItems.CHIMERA_OVUM.get(), 1),
+                true, false, 0,
+                SynapticSynthesisRecipe.GATING_CHIMERA_OVUM, "adaptive", 3, -1);
+
+        saveSynaptic(output, "resonant_sap_elixir",
+                Ingredient.of(ModItems.ROOT_SAP_VIAL.get()),
+                Ingredient.of(ModItems.MYCELIAL_BIOMASS.get()),
+                Ingredient.of(ModItems.ROOT_HEART_RESIN.get()),
+                new ItemStack(ModItems.RESONANT_SAP_ELIXIR.get(), 1),
+                false, false, 1,
+                SynapticSynthesisRecipe.GATING_NONE, "dormant", 1, -1);
+
+        saveSynaptic(output, "secret_synaptic_core",
+                Ingredient.of(ModItems.GENETIC_SAMPLE.get()),
+                Ingredient.of(ModItems.MYCELIAL_BIOMASS.get()),
+                Ingredient.of(Items.AMETHYST_SHARD),
+                new ItemStack(ModItems.SYNAPTIC_CORE.get(), 1),
+                true, false, 0,
+                SynapticSynthesisRecipe.GATING_ACT_OR_LAB, "awakened", 2,
+                ProgressionGoalEngine.SECRET_EXP_SYNAPTIC_CORE);
+
+        saveSynaptic(output, "secret_truce_pheromone",
+                Ingredient.of(ModItems.SPORE_ANTIDOTE.get()),
+                Ingredient.of(ModItems.MYCELIAL_BIOMASS.get()),
+                Ingredient.of(Items.AMETHYST_SHARD),
+                new ItemStack(ModItems.TRUCE_PHEROMONE.get(), 2),
+                false, false, 1,
+                SynapticSynthesisRecipe.GATING_NONE, "dormant", 1,
+                ProgressionGoalEngine.SECRET_EXP_TRUCE_PHEROMONE);
+
+        saveSynaptic(output, "secret_volatile_engram",
+                Ingredient.of(ModItems.GENETIC_SAMPLE.get()),
+                Ingredient.of(ModItems.LATENT_SPORE.get()),
+                Ingredient.of(ModItems.SYNAPTIC_CORE.get()),
+                new ItemStack(ModItems.VOLATILE_ENGRAM.get(), 1),
+                true, false, 0,
+                SynapticSynthesisRecipe.GATING_ACT_OR_LAB, "awakened", 2,
+                ProgressionGoalEngine.SECRET_EXP_VOLATILE_ENGRAM);
+
+        saveSynaptic(output, "secret_neural_echo_core",
+                Ingredient.of(ModItems.SPORE_ANTIDOTE.get()),
+                Ingredient.of(ModItems.LATENT_SPORE.get()),
+                Ingredient.of(ModItems.SYNAPTIC_CORE.get()),
+                new ItemStack(ModItems.NEURAL_ECHO_CORE.get(), 1),
+                false, false, 0,
+                SynapticSynthesisRecipe.GATING_ACT_OR_LAB, "adaptive", 3,
+                ProgressionGoalEngine.SECRET_EXP_NEURAL_ECHO);
+
+        saveBloomDuplication(output, "bloom_duplication_base", ModBlocks.RECLAIMED_BLOOM.get());
+        saveBloomDuplication(output, "bloom_duplication_melee", ModItems.RECLAIMED_BLOOM_MELEE.get());
+        saveBloomDuplication(output, "bloom_duplication_projectile", ModItems.RECLAIMED_BLOOM_PROJECTILE.get());
+        saveBloomDuplication(output, "bloom_duplication_fire", ModItems.RECLAIMED_BLOOM_FIRE.get());
+        saveBloomDuplication(output, "bloom_duplication_explosion", ModItems.RECLAIMED_BLOOM_EXPLOSION.get());
+        saveBloomDuplication(output, "bloom_duplication_magic", ModItems.RECLAIMED_BLOOM_MAGIC.get());
+    }
+
+    private static void saveBloomDuplication(
+            RecipeOutput output,
+            String name,
+            net.minecraft.world.level.ItemLike bloomItem
+    ) {
+        saveSynaptic(output, name,
+                Ingredient.of(bloomItem),
+                Ingredient.of(ModItems.MYCELIAL_BIOMASS.get()),
+                Ingredient.EMPTY,
+                new ItemStack(bloomItem, 2),
+                false, false, 0,
+                SynapticSynthesisRecipe.GATING_BLOOM_DUPLICATION, "adaptive", 2, -1);
+    }
+
+    private static void saveSynaptic(
+            RecipeOutput output,
+            String name,
+            Ingredient sample,
+            Ingredient biomass,
+            Ingredient catalyst,
+            ItemStack result,
+            boolean requiresTypedSample,
+            boolean copyTraitFromSample,
+            int t3BonusCount,
+            String gatingMode,
+            String minAct,
+            int minLabTier,
+            int secretIndex
+    ) {
+        SynapticSynthesisRecipe recipe = new SynapticSynthesisRecipe(
+                sample, biomass, catalyst, result,
+                requiresTypedSample, copyTraitFromSample, t3BonusCount,
+                gatingMode, minAct, minLabTier, secretIndex
+        );
+        output.accept(modId("synaptic_synthesis/" + name), recipe, null);
     }
 }

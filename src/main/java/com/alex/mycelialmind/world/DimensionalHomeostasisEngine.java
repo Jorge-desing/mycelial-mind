@@ -239,8 +239,18 @@ public final class DimensionalHomeostasisEngine {
         if (fullChitinSet || chitinPieces >= 4) {
             return Math.max(0.25F, safeBase * 0.25F);
         }
-        int clamped = Math.max(0, Math.min(3, chitinPieces));
+        float clamped = Math.max(0, Math.min(3, chitinPieces));
         return Math.max(0.5F, safeBase * (1.0F - 0.18F * clamped));
+    }
+
+    public static double computeAttributeMitigatedValue(double baseValue, double resistance, double minFloor) {
+        if (!Double.isFinite(baseValue) || baseValue <= 0.0D) {
+            return Math.max(0.0D, minFloor);
+        }
+        double clamped = Double.isFinite(resistance)
+                ? Math.max(0.0D, Math.min(0.90D, resistance))
+                : 0.0D;
+        return Math.max(minFloor, baseValue * (1.0D - clamped));
     }
 
     public static FogRange computeSporeFogRange(

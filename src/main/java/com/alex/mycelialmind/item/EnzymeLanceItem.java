@@ -21,6 +21,7 @@ import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.ItemAbility;
 
 import java.util.List;
 
@@ -29,8 +30,20 @@ import java.util.List;
  * and performs a piercing dash lunge on right-click.
  */
 public class EnzymeLanceItem extends SwordItem {
+    public static final ItemAbility SHIELD_DISABLE = ItemAbility.get("shield_disable");
+
     public EnzymeLanceItem(Properties properties) {
         super(Tiers.IRON, properties);
+    }
+
+    @Override
+    public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
+        return true;
+    }
+
+    @Override
+    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+        return itemAbility == SHIELD_DISABLE || super.canPerformAction(stack, itemAbility);
     }
 
     @Override

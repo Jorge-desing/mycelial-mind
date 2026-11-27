@@ -2,7 +2,10 @@
   "parent": "mycelialmind:apex_matriarch_slayer",
   "criteria": {
     "recover_route": {
-      "trigger": "minecraft:impossible"
+      "conditions": {
+        "milestone": "recovered_route"
+      },
+      "trigger": "mycelialmind:hive_milestone"
     }
   },
   "display": {

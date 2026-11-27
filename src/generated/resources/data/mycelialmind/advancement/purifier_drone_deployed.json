@@ -2,7 +2,10 @@
   "parent": "mycelialmind:base_sentinel",
   "criteria": {
     "deploy_drone": {
-      "trigger": "minecraft:impossible"
+      "conditions": {
+        "milestone": "purifier_drone_deployed"
+      },
+      "trigger": "mycelialmind:hive_milestone"
     }
   },
   "display": {

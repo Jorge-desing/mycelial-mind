@@ -73,12 +73,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -181,6 +183,16 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerItemDecorations(RegisterItemDecorationsEvent event) {
         MycelialItemDecorators.register(event);
+    }
+
+    @SubscribeEvent
+    public static void registerTooltipFactories(RegisterClientTooltipComponentFactoriesEvent event) {
+        MycelialClientTooltips.register(event);
+    }
+
+    @SubscribeEvent
+    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        MycelialClientExtensions.register(event);
     }
 
     @SubscribeEvent

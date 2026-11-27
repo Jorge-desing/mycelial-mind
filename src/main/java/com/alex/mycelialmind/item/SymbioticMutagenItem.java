@@ -2,9 +2,11 @@ package com.alex.mycelialmind.item;
 
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.hive.AdaptationTrait;
+import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.network.SymbiosisSyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModDataComponents;
+import com.alex.mycelialmind.registry.ModStats;
 import com.alex.mycelialmind.symbiosis.PlayerSymbiosisData;
 import com.alex.mycelialmind.symbiosis.SymbiosisAttributeSync;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
@@ -66,6 +68,7 @@ public class SymbioticMutagenItem extends Item {
             if (data.equipMutagen(mutagen)) {
                 SymbiosisAttributeSync.sync(serverPlayer);
                 SymbiosisSyncPayload.syncToPlayer(serverPlayer);
+                serverPlayer.awardStat(ModStats.MUTAGENS_IMPLANTED.get());
                 level.playSound(null, serverPlayer.blockPosition(), ModSounds.SYMBIOTIC_MUTAGEN_IMPLANT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
                 serverPlayer.sendSystemMessage(Component.translatable(
                         "message.mycelialmind.mutagen_implanted",
@@ -85,6 +88,19 @@ public class SymbioticMutagenItem extends Item {
             }
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+    }
+
+    @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        SymbioticMutagen mutagen = getMutagen(stack);
+        if (mutagen == null) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(new MycelialTooltipData.TraitBadgeTooltip(
+                MycelialTooltipData.colorForMutagen(mutagen),
+                MycelialText.mutagen(mutagen),
+                MycelialText.trait(mutagen.sourceTrait())
+        ));
     }
 
     @Override

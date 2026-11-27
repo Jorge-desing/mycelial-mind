@@ -7,6 +7,7 @@ import com.alex.mycelialmind.hive.EvolutionRank;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.registry.ModAttributes;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModItems;
@@ -119,11 +120,13 @@ public class ChitinArmorItem extends ArmorItem {
 
     public static int reduceInfectionDuration(LivingEntity target, int baseTicks) {
         int reduced = baseTicks;
+        double resistance = target.getAttributes().hasAttribute(ModAttributes.INFECTION_RESISTANCE)
+                ? target.getAttributeValue(ModAttributes.INFECTION_RESISTANCE)
+                : (target instanceof Player player ? 0.20D * countEquippedPieces(player) : 0.0D);
+        if (resistance > 0.0D) {
+            reduced = (int) Math.round(ModAttributes.computeMitigatedValue(baseTicks, resistance, 20.0D));
+        }
         if (target instanceof Player player) {
-            int pieces = countEquippedPieces(player);
-            if (pieces > 0) {
-                reduced = Math.max(20, (int) Math.round(baseTicks * (1.0 - 0.20 * pieces)));
-            }
             reduced = MycelialCuriosCompat.applyOvermindCrownInfectionReduction(
                     reduced, MycelialCuriosCompat.hasEquippedOvermindCrown(player));
         }
@@ -144,22 +147,34 @@ public class ChitinArmorItem extends ArmorItem {
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
         ItemAttributeModifiers base = super.getDefaultAttributeModifiers(stack);
+        EquipmentSlotGroup slotGroup = EquipmentSlotGroup.bySlot(this.getEquipmentSlot());
+        ResourceLocation infectionId = ResourceLocation.fromNamespaceAndPath(
+                MycelialMind.MODID, "chitin_infection_resistance_" + this.type.getName());
+        ItemAttributeModifiers updated = base.withModifierAdded(
+                ModAttributes.INFECTION_RESISTANCE,
+                new AttributeModifier(infectionId, 0.20D, AttributeModifier.Operation.ADD_VALUE),
+                slotGroup
+        );
         EvolutionRank rank = getArmorRank(stack);
         if (rank == EvolutionRank.BASE) {
-            return base;
+            return updated;
         }
         double bonusArmor = rank == EvolutionRank.ELITE ? 2.0D : 1.0D;
         double bonusTough = rank == EvolutionRank.ELITE ? 0.75D : 0.5D;
-        EquipmentSlotGroup slotGroup = EquipmentSlotGroup.bySlot(this.getEquipmentSlot());
+        double acidResistance = rank == EvolutionRank.ELITE ? 0.15D : 0.10D;
         ResourceLocation armorId = ResourceLocation.fromNamespaceAndPath(
                 MycelialMind.MODID, "chitin_rank_armor_" + this.type.getName());
         ResourceLocation toughId = ResourceLocation.fromNamespaceAndPath(
                 MycelialMind.MODID, "chitin_rank_toughness_" + this.type.getName());
-        ItemAttributeModifiers updated = base
+        ResourceLocation acidId = ResourceLocation.fromNamespaceAndPath(
+                MycelialMind.MODID, "chitin_acid_resistance_" + this.type.getName());
+        updated = updated
                 .withModifierAdded(Attributes.ARMOR,
                         new AttributeModifier(armorId, bonusArmor, AttributeModifier.Operation.ADD_VALUE), slotGroup)
                 .withModifierAdded(Attributes.ARMOR_TOUGHNESS,
-                        new AttributeModifier(toughId, bonusTough, AttributeModifier.Operation.ADD_VALUE), slotGroup);
+                        new AttributeModifier(toughId, bonusTough, AttributeModifier.Operation.ADD_VALUE), slotGroup)
+                .withModifierAdded(ModAttributes.ACID_RESISTANCE,
+                        new AttributeModifier(acidId, acidResistance, AttributeModifier.Operation.ADD_VALUE), slotGroup);
         if (rank == EvolutionRank.ELITE) {
             ResourceLocation kbId = ResourceLocation.fromNamespaceAndPath(
                     MycelialMind.MODID, "chitin_rank_knockback_" + this.type.getName());

@@ -164,6 +164,7 @@ public final class HiveCycleDirector {
                 ? "message.mycelialmind.cycle_completed_record"
                 : "message.mycelialmind.cycle_completed";
         for (ServerPlayer sp : sourceLevel.getServer().getPlayerList().getPlayers()) {
+            sp.awardStat(com.alex.mycelialmind.registry.ModStats.CYCLES_COMPLETED.get());
             sp.sendSystemMessage(Component.translatable(
                     messageKey,
                     result.cycleNumber(),

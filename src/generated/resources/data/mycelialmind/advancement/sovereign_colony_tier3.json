@@ -2,7 +2,10 @@
   "parent": "mycelialmind:sovereign_nexus",
   "criteria": {
     "upgrade_tier3": {
-      "trigger": "minecraft:impossible"
+      "conditions": {
+        "milestone": "sovereign_colony_tier3"
+      },
+      "trigger": "mycelialmind:hive_milestone"
     }
   },
   "display": {

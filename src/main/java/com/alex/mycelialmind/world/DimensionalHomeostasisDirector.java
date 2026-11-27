@@ -805,6 +805,12 @@ public final class DimensionalHomeostasisDirector {
             dmg = com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.applyOvermindCrownAcidRainMitigation(
                     dmg, com.alex.mycelialmind.compat.curios.MycelialCuriosCompat.hasEquippedOvermindCrown(player));
         }
+        if (target.getAttributes().hasAttribute(com.alex.mycelialmind.registry.ModAttributes.ACID_RESISTANCE)) {
+            double acidRes = target.getAttributeValue(com.alex.mycelialmind.registry.ModAttributes.ACID_RESISTANCE);
+            if (acidRes > 0.0D) {
+                dmg = (float) com.alex.mycelialmind.registry.ModAttributes.computeMitigatedValue(dmg, acidRes, 0.25D);
+            }
+        }
         target.hurt(ModDamageTypes.source(level, ModDamageTypes.ACID_RAIN), dmg);
 
         if (!fullChitin) {

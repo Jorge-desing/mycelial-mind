@@ -2313,5 +2313,12 @@
   "subtitles.mycelialmind.truce_pheromone_spray": "Truce Pheromone diffuses",
   "subtitles.mycelialmind.ui_action_confirm": "Interface action confirmed",
   "subtitles.mycelialmind.ui_codex_tab": "Codex tab turns",
-  "subtitles.mycelialmind.volatile_engram_pulse": "Engram memory discharges"
+  "subtitles.mycelialmind.volatile_engram_pulse": "Engram memory discharges",
+  "attribute.name.mycelialmind.infection_resistance": "Infection Resistance",
+  "attribute.name.mycelialmind.acid_resistance": "Acid Resistance",
+  "stat.mycelialmind.nodes_destroyed": "Synaptic Nodes Severed",
+  "stat.mycelialmind.samples_extracted": "Genetic Samples Extracted",
+  "stat.mycelialmind.synaptic_syntheses": "Synaptic Syntheses",
+  "stat.mycelialmind.mutagens_implanted": "Symbiotic Mutagens Implanted",
+  "stat.mycelialmind.cycles_completed": "Cycles Completed"
 }

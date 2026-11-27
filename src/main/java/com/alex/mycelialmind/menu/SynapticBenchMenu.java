@@ -9,9 +9,11 @@ import com.alex.mycelialmind.item.GeneticSampleItem;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModCriteriaTriggers;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModMenuTypes;
 import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.registry.ModStats;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -71,6 +73,10 @@ public class SynapticBenchMenu extends AbstractContainerMenu {
                                 || GeneticSampleItem.getTrait(inputSample) == AdaptationTrait.PROJECTILE_DEFLECT) {
                             discovery.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_BIOTECH_SYNTHESIZED);
                         }
+                        ModCriteriaTriggers.SYNAPTIC_SYNTHESIS.get()
+                                .trigger(serverPlayer, details.output(), details.secretBit() >= 0);
+                        serverPlayer.awardStat(ModStats.SYNAPTIC_SYNTHESES.get(),
+                                Math.max(1, details.output().getCount()));
                         DiscoverySyncPayload.syncToPlayer(serverPlayer);
                     }
                 }

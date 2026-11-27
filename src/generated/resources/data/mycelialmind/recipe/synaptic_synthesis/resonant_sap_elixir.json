@@ -1,0 +1,17 @@
+{
+  "type": "mycelialmind:synaptic_synthesis",
+  "biomass": {
+    "item": "mycelialmind:mycelial_biomass"
+  },
+  "catalyst": {
+    "item": "mycelialmind:root_heart_resin"
+  },
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:resonant_sap_elixir"
+  },
+  "sample": {
+    "item": "mycelialmind:root_sap_vial"
+  },
+  "t3_bonus_count": 1
+}

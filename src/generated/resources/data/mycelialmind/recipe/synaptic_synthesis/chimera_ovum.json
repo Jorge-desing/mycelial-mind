@@ -1,0 +1,20 @@
+{
+  "type": "mycelialmind:synaptic_synthesis",
+  "biomass": {
+    "item": "mycelialmind:mycelial_biomass"
+  },
+  "catalyst": {
+    "item": "mycelialmind:neural_echo_core"
+  },
+  "gating_mode": "chimera_ovum",
+  "min_act": "adaptive",
+  "min_lab_tier": 3,
+  "requires_typed_sample": true,
+  "result": {
+    "count": 1,
+    "id": "mycelialmind:chimera_ovum"
+  },
+  "sample": {
+    "item": "mycelialmind:genetic_sample"
+  }
+}

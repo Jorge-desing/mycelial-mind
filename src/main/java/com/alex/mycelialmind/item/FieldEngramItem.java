@@ -4,6 +4,7 @@ import com.alex.mycelialmind.hive.EcosystemPurposeEngine;
 import com.alex.mycelialmind.hive.FieldEngramId;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
+import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModDataComponents;
@@ -98,6 +99,16 @@ public class FieldEngramItem extends Item {
         FieldEngramId engram = getEngramId(stack);
         return Component.translatable("item.mycelialmind.field_engram.named",
                 Component.translatable(engram.titleKey()));
+    }
+
+    @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        FieldEngramId engram = getEngramId(stack);
+        return java.util.Optional.of(new MycelialTooltipData.TraitBadgeTooltip(
+                MycelialTooltipData.colorForEngram(engram),
+                Component.translatable(engram.titleKey()),
+                Component.translatable("tooltip.mycelialmind.field_engram.act", engram.actNumber())
+        ));
     }
 
     @Override

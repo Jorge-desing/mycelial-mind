@@ -38,6 +38,10 @@ public class PurifierGrenadeProjectile extends ThrowableProjectile {
         super(ModEntities.PURIFIER_GRENADE.get(), shooter, level);
     }
 
+    public PurifierGrenadeProjectile(Level level, double x, double y, double z) {
+        super(ModEntities.PURIFIER_GRENADE.get(), x, y, z, level);
+    }
+
     @Override
     protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
     }

@@ -870,6 +870,14 @@ public class BioScannerItem extends Item {
     }
 
     @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        if (net.neoforged.fml.loading.FMLEnvironment.dist.isClient()) {
+            return java.util.Optional.of(com.alex.mycelialmind.client.MycelialClientTooltips.createBioScannerTooltip());
+        }
+        return java.util.Optional.empty();
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.bio_scanner").withStyle(ChatFormatting.AQUA));
     }

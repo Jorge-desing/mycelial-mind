@@ -573,6 +573,7 @@ public final class DamageTelemetryTracker {
             double threatAfter = hive.getThreatLevel();
             double threatDrop = Math.max(0.0D, threatBefore - threatAfter);
             if (event.getPlayer() instanceof ServerPlayer serverPlayer) {
+                serverPlayer.awardStat(com.alex.mycelialmind.registry.ModStats.NODES_DESTROYED.get());
                 PlayerDiscoveryData discovery = serverPlayer.getData(ModAttachments.DISCOVERY);
                 discovery.recordNodeDestroyedThreatDrop(threatDrop);
                 if (discovery.getPinnedExpeditionGoal() == ProgressionGoalEngine.ExpeditionGoal.RECLAIM_CAVE

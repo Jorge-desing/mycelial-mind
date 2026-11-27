@@ -16,6 +16,7 @@ import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModStats;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.ChatFormatting;
@@ -35,6 +36,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -239,8 +242,14 @@ public class BioExtractorItem extends Item {
                 discovery.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_SAMPLE_EXTRACTED);
                 discovery.markResearchBit(ProgressionGoalEngine.RESEARCH_BIT_ADAPTATION_IDENTIFIED);
             }
+            serverPlayer.awardStat(ModStats.SAMPLES_EXTRACTED.get(), Math.max(1, count));
             DiscoverySyncPayload.syncToPlayer(serverPlayer);
         }
+    }
+
+    @Override
+    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+        return itemAbility == ItemAbilities.SHEARS_HARVEST || super.canPerformAction(stack, itemAbility);
     }
 
     @Override

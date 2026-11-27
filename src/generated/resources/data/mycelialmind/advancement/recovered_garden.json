@@ -2,7 +2,10 @@
   "parent": "mycelialmind:apex_matriarch_slayer",
   "criteria": {
     "recover_garden": {
-      "trigger": "minecraft:impossible"
+      "conditions": {
+        "milestone": "recovered_garden"
+      },
+      "trigger": "mycelialmind:hive_milestone"
     }
   },
   "display": {

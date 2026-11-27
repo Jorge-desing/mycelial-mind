@@ -2313,5 +2313,12 @@
   "subtitles.mycelialmind.truce_pheromone_spray": "Feromona de tregua dispersada",
   "subtitles.mycelialmind.ui_action_confirm": "Acción de interfaz confirmada",
   "subtitles.mycelialmind.ui_codex_tab": "Pestaña del Códice cambia",
-  "subtitles.mycelialmind.volatile_engram_pulse": "Engrama de memoria descarga"
+  "subtitles.mycelialmind.volatile_engram_pulse": "Engrama de memoria descarga",
+  "attribute.name.mycelialmind.infection_resistance": "Resistencia a la infección",
+  "attribute.name.mycelialmind.acid_resistance": "Resistencia al ácido",
+  "stat.mycelialmind.nodes_destroyed": "Nodos sinápticos destruidos",
+  "stat.mycelialmind.samples_extracted": "Muestras genéticas extraídas",
+  "stat.mycelialmind.synaptic_syntheses": "Síntesis sinápticas",
+  "stat.mycelialmind.mutagens_implanted": "Mutágenos simbióticos implantados",
+  "stat.mycelialmind.cycles_completed": "Ciclos completados"
 }

@@ -36,9 +36,13 @@ public final class ModAdvancements {
         if (server == null) {
             return false;
         }
+        ModCriteriaTriggers.HIVE_MILESTONE.get().trigger(player, advancement.id().getPath());
         AdvancementHolder holder = server.getAdvancements().get(advancement.id());
         if (holder == null) {
             return false;
+        }
+        if (player.getAdvancements().getOrStartProgress(holder).isDone()) {
+            return true;
         }
         return player.getAdvancements().award(holder, advancement.criterion());
     }

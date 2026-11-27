@@ -5,25 +5,47 @@ import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
+import com.alex.mycelialmind.entity.MycelialMob;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
+import com.alex.mycelialmind.item.TrucePheromoneItem;
+import com.alex.mycelialmind.network.DiplomacySyncPayload;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
+import com.alex.mycelialmind.registry.ModEffects;
 import com.alex.mycelialmind.registry.ModItems;
+import com.alex.mycelialmind.registry.ModParticles;
+import com.alex.mycelialmind.registry.ModSounds;
+import com.alex.mycelialmind.util.MycelialParticles;
+import com.alex.mycelialmind.world.DimensionalHomeostasisDirector;
+import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
+import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.core.dispenser.DispenseItemBehavior;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.BasicItemListing;
@@ -37,6 +59,7 @@ import net.neoforged.neoforge.event.village.WandererTradesEvent;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Integrates Mycelial Mind organically with Vanilla Minecraft systems:
@@ -52,7 +75,83 @@ public final class MycelialVanillaIntegration {
 
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(MycelialVanillaIntegration::onRegisterCapabilities);
+        modEventBus.addListener(MycelialVanillaIntegration::onCommonSetup);
         NeoForge.EVENT_BUS.register(MycelialVanillaIntegration.class);
+    }
+
+    private static void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            DispenserBlock.registerProjectileBehavior(ModItems.PURIFIER_GRENADE.get());
+            DispenserBlock.registerBehavior(ModItems.SPORE_ANTIDOTE.get(), createAntidoteDispenserBehavior(false));
+            DispenserBlock.registerBehavior(ModItems.CONCENTRATED_ANTIDOTE.get(), createAntidoteDispenserBehavior(true));
+            DispenserBlock.registerBehavior(ModItems.TRUCE_PHEROMONE.get(), createTrucePheromoneDispenserBehavior());
+        });
+    }
+
+    private static DispenseItemBehavior createAntidoteDispenserBehavior(boolean concentrated) {
+        return new DefaultDispenseItemBehavior() {
+            @Override
+            protected ItemStack execute(BlockSource source, ItemStack stack) {
+                ServerLevel level = source.level();
+                BlockPos front = source.pos().relative(source.state().getValue(DispenserBlock.FACING));
+                AABB box = new AABB(front).inflate(1.0D);
+                List<LivingEntity> infected = level.getEntitiesOfClass(LivingEntity.class, box,
+                        entity -> !(entity instanceof MycelialMob)
+                                && entity.isAlive()
+                                && (entity.hasEffect(ModEffects.MYCELIAL_INFECTION)
+                                        || entity.hasEffect(ModEffects.SPORE_ROT)));
+                if (infected.isEmpty()) {
+                    return super.execute(source, stack);
+                }
+                for (LivingEntity target : infected) {
+                    target.removeEffectsCuredBy(ModEffects.MYCELIAL_ANTIDOTE_CURE);
+                    if (concentrated) {
+                        target.removeEffect(ModEffects.SPORE_ROT);
+                    }
+                    MycelialParticles.antidote(level, target, concentrated);
+                    target.addEffect(new MobEffectInstance(
+                            MobEffects.REGENERATION, concentrated ? 140 : 100, concentrated ? 1 : 0));
+                }
+                level.playSound(null, front, ModSounds.SPORE_ANTIDOTE_CURE.get(),
+                        SoundSource.BLOCKS, 0.9F, concentrated ? 1.15F : 1.0F);
+                stack.shrink(1);
+                return stack;
+            }
+        };
+    }
+
+    private static DispenseItemBehavior createTrucePheromoneDispenserBehavior() {
+        return new DefaultDispenseItemBehavior() {
+            @Override
+            protected ItemStack execute(BlockSource source, ItemStack stack) {
+                ServerLevel level = source.level();
+                BlockPos front = source.pos().relative(source.state().getValue(DispenserBlock.FACING));
+                for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, new AABB(front).inflate(4.0D))) {
+                    PlayerDiplomacyData dip = player.getData(ModAttachments.DIPLOMACY);
+                    if (dip.getBetrayalCooldownTicks() <= 0) {
+                        dip.setTruceTicks(TrucePheromoneItem.TRUCE_DURATION_TICKS);
+                        DiplomacySyncPayload.syncToPlayer(player);
+                    }
+                }
+                if (DimensionalHomeostasisDirector.isHomeostasisDimension(level)) {
+                    DimensionalHomeostasisDirector.sedateArea(
+                            level,
+                            front,
+                            1,
+                            DimensionalHomeostasisEngine.TRUCE_PHEROMONE_SEDATION,
+                            DimensionalHomeostasisEngine.TRUCE_PHEROMONE_SENSITIZATION_REDUCTION,
+                            null
+                    );
+                }
+                level.sendParticles(ModParticles.HISTAMINE_PULSE.get(),
+                        front.getX() + 0.5D, front.getY() + 0.5D, front.getZ() + 0.5D,
+                        18, 0.45D, 0.45D, 0.45D, 0.04D);
+                level.playSound(null, front, ModSounds.TRUCE_PHEROMONE_SPRAY.get(),
+                        SoundSource.BLOCKS, 0.95F, 1.0F);
+                stack.shrink(1);
+                return stack;
+            }
+        };
     }
 
     private static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {

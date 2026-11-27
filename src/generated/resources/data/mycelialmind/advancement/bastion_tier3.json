@@ -2,7 +2,10 @@
   "parent": "mycelialmind:purifier_drone_deployed",
   "criteria": {
     "upgrade_tier3": {
-      "trigger": "minecraft:impossible"
+      "conditions": {
+        "milestone": "bastion_tier3"
+      },
+      "trigger": "mycelialmind:hive_milestone"
     }
   },
   "display": {

@@ -3,6 +3,7 @@ package com.alex.mycelialmind.item;
 import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
+import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.network.HiveSyncPayload;
 import com.alex.mycelialmind.registry.ModDataComponents;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -65,6 +66,19 @@ public class CounterSerumItem extends Item {
             }
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+    }
+
+    @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        AdaptationTrait trait = GeneticSampleItem.getTrait(stack);
+        if (trait == null) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(new MycelialTooltipData.TraitBadgeTooltip(
+                MycelialTooltipData.colorForTrait(trait),
+                MycelialText.stimulus(trait.trigger()),
+                MycelialText.trait(trait)
+        ));
     }
 
     @Override
