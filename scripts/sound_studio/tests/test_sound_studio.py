@@ -121,6 +121,18 @@ class SoundStudioTests(unittest.TestCase):
             m_dec = analyze_waveform(decoded)
             self.assertLessEqual(m_dec["peak_dbfs"], -0.1)
 
+    def test_ogg_encoding_limits_decoded_true_peak(self) -> None:
+        # Dense transients can overshoot after lossy encoding even with safe PCM input.
+        from scripts.sound_studio.dsp_engine import TRUE_PEAK_CEILING
+        from scipy.signal import resample_poly
+        rng = np.random.default_rng(1927)
+        wave = rng.uniform(-0.94, 0.94, SAMPLE_RATE // 4)
+        with tempfile.TemporaryDirectory() as tmp:
+            ogg = Path(tmp) / "transients.ogg"
+            encode_ogg_vorbis_mono(float_to_pcm16(wave), ogg)
+            decoded = decode_ogg_to_float(ogg)
+            self.assertLessEqual(float(np.max(np.abs(resample_poly(decoded, 4, 1)))), TRUE_PEAK_CEILING)
+
     def test_generated_sounds_json_variants_and_attenuation(self) -> None:
         sounds_json = REPO_ROOT / "src" / "main" / "resources" / "assets" / "mycelialmind" / "sounds.json"
         if not sounds_json.is_file():

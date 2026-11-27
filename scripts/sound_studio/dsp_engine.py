@@ -1406,8 +1406,8 @@ def float_to_pcm16(wave: np.ndarray) -> bytes:
     return pcm.tobytes()
 
 
-def encode_ogg_vorbis_mono(pcm16_bytes: bytes, out_path: Path, ffmpeg_exe: str | None = None) -> None:
-    """Encode raw 44100 Hz mono PCM16 bytes into an Ogg Vorbis file atomically."""
+def encode_ogg_vorbis_mono(pcm16_bytes: bytes, out_path: Path, ffmpeg_exe: str | None = None, *, is_loop: bool = False) -> None:
+    """Encode atomically, allowing for peaks introduced by Vorbis compression."""
     ffmpeg = ffmpeg_exe or find_ffmpeg()
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = out_path.with_name(f"{out_path.stem}.{os.getpid()}.tmp.ogg")
@@ -1432,21 +1432,50 @@ def encode_ogg_vorbis_mono(pcm16_bytes: bytes, out_path: Path, ffmpeg_exe: str |
         "ogg",
         str(tmp_path),
     ]
+    source = np.frombuffer(pcm16_bytes, dtype="<i2").astype(np.float64)
+    gain = 1.0
+    edge_fade_ms = 0.0
     last_err = ""
-    for attempt in range(3):
-        proc = subprocess.run(cmd, input=pcm16_bytes, capture_output=True, check=False)
-        if proc.returncode == 0 and tmp_path.is_file() and tmp_path.stat().st_size > 64:
-            os.replace(tmp_path, out_path)
-            return
-        last_err = proc.stderr.decode("utf-8", errors="replace")
-        if tmp_path.is_file():
-            try:
-                tmp_path.unlink()
-            except OSError:
-                pass
-        if attempt < 2:
-            time.sleep(0.08 * (attempt + 1))
-    raise RuntimeError(f"ffmpeg failed encoding {out_path}: {last_err}")
+    try:
+        for attempt in range(5):
+            adjusted = source * gain
+            if edge_fade_ms:
+                fade_n = min(len(adjusted) // 2, int(SAMPLE_RATE * edge_fade_ms / 1000.0))
+                if fade_n:
+                    adjusted[:fade_n] *= np.linspace(0.0, 1.0, fade_n)
+                    adjusted[-fade_n:] *= np.linspace(1.0, 0.0, fade_n)
+            encoded_pcm = np.round(adjusted).astype("<i2").tobytes()
+            proc = subprocess.run(cmd, input=encoded_pcm, capture_output=True, check=False)
+            if proc.returncode != 0 or not tmp_path.is_file() or tmp_path.stat().st_size <= 64:
+                last_err = proc.stderr.decode("utf-8", errors="replace")
+                time.sleep(0.08 * (attempt + 1))
+                continue
+            decoded = subprocess.run(
+                [ffmpeg, "-v", "error", "-xerror", "-i", str(tmp_path), "-f", "f32le", "pipe:1"],
+                capture_output=True, check=False,
+            )
+            if decoded.returncode != 0 or not decoded.stdout:
+                last_err = decoded.stderr.decode("utf-8", errors="replace") or "empty decoded audio"
+                continue
+            samples = np.frombuffer(decoded.stdout, dtype="<f4")
+            peak = float(np.max(np.abs(signal.resample_poly(samples, 4, 1))))
+            if not np.isfinite(peak):
+                last_err = "non-finite decoded true peak"
+                continue
+            edges_ok = is_loop or (np.max(np.abs(samples[:4])) <= 0.019 and np.max(np.abs(samples[-4:])) <= 0.019)
+            if peak <= TRUE_PEAK_CEILING and edges_ok:
+                os.replace(tmp_path, out_path)
+                return
+            # Re-encode from the original PCM, never from a lossy decoded copy.
+            if peak > TRUE_PEAK_CEILING:
+                gain *= (TRUE_PEAK_CEILING * 0.98) / peak
+            if not edges_ok:
+                edge_fade_ms = max(5.0, edge_fade_ms * 2.0)
+            last_err = f"decoded true peak {peak:.4f}, edge samples {samples[0]:.4f}/{samples[-1]:.4f}"
+        raise RuntimeError(f"ffmpeg failed encoding {out_path}: {last_err}")
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink()
 
 
 def inspect_ogg_vorbis(path: Path) -> dict[str, Any]:

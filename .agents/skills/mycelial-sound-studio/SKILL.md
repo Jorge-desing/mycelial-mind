@@ -37,6 +37,7 @@ Genera, mezcla y audita acústicamente todos los efectos propios (`mycelialmind:
 4. **Sincronización si cambia el catálogo:** si varía el número de eventos (`226`) o `.ogg` (`596`) en `catalog.py`, actualizar `ModSounds.java`, `MycelialCommands.verifyPolish`, `MycelialGameTests.{entityAudioProfilesSoundRegistryAndThresholdCalibrationWork,audioEngineV4CuesCommandAndZeroVanillaSoundsWork}`, `scripts/codex_studio/content_part3.py` y `scripts/mcp/test_server.py`.
 
 ## 3. Flujo Recomendado
+La validación `--check` decodifica todos los Ogg a flotante antes de medir el pico verdadero 4x y los cuatro samples de cada borde: el Vorbis puede introducir picos o pre-eco que no existen en el PCM previo. La codificación reintenta desde el PCM original con margen y, para one-shots, un fundido adaptativo si el borde decodificado es excesivo; no aplica dicho fundido a los bucles. En regeneraciones filtradas, las métricas detalladas de eventos reutilizados pueden proceder de un manifiesto anterior: no confundirlas con el barrido de picos y bordes de los archivos actuales.
 1. **Vía FastMCP `CodeMode` (`mycelial-mind-dev`):**
    - `await call_tool("run_sound_studio", {"check_only": False, "changed_only": True, "check_baseline": True, "run_tests": True})`
    - `await call_tool("audit_sound_masking", {"top_n": 12})` (Bark 24-bandas, `mean_organic_index`, `bark_unmasking_applied`, LRA, diversidad y QC de 95 stems) e `inspect_sound_event(sound_id=...)`.

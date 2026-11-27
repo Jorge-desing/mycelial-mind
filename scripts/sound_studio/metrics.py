@@ -383,7 +383,7 @@ def decode_ogg_to_float(ogg_path: Path, ffmpeg_exe: str | None = None) -> np.nda
         "-i",
         str(ogg_path),
         "-f",
-        "s16le",
+        "f32le",
         "-ac",
         "1",
         "-ar",
@@ -394,8 +394,7 @@ def decode_ogg_to_float(ogg_path: Path, ffmpeg_exe: str | None = None) -> np.nda
     if proc.returncode != 0:
         err = proc.stderr.decode("utf-8", errors="replace")
         raise RuntimeError(f"ffmpeg failed decoding {ogg_path}: {err}")
-    pcm = np.frombuffer(proc.stdout, dtype="<i2")
-    return pcm.astype(np.float64) / 32768.0
+    return np.frombuffer(proc.stdout, dtype="<f4").astype(np.float64)
 
 
 def measure_loop_seam_delta(wave: np.ndarray, sample_rate: int = SAMPLE_RATE) -> float:

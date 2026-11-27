@@ -89,6 +89,8 @@ def _synthesize_and_encode_spec(
     stems = expected_variant_stems(spec)
     variant_waves: list[np.ndarray] = []
     encode_tasks: list[tuple[Any, Path, str]] = []
+    from scripts.sound_studio.mastering import SEAMLESS_LOOP_IDS
+    is_loop = spec.sound_id in SEAMLESS_LOOP_IDS
 
     for v_idx, stem in enumerate(stems):
         wave = synthesize_waveform(
@@ -105,22 +107,21 @@ def _synthesize_and_encode_spec(
             category=spec.category,
         )
         pcm = float_to_pcm16(wave)
-        pcm_q = np.frombuffer(pcm, dtype="<i2").astype(np.float64) / 32768.0
         ogg_path = SOUNDS_DIR / f"{stem}.ogg"
         if encode_pool is not None:
-            fut = encode_pool.submit(encode_ogg_vorbis_mono, pcm, ogg_path, ffmpeg_exe=ffmpeg_exe)
+            fut = encode_pool.submit(encode_ogg_vorbis_mono, pcm, ogg_path, ffmpeg_exe=ffmpeg_exe, is_loop=is_loop)
             encode_tasks.append((fut, ogg_path, stem))
         else:
-            encode_ogg_vorbis_mono(pcm, ogg_path, ffmpeg_exe=ffmpeg_exe)
+            encode_ogg_vorbis_mono(pcm, ogg_path, ffmpeg_exe=ffmpeg_exe, is_loop=is_loop)
             encode_tasks.append((None, ogg_path, stem))
-        variant_waves.append(pcm_q)
-
-    # Overlap batched GPU metrics + pairwise xcorr with background ffmpeg Ogg Vorbis subprocesses
+    # Measure the actual lossy output, including codec-induced peaks.
+    from scripts.sound_studio.metrics import decode_ogg_to_float
+    for fut, ogg_path, _ in encode_tasks:
+        if fut is not None:
+            fut.result()
+        variant_waves.append(decode_ogg_to_float(ogg_path, ffmpeg_exe))
     file_metrics, max_corr = analyze_event_variations(variant_waves, SAMPLE_RATE)
 
-    from scripts.sound_studio.mastering import SEAMLESS_LOOP_IDS
-
-    is_loop = spec.sound_id in SEAMLESS_LOOP_IDS
     file_names: list[str] = []
     file_sizes: list[int] = []
     variant_issues: list[dict[str, object]] = []
@@ -511,6 +512,27 @@ def generate_all(
     return {"manifest": manifest, "quality_report": quality_report, "baseline_diff": baseline_diff}
 
 
+def _check_decoded_audio(path: Path, ffmpeg_exe: str) -> list[str]:
+    """Check the decoded file, not only the pre-encoding cached report."""
+    from scipy.signal import resample_poly
+    from scripts.sound_studio.metrics import decode_ogg_to_float
+
+    try:
+        wave = decode_ogg_to_float(path, ffmpeg_exe)
+        if not wave.size or not np.all(np.isfinite(wave)):
+            return [f"{path.name}: empty or non-finite decoded audio"]
+        true_peak = float(np.max(np.abs(resample_poly(wave, 4, 1))))
+        edge = float(max(np.max(np.abs(wave[:4])), np.max(np.abs(wave[-4:]))))
+        issues = []
+        if true_peak > 10.0 ** (-0.25 / 20.0):
+            issues.append(f"{path.name}: decoded true peak {20 * np.log10(true_peak):.2f} dBFS exceeds -0.25 dBFS")
+        if edge > 0.02:
+            issues.append(f"{path.name}: decoded edge {edge:.5f} exceeds 0.02")
+        return issues
+    except (OSError, RuntimeError, ValueError) as exc:
+        return [f"{path.name}: decode check failed: {exc}"]
+
+
 def run_checks(*, skip_java_sync: bool = False, check_baseline: bool = False) -> list[str]:
     """Validate all .ogg files, headers (44.1 kHz mono), variations, quality report, sounds.json, subtitles & ModSounds."""
     errors: list[str] = []
@@ -579,6 +601,12 @@ def run_checks(*, skip_java_sync: bool = False, check_baseline: bool = False) ->
         orphaned = sorted(on_disk_oggs - referenced_oggs)
         if orphaned:
             errors.append(f"Orphaned .ogg files in {SOUNDS_DIR}: {orphaned[:10]} (total {len(orphaned)})")
+
+    ffmpeg_exe = find_ffmpeg()
+    decoded_paths = [SOUNDS_DIR / name for name in sorted(referenced_oggs) if (SOUNDS_DIR / name).is_file()]
+    with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 1)) as pool:
+        for issues in pool.map(lambda path: _check_decoded_audio(path, ffmpeg_exe), decoded_paths):
+            errors.extend(issues)
 
     # Lang subtitle check
     for label, lang_path in (("en_us", LANG_EN_PATH), ("es_es", LANG_ES_PATH)):
