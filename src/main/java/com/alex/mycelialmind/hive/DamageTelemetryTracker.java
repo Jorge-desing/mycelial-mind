@@ -20,6 +20,7 @@ import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModEffects;
+import com.alex.mycelialmind.registry.ModEnchantments;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -31,6 +32,7 @@ import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SynapticNodeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -52,6 +54,7 @@ import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -265,6 +268,23 @@ public final class DamageTelemetryTracker {
         }
 
         DamageSource source = event.getSource();
+        if (source.getEntity() instanceof LivingEntity livingAttacker) {
+            ItemStack weapon = livingAttacker.getMainHandItem();
+            if (!weapon.isEmpty()) {
+                int antimycoticLevel = serverLevel.registryAccess()
+                        .lookup(Registries.ENCHANTMENT)
+                        .flatMap(lookup -> lookup.get(ModEnchantments.ANTIMYCOTIC))
+                        .map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder, weapon))
+                        .orElse(0);
+                if (antimycoticLevel > 0) {
+                    serverLevel.sendParticles(ModParticles.SYNAPSE_SPARK.get(),
+                            mob.getX(), mob.getY(0.55D), mob.getZ(),
+                            4 + antimycoticLevel * 2, 0.25D, 0.30D, 0.25D, 0.04D);
+                    serverLevel.playSound(null, mob.blockPosition(), ModSounds.ENZYME_LANCE_THRUST.get(),
+                            SoundSource.PLAYERS, 0.45F, 1.15F + antimycoticLevel * 0.08F);
+                }
+            }
+        }
         if (source.getEntity() instanceof ServerPlayer attacker && !mob.isBossMob()) {
             PlayerDiplomacyData dip = attacker.getData(ModAttachments.DIPLOMACY);
             var standing = dip.getStanding(mob.getHiveStrain());

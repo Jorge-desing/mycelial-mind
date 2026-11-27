@@ -1,7 +1,7 @@
 # Códice de la Colmena Viva
 
 > **Versión:** `Mycelial Mind v2.0.0` | **Minecraft:** `1.21.1` | **NeoForge:** `21.1.176`  
-> **Cobertura Auditada:** `12` capítulos, `62` entradas y `254` páginas de libro validadas al **100%** contra el código fuente.
+> **Cobertura Auditada:** `12` capítulos, `62` entradas y `256` páginas de libro validadas al **100%** contra el código fuente.
 
 ## Índice General
 
@@ -1500,21 +1500,29 @@ _8 Secretos (Pistas + Spoilers), 32 Logros, 7 Redstone y 9 Compat_ | Puerta reco
 - **ID de Entrada:** `secretos_logros/redstone_y_ecosistema_mods` | **Ícono:** `mycelialmind:purification_turret` | **Unlock:** `always`
 - **Resumen:** MycelialRedstoneTelemetry + HiveBrain, gdx-AI, Jade, JEI, EMI, Iris, Modonomicon
 
-#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.1] Telemetría Redstone y Compatibilidad (1/4)
+#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.1] Telemetría Redstone y Compatibilidad (1/6)
 
 • **Comparadores Redstone 1/2:** `antibody_cyst` (estrés chunk 1–15), `bioluminescent_mycelial_cap`, `mycelial_tendrils` y `reclaimed_bloom` (`MATURE`), `mycelial_node`/`symbiotic_node`.
 
-#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.2] Telemetría Redstone y Compatibilidad (2/4)
+#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.2] Telemetría Redstone y Compatibilidad (2/6)
 
 • **Comparadores Redstone 2/2 (`MycelialRedstoneTelemetry`):** `purification_pylon` (estado/sofoco), `purification_turret` (tier/atasco), `synaptic_research_bench` (entradas/salida) y `sovereign_nexus` (nivel/simbiontes/biomasa).
 
-#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.3] Telemetría Redstone y Compatibilidad (3/4)
+#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.3] Telemetría Redstone y Compatibilidad (3/6)
 
 • **Compat IA/Mundo:** **Vanilla+** (Trades/Brew/Compost/Loot), **HiveBrain** (`HiveBrainBridge`), **HiveBehaviorTree / HiveSteeringEngine** (`HiveTacticalTree`) y **Jade** (`MycelialJadePlugin`).
 
-#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.4] Telemetría Redstone y Compatibilidad (4/4)
+#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.4] Telemetría Redstone y Compatibilidad (4/6)
 
 • **Compat UI/Render:** **JEI** (`MycelialJeiPlugin`), **EMI** (`MycelialEmiPlugin`), **Iris** (`MycelialIrisCompat` PBR), **Modonomicon** (`MycelialModonomiconCompat`) y **AzureLib**.
+
+#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.5] Telemetría Redstone y Compatibilidad (5/6)
+
+• **NeoForge Nativo 1/2:** `ModEnchantments` tesoro (`antimycotic`, `bio_ward`, `synaptic_harvest`) y `ModDataMaps` sincronizados (`pylon_fuel`, `turret_ammo`, `symbiotic_nutrient`).
+
+#### [Libro: Cap.11 / redstone_y_ecosistema_mods / Pág.6] Telemetría Redstone y Compatibilidad (6/6)
+
+• **NeoForge Nativo 2/2:** `damage_stimulus`, datapacks embebidos `MycelialBuiltInPacks` (`hardcore_overmind`, `relaxed_research`) y `/mycelialclient` (`MycelialClientCommands`).
 
 <a id="cap11-engram_outbreak_signal"></a>
 ### 5. Engrama I: Señal de Brote

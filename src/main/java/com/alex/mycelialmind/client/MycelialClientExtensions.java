@@ -84,6 +84,26 @@ public final class MycelialClientExtensions {
 
         event.registerBlock(organicBlockExtension(ModParticles.HISTAMINE_PULSE::get, 12),
                 ModBlocks.ANTIBODY_CYST.get());
+
+        event.registerBlock(organicBlockExtension(ModParticles.AMBER_GLINT::get, 10),
+                ModBlocks.LUMINESCENT_AMBER_VEIN.get());
+
+        event.registerBlock(organicBlockExtension(ModParticles.CHITIN_SHARD::get, 10),
+                ModBlocks.CHITIN_PILLAR.get(),
+                ModBlocks.BIO_CHITIN_LATTICE.get(),
+                ModBlocks.REINFORCED_BIO_BARRIER.get(),
+                ModBlocks.EPHEMERAL_CHITIN.get(),
+                ModBlocks.MYCELIAL_STONE.get(),
+                ModBlocks.MYCELIAL_ARCH_BRICK.get());
+
+        event.registerBlock(organicBlockExtension(ModParticles.BIO_LUME::get, 10),
+                ModBlocks.RECLAIMED_BLOOM.get(),
+                ModBlocks.ROOT_SAP_MOSS.get(),
+                ModBlocks.ROOT_CAP_SHELF.get());
+
+        event.registerBlock(organicBlockExtension(ModParticles.TIDE_MOTE::get, 12),
+                ModBlocks.SPORE_UPDRAFT_VENT.get(),
+                ModBlocks.MYCELIAL_RIFT.get());
     }
 
     private static IClientBlockExtensions organicBlockExtension(

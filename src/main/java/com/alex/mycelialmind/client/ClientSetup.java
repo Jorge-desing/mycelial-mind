@@ -102,11 +102,13 @@ import net.minecraft.world.entity.Mob;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.sound.PlaySoundEvent;
 import net.neoforged.neoforge.client.event.sound.PlaySoundSourceEvent;
 import net.neoforged.neoforge.client.event.sound.PlayStreamingSourceEvent;
 import net.neoforged.neoforge.client.event.sound.SoundEngineLoadEvent;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 /**
  * Client-side custom 3D model layers, entity/projectile renderers, and emissive glow layers.
@@ -194,6 +196,18 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
         MycelialClientExtensions.register(event);
+    }
+
+    @SubscribeEvent
+    public static void onClientConfigReloading(ModConfigEvent.Reloading event) {
+        if (event.getConfig().getSpec() != MycelialClientConfig.SPEC) {
+            return;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        mc.execute(() -> {
+            ClientSoundscapeDirector.resetSession();
+            ClientAcousticController.resetSession();
+        });
     }
 
     @SubscribeEvent
@@ -517,6 +531,11 @@ public final class ClientSetup {
         @SubscribeEvent
         public static void onRegisterClientCommands(RegisterClientCommandsEvent event) {
             MycelialClientCommands.register(event);
+        }
+
+        @SubscribeEvent
+        public static void onItemTooltip(ItemTooltipEvent event) {
+            MycelialDataMapTooltips.onItemTooltip(event);
         }
 
         @SubscribeEvent

@@ -9,6 +9,7 @@ import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModEnchantments;
+import com.alex.mycelialmind.registry.MycelialBuiltInPacks;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.google.gson.JsonElement;
@@ -193,9 +194,29 @@ class NeoForgeNativeIntegrationTest {
         assertEquals(0.70F, ModEnchantments.computeSynapticHarvestBonusChance(2), 1.0e-5F);
         assertFalse(MycelialVanillaIntegration.isNativelyImmuneToMycelialDebuffs(null));
 
+        assertEquals(MycelialBuiltInPacks.ActivePreset.DEFAULT,
+                MycelialBuiltInPacks.detectPresetFromValues(25, 64, 15));
+        assertEquals(MycelialBuiltInPacks.ActivePreset.HARDCORE_OVERMIND,
+                MycelialBuiltInPacks.detectPresetFromValues(16, 42, 10));
+        assertEquals(MycelialBuiltInPacks.ActivePreset.RELAXED_RESEARCH,
+                MycelialBuiltInPacks.detectPresetFromValues(38, 64, 24));
+        assertEquals(MycelialBuiltInPacks.ActivePreset.CUSTOM,
+                MycelialBuiltInPacks.detectPresetFromValues(99, 64, 15));
+
         Path repoRoot = TestRepoPaths.resolveRepoRoot();
         Path logo = repoRoot.resolve("src/main/resources/mycelialmind_logo.png");
         assertTrue(Files.isRegularFile(logo) && Files.size(logo) > 1000, "Missing or empty mycelialmind_logo.png");
+
+        for (String bossLoot : List.of("spore_behemoth.json", "hive_core.json", "apex_matriarch.json")) {
+            String json = Files.readString(
+                    repoRoot.resolve("src/generated/resources/data/mycelialmind/loot_table/entities").resolve(bossLoot),
+                    StandardCharsets.UTF_8);
+            assertTrue(json.contains("minecraft:enchant_randomly")
+                            && json.contains("mycelialmind:antimycotic")
+                            && json.contains("mycelialmind:bio_ward")
+                            && json.contains("mycelialmind:synaptic_harvest"),
+                    "Boss loot table missing treasure enchantment pool: " + bossLoot);
+        }
 
         for (String packName : List.of("hardcore_overmind", "relaxed_research")) {
             Path packRoot = repoRoot.resolve("src/main/resources/packs").resolve(packName);

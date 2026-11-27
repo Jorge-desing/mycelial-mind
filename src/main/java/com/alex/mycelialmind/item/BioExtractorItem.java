@@ -289,6 +289,24 @@ public class BioExtractorItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.mycelialmind.bio_extractor").withStyle(ChatFormatting.LIGHT_PURPLE));
+        if (context.registries() != null) {
+            int harvestLevel = context.registries()
+                    .lookup(Registries.ENCHANTMENT)
+                    .flatMap(lookup -> lookup.get(ModEnchantments.SYNAPTIC_HARVEST))
+                    .map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder, stack))
+                    .orElse(0);
+            if (harvestLevel > 0) {
+                int maxHpPct = Math.round(ModEnchantments.computeSynapticHarvestMaxHealthRatio(
+                        com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.EXTRACTOR_MAX_HEALTH_RATIO,
+                        harvestLevel) * 100.0F);
+                int cooldownPct = Math.min(60, harvestLevel * 20);
+                int bonusPct = Math.round(ModEnchantments.computeSynapticHarvestBonusChance(harvestLevel) * 100.0F);
+                tooltip.add(Component.translatable(
+                        "tooltip.mycelialmind.bio_extractor.synaptic_harvest",
+                        maxHpPct, cooldownPct, bonusPct
+                ).withStyle(ChatFormatting.AQUA));
+            }
+        }
         com.alex.mycelialmind.util.ClientTooltipHelper.appendShiftDetails(tooltip,
                 "tooltip.mycelialmind.bio_extractor.shift_rule",
                 "tooltip.mycelialmind.bio_extractor.shift_risk");

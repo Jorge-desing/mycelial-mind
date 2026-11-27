@@ -44,8 +44,12 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
                 .when(LootItemRandomChanceCondition.randomChance(chance))
                 .add(LootItem.lootTableItem(Items.BOOK)
                         .apply(EnchantRandomlyFunction.randomEnchantment()
-                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.ANTIMYCOTIC))
-                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.BIO_WARD))
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.ANTIMYCOTIC))))
+                .add(LootItem.lootTableItem(Items.BOOK)
+                        .apply(EnchantRandomlyFunction.randomEnchantment()
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.BIO_WARD))))
+                .add(LootItem.lootTableItem(Items.BOOK)
+                        .apply(EnchantRandomlyFunction.randomEnchantment()
                                 .withEnchantment(enchLookup.getOrThrow(ModEnchantments.SYNAPTIC_HARVEST))));
     }
 

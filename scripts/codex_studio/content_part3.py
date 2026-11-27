@@ -1316,6 +1316,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                 "MycelialIrisCompat",
                 "MycelialModonomiconCompat",
                 "MycelialAzureLibCompat",
+                "ModEnchantments",
+                "ModDataMaps",
+                "MycelialBuiltInPacks",
+                "MycelialClientCommands",
             ),
             pages=tuple(
                 chunk_paired_blocks(
@@ -1346,6 +1350,18 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
                             "**Iris** (`MycelialIrisCompat` PBR), **Modonomicon** (`MycelialModonomiconCompat`) y **AzureLib**.",
                             "• **UI/Render Compat:** **JEI** (`MycelialJeiPlugin`), **EMI** (`MycelialEmiPlugin`), "
                             "**Iris** (`MycelialIrisCompat` PBR), **Modonomicon** (`MycelialModonomiconCompat`) & **AzureLib**.",
+                        ),
+                        (
+                            "• **NeoForge Nativo 1/2:** `ModEnchantments` tesoro (`antimycotic`, `bio_ward`, `synaptic_harvest`) "
+                            "y `ModDataMaps` sincronizados (`pylon_fuel`, `turret_ammo`, `symbiotic_nutrient`).",
+                            "• **Native NeoForge 1/2:** Treasure `ModEnchantments` (`antimycotic`, `bio_ward`, `synaptic_harvest`) "
+                            "& synced `ModDataMaps` (`pylon_fuel`, `turret_ammo`, `symbiotic_nutrient`).",
+                        ),
+                        (
+                            "• **NeoForge Nativo 2/2:** `damage_stimulus`, datapacks embebidos `MycelialBuiltInPacks` "
+                            "(`hardcore_overmind`, `relaxed_research`) y `/mycelialclient` (`MycelialClientCommands`).",
+                            "• **Native NeoForge 2/2:** `damage_stimulus`, built-in `MycelialBuiltInPacks` "
+                            "(`hardcore_overmind`, `relaxed_research`) & `/mycelialclient` (`MycelialClientCommands`).",
                         ),
                     ],
                 )

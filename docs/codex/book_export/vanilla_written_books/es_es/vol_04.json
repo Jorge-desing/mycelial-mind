@@ -4,7 +4,7 @@
     "mundo_dimension",
     "secretos_logros"
   ],
-  "page_count": 78,
+  "page_count": 80,
   "component": {
     "title": {
       "raw": "Códice Micelial Vol.IV"
@@ -170,22 +170,28 @@
         "raw": "Cadena Completa de\nLogros (4/4)\n• Desbloqueos de\nReceta (5):\n`recipes/unlock_bioma\nss_recipes`,\n`recipes/unlock_chitin\n_recipes`,\n`recipes/unlock_hive_\nheart_recipes`,\n`recipes/unlock_latent\n_spore_recipes`,\n`recipes/unlock_syna\nptic_core_recipes`."
       },
       {
-        "raw": "Cap.11: Redstone (7) y\nEcosistema de Mods\nTelemetría Redstone\ny Compatibilidad (1/4)\n• Comparadores\nRedstone 1/2:\n`antibody_cyst`\n(estrés chunk 1–15),\n`bioluminescent_myceli\nal_cap`,\n`mycelial_tendrils` y\n`reclaimed_bloom`\n(`MATURE`),"
+        "raw": "Cap.11: Redstone (7) y\nEcosistema de Mods\nTelemetría Redstone\ny Compatibilidad (1/6)\n• Comparadores\nRedstone 1/2:\n`antibody_cyst`\n(estrés chunk 1–15),\n`bioluminescent_myceli\nal_cap`,\n`mycelial_tendrils` y\n`reclaimed_bloom`\n(`MATURE`),"
       },
       {
         "raw": "`mycelial_node`/`symbi\notic_node`."
       },
       {
-        "raw": "Telemetría Redstone\ny Compatibilidad (2/4)\n• Comparadores\nRedstone 2/2\n(`MycelialRedstoneTele\nmetry`):\n`purification_pylon`\n(estado/sofoco),\n`purification_turret`\n(tier/atasco),\n`synaptic_research_b\nench`\n(entradas/salida) y\n`sovereign_nexus`"
+        "raw": "Telemetría Redstone\ny Compatibilidad (2/6)\n• Comparadores\nRedstone 2/2\n(`MycelialRedstoneTele\nmetry`):\n`purification_pylon`\n(estado/sofoco),\n`purification_turret`\n(tier/atasco),\n`synaptic_research_b\nench`\n(entradas/salida) y\n`sovereign_nexus`"
       },
       {
         "raw": "(nivel/simbiontes/biom\nasa)."
       },
       {
-        "raw": "Telemetría Redstone\ny Compatibilidad (3/4)\n• Compat IA/Mundo:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), HiveBrain\n(`HiveBrainBridge`),\nHiveBehaviorTree /\nHiveSteeringEngine\n(`HiveTacticalTree`) y\nJade\n(`MycelialJadePlugin`)."
+        "raw": "Telemetría Redstone\ny Compatibilidad (3/6)\n• Compat IA/Mundo:\nVanilla+\n(Trades/Brew/Compos\nt/Loot), HiveBrain\n(`HiveBrainBridge`),\nHiveBehaviorTree /\nHiveSteeringEngine\n(`HiveTacticalTree`) y\nJade\n(`MycelialJadePlugin`)."
       },
       {
-        "raw": "Telemetría Redstone\ny Compatibilidad (4/4)\n• Compat UI/Render:\nJEI\n(`MycelialJeiPlugin`),\nEMI\n(`MycelialEmiPlugin`),\nIris\n(`MycelialIrisCompat`\nPBR), Modonomicon\n(`MycelialModonomiconC\nompat`) y AzureLib."
+        "raw": "Telemetría Redstone\ny Compatibilidad (4/6)\n• Compat UI/Render:\nJEI\n(`MycelialJeiPlugin`),\nEMI\n(`MycelialEmiPlugin`),\nIris\n(`MycelialIrisCompat`\nPBR), Modonomicon\n(`MycelialModonomiconC\nompat`) y AzureLib."
+      },
+      {
+        "raw": "Telemetría Redstone\ny Compatibilidad (5/6)\n• NeoForge Nativo\n1/2:\n`ModEnchantments`\ntesoro (`antimycotic`,\n`bio_ward`,\n`synaptic_harvest`) y\n`ModDataMaps`\nsincronizados\n(`pylon_fuel`,\n`turret_ammo`,\n`symbiotic_nutrient`)."
+      },
+      {
+        "raw": "Telemetría Redstone\ny Compatibilidad (6/6)\n• NeoForge Nativo\n2/2: `damage_stimulus`,\ndatapacks embebidos\n`MycelialBuiltInPacks`\n(`hardcore_overmind`,\n`relaxed_research`) y\n`/mycelialclient`\n(`MycelialClientComman\nds`)."
       },
       {
         "raw": "Cap.11: Engrama I:\nSeñal de Brote\nEngrama I: Señal de\nBrote (1/2)\n• Bitácora de Campo:\nTodo `field_engram`\nporta su identificador\nen `engram_id` y se\nabsorbe con clic\nderecho directo al\nCódice sin ocupar\ninventario."

@@ -3311,7 +3311,11 @@
             "MycelialEmiPlugin",
             "MycelialIrisCompat",
             "MycelialModonomiconCompat",
-            "MycelialAzureLibCompat"
+            "MycelialAzureLibCompat",
+            "ModEnchantments",
+            "ModDataMaps",
+            "MycelialBuiltInPacks",
+            "MycelialClientCommands"
           ],
           "pages": [
             {
@@ -3344,6 +3348,22 @@
               "type": "text",
               "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.4.title",
               "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.4.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 5,
+              "id": "redstone_compat_p5",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.5.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.5.text",
+              "is_spoiler": false
+            },
+            {
+              "page_number": 6,
+              "id": "redstone_compat_p6",
+              "type": "text",
+              "title_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.6.title",
+              "text_key": "codex.mycelialmind.entry.secretos_logros.redstone_y_ecosistema_mods.page.6.text",
               "is_spoiler": false
             }
           ]

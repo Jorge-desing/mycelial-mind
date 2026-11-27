@@ -244,6 +244,26 @@
           "functions": [
             {
               "function": "minecraft:enchant_randomly",
+              "options": "mycelialmind:antimycotic"
+            }
+          ],
+          "name": "minecraft:book"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:enchant_randomly",
+              "options": "mycelialmind:bio_ward"
+            }
+          ],
+          "name": "minecraft:book"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:enchant_randomly",
               "options": "mycelialmind:synaptic_harvest"
             }
           ],

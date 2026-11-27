@@ -7930,6 +7930,27 @@ public final class MycelialGameTests {
                 tester.removeEffect(ModEffects.MYCELIAL_INFECTION);
             }
 
+            helper.assertTrue(
+                    com.alex.mycelialmind.registry.MycelialBuiltInPacks.detectActivePreset()
+                            == com.alex.mycelialmind.registry.MycelialBuiltInPacks.ActivePreset.DEFAULT,
+                    "Base GameTestServer must resolve DEFAULT DataMap preset");
+
+            BlockPos myceliumPos = dispPos.above();
+            try {
+                level.setBlock(myceliumPos, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState(), 18);
+                var hoeCtx = new net.minecraft.world.item.context.UseOnContext(
+                        tester, InteractionHand.MAIN_HAND,
+                        new BlockHitResult(Vec3.atCenterOf(myceliumPos), Direction.UP, myceliumPos, false));
+                var hoeState = level.getBlockState(myceliumPos).getToolModifiedState(
+                        hoeCtx, net.neoforged.neoforge.common.ItemAbilities.HOE_TILL, false);
+                var shovelState = level.getBlockState(myceliumPos).getToolModifiedState(
+                        hoeCtx, net.neoforged.neoforge.common.ItemAbilities.SHOVEL_FLATTEN, false);
+                helper.assertTrue(hoeState != null && hoeState.is(Blocks.DIRT) && shovelState == null,
+                        "BlockToolModificationEvent must convert creeping_mycelium to dirt only with HOE_TILL");
+            } finally {
+                level.removeBlock(myceliumPos, false);
+            }
+
             helper.succeed();
         } finally {
             if (behemoth != null) behemoth.discard();

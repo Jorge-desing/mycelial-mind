@@ -356,7 +356,7 @@ public final class MycelialCommands {
                 : hive.getActiveSynergies().stream().map(HiveSynergy::id).collect(Collectors.joining(", "));
 
         source.sendSuccess(() -> Component.literal(String.format(
-                "[Mycelial] Threat: %.1f%% [%s] | Milestone: %d%% | Protected: %s | Traits: %s | Tier2: %s | Synergies: %s | Links: %d | Suppressed: %ds | NearestNode: %s | Breached: %s | MatriarchDefeated: %s | Remission: %ds",
+                "[Mycelial] Threat: %.1f%% [%s] | Milestone: %d%% | Protected: %s | Traits: %s | Tier2: %s | Synergies: %s | Links: %d | Suppressed: %ds | NearestNode: %s | Breached: %s | MatriarchDefeated: %s | Remission: %ds | Preset: %s",
                 hive.getThreatLevel(),
                 com.alex.mycelialmind.hive.HiveProgressionTier.fromThreat(hive.getThreatLevel()).displayTag(),
                 hive.getLastWaveMilestone(),
@@ -369,7 +369,8 @@ public final class MycelialCommands {
                 nearest != null ? nearest.toShortString() : "None",
                 hive.isDeepMyceliumBreached(),
                 hive.isMatriarchDefeated(),
-                hive.getMatriarchRemissionRemainingSeconds(level.getGameTime())
+                hive.getMatriarchRemissionRemainingSeconds(level.getGameTime()),
+                com.alex.mycelialmind.registry.MycelialBuiltInPacks.detectActivePreset().name()
         )).withStyle(ChatFormatting.LIGHT_PURPLE), false);
         return 1;
     }

@@ -48,6 +48,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.IEventBus;
@@ -57,12 +58,14 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.BasicItemListing;
+import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.neoforged.neoforge.event.brewing.RegisterBrewingRecipesEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.event.village.WandererTradesEvent;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -121,6 +124,21 @@ public final class MycelialVanillaIntegration {
         }
         if (isNativelyImmuneToMycelialDebuffs(event.getEntity())) {
             event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onBlockToolModification(BlockEvent.BlockToolModificationEvent event) {
+        if (event.getItemAbility() != ItemAbilities.HOE_TILL
+                || !event.getState().is(ModBlocks.CREEPING_MYCELIUM.get())) {
+            return;
+        }
+        event.setFinalState(Blocks.DIRT.defaultBlockState());
+        if (!event.isSimulated() && event.getLevel() instanceof ServerLevel serverLevel) {
+            BlockPos pos = event.getPos();
+            serverLevel.sendParticles(ModParticles.SPORE_MOTE.get(),
+                    pos.getX() + 0.5D, pos.getY() + 1.02D, pos.getZ() + 0.5D,
+                    8, 0.30D, 0.08D, 0.30D, 0.02D);
         }
     }
 

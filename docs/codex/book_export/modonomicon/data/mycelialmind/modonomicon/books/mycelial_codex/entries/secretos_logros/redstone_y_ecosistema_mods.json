@@ -41,6 +41,20 @@
       "use_markdown_title": true,
       "show_title_separator": true,
       "text": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page4.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page5.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page5.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "title": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page6.title",
+      "use_markdown_title": true,
+      "show_title_separator": true,
+      "text": "book.mycelialmind.mycelial_codex.secretos_logros.redstone_y_ecosistema_mods.page6.text"
     }
   ]
 }

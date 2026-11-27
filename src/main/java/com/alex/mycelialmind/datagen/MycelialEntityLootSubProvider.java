@@ -3,6 +3,7 @@ package com.alex.mycelialmind.datagen;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
+import com.alex.mycelialmind.registry.ModEnchantments;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import net.minecraft.core.Holder;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import net.minecraft.world.level.storage.loot.functions.EnchantedCountIncreaseFunction;
 import net.minecraft.world.level.storage.loot.functions.SetComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
@@ -293,7 +295,8 @@ public final class MycelialEntityLootSubProvider extends EntityLootSubProvider {
                         .add(entry(ModItems.PURIFIER_GRENADE.get(), 18, 1.0F, 2.0F))
                         .add(entry(ModItems.CONCENTRATED_ANTIDOTE.get(), 14))
                         .add(entry(ModItems.TRUCE_PHEROMONE.get(), 10))
-                        .add(entry(ModItems.CHITIN_CHESTPLATE.get(), 8))));
+                        .add(entry(ModItems.CHITIN_CHESTPLATE.get(), 8)))
+                .withPool(treasureBookPool(0.20F)));
 
         add(ModEntities.HIVE_CORE.get(), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
@@ -309,7 +312,8 @@ public final class MycelialEntityLootSubProvider extends EntityLootSubProvider {
                         .add(entry(ModItems.CONCENTRATED_ANTIDOTE.get(), 16))
                         .add(entry(ModItems.SYNAPTIC_GRAFT.get(), 12))
                         .add(entry(ModItems.FALSE_ENGRAM_INJECTOR.get(), 10))
-                        .add(entry(Items.DIAMOND, 10, 2.0F, 4.0F))));
+                        .add(entry(Items.DIAMOND, 10, 2.0F, 4.0F)))
+                .withPool(treasureBookPool(0.40F)));
 
         add(ModEntities.APEX_MATRIARCH.get(), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
@@ -328,7 +332,25 @@ public final class MycelialEntityLootSubProvider extends EntityLootSubProvider {
                         .add(entry(ModItems.NEURAL_ECHO_CORE.get(), 22, 1.0F, 2.0F))
                         .add(entry(ModItems.CONCENTRATED_ANTIDOTE.get(), 14, 1.0F, 2.0F))
                         .add(entry(Items.ECHO_SHARD, 14, 2.0F, 4.0F))
-                        .add(entry(Items.NETHERITE_SCRAP, 10))));
+                        .add(entry(Items.NETHERITE_SCRAP, 10)))
+                .withPool(treasureBookPool(0.75F)));
+    }
+
+    private LootPool.Builder treasureBookPool(float chance) {
+        var enchLookup = this.registries.lookupOrThrow(Registries.ENCHANTMENT);
+        return LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .when(LootItemKilledByPlayerCondition.killedByPlayer())
+                .when(LootItemRandomChanceCondition.randomChance(chance))
+                .add(LootItem.lootTableItem(Items.BOOK)
+                        .apply(EnchantRandomlyFunction.randomEnchantment()
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.ANTIMYCOTIC))))
+                .add(LootItem.lootTableItem(Items.BOOK)
+                        .apply(EnchantRandomlyFunction.randomEnchantment()
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.BIO_WARD))))
+                .add(LootItem.lootTableItem(Items.BOOK)
+                        .apply(EnchantRandomlyFunction.randomEnchantment()
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.SYNAPTIC_HARVEST))));
     }
 
     private static LootItemCondition.Builder lootingChance(
