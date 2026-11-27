@@ -271,6 +271,7 @@ public final class MycelialGameTests {
             }
         }
         final MycelialMob[] allies = new MycelialMob[2];
+        final List<MycelialMob> spawned = new ArrayList<>();
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         entityChunksReady(level, helper.absolutePos(new BlockPos(9, 1, 5)), 9),
@@ -280,6 +281,7 @@ public final class MycelialGameTests {
                     var first = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 12, 1, 2);
                     var second = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 12, 1, 5);
                     var enemy = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 12);
+                    spawned.addAll(List.of(weaver, first, second, enemy));
                     weaver.setHiveStrain(HiveStrain.AMBER);
                     first.setHiveStrain(HiveStrain.AMBER);
                     second.setHiveStrain(HiveStrain.AMBER);
@@ -296,7 +298,10 @@ public final class MycelialGameTests {
                     helper.assertTrue(allies[1] != null && allies[1].hasEffect(MobEffects.REGENERATION),
                             "Second ally must receive the support pulse");
                 })
-                .thenExecute(() -> releaseArenaChunks(level, forced))
+                .thenExecute(() -> {
+                    spawned.forEach(MycelialMob::discard);
+                    releaseArenaChunks(level, forced);
+                })
                 .thenSucceed();
     }
 
@@ -9654,82 +9659,91 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "full_endgame_integration")
+    @GameTest(template = "empty", batch = "full_endgame_integration", timeoutTicks = 1200)
     public static void fullEndgameSymbiontImmunityGrenadeAndHiveBrainTest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = HiveMindSavedData.get(level);
-        CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
+        List<ChunkPos> forced = forceArenaChunks(helper, -2, 10, -2, 10);
         BlockPos floorPos = helper.absolutePos(new BlockPos(4, 1, 4));
-        com.alex.mycelialmind.entity.ColonySymbiontEntity symbiont = null;
-        SporelingEntity hostileMob = null;
-        PurifierGrenadeProjectile grenade = null;
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, floorPos, 5),
+                        "Grenade arena chunks must be entity-ticking"))
+                .thenExecute(() -> {
+                HiveMindSavedData hive = HiveMindSavedData.get(level);
+                CompoundTag hiveSnapshot = hive.save(new CompoundTag(), level.registryAccess());
+                com.alex.mycelialmind.entity.ColonySymbiontEntity symbiont = null;
+                SporelingEntity hostileMob = null;
+                PurifierGrenadeProjectile grenade = null;
 
-        try {
-            level.setBlockAndUpdate(floorPos, Blocks.STONE.defaultBlockState());
-            symbiont = ModEntities.COLONY_SYMBIONT.get().create(level);
-            helper.assertTrue(symbiont != null, "ColonySymbiontEntity must construct.");
-            symbiont.moveTo(floorPos.getX() + 0.5D, floorPos.getY() + 1.0D, floorPos.getZ() + 0.5D, 0.0F, 0.0F);
-            level.addFreshEntity(symbiont);
+                try {
+                    level.setBlockAndUpdate(floorPos, Blocks.STONE.defaultBlockState());
+                    symbiont = ModEntities.COLONY_SYMBIONT.get().create(level);
+                    helper.assertTrue(symbiont != null, "ColonySymbiontEntity must construct.");
+                    symbiont.moveTo(floorPos.getX() + 0.5D, floorPos.getY() + 1.0D, floorPos.getZ() + 0.5D, 0.0F, 0.0F);
+                    level.addFreshEntity(symbiont);
+                    helper.assertTrue(level.getEntity(symbiont.getUUID()) == symbiont,
+                            "Symbiont must be indexed before the grenade pulse");
 
-            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            float initialHp = symbiont.getHealth();
-            boolean playerHurt = symbiont.hurt(level.damageSources().playerAttack(player), 6.0F);
-            helper.assertTrue(!playerHurt && symbiont.getHealth() == initialHp,
-                    "Player friendly fire against ColonySymbiontEntity must be canceled.");
+                    Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+                    float initialHp = symbiont.getHealth();
+                    boolean playerHurt = symbiont.hurt(level.damageSources().playerAttack(player), 6.0F);
+                    helper.assertTrue(!playerHurt && symbiont.getHealth() == initialHp,
+                            "Player friendly fire against ColonySymbiontEntity must be canceled.");
 
-            NeutralizingSporeProjectile spore = new NeutralizingSporeProjectile(level, player);
-            boolean sporeHurt = symbiont.hurt(level.damageSources().thrown(spore, player), 6.0F);
-            helper.assertTrue(!sporeHurt && symbiont.getHealth() == initialHp,
-                    "NeutralizingSporeProjectile friendly fire against ColonySymbiontEntity must be canceled.");
+                    NeutralizingSporeProjectile spore = new NeutralizingSporeProjectile(level, player);
+                    boolean sporeHurt = symbiont.hurt(level.damageSources().thrown(spore, player), 6.0F);
+                    helper.assertTrue(!sporeHurt && symbiont.getHealth() == initialHp,
+                            "NeutralizingSporeProjectile friendly fire against ColonySymbiontEntity must be canceled.");
 
-            boolean sporeRotApplied = symbiont.addEffect(new MobEffectInstance(ModEffects.SPORE_ROT, 100, 0));
-            helper.assertTrue(!sporeRotApplied && !symbiont.hasEffect(ModEffects.SPORE_ROT),
-                    "ColonySymbiontEntity must resist SPORE_ROT.");
+                    boolean sporeRotApplied = symbiont.addEffect(new MobEffectInstance(ModEffects.SPORE_ROT, 100, 0));
+                    helper.assertTrue(!sporeRotApplied && !symbiont.hasEffect(ModEffects.SPORE_ROT),
+                            "ColonySymbiontEntity must resist SPORE_ROT.");
 
-            symbiont.setHealth(4.0F);
-            hive.addThreatPenalty(80.0D);
-            symbiont.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
-            boolean converted = DamageTelemetryTracker.tryConvertInfectedMob(level, symbiont, true);
-            helper.assertTrue(!converted && symbiont.isAlive(),
-                    "ColonySymbiontEntity must never undergo infection conversion.");
+                    symbiont.setHealth(4.0F);
+                    hive.addThreatPenalty(80.0D);
+                    symbiont.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
+                    boolean converted = DamageTelemetryTracker.tryConvertInfectedMob(level, symbiont, true);
+                    helper.assertTrue(!converted && symbiont.isAlive(),
+                            "ColonySymbiontEntity must never undergo infection conversion.");
 
-            grenade = new PurifierGrenadeProjectile(level, player);
-            grenade.setPos(floorPos.getX() + 0.5D, floorPos.getY() + 1.15D, floorPos.getZ() + 0.5D);
-            grenade.setDeltaMovement(0.0D, -0.5D, 0.0D);
-            level.addFreshEntity(grenade);
-            for (int t = 0; t < 5 && !grenade.isRemoved(); t++) {
-                grenade.tick();
-            }
-            helper.assertTrue(symbiont.getHealth() > 4.0F && !symbiont.hasEffect(ModEffects.MYCELIAL_INFECTION),
-                    "PurifierGrenadeProjectile pulse must heal ColonySymbiontEntity and cure MYCELIAL_INFECTION.");
+                    grenade = new PurifierGrenadeProjectile(level, player);
+                    grenade.setPos(floorPos.getX() + 0.5D, floorPos.getY() + 1.15D, floorPos.getZ() + 0.5D);
+                    grenade.setDeltaMovement(0.0D, -0.5D, 0.0D);
+                    level.addFreshEntity(grenade);
+                    for (int t = 0; t < 5 && !grenade.isRemoved(); t++) {
+                        grenade.tick();
+                    }
+                    helper.assertTrue(symbiont.getHealth() > 4.0F && !symbiont.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                            "PurifierGrenadeProjectile pulse must heal ColonySymbiontEntity and cure MYCELIAL_INFECTION.");
 
-            hostileMob = ModEntities.SPORELING.get().create(level);
-            helper.assertTrue(hostileMob != null, "SporelingEntity must construct.");
-            hostileMob.moveTo(floorPos.getX() + 2.5D, floorPos.getY() + 1.0D, floorPos.getZ() + 0.5D, 0.0F, 0.0F);
-            level.addFreshEntity(hostileMob);
+                    hostileMob = ModEntities.SPORELING.get().create(level);
+                    helper.assertTrue(hostileMob != null, "SporelingEntity must construct.");
+                    hostileMob.moveTo(floorPos.getX() + 2.5D, floorPos.getY() + 1.0D, floorPos.getZ() + 0.5D, 0.0F, 0.0F);
+                    level.addFreshEntity(hostileMob);
 
-            hostileMob.hurt(level.damageSources().inFire(), 2.0F);
-            helper.assertTrue(HiveBrainBridge.getCombatXp(hostileMob) > 0,
-                    "DamageTelemetryTracker must populate HiveBrain MOB_COMBAT_XP.");
-            helper.assertTrue(HiveBrainBridge.getLastAttackStimulus(hostileMob) == StimulusType.FIRE,
-                    "DamageTelemetryTracker must populate HiveBrain LAST_ATTACK_STIMULUS.");
-            helper.assertTrue(com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.evaluateRegroupUtility(hostileMob) > 0.0F,
-                    "HiveUtilityEvaluator must consume HiveBrain combat XP and fire stimulus.");
+                    hostileMob.hurt(level.damageSources().inFire(), 2.0F);
+                    helper.assertTrue(HiveBrainBridge.getCombatXp(hostileMob) > 0,
+                            "DamageTelemetryTracker must populate HiveBrain MOB_COMBAT_XP.");
+                    helper.assertTrue(HiveBrainBridge.getLastAttackStimulus(hostileMob) == StimulusType.FIRE,
+                            "DamageTelemetryTracker must populate HiveBrain LAST_ATTACK_STIMULUS.");
+                    helper.assertTrue(com.alex.mycelialmind.entity.ai.HiveUtilityEvaluator.evaluateRegroupUtility(hostileMob) > 0.0F,
+                            "HiveUtilityEvaluator must consume HiveBrain combat XP and fire stimulus.");
 
-            helper.succeed();
-        } finally {
-            if (grenade != null && !grenade.isRemoved()) {
-                grenade.discard();
-            }
-            if (hostileMob != null) {
-                hostileMob.discard();
-            }
-            if (symbiont != null) {
-                symbiont.discard();
-            }
-            level.removeBlock(floorPos, false);
-            hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
-        }
+                } finally {
+                    if (grenade != null && !grenade.isRemoved()) {
+                        grenade.discard();
+                    }
+                    if (hostileMob != null) {
+                        hostileMob.discard();
+                    }
+                    if (symbiont != null) {
+                        symbiont.discard();
+                    }
+                    level.removeBlock(floorPos, false);
+                    hive.restoreFromSnapshot(hiveSnapshot, level.registryAccess());
+                    releaseArenaChunks(level, forced);
+                }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = "empty", batch = "colony_dialect_integration")
