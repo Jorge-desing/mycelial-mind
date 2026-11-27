@@ -116,6 +116,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
@@ -9229,9 +9230,12 @@ public final class MycelialGameTests {
             pupil.setPos(c.getX() + 2.5D, c.getY(), c.getZ() + 0.5D);
             helper.assertTrue(com.alex.mycelialmind.colony.ColonyDialectCallDirector.emit(level, colony, b, c, escort, player),
                     "A shared escort call must create a request for an active courier.");
+            level.getEntitiesOfClass(net.minecraft.world.entity.monster.Monster.class,
+                    new AABB(nexusPos).inflate(48.0D)).forEach(Entity::discard);
             var sentinelGoal = new com.alex.mycelialmind.entity.ai.colony.SymbiontSentinelGoal(pupil);
             sentinelGoal.tick();
-            helper.assertTrue("courier_escort".equals(pupil.getTaskState()), "The sentinel must respond to the escort request.");
+            helper.assertTrue("courier_escort".equals(pupil.getTaskState()),
+                    "The sentinel must respond to the escort request, got: " + pupil.getTaskState());
             var pickup = com.alex.mycelialmind.colony.ColonySiteHabit.STAGGERED_PICKUP;
             colony.getDialect(c).teach(pickup, 5);
             colony.getDialect(b).teach(pickup, 5);

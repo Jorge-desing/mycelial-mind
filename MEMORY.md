@@ -5276,3 +5276,11 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/{MycelialGameTestSupport,MycelialGameTests}.java`.
 - **Skills:** Revisadas las skills pertinentes (`neoforge-gametest`, `mycelial-codemode`, `mycelial-diagnostics`); no requirieron cambios adicionales.
 - **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `37s`, `:test` OK, `All 215 required tests passed :)` en `12.86 s`, `Dry run publishGithub` OK).
+
+
+## [2026-11-27 13:33] — Limpieza de hostiles cercanos en GameTest de escolta de dialectos
+- **Tipo:** `CORRECCIÓN` / `VERIFICACIÓN`
+- **Resumen:** En CI (`run 46063844528`), `weaversupportcoversseparatedsquad` pasó con el ticket radio `3` + `LockSupport.parkNanos`, mientras `dialectlessonthreesitesandrestcall` falló al verificar `"courier_escort"` en `SymbiontSentinelGoal.tick()`. Como `findBestThreat` prioriza cualquier `Monster` en 48 bloques alrededor de `nexusPos` sobre `followCourierEscort`, se limpian entidades `Monster` cercanas justo antes de evaluar `sentinelGoal.tick()` y se reporta el estado obtenido en el mensaje de aserción.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`dialectLessonThreeSitesAndRestCall`).
+- **Skills:** Revisadas las skills pertinentes; no requirieron cambios adicionales.
+- **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `34s`, `All 215 required tests passed :)` en `12.25 s`, `Dry run publishGithub` OK).
