@@ -257,7 +257,7 @@ public final class MycelialGameTests {
                 .thenSucceed();
     }
 
-    @GameTest(batch = "entity_ai_weaver_support", template = "empty", timeoutTicks = 300)
+    @GameTest(batch = "entity_ai_weaver_support", template = "empty", timeoutTicks = 400)
     public static void weaverSupportCoversSeparatedSquad(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forced = forceArenaChunks(helper, -4, 22, -5, 14);

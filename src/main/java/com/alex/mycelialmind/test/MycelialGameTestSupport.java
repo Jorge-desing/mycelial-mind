@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * Reusable arena chunk-forcing, state reset, and probe helpers shared across NeoForge GameTest suites.
@@ -63,7 +64,7 @@ final class MycelialGameTestSupport {
                 if (refs > 0) {
                     ARENA_CHUNK_REFS.put(key, refs + 1);
                 } else {
-                    level.getChunkSource().addRegionTicket(ARENA_ENTITY_TICKET, cp, 2, cp, true);
+                    level.getChunkSource().addRegionTicket(ARENA_ENTITY_TICKET, cp, 3, cp, true);
                     level.getChunk(cx, cz);
                     ARENA_CHUNK_REFS.put(key, 1);
                 }
@@ -81,6 +82,7 @@ final class MycelialGameTestSupport {
                 ChunkPos chunk = new ChunkPos(chunkX, chunkZ);
                 if (!level.isPositionEntityTicking(chunk.getWorldPosition())
                         || !level.areEntitiesLoaded(chunk.toLong())) {
+                    LockSupport.parkNanos(2_000_000L);
                     return false;
                 }
             }
@@ -94,7 +96,7 @@ final class MycelialGameTestSupport {
             int refs = ARENA_CHUNK_REFS.getOrDefault(key, 0);
             if (refs <= 1) {
                 ARENA_CHUNK_REFS.remove(key);
-                level.getChunkSource().removeRegionTicket(ARENA_ENTITY_TICKET, cp, 2, cp, true);
+                level.getChunkSource().removeRegionTicket(ARENA_ENTITY_TICKET, cp, 3, cp, true);
             } else {
                 ARENA_CHUNK_REFS.put(key, refs - 1);
             }
