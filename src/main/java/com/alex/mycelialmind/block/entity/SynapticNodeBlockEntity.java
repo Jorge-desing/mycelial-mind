@@ -48,6 +48,7 @@ import java.util.UUID;
  * Renders network link particles, dispatches tactical squads, and projects sentinel auras.
  */
 public class SynapticNodeBlockEntity extends BlockEntity {
+    private static final String TAG_OUTBREAK_ORIGIN = "OutbreakOrigin";
     private static final String TAG_ALERT_TICKS = "AlertTicks";
     private static final String TAG_BIOMASS = "BiomassCharge";
     private static final String TAG_STABILITY = "SymbioticStability";
@@ -59,6 +60,7 @@ public class SynapticNodeBlockEntity extends BlockEntity {
     private static final String TAG_BOSS_ANCHOR_OWNER = "BossAnchorOwner";
     public static final int BUFFER_CONSOLIDATION_TICKS = 600; // 30s
 
+    private boolean outbreakOrigin;
     private int alertTicksRemaining = 0;
     private int biomassCharge = 0;
     private int symbioticStability = 100;
@@ -72,6 +74,11 @@ public class SynapticNodeBlockEntity extends BlockEntity {
 
     public SynapticNodeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SYNAPTIC_NODE.get(), pos, state);
+    }
+
+    public void markOutbreakOrigin() {
+        this.outbreakOrigin = true;
+        setChanged();
     }
 
     public SynapticNodeType getNodeType() {
@@ -314,6 +321,14 @@ public class SynapticNodeBlockEntity extends BlockEntity {
             return;
         }
 
+        if (be.outbreakOrigin && be.tickCounter % 100 == 0 && MycelialConfig.MYCELIUM_SPREAD_ENABLED.get()
+                && serverLevel.random.nextDouble() < MycelialConfig.MYCELIUM_SPREAD_CHANCE.get()) {
+            BlockPos growth = com.alex.mycelialmind.world.OutbreakNaturalGrowth.grow(serverLevel, pos, serverLevel.random);
+            if (growth != null) {
+                com.alex.mycelialmind.world.OutbreakSurfaceEmergence.tryEmerge(serverLevel, pos, growth, serverLevel.random);
+            }
+        }
+
         if (be.getVolatileTotal() > 0.0) {
             be.bufferAgeTicks += 20;
             be.setChanged();
@@ -427,7 +442,12 @@ public class SynapticNodeBlockEntity extends BlockEntity {
         BlockState nextState = targetType == SynapticNodeType.INCUBATOR
                 ? ModBlocks.INCUBATOR_NODE.get().defaultBlockState()
                 : ModBlocks.SENTINEL_NODE.get().defaultBlockState();
+        boolean isOutbreak = level.getBlockEntity(pos) instanceof SynapticNodeBlockEntity previous
+                && previous.outbreakOrigin;
         level.setBlockAndUpdate(pos, nextState);
+        if (isOutbreak && level.getBlockEntity(pos) instanceof SynapticNodeBlockEntity promoted) {
+            promoted.markOutbreakOrigin();
+        }
         tracker.addNode(pos, targetType);
         level.sendParticles(ModParticles.TIDE_MOTE.get(), pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5,
                 28, 0.4, 0.5, 0.4, 0.06);
@@ -583,6 +603,7 @@ public class SynapticNodeBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        tag.putBoolean(TAG_OUTBREAK_ORIGIN, outbreakOrigin);
         tag.putInt(TAG_ALERT_TICKS, alertTicksRemaining);
         tag.putInt(TAG_BIOMASS, biomassCharge);
         tag.putInt(TAG_STABILITY, symbioticStability);
@@ -607,6 +628,7 @@ public class SynapticNodeBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        this.outbreakOrigin = tag.getBoolean(TAG_OUTBREAK_ORIGIN);
         this.alertTicksRemaining = tag.getInt(TAG_ALERT_TICKS);
         this.biomassCharge = tag.getInt(TAG_BIOMASS);
         this.symbioticStability = tag.contains(TAG_STABILITY) ? tag.getInt(TAG_STABILITY) : 100;

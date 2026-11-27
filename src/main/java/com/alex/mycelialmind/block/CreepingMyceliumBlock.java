@@ -126,11 +126,23 @@ public class CreepingMyceliumBlock extends Block {
                     random.nextInt(3) - 1,
                     random.nextInt(3) - 1
             );
-            if (target.equals(pos) || tracker.isProtected(target)) {
+            // Keep spreading attached to the existing colony, including one-block slopes.
+            int horizontalDistance = Math.abs(target.getX() - pos.getX()) + Math.abs(target.getZ() - pos.getZ());
+            if (target.equals(pos) || (level.dimension().equals(Level.OVERWORLD) && horizontalDistance > 1)
+                    || !level.hasChunkAt(target)
+                    || tracker.isProtected(target)) {
                 continue;
             }
             BlockState targetState = level.getBlockState(target);
-            if (canInfect(level, target, targetState)) {
+            boolean caveFloor = level.dimension().equals(Level.OVERWORLD)
+                    && (targetState.is(BlockTags.BASE_STONE_OVERWORLD)
+                    || targetState.is(ModBlocks.MYCELIAL_STONE.get()))
+                    && level.getBlockEntity(target) == null && level.getFluidState(target).isEmpty()
+                    && level.getBlockState(target.above()).isAir()
+                    && level.getBlockState(target.above(2)).isAir()
+                    && target.getY() < level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                            target.getX(), target.getZ()) - 6;
+            if (canInfect(level, target, targetState) || caveFloor) {
                 level.setBlockAndUpdate(target, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
                 return;
             }

@@ -504,7 +504,13 @@ public class PurificationZoneTracker extends SavedData {
     }
 
     public synchronized boolean tryReserveSurfaceHive(BlockPos origin, int minHiveSpacing, int minNodeClearance) {
-        if (hasSurfaceHiveWithin(origin, minHiveSpacing) || hasAnyNodeWithin(origin, minNodeClearance)) {
+        return tryReserveSurfaceHive(origin, minHiveSpacing, minNodeClearance, null);
+    }
+
+    public synchronized boolean tryReserveSurfaceHive(BlockPos origin, int minHiveSpacing, int minNodeClearance,
+                                                      @Nullable BlockPos sourceNode) {
+        if (!validOutbreakSource(sourceNode) || hasSurfaceHiveWithin(origin, minHiveSpacing)
+                || hasOtherNodeWithin(origin, minNodeClearance, sourceNode)) {
             return false;
         }
         addNode(origin, SynapticNodeType.INCUBATOR);
@@ -535,15 +541,35 @@ public class PurificationZoneTracker extends SavedData {
     }
 
     public synchronized boolean tryReserveSinkhole(BlockPos origin, int minSinkholeSpacing, int minNodeClearance) {
-        if (hasSinkholeWithin(origin, minSinkholeSpacing)
+        return tryReserveSinkhole(origin, minSinkholeSpacing, minNodeClearance, null);
+    }
+
+    public synchronized boolean tryReserveSinkhole(BlockPos origin, int minSinkholeSpacing, int minNodeClearance,
+                                                   @Nullable BlockPos sourceNode) {
+        if (!validOutbreakSource(sourceNode) || hasSinkholeWithin(origin, minSinkholeSpacing)
                 || hasSurfaceHiveWithin(origin, Math.max(minNodeClearance, minSinkholeSpacing / 2))
-                || hasAnyNodeWithin(origin, minNodeClearance)) {
+                || hasOtherNodeWithin(origin, minNodeClearance, sourceNode)) {
             return false;
         }
         if (sinkholePositions.add(origin.immutable())) {
             setDirty();
         }
         return true;
+    }
+
+    private boolean validOutbreakSource(@Nullable BlockPos sourceNode) {
+        return sourceNode == null || (nodePositions.contains(sourceNode)
+                && getNodeType(sourceNode) != SynapticNodeType.SYMBIOTIC);
+    }
+
+    private boolean hasOtherNodeWithin(BlockPos origin, int radius, @Nullable BlockPos excluded) {
+        double maxSq = (double) radius * radius;
+        for (BlockPos node : nodePositions) {
+            if (!node.equals(excluded) && node.distSqr(origin) <= maxSq) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public synchronized void removeSinkhole(BlockPos origin) {

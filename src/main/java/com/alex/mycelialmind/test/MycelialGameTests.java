@@ -1961,6 +1961,16 @@ public final class MycelialGameTests {
         HiveMindSavedData hive = resetHive(level);
         hive.recordStimulus(StimulusType.MELEE, 550.0);
         var architect = helper.spawnWithNoFreeWill(ModEntities.SPORE_ARCHITECT.get(), 2, 2, 2);
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                if (Math.abs(dx) == 2 || Math.abs(dz) == 2) {
+                    level.setBlock(nodeAbs.below().offset(dx, 0, dz), Blocks.STONE.defaultBlockState(), 18);
+                }
+            }
+        }
+        helper.assertFalse(architect.attemptPlantColonyAt(level, nodeAbs),
+                "An architect must not start an isolated mycelium patch.");
+        level.setBlock(nodeAbs.below().west(2), ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState(), 18);
         boolean planted = architect.attemptPlantColonyAt(level, nodeAbs);
         if (!planted
                 || !helper.getBlockState(nodeRel).is(ModBlocks.MYCELIAL_NODE.get())
@@ -8336,30 +8346,12 @@ public final class MycelialGameTests {
                 }
             }
 
-            boolean surfPlaced = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
+            boolean naturalSurface = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
                     net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
                     level, level.getChunkSource().getGenerator(), level.getRandom(), surfaceGround);
-            helper.assertTrue(surfPlaced, "Surface outbreak must place above subterranean cavern.");
-            helper.assertTrue(level.getBlockState(lowerCaveGround).is(ModBlocks.MYCELIAL_NODE.get()),
-                    "Surface outbreak must seed a linked subterranean MYCELIAL_NODE on the cavern floor below.");
-
-            boolean foundTaprootBlock = false;
-            for (int y = lowerCaveGround.getY() + 6; y <= surfaceGround.getY() - 2; y++) {
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dz = -1; dz <= 1; dz++) {
-                        BlockState st = level.getBlockState(new BlockPos(surfaceGround.getX() + dx, y, surfaceGround.getZ() + dz));
-                        if (st.is(ModBlocks.LUMINESCENT_AMBER_VEIN.get()) || st.is(ModBlocks.MYCELIAL_ARCH_BRICK.get())) {
-                            foundTaprootBlock = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            helper.assertTrue(foundTaprootBlock, "Vertical taproot must weave amber/arch_brick conduit between surface and cavern.");
-
-            var linked = tracker.getLinkedNodes(surfaceGround);
-            helper.assertTrue(linked.contains(lowerCaveGround),
-                    "Surface outbreak node must have an active vertical synaptic link to the subterranean node below.");
+            helper.assertFalse(naturalSurface, "Natural outbreaks must begin below ground.");
+            helper.assertFalse(level.getBlockState(lowerCaveGround).is(ModBlocks.MYCELIAL_NODE.get()),
+                    "Worldgen must not create an immediate linked surface patch.");
 
             helper.succeed();
         } finally {
@@ -12205,6 +12197,350 @@ public final class MycelialGameTests {
             helper.assertTrue(exposedAmber >= 2, "Fissure should expose amber near its central node.");
         } finally {
             tracker.removeNode(center);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_surface_source")
+    public static void surfaceStructuresReserveOnlyTheirSourceOutbreak(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        BlockPos surface = helper.absolutePos(new BlockPos(8, 180, 8));
+        BlockPos source = surface.below(50);
+        tracker.clearAll();
+        try {
+            helper.assertFalse(tracker.tryReserveSurfaceHive(surface, 256, 72, source),
+                    "A missing source must not reserve a linked surface hive.");
+            helper.assertFalse(tracker.tryReserveSinkhole(surface, 320, 96, source),
+                    "A missing source must not reserve a linked sinkhole.");
+            tracker.addNode(source, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
+            helper.assertFalse(tracker.tryReserveSurfaceHive(surface, 256, 72),
+                    "The source must still block unrelated hive placement.");
+            helper.assertTrue(tracker.tryReserveSurfaceHive(surface, 256, 72, source),
+                    "A hive linked to its source may pass that source's clearance.");
+            tracker.removeNode(surface);
+            tracker.removeNode(surface.above(3));
+            BlockPos unrelated = surface.offset(2, -45, 0);
+            tracker.addNode(unrelated, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
+            helper.assertFalse(tracker.tryReserveSinkhole(surface, 320, 96, source),
+                    "The source exemption must not ignore another nearby node.");
+            tracker.removeNode(unrelated);
+            helper.assertTrue(tracker.tryReserveSinkhole(surface, 320, 96, source),
+                    "A sinkhole linked to its source may pass that source's clearance.");
+            helper.assertTrue(tracker.getNodeType(source) == com.alex.mycelialmind.world.SynapticNodeType.RELAY,
+                    "Reserving a surface structure must preserve the source node.");
+        } finally {
+            tracker.clearAll();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_surface_structures", timeoutTicks = 200)
+    public static void linkedOutbreakSurfaceStructuresKeepTheirUndergroundSource(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        BlockPos hiveOrigin = helper.absolutePos(new BlockPos(8, 200, 8));
+        BlockPos sinkOrigin = hiveOrigin.offset(0, 0, 200);
+        tracker.clearAll();
+        try {
+            for (BlockPos origin : java.util.List.of(hiveOrigin, sinkOrigin)) {
+                int zRadius = origin.equals(sinkOrigin) ? 22 : 12;
+                for (int dx = -12; dx <= 12; dx++) {
+                    for (int dz = -zRadius; dz <= zRadius; dz++) {
+                        for (int dy = -34; dy <= 16; dy++) {
+                            level.setBlock(origin.offset(dx, dy, dz),
+                                    (dy < 0 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), 18);
+                        }
+                    }
+                }
+            }
+            BlockPos hiveSource = hiveOrigin.below(46);
+            BlockPos sinkSource = sinkOrigin.below(46);
+            helper.assertFalse(com.alex.mycelialmind.world.SurfaceHiveFeature.generateHiveFromOutbreak(
+                            level, hiveOrigin, hiveSource, net.minecraft.util.RandomSource.create(9)),
+                    "A surface hive must reject an unregistered source.");
+            helper.assertFalse(com.alex.mycelialmind.world.MycelialSinkholeFeature.generateSinkholeFromOutbreak(
+                            level, sinkOrigin, sinkSource, net.minecraft.util.RandomSource.create(9)),
+                    "A sinkhole must reject an unregistered source.");
+            for (BlockPos source : java.util.List.of(hiveSource, sinkSource)) {
+                level.setBlock(source, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 18);
+                tracker.addNode(source, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
+                for (int dy = 1; dy < 45; dy++) {
+                    level.setBlock(source.above(dy), ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState(), 18);
+                }
+            }
+            helper.assertTrue(com.alex.mycelialmind.world.SurfaceHiveFeature.generateHiveFromOutbreak(
+                            level, hiveOrigin, hiveSource, net.minecraft.util.RandomSource.create(19)),
+                    "A supported surface hive should emerge from its registered cave source.");
+            helper.assertTrue(level.getBlockState(hiveSource).is(ModBlocks.MYCELIAL_NODE.get())
+                            && level.getBlockState(hiveOrigin.below(6)).is(ModBlocks.MYCELIAL_ARCH_BRICK.get())
+                            && level.getBlockState(hiveOrigin.below(5)).is(Blocks.STONE)
+                            && level.getBlockState(hiveOrigin).is(ModBlocks.INCUBATOR_NODE.get()),
+                    "The hive must retain the underground source and its upper root.");
+            helper.assertTrue(com.alex.mycelialmind.world.MycelialSinkholeFeature.generateSinkholeFromOutbreak(
+                            level, sinkOrigin, sinkSource, net.minecraft.util.RandomSource.create(29)),
+                    "A supported sinkhole should emerge from its registered cave source.");
+            helper.assertTrue(level.getBlockState(sinkSource).is(ModBlocks.MYCELIAL_NODE.get())
+                            && level.getBlockState(sinkOrigin.below(33)).is(ModBlocks.MYCELIAL_ARCH_BRICK.get())
+                            && (level.getBlockState(sinkOrigin.below(32)).is(ModBlocks.MYCELIAL_STONE.get())
+                                    || level.getBlockState(sinkOrigin.below(32)).is(ModBlocks.MYCELIAL_ARCH_BRICK.get())),
+                    "The sinkhole floor must meet the root while preserving the source: source="
+                            + level.getBlockState(sinkSource) + ", root=" + level.getBlockState(sinkOrigin.below(33))
+                            + ", floor=" + level.getBlockState(sinkOrigin.below(32)));
+        } finally {
+            tracker.clearAll();
+            net.minecraft.world.phys.AABB sinkArea = new net.minecraft.world.phys.AABB(sinkOrigin).inflate(24, 40, 24);
+            for (var mob : level.getEntitiesOfClass(com.alex.mycelialmind.entity.RootKeeperEntity.class, sinkArea)) {
+                mob.discard();
+            }
+            for (var mob : level.getEntitiesOfClass(com.alex.mycelialmind.entity.SporeGliderEntity.class, sinkArea)) {
+                mob.discard();
+            }
+        }
+        helper.succeed();
+    }
+
+
+    @GameTest(template = "empty", batch = "outbreak_natural_growth", timeoutTicks = 400)
+    public static void caveOutbreakSeedsMyceliumAfterGenerationAndSpreadsAcrossStone(GameTestHelper helper) throws Exception {
+        ServerLevel level = helper.getLevel();
+        BlockPos center = helper.absolutePos(new BlockPos(8, 190, 8));
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        for (int x = -5; x <= 5; x++) {
+            for (int z = -5; z <= 5; z++) {
+                level.setBlock(center.offset(x, -1, z), Blocks.STONE.defaultBlockState(), 18);
+                level.setBlock(center.offset(x, 0, z), Blocks.STONE.defaultBlockState(), 18);
+                for (int y = 1; y <= 5; y++) {
+                    level.setBlock(center.offset(x, y, z), Blocks.AIR.defaultBlockState(), 18);
+                }
+                level.setBlock(center.offset(x, 6, z), Blocks.STONE.defaultBlockState(), 18);
+            }
+        }
+        try {
+            helper.assertTrue(MycelialOutbreakFeature.generateOutbreakAt(level, center,
+                    net.minecraft.util.RandomSource.create(52)), "Expected a cave outbreak.");
+            BlockPos seed = center.below();
+            helper.assertFalse(level.getBlockState(seed).is(ModBlocks.CREEPING_MYCELIUM.get()),
+                    "The initial generation must not place mycelium at the seed.");
+            var node = (com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity) level.getBlockEntity(center);
+            helper.assertTrue(node != null, "Expected the outbreak node.");
+            var persisted = node.saveWithoutMetadata(level.registryAccess());
+            helper.assertTrue(persisted.getBoolean("OutbreakOrigin"), "Outbreak origin must be persisted.");
+            var restored = new com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity(center, level.getBlockState(center));
+            restored.loadWithComponents(persisted, level.registryAccess());
+            helper.assertTrue(restored.saveWithoutMetadata(level.registryAccess()).getBoolean("OutbreakOrigin"),
+                    "The outbreak origin must survive a save and reload.");
+            if (node.getNodeType() == com.alex.mycelialmind.world.SynapticNodeType.RELAY) {
+                com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity.matureRelayNode(level, center, tracker);
+                node = (com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity) level.getBlockEntity(center);
+                helper.assertTrue(node != null && node.saveWithoutMetadata(level.registryAccess()).getBoolean("OutbreakOrigin"),
+                        "The outbreak origin must survive node maturation.");
+            }
+            for (int ticks = 0; ticks < 10000 && !level.getBlockState(seed).is(ModBlocks.CREEPING_MYCELIUM.get()); ticks++) {
+                com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity.serverTick(level, center,
+                        level.getBlockState(center), node);
+            }
+            helper.assertTrue(level.getBlockState(seed).is(ModBlocks.CREEPING_MYCELIUM.get()),
+                    "The outbreak should seed mycelium during server ticks.");
+            var randomTick = com.alex.mycelialmind.block.CreepingMyceliumBlock.class.getDeclaredMethod("randomTick",
+                    BlockState.class, ServerLevel.class, BlockPos.class, net.minecraft.util.RandomSource.class);
+            randomTick.setAccessible(true);
+            var random = net.minecraft.util.RandomSource.create(789);
+            for (int attempt = 0; attempt < 1500; attempt++) {
+                randomTick.invoke(ModBlocks.CREEPING_MYCELIUM.get(), level.getBlockState(seed), level, seed, random);
+            }
+            long grown = BlockPos.betweenClosedStream(center.offset(-1, -1, -1), center.offset(1, 0, 1))
+                    .filter(pos -> !pos.equals(seed) && level.getBlockState(pos).is(ModBlocks.CREEPING_MYCELIUM.get())).count();
+            helper.assertTrue(grown > 0, "Mycelium should spread from the outbreak into the cave floor.");
+        } finally {
+            tracker.removeNode(center);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_growth_corridors")
+    public static void caveOutbreakGrowthFollowsConnectedWalkableCave(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos center = helper.absolutePos(new BlockPos(8, 210, 8));
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        try {
+            for (int x = -2; x <= 16; x++) {
+                for (int z = -3; z <= 3; z++) {
+                    for (int y = -2; y <= 5; y++) {
+                        level.setBlock(center.offset(x, y, z), Blocks.STONE.defaultBlockState(), 18);
+                    }
+                }
+            }
+            for (int x = 0; x <= 15; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    int height = x >= 8 ? 1 : 0;
+                    for (int y = height + 1; y <= height + 3; y++) {
+                        level.setBlock(center.offset(x, y, z), Blocks.AIR.defaultBlockState(), 18);
+                    }
+                }
+            }
+            level.setBlock(center, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 18);
+            BlockPos water = center.offset(7, 1, 1);
+            level.setBlock(water, Blocks.WATER.defaultBlockState(), 18);
+            var random = net.minecraft.util.RandomSource.create(1949L);
+            for (int i = 0; i < 100; i++) {
+                com.alex.mycelialmind.world.OutbreakNaturalGrowth.pulse(level, center, random);
+            }
+            long farGrowth = BlockPos.betweenClosedStream(center.offset(10, 1, -1), center.offset(15, 1, 1))
+                    .filter(pos -> level.getBlockState(pos).is(ModBlocks.CREEPING_MYCELIUM.get())).count();
+            helper.assertTrue(farGrowth > 0, "Natural growth should reach the far end of a connected cave passage.");
+            helper.assertTrue(level.getFluidState(water).is(net.minecraft.tags.FluidTags.WATER),
+                    "Natural growth must preserve cave water.");
+            helper.assertTrue(level.getBlockState(center.offset(5, 1, 0)).isAir()
+                            && level.getBlockState(center.offset(5, 2, 0)).isAir(),
+                    "Natural growth must leave the passage walkable.");
+        } finally {
+            tracker.clearAll();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_grown_surface", timeoutTicks = 200)
+    public static void surfaceEmergenceProtectsBuildingsAndDoesNotGenerateMycelium(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos origin = helper.absolutePos(new BlockPos(8, 200, 8));
+        BlockPos grown = origin.below();
+        BlockPos source = origin.offset(3, -12, 0);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        try {
+            for (int x = -12; x <= 12; x++) {
+                for (int z = -12; z <= 12; z++) {
+                    for (int y = -10; y <= 17; y++) {
+                        level.setBlock(origin.offset(x, y, z),
+                                (y < 0 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), 18);
+                    }
+                }
+            }
+            level.setBlock(source, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 18);
+            tracker.addNode(source, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
+            level.setBlock(grown, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState(), 18);
+            BlockPos chest = origin.offset(8, 0, 0);
+            level.setBlock(chest, Blocks.CHEST.defaultBlockState(), 18);
+            long seed = 0;
+            while (seed < 10000 && net.minecraft.util.RandomSource.create(seed).nextInt(100) != 0) {
+                seed++;
+            }
+            helper.assertTrue(seed < 10000, "Expected a seed for a surface emergence attempt.");
+            boolean blocked = com.alex.mycelialmind.world.OutbreakSurfaceEmergence.tryEmerge(
+                    level, source, grown, net.minecraft.util.RandomSource.create(seed));
+            helper.assertFalse(blocked, "Surface emergence must avoid existing block entities.");
+            helper.assertTrue(level.getBlockEntity(chest) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity,
+                    "Surface emergence must preserve the chest.");
+            level.setBlock(chest, Blocks.AIR.defaultBlockState(), 18);
+            boolean emerged = com.alex.mycelialmind.world.OutbreakSurfaceEmergence.tryEmerge(
+                    level, source, grown, net.minecraft.util.RandomSource.create(seed));
+            helper.assertTrue(emerged, "A connected colony should be able to establish a surface hive.");
+            helper.assertTrue(level.getBlockState(source).is(ModBlocks.MYCELIAL_NODE.get()),
+                    "The original underground node must survive surface emergence.");
+            long mycelium = BlockPos.betweenClosedStream(origin.offset(-11, -6, -11), origin.offset(11, 16, 11))
+                    .filter(pos -> level.getBlockState(pos).is(ModBlocks.CREEPING_MYCELIUM.get())).count();
+            helper.assertTrue(mycelium <= 1, "The structure must not create a prefabricated mycelium carpet.");
+        } finally {
+            tracker.clearAll();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_growth_to_surface", timeoutTicks = 200)
+    public static void connectedCaveGrowthCanReachSurfaceAndEstablishHive(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos origin = helper.absolutePos(new BlockPos(8, 230, 8));
+        BlockPos source = origin.offset(-12, -11, 0);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        try {
+            for (int x = -13; x <= 25; x++) {
+                for (int z = -12; z <= 12; z++) {
+                    for (int y = -13; y <= 17; y++) {
+                        level.setBlock(origin.offset(x, y, z),
+                                (y < 0 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), 18);
+                    }
+                }
+            }
+            for (int x = -12; x <= 0; x++) {
+                int floor = -11 + (x + 12) * 10 / 12;
+                for (int y = floor + 1; y <= floor + 3; y++) {
+                    level.setBlock(origin.offset(x, y, 0), Blocks.AIR.defaultBlockState(), 18);
+                }
+            }
+            level.setBlock(source, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 18);
+            tracker.addNode(source, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
+            var random = net.minecraft.util.RandomSource.create(619L);
+            BlockPos surface = origin.offset(12, -1, 0);
+            for (int attempt = 0; attempt < 1500 && !level.getBlockState(surface).is(ModBlocks.CREEPING_MYCELIUM.get()); attempt++) {
+                com.alex.mycelialmind.world.OutbreakNaturalGrowth.pulse(level, source, random);
+            }
+            helper.assertTrue(level.getBlockState(surface).is(ModBlocks.CREEPING_MYCELIUM.get()),
+                    "Growth should reach the surface along the connected sloping cave.");
+            long seed = 0;
+            while (seed < 10000 && net.minecraft.util.RandomSource.create(seed).nextInt(100) != 0) {
+                seed++;
+            }
+            helper.assertTrue(seed < 10000 && com.alex.mycelialmind.world.OutbreakSurfaceEmergence.tryEmerge(
+                            level, source, surface, net.minecraft.util.RandomSource.create(seed)),
+                    "A colony that has grown to the surface should be able to form a hive.");
+            helper.assertTrue(level.getBlockState(source).is(ModBlocks.MYCELIAL_NODE.get()),
+                    "Surface emergence must retain its originating node.");
+        } finally {
+            tracker.clearAll();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "outbreak_grown_sinkhole", timeoutTicks = 200)
+    public static void grownSurfaceCanEstablishSinkholeWithoutCreatingMycelium(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos origin = helper.absolutePos(new BlockPos(8, 230, 8));
+        BlockPos source = origin.offset(3, -46, 0);
+        BlockPos grown = origin.below();
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        try {
+            for (int x = -12; x <= 12; x++) {
+                for (int z = -24; z <= 24; z++) {
+                    for (int y = -38; y <= 6; y++) {
+                        level.setBlock(origin.offset(x, y, z),
+                                (y < 0 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), 18);
+                    }
+                }
+            }
+            level.setBlock(source, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 18);
+            tracker.addNode(source, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
+            level.setBlock(grown, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState(), 18);
+            long seed = 0;
+            while (seed < 100000) {
+                var probe = net.minecraft.util.RandomSource.create(seed);
+                if (probe.nextInt(100) == 0 && probe.nextInt(3) == 0) {
+                    break;
+                }
+                seed++;
+            }
+            helper.assertTrue(seed < 100000 && com.alex.mycelialmind.world.OutbreakSurfaceEmergence.tryEmerge(
+                            level, source, grown, net.minecraft.util.RandomSource.create(seed)),
+                    "A deep colony reaching the surface should be able to form a sinkhole.");
+            helper.assertTrue(level.getBlockState(source).is(ModBlocks.MYCELIAL_NODE.get())
+                            && tracker.hasSinkholeWithin(origin, 2),
+                    "The sinkhole must retain the source and register its position.");
+            long mycelium = BlockPos.betweenClosedStream(origin.offset(-12, -34, -24), origin.offset(12, 6, 24))
+                    .filter(pos -> level.getBlockState(pos).is(ModBlocks.CREEPING_MYCELIUM.get())).count();
+            helper.assertTrue(mycelium <= 1, "The sinkhole must not create a prefabricated mycelium carpet.");
+        } finally {
+            tracker.clearAll();
+            var box = new net.minecraft.world.phys.AABB(origin).inflate(24, 40, 28);
+            for (var mob : level.getEntitiesOfClass(com.alex.mycelialmind.entity.RootKeeperEntity.class, box)) {
+                mob.discard();
+            }
+            for (var mob : level.getEntitiesOfClass(com.alex.mycelialmind.entity.SporeGliderEntity.class, box)) {
+                mob.discard();
+            }
         }
         helper.succeed();
     }

@@ -5144,3 +5144,20 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Resumen:** Rediseñados los brotes de superficie y cueva como surcos con fondo de ámbar, bordes de piedra micelial, flora y nodo central. Se conservaron la bóveda y las conexiones verticales; el generador valida soporte y protege bloques sensibles.
 - **Archivos / Símbolos:** `MycelialOutbreakFeature`, `MycelialGameTests`, `StructureVisualSmokeClient`, `scripts/structure_visual_check.py`, referencias visuales de brotes y skill `mycelial-diagnostics`.
 - **Verificación:** `test build runGameTestServer -PisolatedGameTests=true` completó con 206/206 GameTests. `runStructureVisualSmoke` capturó siete vistas y confirmó todos los emplazamientos. Las nuevas vistas de brotes pasan su comparación; la comparación global señala diferencias en tres capturas preexistentes del santuario y la ciudadela, cuya causa queda pendiente.
+
+
+## [2026-11-26 23:56] — Crecimiento natural desde brotes de cueva en curso
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
+- **Resumen:** El usuario precisó que el micelio debe crecer durante la partida desde brotes de cueva, sin manchas prefabricadas, y que Micelio Profundo conserva su terreno natural. El Overworld dejó de registrar brotes, colmenas y sumideros superficiales independientes. Los nodos de brote se marcan y siembran micelio durante ticks, que puede propagarse por suelo seco de cuevas; el Arquitecto necesita micelio adyacente. Se retiraron las rutas que se pintaban durante la generación.
+- **Archivos / Símbolos:** `MycelialOutbreakFeature`, `SynapticNodeBlockEntity`, `CreepingMyceliumBlock`, `SporeArchitectEntity`, `MycelialBiomeBootstrap`, `MycelialGameTests`.
+- **Verificación:** `test build runGameTestServer -PisolatedGameTests=true`: 209/209 GameTests, incluida la siembra posterior a generación y propagación sobre piedra. `runData` completado. La captura anterior con rutas prefabricadas ya no representa el comportamiento actual.
+- **Pendiente:** Desarrollar y verificar crecimiento progresivo por cuevas hasta superficie y la aparición progresiva de colmenas/sumideros ligados al brote, junto con capturas finales. Las funciones de conexión anteriores quedaron fuera de la generación automática hasta completar esta transición.
+
+
+
+
+## [2026-11-27 00:20] — Crecimiento natural de brotes y conexiones de cuevas
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
+- **Resumen:** En el Overworld el micelio comienza en nodos de brotes subterráneos y se extiende durante la partida por suelo transitable conectado, con pulsos acotados y propagación normal. Se conservan la marca del origen al guardar y al madurar el nodo, el límite de chunks cargados y la protección de Pilones. El Arquitecto expande desde micelio existente. Micelio Profundo conserva su terreno natural.
+- **Superficie:** Los registros de generación independiente de manchas, colmenas y sumideros se quitaron del modificador del Overworld. Cuando una colonia llega a la superficie puede establecer una colmena o un sumidero si el volumen es seguro; la estructura se coloca en una operación y no genera una alfombra nueva de micelio. Se rechazan obstáculos, líquidos y micelio bajo el área para conservar conexiones existentes.
+- **Verificación:** Worktree aislado desde `61c0bfd` con los archivos de esta tarea: `test build runGameTestServer -PisolatedGameTests=true runStructureVisualSmoke`, BUILD SUCCESSFUL; 170/170 JUnit y 213/213 GameTests. La escena artificial captura antes y después de 140 pulsos simulados. Comparación de estructuras: vistas de brote aprobadas; persisten diferencias anteriores en tres vistas del santuario/ciudadela. `validate_skills`: 8/8.

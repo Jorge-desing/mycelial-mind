@@ -59,6 +59,29 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
     }
 
     public static boolean generateSinkholeAt(WorldGenLevel level, BlockPos origin, RandomSource random) {
+        return generateSinkholeAt(level, origin, random, null);
+    }
+
+    public static boolean generateSinkholeFromOutbreak(WorldGenLevel level, BlockPos origin, BlockPos source,
+                                                    RandomSource random) {
+        if (source == null || source.getY() > origin.getY() - 40
+                || TerrainPlacementPolicy.isExcludedSurfaceBiome(level, origin)
+                || TerrainPlacementPolicy.isNearVanillaSurfaceStructure(level, origin, 1)) {
+            return false;
+        }
+        HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
+        if (level.getLevel() instanceof ServerLevel serverLevel) {
+            BlockPos spawn = serverLevel.getSharedSpawnPos();
+            if (TerrainPlacementPolicy.isWithinSpawnSafeZone(origin.getX(), origin.getZ(),
+                    spawn.getX(), spawn.getZ(), StructureProgressionPolicy.sinkholeMinSpawnDistance(tier))) {
+                return false;
+            }
+        }
+        return generateSinkholeAt(level, origin, random, source);
+    }
+
+    private static boolean generateSinkholeAt(WorldGenLevel level, BlockPos origin, RandomSource random,
+                                            BlockPos sourceNode) {
         if (level.isOutsideBuildHeight(origin)
                 || origin.getY() + 6 >= level.getMaxBuildHeight()
                 || origin.getY() - 34 < level.getMinBuildHeight() + 4) {
@@ -81,13 +104,14 @@ public class MycelialSinkholeFeature extends Feature<NoneFeatureConfiguration> {
         if (level.getLevel() instanceof ServerLevel serverLevel) {
             PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
             if (tracker.isProtected(origin)
-                    || !tracker.tryReserveSinkhole(origin, minSpacing, minNodeClearance)) {
+                    || !tracker.tryReserveSinkhole(origin, minSpacing, minNodeClearance, sourceNode)) {
                 return false;
             }
         }
 
         BlockState air = Blocks.AIR.defaultBlockState();
-        BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
+        BlockState mycelium = sourceNode == null ? ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState()
+                : Blocks.STONE.defaultBlockState();
         BlockState stone = ModBlocks.MYCELIAL_STONE.get().defaultBlockState();
         BlockState archBrick = ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState();
         BlockState pillar = ModBlocks.CHITIN_PILLAR.get().defaultBlockState();

@@ -36,7 +36,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -143,26 +142,36 @@ public class SporeArchitectEntity extends MycelialMob {
             return false;
         }
         BlockPos groundCenter = nodePos.below();
+        boolean mustConnect = level.dimension().equals(Level.OVERWORLD);
+        if (mustConnect && !hasMyceliumAtColonyEdge(level, groundCenter)) {
+            return false;
+        }
         boolean seededAny = false;
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                BlockPos p = groundCenter.offset(dx, 0, dz);
-                if (tracker.isProtected(p)) {
-                    continue;
-                }
-                BlockState state = level.getBlockState(p);
-                if (CreepingMyceliumBlock.canInfect(level, p, state)) {
-                    level.setBlockAndUpdate(p, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
-                    seededAny = true;
+        boolean changed;
+        do {
+            changed = false;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    BlockPos p = groundCenter.offset(dx, 0, dz);
+                    if (!level.hasChunkAt(p) || tracker.isProtected(p) || (mustConnect && !hasAdjacentMycelium(level, p))) {
+                        continue;
+                    }
+                    BlockState state = level.getBlockState(p);
+                    if (!state.is(ModBlocks.CREEPING_MYCELIUM.get())
+                            && CreepingMyceliumBlock.canInfect(level, p, state)) {
+                        level.setBlockAndUpdate(p, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
+                        seededAny = true;
+                        changed = true;
+                    }
                 }
             }
-        }
+        } while (changed);
 
         boolean placedNode = false;
         BlockState atNode = level.getBlockState(nodePos);
         BlockState groundAfter = level.getBlockState(groundCenter);
         boolean solidSupport = !groundAfter.liquid() && groundAfter.isFaceSturdy(level, groundCenter, Direction.UP);
-        if (solidSupport
+        if (solidSupport && (!mustConnect || groundAfter.is(ModBlocks.CREEPING_MYCELIUM.get()))
                 && (atNode.isAir() || atNode.canBeReplaced())
                 && level.getBlockEntity(nodePos) == null
                 && tracker.countNodes() < MycelialConfig.MAX_AUTONOMOUS_NODES.get()
@@ -181,6 +190,29 @@ public class SporeArchitectEntity extends MycelialMob {
         if (seededAny || placedNode) {
             this.buildCooldownTicks = 240;
             return true;
+        }
+        return false;
+    }
+
+    private static boolean hasMyceliumAtColonyEdge(ServerLevel level, BlockPos center) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                BlockPos p = center.offset(dx, 0, dz);
+                if (level.hasChunkAt(p)
+                        && (level.getBlockState(p).is(ModBlocks.CREEPING_MYCELIUM.get()) || hasAdjacentMycelium(level, p))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasAdjacentMycelium(ServerLevel level, BlockPos pos) {
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighbor = pos.relative(direction);
+            if (level.hasChunkAt(neighbor) && level.getBlockState(neighbor).is(ModBlocks.CREEPING_MYCELIUM.get())) {
+                return true;
+            }
         }
         return false;
     }
@@ -303,21 +335,46 @@ public class SporeArchitectEntity extends MycelialMob {
         @Nullable
         private BlockPos pickCandidate(ServerLevel level) {
             PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
-            BlockPos anchor = this.mob.originNodePos != null ? this.mob.originNodePos : this.mob.blockPosition();
-            for (int attempt = 0; attempt < 6; attempt++) {
-                double angle = this.mob.getRandom().nextDouble() * Math.PI * 2.0;
-                double dist = 16.0 + this.mob.getRandom().nextDouble() * 12.0;
-                int x = anchor.getX() + (int) Math.round(Math.cos(angle) * dist);
-                int z = anchor.getZ() + (int) Math.round(Math.sin(angle) * dist);
-                int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-                BlockPos candidate = new BlockPos(x, y, z);
-                BlockPos belowPos = candidate.below();
-                BlockState belowState = level.getBlockState(belowPos);
-                if (!tracker.isProtected(candidate)
-                        && !belowState.liquid()
-                        && belowState.isFaceSturdy(level, belowPos, Direction.UP)
-                        && level.getBlockState(candidate).canBeReplaced()) {
-                    return candidate;
+            BlockPos anchor = this.mob.blockPosition();
+            if (!level.dimension().equals(Level.OVERWORLD)) {
+                BlockPos originalAnchor = this.mob.originNodePos != null ? this.mob.originNodePos : anchor;
+                for (int attempt = 0; attempt < 6; attempt++) {
+                    double angle = this.mob.getRandom().nextDouble() * Math.PI * 2.0;
+                    double distance = 16.0 + this.mob.getRandom().nextDouble() * 12.0;
+                    int x = originalAnchor.getX() + (int) Math.round(Math.cos(angle) * distance);
+                    int z = originalAnchor.getZ() + (int) Math.round(Math.sin(angle) * distance);
+                    if (!level.hasChunk(x >> 4, z >> 4)) {
+                        continue;
+                    }
+                    int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+                    BlockPos candidate = new BlockPos(x, y, z);
+                    BlockPos below = candidate.below();
+                    BlockState ground = level.getBlockState(below);
+                    if (!tracker.isProtected(candidate) && !ground.liquid()
+                            && ground.isFaceSturdy(level, below, Direction.UP)
+                            && level.getBlockState(candidate).canBeReplaced()) {
+                        return candidate;
+                    }
+                }
+                return null;
+            }
+            for (int attempt = 0; attempt < 16; attempt++) {
+                int x = anchor.getX() + this.mob.getRandom().nextInt(13) - 6;
+                int z = anchor.getZ() + this.mob.getRandom().nextInt(13) - 6;
+                if (!level.hasChunk(x >> 4, z >> 4)) {
+                    continue;
+                }
+                for (int offset : new int[]{0, 1, -1, 2, -2, 3, -3}) {
+                    BlockPos candidate = new BlockPos(x, anchor.getY() + offset, z);
+                    BlockPos belowPos = candidate.below();
+                    BlockState belowState = level.getBlockState(belowPos);
+                    if (!tracker.isProtected(candidate) && !belowState.liquid()
+                            && belowState.isFaceSturdy(level, belowPos, Direction.UP)
+                            && level.getBlockState(candidate).canBeReplaced()
+                            && level.getFluidState(candidate).isEmpty()
+                            && hasMyceliumAtColonyEdge(level, belowPos)) {
+                        return candidate;
+                    }
                 }
             }
             return null;

@@ -32,6 +32,7 @@ import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
@@ -87,7 +88,9 @@ public final class StructureVisualSmokeClient {
             new ShotSpec("outbreak_surface.png", -13.0, 5.0, 8.0, 0.0F, 22.0F, 16,
                     new BlockPos(-13, -1, 16), null),
             new ShotSpec("outbreak_cave.png", -100.0, 22.5, -5.0, 0.0F, 12.0F, 16,
-                    new BlockPos(-100, 20, 0), null)
+                    new BlockPos(-100, 20, 0), null),
+            new ShotSpec("outbreak_cave_route.png", -98.5, 22.5, 4.0, -20.0F, 12.0F, 16,
+                    new BlockPos(-100, 20, 10), null)
     );
 
     private static boolean worldRequested = false;
@@ -199,6 +202,14 @@ public final class StructureVisualSmokeClient {
             if (currentShotIndex > 0 && server != null) {
                 server.execute(() -> {
                     ServerLevel level = server.overworld();
+                    if (spec.filename().equals("outbreak_cave_route.png")) {
+                        BlockPos source = new BlockPos(-100, baseSurfaceY + 20, 0);
+                        RandomSource growthRandom = RandomSource.create(0x47524F57L);
+                        for (int pulse = 0; pulse < 140; pulse++) {
+                            com.alex.mycelialmind.world.OutbreakNaturalGrowth.pulse(level, source, growthRandom);
+                        }
+                        MycelialMind.LOGGER.info("StructureVisualSmoke: simulated 140 cave growth pulses");
+                    }
                     discardFlatWorldSlimes(level, new BlockPos((int) spec.xOffset(), baseSurfaceY, (int) spec.zOffset()));
                     var player = server.getPlayerList().getPlayer(playerId);
                     if (player != null) {
@@ -326,15 +337,24 @@ public final class StructureVisualSmokeClient {
                 level, outbreakPos.below(), RandomSource.create(0x4D594301L));
 
         BlockPos cave = new BlockPos(-100, y + 20, 0);
-        for (int dx = -9; dx <= 9; dx++) {
-            for (int dz = -9; dz <= 9; dz++) {
-                level.setBlock(cave.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 18);
-                level.setBlock(cave.offset(dx, 0, dz), Blocks.STONE.defaultBlockState(), 18);
-                level.setBlock(cave.offset(dx, 7, dz), Blocks.STONE.defaultBlockState(), 18);
-                if (Math.abs(dx) == 9 || Math.abs(dz) == 9) {
-                    for (int height = 1; height < 7; height++) {
-                        level.setBlock(cave.offset(dx, height, dz), Blocks.STONE.defaultBlockState(), 18);
-                    }
+        // Recreate rounded cave chambers with a winding, uneven connection.
+        for (int x = -12; x <= 12; x++) {
+            for (int z = -11; z <= 25; z++) {
+                int floorOffset = z >= 17 ? 2 : z >= 11 ? 1 : 0;
+                double room = x * x / 64.0D + z * z / 49.0D;
+                double farRoom = x * x / 36.0D + (z - 19) * (z - 19) / 36.0D;
+                double passageCenter = 2.5D * Math.sin((z - 2) * 0.35D);
+                double passageWidth = 2.3D + 0.7D * Math.sin(z * 0.57D);
+                for (int height = -2; height <= 9; height++) {
+                    int relativeHeight = height - floorOffset;
+                    double vertical = (relativeHeight - 2.2D) * (relativeHeight - 2.2D) / 13.0D;
+                    double tunnelSide = (x - passageCenter) / passageWidth;
+                    boolean chamber = Math.min(room, farRoom) + vertical * 0.65D < 1.0D;
+                    boolean passage = z >= 3 && z <= 18 && tunnelSide * tunnelSide + vertical < 1.0D;
+                    boolean air = relativeHeight >= 1 && (chamber || passage);
+                    double rockPattern = Math.sin(x * 0.47D + z * 0.23D) * Math.sin(height * 0.51D + z * 0.31D);
+                    BlockState rock = rockPattern > 0.68D ? Blocks.ANDESITE.defaultBlockState() : Blocks.STONE.defaultBlockState();
+                    level.setBlock(cave.offset(x, height, z), air ? Blocks.AIR.defaultBlockState() : rock, 18);
                 }
             }
         }

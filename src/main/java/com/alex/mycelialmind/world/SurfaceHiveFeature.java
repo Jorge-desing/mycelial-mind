@@ -57,6 +57,29 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
     public static final int MIN_NODE_CLEARANCE = 64;
 
     public static boolean generateHiveAt(WorldGenLevel level, BlockPos origin, RandomSource random) {
+        return generateHiveAt(level, origin, random, null);
+    }
+
+    public static boolean generateHiveFromOutbreak(WorldGenLevel level, BlockPos origin, BlockPos source,
+                                                    RandomSource random) {
+        if (source == null || source.getY() >= origin.getY() - 8
+                || TerrainPlacementPolicy.isExcludedSurfaceBiome(level, origin)
+                || TerrainPlacementPolicy.isNearVanillaSurfaceStructure(level, origin, 1)) {
+            return false;
+        }
+        HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
+        if (level.getLevel() instanceof ServerLevel serverLevel) {
+            BlockPos spawn = serverLevel.getSharedSpawnPos();
+            if (TerrainPlacementPolicy.isWithinSpawnSafeZone(origin.getX(), origin.getZ(),
+                    spawn.getX(), spawn.getZ(), StructureProgressionPolicy.surfaceHiveMinSpawnDistance(tier))) {
+                return false;
+            }
+        }
+        return generateHiveAt(level, origin, random, source);
+    }
+
+    private static boolean generateHiveAt(WorldGenLevel level, BlockPos origin, RandomSource random,
+                                            BlockPos sourceNode) {
         if (level.isOutsideBuildHeight(origin) || origin.getY() + 16 >= level.getMaxBuildHeight()) {
             return false;
         }
@@ -78,7 +101,7 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
         if (level.getLevel() instanceof ServerLevel serverLevel) {
             PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
             if (tracker.isProtected(origin)
-                    || !tracker.tryReserveSurfaceHive(origin, minHiveSpacing, minNodeClearance)) {
+                    || !tracker.tryReserveSurfaceHive(origin, minHiveSpacing, minNodeClearance, sourceNode)) {
                 return false;
             }
         }
@@ -88,7 +111,8 @@ public class SurfaceHiveFeature extends Feature<NoneFeatureConfiguration> {
                 origin.getX() + 10, origin.getY() + 16, origin.getZ() + 10
         );
 
-        BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
+        BlockState mycelium = sourceNode == null ? ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState()
+                : Blocks.STONE.defaultBlockState();
         BlockState mycelialStone = ModBlocks.MYCELIAL_STONE.get().defaultBlockState();
         BlockState archBrick = ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState();
         BlockState chitinPillar = ModBlocks.CHITIN_PILLAR.get().defaultBlockState();

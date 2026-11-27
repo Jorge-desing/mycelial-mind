@@ -1,11 +1,6 @@
 {
   "type": "neoforge:add_features",
   "biomes": "#minecraft:is_overworld",
-  "features": [
-    "mycelialmind:mycelial_outbreak",
-    "mycelialmind:surface_spore_patch",
-    "mycelialmind:surface_hive",
-    "mycelialmind:mycelial_sinkhole"
-  ],
+  "features": "mycelialmind:mycelial_outbreak",
   "step": "vegetal_decoration"
 }

@@ -19,6 +19,7 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
+
 /** Generates a low mycelial fissure around a synaptic node. */
 public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
     public MycelialOutbreakFeature(Codec<NoneFeatureConfiguration> codec) {
@@ -51,6 +52,9 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
         boolean isSubterranean = center.getY() < surfaceY - 6;
 
         HiveProgressionTier tier = StructureProgressionPolicy.resolveTier(level);
+        if (enforceWorldgenGates && isOverworld && !isSubterranean) {
+            return false;
+        }
         if (isSubterranean && enforceWorldgenGates && !TerrainPlacementPolicy.hasSafeSubterraneanOutbreakFooting(level, center)) {
             return false;
         }
@@ -94,9 +98,12 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
             case INCUBATOR -> ModBlocks.INCUBATOR_NODE.get().defaultBlockState();
             case RELAY, SYMBIOTIC -> ModBlocks.MYCELIAL_NODE.get().defaultBlockState();
         };
-        int headroom = measureHeadroom(level, center, 9);
         level.setBlock(center, nodeState, 2);
         buildFissure(level, center, random, isSubterranean);
+        if (isOverworld && isSubterranean && level.getBlockEntity(center)
+                instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity node) {
+            node.markOutbreakOrigin();
+        }
 
         BlockPos vaultCenter = center.below(4);
         if (random.nextFloat() < StructureProgressionPolicy.sealedBioVaultChance(tier)
@@ -104,18 +111,6 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
             placeSealedBioVault(level, vaultCenter, random, tier);
         }
 
-        // Overworld subterranean <-> surface hyphal taproot & linked relay connection
-        if (isOverworld) {
-            if (isSubterranean) {
-                int depthBelowSurface = surfaceY - center.getY();
-                if (depthBelowSurface >= 8 && depthBelowSurface <= 72
-                        && random.nextFloat() < StructureProgressionPolicy.surfaceBreachChance(tier)) {
-                    connectSubterraneanToSurface(level, center, surfaceY, Math.max(2, headroom), random);
-                }
-            } else {
-                connectSurfaceToSubterranean(level, center, random);
-            }
-        }
         return true;
     }
 
@@ -312,183 +307,6 @@ public class MycelialOutbreakFeature extends Feature<NoneFeatureConfiguration> {
 
     private static boolean isOpenAirOrReplaceable(WorldGenLevel level, BlockPos pos) {
         return WorldgenFeatureSupport.isOpenAirOrReplaceable(level, pos);
-    }
-
-    private static int measureHeadroom(WorldGenLevel level, BlockPos center, int maxCheck) {
-        int clear = 0;
-        for (int dy = 1; dy <= maxCheck; dy++) {
-            if (!isOpenAirOrReplaceable(level, center.above(dy))) {
-                break;
-            }
-            clear = dy;
-        }
-        return clear;
-    }
-
-    private static void connectSubterraneanToSurface(
-            WorldGenLevel level,
-            BlockPos caveCenter,
-            int surfaceY,
-            int headroom,
-            RandomSource random
-    ) {
-        BlockPos surfaceAnchor = null;
-        int[] offsets = {0, -1, 1, -2, 2, -3};
-        for (int dy : offsets) {
-            BlockPos cand = new BlockPos(caveCenter.getX(), surfaceY + dy, caveCenter.getZ());
-            if (!level.isOutsideBuildHeight(cand)
-                    && !level.isOutsideBuildHeight(cand.above())
-                    && isSafeToOverwrite(level, cand)
-                    && canReplaceGround(level.getBlockState(cand))
-                    && isOpenAirOrReplaceable(level, cand.above())
-                    && level.getFluidState(cand.above()).isEmpty()) {
-                surfaceAnchor = cand;
-                break;
-            }
-        }
-        if (surfaceAnchor == null) {
-            return;
-        }
-        int deltaY = surfaceAnchor.getY() - caveCenter.getY();
-        if (deltaY < 8 || deltaY > 76) {
-            return;
-        }
-        if (level.getLevel() instanceof ServerLevel serverLevel
-                && PurificationZoneTracker.get(serverLevel).isProtected(surfaceAnchor)) {
-            return;
-        }
-
-        BlockPos tapStart = caveCenter.above(Math.min(headroom + 1, 9));
-        buildVerticalTaproot(level, tapStart, surfaceAnchor.below(), random);
-        spreadMiniSporePatch(level, surfaceAnchor, 3, random);
-
-        if (level.getLevel() instanceof ServerLevel serverLevel) {
-            PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
-            if (!tracker.hasAnyNodeWithin(surfaceAnchor, 16) && isSafeToOverwrite(level, surfaceAnchor)) {
-                level.setBlock(surfaceAnchor, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 2);
-                tracker.addNode(surfaceAnchor, SynapticNodeType.RELAY);
-            }
-        }
-    }
-
-    private static void connectSurfaceToSubterranean(
-            WorldGenLevel level,
-            BlockPos surfaceCenter,
-            RandomSource random
-    ) {
-        int minY = Math.max(level.getMinBuildHeight() + 8, surfaceCenter.getY() - 72);
-        BlockPos caveFloor = null;
-        for (int y = surfaceCenter.getY() - 8; y >= minY; y--) {
-            BlockPos cand = new BlockPos(surfaceCenter.getX(), y, surfaceCenter.getZ());
-            if (!level.isOutsideBuildHeight(cand)
-                    && !level.isOutsideBuildHeight(cand.above(2))
-                    && isSafeToOverwrite(level, cand)
-                    && canReplaceGround(level.getBlockState(cand))
-                    && isOpenAirOrReplaceable(level, cand.above())
-                    && isOpenAirOrReplaceable(level, cand.above(2))
-                    && level.getFluidState(cand.above()).isEmpty()) {
-                caveFloor = cand;
-                break;
-            }
-        }
-        if (caveFloor == null) {
-            return;
-        }
-        if (level.getLevel() instanceof ServerLevel serverLevel
-                && PurificationZoneTracker.get(serverLevel).isProtected(caveFloor)) {
-            return;
-        }
-
-        int ceilingY = caveFloor.getY() + 3;
-        while (ceilingY < surfaceCenter.getY() - 2 && isOpenAirOrReplaceable(level, new BlockPos(caveFloor.getX(), ceilingY, caveFloor.getZ()))) {
-            ceilingY++;
-        }
-        BlockPos ceilingPos = new BlockPos(caveFloor.getX(), ceilingY, caveFloor.getZ());
-        buildVerticalTaproot(level, ceilingPos, surfaceCenter.below(2), random);
-        if (isOpenAirOrReplaceable(level, ceilingPos.below())) {
-            level.setBlock(ceilingPos.below(), ModBlocks.MYCELIAL_TENDRILS.get().defaultBlockState(), 2);
-        }
-        spreadMiniSporePatch(level, caveFloor, 3, random);
-
-        if (level.getLevel() instanceof ServerLevel serverLevel) {
-            PurificationZoneTracker tracker = PurificationZoneTracker.get(serverLevel);
-            if (!tracker.hasAnyNodeWithin(caveFloor, 16) && isSafeToOverwrite(level, caveFloor)) {
-                level.setBlock(caveFloor, ModBlocks.MYCELIAL_NODE.get().defaultBlockState(), 2);
-                tracker.addNode(caveFloor, SynapticNodeType.RELAY);
-            }
-        }
-    }
-
-    private static void buildVerticalTaproot(
-            WorldGenLevel level,
-            BlockPos bottom,
-            BlockPos top,
-            RandomSource random
-    ) {
-        int startY = Math.min(bottom.getY(), top.getY());
-        int endY = Math.max(bottom.getY(), top.getY());
-        int baseX = bottom.getX();
-        int baseZ = bottom.getZ();
-        int curX = baseX;
-        int curZ = baseZ;
-        BlockState archBrick = ModBlocks.MYCELIAL_ARCH_BRICK.get().defaultBlockState();
-        BlockState stone = ModBlocks.MYCELIAL_STONE.get().defaultBlockState();
-        BlockState amberVein = ModBlocks.LUMINESCENT_AMBER_VEIN.get().defaultBlockState();
-
-        for (int y = startY; y <= endY; y++) {
-            int step = y - startY;
-            if (step > 1 && y < endY - 1 && step % 5 == 0) {
-                int nextX = curX + (random.nextInt(3) - 1);
-                int nextZ = curZ + (random.nextInt(3) - 1);
-                if (Math.abs(nextX - baseX) <= 1) {
-                    curX = nextX;
-                }
-                if (Math.abs(nextZ - baseZ) <= 1) {
-                    curZ = nextZ;
-                }
-            } else if (y >= endY - 1) {
-                curX = baseX;
-                curZ = baseZ;
-            }
-            BlockPos p = new BlockPos(curX, y, curZ);
-            if (isSafeToOverwrite(level, p) && level.getFluidState(p).isEmpty()) {
-                BlockState state = (step % 4 == 0) ? amberVein : ((step % 2 == 0) ? archBrick : stone);
-                level.setBlock(p, state, 2);
-            }
-        }
-    }
-
-    private static void spreadMiniSporePatch(
-            WorldGenLevel level,
-            BlockPos anchor,
-            int radius,
-            RandomSource random
-    ) {
-        BlockState mycelium = ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState();
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
-                if (dx == 0 && dz == 0) {
-                    continue;
-                }
-                if (dx * dx + dz * dz > radius * radius + 1 || random.nextFloat() > 0.78F) {
-                    continue;
-                }
-                BlockPos floor = findSlopeFloor(level, anchor.getX() + dx, anchor.getY(), anchor.getZ() + dz, 1);
-                if (floor != null && isSafeToOverwrite(level, floor) && canReplaceGround(level.getBlockState(floor))) {
-                    level.setBlock(floor, mycelium, 2);
-                    if (isOpenAirOrReplaceable(level, floor.above())) {
-                        float roll = random.nextFloat();
-                        if (roll < 0.16F) {
-                            level.setBlock(floor.above(), ModBlocks.SPORE_VENT.get().defaultBlockState(), 2);
-                        } else if (roll < 0.36F) {
-                            level.setBlock(floor.above(), ModBlocks.BIOLUMINESCENT_MYCELIAL_CAP.get().defaultBlockState(), 2);
-                        } else if (roll < 0.50F) {
-                            level.setBlock(floor.above(), ModBlocks.SPORE_BULB.get().defaultBlockState(), 2);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private static boolean canReplaceGround(BlockState state) {
