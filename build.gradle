@@ -266,10 +266,30 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // Embedded high-performance bounded cache (Apache 2.0, Jar-in-Jar)
+    // Embedded high-performance Java libraries (Jar-in-Jar)
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'
     additionalRuntimeClasspath 'com.github.ben-manes.caffeine:caffeine:3.2.0'
     jarJar 'com.github.ben-manes.caffeine:caffeine:3.2.0'
+
+    implementation 'org.jgrapht:jgrapht-core:1.5.3'
+    additionalRuntimeClasspath 'org.jgrapht:jgrapht-core:1.5.3'
+    jarJar 'org.jgrapht:jgrapht-core:1.5.3'
+    jarJar 'org.jheaps:jheaps:0.14'
+    jarJar 'org.apfloat:apfloat:1.14.0'
+
+    implementation 'org.roaringbitmap:RoaringBitmap:1.6.30'
+    additionalRuntimeClasspath 'org.roaringbitmap:RoaringBitmap:1.6.30'
+    jarJar 'org.roaringbitmap:RoaringBitmap:1.6.30'
+
+    implementation 'org.apache.commons:commons-statistics-descriptive:1.3'
+    additionalRuntimeClasspath 'org.apache.commons:commons-statistics-descriptive:1.3'
+    jarJar 'org.apache.commons:commons-statistics-descriptive:1.3'
+    jarJar 'org.apache.commons:commons-numbers-core:1.3'
+    jarJar 'org.apache.commons:commons-numbers-arrays:1.3'
+
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.22.0'
+    additionalRuntimeClasspath 'com.bucket4j:bucket4j_jdk17-core:8.22.0'
+    jarJar 'com.bucket4j:bucket4j_jdk17-core:8.22.0'
 
     // Optional mod integrations (compileOnly so Mycelial Mind runs standalone or alongside any of them)
     compileOnly "maven.modrinth:curios:KJsZIQrT"

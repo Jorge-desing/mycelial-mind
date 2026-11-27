@@ -12775,4 +12775,53 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = "empty", batch = "java_core_libraries", timeoutTicks = 100)
+    public static void javaCoreLibrariesWorkInServerLevel(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        var stats = com.alex.mycelialmind.hive.HiveCombatTelemetryStats.forLevel(level);
+        hive.resetAll();
+        tracker.clearAll();
+        stats.reset();
+        try {
+            BlockPos n1 = helper.absolutePos(new BlockPos(0, 2, 0));
+            BlockPos n2 = helper.absolutePos(new BlockPos(20, 2, 0));
+            BlockPos n3 = helper.absolutePos(new BlockPos(40, 2, 0));
+            tracker.addNode(n1, SynapticNodeType.RELAY);
+            tracker.addNode(n2, SynapticNodeType.RELAY);
+            tracker.addNode(n3, SynapticNodeType.INCUBATOR);
+            tracker.addPylon(n1);
+
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.countContestedChunks(level) >= 1L,
+                    "RoaringBitmap contested chunk count should be >= 1 when pylon and node share a chunk.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.hasNodeInChunk(level, n2.getX() >> 4, n2.getZ() >> 4),
+                    "RoaringBitmap index should report node chunk as occupied.");
+
+            tracker.removePylon(n1);
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getNetworkClusterCount(level) == 1,
+                    "JGraphT should see 1 connected cluster across n1-n2-n3.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getCriticalNodeCount(level) == 1,
+                    "JGraphT should detect n2 as the single articulation point.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.findShortestNodePathLength(level, n1, n3) == 2,
+                    "JGraphT shortest path from n1 to n3 should have 2 hops.");
+
+            double[] samples = {8.0D, 9.0D, 7.0D, 8.5D, 7.5D, 8.0D};
+            for (double s : samples) {
+                stats.recordDamage(StimulusType.PROJECTILE, s);
+            }
+            helper.assertTrue(stats.recordDamage(StimulusType.PROJECTILE, 35.0D),
+                    "Commons Statistics should detect a projectile damage spike.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getDamageSpikeCount(level, "PROJECTILE") == 1L,
+                    "KubeJS damage spike telemetry should report 1 PROJECTILE spike.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getAverageDamage(level, "PROJECTILE") > 8.0D,
+                    "KubeJS average damage should reflect recorded samples.");
+        } finally {
+            tracker.clearAll();
+            hive.resetAll();
+            stats.reset();
+        }
+        helper.succeed();
+    }
+
 }

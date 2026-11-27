@@ -22,6 +22,7 @@ import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainSnapshot;
 import com.alex.mycelialmind.entity.ai.brain.core.HiveBrainTrace;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.EvolutionRank;
+import com.alex.mycelialmind.hive.HiveCombatTelemetryStats;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveProgressionTier;
 import com.alex.mycelialmind.hive.HiveStrain;
@@ -355,8 +356,10 @@ public final class MycelialCommands {
                 ? "None"
                 : hive.getActiveSynergies().stream().map(HiveSynergy::id).collect(Collectors.joining(", "));
 
+        var topology = tracker.getNetworkTopologySummary();
+        long spikeCount = HiveCombatTelemetryStats.forLevel(level).getTotalSpikeCount();
         source.sendSuccess(() -> Component.literal(String.format(
-                "[Mycelial] Threat: %.1f%% [%s] | Milestone: %d%% | Protected: %s | Traits: %s | Tier2: %s | Synergies: %s | Links: %d | Suppressed: %ds | NearestNode: %s | Breached: %s | MatriarchDefeated: %s | Remission: %ds | Preset: %s",
+                "[Mycelial] Threat: %.1f%% [%s] | Milestone: %d%% | Protected: %s | Traits: %s | Tier2: %s | Synergies: %s | Links: %d | Suppressed: %ds | NearestNode: %s | Breached: %s | MatriarchDefeated: %s | Remission: %ds | Preset: %s | Clusters: %d | CriticalNodes: %d | Spikes: %d",
                 hive.getThreatLevel(),
                 com.alex.mycelialmind.hive.HiveProgressionTier.fromThreat(hive.getThreatLevel()).displayTag(),
                 hive.getLastWaveMilestone(),
@@ -370,7 +373,10 @@ public final class MycelialCommands {
                 hive.isDeepMyceliumBreached(),
                 hive.isMatriarchDefeated(),
                 hive.getMatriarchRemissionRemainingSeconds(level.getGameTime()),
-                com.alex.mycelialmind.registry.MycelialBuiltInPacks.detectActivePreset().name()
+                com.alex.mycelialmind.registry.MycelialBuiltInPacks.detectActivePreset().name(),
+                topology.clusterCount(),
+                topology.criticalNodes().size(),
+                spikeCount
         )).withStyle(ChatFormatting.LIGHT_PURPLE), false);
         return 1;
     }
@@ -379,6 +385,7 @@ public final class MycelialCommands {
         ServerLevel level = source.getLevel();
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         hive.resetAll();
+        HiveCombatTelemetryStats.forLevel(level).reset();
         com.alex.mycelialmind.hive.HiveCycleSavedData.get(level).abortCycle();
         com.alex.mycelialmind.hive.HiveCycleDirector.syncHiveModifiersAcrossDimensions(level);
         com.alex.mycelialmind.network.CycleProtocolSyncPayload.syncToAll(level);
