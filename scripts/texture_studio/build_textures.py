@@ -470,12 +470,12 @@ def check_item_icon_language(check_pbr: bool = False) -> None:
     print(f"Icon language checks PASSED ({len(names)} icons, worst silhouette IoU {worst:.3f}).")
 
 
-def build_item_contact_sheet() -> str:
+def _build_texture_contact_sheet(texture_type: str, output_name: str) -> str:
     os.makedirs(EXPORTS_DIR, exist_ok=True)
-    out_path = os.path.join(EXPORTS_DIR, "item_icon_contact_sheet.png")
-    item_dir = os.path.join(TEX_ROOT, "item")
+    out_path = os.path.join(EXPORTS_DIR, output_name)
+    texture_dir = os.path.join(TEX_ROOT, texture_type)
     names = sorted(
-        name[:-4] for name in os.listdir(item_dir)
+        name[:-4] for name in os.listdir(texture_dir)
         if name.endswith(".png") and not name[:-4].endswith(("_n", "_s"))
     )
     scale, cols, pad, label_h = 8, 6, 10, 14
@@ -484,7 +484,7 @@ def build_item_contact_sheet() -> str:
     canvas = Image.new("RGBA", (cols * cell_w + pad, rows * cell_h + pad), (20, 20, 26, 255))
     draw = ImageDraw.Draw(canvas)
     for index, name in enumerate(names):
-        image = Image.open(os.path.join(item_dir, f"{name}.png")).convert("RGBA")
+        image = Image.open(os.path.join(texture_dir, f"{name}.png")).convert("RGBA")
         if image.height > image.width:
             image = image.crop((0, 0, 16, 16))
         image = image.resize((16 * scale, 16 * scale), Image.NEAREST)
@@ -497,35 +497,14 @@ def build_item_contact_sheet() -> str:
         draw.text((x, y + image.height + 2), name, fill=(200, 210, 225, 255))
     canvas.save(out_path)
     return out_path
+
+
+def build_item_contact_sheet() -> str:
+    return _build_texture_contact_sheet("item", "item_icon_contact_sheet.png")
 
 
 def build_block_contact_sheet() -> str:
-    os.makedirs(EXPORTS_DIR, exist_ok=True)
-    out_path = os.path.join(EXPORTS_DIR, "block_contact_sheet.png")
-    block_dir = os.path.join(TEX_ROOT, "block")
-    names = sorted(
-        name[:-4] for name in os.listdir(block_dir)
-        if name.endswith(".png") and not name[:-4].endswith(("_n", "_s"))
-    )
-    scale, cols, pad, label_h = 8, 6, 10, 14
-    cell_w, cell_h = 16 * scale + pad, 16 * scale + label_h + pad
-    rows = (len(names) + cols - 1) // cols
-    canvas = Image.new("RGBA", (cols * cell_w + pad, rows * cell_h + pad), (20, 20, 26, 255))
-    draw = ImageDraw.Draw(canvas)
-    for index, name in enumerate(names):
-        image = Image.open(os.path.join(block_dir, f"{name}.png")).convert("RGBA")
-        if image.height > image.width:
-            image = image.crop((0, 0, 16, 16))
-        image = image.resize((16 * scale, 16 * scale), Image.NEAREST)
-        checker = _checker_image(image.width, image.height)
-        checker.alpha_composite(image)
-        x = pad + (index % cols) * cell_w
-        y = pad + (index // cols) * cell_h
-        canvas.paste(checker, (x, y))
-        draw.rectangle([x - 1, y - 1, x + image.width, y + image.height], outline=(95, 95, 115, 255))
-        draw.text((x, y + image.height + 2), name, fill=(200, 210, 225, 255))
-    canvas.save(out_path)
-    return out_path
+    return _build_texture_contact_sheet("block", "block_contact_sheet.png")
 
 
 def run_checks(check_pbr: bool = False) -> None:

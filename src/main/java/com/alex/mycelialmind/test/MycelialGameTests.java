@@ -7709,10 +7709,31 @@ public final class MycelialGameTests {
             hive.promoteHighestTier(HiveProgressionTier.ADAPTIVE);
             level.setBlockAndUpdate(turretPos, ModBlocks.PURIFICATION_TURRET.get().defaultBlockState());
             if (level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity turretBe) {
+                turretBe.setAmmo(0);
                 turretBe.applyCorrosiveJam(200);
             }
             var turretCap = level.getCapability(Capabilities.ItemHandler.BLOCK, turretPos, Direction.UP);
             helper.assertTrue(turretCap != null, "Expected ItemHandler capability on Purification Turret");
+            ItemStack antidotes = new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 3);
+            helper.assertTrue(turretCap.insertItem(1, antidotes, false) == antidotes
+                    && turretCap.insertItem(0, ItemStack.EMPTY, false).isEmpty(),
+                    "Invalid slots and empty stacks must be returned unchanged");
+            ItemStack rejected = new ItemStack(Items.DIRT, 3);
+            helper.assertTrue(turretCap.insertItem(0, rejected, false) == rejected,
+                    "Turret must reject unrelated items");
+            ItemStack simulated = turretCap.insertItem(0, antidotes, true);
+            helper.assertTrue(simulated.getCount() == 2 && antidotes.getCount() == 3
+                    && level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity simulatedTurret
+                    && simulatedTurret.isJammed(),
+                    "Simulated cleaning must preserve input and jam while reporting one consumed item");
+            ItemStack cleaned = turretCap.insertItem(0, antidotes, false);
+            helper.assertTrue(cleaned.getCount() == 2 && antidotes.getCount() == 3
+                    && level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity cleanedTurret
+                    && !cleanedTurret.isJammed() && cleanedTurret.getAmmo() == 0,
+                    "Cleaning must take priority over reloading and consume one item from the returned stack");
+            if (level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity turretBe) {
+                turretBe.applyCorrosiveJam(200);
+            }
             helper.assertTrue(turretCap.insertItem(0, new ItemStack(ModItems.SPORE_ANTIDOTE.get()), false).isEmpty()
                     && turretCap.insertItem(0, new ItemStack(ModItems.SYNAPTIC_CORE.get()), false).isEmpty()
                     && level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity turretBe2
@@ -7723,7 +7744,22 @@ public final class MycelialGameTests {
             tracker.addPylon(pylonPos);
             var pylonCap = level.getCapability(Capabilities.ItemHandler.BLOCK, pylonPos, Direction.EAST);
             helper.assertTrue(pylonCap != null, "Expected ItemHandler capability on Purification Pylon");
-            pylonCap.insertItem(0, new ItemStack(ModItems.SYNAPTIC_CORE.get()), false);
+            ItemStack cores = new ItemStack(ModItems.SYNAPTIC_CORE.get(), 3);
+            ItemStack pylonRejected = new ItemStack(Items.DIRT, 3);
+            helper.assertTrue(pylonCap.insertItem(1, cores, false) == cores
+                    && pylonCap.insertItem(0, ItemStack.EMPTY, false).isEmpty()
+                    && pylonCap.insertItem(0, pylonRejected, false) == pylonRejected,
+                    "Pylon must reject invalid slots, empty stacks and unrelated items");
+            ItemStack simulatedCore = pylonCap.insertItem(0, cores, true);
+            helper.assertTrue(simulatedCore.getCount() == 2 && cores.getCount() == 3
+                    && level.getBlockEntity(pylonPos) instanceof MonumentFocusBlockEntity simulatedPylon
+                    && simulatedPylon.getTier() == 1,
+                    "Tier-one core simulation must report an upgrade without changing the pylon or input");
+            ItemStack coreRemainder = pylonCap.insertItem(0, cores, false);
+            helper.assertTrue(coreRemainder.getCount() == 2 && cores.getCount() == 3
+                    && level.getBlockEntity(pylonPos) instanceof MonumentFocusBlockEntity upgradedPylon
+                    && upgradedPylon.getTier() == 2,
+                    "Tier-one core insertion must upgrade the pylon and preserve the input stack");
             pylonCap.insertItem(0, new ItemStack(ModItems.OVERMIND_ESSENCE.get()), false);
             helper.assertTrue(level.getBlockEntity(pylonPos) instanceof MonumentFocusBlockEntity pylonBe
                     && pylonBe.getTier() == 3,
