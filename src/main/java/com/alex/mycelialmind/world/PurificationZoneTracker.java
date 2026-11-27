@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleWeightedGraph;
 
 /**
  * Tracks active Purification Pylons and typed Synaptic Nodes per dimension,
@@ -61,11 +63,26 @@ public class PurificationZoneTracker extends SavedData {
             .maximumSize(1024)
             .recordStats()
             .build();
+    private final MycelialSpatialBitset pylonChunkIndex = new MycelialSpatialBitset();
+    private final MycelialSpatialBitset nodeChunkIndex = new MycelialSpatialBitset();
+    @Nullable
+    private SynapticNetworkTopology.TopologySummary cachedTopologySummary;
     private int cachedBasePylonRadius = -1;
 
     private synchronized void invalidateSpatialCaches() {
         protectionCache.invalidateAll();
         nearestNodeCache.invalidateAll();
+        cachedTopologySummary = null;
+    }
+
+    private static int getNodeLinkRadiusSafe() {
+        try {
+            return MycelialConfig.SPEC.isLoaded()
+                    ? MycelialConfig.SYNAPTIC_NODE_LINK_RADIUS.get()
+                    : MycelialConfig.SYNAPTIC_NODE_LINK_RADIUS.getDefault();
+        } catch (RuntimeException ignored) {
+            return 28;
+        }
     }
 
     private static int getBasePylonRadiusSafe() {
@@ -99,7 +116,9 @@ public class PurificationZoneTracker extends SavedData {
     }
 
     public synchronized void addPylon(BlockPos pos) {
-        if (pylonPositions.add(pos.immutable())) {
+        BlockPos immutable = pos.immutable();
+        if (pylonPositions.add(immutable)) {
+            pylonChunkIndex.addBlockChunk(immutable);
             invalidateSpatialCaches();
             setDirty();
         }
@@ -112,6 +131,9 @@ public class PurificationZoneTracker extends SavedData {
         boolean removedTier = pylonTiers.remove(pos) != null;
         boolean removedBonus = pylonBonusRadii.remove(pos) != null;
         if (removed || unsmothered || undepleted || removedTier || removedBonus) {
+            if (removed) {
+                pylonChunkIndex.rebuildFromBlocks(pylonPositions);
+            }
             invalidateSpatialCaches();
             setDirty();
         }
@@ -126,6 +148,8 @@ public class PurificationZoneTracker extends SavedData {
         nodePositions.clear();
         typedNodes.clear();
         sinkholePositions.clear();
+        pylonChunkIndex.clear();
+        nodeChunkIndex.clear();
         invalidateSpatialCaches();
         setDirty();
     }
@@ -148,6 +172,8 @@ public class PurificationZoneTracker extends SavedData {
         typedNodes.putAll(restored.typedNodes);
         sinkholePositions.clear();
         sinkholePositions.addAll(restored.sinkholePositions);
+        pylonChunkIndex.rebuildFromBlocks(pylonPositions);
+        nodeChunkIndex.rebuildFromBlocks(nodePositions);
         invalidateSpatialCaches();
         setDirty();
     }
@@ -285,6 +311,7 @@ public class PurificationZoneTracker extends SavedData {
         boolean added = nodePositions.add(immutable);
         SynapticNodeType prev = typedNodes.put(immutable, type);
         if (added || prev != type) {
+            nodeChunkIndex.addBlockChunk(immutable);
             invalidateSpatialCaches();
             setDirty();
         }
@@ -294,9 +321,69 @@ public class PurificationZoneTracker extends SavedData {
         boolean removed = nodePositions.remove(pos);
         boolean removedTyped = typedNodes.remove(pos) != null;
         if (removed || removedTyped) {
+            if (removed) {
+                nodeChunkIndex.rebuildFromBlocks(nodePositions);
+            }
             invalidateSpatialCaches();
             setDirty();
         }
+    }
+
+    public synchronized boolean hasPylonInChunk(int chunkX, int chunkZ) {
+        return pylonChunkIndex.containsChunk(chunkX, chunkZ);
+    }
+
+    public synchronized boolean hasNodeInChunk(int chunkX, int chunkZ) {
+        return nodeChunkIndex.containsChunk(chunkX, chunkZ);
+    }
+
+    public synchronized long countOccupiedPylonChunks() {
+        return pylonChunkIndex.cardinality();
+    }
+
+    public synchronized long countOccupiedNodeChunks() {
+        return nodeChunkIndex.cardinality();
+    }
+
+    public synchronized long countContestedChunks() {
+        return pylonChunkIndex.intersectionCardinality(nodeChunkIndex);
+    }
+
+    private SimpleWeightedGraph<BlockPos, DefaultWeightedEdge> buildActiveEnemyNetworkGraph() {
+        int maxRadius = getNodeLinkRadiusSafe();
+        List<BlockPos> activeNodes = new ArrayList<>();
+        for (BlockPos pos : nodePositions) {
+            if (getNodeType(pos) != SynapticNodeType.SYMBIOTIC && !isProtected(pos)) {
+                activeNodes.add(pos);
+            }
+        }
+        return SynapticNetworkTopology.buildGraph(
+                activeNodes,
+                (a, b) -> isWithinLinkRange(a, b, maxRadius) && !isSegmentBlockedByPylon(a, b)
+        );
+    }
+
+    public synchronized SynapticNetworkTopology.TopologySummary getNetworkTopologySummary() {
+        ensureRadiusCacheConsistency();
+        if (cachedTopologySummary == null) {
+            cachedTopologySummary = SynapticNetworkTopology.analyze(buildActiveEnemyNetworkGraph());
+        }
+        return cachedTopologySummary;
+    }
+
+    public synchronized int getNetworkClusterCount() {
+        return getNetworkTopologySummary().clusterCount();
+    }
+
+    public synchronized Set<BlockPos> getCriticalSynapticNodes() {
+        return getNetworkTopologySummary().criticalNodes();
+    }
+
+    public synchronized List<BlockPos> findShortestSynapticPath(BlockPos from, BlockPos to) {
+        if (from == null || to == null) {
+            return List.of();
+        }
+        return SynapticNetworkTopology.findShortestPath(buildActiveEnemyNetworkGraph(), from.immutable(), to.immutable());
     }
 
     public synchronized SynapticNodeType getNodeType(BlockPos pos) {
@@ -805,6 +892,8 @@ public class PurificationZoneTracker extends SavedData {
         for (int i = 0; i < sinkholes.size(); i++) {
             tracker.sinkholePositions.add(BlockPos.of(((LongTag) sinkholes.get(i)).getAsLong()));
         }
+        tracker.pylonChunkIndex.rebuildFromBlocks(tracker.pylonPositions);
+        tracker.nodeChunkIndex.rebuildFromBlocks(tracker.nodePositions);
         return tracker;
     }
 }

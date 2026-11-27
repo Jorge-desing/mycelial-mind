@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.compat.kubejs;
 
 import com.alex.mycelialmind.hive.AdaptationTrait;
+import com.alex.mycelialmind.hive.HiveCombatTelemetryStats;
 import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.HiveSynergy;
 import com.alex.mycelialmind.hive.StimulusType;
@@ -180,5 +181,62 @@ public final class MycelialKubeJSBindings {
             return;
         }
         HiveMindSavedData.get(level).resetAll();
+        HiveCombatTelemetryStats.forLevel(level).reset();
+    }
+
+    public static int getNetworkClusterCount(@Nullable ServerLevel level) {
+        if (level == null) {
+            return 0;
+        }
+        return PurificationZoneTracker.get(level).getNetworkClusterCount();
+    }
+
+    public static int getCriticalNodeCount(@Nullable ServerLevel level) {
+        if (level == null) {
+            return 0;
+        }
+        return PurificationZoneTracker.get(level).getCriticalSynapticNodes().size();
+    }
+
+    public static int findShortestNodePathLength(
+            @Nullable ServerLevel level,
+            @Nullable BlockPos from,
+            @Nullable BlockPos to
+    ) {
+        if (level == null || from == null || to == null) {
+            return -1;
+        }
+        List<BlockPos> path = PurificationZoneTracker.get(level).findShortestSynapticPath(from, to);
+        return path.isEmpty() ? -1 : Math.max(0, path.size() - 1);
+    }
+
+    public static boolean hasNodeInChunk(@Nullable ServerLevel level, int chunkX, int chunkZ) {
+        if (level == null) {
+            return false;
+        }
+        return PurificationZoneTracker.get(level).hasNodeInChunk(chunkX, chunkZ);
+    }
+
+    public static long countContestedChunks(@Nullable ServerLevel level) {
+        if (level == null) {
+            return 0L;
+        }
+        return PurificationZoneTracker.get(level).countContestedChunks();
+    }
+
+    public static double getAverageDamage(@Nullable ServerLevel level, @Nullable String stimulusName) {
+        StimulusType type = parseStimulusType(stimulusName);
+        if (level == null || type == null) {
+            return 0.0D;
+        }
+        return HiveCombatTelemetryStats.forLevel(level).getMeanDamage(type);
+    }
+
+    public static long getDamageSpikeCount(@Nullable ServerLevel level, @Nullable String stimulusName) {
+        StimulusType type = parseStimulusType(stimulusName);
+        if (level == null || type == null) {
+            return 0L;
+        }
+        return HiveCombatTelemetryStats.forLevel(level).getSpikeCount(type);
     }
 }

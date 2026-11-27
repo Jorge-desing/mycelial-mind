@@ -27,6 +27,7 @@ import com.alex.mycelialmind.registry.ModSounds;
 import com.alex.mycelialmind.symbiosis.PlayerSymbiosisData;
 import com.alex.mycelialmind.symbiosis.SymbiosisAttributeSync;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
+import com.alex.mycelialmind.util.MycelialRateLimiter;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import com.alex.mycelialmind.world.SynapticNodeType;
@@ -64,9 +65,11 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -77,8 +80,21 @@ import java.util.Set;
  */
 public final class DamageTelemetryTracker {
     private static final int DECAY_INTERVAL_TICKS = 1200; // 1 in-game minute
+    private static final MycelialRateLimiter SPIKE_PULSE_LIMITER =
+            new MycelialRateLimiter(6L, 2L, Duration.ofSeconds(1));
 
     private DamageTelemetryTracker() {
+    }
+
+    public static MycelialRateLimiter getSpikePulseLimiter() {
+        return SPIKE_PULSE_LIMITER;
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        if (event.getLevel() instanceof ServerLevel serverLevel) {
+            HiveCombatTelemetryStats.clearLevel(serverLevel);
+        }
     }
 
     @SubscribeEvent
@@ -316,6 +332,12 @@ public final class DamageTelemetryTracker {
                     ? attacker.getData(ModAttachments.SYMBIOSIS).getThreatAmplifier()
                     : 1.0;
             double stimulusWeight = resolveStimulusWeightMultiplier(source);
+            boolean damageSpike = HiveCombatTelemetryStats.forLevel(serverLevel).recordDamage(stimulus, dealt);
+            if (damageSpike && SPIKE_PULSE_LIMITER.tryConsume()) {
+                serverLevel.sendParticles(ModParticles.SYNAPSE_SPARK.get(),
+                        mob.getX(), mob.getY(0.65D), mob.getZ(),
+                        4, 0.20D, 0.25D, 0.20D, 0.03D);
+            }
             SynapticMemoryRouter.routeStimulus(
                     serverLevel, mob.blockPosition(), stimulus, dealt * relayMult * symbiosisMult * stimulusWeight);
             if (dealt >= 4.0F) {

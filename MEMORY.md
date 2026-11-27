@@ -5256,3 +5256,39 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - Recovery usa corazones pequeños y giratorios generados por Particle Studio; la purga concentra ocho corazones verdes y dieciséis partículas cian a densidad normal. Los emisores aplican la configuración y respetan el máximo de 24; el proveedor atenúa las motas ambientales lejanas si el motor supera 48 partículas.
 - En tres pasadas por escena con semilla y cámara fijas, la escena ambiental pasó de mediana 1,987 ms y p95 3,620 ms a 1,081 ms y 1,873 ms; la cantidad activa pasó de 3355 a 1201. La variación de combate impide atribuirle una mejora concluyente.
 - Pasaron Particle Studio, Verify-Assets, JUnit, build, 214 GameTests, publicación simulada, validación Renovate, validación de ocho skills y runVisualSmoke con densidades 0,25/1/1,5 y brillo activado/desactivado. El verificador de Codex preexistente falla por ausencia de cobertura de openAlEfxReverbScale, openAlEfxOcclusionScale y journeymapOverlaysEnabled. Se actualizó el atlas bilingüe de partículas y la skill mycelial-particle-studio.
+
+
+## [2026-11-27 13:14] — Oleada 2: Integración de 4 librerías Java open source embebidas (JGraphT, RoaringBitmap, Commons Statistics, Bucket4j)
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
+- **Resumen:** Integradas 4 librerías Java 21 open source vía Jar-in-Jar (`jarJar`) en worktree aislado `feat/java-core-libraries-integration` desde `origin/main` (`1b8937e1`):
+  1. **JGraphT `1.5.3`** (`jgrapht-core` + transitivas `jheaps:0.14` y `apfloat:1.14.0`): `SynapticNetworkTopology` analiza componentes conexos, puntos de articulación (`BiconnectivityInspector.getCutpoints()`) y rutas mínimas (`DijkstraShortestPath`) en `PurificationZoneTracker`.
+  2. **RoaringBitmap `1.6.30`**: `MycelialSpatialBitset` (`Roaring64NavigableMap`) indexa chunks ocupados por pilones/nodos y calcula chunks disputados (`countContestedChunks()`) en `PurificationZoneTracker`.
+  3. **Apache Commons Statistics Descriptive `1.3`** (+ `commons-numbers-core:1.3`, `commons-numbers-arrays:1.3`): `HiveCombatTelemetryStats` (`DoubleStatistics` de `MEAN`, `STANDARD_DEVIATION`, `MAX`) calcula distribución por `StimulusType` y detecta picos z-score desde `DamageTelemetryTracker` (con limpieza en `LevelEvent.Unload`).
+  4. **Bucket4j `8.22.0`** (`bucket4j_jdk17-core`): `MycelialRateLimiter` limita ráfagas de feedback visual de picos en `DamageTelemetryTracker` y soporta `TimeMeter` inyectable para pruebas deterministas.
+  - Exposición de métricas añadida en `MycelialKubeJSBindings` y `/mycelial status` (`Clusters`, `CriticalNodes`, `Spikes`, más limpieza en `/mycelial reset`).
+- **Archivos / Símbolos:** `build.gradle`, `world/{MycelialSpatialBitset,SynapticNetworkTopology,PurificationZoneTracker}.java`, `hive/{HiveCombatTelemetryStats,DamageTelemetryTracker}.java`, `util/MycelialRateLimiter.java`, `compat/kubejs/MycelialKubeJSBindings.java`, `command/MycelialCommands.java`, `JavaCoreLibrariesIntegrationTest.java`, `MycelialGameTests.java`, `README.md`, y skills actualizadas (`mycelial-ai-hive`, `mycelial-codemode`, `neoforge-gametest`).
+- **Verificación:** `:test` PASS (`20` suites / `187/187` JUnit `Failures=0 Errors=0 Skipped=0`); `:build` + `:publishMods -PpublishDryRun=true` PASS; `:runGameTestServer -PisolatedGameTests=true` PASS (`215/215` `@GameTest`s en `13.14 s`); `jar tf build/libs/mycelialmind-2.0.0.jar` confirma las 9 librerías + `metadata.json` en `META-INF/jarjar/`; `./scripts/Verify-Assets.ps1` (`28 + 41 + 6`) y `validate_agent_skills.py` (`8/8` skills, `27` enlaces) OK.
+
+
+## [2026-11-27 13:28] — Corrección de inanición E/S al esperar chunks en GameTests
+- **Tipo:** `CORRECCIÓN` / `VERIFICACIÓN`
+- **Resumen:** En CI (`run 46062309717`) `weaversupportcoversseparatedsquad` falló repetidamente al verificar `entityChunksReady` porque el bucle de `GameTestServer` sin pausas agotaba el timeout de 300 ticks antes de que `Util.ioPool()` completara `EntityStorage.loadEntities`, y el ticket de `forceArenaChunks` usaba radio `2`. Se ajustó `ARENA_ENTITY_TICKET` a radio `3` y se añadió `LockSupport.parkNanos(2_000_000L)` en `MycelialGameTestSupport.entityChunksReady` cuando algún chunk aún no está listo, además de ampliar `timeoutTicks` a `400` en `weaverSupportCoversSeparatedSquad`.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/{MycelialGameTestSupport,MycelialGameTests}.java`.
+- **Skills:** Revisadas las skills pertinentes (`neoforge-gametest`, `mycelial-codemode`, `mycelial-diagnostics`); no requirieron cambios adicionales.
+- **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `37s`, `:test` OK, `All 215 required tests passed :)` en `12.86 s`, `Dry run publishGithub` OK).
+
+
+## [2026-11-27 13:33] — Limpieza de hostiles cercanos en GameTest de escolta de dialectos
+- **Tipo:** `CORRECCIÓN` / `VERIFICACIÓN`
+- **Resumen:** En CI (`run 46063844528`), `weaversupportcoversseparatedsquad` pasó con el ticket radio `3` + `LockSupport.parkNanos`, mientras `dialectlessonthreesitesandrestcall` falló al verificar `"courier_escort"` en `SymbiontSentinelGoal.tick()`. Como `findBestThreat` prioriza cualquier `Monster` en 48 bloques alrededor de `nexusPos` sobre `followCourierEscort`, se limpian entidades `Monster` cercanas justo antes de evaluar `sentinelGoal.tick()` y se reporta el estado obtenido en el mensaje de aserción.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`dialectLessonThreeSitesAndRestCall`).
+- **Skills:** Revisadas las skills pertinentes; no requirieron cambios adicionales.
+- **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `34s`, `All 215 required tests passed :)` en `12.25 s`, `Dry run publishGithub` OK).
+
+
+## [2026-11-27 13:38] — Fuerza completa de arena y espera de chunks en GameTest de ecosistema hifal
+- **Tipo:** `CORRECCIÓN` / `VERIFICACIÓN`
+- **Resumen:** En CI (`run 46064471383`), tanto `weaversupportcoversseparatedsquad` como `dialectlessonthreesitesandrestcall` aprobaron, y solo falló la prueba intermitente preexistente `hyphalecosystempurificationacousticsremissionandcodexwork` (`drone=false`) porque `forceArenaChunks(helper, -4, 14, -4, 14)` dejaba `v3 = base.east(18)` (`x=20`) fuera de los chunks forzados y no esperaba a `entityChunksReady`. Se amplió `forceArenaChunks` a `(-4, 24, -10, 14)` y se envolvió el cuerpo en `thenWaitUntil(entityChunksReady(level, base.east(9), 10))`.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`hyphalEcosystemPurificationAcousticsRemissionAndCodexWork`).
+- **Skills:** Revisadas las skills pertinentes; no requirieron cambios adicionales.
+- **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `32s`, `All 215 required tests passed :)` en `11.47 s`, `Dry run publishGithub` OK).

@@ -7,7 +7,7 @@
 
 **Mycelial Mind** (`mycelialmind`) es un mod para **Minecraft 1.21.1** (**NeoForge 21.1.267**) sobre un organismo micelial subterráneo adaptativo que observa tus tácticas de combate y defensa, aprende de ellas en tiempo real y hace evolucionar a sus criaturas, su red neuronal y su territorio.
 
-> **Versión actual:** `2.0.0` · **Minecraft:** `1.21.1` · **Loader:** NeoForge `21.1.267` · **Java:** `21` · **Dependencias externas:** Ninguna (motor nativo `HiveBrain` y caché `Caffeine 3.2.0` embebida vía Jar-in-Jar) · **Licencia:** `MIT` · **Autor:** `Alex`
+> **Versión actual:** `2.0.0` · **Minecraft:** `1.21.1` · **Loader:** NeoForge `21.1.267` · **Java:** `21` · **Dependencias externas:** Ninguna (motor nativo `HiveBrain` + librerías Java open source embebidas vía Jar-in-Jar: `Caffeine 3.2.0`, `JGraphT 1.5.3`, `RoaringBitmap 1.6.30`, `Commons Statistics 1.3`, `Bucket4j 8.22.0`) · **Licencia:** `MIT` · **Autor:** `Alex`
 
 ---
 
