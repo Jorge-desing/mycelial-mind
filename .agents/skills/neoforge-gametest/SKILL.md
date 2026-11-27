@@ -72,3 +72,5 @@ Para pruebas interactivas con un bot en el servidor dev (`localhost:25565`), usa
 - Para servidor NeoForge de desarrollo, `runBridgeDevClient` permite cargar MC Pilot desde el directorio aislado de diagnóstico y se verificó una conexión por WebSocket directo tras terminar la carga; consultar `../mycelial-diagnostics/references/herramientas-y-escenarios.md` para condiciones y límites.
 
 - Al validar geometría de flanqueo, aísla el batch y limpia `HiveBlackboard`: el radio base de 4.5 bloques se combina con steering acotado a 1.1 y ruido orgánico acotado a `1.15 * sqrt(2)`, por lo que exigir una distancia mínima de 2 bloques falla para valores válidos. Usa un límite inferior coherente con esas contribuciones y evita convertir la variación prevista en un fallo de CI.
+
+- `neoforgeIntegrationGlmDataMapsCapabilitiesBossPartsAndCuresWork` usa un batch dedicado y espera a que los chunks del área del dispensador estén listos antes de crear y localizar al aldeano; comprueba su indexación antes de accionar el antídoto.
