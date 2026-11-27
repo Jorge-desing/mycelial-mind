@@ -8424,6 +8424,10 @@ public final class MycelialGameTests {
                     .filter(pos -> level.getBlockEntity(pos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity node
                             && node.saveWithoutMetadata(level.registryAccess()).getBoolean("OutbreakOrigin"))
                     .map(BlockPos::immutable).findFirst().orElseThrow();
+            helper.assertTrue(level.getBlockState(caveNode.below()).is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+                    || level.getBlockState(caveNode.below()).is(net.minecraft.tags.BlockTags.DIRT)
+                    || level.getBlockState(caveNode.below()).is(ModBlocks.MYCELIAL_STONE.get()),
+                    "Excavation must preserve the cave node's growth seed.");
             java.util.ArrayDeque<BlockPos> frontier = new java.util.ArrayDeque<>();
             java.util.Set<BlockPos> visited = new java.util.HashSet<>();
             frontier.add(caveNode.below());

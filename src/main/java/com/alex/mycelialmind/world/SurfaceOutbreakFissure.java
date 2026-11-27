@@ -75,16 +75,21 @@ public final class SurfaceOutbreakFissure {
                         level.setBlock(step.above(height), Blocks.CAVE_AIR.defaultBlockState(), 2);
                     }
                 }
-                // Widen scattered sections into uneven pockets, retaining every traversable step.
-                for (BlockPos step : route) {
-                    for (Direction side : Direction.Plane.HORIZONTAL) {
-                        BlockPos pocket = step.relative(side);
-                        if (!safeRouteCell(level, tracker, pocket)) continue;
-                        int height = 2 + random.nextInt(2);
-                        for (int h = 1; h <= height; h++) {
-                            BlockPos air = pocket.above(h);
-                            if (!air.equals(cave) && !intersectsRoute(route, air)) {
-                                level.setBlock(air, Blocks.CAVE_AIR.defaultBlockState(), 2);
+                // Overlapping, uneven ellipsoids turn the narrow route into a cave-like fissure.
+                // The planned floor is retained so the descent and mycelial growth remain continuous.
+                for (int i = 0; i < route.size(); i++) {
+                    BlockPos step = route.get(i);
+                    for (int dx = -2; dx <= 2; dx++) {
+                        for (int dz = -2; dz <= 2; dz++) {
+                            for (int h = 1; h <= 4; h++) {
+                                double shape = (dx * dx + dz * dz) / 5.5D
+                                        + (h - 1.8D) * (h - 1.8D) / 5.0D;
+                                double irregularity = ((i * 17 + dx * 13 + dz * 7 + h * 11) & 7) * 0.035D;
+                                BlockPos air = step.offset(dx, h, dz);
+                                if (shape + irregularity >= 1.0D || air.equals(cave) || air.equals(cave.below())
+                                        || isRouteFloor(route, air) || !safeExcavation(level, tracker, air)) continue;
+                                if (!level.getBlockState(air).isAir())
+                                    level.setBlock(air, Blocks.CAVE_AIR.defaultBlockState(), 2);
                             }
                         }
                     }
@@ -108,6 +113,21 @@ public final class SurfaceOutbreakFissure {
                     && pos.getY() >= floor.getY() && pos.getY() <= floor.getY() + 3) return true;
         }
         return false;
+    }
+
+    private static boolean isRouteFloor(List<BlockPos> route, BlockPos pos) {
+        return route.contains(pos);
+    }
+
+    private static boolean safeExcavation(WorldGenLevel level, PurificationZoneTracker tracker, BlockPos pos) {
+        if (!WorldgenFeatureSupport.isSafeToOverwrite(level, pos) || tracker.isProtected(pos)
+                || level.getBlockState(pos).is(ModBlocks.HIVE_PROTECTED_BLOCKS)
+                || !level.getFluidState(pos).isEmpty() || !natural(level.getBlockState(pos))) return false;
+        for (Direction direction : Direction.values()) {
+            BlockPos neighbor = pos.relative(direction);
+            if (level.isOutsideBuildHeight(neighbor) || !level.getFluidState(neighbor).isEmpty()) return false;
+        }
+        return true;
     }
 
     private static boolean safeRouteCell(WorldGenLevel level, PurificationZoneTracker tracker, BlockPos floor) {
