@@ -2512,9 +2512,10 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", batch = "defaultBatch")
+    @GameTest(template = "empty", batch = "swarm_coordinator_isolated")
     public static void hiveSwarmCoordinatorAssignsRolesFlanksAndBroadcastsAlertCall(GameTestHelper helper) {
         var level = helper.getLevel();
+        com.alex.mycelialmind.hive.HiveBlackboard.clear(level);
         var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
         var weaver = helper.spawnWithNoFreeWill(ModEntities.SYNAPSE_WEAVER.get(), 3, 1, 2);
         var stalker = helper.spawnWithNoFreeWill(ModEntities.MYCELIAL_STALKER.get(), 4, 1, 2);
@@ -2537,8 +2538,11 @@ public final class MycelialGameTests {
         player.moveTo(pPos.getX() + 0.5, pPos.getY(), pPos.getZ() + 0.5);
 
         var flankPos = com.alex.mycelialmind.hive.HiveSwarmCoordinator.computeSwarmApproachPos(stalker, player);
-        if (flankPos.distanceToSqr(player.position()) < 4.0D) {
-            helper.fail("Expected flank approach position to offset around target.");
+        // A 4.5-block flank radius is blended with up to 1.1 blocks of steering
+        // and 1.15 * sqrt(2) blocks of organic flow, so two blocks is not a
+        // guaranteed lower bound even in a clean influence map.
+        if (flankPos.distanceToSqr(player.position()) < 1.7D * 1.7D) {
+            helper.fail("Expected flank approach position to retain an offset around target.");
             return;
         }
 
