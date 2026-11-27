@@ -687,6 +687,35 @@ public class OpenAlEfxLoopbackTest {
         }
     }
 
+    @Test
+    void v10ThirtyTwoBucketSmoothLpfAndAdaptiveReverbGainModulateRenderedTail() {
+        assertEquals(32, OpenAlEfxBridge.getOcclusionBucketCount(), "Expected 32 smooth LPF buckets");
+
+        short[] pcm = synthesizeMultiTonePcm(SAMPLE_RATE / 4, new double[]{320.0D, 840.0D}, 0.25D);
+        int bufferId = createMono16Buffer(pcm);
+        try {
+            assertTrue(OpenAlEfxBridge.updateEnvironmentReverbGain(AcousticEnvironment.CAVERN_SINKHOLE, 0.12F),
+                    "Dry room gain update should succeed");
+            TailMeasurement dryRoom = measurePostCutoffTail(bufferId, AcousticEnvironment.CAVERN_SINKHOLE, true);
+
+            assertTrue(OpenAlEfxBridge.updateEnvironmentReverbGain(AcousticEnvironment.CAVERN_SINKHOLE, 0.72F),
+                    "Grand cavern gain update should succeed");
+            TailMeasurement wetCavern = measurePostCutoffTail(bufferId, AcousticEnvironment.CAVERN_SINKHOLE, true);
+
+            assertTrue(wetCavern.lateRms() > dryRoom.lateRms() * 1.8D,
+                    "Adaptive reverb gain increase must amplify rendered cavern reverb tail (dry="
+                            + dryRoom.lateRms() + ", wet=" + wetCavern.lateRms() + ")");
+            assertTrue(OpenAlEfxBridge.getReverbGainUpdatesCount() >= 2L);
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError());
+        } finally {
+            OpenAlEfxBridge.updateEnvironmentReverbGain(
+                    AcousticEnvironment.CAVERN_SINKHOLE,
+                    AcousticEnvironment.CAVERN_SINKHOLE.wetSendGain()
+            );
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
     private SpectralMeasurement measurePlaybackSpectrum(int bufferId, SourceAcousticSnapshot snapshot) {
         int sourceId = createUnitSource(bufferId);
         try {

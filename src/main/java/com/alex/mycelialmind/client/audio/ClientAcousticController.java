@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.client.audio;
 
 import com.alex.mycelialmind.MycelialMind;
+import com.alex.mycelialmind.client.ClientSoundscapeDirector;
 import com.alex.mycelialmind.config.MycelialClientConfig;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.AcousticEnvironment;
@@ -63,6 +64,8 @@ public final class ClientAcousticController {
     private static final SwarmVoiceBudget VOICE_BUDGET = new SwarmVoiceBudget();
     private static final AcousticPhysicsEngine.PlaybackHumanizer PLAYBACK_HUMANIZER =
             new AcousticPhysicsEngine.PlaybackHumanizer();
+    private static final AcousticPhysicsEngine.EnvironmentHysteresis ENV_HYSTERESIS =
+            new AcousticPhysicsEngine.EnvironmentHysteresis(2);
     private static final Map<SoundInstance, OpenAlEfxBridge.SourceAcousticSnapshot> PENDING_SNAPSHOTS =
             new ConcurrentHashMap<>();
     private static final Map<Channel, TrackedChannel> TRACKED_CHANNELS = new ConcurrentHashMap<>();
@@ -136,6 +139,7 @@ public final class ClientAcousticController {
     public static void resetSession() {
         VOICE_BUDGET.reset();
         PLAYBACK_HUMANIZER.reset();
+        ENV_HYSTERESIS.reset();
         PENDING_SNAPSHOTS.clear();
         TRACKED_CHANNELS.clear();
         currentEnvironment = AcousticEnvironment.OPEN_AIR;
@@ -252,6 +256,9 @@ public final class ClientAcousticController {
 
         boolean isModSound = MycelialMind.MODID.equals(namespace);
         boolean bossCue = isModSound && AcousticPhysicsEngine.isBossLegendaryCue(path);
+        if (bossCue) {
+            ClientSoundscapeDirector.triggerBossCueDucking();
+        }
         AcousticEnvironment effectiveEnv = bossCue
                 ? AcousticPhysicsEngine.resolveEffectiveEnvironment(currentEnvironment, path)
                 : currentEnvironment;
@@ -473,6 +480,7 @@ public final class ClientAcousticController {
 
     private static void scanSinkholeProximity(Level level, Player player) {
         BlockPos origin = player.blockPosition();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         BlockPos bestVent = null;
         double bestVentSq = Double.MAX_VALUE;
         int sinkholeBlockCount = 0;
@@ -482,20 +490,23 @@ public final class ClientAcousticController {
         var rootCapShelf = ModBlocks.ROOT_CAP_SHELF.get();
         var amberVein = ModBlocks.LUMINESCENT_AMBER_VEIN.get();
 
+        int ox = origin.getX();
+        int oy = origin.getY();
+        int oz = origin.getZ();
         for (int dx = -16; dx <= 16; dx += 2) {
             for (int dy = -8; dy <= 8; dy += 2) {
                 for (int dz = -16; dz <= 16; dz += 2) {
-                    BlockPos pos = origin.offset(dx, dy, dz);
-                    if (!level.hasChunkAt(pos)) {
+                    cursor.set(ox + dx, oy + dy, oz + dz);
+                    if (!level.hasChunkAt(cursor)) {
                         continue;
                     }
-                    BlockState state = level.getBlockState(pos);
+                    BlockState state = level.getBlockState(cursor);
                     if (state.is(updraftVent)) {
                         sinkholeBlockCount += 3;
-                        double dSq = pos.distSqr(origin);
+                        double dSq = cursor.distSqr(origin);
                         if (dSq < bestVentSq) {
                             bestVentSq = dSq;
-                            bestVent = pos.immutable();
+                            bestVent = cursor.immutable();
                         }
                     } else if (state.is(rootSapMoss) || state.is(rootCapShelf) || state.is(amberVein)) {
                         sinkholeBlockCount++;
@@ -506,13 +517,18 @@ public final class ClientAcousticController {
 
         // Fine scan around the discovered updraft vent or immediate player vicinity for exact block position
         if (bestVent == null) {
-            for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-6, -4, -6), origin.offset(6, 4, 6))) {
-                if (level.hasChunkAt(pos) && level.getBlockState(pos).is(updraftVent)) {
-                    double dSq = pos.distSqr(origin);
-                    if (dSq < bestVentSq) {
-                        bestVentSq = dSq;
-                        bestVent = pos.immutable();
-                        sinkholeBlockCount += 3;
+            for (int dx = -6; dx <= 6; dx++) {
+                for (int dy = -4; dy <= 4; dy++) {
+                    for (int dz = -6; dz <= 6; dz++) {
+                        cursor.set(ox + dx, oy + dy, oz + dz);
+                        if (level.hasChunkAt(cursor) && level.getBlockState(cursor).is(updraftVent)) {
+                            double dSq = cursor.distSqr(origin);
+                            if (dSq < bestVentSq) {
+                                bestVentSq = dSq;
+                                bestVent = cursor.immutable();
+                                sinkholeBlockCount += 3;
+                            }
+                        }
                     }
                 }
             }
@@ -533,11 +549,18 @@ public final class ClientAcousticController {
         var altarBlock = ModBlocks.HIVE_ALTAR.get();
         var matriarchAltar = ModBlocks.MATRIARCH_ALTAR.get();
         var bioBarrier = ModBlocks.REINFORCED_BIO_BARRIER.get();
+        BlockPos.MutableBlockPos probe = new BlockPos.MutableBlockPos();
+        int ex = eyePos.getX();
+        int ey = eyePos.getY();
+        int ez = eyePos.getZ();
 
         for (Direction dir : Direction.values()) {
             int hitDist = MAX_RAY_DIST;
+            int stepX = dir.getStepX();
+            int stepY = dir.getStepY();
+            int stepZ = dir.getStepZ();
             for (int step = 1; step <= MAX_RAY_DIST; step++) {
-                BlockPos probe = eyePos.relative(dir, step);
+                probe.set(ex + stepX * step, ey + stepY * step, ez + stepZ * step);
                 if (!level.hasChunkAt(probe)) {
                     break;
                 }
@@ -558,7 +581,7 @@ public final class ClientAcousticController {
         float avgWallDist = distSum / 6.0F;
         lastEnclosureRatio = enclosure;
         lastAverageWallDistance = avgWallDist;
-        currentEnvironment = AcousticPhysicsEngine.classifyEnvironment(
+        AcousticEnvironment candidateEnv = AcousticPhysicsEngine.classifyEnvironment(
                 inDeepMycelium,
                 playerNearSinkhole,
                 sawSanctumBlock,
@@ -566,11 +589,59 @@ public final class ClientAcousticController {
                 enclosure,
                 avgWallDist
         );
+        AcousticEnvironment stabilizedEnv = ENV_HYSTERESIS.update(candidateEnv);
+        currentEnvironment = stabilizedEnv;
+        if (stabilizedEnv != AcousticEnvironment.OPEN_AIR && MycelialClientConfig.openAlEfxAcousticsEnabled()) {
+            Minecraft mc = Minecraft.getInstance();
+            Executor audioExecutor = resolveAudioExecutor(mc.getSoundManager());
+            if (audioExecutor != null) {
+                float targetGain = AcousticPhysicsEngine.computeAdaptiveReverbGain(
+                        stabilizedEnv, enclosure, avgWallDist, (float) MycelialClientConfig.openAlEfxReverbScale());
+                audioExecutor.execute(() -> OpenAlEfxBridge.updateEnvironmentReverbGain(stabilizedEnv, targetGain));
+            }
+        }
     }
 
     private static float computeMaterialOcclusion(Level level, Vec3 listenerEye, Vec3 sourcePos) {
         double dist = listenerEye.distanceTo(sourcePos);
         if (dist <= 1.25D || dist > 64.0D) {
+            return 0.0F;
+        }
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        float centerOcc = traceSingleRayOcclusion(
+                level, listenerEye.x, listenerEye.y, listenerEye.z, sourcePos.x, sourcePos.y, sourcePos.z, cursor);
+        float occScale = (float) MycelialClientConfig.openAlEfxOcclusionScale();
+        if (centerOcc <= 0.04F) {
+            return AcousticPhysicsEngine.applyOcclusionStrengthScale(centerOcc, occScale);
+        }
+        double dx = sourcePos.x - listenerEye.x;
+        double dz = sourcePos.z - listenerEye.z;
+        double horizLen = Math.hypot(dx, dz);
+        double px = (horizLen > 0.25D) ? (-dz / horizLen) * 0.65D : 0.65D;
+        double pz = (horizLen > 0.25D) ? (dx / horizLen) * 0.65D : 0.0D;
+        float leftOcc = traceSingleRayOcclusion(
+                level, listenerEye.x + px, listenerEye.y, listenerEye.z + pz, sourcePos.x, sourcePos.y, sourcePos.z, cursor);
+        float rightOcc = traceSingleRayOcclusion(
+                level, listenerEye.x - px, listenerEye.y, listenerEye.z - pz, sourcePos.x, sourcePos.y, sourcePos.z, cursor);
+        float blended = AcousticPhysicsEngine.computeDiffractedOcclusion(centerOcc, leftOcc, rightOcc);
+        return AcousticPhysicsEngine.applyOcclusionStrengthScale(blended, occScale);
+    }
+
+    private static float traceSingleRayOcclusion(
+            Level level,
+            double startX,
+            double startY,
+            double startZ,
+            double endX,
+            double endY,
+            double endZ,
+            BlockPos.MutableBlockPos cursor
+    ) {
+        double ddx = endX - startX;
+        double ddy = endY - startY;
+        double ddz = endZ - startZ;
+        double dist = Math.sqrt(ddx * ddx + ddy * ddy + ddz * ddz);
+        if (dist <= 1.25D) {
             return 0.0F;
         }
         int samples = Mth.clamp((int) Math.ceil(dist * 1.15D), 2, MAX_OCCLUSION_SAMPLES);
@@ -580,19 +651,19 @@ public final class ClientAcousticController {
 
         for (int i = 1; i < samples; i++) {
             double frac = i / (double) samples;
-            double x = Mth.lerp(frac, listenerEye.x, sourcePos.x);
-            double y = Mth.lerp(frac, listenerEye.y, sourcePos.y);
-            double z = Mth.lerp(frac, listenerEye.z, sourcePos.z);
-            BlockPos bp = BlockPos.containing(x, y, z);
-            long key = bp.asLong();
+            int bx = Mth.floor(Mth.lerp(frac, startX, endX));
+            int by = Mth.floor(Mth.lerp(frac, startY, endY));
+            int bz = Mth.floor(Mth.lerp(frac, startZ, endZ));
+            long key = BlockPos.asLong(bx, by, bz);
             if (key == lastBlockKey) {
                 continue;
             }
             lastBlockKey = key;
-            if (!level.hasChunkAt(bp)) {
+            cursor.set(bx, by, bz);
+            if (!level.hasChunkAt(cursor)) {
                 continue;
             }
-            MaterialAbsorption mat = classifyBlockAbsorption(level, bp, level.getBlockState(bp));
+            MaterialAbsorption mat = classifyBlockAbsorption(level, cursor, level.getBlockState(cursor));
             if (mat != MaterialAbsorption.AIR) {
                 cumulativeAbsorption += mat.absorptionPerBlock() * (float) Math.max(0.45D, Math.min(1.5D, stepLen));
                 if (cumulativeAbsorption >= 3.2F) {
@@ -683,6 +754,10 @@ public final class ClientAcousticController {
 
     public static long getVoiceSuppressedCount() {
         return VOICE_BUDGET.getSuppressedCount();
+    }
+
+    public static long getVoiceStolenCount() {
+        return VOICE_BUDGET.getStolenCount();
     }
 
     public static long getHumanizedPlaybackCount() {

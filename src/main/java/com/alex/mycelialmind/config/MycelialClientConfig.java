@@ -42,6 +42,8 @@ public final class MycelialClientConfig {
     public static final ModConfigSpec.BooleanValue OPENAL_EFX_DYNAMIC_TRACKING_ENABLED;
     public static final ModConfigSpec.BooleanValue ADAPTIVE_AMBIENT_LAYERS_ENABLED;
     public static final ModConfigSpec.BooleanValue SPATIAL_MICRO_AMBIENCE_ENABLED;
+    public static final ModConfigSpec.DoubleValue OPENAL_EFX_REVERB_SCALE;
+    public static final ModConfigSpec.DoubleValue OPENAL_EFX_OCCLUSION_SCALE;
     public static final ModConfigSpec.DoubleValue PARTICLE_DENSITY_SCALE;
     public static final ModConfigSpec.BooleanValue ENABLE_ADDITIVE_PARTICLE_GLOW;
     public static final ModConfigSpec.DoubleValue SCREEN_SHAKE_SCALE;
@@ -136,6 +138,14 @@ public final class MycelialClientConfig {
         SPATIAL_MICRO_AMBIENCE_ENABLED = builder
                 .comment("Emit periodic directional 3D cavern/sanctum micro-ambience (drips, hyphal creaks, whispers, chimes).")
                 .define("spatialMicroAmbienceEnabled", true);
+
+        OPENAL_EFX_REVERB_SCALE = builder
+                .comment("Global scale factor for adaptive OpenAL EFX cavern/sanctum reverb intensity (0.0 = dry, 1.5 = deep cathedral).")
+                .defineInRange("openAlEfxReverbScale", 1.0, 0.0, 1.5);
+
+        OPENAL_EFX_OCCLUSION_SCALE = builder
+                .comment("Global scale factor for wall/material low-pass sound occlusion muffling (0.0 = off, 1.5 = strong muffling).")
+                .defineInRange("openAlEfxOcclusionScale", 1.0, 0.0, 1.5);
         builder.pop();
 
         builder.push("particles");
@@ -258,6 +268,14 @@ public final class MycelialClientConfig {
 
     public static boolean spatialMicroAmbienceEnabled() {
         return SPEC.isLoaded() ? SPATIAL_MICRO_AMBIENCE_ENABLED.get() : SPATIAL_MICRO_AMBIENCE_ENABLED.getDefault();
+    }
+
+    public static double openAlEfxReverbScale() {
+        return SPEC.isLoaded() ? OPENAL_EFX_REVERB_SCALE.get() : OPENAL_EFX_REVERB_SCALE.getDefault();
+    }
+
+    public static double openAlEfxOcclusionScale() {
+        return SPEC.isLoaded() ? OPENAL_EFX_OCCLUSION_SCALE.get() : OPENAL_EFX_OCCLUSION_SCALE.getDefault();
     }
 
     public static double particleDensityScale() {

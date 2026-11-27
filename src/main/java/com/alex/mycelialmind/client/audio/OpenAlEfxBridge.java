@@ -23,13 +23,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * SoundEngine audio thread so OpenAL context ownership is always respected across reloads.
  */
 public final class OpenAlEfxBridge {
-    private static final int OCCLUSION_BUCKETS = 16;
+    private static final int OCCLUSION_BUCKETS = 32;
 
     private static final AtomicBoolean REINIT_REQUESTED = new AtomicBoolean(true);
     private static final AtomicLong APPLIED_SOURCES = new AtomicLong(0L);
     private static final AtomicLong DYNAMIC_UPDATES = new AtomicLong(0L);
     private static final AtomicLong HUMANIZED_SOURCES = new AtomicLong(0L);
     private static final AtomicLong RESET_SOURCES = new AtomicLong(0L);
+    private static final AtomicLong REVERB_GAIN_UPDATES = new AtomicLong(0L);
 
     private static volatile boolean externalModConflict = false;
     private static volatile boolean efxSupported = false;
@@ -42,6 +43,7 @@ public final class OpenAlEfxBridge {
 
     private static final Map<AcousticEnvironment, Integer> AUX_SLOTS = new EnumMap<>(AcousticEnvironment.class);
     private static final Map<AcousticEnvironment, Integer> REVERB_EFFECTS = new EnumMap<>(AcousticEnvironment.class);
+    private static final Map<AcousticEnvironment, Float> LAST_SLOT_GAINS = new EnumMap<>(AcousticEnvironment.class);
     private static final int[] DIRECT_LPF_POOL = new int[OCCLUSION_BUCKETS];
     private static final int[] SEND_LPF_POOL = new int[OCCLUSION_BUCKETS];
 
@@ -380,6 +382,40 @@ public final class OpenAlEfxBridge {
     }
 
     /**
+     * Dynamically adjusts an active auxiliary EAXReverb slot gain on the audio thread
+     * according to real-time room enclosure geometry and client reverb scaling.
+     */
+    public static synchronized boolean updateEnvironmentReverbGain(AcousticEnvironment env, float slotGain) {
+        if (env == null || env == AcousticEnvironment.OPEN_AIR || safeGetCurrentContext() == 0L) {
+            return false;
+        }
+        if (!ensureInitializedOnAudioThread()) {
+            return false;
+        }
+        float clamped = Float.isFinite(slotGain) ? Math.max(0.0F, Math.min(1.0F, slotGain)) : env.wetSendGain();
+        Integer slot = AUX_SLOTS.get(env);
+        if (slot == null || slot <= 0 || !EXTEfx.alIsAuxiliaryEffectSlot(slot)) {
+            return false;
+        }
+        Float prev = LAST_SLOT_GAINS.get(env);
+        if (prev != null && Math.abs(prev - clamped) < 0.015F) {
+            return true;
+        }
+        try {
+            AL10.alGetError();
+            EXTEfx.alAuxiliaryEffectSlotf(slot, EXTEfx.AL_EFFECTSLOT_GAIN, clamped);
+            if (AL10.alGetError() == AL10.AL_NO_ERROR) {
+                LAST_SLOT_GAINS.put(env, clamped);
+                REVERB_GAIN_UPDATES.incrementAndGet();
+                return true;
+            }
+            return false;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /**
      * Releases allocated EFX effect slots and filters on the active audio context and resets bridge state.
      */
     public static synchronized void shutdownOnAudioThread() {
@@ -484,6 +520,7 @@ public final class OpenAlEfxBridge {
                 EXTEfx.alAuxiliaryEffectSloti(slot, EXTEfx.AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, AL10.AL_TRUE);
                 REVERB_EFFECTS.put(env, effect);
                 AUX_SLOTS.put(env, slot);
+                LAST_SLOT_GAINS.put(env, env.wetSendGain());
             }
 
             // Allocate quantized direct & reverb-send low-pass filters (16 buckets: 0.0 -> 1.0 occlusion)
@@ -632,6 +669,7 @@ public final class OpenAlEfxBridge {
     private static void resetHandleMaps() {
         AUX_SLOTS.clear();
         REVERB_EFFECTS.clear();
+        LAST_SLOT_GAINS.clear();
         for (int i = 0; i < OCCLUSION_BUCKETS; i++) {
             DIRECT_LPF_POOL[i] = 0;
             SEND_LPF_POOL[i] = 0;
@@ -666,7 +704,15 @@ public final class OpenAlEfxBridge {
         return RESET_SOURCES.get();
     }
 
+    public static long getReverbGainUpdatesCount() {
+        return REVERB_GAIN_UPDATES.get();
+    }
+
     public static int getActiveSlotCount() {
         return AUX_SLOTS.size();
+    }
+
+    public static int getOcclusionBucketCount() {
+        return OCCLUSION_BUCKETS;
     }
 }

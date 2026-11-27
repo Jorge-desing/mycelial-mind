@@ -16,13 +16,17 @@ public final class ClientAudioDiagnostics {
     public static String formatClientTelemetry() {
         return String.format(
                 Locale.ROOT,
-                "EFX=%s (%s, slots=%d, applied=%d, humanized=%d, dynUpdates=%d, tracked=%d, vanillaZones=%s) | Env=%s (enc=%.2f, wall=%.1fm, sinkhole=%s, submersion=%s, occ=%.2f) | VoiceBudget=%s (acc=%d, sup=%d, win=%d) | ActiveLoops=%d",
+                "EFX=%s (%s, slots=%d, lpf=%d, applied=%d, humanized=%d, dynUpdates=%d, revUpd=%d, revScale=%.2f, occScale=%.2f, tracked=%d, vanillaZones=%s) | Env=%s (enc=%.2f, wall=%.1fm, sinkhole=%s, submersion=%s, occ=%.2f) | VoiceBudget=%s (acc=%d, sup=%d, stolen=%d, win=%d) | ActiveLoops=%d",
                 OpenAlEfxBridge.isEfxSupported() && MycelialClientConfig.openAlEfxAcousticsEnabled(),
                 OpenAlEfxBridge.getStatusReason(),
                 OpenAlEfxBridge.getActiveSlotCount(),
+                OpenAlEfxBridge.getOcclusionBucketCount(),
                 OpenAlEfxBridge.getAppliedSourcesCount(),
                 ClientAcousticController.getHumanizedPlaybackCount(),
                 OpenAlEfxBridge.getDynamicUpdatesCount(),
+                OpenAlEfxBridge.getReverbGainUpdatesCount(),
+                MycelialClientConfig.openAlEfxReverbScale(),
+                MycelialClientConfig.openAlEfxOcclusionScale(),
                 ClientAcousticController.getTrackedChannelCount(),
                 MycelialClientConfig.openAlEfxVanillaInMycelialZones(),
                 ClientAcousticController.getCurrentEnvironment().name(),
@@ -34,6 +38,7 @@ public final class ClientAudioDiagnostics {
                 MycelialClientConfig.swarmVoiceLimitingEnabled(),
                 ClientAcousticController.getVoiceAcceptedCount(),
                 ClientAcousticController.getVoiceSuppressedCount(),
+                ClientAcousticController.getVoiceStolenCount(),
                 ClientAcousticController.getActiveVoiceWindowCount(),
                 ClientSoundscapeDirector.getActiveLoopCount()
         );

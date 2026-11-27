@@ -298,4 +298,79 @@ public class AcousticPhysicsEngineTest {
         assertTrue(bossFar > 0.0F && bossFar < normalFar);
         assertEquals(normalFar * 0.55F, bossFar, 1e-5F);
     }
+
+    @Test
+    void v10DiffractedOcclusionAndStrengthScalingHandleCornersCleanly() {
+        float pillarEdge = AcousticPhysicsEngine.computeDiffractedOcclusion(0.80F, 0.0F, 0.0F);
+        float solidWall = AcousticPhysicsEngine.computeDiffractedOcclusion(0.80F, 0.80F, 0.80F);
+        assertTrue(pillarEdge > 0.20F && pillarEdge < 0.45F,
+                "Thin pillar / corner diffraction must bend around edges, got " + pillarEdge);
+        assertEquals(0.80F, solidWall, 1e-5F);
+        assertEquals(0.0F, AcousticPhysicsEngine.computeDiffractedOcclusion(Float.NaN, -1.0F, 0.0F), 1e-5F);
+
+        assertEquals(0.0F, AcousticPhysicsEngine.applyOcclusionStrengthScale(0.75F, 0.0F), 1e-5F);
+        assertEquals(0.45F, AcousticPhysicsEngine.applyOcclusionStrengthScale(0.30F, 2.0F), 1e-5F);
+        assertEquals(1.0F, AcousticPhysicsEngine.applyOcclusionStrengthScale(0.80F, 1.5F), 1e-5F);
+    }
+
+    @Test
+    void v10EnvironmentHysteresisPreventsCaveMouthFlutterAndSwitchesAbyssImmediately() {
+        AcousticPhysicsEngine.EnvironmentHysteresis hysteresis = new AcousticPhysicsEngine.EnvironmentHysteresis(2);
+        assertEquals(AcousticEnvironment.OPEN_AIR, hysteresis.getCurrent());
+
+        assertEquals(AcousticEnvironment.OPEN_AIR, hysteresis.update(AcousticEnvironment.CAVERN_SINKHOLE));
+        assertEquals(AcousticEnvironment.CAVERN_SINKHOLE, hysteresis.update(AcousticEnvironment.CAVERN_SINKHOLE));
+
+        assertEquals(AcousticEnvironment.CAVERN_SINKHOLE, hysteresis.update(AcousticEnvironment.OPEN_AIR));
+        assertEquals(AcousticEnvironment.CAVERN_SINKHOLE, hysteresis.update(AcousticEnvironment.CAVERN_SINKHOLE));
+
+        assertEquals(AcousticEnvironment.DEEP_MYCELIUM_ABYSS,
+                hysteresis.update(AcousticEnvironment.DEEP_MYCELIUM_ABYSS));
+        assertEquals(AcousticEnvironment.CAVERN_SINKHOLE,
+                hysteresis.update(AcousticEnvironment.CAVERN_SINKHOLE));
+
+        hysteresis.reset();
+        assertEquals(AcousticEnvironment.OPEN_AIR, hysteresis.getCurrent());
+    }
+
+    @Test
+    void v10AdaptiveReverbGainScalesWithRoomSizeAndUserConfig() {
+        assertEquals(0.0F, AcousticPhysicsEngine.computeAdaptiveReverbGain(
+                AcousticEnvironment.OPEN_AIR, 0.8F, 10.0F, 1.0F), 1e-5F);
+        float smallTunnel = AcousticPhysicsEngine.computeAdaptiveReverbGain(
+                AcousticEnvironment.CAVERN_SINKHOLE, 0.50F, 2.0F, 1.0F);
+        float grandCavern = AcousticPhysicsEngine.computeAdaptiveReverbGain(
+                AcousticEnvironment.CAVERN_SINKHOLE, 1.00F, 13.0F, 1.0F);
+        assertTrue(smallTunnel > 0.0F && smallTunnel < grandCavern && grandCavern <= 1.0F);
+        assertEquals(0.0F, AcousticPhysicsEngine.computeAdaptiveReverbGain(
+                AcousticEnvironment.CAVERN_SINKHOLE, 1.00F, 13.0F, 0.0F), 1e-5F);
+        assertEquals(1.0D, MycelialClientConfig.openAlEfxReverbScale(), 1e-6D);
+        assertEquals(1.0D, MycelialClientConfig.openAlEfxOcclusionScale(), 1e-6D);
+    }
+
+    @Test
+    void v10SwarmVoiceBudgetCloseThreatStealsDistantLowPriorityVoice() {
+        SwarmVoiceBudget budget = new SwarmVoiceBudget();
+        long now = 10_000L;
+        for (int i = 0; i < 2; i++) {
+            assertTrue(budget.evaluate("distant_low_" + i, VoicePriority.LOW, 25.0D * 25.0D, now + i));
+        }
+        for (int i = 0; i < 3; i++) {
+            assertTrue(budget.evaluate("close_low_" + i, VoicePriority.LOW, 9.0D * 9.0D, now + 10 + i));
+        }
+        for (int i = 0; i < 2; i++) {
+            assertTrue(budget.evaluate("distant_norm_" + i, VoicePriority.NORMAL, 25.0D * 25.0D, now + 20 + i));
+        }
+        for (int i = 0; i < 5; i++) {
+            assertTrue(budget.evaluate("distant_high_" + i, VoicePriority.HIGH, 25.0D * 25.0D, now + 30 + i));
+        }
+        for (int i = 0; i < 2; i++) {
+            assertTrue(budget.evaluate("close_high_" + i, VoicePriority.HIGH, 9.0D * 9.0D, now + 40 + i));
+        }
+        assertFalse(budget.evaluate("distant_extra", VoicePriority.LOW, 26.0D * 26.0D, now + 50),
+                "Distant LOW sound must be suppressed at global cap");
+        assertTrue(budget.evaluate("chitin_brute_growl", VoicePriority.NORMAL, 4.0D * 4.0D, now + 55),
+                "Close NORMAL threat within 8m must steal a distant LOW slot");
+        assertTrue(budget.getStolenCount() >= 1L);
+    }
 }

@@ -3,6 +3,7 @@ package com.alex.mycelialmind.hive;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -284,6 +285,106 @@ public final class AcousticPhysicsEngine {
     }
 
     /**
+     * Blends a center occlusion ray with symmetric lateral diffraction rays so sounds bend naturally
+     * around thin pillars and cavern corners instead of cutting abruptly.
+     */
+    public static float computeDiffractedOcclusion(float centerOcc, float leftOcc, float rightOcc) {
+        float c = clamp01(centerOcc);
+        float l = clamp01(leftOcc);
+        float r = clamp01(rightOcc);
+        float blended = (c > 0.35F && Math.min(l, r) < c * 0.5F)
+                ? (0.38F * c + 0.31F * l + 0.31F * r)
+                : (0.50F * c + 0.25F * l + 0.25F * r);
+        return clamp01(blended);
+    }
+
+    /**
+     * Applies user occlusion intensity scaling in [0.0, 1.5] clamped safely to [0.0, 1.0].
+     */
+    public static float applyOcclusionStrengthScale(float occlusion, float scale) {
+        float safeOcc = clamp01(occlusion);
+        float safeScale = Float.isFinite(scale) ? Math.max(0.0F, Math.min(1.5F, scale)) : 1.0F;
+        return clamp01(safeOcc * safeScale);
+    }
+
+    /**
+     * Modulates EFX auxiliary reverb slot gain by real-time 6-ray enclosure geometry and user scale.
+     */
+    public static float computeAdaptiveReverbGain(
+            AcousticEnvironment env,
+            float enclosureRatio,
+            float avgWallDist,
+            float userReverbScale
+    ) {
+        if (env == null || env == AcousticEnvironment.OPEN_AIR) {
+            return 0.0F;
+        }
+        float enc = clamp01(enclosureRatio);
+        float wallNorm = Float.isFinite(avgWallDist) ? Math.max(0.0F, Math.min(1.0F, avgWallDist / 14.0F)) : 0.5F;
+        float userScale = Float.isFinite(userReverbScale) ? Math.max(0.0F, Math.min(1.5F, userReverbScale)) : 1.0F;
+        float roomFactor = Math.max(0.55F, Math.min(1.25F, 0.62F + 0.26F * enc + 0.32F * wallNorm));
+        return clamp01(env.wetSendGain() * roomFactor * userScale);
+    }
+
+    /**
+     * Hysteresis stabilizer preventing rapid environment flapping at cave mouths and thresholds.
+     */
+    public static final class EnvironmentHysteresis {
+        private final int requiredConsecutive;
+        private AcousticEnvironment current = AcousticEnvironment.OPEN_AIR;
+        private AcousticEnvironment pending = null;
+        private int consecutiveCount = 0;
+
+        public EnvironmentHysteresis() {
+            this(2);
+        }
+
+        public EnvironmentHysteresis(int requiredConsecutive) {
+            this.requiredConsecutive = Math.max(1, requiredConsecutive);
+        }
+
+        public synchronized AcousticEnvironment update(AcousticEnvironment candidate) {
+            if (candidate == null) {
+                return current;
+            }
+            if (candidate == current) {
+                pending = null;
+                consecutiveCount = 0;
+                return current;
+            }
+            if (candidate == AcousticEnvironment.DEEP_MYCELIUM_ABYSS
+                    || current == AcousticEnvironment.DEEP_MYCELIUM_ABYSS) {
+                current = candidate;
+                pending = null;
+                consecutiveCount = 0;
+                return current;
+            }
+            if (candidate == pending) {
+                consecutiveCount++;
+            } else {
+                pending = candidate;
+                consecutiveCount = 1;
+            }
+            if (consecutiveCount >= requiredConsecutive) {
+                current = candidate;
+                pending = null;
+                consecutiveCount = 0;
+            }
+            return current;
+        }
+
+        public synchronized void reset() {
+            current = AcousticEnvironment.OPEN_AIR;
+            pending = null;
+            consecutiveCount = 0;
+        }
+
+        public synchronized AcousticEnvironment getCurrent() {
+            return current;
+        }
+    }
+
+    /**
      * Layered sidechain ducking multiplier stacking alert ducking with active boss combat suppression.
      */
     public static float computeLayerDuckMultiplier(
@@ -481,11 +582,13 @@ public final class AcousticPhysicsEngine {
         private static final long NORMAL_SAME_ID_WINDOW_MS = 180L;
         private static final long LOW_SAME_ID_WINDOW_MS = 140L;
         private static final double DISTANT_SQ = 18.0D * 18.0D;
+        private static final double CLOSE_STEAL_SQ = 64.0D;
 
         private final Deque<VoiceStamp> recentVoices = new ArrayDeque<>();
         private final Map<String, Deque<Long>> bySoundId = new HashMap<>();
         private long acceptedCount;
         private long suppressedCount;
+        private long stolenCount;
 
         public synchronized boolean evaluate(String soundId, VoicePriority priority, double distSq, long nowMs) {
             if (priority == VoicePriority.CRITICAL || soundId == null) {
@@ -494,28 +597,7 @@ public final class AcousticPhysicsEngine {
             }
             prune(nowMs);
 
-            int totalRecent = recentVoices.size();
-            int samePriorityCount = 0;
-            for (VoiceStamp stamp : recentVoices) {
-                if (stamp.priority == priority) {
-                    samePriorityCount++;
-                }
-            }
-
             boolean distant = Double.isFinite(distSq) && distSq > DISTANT_SQ;
-            int priorityCap = switch (priority) {
-                case HIGH -> distant ? 5 : HIGH_CAP;
-                case NORMAL -> distant ? 3 : NORMAL_CAP;
-                case LOW -> distant ? 2 : LOW_CAP;
-                case CRITICAL -> Integer.MAX_VALUE;
-            };
-            int globalCap = (priority == VoicePriority.HIGH) ? GLOBAL_NON_CRITICAL_CAP + 4 : GLOBAL_NON_CRITICAL_CAP;
-
-            if (totalRecent >= globalCap || samePriorityCount >= priorityCap) {
-                suppressedCount++;
-                return false;
-            }
-
             long sameIdWindow = switch (priority) {
                 case LOW -> LOW_SAME_ID_WINDOW_MS;
                 case NORMAL -> NORMAL_SAME_ID_WINDOW_MS;
@@ -531,7 +613,48 @@ public final class AcousticPhysicsEngine {
                 return false;
             }
 
-            recentVoices.addLast(new VoiceStamp(priority, nowMs));
+            int totalRecent = recentVoices.size();
+            int samePriorityCount = 0;
+            for (VoiceStamp stamp : recentVoices) {
+                if (stamp.priority == priority) {
+                    samePriorityCount++;
+                }
+            }
+
+            int priorityCap = switch (priority) {
+                case HIGH -> distant ? 5 : HIGH_CAP;
+                case NORMAL -> distant ? 3 : NORMAL_CAP;
+                case LOW -> distant ? 2 : LOW_CAP;
+                case CRITICAL -> Integer.MAX_VALUE;
+            };
+            int globalCap = (priority == VoicePriority.HIGH) ? GLOBAL_NON_CRITICAL_CAP + 4 : GLOBAL_NON_CRITICAL_CAP;
+
+            if (totalRecent >= globalCap || samePriorityCount >= priorityCap) {
+                boolean needSamePriority = samePriorityCount >= priorityCap;
+                boolean stolen = false;
+                if (Double.isFinite(distSq) && distSq < CLOSE_STEAL_SQ) {
+                    Iterator<VoiceStamp> it = recentVoices.iterator();
+                    while (it.hasNext()) {
+                        VoiceStamp stamp = it.next();
+                        boolean prioMatch = needSamePriority
+                                ? (stamp.priority == priority)
+                                : (stamp.priority.ordinal() >= priority.ordinal());
+                        if (stamp.distSq > DISTANT_SQ && prioMatch) {
+                            it.remove();
+                            stolenCount++;
+                            stolen = true;
+                            break;
+                        }
+                    }
+                }
+                if (!stolen) {
+                    suppressedCount++;
+                    return false;
+                }
+            }
+
+            double storedDistSq = Double.isFinite(distSq) ? distSq : 0.0D;
+            recentVoices.addLast(new VoiceStamp(priority, nowMs, storedDistSq));
             idQueue.addLast(nowMs);
             acceptedCount++;
             return true;
@@ -557,6 +680,7 @@ public final class AcousticPhysicsEngine {
             bySoundId.clear();
             acceptedCount = 0L;
             suppressedCount = 0L;
+            stolenCount = 0L;
         }
 
         public synchronized long getAcceptedCount() {
@@ -567,12 +691,16 @@ public final class AcousticPhysicsEngine {
             return suppressedCount;
         }
 
+        public synchronized long getStolenCount() {
+            return stolenCount;
+        }
+
         public synchronized int getActiveWindowCount(long nowMs) {
             prune(nowMs);
             return recentVoices.size();
         }
 
-        private record VoiceStamp(VoicePriority priority, long timestampMs) {
+        private record VoiceStamp(VoicePriority priority, long timestampMs, double distSq) {
         }
     }
 

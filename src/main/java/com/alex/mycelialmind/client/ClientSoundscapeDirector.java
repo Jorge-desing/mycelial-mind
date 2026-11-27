@@ -136,6 +136,10 @@ public final class ClientSoundscapeDirector {
         }
     }
 
+    public static void triggerBossCueDucking() {
+        triggerDucking(45, 0.42F);
+    }
+
     private static void triggerDucking(int ticks, float reduction) {
         if (!MycelialClientConfig.dynamicAudioDucking() || ticks <= 0) {
             return;
