@@ -6097,6 +6097,11 @@ public final class MycelialGameTests {
             boolean rivalSpitOk = rivalBrute.getHealth() < rivalHpBefore
                     && Math.abs(allyBrute.getHealth() - allyHpBefore) < 0.01F;
 
+            // The border check is complete. Remove protection before testing an unjammed spitter.
+            // The border check is complete. Clear its protection before testing decoy pursuit.
+            tracker.removePylon(pylonPos);
+            level.removeBlock(pylonPos, false);
+
             // 3) NeuralEchoDecoyItem cooldown + escort protection + AcidSpitterCombatBehaviour decoy pursuit
             for (int dx = -8; dx <= 2; dx++) {
                 for (int dz = -2; dz <= 2; dz++) {
@@ -6137,11 +6142,17 @@ public final class MycelialGameTests {
                 liveSpitter.setPos(decoyCenter.getX() - 6.0D, decoyCenter.getY() + 1.0D, decoyCenter.getZ() + 0.5D);
                 liveSpitter.setOnGround(true);
                 level.addFreshEntity(liveSpitter);
+                // Exercise the protection check on every manual tick regardless of entity ID.
+                helper.assertFalse(tracker.isProtected(liveSpitter.blockPosition()),
+                        "The decoy pursuit arena must be outside pylon protection");
+                liveSpitter.tickCount = Math.floorMod(-liveSpitter.getId(), 10);
                 for (int t = 0; t < 12 && !spitterPursuedDecoy; t++) {
                     liveSpitter.tick();
                     navTarget = liveSpitter.getNavigation().getTargetPos();
                     spitterPursuedDecoy = navTarget != null && navTarget.distSqr(decoyPos) <= 9.0D;
                 }
+                helper.assertFalse(liveSpitter.isDesynced(),
+                        "The decoy pursuit arena must be outside pylon protection");
             }
             boolean decoyIntegrationOk = firstDecoyRes.getResult().consumesAction()
                     && !secondDecoyRes.getResult().consumesAction()
@@ -6150,6 +6161,8 @@ public final class MycelialGameTests {
                     && spitterPursuedDecoy;
 
             // 4) SchismInjector rejects allied escort & OvermindCrown enforces cooldown
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            tracker.addPylon(pylonPos);
             player.setPos(decoyPos.getX() + 0.5D, decoyPos.getY(), decoyPos.getZ() + 0.5D);
             player.getCooldowns().removeCooldown(ModItems.SCHISM_INJECTOR.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.SCHISM_INJECTOR.get()));
