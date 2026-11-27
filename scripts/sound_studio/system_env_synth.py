@@ -34,15 +34,18 @@ from scripts.sound_studio.dsp_engine import (
     _swept_resonant_filter,
     _wet_squelch_layer,
     adsr_envelope,
+    amethyst_copper_chime,
     articulated_vocal_tract,
     exp_decay,
     fdn4_hadamard_diffuser,
+    foley_particle_crackle,
     fold_seamless_loop,
     granular_bio_cloud,
     karplus_strong_chitin,
     modal_dispersed_impact,
     modal_resonator_bank,
     morphing_formant_tract,
+    wooden_chitin_knock,
 )
 
 SYSTEM_ENV_IDS: frozenset[str] = frozenset(
@@ -138,20 +141,24 @@ def synthesize_system_env_sound(
         return _cavern_reverb((core + ring) * env, rng, wet=0.22, rt60=0.48, lp_hz=4800.0)
 
     if sound_id == "suppressor_discharge":
-        # Capacitor wind-up -> heavy EMP blast wave -> clinical triad lock-down chime (randomized per take)
+        # Copper coil wind-up + crystal crackle -> heavy stone shockwave -> resonant amethyst-bronze discharge triad
         imp = int(rng.uniform(0.13, 0.25) * n)
         wave = np.zeros(n, dtype=np.float64)
         ct = t[:imp]
         f_up_lo = rng.uniform(210.0, 320.0)
-        f_up_hi = rng.uniform(1250.0, 1720.0)
-        wave[:imp] = np.sin(2.0 * np.pi * np.cumsum(np.linspace(f_up_lo, f_up_hi, imp)) / SAMPLE_RATE + pjit) * (ct / max(1e-4, ct[-1])) * 0.75
+        f_up_hi = rng.uniform(1180.0, 1580.0)
+        windup = _swept_resonant_filter(pink[:imp] * 0.7 + white[:imp] * 0.4, f_up_lo, f_up_hi, q=2.8)
+        wave[:imp] = windup * (ct / max(1e-4, ct[-1])) * 0.85 + foley_particle_crackle(imp, rng, count=4) * 0.38
         bomb = _sub_bomb(t, imp, f_start=rng.uniform(145.0, 185.0), f_end=35.0, drop_tau=rng.uniform(0.05, 0.08), sustain_tau=dur * 0.45)
         rt = np.arange(n - imp, dtype=np.float64) / SAMPLE_RATE
         triad_bf = bf * rng.uniform(0.91, 1.10)
-        emp_chime = _modal_bank(rt, triad_bf, (1.0, 1.25, 1.498, 2.0), (0.28, 0.22, 0.16, 0.11), (0.75, 0.58, 0.45, 0.30), rng)
-        zaps = _micro_arc_zaps(n, rng, int(rng.integers(4, 7)), lo_hz=3200.0, hi_hz=13000.0, spread=(0.14, 0.80)) * 0.60
-        wave[imp:] += bomb[imp:] * 1.15 + emp_chime * 0.90
-        return _cavern_reverb(np.tanh((wave + zaps) * 1.25), rng, wet=0.18, rt60=0.42, lp_hz=7200.0)
+        emp_chime = (
+            amethyst_copper_chime(rt, triad_bf, rng, decay=0.22, crystal_mix=0.65) * 0.85
+            + _modal_bank(rt, triad_bf * 1.498, (1.0, 1.5, 2.32), (0.18, 0.12, 0.07), (0.55, 0.38, 0.22), rng) * 0.55
+        )
+        snaps = foley_particle_crackle(n, rng, lo_hz=2600.0, hi_hz=9600.0, count=6) * 0.52
+        wave[imp:] += bomb[imp:] * 1.15 + emp_chime
+        return _cavern_reverb(np.tanh((wave + snaps) * 1.25), rng, wet=0.14, rt60=0.36, lp_hz=7200.0)
 
     if sound_id == "squad_desync":
         # Severed neural link: shattering crystal link + stepped downward pitch-glitch + static fizz

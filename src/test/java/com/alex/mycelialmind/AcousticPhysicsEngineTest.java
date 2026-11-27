@@ -220,4 +220,33 @@ public class AcousticPhysicsEngineTest {
         humanizer.reset();
         assertEquals(0L, humanizer.getHumanizedCount());
     }
+
+    @Test
+    void v7TimbreDampingVariesWithinBoundsAndMaintainsEnvironmentOrdering() {
+        assertEquals(0.0F, AcousticPhysicsEngine.HumanizedPlayback.IDENTITY.timbreDamping(), 1e-6F);
+        AcousticPhysicsEngine.PlaybackHumanizer humanizer = new AcousticPhysicsEngine.PlaybackHumanizer(202607L);
+
+        assertEquals(0.0F, humanizer.nextForSound("mob_step_chitin", true, false, 100L).timbreDamping(), 1e-6F);
+        assertEquals(0.0F, humanizer.nextForSound("mob_step_chitin", false, true, 110L).timbreDamping(), 1e-6F);
+        assertEquals(0.0F, humanizer.nextForSound("ui_action_confirm", false, false, 120L).timbreDamping(), 1e-6F);
+
+        AcousticPhysicsEngine.HumanizedPlayback h1 = humanizer.nextForSound("mob_step_chitin", false, false, 500L);
+        AcousticPhysicsEngine.HumanizedPlayback h2 = humanizer.nextForSound("mob_step_chitin", false, false, 700L);
+        assertTrue(h1.timbreDamping() >= 0.0F && h1.timbreDamping() <= 0.1801F);
+        assertTrue(h2.timbreDamping() >= 0.0F && h2.timbreDamping() <= 0.1801F);
+        assertTrue(Math.abs(h2.timbreDamping() - h1.timbreDamping()) >= 0.050F,
+                "Consecutive organic hits must vary HF timbre damping");
+
+        for (int i = 0; i < 6; i++) {
+            float td = humanizer.nextForSound("purification_turret_fire", false, false, 1200L + i * 100L).timbreDamping();
+            assertTrue(td >= 0.0F && td <= 0.0601F,
+                    "Copper-amethyst Purifier tech must stay brighter with bounded timbreDamping <= 0.06");
+        }
+
+        AcousticEnvironment[] envs = AcousticEnvironment.values();
+        for (int i = 1; i < envs.length; i++) {
+            assertTrue(envs[i - 1].wetSendGain() < envs[i].wetSendGain());
+            assertTrue(envs[i - 1].decayTime() < envs[i].decayTime());
+        }
+    }
 }

@@ -569,7 +569,7 @@ return {{
         and (live_colony.get("cycle") or {{}}).get("last_grade") == "S"
     ),
     "diag_colony_ok": diag_colony.get("ok") is True and diag_colony.get("symptom") == "colony_dialects",
-    "unit_efx_ok": unit_efx.get("ok") is True and unit_efx.get("count", 0) >= 7,
+    "unit_efx_ok": unit_efx.get("ok") is True and unit_efx.get("count", 0) >= 8,
     "diag_audio_ok": diag_audio.get("ok") is True and diag_audio.get("symptom") == "audio_efx",
     "ref_matrix_ok": ref_matrix.get("ok") is True and "OpenAlEfxLoopbackTest" in ref_matrix.get("content", ""),
     "ai_refs_ok": (

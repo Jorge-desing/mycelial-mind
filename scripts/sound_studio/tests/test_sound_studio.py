@@ -161,7 +161,7 @@ class SoundStudioTests(unittest.TestCase):
         self.assertIn("hive_tension_bed_low", html_text)
         self.assertIn("sanctum_harmonic_chime", html_text)
         self.assertIn("44100", html_text)
-        self.assertIn("Consola Local de Audio v6", html_text)
+        self.assertIn("Consola Local de Audio v7", html_text)
         self.assertIn("mean_organic_index", html_text)
         self.assertIn("Bloques Físicos", html_text)
         self.assertIn("Biomas y Ambiente (23)", html_text)
@@ -854,6 +854,31 @@ class SoundStudioTests(unittest.TestCase):
         blended = ai_stem_generator.blend_with_ai_stem(gapped_dsp, "chitin_brute_growl", variation_idx=0)
         self.assertEqual(len(blended), SAMPLE_RATE)
         self.assertFalse(np.any(np.isnan(blended)))
+
+    def test_stage7_minecraft_foley_craft_and_copper_amethyst_primitives(self) -> None:
+        """Stage 7: Zero sci-fi/synth stem prompts, copper-amethyst/wooden/particle physical primitives, schema v7."""
+        from scripts.sound_studio import ai_stem_generator, dsp_engine
+        from scripts.sound_studio.build_sounds import BASELINE_PATH
+
+        banned = ("sci-fi", "synth", "futuristic", "quadcopter", "electronic", "radar", "plasma", "telemetry", "siren", "kaiju")
+        for arch in ai_stem_generator.AI_STEM_ARCHETYPES:
+            low = arch.prompt.lower()
+            for word in banned:
+                self.assertNotIn(word, low, msg=f"Stem {arch.stem_id} prompt still uses robotic word '{word}'")
+
+        rng = np.random.default_rng(2026)
+        t = np.linspace(0.0, 0.35, int(SAMPLE_RATE * 0.35), endpoint=False)
+        chime = dsp_engine.amethyst_copper_chime(t, 520.0, rng, decay=0.12, crystal_mix=0.65)
+        knock = dsp_engine.wooden_chitin_knock(len(t), 440.0, rng, decay=0.04, hollowness=0.6)
+        crackle = dsp_engine.foley_particle_crackle(len(t), rng, count=6)
+        for arr in (chime, knock, crackle):
+            self.assertEqual(len(arr), len(t))
+            self.assertTrue(np.all(np.isfinite(arr)))
+            self.assertGreater(float(np.max(np.abs(arr))), 0.05)
+
+        if BASELINE_PATH.is_file():
+            base = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
+            self.assertEqual(base.get("schema_version"), 7)
 
 
 if __name__ == "__main__":

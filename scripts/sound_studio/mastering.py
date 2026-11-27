@@ -193,12 +193,35 @@ def measure_true_peak_dbfs(wave: np.ndarray) -> float:
 
 
 def true_peak_limit_4x(wave: np.ndarray, ceiling: float = TRUE_PEAK_CEILING) -> np.ndarray:
-    """Enforce 4x oversampled true-peak ceiling below target threshold."""
-    out = np.clip(wave, -ceiling, ceiling)
-    tp = measure_true_peak_linear(out)
-    if tp > ceiling and tp > 1e-8:
-        out = out * ((ceiling * 0.992) / tp)
-    return np.clip(out, -ceiling, ceiling)
+    """Enforce 4x oversampled true-peak ceiling below target threshold via local smoothed gain."""
+    out = np.clip(np.asarray(wave, dtype=np.float32), -ceiling, ceiling)
+    n = out.shape[0]
+    if n < 16:
+        tp = measure_true_peak_linear(out)
+        if tp > ceiling and tp > 1e-8:
+            out = out * ((ceiling * 0.992) / tp)
+        return np.clip(out, -ceiling, ceiling).astype(np.float32)
+
+    oversampled = signal.resample_poly(out, 4, 1)
+    usable = min(n, oversampled.shape[0] // 4)
+    local_tp = np.zeros(n, dtype=np.float32)
+    local_tp[:usable] = np.max(np.abs(oversampled[: usable * 4].reshape(usable, 4)), axis=1)
+    if usable < n:
+        local_tp[usable:] = np.abs(out[usable:])
+    local_tp = np.maximum(local_tp, np.abs(out))
+
+    padded = np.pad(local_tp, 6, mode="edge")
+    dilated = np.max(np.lib.stride_tricks.sliding_window_view(padded, 13), axis=1)
+    target = ceiling * 0.975
+    raw_gain = np.where(dilated > ceiling, target / np.maximum(dilated, 1e-8), 1.0).astype(np.float32)
+    smooth_kernel = np.array([0.1, 0.2, 0.4, 0.2, 0.1], dtype=np.float32)
+    smooth_gain = np.minimum(1.0, np.convolve(np.pad(raw_gain, 2, mode="edge"), smooth_kernel, mode="valid"))
+    out = out * smooth_gain
+
+    tp2 = measure_true_peak_linear(out)
+    if tp2 > ceiling and tp2 > 1e-8:
+        out = out * ((ceiling * 0.992) / tp2)
+    return np.clip(out, -ceiling, ceiling).astype(np.float32)
 
 
 def measure_integrated_lufs(wave: np.ndarray, sample_rate: int = SAMPLE_RATE) -> float:
@@ -236,43 +259,43 @@ def _profile_params(sound_id: str, species: str, loudness_group: str, ir_space: 
         hp_hz = 26.0
         low_db = 1.6
         peak_hz, peak_db, peak_q = 420.0, 0.8, 0.9
-        high_db = 1.0 if "matriarch" in sound_id else 0.4
+        high_db = 0.0 if "matriarch" in sound_id else -1.0
         comp_thresh, comp_ratio = -17.0, 2.8
     elif ir_space in ("purifier_hall",) or "purif" in sp or "synaptic_node" in sound_id:
         hp_hz = 42.0
-        low_db = -0.5
-        peak_hz, peak_db, peak_q = 2600.0, 1.4, 1.1
-        high_db = 1.6
-        comp_thresh, comp_ratio = -18.5, 2.3
+        low_db = -0.3
+        peak_hz, peak_db, peak_q = 2400.0, 1.2, 1.0
+        high_db = 0.6
+        comp_thresh, comp_ratio = -18.5, 2.2
     elif ir_space == "spore_canopy":
         hp_hz = 36.0
         low_db = 0.2
         peak_hz, peak_db, peak_q = 1250.0, 0.9, 0.9
-        high_db = 1.1
+        high_db = -0.8
         comp_thresh, comp_ratio = -19.0, 2.0
     elif loudness_group in ("footstep", "block_light"):
         hp_hz = 38.0
         low_db = 0.0
         peak_hz, peak_db, peak_q = 1400.0, 0.8, 1.0
-        high_db = 0.8
+        high_db = -1.2
         comp_thresh, comp_ratio = -20.0, 1.9
     else:
         hp_hz = 32.0
         low_db = 0.8
         peak_hz, peak_db, peak_q = 950.0, 0.9, 0.9
-        high_db = 0.9
+        high_db = -1.2
         comp_thresh, comp_ratio = -18.0, 2.2
 
     if loudness_group == "footstep":
-        ir_mix = 0.03
+        ir_mix = 0.015
     elif is_boss or ir_space == "dimensional_rift":
-        ir_mix = 0.14
+        ir_mix = 0.12
     elif loudness_group in ("block_light", "block_heavy"):
-        ir_mix = 0.045
+        ir_mix = 0.025
     else:
-        ir_mix = 0.055
+        ir_mix = 0.035
 
-    chorus_mix = 0.05 if (is_boss or ir_space == "dimensional_rift") else 0.0
+    chorus_mix = 0.04 if (is_boss or ir_space == "dimensional_rift") else 0.0
     return (ir_space, hp_hz, low_db, peak_hz, peak_db, peak_q, high_db, comp_thresh, comp_ratio, ir_mix, chorus_mix)
 
 

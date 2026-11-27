@@ -539,10 +539,15 @@ def synthesize_entity_sound(
             raw = np.tanh((horn + sub) * 1.4) * adsr_envelope(n, 0.09, 0.20, 0.62, 0.32)
             return _cavern_reverb(raw, rng, wet=0.28, rt60=0.62, lp_hz=2600.0)
         if action == "hurt":
-            # Heavy bone-shield clang + deep commander snarl
-            shield = _modal_bank(t, bf * 3.2, shield_ratios, (0.08, 0.06, 0.04, 0.025, 0.015), (0.85, 0.65, 0.45, 0.30, 0.18), rng) * 1.0
-            snarl = _apply_formant_bank(_glottal_sub_source(t, bf * (1.2 - 0.45 * (t / dur)), rng, harmonics=10, sub_weight=0.88), [(130.0 * formant_shift, 2.5, 1.15), (360.0, 3.0, 0.8)]) * adsr_envelope(n, 0.02, 0.22, 0.46, 0.35)
-            return _cavern_reverb(np.tanh((shield + snarl) * 1.3), rng, wet=0.22, rt60=0.48, lp_hz=3200.0)
+            # Heavy bone-shield clang + deep commander snarl with per-take stagger and formant variation
+            shield_s = int(rng.uniform(0.0, 0.14) * n)
+            shield = np.zeros(n, dtype=np.float64)
+            st = np.arange(n - shield_s, dtype=np.float64) / SAMPLE_RATE
+            shield[shield_s:] = _modal_bank(st, bf * rng.uniform(2.6, 3.8), shield_ratios, (0.08, 0.06, 0.04, 0.025, 0.015), (0.85, 0.65, 0.45, 0.30, 0.18), rng) * 1.0
+            f_snarl = bf * rng.uniform(0.88, 1.14) * (rng.uniform(1.12, 1.32) - rng.uniform(0.35, 0.55) * (t / dur))
+            fs = formant_shift * rng.uniform(0.88, 1.14)
+            snarl = _apply_formant_bank(_glottal_sub_source(t, f_snarl, rng, harmonics=10, sub_weight=0.88), [(130.0 * fs, 2.5, 1.15), (360.0 * fs, 3.0, 0.8)]) * adsr_envelope(n, 0.02, 0.22, 0.46, 0.35)
+            return _cavern_reverb(np.tanh((shield + snarl) * 1.3), rng, wet=0.14, rt60=0.38, lp_hz=3200.0)
         if action == "death":
             # Falling warhorn groan + monumental shield/armor slam
             f_down = np.maximum(32.0, bf * 1.18 * np.exp(-1.15 * t / dur))

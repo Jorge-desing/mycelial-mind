@@ -54,8 +54,21 @@ public final class OpenAlEfxBridge {
             boolean applyReverb,
             long createdAtMs,
             float pitchMultiplier,
-            float gainMultiplier
+            float gainMultiplier,
+            float timbreDamping
     ) {
+        public SourceAcousticSnapshot(
+                AcousticEnvironment environment,
+                float occlusionFactor,
+                SubmersionState submersion,
+                boolean applyReverb,
+                long createdAtMs,
+                float pitchMultiplier,
+                float gainMultiplier
+        ) {
+            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs, pitchMultiplier, gainMultiplier, 0.0F);
+        }
+
         public SourceAcousticSnapshot(
                 AcousticEnvironment environment,
                 float occlusionFactor,
@@ -63,7 +76,7 @@ public final class OpenAlEfxBridge {
                 boolean applyReverb,
                 long createdAtMs
         ) {
-            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs, 1.0F, 1.0F);
+            this(environment, occlusionFactor, submersion, applyReverb, createdAtMs, 1.0F, 1.0F, 0.0F);
         }
 
         public SourceAcousticSnapshot(
@@ -80,7 +93,8 @@ public final class OpenAlEfxBridge {
                     applyReverb,
                     createdAtMs,
                     1.0F,
-                    1.0F
+                    1.0F,
+                    0.0F
             );
         }
 
@@ -208,6 +222,9 @@ public final class OpenAlEfxBridge {
             return false;
         }
         try {
+            float safeTimbre = Float.isFinite(snapshot.timbreDamping())
+                    ? Math.max(0.0F, Math.min(0.24F, snapshot.timbreDamping()))
+                    : 0.0F;
             if (applyInitialHumanization) {
                 float pMul = Float.isFinite(snapshot.pitchMultiplier())
                         ? Math.max(0.75F, Math.min(1.25F, snapshot.pitchMultiplier()))
@@ -215,7 +232,7 @@ public final class OpenAlEfxBridge {
                 float gMul = Float.isFinite(snapshot.gainMultiplier())
                         ? Math.max(0.65F, Math.min(1.15F, snapshot.gainMultiplier()))
                         : 1.0F;
-                boolean modified = false;
+                boolean modified = safeTimbre > 1e-4F;
                 if (Math.abs(pMul - 1.0F) > 1e-4F) {
                     float basePitch = AL10.alGetSourcef(sourceId, AL10.AL_PITCH);
                     float safeBasePitch = (Float.isFinite(basePitch) && basePitch > 0.05F) ? basePitch : 1.0F;
@@ -233,12 +250,14 @@ public final class OpenAlEfxBridge {
                 }
             }
 
-            float effectiveOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(
+            float baseOcc = AcousticPhysicsEngine.computeEffectiveOcclusion(
                     snapshot.occlusionFactor(), snapshot.submersion());
-            int bucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(effectiveOcc * (OCCLUSION_BUCKETS - 1))));
+            float effectiveDirectOcc = Math.min(1.0F, baseOcc + safeTimbre);
+            int directBucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(effectiveDirectOcc * (OCCLUSION_BUCKETS - 1))));
+            int sendBucket = Math.min(OCCLUSION_BUCKETS - 1, Math.max(0, Math.round(baseOcc * (OCCLUSION_BUCKETS - 1))));
 
-            // 1) Direct path material occlusion & submersion low-pass filter
-            int directFilter = (bucket > 0) ? DIRECT_LPF_POOL[bucket] : EXTEfx.AL_FILTER_NULL;
+            // 1) Direct path material occlusion, submersion & per-hit HF timbre low-pass filter
+            int directFilter = (directBucket > 0) ? DIRECT_LPF_POOL[directBucket] : EXTEfx.AL_FILTER_NULL;
             AL10.alSourcei(sourceId, EXTEfx.AL_DIRECT_FILTER, directFilter);
 
             // 2) Auxiliary EAXReverb send (skipped for relative/UI or OPEN_AIR)
@@ -247,7 +266,7 @@ public final class OpenAlEfxBridge {
                     ? AUX_SLOTS.get(env)
                     : null;
             if (auxSlot != null && auxSlot > 0) {
-                int sendFilter = SEND_LPF_POOL[bucket];
+                int sendFilter = SEND_LPF_POOL[sendBucket];
                 AL11.alSource3i(sourceId, EXTEfx.AL_AUXILIARY_SEND_FILTER, auxSlot, 0, sendFilter);
             } else {
                 AL11.alSource3i(sourceId, EXTEfx.AL_AUXILIARY_SEND_FILTER, EXTEfx.AL_EFFECTSLOT_NULL, 0, EXTEfx.AL_FILTER_NULL);

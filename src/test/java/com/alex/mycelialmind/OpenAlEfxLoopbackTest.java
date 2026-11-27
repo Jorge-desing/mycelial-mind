@@ -439,6 +439,85 @@ public class OpenAlEfxLoopbackTest {
         }
     }
 
+    @Test
+    void perHitTimbreDampingShapesHighFrequencyColorWithoutCompounding() {
+        short[] pcm = synthesizeMultiTonePcm(
+                SAMPLE_RATE,
+                new double[]{280.0D, 900.0D, 4200.0D, 7200.0D},
+                0.24D
+        );
+        int bufferId = createMono16Buffer(pcm);
+        try {
+            SpectralMeasurement bright = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(
+                            AcousticEnvironment.OPEN_AIR,
+                            0.0F,
+                            AcousticPhysicsEngine.SubmersionState.NONE,
+                            false,
+                            20L,
+                            1.0F,
+                            1.0F,
+                            0.0F
+                    )
+            );
+            SpectralMeasurement damped = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(
+                            AcousticEnvironment.OPEN_AIR,
+                            0.0F,
+                            AcousticPhysicsEngine.SubmersionState.NONE,
+                            false,
+                            21L,
+                            1.0F,
+                            1.0F,
+                            0.22F
+                    )
+            );
+            assertTrue(bright.highPower() > damped.highPower() * 1.15D,
+                    "timbreDamping=0.22F must subtly attenuate >2 kHz energy vs 0.0F (bright="
+                            + bright.highPower() + ", damped=" + damped.highPower() + ")");
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError());
+
+            int src = AL10.alGenSources();
+            try {
+                AL10.alSourcei(src, AL10.AL_BUFFER, bufferId);
+                AL10.alSourcei(src, AL10.AL_LOOPING, AL10.AL_TRUE);
+                SourceAcousticSnapshot snap = new SourceAcousticSnapshot(
+                        AcousticEnvironment.OPEN_AIR,
+                        0.0F,
+                        AcousticPhysicsEngine.SubmersionState.NONE,
+                        false,
+                        22L,
+                        1.03F,
+                        0.94F,
+                        0.18F
+                );
+                assertTrue(OpenAlEfxBridge.applyToSource(src, snap));
+                AL10.alSourcePlay(src);
+                renderStereoFrames(1024);
+                float[] first = renderStereoFrames(FFT_SIZE);
+                double hfFirst = bandPower(computeStereoPowerSpectrum(first, 0, FFT_SIZE), 2000.0D, 16000.0D);
+
+                for (int i = 0; i < 4; i++) {
+                    assertTrue(OpenAlEfxBridge.updateActiveSource(src, snap));
+                }
+                renderStereoFrames(1024);
+                float[] after = renderStereoFrames(FFT_SIZE);
+                double hfAfter = bandPower(computeStereoPowerSpectrum(after, 0, FFT_SIZE), 2000.0D, 16000.0D);
+                assertEquals(1.03F, AL10.alGetSourcef(src, AL10.AL_PITCH), 1e-4F);
+                assertEquals(0.94F, AL10.alGetSourcef(src, AL10.AL_GAIN), 1e-4F);
+                assertTrue(Math.abs(hfFirst - hfAfter) <= Math.max(hfFirst, hfAfter) * 0.20D + 1e-6D,
+                        "Live updates must preserve stable timbre damping without compounding");
+            } finally {
+                AL10.alSourceStop(src);
+                AL10.alDeleteSources(src);
+            }
+        } finally {
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
     private SpectralMeasurement measurePlaybackSpectrum(int bufferId, SourceAcousticSnapshot snapshot) {
         int sourceId = createUnitSource(bufferId);
         try {

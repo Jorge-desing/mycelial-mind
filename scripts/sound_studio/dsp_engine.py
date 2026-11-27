@@ -263,7 +263,11 @@ def _fm_tone(
         inst_c = np.maximum(16.0, np.asarray(carrier_hz, dtype=np.float64) * wander)
         phase = 2.0 * np.pi * np.cumsum(inst_c) / SAMPLE_RATE
     mod = (mod_index * mod_drift) * np.sin(2.0 * np.pi * mod_hz * t + mod_phase)
-    return np.sin(phase + phase_jit + mod)
+    raw = np.sin(phase + phase_jit + mod)
+    if n >= 32:
+        cutoff = min(9200.0, max(2400.0, float(np.mean(inst_c)) * 6.5))
+        return _sos_lowpass(raw, cutoff)
+    return raw
 
 
 def _glottal_sub_source(
@@ -617,6 +621,84 @@ def modal_dispersed_impact(
     out += strike * exp_decay(t, 0.004 + 0.010 * (1.0 - hard)) * (0.28 + 0.42 * hard)
     peak = float(np.max(np.abs(out)))
     return out / max(peak, 1e-6) if peak > 1e-8 else out
+
+
+def amethyst_copper_chime(
+    t: np.ndarray,
+    base_freq: float,
+    rng: np.random.Generator,
+    *,
+    decay: float = 0.14,
+    crystal_mix: float = 0.55,
+) -> np.ndarray:
+    """Warm Minecraft-craft struck amethyst shard & damped copper plate resonance (replaces sterile beeps)."""
+    n = len(t)
+    if n <= 16:
+        return np.zeros(max(0, n), dtype=np.float64)
+    f0 = max(65.0, float(base_freq) * float(rng.uniform(0.95, 1.05)))
+    ratios = (1.0, 1.498, 2.32, 3.85)
+    weights = (0.72, 0.50 * crystal_mix + 0.18, 0.34 * crystal_mix, 0.20 * crystal_mix)
+    out = np.zeros(n, dtype=np.float64)
+    for k, (r, w) in enumerate(zip(ratios, weights)):
+        fk = f0 * r * float(rng.uniform(0.992, 1.008))
+        if fk >= 0.44 * SAMPLE_RATE:
+            continue
+        tau = max(0.012, float(decay) / (1.0 + 0.55 * k))
+        ph = float(rng.uniform(0.0, 2.0 * np.pi))
+        out += w * np.sin(2.0 * np.pi * fk * t + ph) * np.exp(-t / tau)
+    mallet = _sos_bandpass(rng.normal(0.0, 1.0, n), 1400.0, min(11500.0, max(3200.0, f0 * 5.0)))
+    out += mallet * exp_decay(t, 0.006) * (0.26 + 0.22 * (1.0 - float(np.clip(crystal_mix, 0.0, 1.0))))
+    return _sos_lowpass(out, min(11000.0, max(3600.0, f0 * 7.5)))
+
+
+def wooden_chitin_knock(
+    n: int,
+    base_freq: float,
+    rng: np.random.Generator,
+    *,
+    decay: float = 0.045,
+    hollowness: float = 0.60,
+) -> np.ndarray:
+    """Dry hollow bone/wood/chitin tap combining damped body modes and close grit click."""
+    if n <= 16:
+        return np.zeros(max(0, n), dtype=np.float64)
+    t = np.arange(n, dtype=np.float64) / float(SAMPLE_RATE)
+    f0 = max(75.0, float(base_freq) * float(rng.uniform(0.90, 1.12)))
+    h = float(np.clip(hollowness, 0.1, 1.0))
+    body = np.zeros(n, dtype=np.float64)
+    for idx, (r, w) in enumerate(((1.0, 0.85), (1.76, 0.52 * h), (2.94, 0.26))):
+        fk = f0 * r
+        if fk < 0.44 * SAMPLE_RATE:
+            body += w * np.sin(2.0 * np.pi * fk * t + float(rng.uniform(0.0, 6.28))) * np.exp(-t / max(0.008, decay / (1.0 + 0.7 * idx)))
+    grit = _sos_bandpass(rng.normal(0.0, 1.0, n), 1100.0, 7600.0) * exp_decay(t, 0.007) * 0.48
+    return body + grit
+
+
+def foley_particle_crackle(
+    n: int,
+    rng: np.random.Generator,
+    *,
+    lo_hz: float = 1200.0,
+    hi_hz: float = 6800.0,
+    count: int = 8,
+    wet: bool = False,
+) -> np.ndarray:
+    """Discrete gravel/moss/spore particle micro-impacts scattered across n samples."""
+    if n <= 32 or count <= 0:
+        return np.zeros(max(0, n), dtype=np.float64)
+    out = np.zeros(n, dtype=np.float64)
+    for k in range(int(count)):
+        pos = int(rng.uniform(0.0, 0.82) * (n - 32))
+        plen = min(n - pos, int(SAMPLE_RATE * rng.uniform(0.014, 0.036)))
+        if plen < 16:
+            continue
+        pt = np.arange(plen, dtype=np.float64) / float(SAMPLE_RATE)
+        noise = rng.normal(0.0, 1.0, plen)
+        lo = max(120.0, float(lo_hz) * float(rng.uniform(0.80, 1.25)))
+        hi = min(14000.0, max(lo + 300.0, float(hi_hz) * float(rng.uniform(0.80, 1.15))))
+        grain = _sos_bandpass(noise, lo, hi) * exp_decay(pt, 0.006 if not wet else 0.011)
+        out[pos : pos + plen] += grain * float(rng.uniform(0.45, 0.95))
+    return out
 
 
 def karplus_strong_chitin(

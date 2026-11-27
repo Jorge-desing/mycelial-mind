@@ -637,7 +637,7 @@ def save_acoustic_baseline(
             "max_variant_corr": corrs.get(sid, entry.get("max_variant_corr", 0.0)),
         }
     baseline = {
-        "schema_version": 6,
+        "schema_version": 7,
         "total_events": len(events_snap),
         "total_ogg_files": manifest.get("ogg_count", 0),
         "worst_correlation": quality_report.get("worst_correlation", 0.0),
@@ -817,7 +817,7 @@ def build_audition_html(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mycelial Mind — Sound Studio Audition Console v6 ({len(rows)} eventos)</title>
+  <title>Mycelial Mind — Sound Studio Audition Console v7 ({len(rows)} eventos)</title>
   <style>
     :root {{
       --bg: #0c0d12;
@@ -912,8 +912,8 @@ def build_audition_html(
 <body>
   <header>
     <div>
-      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v6 (Bio-Organic Realism + 95 Stems RTX + HPSS + Bark Unmasking + EFX Sim)")}</h1>
-      <div class="sub">Audita los 5 motores DSP v6, 95 stems RTX 4060 (@ 28 pasos), Bark Unmasking (1450/3200 Hz), Organic Index y simulador OpenAL EFX / Inmersión.</div>
+      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v7 (Minecraft Foley Craft + 95 Stems RTX + EFX Timbre)")}</h1>
+      <div class="sub">Audita los 5 motores DSP v7, 95 stems RTX 4060 (@ 28 pasos) de foley físico Minecraft, Bark Unmasking, Organic Index y OpenAL EFX + Timbre.</div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
@@ -1133,7 +1133,7 @@ def build_audition_html(
       maskBadge,
       divBadge,
       orgBadge,
-      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v6 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
+      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v7 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
     ].join("");
 
     // Populate Bark Masking matrix & layer chart

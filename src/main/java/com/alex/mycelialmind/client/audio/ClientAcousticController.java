@@ -87,6 +87,7 @@ public final class ClientAcousticController {
         volatile double y;
         volatile double z;
         volatile float smoothedOcclusion;
+        final float timbreDamping;
         final boolean applyReverb;
         final long createdAtMs;
 
@@ -96,6 +97,7 @@ public final class ClientAcousticController {
                 double y,
                 double z,
                 float smoothedOcclusion,
+                float timbreDamping,
                 boolean applyReverb,
                 long createdAtMs
         ) {
@@ -104,6 +106,7 @@ public final class ClientAcousticController {
             this.y = y;
             this.z = z;
             this.smoothedOcclusion = smoothedOcclusion;
+            this.timbreDamping = timbreDamping;
             this.applyReverb = applyReverb;
             this.createdAtMs = createdAtMs;
         }
@@ -250,7 +253,8 @@ public final class ClientAcousticController {
                         applyReverb,
                         nowMs,
                         humanized.pitchMultiplier(),
-                        humanized.gainMultiplier()
+                        humanized.gainMultiplier(),
+                        humanized.timbreDamping()
                 )
         );
     }
@@ -293,6 +297,7 @@ public final class ClientAcousticController {
                         sound.getY(),
                         sound.getZ(),
                         snap.occlusionFactor(),
+                        snap.timbreDamping(),
                         snap.applyReverb(),
                         System.currentTimeMillis()
                 )
@@ -344,7 +349,9 @@ public final class ClientAcousticController {
             tc.smoothedOcclusion = smoothOcc;
             updates.add(new AbstractMap.SimpleImmutableEntry<>(
                     ch,
-                    new OpenAlEfxBridge.SourceAcousticSnapshot(env, smoothOcc, submersion, tc.applyReverb, now)
+                    new OpenAlEfxBridge.SourceAcousticSnapshot(
+                            env, smoothOcc, submersion, tc.applyReverb, now, 1.0F, 1.0F, tc.timbreDamping
+                    )
             ));
         }
 

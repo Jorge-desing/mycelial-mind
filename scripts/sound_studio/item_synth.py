@@ -33,10 +33,13 @@ from scripts.sound_studio.dsp_engine import (
     _swept_resonant_filter,
     _wet_squelch_layer,
     adsr_envelope,
+    amethyst_copper_chime,
     exp_decay,
     fdn4_hadamard_diffuser,
+    foley_particle_crackle,
     granular_bio_cloud,
     karplus_strong_chitin,
+    wooden_chitin_knock,
 )
 
 ITEM_PROJECTILE_IDS: frozenset[str] = frozenset(
@@ -99,31 +102,25 @@ def synthesize_item_sound(
     # 1. SCANNING & GENETIC EXTRACTION TOOLS (3)
     # =========================================================================
     if sound_id == "bio_scanner_ping":
-        # Tactile button click -> dual-harmonic sonar chirp (f0 -> 2*f0) -> high-Q telemetry echo
-        click = _sos_bandpass(white, 3200.0, 11500.0) * exp_decay(t, 0.008) * 0.55
-        f_chirp = bf * (1.0 + 0.85 * np.exp(-((t - 0.032) / 0.022) ** 2))
-        ping = (
-            np.sin(2.0 * np.pi * np.cumsum(f_chirp) / SAMPLE_RATE + pjit) * 0.80
-            + np.sin(2.0 * np.pi * np.cumsum(f_chirp * 2.0) / SAMPLE_RATE) * 0.35
-        ) * exp_decay(t, dur * 0.38)
-        echo_s = min(n - 64, int(rng.uniform(0.42, 0.54) * n))
+        # Tactile wooden-copper compass click -> clear struck amethyst resonance -> warm harmonic echo
+        click = wooden_chitin_knock(n, 1650.0, rng, decay=0.016, hollowness=0.42) * 0.62
+        ping = amethyst_copper_chime(t, bf * 1.18, rng, decay=dur * 0.34, crystal_mix=0.72) * 1.12
+        echo_s = min(n - 64, int(rng.uniform(0.40, 0.52) * n))
         echo = np.zeros(n, dtype=np.float64)
         et = np.arange(n - echo_s, dtype=np.float64) / SAMPLE_RATE
-        echo[echo_s:] = np.sin(2.0 * np.pi * (bf * 1.5) * et + pjit) * exp_decay(et, 0.045) * 0.42
-        return _cavern_reverb(_sos_highpass(click + ping + echo, 260.0), rng, wet=0.09, rt60=0.22, lp_hz=8800.0)
+        echo[echo_s:] = amethyst_copper_chime(et, bf * 1.62, rng, decay=0.055, crystal_mix=0.80) * 0.48
+        return _cavern_reverb(_sos_highpass(click + ping + echo, 320.0), rng, wet=0.06, rt60=0.20, lp_hz=9200.0)
 
     if sound_id == "bio_scanner_thermal_pulse":
-        # Capacitor charge whine (0..0.28) -> wide radar horizon sweep -> double cyan confirmation harmonic
-        charge_e = int(0.32 * n)
-        wave = np.zeros(n, dtype=np.float64)
-        ct = t[:charge_e]
-        f_ch = np.linspace(320.0, bf * 2.1, charge_e)
-        wave[:charge_e] = np.sin(2.0 * np.pi * np.cumsum(f_ch) / SAMPLE_RATE + pjit) * (ct / max(1e-4, ct[-1])) * 0.72
-        sweep = _swept_resonant_filter(pink * 0.6 + white * 0.5, 4800.0, 460.0, q=3.4) * adsr_envelope(n, 0.18, 0.22, 0.45, 0.35) * 1.05
+        # Wooden copper latch click -> warm air crystal sweep + micro particles -> double amethyst confirmation chime
+        latch = wooden_chitin_knock(n, 880.0, rng, decay=0.025, hollowness=0.55) * 0.68
+        wave = latch
+        sweep = _swept_resonant_filter(pink * 0.6 + white * 0.45, 4200.0, 560.0, q=3.0) * adsr_envelope(n, 0.16, 0.22, 0.45, 0.35) * 0.95
+        dust = foley_particle_crackle(n, rng, lo_hz=1800.0, hi_hz=7600.0, count=6) * 0.45
         ring_s = int(0.28 * n)
         rt = np.arange(n - ring_s, dtype=np.float64) / SAMPLE_RATE
-        wave[ring_s:] += _modal_bank(rt, bf * 1.35, (1.0, 1.498, 2.0, 3.0), (0.16, 0.13, 0.09, 0.06), (0.7, 0.55, 0.38, 0.22), rng)
-        return _cavern_reverb(_sos_highpass(wave + sweep, 180.0), rng, wet=0.14, rt60=0.34, lp_hz=7800.0)
+        wave[ring_s:] += amethyst_copper_chime(rt, bf * 1.35, rng, decay=0.16, crystal_mix=0.68) * 0.92
+        return _cavern_reverb(_sos_highpass(wave + sweep + dust, 200.0), rng, wet=0.08, rt60=0.28, lp_hz=8200.0)
 
     if sound_id == "bio_extractor_draw":
         # Hollow needle puncture snap (0s) -> vacuum vial fluid draw slurp (0.08..0.76) -> glass stopper seal click
@@ -417,32 +414,30 @@ def synthesize_item_sound(
         return _abyssal_reverb(raw, rng, predelay_ms=18.0, wet=0.34, rt60=0.96, lp_hz=5800.0, shimmer=0.30)
 
     if sound_id == "command_staff_mark":
-        # Metallic staff ferrule tap -> crisp waypoint resonance chime
-        tap_s = int(rng.uniform(0.01, 0.09) * n)
-        rt = np.arange(n - tap_s, dtype=np.float64) / SAMPLE_RATE
+        # Carved wooden-copper staff ferrule tap -> crisp amethyst waypoint resonance chime
+        tap_s = int(rng.uniform(0.01, 0.08) * n)
+        rem_t = max(32, n - tap_s)
         tap = np.zeros(n, dtype=np.float64)
-        tap[tap_s:] = _modal_bank(rt, bf * rng.uniform(0.92, 1.12), (1.0, 1.498, 2.42, 3.65), (0.14, 0.10, 0.06, 0.03), (0.85, 0.60, 0.38, 0.20), rng)
-        lock_s = min(n - 48, tap_s + int(rng.uniform(0.08, 0.15) * SAMPLE_RATE))
+        tap[tap_s:] = wooden_chitin_knock(rem_t, bf * rng.uniform(0.92, 1.12), rng, decay=0.055, hollowness=0.65)
+        lock_s = min(n - 48, tap_s + int(rng.uniform(0.07, 0.14) * SAMPLE_RATE))
         lt = np.arange(n - lock_s, dtype=np.float64) / SAMPLE_RATE
         lock = np.zeros(n, dtype=np.float64)
-        lock[lock_s:] = np.sin(2.0 * np.pi * (bf * 1.5) * lt + rng.uniform(0, 6.28)) * exp_decay(lt, 0.11) * 0.65
-        snap = np.zeros(n, dtype=np.float64)
-        snap[tap_s:] = _sos_bandpass(white[tap_s:], 2400.0, 10500.0) * exp_decay(rt, 0.010) * 0.45
-        return _cavern_reverb(_sos_highpass(tap + lock + snap, 180.0), rng, wet=0.14, rt60=0.34, lp_hz=7200.0)
+        lock[lock_s:] = amethyst_copper_chime(lt, bf * 1.45, rng, decay=0.12, crystal_mix=0.72) * 0.85
+        return _cavern_reverb(_sos_highpass(tap + lock, 180.0), rng, wet=0.08, rt60=0.26, lp_hz=7600.0)
 
     if sound_id == "ui_codex_tab":
-        # Tactile organic parchment leaf flick + warm micro-chitin waveguide tap (low fatigue)
-        onset = int(rng.uniform(0.01, 0.06) * n)
+        # Tactile parchment leaf flick + warm dry hollow wooden button knock (low fatigue)
+        onset = int(rng.uniform(0.01, 0.05) * n)
         rem = max(32, n - onset)
         rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
-        leaf = _swept_resonant_filter(pink[onset:], 1100.0, 3800.0, q=1.8) * exp_decay(rt, 0.036) * 0.62
-        tap = karplus_strong_chitin(rem, bf * rng.uniform(0.94, 1.08), rng, damping=0.972, brightness=0.72, stiffness=0.06, excitation="click") * exp_decay(rt, 0.048) * 0.78
+        leaf = _swept_resonant_filter(pink[onset:], 1100.0, 3800.0, q=1.8) * exp_decay(rt, 0.036) * 0.65
+        tap = wooden_chitin_knock(rem, bf * rng.uniform(0.94, 1.08), rng, decay=0.038, hollowness=0.68) * 0.85
         wave = np.zeros(n, dtype=np.float64)
         wave[onset:] = leaf + tap
-        return _cavern_reverb(_sos_highpass(wave, 220.0), rng, wet=0.06, rt60=0.16, lp_hz=7800.0)
+        return _cavern_reverb(_sos_highpass(wave, 220.0), rng, wet=0.04, rt60=0.14, lp_hz=7800.0)
 
     if sound_id == "ui_action_confirm":
-        # Two-step crisp purifier seal confirm: tactile waveguide latch -> warm ascending fifth chime
+        # Two-step crisp wooden-copper latch -> warm ascending amethyst fifth chime
         wave = np.zeros(n, dtype=np.float64)
         s1 = int(rng.uniform(0.01, 0.04) * n)
         s2 = min(n - 64, s1 + int(rng.uniform(0.055, 0.085) * SAMPLE_RATE))
@@ -452,15 +447,12 @@ def synthesize_item_sound(
         t2 = np.arange(rem2, dtype=np.float64) / SAMPLE_RATE
         f1 = bf * rng.uniform(0.86, 0.92)
         f2 = bf * rng.uniform(1.30, 1.38)
-        latch = karplus_strong_chitin(rem1, f1, rng, damping=0.980, brightness=0.72, stiffness=0.07, excitation="click") * exp_decay(t1, 0.085) * 0.65
-        tone1 = np.sin(2.0 * np.pi * f1 * t1 + pjit) * adsr_envelope(rem1, 0.03, 0.25, 0.35, 0.35) * 0.48
-        chime2 = (
-            np.sin(2.0 * np.pi * f2 * t2 + rng.uniform(0.0, 2.0 * np.pi)) * 0.76
-            + np.sin(2.0 * np.pi * (f2 * 1.5) * t2) * 0.30
-        ) * adsr_envelope(rem2, 0.04, 0.22, 0.58, 0.38)
+        latch = wooden_chitin_knock(rem1, f1 * 1.4, rng, decay=0.032, hollowness=0.55) * 0.72
+        tone1 = amethyst_copper_chime(t1, f1, rng, decay=0.075, crystal_mix=0.45) * 0.65
+        chime2 = amethyst_copper_chime(t2, f2, rng, decay=0.115, crystal_mix=0.72) * 0.95
         wave[s1:] += latch + tone1
         wave[s2:] += chime2
-        return _cavern_reverb(_sos_highpass(np.tanh(wave * 1.25), 240.0), rng, wet=0.09, rt60=0.22, lp_hz=8400.0)
+        return _cavern_reverb(_sos_highpass(np.tanh(wave * 1.2), 240.0), rng, wet=0.05, rt60=0.18, lp_hz=8200.0)
 
     if sound_id == "resonant_elixir_drink":
         # Bioluminescent subterranean elixir gulp: viscous liquid cloud -> rising harmonic crystalline resonance

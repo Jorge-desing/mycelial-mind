@@ -32,10 +32,10 @@ public final class AcousticPhysicsEngine {
 
     public enum AcousticEnvironment {
         OPEN_AIR(0.25F, 0.72F, 0.05F, 0.04F, 0.45F, 0.60F, 0.92F, 0.0F, 0.4F),
-        FOREST_CANOPY(0.72F, 0.62F, 0.14F, 0.16F, 0.65F, 0.78F, 0.80F, 0.22F, 0.9F),
-        CAVERN_SINKHOLE(1.65F, 0.58F, 0.28F, 0.38F, 0.85F, 0.86F, 0.74F, 0.42F, 1.2F),
-        SANCTUM_VAULT(2.35F, 0.68F, 0.34F, 0.50F, 0.92F, 0.92F, 0.78F, 0.50F, 1.5F),
-        DEEP_MYCELIUM_ABYSS(3.15F, 0.46F, 0.38F, 0.62F, 1.00F, 0.96F, 0.64F, 0.60F, 2.4F);
+        FOREST_CANOPY(0.72F, 0.62F, 0.14F, 0.16F, 0.65F, 0.78F, 0.80F, 0.18F, 0.9F),
+        CAVERN_SINKHOLE(1.65F, 0.58F, 0.28F, 0.38F, 0.85F, 0.86F, 0.74F, 0.36F, 1.2F),
+        SANCTUM_VAULT(2.35F, 0.68F, 0.34F, 0.50F, 0.92F, 0.92F, 0.78F, 0.46F, 1.5F),
+        DEEP_MYCELIUM_ABYSS(3.15F, 0.46F, 0.38F, 0.62F, 1.00F, 0.96F, 0.64F, 0.56F, 2.4F);
 
         private final float decayTime;
         private final float decayHfRatio;
@@ -487,27 +487,35 @@ public final class AcousticPhysicsEngine {
     }
 
     /**
-     * Normalized pitch/gain multipliers applied once when a world sound begins playing.
+     * Normalized pitch/gain multipliers and per-hit HF timbre damping applied when a world sound begins playing.
      */
-    public record HumanizedPlayback(float pitchMultiplier, float gainMultiplier) {
-        public static final HumanizedPlayback IDENTITY = new HumanizedPlayback(1.0F, 1.0F);
+    public record HumanizedPlayback(float pitchMultiplier, float gainMultiplier, float timbreDamping) {
+        public static final HumanizedPlayback IDENTITY = new HumanizedPlayback(1.0F, 1.0F, 0.0F);
+
+        public HumanizedPlayback(float pitchMultiplier, float gainMultiplier) {
+            this(pitchMultiplier, gainMultiplier, 0.0F);
+        }
 
         public boolean isNonUnity() {
-            return Math.abs(pitchMultiplier - 1.0F) > 1e-4F || Math.abs(gainMultiplier - 1.0F) > 1e-4F;
+            return Math.abs(pitchMultiplier - 1.0F) > 1e-4F
+                    || Math.abs(gainMultiplier - 1.0F) > 1e-4F
+                    || Math.abs(timbreDamping) > 1e-4F;
         }
     }
 
     /**
      * Stateful deterministic anti-repeat and micro-prosody humanizer for 3D world SFX.
-     * Enforces distinct pitch offsets across rapid consecutive hits of the same sound ID while
-     * keeping UI cues, seamless loops, and musical/tech tones tightly controlled.
+     * Enforces distinct pitch & HF color offsets across rapid consecutive hits of the same sound ID while
+     * keeping UI cues, seamless loops, and musical/copper-amethyst tones tightly controlled.
      */
     public static final class PlaybackHumanizer {
         private static final long RECENCY_WINDOW_MS = 3200L;
         private static final float ORGANIC_PITCH_SPAN = 0.055F;
         private static final float ORGANIC_GAIN_SPAN = 0.075F;
+        private static final float ORGANIC_TIMBRE_SPAN = 0.180F;
         private static final float TECH_PITCH_SPAN = 0.015F;
         private static final float TECH_GAIN_SPAN = 0.030F;
+        private static final float TECH_TIMBRE_SPAN = 0.060F;
 
         private final long baseSeed;
         private final Map<String, RecentPlay> recentBySound = new HashMap<>();
@@ -535,15 +543,20 @@ public final class AcousticPhysicsEngine {
             boolean cleanTech = isCleanTechOrHarmonic(soundPath);
             float pitchSpan = cleanTech ? TECH_PITCH_SPAN : ORGANIC_PITCH_SPAN;
             float gainSpan = cleanTech ? TECH_GAIN_SPAN : ORGANIC_GAIN_SPAN;
+            float timbreSpan = cleanTech ? TECH_TIMBRE_SPAN : ORGANIC_TIMBRE_SPAN;
             float minDelta = cleanTech ? 0.008F : 0.025F;
+            float minTimbreDelta = cleanTech ? 0.020F : 0.055F;
 
             long h1 = splitMix64(baseSeed ^ mixString(soundPath) ^ (callSeq * 0x9E3779B97F4A7C15L));
             long h2 = splitMix64(h1 ^ 0xBF58476D1CE4E5B9L);
+            long h3 = splitMix64(h2 ^ 0x94D049BB133111EBL);
             float uPitch = (((h1 >>> 40) & 0xFFFFFFL) / (float) 0xFFFFFFL) * 2.0F - 1.0F;
             float uGain = (((h2 >>> 40) & 0xFFFFFFL) / (float) 0xFFFFFFL) * 2.0F - 1.0F;
+            float uTimbre = (((h3 >>> 40) & 0xFFFFFFL) / (float) 0xFFFFFFL);
 
             float pitchOffset = uPitch * pitchSpan;
             float gainOffset = uGain * gainSpan;
+            float timbreDamping = uTimbre * timbreSpan;
 
             RecentPlay prev = recentBySound.get(soundPath);
             if (prev != null && (nowMs - prev.timestampMs) <= RECENCY_WINDOW_MS) {
@@ -554,17 +567,23 @@ public final class AcousticPhysicsEngine {
                     float mag = Math.max(minDelta * 1.15F, Math.min(pitchSpan, Math.abs(pitchOffset) + minDelta * 0.65F));
                     pitchOffset = forcedDir * mag;
                 }
+                if (Math.abs(timbreDamping - prev.lastTimbre) < minTimbreDelta) {
+                    timbreDamping = (prev.lastTimbre >= timbreSpan * 0.5F)
+                            ? Math.max(0.0F, prev.lastTimbre - minTimbreDelta * 1.25F)
+                            : Math.min(timbreSpan, prev.lastTimbre + minTimbreDelta * 1.25F);
+                }
             }
 
             float finalPitch = Math.max(0.90F, Math.min(1.10F, 1.0F + pitchOffset));
             float finalGain = Math.max(0.88F, Math.min(1.06F, 1.0F + gainOffset));
+            float finalTimbre = Math.max(0.0F, Math.min(timbreSpan, timbreDamping));
 
             if (recentBySound.size() > 128) {
                 recentBySound.entrySet().removeIf(e -> (nowMs - e.getValue().timestampMs) > RECENCY_WINDOW_MS * 2L);
             }
-            recentBySound.put(soundPath, new RecentPlay(finalPitch, nowMs));
+            recentBySound.put(soundPath, new RecentPlay(finalPitch, finalTimbre, nowMs));
 
-            HumanizedPlayback result = new HumanizedPlayback(finalPitch, finalGain);
+            HumanizedPlayback result = new HumanizedPlayback(finalPitch, finalGain, finalTimbre);
             if (result.isNonUnity()) {
                 humanizedCount++;
             }
@@ -608,7 +627,7 @@ public final class AcousticPhysicsEngine {
             return z ^ (z >>> 31);
         }
 
-        private record RecentPlay(float lastPitch, long timestampMs) {
+        private record RecentPlay(float lastPitch, float lastTimbre, long timestampMs) {
         }
     }
 

@@ -560,7 +560,7 @@ def gpu_blend_ai_stem(
 
         matched_stem = shaped_t * (dsp_rms / stem_rms)
         w_stem = float(mix_weight)
-        w_dsp = 1.0 - (w_stem * 0.72)
+        w_dsp = 1.0 - (w_stem * 0.78)
         out_t = (dsp_t * w_dsp) + (matched_stem * w_stem)
         return np.asarray(out_t.cpu().numpy(), dtype=np.float64)
 
