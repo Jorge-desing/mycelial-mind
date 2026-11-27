@@ -215,6 +215,9 @@ public final class ClientSetup {
         event.register(ModMenuTypes.SYNAPTIC_BENCH.get(), SynapticBenchScreen::new);
         if (Boolean.getBoolean("mycelialmind.visualSmoke")) {
             net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(VisualSmokeClient.class);
+            if (Boolean.getBoolean("mycelialmind.particleBenchmark")) {
+                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(ParticleBenchmarkClient.class);
+            }
         }
         if (Boolean.getBoolean("mycelialmind.structureVisualSmoke")) {
             net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(StructureVisualSmokeClient.class);

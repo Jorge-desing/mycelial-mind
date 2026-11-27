@@ -14,6 +14,10 @@ public final class MycelialParticleSpecs {
     private static final ParticleSpec.Style GLOW = ParticleSpec.Style.ADDITIVE;
     private static final ParticleSpec.Style LIT = ParticleSpec.Style.TRANSLUCENT;
 
+    public static final ParticleSpec RECOVERY = ParticleSpec.of(ParticleArchetype.RISE, GLOW, 3)
+            .life(30, 38).size(0.065F, 1.0F, 0.8F).spin(0.08F)
+            .emitter(ParticleSpec.Emission.RECOVERY_ARCS).glow();
+
     public static final List<Entry> SIMPLE = List.of(
             // Status effects
             entry(ModParticles.INFECTION, ParticleSpec.of(ParticleArchetype.DRIFT, LIT, 3).life(24, 36)),
@@ -21,8 +25,7 @@ public final class MycelialParticleSpecs {
             entry(ModParticles.INSIGHT, ParticleSpec.of(ParticleArchetype.RISE, GLOW, 3).life(18, 26).glow()),
             entry(ModParticles.VISION, ParticleSpec.of(ParticleArchetype.ORBIT, GLOW, 3).life(16, 24).glow()),
             // Consumables, serums & scanner emitters
-            entry(ModParticles.RECOVERY, ParticleSpec.of(ParticleArchetype.RISE, GLOW, 3)
-                    .life(30, 38).emitter(ParticleSpec.Emission.RECOVERY_ARCS).glow()),
+            entry(ModParticles.RECOVERY, RECOVERY),
             entry(ModParticles.PURGE, ParticleSpec.of(ParticleArchetype.SPARK, GLOW, 3)
                     .life(28, 36).emitter(ParticleSpec.Emission.PURGE_RING).glow()),
             entry(ModParticles.SCAN, ParticleSpec.of(ParticleArchetype.SPARK, GLOW, 3)

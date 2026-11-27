@@ -16,6 +16,14 @@ public final class ParticleEmissionBudget {
         return clamp((int) Math.round(requested * safe));
     }
 
+    /** Scale distant ambient particles when the particle engine is under load. */
+    public static double ambientDensity(double density, int sceneCount, double distanceSquared) {
+        if (sceneCount < MAX_SCENE_TOTAL || distanceSquared <= 256.0D) {
+            return density;
+        }
+        return density * (distanceSquared > 1024.0D ? 0.25D : 0.5D);
+    }
+
     public static int composition(int first, int second, int third) {
         return Math.min(MAX_SCENE_TOTAL, Math.max(0, first) + Math.max(0, second) + Math.max(0, third));
     }

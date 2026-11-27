@@ -514,7 +514,20 @@ def _shape_wisp(xx, yy, s: ParticleSpec, t: float, rgba) -> None:
               s.accent, s.size, boost=1.3, alpha=0.65 - i * 0.10)
 
 
+def _shape_heart(xx, yy, s: ParticleSpec, t: float, rgba) -> None:
+    scale = 0.75 + 0.06 * t
+    x, y = xx * scale, yy * scale
+    lobes = np.minimum(sdf_circle(x, y, -0.18, -0.15, 0.25),
+                       sdf_circle(x, y, 0.18, -0.15, 0.25))
+    tip = np.maximum(-y - 0.15, (np.abs(x) * 0.85 + y - 0.43) * 0.75)
+    body = np.minimum(lobes, tip)
+    _over(rgba, body, s.palette, s.size, boost=0.78 + 0.12 * t)
+    highlight = sdf_circle(xx, yy, -0.15, -0.13, 0.08 + 0.015 * float(np.sin(t * _TWO_PI)))
+    _over(rgba, np.maximum(highlight, body), s.accent, s.size, boost=1.4, alpha=0.8)
+
+
 _SHAPES = {
+    "heart": _shape_heart,
     "spore": _shape_spore,
     "teardrop": _shape_teardrop,
     "crystal": _shape_crystal,

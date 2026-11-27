@@ -1,5 +1,7 @@
 package com.alex.mycelialmind.client.particle;
 
+import com.alex.mycelialmind.config.MycelialClientConfig;
+import com.alex.mycelialmind.util.ParticleEmissionBudget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleEngine;
@@ -39,10 +41,12 @@ public final class MycelialEmissions {
                                      double x, double y, double z, double radiusX, double radiusY) {
         double radius = Math.max(0.35D, Math.abs(radiusX));
         double height = Math.max(0.5D, Math.abs(radiusY));
+        int count = ParticleEmissionBudget.scaled(20, MycelialClientConfig.particleDensityScale());
         for (int side = 0; side < 2; side++) {
             double angle = side == 0 ? 0.0D : Math.PI;
-            for (int i = 0; i < 10; i++) {
-                double arc = i / 9.0D;
+            int sideCount = count / 2 + (side < count % 2 ? 1 : 0);
+            for (int i = 0; i < sideCount; i++) {
+                double arc = sideCount == 1 ? 0.5D : (double) i / (sideCount - 1);
                 double ring = radius * (Math.sin(Math.PI * arc) * 0.75D + 0.35D);
                 double px = x + Math.cos(angle) * ring;
                 double pz = z + Math.sin(angle) * ring;
@@ -57,14 +61,19 @@ public final class MycelialEmissions {
 
     private static void purgeRing(ParticleEngine engine, ClientLevel level, ParticleSpec spec, SpriteSet sprites,
                                   double x, double y, double z) {
-        for (int i = 0; i < 24; i++) {
-            double angle = (Math.PI * 2.0D) * i / 24.0D;
+        int count = ParticleEmissionBudget.scaled(24, MycelialClientConfig.particleDensityScale());
+        int cyanCount = (count * 2 + 1) / 3;
+        for (int i = 0; i < count; i++) {
+            double angle = (Math.PI * 2.0D) * i / count;
             double ring = 0.25D + (i % 2) * 0.20D;
+            boolean healing = i >= cyanCount && MycelialParticleProviders.recoverySprites() != null;
+            SpriteSet particleSprites = healing ? MycelialParticleProviders.recoverySprites() : sprites;
+            ParticleSpec particleSpec = healing ? MycelialParticleSpecs.RECOVERY : spec;
             MycelialParticle particle = new MycelialParticle(level,
                     x + Math.cos(angle) * ring, y + 0.05D, z + Math.sin(angle) * ring,
                     Math.cos(angle) * 0.024D, 0.014D, Math.sin(angle) * 0.024D,
-                    sprites, spec);
-            if (i >= 16) {
+                    particleSprites, particleSpec);
+            if (i >= cyanCount) {
                 particle.tinted(0.55F, 1.0F, 0.20F);
             }
             engine.add(particle);
@@ -73,12 +82,14 @@ public final class MycelialEmissions {
 
     private static void scanDouble(ParticleEngine engine, ClientLevel level, ParticleSpec spec, SpriteSet sprites,
                                    double x, double y, double z) {
+        int count = ParticleEmissionBudget.scaled(24, MycelialClientConfig.particleDensityScale());
         for (int front = 0; front < 2; front++) {
             double ring = front == 0 ? 0.25D : 0.60D;
             double speed = front == 0 ? 0.075D : 0.050D;
             int delay = front == 0 ? 0 : 4;
-            for (int i = 0; i < 12; i++) {
-                double angle = (Math.PI * 2.0D) * i / 12.0D;
+            int frontCount = count / 2 + (front < count % 2 ? 1 : 0);
+            for (int i = 0; i < frontCount; i++) {
+                double angle = (Math.PI * 2.0D) * i / frontCount;
                 MycelialParticle particle = new MycelialParticle(level,
                         x + Math.cos(angle) * ring, y, z + Math.sin(angle) * ring,
                         Math.cos(angle) * speed, 0.0D, Math.sin(angle) * speed,
@@ -93,9 +104,11 @@ public final class MycelialEmissions {
 
     private static void serumPairs(ParticleEngine engine, ClientLevel level, ParticleSpec spec, SpriteSet sprites,
                                    double x, double y, double z) {
-        for (int pair = 0; pair < 5; pair++) {
-            double angle = (Math.PI * 2.0D) * pair / 5.0D;
-            for (int side = 0; side < 2; side++) {
+        int count = ParticleEmissionBudget.scaled(10, MycelialClientConfig.particleDensityScale());
+        int pairCount = (count + 1) / 2;
+        for (int pair = 0; pair < pairCount; pair++) {
+            double angle = (Math.PI * 2.0D) * pair / pairCount;
+            for (int side = 0; side < 2 && pair * 2 + side < count; side++) {
                 double ring = 0.50D + side * 0.12D;
                 add(engine, level, spec, sprites,
                         x + Math.cos(angle) * ring, y, z + Math.sin(angle) * ring,
@@ -106,9 +119,11 @@ public final class MycelialEmissions {
 
     private static void engramTrio(ParticleEngine engine, ClientLevel level, ParticleSpec spec, SpriteSet sprites,
                                    double x, double y, double z) {
-        for (int i = -1; i <= 1; i++) {
-            add(engine, level, spec, sprites, x + i * 0.12D, y, z + Math.abs(i) * 0.05D,
-                    i * 0.004D, 0.012D, 0.0D);
+        int count = ParticleEmissionBudget.scaled(3, MycelialClientConfig.particleDensityScale());
+        for (int i = 0; i < count; i++) {
+            double offset = count == 1 ? 0.0D : 2.0D * i / (count - 1) - 1.0D;
+            add(engine, level, spec, sprites, x + offset * 0.12D, y, z + Math.abs(offset) * 0.05D,
+                    offset * 0.004D, 0.012D, 0.0D);
         }
     }
 
@@ -124,8 +139,9 @@ public final class MycelialEmissions {
         nx /= length;
         ny /= length;
         nz /= length;
-        for (int i = 0; i < 12; i++) {
-            double angle = (Math.PI * 2.0D) * i / 12.0D;
+        int count = ParticleEmissionBudget.scaled(12, MycelialClientConfig.particleDensityScale());
+        for (int i = 0; i < count; i++) {
+            double angle = (Math.PI * 2.0D) * i / count;
             double spread = 0.016D + 0.010D * (i % 3) / 2.0D;
             add(engine, level, spec, sprites, x, y, z,
                     nx * 0.030D + Math.cos(angle) * spread,

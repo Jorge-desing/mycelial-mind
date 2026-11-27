@@ -107,7 +107,7 @@
       "family": "consumible",
       "size": 32,
       "frames": 3,
-      "shape": "arc",
+      "shape": "heart",
       "palette": "spore_chartreuse",
       "accent": "warm_ivory",
       "render": "additive",
@@ -118,12 +118,12 @@
         "mycelialmind:recovery_2"
       ],
       "frame_sha256": [
-        "a8ff8eb8c6c24fc20952222f9d735580783aa4fafa8816a94008bf99ab53d4c2",
-        "472f94720f0ba99fd172ef062b64d0592cd92e1d2ca8273a7d5e41bf9b9d7501",
-        "caa37432a1da43cc787518c415aaefc78923adc3dee3180db63d393acad860c0"
+        "7114190e0617f483e90a01fc6c136958acd54dd2e9baa126ab9fd6fa410bfac5",
+        "a7fabb95e5bd79ccf60b642f77dadad1dc7b0c2fe9c1a06dc8b209586a4562c4",
+        "7f6239bece4da33f0921c0df97d0e030c2a354e7d8e62515824e05d795526a40"
       ],
-      "description_es": "Esquirla de arco verde-lima con n\u00facleo blanco y mota sat\u00e9lite.",
-      "description_en": "Lime-green arc shard with white core and satellite mote."
+      "description_es": "Peque\u00f1o coraz\u00f3n verde-lima que gira al ascender.",
+      "description_en": "Small lime-green heart rotating as it rises."
     },
     "purge": {
       "family": "consumible",

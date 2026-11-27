@@ -307,10 +307,10 @@ def build_chapters_1_to_4() -> tuple[CodexChapter, ...]:
                         (
                             "• **Estados clínicos:** `infection` (racimo violeta con cilios), `rot` "
                             "(gota necrótica umber), `insight` (cristal esmeralda), `vision` (iris térmico), "
-                            "`recovery` (arcos verde-lima), `purge` (cruz clínica) y `scan` (chevrón de barrido).",
+                            "`recovery` (corazones verde-lima giratorios), `purge` (cruz clínica) y `scan` (chevrón de barrido).",
                             "• **Clinical states:** `infection` (violet ciliated cluster), `rot` (umber necrotic "
                             "droplet), `insight` (emerald crystal), `vision` (thermal iris), `recovery` "
-                            "(lime arcs), `purge` (clinical cross) and `scan` (sweep chevron).",
+                            "(rotating lime hearts), `purge` (clinical cross) and `scan` (sweep chevron).",
                         ),
                         (
                             "• **Sueros y telemetría:** `serum_melee`, `serum_projectile`, `serum_fire`, "
