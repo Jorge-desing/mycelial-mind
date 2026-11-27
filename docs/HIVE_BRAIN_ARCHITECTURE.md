@@ -34,7 +34,8 @@ com.alex.mycelialmind.entity.ai.brain
 │   ├── DelayedBehaviour.java
 │   └── CustomBehaviour.java
 ├── btree/
-│   ├── HiveBehaviorTree.java        # Clean-room tactical BehaviorTree replacing gdxAI
+│   ├── HiveBehaviorTree.java        # Clean-room tactical BehaviorTree (zero external AI libs)
+│   ├── HiveBtComposite.java
 │   ├── HiveBtTask.java              # Base node with guards, start/end, cancel, reset
 │   ├── HiveBtLeafTask.java
 │   ├── HiveBtDynamicGuardSelector.java

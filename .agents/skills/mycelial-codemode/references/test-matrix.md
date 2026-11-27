@@ -1,6 +1,6 @@
 # Matriz Completa de Tests de Mycelial Mind (`CodeMode` `mycelial-mind-dev`)
 
-Mapa canónico de las suites actuales del repositorio (`157` JUnit, `205` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
+Mapa canónico de las suites actuales del repositorio (`179` JUnit, `213` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
 
 ---
 
@@ -18,7 +18,7 @@ Mapa canónico de las suites actuales del repositorio (`157` JUnit, `205` `@Game
 
 ---
 
-## 1. Pruebas Headless JUnit 6 (**157** tests en **17** suites, ~2–4 s)
+## 1. Pruebas Headless JUnit 6 (**179** tests en **18** suites, ~2–4 s)
 
 Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind/*.java`).
 
@@ -50,12 +50,12 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 
 ---
 
-## 2. `@GameTest` NeoForge (**205** tests en **41** batches, ~6 s)
+## 2. `@GameTest` NeoForge (**213** tests en **56** batches, ~6 s)
 
 - **Ejecución aislada canónica:** `await call_tool("run_gradle_task", {"tasks": ["runGameTestServer"], "isolated_gametests": True, "no_daemon": True, "max_workers": 1})` (usa `artifacts/diagnostics/isolated-gametest-server` sin contaminar mundos del usuario).
 - **Inspección por batch:** `await call_tool("list_gametests", {"batch_filter": "hive_brain"})`.
 
-| Categoría | Batches registrados (`41` totales) | Cobertura / Tests destacados |
+| Categoría | Batches registrados (`56` totales) | Cobertura / Tests destacados |
 | --- | --- | --- |
 | Núcleo e IA `HiveBrain` | `hive_brain_clean_room` (6), `entity_ai_weaver_window` (1), `entity_ai_weaver_control` (1), `entity_ai_weaver_support` (1), `entity_ai_stalker_combat` (1), `entity_ai_stalker_leap` (1), `entity_ai_spitter_brain` (1), `swarm_steering` (1), `weaver_support` (1), `spitter_regroup_utility` (1), `stalker_flank` (1), `rally_squad_movement` (1), `hive_state_sync` (1), `algorithm_integration` (9) | Motor `HiveBrain`, `UtilitySelectorBehaviour`, 18/18 entidades tickeando limpias, BTree/Steering/LOD nativos, detección de proyectiles |
 | Hifas Verlet 3D y Acústica | `hyphal_route_veins` (9), `hyphal_verlet_filament` (1) | Física Verlet, crecimiento en rastro, ondas sísmicas, corte con división y latigazo, spray presurizado, acústica micorrízica |
@@ -96,7 +96,7 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 | Model Studio | `run_model_studio(check_only=True, run_tests=True)` | 26 | `18` EntityModels, UV manifests, geometría 3D |
 | Texture Studio | `run_texture_studio(check_only=True, pbr=True, run_tests=True)` | 41 | Oklab/SDF/LabPBR `_n`/`_s`, dual-root `ReclaimedBloom`, atlas GUI I–IV |
 | Particle Studio | `run_particle_studio(check_only=True, run_tests=True)` | 6 | `34` partículas procedurales y `particles/*.json` |
-| Sound Studio v5 | `run_sound_studio(check_only=True, run_tests=True)` + `audit_sound_masking` + `inspect_sound_event` | 20 | `226` eventos / `596` `.ogg`, `69` stems RTX, True-Peak 4x, costuras `11` loops, matriz Bark `11×20` (`220` pares) GPU/CPU |
-| Codex Studio | `run_codex_studio(check_only=True, run_tests=True)` | 5 | `12` capítulos / `62` entradas / `249` páginas, paridad EN/ES + Modonomicon |
+| Sound Studio v9 | `run_sound_studio(check_only=True, run_tests=True)` + `audit_sound_masking` + `inspect_sound_event` | 25 | `226` eventos / `596` `.ogg`, `95` stems RTX, True-Peak 4x, costuras `11` loops, matriz Bark `11×20` (`220` pares) GPU/CPU |
+| Codex Studio | `run_codex_studio(check_only=True, run_tests=True)` | 5 | `12` capítulos / `62` entradas / `256` páginas, paridad EN/ES + Modonomicon |
 | Structure Studio | `run_structure_studio()` | — | Validación/generación de `.nbt` de estructuras |
 | FastMCP Bridge | `python scripts/mcp/test_server.py` (en host fuera de sandbox `.pyd`) | suite e2e | Handshake `CodeMode`, 67 tools, RCON mock, validadores de parámetros |

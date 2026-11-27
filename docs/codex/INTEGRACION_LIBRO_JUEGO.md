@@ -1,6 +1,6 @@
 # Guía de Integración del Códice al Juego (`Mycelial Mind v2.0.0`)
 
-Este documento explica cómo integrar dentro de **Minecraft 1.21.1 / NeoForge 21.1.176** el Códice generado por [`scripts/codex_studio/`](../../scripts/codex_studio/build_codex.py), preservando la arquitectura aislada actual (`148/148` `@GameTest`, `36/36` JUnit y `878/878` claves de idioma intactas) y ofreciendo **3 vías listas para usar**.
+Este documento explica cómo integrar dentro de **Minecraft 1.21.1 / NeoForge 21.1.267** el Códice generado por [`scripts/codex_studio/`](../../scripts/codex_studio/build_codex.py), preservando la arquitectura aislada actual (`213/213` `@GameTest`, `179/179` JUnit y `2356/2356` claves de idioma intactas) y ofreciendo **3 vías listas para usar** (la **Vía 1** nativa ya está integrada en el mod con `MycelialCodexItem` y `MycelialCodexBookScreen`).
 
 ---
 
@@ -8,9 +8,9 @@ Este documento explica cómo integrar dentro de **Minecraft 1.21.1 / NeoForge 21
 
 | Artefacto | Ruta | Contenido |
 | --- | --- | --- |
-| Enciclopedia Maestra Markdown | [`docs/codex/CODICE_MICELIAL.md`](CODICE_MICELIAL.md) | 12 capítulos, 51 entradas, 226 páginas etiquetadas (`[Libro: Cap.X / id / Pág.Y]`), spoilers en `<details>` |
+| Enciclopedia Maestra Markdown | [`docs/codex/CODICE_MICELIAL.md`](CODICE_MICELIAL.md) | 12 capítulos, 62 entradas, 256 páginas etiquetadas (`[Libro: Cap.X / id / Pág.Y]`), spoilers en `<details>` |
 | Exportación Nativa Standalone | [`docs/codex/book_export/native/`](book_export/native/data/mycelialmind/codex/codex_book.json) | `codex_book.json` + `es_es.codex.json` / `en_us.codex.json` (100% simétricos) |
-| Exportación Modonomicon `1.123.0` | [`docs/codex/book_export/modonomicon/`](book_export/modonomicon/data/mycelialmind/modonomicon/books/mycelial_codex/book.json) | `book.json`, 12 categorías, 51 entradas `(x, y)` sin colisiones, recetas tipadas, entidades 3D y `*.modonomicon.json` |
+| Exportación Modonomicon `1.123.1` | [`docs/codex/book_export/modonomicon/`](book_export/modonomicon/data/mycelialmind/modonomicon/books/mycelial_codex/book.json) | `book.json`, 12 categorías, 62 entradas `(x, y)` sin colisiones, recetas tipadas, entidades 3D y `*.modonomicon.json` |
 | Libros Escritos Vanilla | [`docs/codex/book_export/vanilla_written_books/`](book_export/vanilla_written_books/give_commands_es.txt) | Volúmenes `es_es` (`73, 77, 77, 81` págs.) y `en_us` (`71, 72, 91, 56` págs.), estrictos `<= 100` págs/tomo |
 | Reporte de Auditoría Live | [`docs/codex/book_export/coverage_report.json`](book_export/coverage_report.json) | Verificación automática 100% contra registros, configuraciones, recetas, botines y comandos |
 
@@ -18,7 +18,7 @@ Este documento explica cómo integrar dentro de **Minecraft 1.21.1 / NeoForge 21
 
 ## Vía 1 — Libro Nativo Standalone (Recomendada, Cero Dependencias Externas)
 
-Esta vía añade el ítem físico **`mycelialmind:mycelial_codex`** con pantalla GUI propia de doble página, aprovechando que las **226 páginas** ya están medidas al píxel (`136px` de ancho por columna, `<= 14` líneas para texto y `<= 7` líneas bajo widgets).
+Esta vía añade el ítem físico **`mycelialmind:mycelial_codex`** con pantalla GUI propia de doble página, aprovechando que las **256 páginas** ya están medidas al píxel (`136px` de ancho por columna, `<= 14` líneas para texto y `<= 7` líneas bajo widgets).
 
 ### 1.1 Recursos e Idioma
 1. Copiar `docs/codex/book_export/native/data/mycelialmind/codex/codex_book.json` a `src/main/resources/data/mycelialmind/codex/codex_book.json`.
@@ -31,7 +31,7 @@ Esta vía añade el ítem físico **`mycelialmind:mycelial_codex`** con pantalla
            () -> new MycelialCodexItem(new Item.Properties().stacksTo(1)));
    ```
 2. Añadir `ModItems.MYCELIAL_CODEX.get()` en `ModCreativeTabs.java` (`mycelial_tab`).
-3. Añadir receta shapeless sugerida (`src/main/resources/data/mycelialmind/recipe/mycelial_codex.json`): `minecraft:book` + `mycelialmind:latent_spore` + `mycelialmind:mycelial_biomass` (y opcionalmente entregar 1 ejemplar al entrar por primera vez usando un flag booleano persistido en `PlayerDiscoveryData` o enlace desde `BioScannerCodexScreen`).
+3. Añadir receta shapeless sugerida (`src/generated/resources/data/mycelialmind/recipe/mycelial_codex.json`, emitida vía DataGen): `minecraft:book` + `mycelialmind:latent_spore` + `mycelialmind:mycelial_biomass` (y opcionalmente entregar 1 ejemplar al entrar por primera vez usando un flag booleano persistido en `PlayerDiscoveryData` o enlace desde `BioScannerCodexScreen`).
 
 ### 1.3 Carga de Datos y Apertura en Cliente
 - **Opción simple en cliente:** cargar `ResourceLocation.fromNamespaceAndPath("mycelialmind", "codex/codex_book.json")` o leer desde `AddReloadListenerEvent` (`SimpleJsonResourceReloadListener`) sincronizado en login.
@@ -58,12 +58,12 @@ Generar textura HD PBR y modelo 3D opcional del libro con los estudios del proye
 
 ---
 
-## Vía 2 — Integración Modonomicon (`1.123.0`, Soporte Opcional ya Preparado)
+## Vía 2 — Integración Modonomicon (`1.123.1`, Soporte Opcional ya Preparado)
 
-El proyecto ya incluye `compileOnly "com.klikli_dev:modonomicon-1.21.1-neoforge:1.123.0"` en `build.gradle`, `MycelialModonomiconCompat.CODEX_BOOK_ID` (`mycelialmind:mycelial_codex`) y el esqueleto `src/main/resources/data/mycelialmind/modonomicon/books/mycelial_codex/book.json`.
+El proyecto ya incluye `compileOnly "com.klikli_dev:modonomicon-1.21.1-neoforge:1.123.1"` en `build.gradle`, `MycelialModonomiconCompat.CODEX_BOOK_ID` (`mycelialmind:mycelial_codex`) y el esqueleto `src/main/resources/data/mycelialmind/modonomicon/books/mycelial_codex/book.json`.
 
 ### Pasos para activarlo
-1. Copiar `docs/codex/book_export/modonomicon/data/mycelialmind/modonomicon/books/mycelial_codex/` (incluyendo `book.json`, las **12** carpetas/archivos en `categories/` y las **51** entradas en `entries/<categoria>/`) dentro de `src/main/resources/data/mycelialmind/modonomicon/books/mycelial_codex/`.
+1. Copiar `docs/codex/book_export/modonomicon/data/mycelialmind/modonomicon/books/mycelial_codex/` (incluyendo `book.json`, las **12** carpetas/archivos en `categories/` y las **62** entradas en `entries/<categoria>/`) dentro de `src/main/resources/data/mycelialmind/modonomicon/books/mycelial_codex/`.
 2. Fusionar `docs/codex/book_export/modonomicon/assets/mycelialmind/lang/{es_es,en_us}.modonomicon.json` dentro de los archivos de idioma del mod.
 3. Si deseas que Modonomicon genere automáticamente un ítem físico de libro en `mycelial_tab`, cambia en `book.json`:
    ```json
@@ -71,7 +71,7 @@ El proyecto ya incluye `compileOnly "com.klikli_dev:modonomicon-1.21.1-neoforge:
    ```
    O mantén `"generate_book_item": false` y abre el libro programáticamente desde `MycelialCodexItem` cuando `MycelialModonomiconCompat.isModonomiconLoaded()` sea `true`, con fallback a `MycelialCodexBookScreen` (Vía 1) en instalaciones sin Modonomicon.
 
-> **Compatibilidad verificada contra bytecode de `modonomicon-1.21.1-neoforge-1.123.0.jar`:** cada pareja de recetas compartidas en una sola página utiliza estrictamente el mismo tipo (`modonomicon:crafting_recipe`, `smelting_recipe`, `smoking_recipe`, `blasting_recipe` o `stonecutting_recipe`), y todas las coordenadas `(x, y)` de nodos padre/hijo dentro de cada categoría son únicas sin solapamiento.
+> **Compatibilidad verificada contra bytecode de `modonomicon-1.21.1-neoforge-1.123.1.jar`:** cada pareja de recetas compartidas en una sola página utiliza estrictamente el mismo tipo (`modonomicon:crafting_recipe`, `smelting_recipe`, `smoking_recipe`, `blasting_recipe` o `stonecutting_recipe`), y todas las coordenadas `(x, y)` de nodos padre/hijo dentro de cada categoría son únicas sin solapamiento.
 
 ---
 

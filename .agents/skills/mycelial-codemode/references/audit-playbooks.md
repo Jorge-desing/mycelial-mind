@@ -137,7 +137,7 @@ return {
 }
 ```
 
-Catálogo completo de suites JUnit (`147`), batches `@GameTest` (`201`) y modos visuales: [test-matrix.md](test-matrix.md).
+Catálogo completo de suites JUnit (`179` en `18` suites), batches `@GameTest` (`213` en `56` batches) y modos visuales: [test-matrix.md](test-matrix.md).
 
 ### Alternativas Reproducibles (`Taskfile.yml` + `uv`) y Fallback Gradle Offline
 - **Aliases locales (`Taskfile.yml` / CI GitHub Actions):** `task verify:assets` (usa `uv` para modelos/texturas/partículas), `task verify`, `task verify:server`, `task verify:visual`, `task verify:renovate`, `task release:dry-run`.
