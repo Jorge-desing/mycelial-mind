@@ -6,8 +6,8 @@ package com.alex.mycelialmind.hive;
  */
 public enum EvolutionRank {
     BASE(0, 1.0D, 1.0D, 1.0F, 1.0D, 1.0F, 1.0F),
-    MUTATED(1, 1.25D, 1.15D, 1.12F, 1.25D, 0.89F, 1.10F),
-    ELITE(2, 1.60D, 1.35D, 1.25F, 1.75D, 0.78F, 1.22F);
+    MUTATED(1, 1.25D, 1.15D, 1.12F, 1.25D, 0.86F, 1.13F),
+    ELITE(2, 1.60D, 1.35D, 1.25F, 1.75D, 0.74F, 1.28F);
 
     private final int id;
     private final double healthMultiplier;
@@ -206,7 +206,7 @@ public enum EvolutionRank {
         float safeHp = Float.isFinite(bossHealthRatio) ? Math.max(0.0F, Math.min(1.0F, bossHealthRatio)) : 1.0F;
         float clampedEnv = Math.max(0.0F, Math.min(1.0F, envVol));
         float clampedDuck = Float.isFinite(duckMultiplier) ? Math.max(0.10F, Math.min(1.0F, duckMultiplier)) : 1.0F;
-        float intensity = 0.28F + 0.22F * (1.0F - safeHp);
+        float intensity = 0.30F + 0.24F * (1.0F - safeHp);
         return intensity * clampedEnv * clampedDuck;
     }
 

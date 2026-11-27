@@ -40,11 +40,14 @@ from scripts.sound_studio.dsp_engine import (
     fdn4_hadamard_diffuser,
     foley_particle_crackle,
     fold_seamless_loop,
+    fungal_cap_resonance,
     granular_bio_cloud,
     karplus_strong_chitin,
     modal_dispersed_impact,
     modal_resonator_bank,
     morphing_formant_tract,
+    mycelial_hyphae_tear,
+    spore_sac_burst,
     wooden_chitin_knock,
 )
 
@@ -515,7 +518,7 @@ def synthesize_system_env_sound(
         return fold_seamless_loop(raw, n, crossfade_ms=140.0)
 
     if sound_id == "boss_combat_tension_bed":
-        # Continuous sub-harmonic boss dread drone bed (integer-cycle sub + dark choir air + seamless loop fold)
+        # Continuous legendary fungal-boss dread loop (arterial mushroom-heart drum + warhorn fifths + dark fungal air)
         cf = int(SAMPLE_RATE * 0.28)
         ext_n = n + cf
         ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
@@ -525,15 +528,22 @@ def synthesize_system_env_sound(
         pulse_hz = max(0.25, round(0.5 * dur) / dur)
         sub = (
             np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.72
-            + np.sin(2.0 * np.pi * (f0 * 1.5) * ext_t + rng.uniform(0, 6.28)) * 0.38
-            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.24
+            + np.sin(2.0 * np.pi * (f0 * 1.498) * ext_t + rng.uniform(0, 6.28)) * 0.42
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.26
         ) * (0.86 + 0.14 * np.sin(2.0 * np.pi * pulse_hz * ext_t + pjit))
-        rumble = _sos_bandpass(ext_brown * 0.8 + ext_pink * 0.35, 38.0, 320.0) * 0.65
-        choir_air = _sos_bandpass(ext_pink, 140.0, 420.0) * 0.35
-        dry = np.tanh((sub + rumble + choir_air) * 1.18)
+        # Periodic arterial fungal heart-drum hits locked cleanly to integer loop subdivisions
+        heart = np.zeros(ext_n, dtype=np.float64)
+        for p_frac in (0.12, 0.22, 0.62, 0.72):
+            pos = int(p_frac * n)
+            hlen = min(ext_n - pos, int(SAMPLE_RATE * 0.24))
+            ht = np.arange(hlen, dtype=np.float64) / SAMPLE_RATE
+            heart[pos : pos + hlen] += fungal_cap_resonance(hlen, f0 * 1.35, rng, decay=0.18, sponginess=0.72) * exp_decay(ht, 0.16) * 0.75
+        rumble = _sos_bandpass(ext_brown * 0.8 + ext_pink * 0.35, 38.0, 320.0) * 0.68
+        choir_air = _sos_bandpass(ext_pink, 140.0, 440.0) * 0.36
+        dry = np.tanh((sub + heart + rumble + choir_air) * 1.20)
         preroll = min(ext_n // 2, int(SAMPLE_RATE * 0.85))
         reverb_in = np.concatenate([dry[-preroll:], dry])
-        raw = _abyssal_reverb(reverb_in, rng, predelay_ms=18.0, wet=0.30, rt60=0.72, lp_hz=1800.0)[
+        raw = _abyssal_reverb(reverb_in, rng, predelay_ms=18.0, wet=0.32, rt60=0.76, lp_hz=1850.0)[
             preroll : preroll + ext_n
         ]
         return fold_seamless_loop(raw, n, crossfade_ms=280.0)
@@ -618,60 +628,66 @@ def synthesize_system_env_sound(
         return fold_seamless_loop(raw, n, crossfade_ms=260.0)
 
     if sound_id == "hive_tension_bed_low":
-        # 10th seamless loop: low-intensity subterranean Hive exploration & vigilance drone bed
+        # 10th seamless loop: damp fungal cavern draft + slow mushroom-stalk pulse + distant monstrous murmur
         cf = int(SAMPLE_RATE * 0.28)
         ext_n = n + cf
         ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
         ext_pink = _pink_noise(rng, ext_n)
-        f0 = max(124.0, 2.0 * round(0.5 * max(132.0, bf * 2.15) * dur) / dur)
+        f0 = max(116.0, 2.0 * round(0.5 * max(124.0, bf * 2.0) * dur) / dur)
         pulse_hz = max(0.25, round(0.5 * dur) / dur)
         pad = (
             np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.50
             + np.sin(2.0 * np.pi * (f0 * 1.498) * ext_t + rng.uniform(0, 6.28)) * 0.36
-            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.26
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.24
         ) * (0.88 + 0.12 * np.sin(2.0 * np.pi * pulse_hz * ext_t + pjit))
         whisper_bed = morphing_formant_tract(
             ext_t,
-            f0 * 1.25,
+            f0 * 1.15,
             [
-                (0.0, [(280.0, 2.6, 0.75), (720.0, 3.2, 0.52)]),
-                (0.5, [(380.0, 2.8, 0.80), (910.0, 3.0, 0.56)]),
-                (1.0, [(280.0, 2.6, 0.75), (720.0, 3.2, 0.52)]),
+                (0.0, [(240.0, 2.6, 0.78), (640.0, 3.2, 0.52)]),
+                (0.5, [(330.0, 2.8, 0.82), (820.0, 3.0, 0.56)]),
+                (1.0, [(240.0, 2.6, 0.78), (640.0, 3.2, 0.52)]),
             ],
             rng,
-            sub_weight=0.14,
-            breath_noise=0.20,
-        ) * 0.44
-        air = _sos_bandpass(ext_pink, 220.0, 980.0) * 0.65
-        dry = _sos_bandpass(np.tanh((pad + whisper_bed + air) * 1.12), 110.0, 2600.0)
+            sub_weight=0.22,
+            breath_noise=0.24,
+        ) * 0.48
+        spores = granular_bio_cloud(ext_n, rng, freq_range=(260.0, 880.0), density_hz=18.0, grain_ms=34.0, organic_mode="spore") * 0.40
+        air = _sos_bandpass(ext_pink, 200.0, 920.0) * 0.65
+        dry = _sos_bandpass(np.tanh((pad + whisper_bed + spores + air) * 1.14), 105.0, 2500.0)
         preroll = min(ext_n // 2, int(SAMPLE_RATE * 0.90))
         reverb_in = np.concatenate([dry[-preroll:], dry])
-        raw = fdn4_hadamard_diffuser(reverb_in, rng, base_delays_ms=(23.1, 31.7, 41.9, 57.3), rt60=0.82, wet=0.32, damping_hz=2600.0)[
+        raw = fdn4_hadamard_diffuser(reverb_in, rng, base_delays_ms=(23.1, 31.7, 41.9, 57.3), rt60=0.84, wet=0.33, damping_hz=2500.0)[
             preroll : preroll + ext_n
         ]
         return fold_seamless_loop(raw, n, crossfade_ms=280.0)
 
     if sound_id == "hive_swarm_combat_bed":
-        # 11th seamless loop: rhythmic adaptive skirmish pulse under sustained threat or active swarm waves
+        # 11th seamless loop: epic hollow mushroom-cap tribal drum + tearing mycelial tension + predatory swarm pulse
         cf = int(SAMPLE_RATE * 0.26)
         ext_n = n + cf
         ext_t = np.arange(ext_n, dtype=np.float64) / SAMPLE_RATE
         ext_brown = _brown_noise(rng, ext_n)
-        f0 = max(144.0, 2.0 * round(0.5 * max(164.0, bf * 2.0) * dur) / dur)
+        f0 = max(136.0, 2.0 * round(0.5 * max(152.0, bf * 1.9) * dur) / dur)
         bpm_hz = max(1.0, round(2.0 * dur) / dur)
         throb_env = 0.52 + 0.48 * np.maximum(0.0, np.sin(2.0 * np.pi * bpm_hz * ext_t + pjit)) ** 2.2
         mid_pulse = (
-            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.46
-            + np.sin(2.0 * np.pi * (f0 * 1.498) * ext_t + rng.uniform(0, 6.28)) * 0.34
-            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.24
+            np.sin(2.0 * np.pi * f0 * ext_t + pjit) * 0.48
+            + np.sin(2.0 * np.pi * (f0 * 1.498) * ext_t + rng.uniform(0, 6.28)) * 0.36
+            + np.sin(2.0 * np.pi * (f0 * 2.0) * ext_t + rng.uniform(0, 6.28)) * 0.22
         ) * throb_env
-        chitin_pulse = _sos_bandpass(ext_brown, 165.0, 960.0) * throb_env * 0.85
-        tension_harm = _fm_tone(ext_t, f0 * 2.0, f0 * 0.75, 1.35, pjit) * 0.30 * (0.7 + 0.3 * np.sin(2.0 * np.pi * 0.5 * bpm_hz * ext_t))
-        skirmish_grains = granular_bio_cloud(ext_n, rng, freq_range=(280.0, 940.0), density_hz=24.0, grain_ms=26.0, organic_mode="chitin") * 0.46
-        dry = _sos_bandpass(np.tanh((mid_pulse + chitin_pulse + tension_harm + skirmish_grains) * 1.14), 120.0, 2900.0)
+        chitin_pulse = _sos_bandpass(ext_brown, 155.0, 920.0) * throb_env * 0.85
+        cap_drums = np.zeros(ext_n, dtype=np.float64)
+        for p_frac in (0.06, 0.31, 0.56, 0.81):
+            pos = int(p_frac * n)
+            dlen = min(ext_n - pos, int(SAMPLE_RATE * 0.16))
+            cap_drums[pos : pos + dlen] += fungal_cap_resonance(dlen, f0 * 0.92, rng, decay=0.11, sponginess=0.72) * 0.62
+        tension_harm = _fm_tone(ext_t, f0 * 2.0, f0 * 0.75, 1.35, pjit) * 0.28 * (0.7 + 0.3 * np.sin(2.0 * np.pi * 0.5 * bpm_hz * ext_t))
+        skirmish_grains = granular_bio_cloud(ext_n, rng, freq_range=(240.0, 880.0), density_hz=26.0, grain_ms=26.0, organic_mode="chitin") * 0.50
+        dry = _sos_bandpass(np.tanh((mid_pulse + chitin_pulse + cap_drums + tension_harm + skirmish_grains) * 1.16), 110.0, 2800.0)
         preroll = min(ext_n // 2, int(SAMPLE_RATE * 0.85))
         reverb_in = np.concatenate([dry[-preroll:], dry])
-        raw = fdn4_hadamard_diffuser(reverb_in, rng, base_delays_ms=(17.9, 25.3, 35.1, 46.7), rt60=0.68, wet=0.28, damping_hz=2800.0)[
+        raw = fdn4_hadamard_diffuser(reverb_in, rng, base_delays_ms=(17.9, 25.3, 35.1, 46.7), rt60=0.70, wet=0.29, damping_hz=2700.0)[
             preroll : preroll + ext_n
         ]
         return fold_seamless_loop(raw, n, crossfade_ms=260.0)

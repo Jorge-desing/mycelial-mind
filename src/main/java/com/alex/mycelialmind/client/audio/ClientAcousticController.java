@@ -89,6 +89,7 @@ public final class ClientAcousticController {
         volatile float smoothedOcclusion;
         final float timbreDamping;
         final boolean applyReverb;
+        final boolean bossCue;
         final long createdAtMs;
 
         TrackedChannel(
@@ -99,6 +100,7 @@ public final class ClientAcousticController {
                 float smoothedOcclusion,
                 float timbreDamping,
                 boolean applyReverb,
+                boolean bossCue,
                 long createdAtMs
         ) {
             this.soundRef = new WeakReference<>(sound);
@@ -108,6 +110,7 @@ public final class ClientAcousticController {
             this.smoothedOcclusion = smoothedOcclusion;
             this.timbreDamping = timbreDamping;
             this.applyReverb = applyReverb;
+            this.bossCue = bossCue;
             this.createdAtMs = createdAtMs;
         }
     }
@@ -247,18 +250,22 @@ public final class ClientAcousticController {
             lastComputedOcclusion = occlusion;
         }
 
-        AcousticEnvironment env = currentEnvironment;
+        boolean isModSound = MycelialMind.MODID.equals(namespace);
+        boolean bossCue = isModSound && AcousticPhysicsEngine.isBossLegendaryCue(path);
+        AcousticEnvironment effectiveEnv = bossCue
+                ? AcousticPhysicsEngine.resolveEffectiveEnvironment(currentEnvironment, path)
+                : currentEnvironment;
         SubmersionState submersion = resolvePlayerSubmersion(mc);
         currentSubmersion = submersion;
-        boolean applyReverb = !sound.isLooping() || MycelialMind.MODID.equals(namespace);
+        boolean applyReverb = !sound.isLooping() || isModSound;
         long nowMs = System.currentTimeMillis();
-        AcousticPhysicsEngine.HumanizedPlayback humanized = MycelialMind.MODID.equals(namespace)
+        AcousticPhysicsEngine.HumanizedPlayback humanized = isModSound
                 ? PLAYBACK_HUMANIZER.nextForSound(path, sound.isLooping(), sound.isRelative(), nowMs)
                 : AcousticPhysicsEngine.HumanizedPlayback.IDENTITY;
         PENDING_SNAPSHOTS.put(
                 sound,
                 new OpenAlEfxBridge.SourceAcousticSnapshot(
-                        env,
+                        effectiveEnv,
                         occlusion,
                         submersion,
                         applyReverb,
@@ -266,7 +273,8 @@ public final class ClientAcousticController {
                         humanized.pitchMultiplier(),
                         humanized.gainMultiplier(),
                         humanized.timbreDamping(),
-                        distanceMeters
+                        distanceMeters,
+                        bossCue
                 )
         );
     }
@@ -355,6 +363,7 @@ public final class ClientAcousticController {
                         snap.occlusionFactor(),
                         snap.timbreDamping(),
                         snap.applyReverb(),
+                        snap.bossCue(),
                         System.currentTimeMillis()
                 )
         );
@@ -405,11 +414,14 @@ public final class ClientAcousticController {
                     : 0.0F;
             float smoothOcc = AcousticPhysicsEngine.smoothOcclusion(tc.smoothedOcclusion, rawOcc, 0.45F);
             tc.smoothedOcclusion = smoothOcc;
+            AcousticEnvironment effectiveEnv = tc.bossCue
+                    ? AcousticPhysicsEngine.resolveEffectiveEnvironment(env, "boss_dynamic")
+                    : env;
             updates.add(new ChannelUpdate(
                     ch,
                     tc,
                     new OpenAlEfxBridge.SourceAcousticSnapshot(
-                            env, smoothOcc, submersion, tc.applyReverb, now, 1.0F, 1.0F, tc.timbreDamping, distanceMeters
+                            effectiveEnv, smoothOcc, submersion, tc.applyReverb, now, 1.0F, 1.0F, tc.timbreDamping, distanceMeters, tc.bossCue
                     )
             ));
         }

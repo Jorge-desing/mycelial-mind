@@ -150,7 +150,7 @@ public final class MycelialGameTests {
     private MycelialGameTests() {
     }
 
-    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 180)
+    @GameTest(batch = "entity_ai_weaver_window", template = "empty", timeoutTicks = 180)
     public static void weaverSupportWindowTracksCoverage(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forced = forceArenaChunks(helper, -4, 22, -5, 14);
@@ -198,7 +198,7 @@ public final class MycelialGameTests {
         }).thenSucceed();
     }
 
-    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 180)
+    @GameTest(batch = "entity_ai_weaver_control", template = "empty", timeoutTicks = 180)
     public static void weaverWithoutSupportGoalLeavesSeparatedAllies(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forced = forceArenaChunks(helper, -4, 25, -5, 14);
@@ -257,7 +257,7 @@ public final class MycelialGameTests {
                 .thenSucceed();
     }
 
-    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 300)
+    @GameTest(batch = "entity_ai_weaver_support", template = "empty", timeoutTicks = 300)
     public static void weaverSupportCoversSeparatedSquad(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         List<ChunkPos> forced = forceArenaChunks(helper, -4, 22, -5, 14);
@@ -486,7 +486,7 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 200)
+    @GameTest(batch = "entity_ai_stalker_combat", template = "empty", timeoutTicks = 200)
     public static void stalkerLeapsDuringCombat(GameTestHelper helper) {
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 12, -4, 8);
         for (int x = -4; x <= 12; x++) {
@@ -518,7 +518,7 @@ public final class MycelialGameTests {
                 .thenSucceed();
     }
 
-    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 100)
+    @GameTest(batch = "entity_ai_stalker_leap", template = "empty", timeoutTicks = 100)
     public static void stalkerLeapPropelsTowardTarget(GameTestHelper helper) {
         for (int x = 0; x <= 8; x++) {
             for (int z = 0; z <= 4; z++) {
@@ -653,7 +653,7 @@ public final class MycelialGameTests {
                 .thenSucceed();
     }
 
-    @GameTest(batch = "entity_ai_live", template = "empty", timeoutTicks = 180)
+    @GameTest(batch = "entity_ai_spitter_brain", template = "empty", timeoutTicks = 180)
     public static void acidSpitterBrainShootsRetreatsAndInvalidatesTarget(GameTestHelper helper) {
         List<ChunkPos> forcedChunks = forceArenaChunks(helper, -6, 13, -5, 9);
         for (int x = -6; x <= 13; x++) {
@@ -5599,7 +5599,7 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "defaultBatch")
+    @GameTest(template = "empty", batch = "cross_system_integration")
     public static void crossSystemIntegrationProjectilesRelicsAndCompatWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         HiveMindSavedData.get(level).resetAll();
@@ -10503,9 +10503,11 @@ public final class MycelialGameTests {
         }
     }
 
-    @GameTest(template = "empty", batch = "hive_brain_clean_room")
+    @GameTest(template = "empty", batch = "hive_brain_clean_room_core")
     public static void hiveBrainCleanRoomEngineDrivesSensorsActivitiesAndComposites(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
+        HiveMindSavedData.get(level).resetAll();
+        HiveBlackboard.clear(level);
         var brute = helper.spawnWithNoFreeWill(ModEntities.CHITIN_BRUTE.get(), 2, 1, 2);
         var spitter = helper.spawnWithNoFreeWill(ModEntities.ACID_SPITTER.get(), 4, 1, 2);
         try {

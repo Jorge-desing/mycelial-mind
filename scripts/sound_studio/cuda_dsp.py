@@ -193,8 +193,9 @@ def _get_ir_rfft_tensor(torch, ir_space: str, n_fft: int, ir_wave_fallback: np.n
                     return None
                 ir_t = torch.as_tensor(np.ascontiguousarray(ir_wave_fallback, dtype=np.float32), device="cuda")
                 _IR_GPU_CACHE[ir_space] = ir_t
-            cached = torch.fft.rfft(ir_t, n=int(n_fft))
-            torch.cuda.current_stream().synchronize()
+            with _CUFFT_LOCK:
+                cached = torch.fft.rfft(ir_t, n=int(n_fft))
+                torch.cuda.current_stream().synchronize()
             _IR_FFT_CACHE[key] = cached
         return cached
 
@@ -215,7 +216,9 @@ def gpu_fftconvolve_1d(sig: np.ndarray, ir: np.ndarray, *, min_conv_len: int = 4
     with torch.inference_mode(), torch.cuda.stream(stream):
         s_t = torch.as_tensor(np.ascontiguousarray(sig, dtype=np.float32), device="cuda")
         k_t = torch.as_tensor(np.ascontiguousarray(ir, dtype=np.float32), device="cuda")
-        wet_t = torch.fft.irfft(torch.fft.rfft(s_t, n=n_fft) * torch.fft.rfft(k_t, n=n_fft), n=n_fft)[:n_sig]
+        with _CUFFT_LOCK:
+            wet_t = torch.fft.irfft(torch.fft.rfft(s_t, n=n_fft) * torch.fft.rfft(k_t, n=n_fft), n=n_fft)[:n_sig]
+            torch.cuda.current_stream().synchronize()
         return np.asarray(wet_t.cpu().numpy(), dtype=np.float64)
 
 
@@ -254,7 +257,9 @@ def gpu_ir_convolve(
     stream = get_thread_stream(torch)
     with torch.inference_mode(), torch.cuda.stream(stream):
         s_t = torch.as_tensor(np.ascontiguousarray(sig, dtype=np.float32), device="cuda")
-        wet_t = torch.fft.irfft(torch.fft.rfft(s_t, n=n_fft) * ir_spec, n=n_fft)[:n_sig]
+        with _CUFFT_LOCK:
+            wet_t = torch.fft.irfft(torch.fft.rfft(s_t, n=n_fft) * ir_spec, n=n_fft)[:n_sig]
+            torch.cuda.current_stream().synchronize()
         out_t = (1.0 - mix_f) * s_t + mix_f * wet_t
         return np.asarray(out_t.cpu().numpy(), dtype=np.float64)
 
@@ -289,11 +294,13 @@ def _gpu_envelope_batch(torch, sigs, windows: list[int]):
     for idx, win in enumerate(windows):
         kernels[idx, :win] = 1.0 / float(win)
 
-    conv_full = torch.fft.irfft(
-        torch.fft.rfft(sigs.abs(), n=n_fft, dim=-1) * torch.fft.rfft(kernels, n=n_fft, dim=-1),
-        n=n_fft,
-        dim=-1,
-    )
+    with _CUFFT_LOCK:
+        conv_full = torch.fft.irfft(
+            torch.fft.rfft(sigs.abs(), n=n_fft, dim=-1) * torch.fft.rfft(kernels, n=n_fft, dim=-1),
+            n=n_fft,
+            dim=-1,
+        )
+        torch.cuda.current_stream().synchronize()
     sliced = torch.stack(
         [conv_full[idx, (win - 1) // 2 : (win - 1) // 2 + n] for idx, win in enumerate(windows)],
         dim=0,
@@ -336,15 +343,18 @@ def _gpu_align_spectral_tilt(torch, stem_bp_t, dsp_bp_t, freqs, *, strength: flo
     n_fft = _next_pow2(n)
     f_t = _get_freqs_tensor(torch, n_fft, int(freqs) if isinstance(freqs, int) else 44100)
     pair = torch.stack([stem_bp_t, dsp_bp_t], dim=0)
-    spec = torch.fft.rfft(pair, n=n_fft, dim=-1)
-    pwr = spec.abs() ** 2 + 1e-12
-    c_stem = (f_t * pwr[0]).sum() / pwr[0].sum()
-    c_dsp = (f_t * pwr[1]).sum() / pwr[1].sum()
-    ratio = torch.clamp(c_dsp / torch.clamp(c_stem, min=60.0), 0.55, 1.85)
-    tilt_exp = torch.clamp(torch.log2(ratio) * float(strength), -0.55, 0.55)
-    pivot = torch.clamp(c_dsp, 220.0, 4200.0)
-    tilt = torch.clamp((torch.clamp(f_t, min=40.0) / pivot) ** tilt_exp, 0.55, 1.75)
-    return torch.fft.irfft(spec[0] * tilt, n=n_fft)[:n]
+    with _CUFFT_LOCK:
+        spec = torch.fft.rfft(pair, n=n_fft, dim=-1)
+        pwr = spec.abs() ** 2 + 1e-12
+        c_stem = (f_t * pwr[0]).sum() / pwr[0].sum()
+        c_dsp = (f_t * pwr[1]).sum() / pwr[1].sum()
+        ratio = torch.clamp(c_dsp / torch.clamp(c_stem, min=60.0), 0.55, 1.85)
+        tilt_exp = torch.clamp(torch.log2(ratio) * float(strength), -0.55, 0.55)
+        pivot = torch.clamp(c_dsp, 220.0, 4200.0)
+        tilt = torch.clamp((torch.clamp(f_t, min=40.0) / pivot) ** tilt_exp, 0.55, 1.75)
+        aligned = torch.fft.irfft(spec[0] * tilt, n=n_fft)[:n]
+        torch.cuda.current_stream().synchronize()
+    return aligned
 
 
 def _apply_bandpass_and_envelope_gpu(
@@ -374,9 +384,11 @@ def _apply_bandpass_and_envelope_gpu(
     pad = min(4096, max(1024, n // 2))
     n_fft_bp = _next_pow2(n + pad)
 
-    pair_t = torch.stack([src_t, dsp_t], dim=0)
-    spec_pair = torch.fft.rfft(pair_t, n=n_fft_bp, dim=-1)
     freqs = _get_freqs_tensor(torch, n_fft_bp, sample_rate)
+    pair_t = torch.stack([src_t, dsp_t], dim=0)
+    with _CUFFT_LOCK:
+        spec_pair = torch.fft.rfft(pair_t, n=n_fft_bp, dim=-1)
+        torch.cuda.current_stream().synchronize()
 
     if tri:
         b2_lo = max(band_lo_hz, s1 * 0.85)
@@ -385,7 +397,9 @@ def _apply_bandpass_and_envelope_gpu(
         m_body = _bandpass_mask_torch(torch, freqs, b2_lo, s2, sample_rate)
         m_air = _bandpass_mask_torch(torch, freqs, b3_lo, band_hi_hz, sample_rate)
         masks = torch.stack([m_sub, m_body, m_air], dim=0).unsqueeze(1)
-        bands = torch.fft.irfft(spec_pair.unsqueeze(0) * masks, n=n_fft_bp, dim=-1)[..., :n]
+        with _CUFFT_LOCK:
+            bands = torch.fft.irfft(spec_pair.unsqueeze(0) * masks, n=n_fft_bp, dim=-1)[..., :n]
+            torch.cuda.current_stream().synchronize()
         win_sub = max(8, int(sample_rate * 55.0 / 1000.0))
         win_body = max(8, int(sample_rate * 42.0 / 1000.0))
         win_air = max(8, int(sample_rate * 30.0 / 1000.0))
@@ -405,7 +419,9 @@ def _apply_bandpass_and_envelope_gpu(
         m_lo = _bandpass_mask_torch(torch, freqs, band_lo_hz, split_hz, sample_rate)
         m_hi = _bandpass_mask_torch(torch, freqs, hi_start, band_hi_hz, sample_rate)
         masks = torch.stack([m_lo, m_hi], dim=0).unsqueeze(1)
-        bands = torch.fft.irfft(spec_pair.unsqueeze(0) * masks, n=n_fft_bp, dim=-1)[..., :n]
+        with _CUFFT_LOCK:
+            bands = torch.fft.irfft(spec_pair.unsqueeze(0) * masks, n=n_fft_bp, dim=-1)[..., :n]
+            torch.cuda.current_stream().synchronize()
         stem_lo, dsp_lo = bands[0, 0], bands[0, 1]
         stem_hi, dsp_hi = bands[1, 0], bands[1, 1]
         win_lo = max(8, int(sample_rate * 48.0 / 1000.0))
@@ -414,7 +430,9 @@ def _apply_bandpass_and_envelope_gpu(
         return (stem_lo * (0.50 + 0.50 * envs[0])) + (stem_hi * (0.50 + 0.50 * envs[1]))
 
     m_bp = _bandpass_mask_torch(torch, freqs, band_lo_hz, band_hi_hz, sample_rate)
-    stem_bp = torch.fft.irfft(spec_pair[0] * m_bp, n=n_fft_bp)[:n]
+    with _CUFFT_LOCK:
+        stem_bp = torch.fft.irfft(spec_pair[0] * m_bp, n=n_fft_bp)[:n]
+        torch.cuda.current_stream().synchronize()
     win = max(8, int(sample_rate * 40.0 / 1000.0))
     env = _gpu_envelope_batch(torch, pair_t[1:2], [win])[0]
     return stem_bp * (0.50 + 0.50 * env)
@@ -626,7 +644,9 @@ def gpu_spectral_noise(
         freqs = _get_freqs_tensor(torch, n, sample_rate)
         scale = torch.clamp(freqs, min=float(min_hz)).pow(-float(exponent))
         scale[0] = 0.0
-        shaped = torch.fft.irfft(torch.fft.rfft(w_t) * scale, n=n)
+        with _CUFFT_LOCK:
+            shaped = torch.fft.irfft(torch.fft.rfft(w_t) * scale, n=n)
+            torch.cuda.current_stream().synchronize()
         std = torch.clamp(shaped.std(unbiased=False), min=1e-6)
         return np.asarray((shaped / std).cpu().numpy(), dtype=np.float64)
 
@@ -680,8 +700,10 @@ def _pairwise_xcorr_from_cuda(torch, w_t, lengths: list[int], max_lag_samples: i
 
     denom = torch.sqrt(norms[idx_i] * norms[idx_j])
     n_fft_xc = 1 << int(math.ceil(math.log2(max(2, max_len * 2))))
-    spec = torch.fft.rfft(w0, n=n_fft_xc, dim=-1)
-    pair_xcorr = torch.fft.irfft(spec[idx_i] * torch.conj(spec[idx_j]), n=n_fft_xc, dim=-1)
+    with _CUFFT_LOCK:
+        spec = torch.fft.rfft(w0, n=n_fft_xc, dim=-1)
+        pair_xcorr = torch.fft.irfft(spec[idx_i] * torch.conj(spec[idx_j]), n=n_fft_xc, dim=-1)
+        torch.cuda.current_stream().synchronize()
     lag_win = torch.cat([pair_xcorr[:, -max_lag_samples:], pair_xcorr[:, : max_lag_samples + 1]], dim=-1)
     peaks = lag_win.abs().amax(dim=-1).to(torch.float64)
     corrs = torch.where(denom >= 1e-9, peaks / denom.clamp_min(1e-18), torch.zeros_like(peaks))
@@ -759,10 +781,12 @@ def gpu_analyze_event_variations(
         act_rms = torch.where(peaks >= 1e-9, act_rms, torch.zeros_like(act_rms))
 
         # Batched FFT spectral descriptors in float64 to match numpy.fft precision
-        spec = torch.fft.rfft(w_t, n=n, dim=-1)
+        freqs = _get_freqs_tensor(torch, n, sample_rate).to(torch.float64)
+        with _CUFFT_LOCK:
+            spec = torch.fft.rfft(w_t, n=n, dim=-1)
+            torch.cuda.current_stream().synchronize()
         power = spec.abs().to(torch.float64).square()
         total_pow = power.sum(dim=-1) + 1e-12
-        freqs = _get_freqs_tensor(torch, n, sample_rate).to(torch.float64)
         centroids = (power * freqs.unsqueeze(0)).sum(dim=-1) / total_pow
         low_mask = freqs < 250.0
         high_mask = freqs > 4000.0

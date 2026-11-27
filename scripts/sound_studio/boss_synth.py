@@ -39,9 +39,12 @@ from scripts.sound_studio.dsp_engine import (
     articulated_vocal_tract,
     exp_decay,
     fdn4_hadamard_diffuser,
+    fungal_cap_resonance,
     granular_bio_cloud,
     karplus_strong_chitin,
     modal_resonator_bank,
+    mycelial_hyphae_tear,
+    spore_sac_burst,
 )
 
 BOSS_CINEMATIC_IDS: frozenset[str] = frozenset(
@@ -318,6 +321,33 @@ def _abyssal_reverb(
     return sig * (1.0 - wet * 0.35) + wet_sig * wet
 
 
+def _epic_fungal_chorus_horn(
+    t: np.ndarray,
+    f_curve: np.ndarray,
+    rng: np.random.Generator,
+    *,
+    formant_shift: float = 1.0,
+    monstrous_grit: float = 0.65,
+) -> np.ndarray:
+    """Fuse titanic warhorn brass fifths with monstrous fungal chest vocal folds and giant cap resonance."""
+    n = len(t)
+    g = float(np.clip(monstrous_grit, 0.20, 1.25))
+    horn = _brass_braaam(t, f_curve, rng, detune_cents=18.0, sub_oct=0.95, shimmer_mix=0.18, formant_shift=formant_shift)
+    fifth = _brass_braaam(t, f_curve * 1.498, rng, detune_cents=12.0, sub_oct=0.45, shimmer_mix=0.14, formant_shift=formant_shift) * 0.45
+    beast = _glottal_sub_source(t, np.maximum(26.0, f_curve * 0.992), rng, harmonics=13, sub_weight=0.92, rattle_hz=17.0)
+    beast_chest = _apply_formant_bank(
+        beast,
+        [
+            (max(65.0, 88.0 * formant_shift), 2.2, 1.15),
+            (max(165.0, 245.0 * formant_shift), 2.7, 1.05),
+            (max(420.0, 660.0 * formant_shift), 3.1, 0.72),
+        ],
+    )
+    mean_f = float(np.mean(f_curve)) if n > 0 else 80.0
+    cap_body = fungal_cap_resonance(n, max(48.0, mean_f * 1.45), rng, decay=0.34, sponginess=0.72) * 0.78
+    return np.tanh((horn * 0.85 + fifth + beast_chest * (0.78 * g) + cap_body * (0.68 * g)) * 1.18)
+
+
 def synthesize_boss_sound(
     sound_id: str,
     *,
@@ -342,377 +372,239 @@ def synthesize_boss_sound(
     pjit = rng.uniform(0.0, 2.0 * np.pi)
 
     # =========================================================================
-    # 1. SPORE BEHEMOTH — Primal Tectonic Kaiju
+    # 1. SPORE BEHEMOTH — Colossal Fungal-Spore & Root Titan
     # =========================================================================
     if sound_id == "spore_behemoth_roar":
-        # Act I: Guttural inhale + spore-sac swell (shifted 0.15..0.28 across takes)
         roar_start_frac = rng.uniform(0.15, 0.27)
         s1, e1 = _window_slice(n, 0.01, roar_start_frac + 0.06)
         inhale_env = _envelope_segment(n, s1, e1, attack_frac=0.35, release_frac=0.22)
         inhale_air = _swept_resonant_filter(pink * 0.7 + brown * 0.5, bf * 1.1, bf * 3.8, q=2.5) * inhale_env
         inhale_gurgle = _wet_squelch_layer(n, rng, bf * 1.6, int(rng.integers(3, 6)), intensity=0.55) * inhale_env
 
-        # Act II: Chest-shattering tectonic glottal roar + brass sub-horn
         s2, e2 = _window_slice(n, roar_start_frac, 0.78)
         roar_env = _envelope_segment(n, s2, e2, attack_frac=0.06, release_frac=0.28)
         u_roar = np.clip((t - t[s2]) / max(0.12, t[e2 - 1] - t[s2]), 0.0, 1.0)
-        f_roar = np.maximum(30.0, bf * (1.28 - 0.54 * (u_roar**0.85) + 0.06 * np.sin(2.0 * np.pi * mf * t + pjit)))
-        glottal = _glottal_sub_source(
-            t,
-            f_roar,
-            rng,
-            harmonics=12,
-            sub_weight=0.78,
-            rattle_hz=rng.uniform(16.0, 26.0),
-        )
-        tract = _apply_formant_bank(
-            glottal,
-            [
-                (max(65.0, 120.0 * formant_shift), 2.2, 0.90),
-                (max(190.0, 340.0 * formant_shift), 2.6, 1.18),
-                (max(440.0, 820.0 * formant_shift), 2.9, 0.92),
-                (max(850.0, 1550.0 * formant_shift), 3.3, 0.52),
-            ],
-        )
-        sub_impact = _sub_bomb(t, s2, f_start=bf * 2.2, f_end=31.0, drop_tau=0.08, sustain_tau=dur * 0.42)
+        f_roar = np.maximum(28.0, bf * (1.28 - 0.54 * (u_roar**0.85) + 0.06 * np.sin(2.0 * np.pi * mf * t + pjit)))
+        epic_horn = _epic_fungal_chorus_horn(t, f_roar, rng, formant_shift=formant_shift, monstrous_grit=0.85) * roar_env
+        sub_impact = _sub_bomb(t, s2, f_start=bf * 2.2, f_end=29.0, drop_tau=0.08, sustain_tau=dur * 0.45)
 
-        # Act III: Tectonic slam + venting spore hiss + cavern tail
-        s3, e3 = _window_slice(n, 0.64, 0.96)
+        s3, e3 = _window_slice(n, 0.60, 0.96)
         vent_env = _envelope_segment(n, s3, e3, attack_frac=0.14, release_frac=0.55)
-        vent = _sos_bandpass(brown * 0.9 + pink * 0.6, 85.0, 1250.0) * vent_env
-        rubble = _chitin_modal_hits(n, rng, bf * 2.6, int(rng.integers(4, 7)), 0.055, spread_frac=0.55) * 0.48
+        sac_vent = spore_sac_burst(n, rng, base_freq=bf * 1.8, pressure=0.88, duration_frac=0.85) * vent_env * 0.45
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 2.2, count=7, wetness=0.55) * 0.30
 
-        raw = np.tanh((inhale_air * 0.65 + inhale_gurgle * 0.50 + tract * roar_env * 1.48 + sub_impact * 0.72 + vent * 0.75 + rubble) * 1.35)
-        raw = _sos_lowpass(raw, 2850.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=18.0, wet=0.30, rt60=0.92, lp_hz=2200.0)
+        raw = np.tanh((inhale_air * 0.65 + inhale_gurgle * 0.50 + epic_horn * 1.45 + sub_impact * 1.18 + sac_vent + hyphae) * 1.35)
+        raw = _sos_lowpass(raw, 1350.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=18.0, wet=0.32, rt60=0.98, lp_hz=1100.0)
 
     elif sound_id == "spore_behemoth_hurt":
-        # Massive guttural bark + heavy armor/chitin crunch + tectonic stagger thud
         hit_frac = rng.uniform(0.03, 0.14)
         s_hit, e_hit = _window_slice(n, hit_frac, 0.88)
         env = _envelope_segment(n, s_hit, e_hit, attack_frac=0.05, release_frac=0.45)
         u = np.clip((t - t[s_hit]) / max(0.08, dur - t[s_hit]), 0.0, 1.0)
-        f_bark = np.maximum(34.0, bf * (1.35 - 0.68 * (u**0.72)))
-        bark = _glottal_sub_source(t, f_bark, rng, harmonics=11, sub_weight=0.76, rattle_hz=rng.uniform(22.0, 32.0))
-        bark = _apply_formant_bank(bark, [(135.0 * formant_shift, 2.3, 0.95), (360.0 * formant_shift, 2.8, 1.15), (920.0 * formant_shift, 3.2, 0.72)])
-        plate_crack = _modal_bank(
-            t,
-            bf * 2.4,
-            (1.0, 1.62, 2.38, 3.45),
-            (0.06, 0.045, 0.032, 0.022),
-            (0.85, 0.72, 0.52, 0.35),
-            rng,
-        ) * 0.78
-        stagger_thud = _sub_bomb(t, s_hit, f_start=bf * 1.8, f_end=33.0, drop_tau=0.055, sustain_tau=0.22)
-        raw = np.tanh((bark * env * 1.40 + plate_crack + stagger_thud * 0.68 + pink * 0.30 * env) * 1.35)
-        raw = _sos_lowpass(raw, 2900.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=13.0, wet=0.24, rt60=0.65, lp_hz=2200.0)
+        f_bark = np.maximum(32.0, bf * (1.35 - 0.68 * (u**0.72)))
+        bark = _glottal_sub_source(t, f_bark, rng, harmonics=12, sub_weight=0.82, rattle_hz=rng.uniform(20.0, 30.0))
+        bark = _apply_formant_bank(bark, [(125.0 * formant_shift, 2.3, 1.0), (340.0 * formant_shift, 2.8, 1.15), (860.0 * formant_shift, 3.2, 0.72)])
+        cap_crunch = fungal_cap_resonance(n, bf * 1.8, rng, decay=0.18, sponginess=0.72) * 0.85
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 2.2, count=5, wetness=0.60) * 0.60
+        stagger_thud = _sub_bomb(t, s_hit, f_start=bf * 1.8, f_end=31.0, drop_tau=0.055, sustain_tau=0.22)
+        raw = np.tanh((bark * env * 1.38 + cap_crunch + hyphae + stagger_thud * 0.75 + pink * 0.28 * env) * 1.35)
+        raw = _sos_lowpass(raw, 2800.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=13.0, wet=0.26, rt60=0.68, lp_hz=2150.0)
 
     elif sound_id == "spore_behemoth_death":
-        # Act I: Agonizing descending Kaiju bellow (0..0.46)
         fall_frac = rng.uniform(0.42, 0.54)
         s1, e1 = _window_slice(n, 0.01, fall_frac + 0.08)
         roar_env = _envelope_segment(n, s1, e1, attack_frac=0.06, release_frac=0.30)
         u1 = np.clip(t / max(0.2, t[e1 - 1]), 0.0, 1.0)
-        f_die = np.maximum(26.0, bf * (1.26 - 0.82 * (u1**0.90) + 0.05 * np.sin(2.0 * np.pi * mf * t + pjit)))
-        bellow = _glottal_sub_source(t, f_die, rng, harmonics=9, sub_weight=0.95, rattle_hz=rng.uniform(14.0, 22.0))
-        bellow = _apply_formant_bank(bellow, [(82.0 * formant_shift, 2.2, 1.2), (220.0 * formant_shift, 2.8, 0.78)])
+        f_die = np.maximum(24.0, bf * (1.26 - 0.82 * (u1**0.90) + 0.05 * np.sin(2.0 * np.pi * mf * t + pjit)))
+        bellow = _epic_fungal_chorus_horn(t, f_die, rng, formant_shift=formant_shift, monstrous_grit=0.90) * roar_env
 
-        # Act II: Cataclysmic carcass floor impact at fall_frac
         impact_idx = int(fall_frac * n)
-        body_bomb = _sub_bomb(t, impact_idx, f_start=145.0, f_end=26.0, drop_tau=0.09, sustain_tau=dur * 0.45)
-
-        # Act III: Cascading stone/chitin debris + subterranean rupture rumble
-        debris = np.zeros(n, dtype=np.float64)
-        for idx_hit in _bounce_train(n, rng, int(rng.integers(5, 9)), start_frac=fall_frac + 0.03, end_frac=0.92, accelerate=True):
-            seg_len = min(n - idx_hit, int(SAMPLE_RATE * 0.095))
-            if seg_len > 24:
-                st = np.arange(seg_len, dtype=np.float64) / SAMPLE_RATE
-                debris[idx_hit : idx_hit + seg_len] += (
-                    _modal_bank(
-                        st,
-                        bf * rng.uniform(1.4, 3.2),
-                        (1.0, 1.54, 2.31, 3.18),
-                        (0.05, 0.035, 0.025, 0.016),
-                        (0.7, 0.5, 0.35, 0.2),
-                        rng,
-                    )
-                    * 0.65
-                )
+        body_bomb = _sub_bomb(t, impact_idx, f_start=148.0, f_end=25.0, drop_tau=0.09, sustain_tau=dur * 0.48)
+        sac_rupture = np.zeros(n, dtype=np.float64)
+        if n - impact_idx > 64:
+            sac_rupture[impact_idx:] = spore_sac_burst(n - impact_idx, rng, base_freq=bf * 1.6, pressure=1.05, duration_frac=0.88) * 0.85
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.9, count=9, wetness=0.62) * 0.62
 
         rumble_env = _envelope_segment(n, max(0, impact_idx - 64), n, attack_frac=0.04, release_frac=0.55)
-        rumble = _sos_bandpass(brown, 34.0, 420.0) * rumble_env * 0.95
-        raw = np.tanh((bellow * roar_env * 1.25 + body_bomb * 1.35 + debris + rumble) * 1.35)
-        raw = _sos_lowpass(raw, 1850.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.34, rt60=1.08, lp_hz=1380.0)
+        rumble = _sos_bandpass(brown, 32.0, 420.0) * rumble_env * 0.95
+        raw = np.tanh((bellow * 1.25 + body_bomb * 1.38 + sac_rupture + hyphae + rumble) * 1.35)
+        raw = _sos_lowpass(raw, 1900.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.36, rt60=1.12, lp_hz=1400.0)
 
     elif sound_id == "spore_behemoth_slam":
-        # Act I: Ground fracture anticipation -> Act II: Subterranean seismic shockwave bomb -> Act III: Rock scatter
         impact_frac = rng.uniform(0.07, 0.16)
         impact_idx = int(impact_frac * n)
-        suck = _reverse_suction(n, 0, max(32, impact_idx - 60), rng, f_lo=80.0, f_hi=650.0) * 0.55
-        bomb = _sub_bomb(t, impact_idx, f_start=152.0, f_end=27.0, drop_tau=0.075, sustain_tau=dur * 0.52, punch_gain=0.65)
+        suck = _reverse_suction(n, 0, max(32, impact_idx - 60), rng, f_lo=75.0, f_hi=650.0) * 0.58
+        bomb = _sub_bomb(t, impact_idx, f_start=154.0, f_end=26.0, drop_tau=0.075, sustain_tau=dur * 0.54, punch_gain=0.68)
 
         crack = np.zeros(n, dtype=np.float64)
-        c_len = min(n - impact_idx, int(SAMPLE_RATE * 0.28))
+        c_len = min(n - impact_idx, int(SAMPLE_RATE * 0.35))
         if c_len > 32:
-            ct = np.arange(c_len, dtype=np.float64) / SAMPLE_RATE
-            crust = _modal_bank(
-                ct,
-                bf * 1.9,
-                (1.0, 1.48, 2.24, 3.05, 4.18),
-                (0.11, 0.08, 0.055, 0.038, 0.024),
-                (0.95, 0.72, 0.52, 0.34, 0.20),
-                rng,
-                glide_factor=-0.28,
-                glide_tau=0.04,
+            crack[impact_idx : impact_idx + c_len] = (
+                fungal_cap_resonance(c_len, bf * 1.75, rng, decay=0.22, sponginess=0.68) * 0.95
+                + spore_sac_burst(c_len, rng, base_freq=bf * 2.1, pressure=0.92, duration_frac=0.80) * 0.72
             )
-            crack[impact_idx : impact_idx + c_len] = crust + _sos_bandpass(white[impact_idx : impact_idx + c_len], 90.0, 1850.0) * exp_decay(ct, 0.09) * 0.7
-
-        debris = np.zeros(n, dtype=np.float64)
-        for pos in _bounce_train(n, rng, int(rng.integers(5, 8)), start_frac=impact_frac + 0.14, end_frac=0.90, accelerate=True):
-            slen = min(n - pos, int(SAMPLE_RATE * 0.07))
-            if slen > 24:
-                debris[pos : pos + slen] += _chitin_modal_hits(slen, rng, bf * rng.uniform(2.2, 4.0), 1, 0.032) * 0.55
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 2.1, count=6, wetness=0.55) * 0.52
 
         tail_env = _envelope_segment(n, impact_idx, n, attack_frac=0.02, release_frac=0.62)
-        tail = _sos_bandpass(brown, 36.0, 480.0) * tail_env * 0.88
-        raw = np.tanh((suck + bomb * 1.40 + crack * 0.92 + debris + tail) * 1.40)
+        tail = _sos_bandpass(brown, 34.0, 480.0) * tail_env * 0.88
+        raw = np.tanh((suck + bomb * 1.42 + crack + hyphae + tail) * 1.40)
         raw = _sos_lowpass(raw, 2000.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=16.0, wet=0.30, rt60=0.88, lp_hz=1500.0)
+        return _abyssal_reverb(raw, rng, predelay_ms=16.0, wet=0.32, rt60=0.92, lp_hz=1500.0)
 
     # =========================================================================
-    # 2. HIVE CORE — Cosmic Psychic Monolith / Reaper Organ
+    # 2. HIVE CORE — Ancient Legendary Living Fungal Heart & Cathedral Organ
     # =========================================================================
     elif sound_id == "hive_core_resonance":
-        # Act I: Telepathic pre-hum & harmonic focus (shifted > 60 ms across takes)
         onset_frac = rng.uniform(0.06, 0.16)
-        s_pre, e_pre = _window_slice(n, 0.0, onset_frac + 0.12)
+        s_pre, e_pre = _window_slice(n, 0.0, onset_frac + 0.14)
         pre_env = _envelope_segment(n, s_pre, e_pre, attack_frac=0.45, release_frac=0.30)
-        pre_hum = _fm_tone(t, bf * 1.5, bf * 0.5, 1.8, pjit) * pre_env * 0.45
+        pre_hum = _fm_tone(t, bf * 1.25, bf * 0.45, 1.6, pjit) * pre_env * 0.42
 
-        # Act II: Monumental alien Reaper brass braaam + monolith chord
-        s_main, e_main = _window_slice(n, onset_frac, 0.86)
+        s_main, e_main = _window_slice(n, onset_frac, 0.88)
         main_env = _envelope_segment(n, s_main, e_main, attack_frac=0.07, release_frac=0.34)
         u_m = np.clip((t - t[s_main]) / max(0.2, t[e_main - 1] - t[s_main]), 0.0, 1.0)
         f_horn = bf * (1.0 + 0.08 * np.sin(np.pi * u_m) - 0.14 * (u_m**1.6) + 0.015 * np.sin(2.0 * np.pi * mf * t + pjit))
-        braaam = _brass_braaam(t, f_horn, rng, detune_cents=rng.uniform(16.0, 26.0), sub_oct=0.92, shimmer_mix=0.25, formant_shift=formant_shift)
+        epic_organ = _epic_fungal_chorus_horn(t, f_horn, rng, formant_shift=formant_shift, monstrous_grit=0.68) * main_env
+        heart_gourd = fungal_cap_resonance(n, bf * 1.4, rng, decay=0.42, sponginess=0.72) * main_env * 0.80
+        sub_drop = _sub_bomb(t, s_main, f_start=bf * 1.9, f_end=31.0, drop_tau=0.085, sustain_tau=dur * 0.54)
+        sac_swarm = spore_sac_burst(n, rng, base_freq=bf * 1.5, pressure=0.65, duration_frac=0.80) * main_env * 0.42
+        amethyst_bell = _modal_bank(t, bf * 2.0, (1.0, 1.498, 2.005, 2.756), (dur * 0.55, dur * 0.45, dur * 0.35, dur * 0.25), (0.34, 0.24, 0.24, 0.16), rng) * 0.40
 
-        # Monolith bell harmonics + synaptic electricity arcs
-        bell = _modal_bank(
-            t,
-            bf * 2.0,
-            (1.0, 1.498, 2.005, 2.756, 3.89, 5.14),
-            (dur * 0.65, dur * 0.55, dur * 0.45, dur * 0.35, dur * 0.28, dur * 0.22),
-            (0.50, 0.36, 0.42, 0.28, 0.18, 0.11),
-            rng,
-        ) * 0.52
-        arcs = _micro_arc_zaps(n, rng, int(rng.integers(4, 8)), lo_hz=2600.0, hi_hz=9200.0, spread=(onset_frac + 0.05, 0.85)) * 0.36
-        sub_drop = _sub_bomb(t, s_main, f_start=bf * 1.9, f_end=34.0, drop_tau=0.085, sustain_tau=dur * 0.52)
-
-        raw = np.tanh((pre_hum + braaam * main_env * 1.25 + bell * main_env + arcs + sub_drop * 0.90) * 1.32)
-        return _abyssal_reverb(raw, rng, predelay_ms=17.0, wet=0.32, rt60=0.98, lp_hz=3800.0, shimmer=0.14)
+        raw = np.tanh((pre_hum + epic_organ * 1.15 + heart_gourd + sub_drop * 0.82 + sac_swarm + amethyst_bell * main_env) * 1.32)
+        return _abyssal_reverb(raw, rng, predelay_ms=18.0, wet=0.34, rt60=1.04, lp_hz=1850.0, shimmer=0.06)
 
     elif sound_id == "hive_core_hurt":
-        # Prismatic crystal-metal fracture + brass core groan dropping in pitch + synaptic overload
         hit_frac = rng.uniform(0.02, 0.11)
         hit_idx = int(hit_frac * n)
         u = np.clip((t - t[hit_idx]) / max(0.08, dur - t[hit_idx]), 0.0, 1.0)
-        f_groan = np.maximum(48.0, bf * (1.24 - 0.56 * (u**0.75)))
+        f_groan = np.maximum(44.0, bf * (1.24 - 0.56 * (u**0.75)))
         groan_env = _envelope_segment(n, hit_idx, n, attack_frac=0.04, release_frac=0.45)
-        groan = _brass_braaam(t, f_groan, rng, detune_cents=24.0, sub_oct=0.65, shimmer_mix=0.30, formant_shift=formant_shift)
-
-        fracture = np.zeros(n, dtype=np.float64)
-        flen = n - hit_idx
-        ft = np.arange(flen, dtype=np.float64) / SAMPLE_RATE
-        fracture[hit_idx:] = _modal_bank(
-            ft,
-            bf * 3.1,
-            (1.0, 1.414, 2.32, 3.17, 4.46, 5.82),
-            (0.22, 0.17, 0.12, 0.09, 0.06, 0.04),
-            (0.85, 0.68, 0.54, 0.40, 0.28, 0.16),
-            rng,
-            glide_factor=-0.18,
-            glide_tau=0.035,
-        )
-        zaps = _micro_arc_zaps(n, rng, int(rng.integers(5, 9)), lo_hz=3000.0, hi_hz=11000.0, spread=(hit_frac, 0.78)) * 0.55
-        raw = np.tanh((groan * groan_env * 0.95 + fracture * 0.85 + zaps) * 1.28)
-        return _abyssal_reverb(raw, rng, predelay_ms=12.0, wet=0.25, rt60=0.68, lp_hz=4400.0, shimmer=0.10)
+        groan = _epic_fungal_chorus_horn(t, f_groan, rng, formant_shift=formant_shift, monstrous_grit=0.75) * groan_env
+        heart_crack = np.zeros(n, dtype=np.float64)
+        heart_crack[hit_idx:] = fungal_cap_resonance(n - hit_idx, bf * 1.85, rng, decay=0.20, sponginess=0.74) * 0.95
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.9, count=6, wetness=0.62) * 0.65
+        sac = spore_sac_burst(n, rng, base_freq=bf * 1.6, pressure=0.78, duration_frac=0.70) * 0.55
+        raw = np.tanh((groan * 0.98 + heart_crack + hyphae + sac) * 1.28)
+        return _abyssal_reverb(raw, rng, predelay_ms=12.0, wet=0.26, rt60=0.72, lp_hz=3900.0, shimmer=0.08)
 
     elif sound_id == "hive_core_death":
-        # Act I: Rising unstable reactor siren -> suction implosion at tear_frac
         tear_frac = rng.uniform(0.36, 0.46)
         tear_idx = int(tear_frac * n)
         s1, e1 = _window_slice(n, 0.0, tear_frac)
         u1 = np.clip(t / max(0.2, t[e1 - 1]), 0.0, 1.0)
-        f_rise = bf * (0.88 + 0.92 * (u1**1.8))
+        f_rise = bf * (0.88 + 0.85 * (u1**1.8))
         rise_env = _envelope_segment(n, s1, e1, attack_frac=0.14, release_frac=0.08)
-        siren = _brass_braaam(t, f_rise, rng, detune_cents=28.0, sub_oct=0.75, shimmer_mix=0.32, formant_shift=formant_shift) * rise_env
-        suck = _reverse_suction(n, max(0, tear_idx - int(0.32 * n)), int(0.30 * n), rng, f_lo=160.0, f_hi=4200.0) * 0.95
+        swell = _epic_fungal_chorus_horn(t, f_rise, rng, formant_shift=formant_shift, monstrous_grit=0.72) * rise_env
+        suck = _reverse_suction(n, max(0, tear_idx - int(0.32 * n)), int(0.30 * n), rng, f_lo=140.0, f_hi=3600.0) * 0.95
 
-        # Act II: Monumental sub-bomb implosion -> shattering monolith prisms
-        bomb = _sub_bomb(t, tear_idx, f_start=178.0, f_end=28.0, drop_tau=0.095, sustain_tau=dur * 0.48, punch_gain=0.70)
-        shatter = np.zeros(n, dtype=np.float64)
-        for pos in _bounce_train(n, rng, int(rng.integers(7, 12)), start_frac=tear_frac + 0.01, end_frac=0.88, accelerate=False):
-            slen = min(n - pos, int(SAMPLE_RATE * 0.22))
-            if slen > 32:
-                st = np.arange(slen, dtype=np.float64) / SAMPLE_RATE
-                shatter[pos : pos + slen] += (
-                    _modal_bank(
-                        st,
-                        bf * rng.uniform(2.8, 5.4),
-                        (1.0, 1.38, 2.09, 2.94, 4.12),
-                        (0.16, 0.12, 0.09, 0.06, 0.04),
-                        (0.75, 0.58, 0.42, 0.28, 0.16),
-                        rng,
-                    )
-                    * 0.58
-                )
+        bomb = _sub_bomb(t, tear_idx, f_start=180.0, f_end=27.0, drop_tau=0.095, sustain_tau=dur * 0.50, punch_gain=0.72)
+        rupture = np.zeros(n, dtype=np.float64)
+        if n - tear_idx > 64:
+            rupture[tear_idx:] = (
+                spore_sac_burst(n - tear_idx, rng, base_freq=bf * 1.6, pressure=1.08, duration_frac=0.88) * 0.92
+                + fungal_cap_resonance(n - tear_idx, bf * 1.45, rng, decay=0.30, sponginess=0.74) * 0.85
+            )
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.8, count=10, wetness=0.64) * 0.65
 
-        # Act III: Dying descending monolith horn sigh + psionic arcs + void wash
         s3, e3 = _window_slice(n, tear_frac + 0.04, 0.98)
         die_env = _envelope_segment(n, s3, e3, attack_frac=0.05, release_frac=0.52)
         u3 = np.clip((t - t[s3]) / max(0.2, t[e3 - 1] - t[s3]), 0.0, 1.0)
-        f_fall = np.maximum(34.0, bf * (1.35 - 0.92 * (u3**0.80)))
-        die_horn = _brass_braaam(t, f_fall, rng, detune_cents=22.0, sub_oct=0.95, shimmer_mix=0.20, formant_shift=formant_shift) * die_env
-        zaps = _micro_arc_zaps(n, rng, int(rng.integers(8, 13)), lo_hz=2200.0, hi_hz=11500.0, spread=(tear_frac, 0.90)) * 0.48
+        f_fall = np.maximum(30.0, bf * (1.35 - 0.92 * (u3**0.80)))
+        die_horn = _epic_fungal_chorus_horn(t, f_fall, rng, formant_shift=formant_shift, monstrous_grit=0.85) * die_env
 
-        raw = np.tanh((siren * 0.85 + suck + bomb * 1.35 + shatter * 0.78 + die_horn * 0.95 + zaps) * 1.30)
-        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.36, rt60=1.18, lp_hz=4200.0, shimmer=0.22)
+        raw = np.tanh((swell * 0.85 + suck + bomb * 1.38 + rupture + hyphae + die_horn * 0.95) * 1.30)
+        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.38, rt60=1.22, lp_hz=3800.0, shimmer=0.18)
 
     elif sound_id == "hive_core_shield":
-        # Prismatic geodesic lock-on: bright rising metallic shield chime + tension hum + static repulsion arcs
         lock_frac = rng.uniform(0.03, 0.11)
         lock_idx = int(lock_frac * n)
-        chime = np.zeros(n, dtype=np.float64)
         clen = n - lock_idx
+        gourd_wall = np.zeros(n, dtype=np.float64)
+        gourd_wall[lock_idx:] = fungal_cap_resonance(clen, bf * 0.72, rng, decay=0.35, sponginess=0.72) * 0.95
+        sac = np.zeros(n, dtype=np.float64)
+        sac[lock_idx:] = spore_sac_burst(clen, rng, base_freq=bf * 0.85, pressure=0.85, duration_frac=0.75) * 0.65
         ct = np.arange(clen, dtype=np.float64) / SAMPLE_RATE
-        chime[lock_idx:] = _modal_bank(
-            ct,
-            bf * 1.0,
-            (0.5, 1.0, 1.498, 2.004, 2.996, 4.18, 5.42),
-            (dur * 0.72, dur * 0.65, dur * 0.55, dur * 0.48, dur * 0.36, dur * 0.26, dur * 0.18),
-            (0.55, 0.92, 0.75, 0.64, 0.42, 0.25, 0.14),
-            rng,
-            glide_factor=0.32,
-            glide_tau=0.065,
-        )
+        chime = np.zeros(n, dtype=np.float64)
+        chime[lock_idx:] = _modal_bank(ct, bf * 0.95, (0.5, 1.0, 1.498, 2.004, 2.996), (dur * 0.65, dur * 0.58, dur * 0.48, dur * 0.40, dur * 0.28), (0.45, 0.68, 0.52, 0.42, 0.26), rng, glide_factor=0.28, glide_tau=0.065) * 0.65
         hum_env = _envelope_segment(n, lock_idx, n, attack_frac=0.05, release_frac=0.45)
         f_hum = bf * (0.5 + 0.04 * np.sin(2.0 * np.pi * mf * t + pjit))
-        hum = _brass_braaam(t, f_hum, rng, detune_cents=14.0, sub_oct=0.60, shimmer_mix=0.35, formant_shift=formant_shift) * hum_env * 0.72
-        zaps = _micro_arc_zaps(n, rng, int(rng.integers(5, 9)), lo_hz=3400.0, hi_hz=12800.0, spread=(lock_frac, 0.86)) * 0.58
-        raw = np.tanh((chime * 0.95 + hum + zaps) * 1.25)
-        return _abyssal_reverb(raw, rng, predelay_ms=14.0, wet=0.28, rt60=0.78, lp_hz=5200.0, shimmer=0.24)
+        hum = _epic_fungal_chorus_horn(t, f_hum, rng, formant_shift=formant_shift, monstrous_grit=0.58) * hum_env * 0.75
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 0.95, count=5, wetness=0.55) * 0.45
+        raw = np.tanh((gourd_wall + sac + chime + hum + hyphae) * 1.25)
+        return _abyssal_reverb(raw, rng, predelay_ms=14.0, wet=0.30, rt60=0.82, lp_hz=4600.0, shimmer=0.18)
 
     # =========================================================================
-    # 3. APEX MATRIARCH — Eldritch Sovereign Banshee-Choir Empress
+    # 3. APEX MATRIARCH — Legendary Monstrous Fungal Empress
     # =========================================================================
     elif sound_id == "apex_matriarch_wail":
-        # Act I: Whispering void suction inhale (shifted > 90 ms across takes)
         wail_frac = rng.uniform(0.11, 0.23)
         wail_idx = int(wail_frac * n)
-        suck = _reverse_suction(n, 0, max(32, wail_idx), rng, f_lo=260.0, f_hi=4600.0) * 0.78
+        suck = _reverse_suction(n, 0, max(32, wail_idx), rng, f_lo=220.0, f_hi=4200.0) * 0.80
 
-        # Act II: Soaring multi-voice dissonant banshee-choir shriek
         s2, e2 = _window_slice(n, wail_frac - 0.02, 0.88)
         wail_env = _envelope_segment(n, s2, e2, attack_frac=0.07, release_frac=0.36)
         u2 = np.clip((t - t[s2]) / max(0.15, t[e2 - 1] - t[s2]), 0.0, 1.0)
-        f_wail = bf * (0.86 + 0.62 * np.sin(np.pi * (u2**0.72)) - 0.22 * (u2**1.8))
-        choir = _eldritch_choir(
-            t,
-            f_wail,
-            rng,
-            voices=5,
-            dissonance="crown_shriek",
-            breath_mix=0.34,
-            vibrato_hz=rng.uniform(4.4, 6.8),
-            formant_shift=formant_shift,
-        )
+        f_wail = bf * (1.42 + 0.85 * np.sin(np.pi * (u2**0.72)) - 0.16 * (u2**1.8))
+        choir = _eldritch_choir(t, f_wail, rng, voices=5, dissonance="crown_shriek", breath_mix=0.34, vibrato_hz=rng.uniform(4.4, 6.8), formant_shift=formant_shift)
+        monstrous_throat = _apply_formant_bank(
+            _glottal_sub_source(t, np.maximum(48.0, f_wail * 0.45), rng, harmonics=12, sub_weight=0.88, rattle_hz=21.0),
+            [(145.0 * formant_shift, 2.5, 1.15), (380.0 * formant_shift, 3.0, 0.92)],
+        ) * 0.22
+        cap_crown = fungal_cap_resonance(n, bf * 0.85, rng, decay=0.34, sponginess=0.72) * 0.18
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 0.90, count=6, wetness=0.58) * 0.48
+        sub_anchor = _sub_bomb(t, wail_idx, f_start=122.0, f_end=34.0, drop_tau=0.08, sustain_tau=dur * 0.46) * 0.12
 
-        # Subterranean anchor + crystalline crown overtones (keeps it colossal, not thin)
-        sub_anchor = _sub_bomb(t, wail_idx, f_start=118.0, f_end=36.0, drop_tau=0.08, sustain_tau=dur * 0.45) * 0.46
-        crown_bell = _modal_bank(
-            t,
-            bf * 2.5,
-            (1.0, 1.587, 2.378, 3.32),
-            (dur * 0.55, dur * 0.42, dur * 0.30, dur * 0.20),
-            (0.42, 0.32, 0.22, 0.14),
-            rng,
-        ) * 0.42
-
-        # Act III: Spectral portal shimmer decay
-        raw = np.tanh((suck + choir * wail_env * 1.48 + sub_anchor + crown_bell * wail_env) * 1.28)
-        raw = _sos_highpass(raw, 48.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=18.0, wet=0.36, rt60=1.08, lp_hz=7200.0, shimmer=0.45)
+        raw = np.tanh((suck + (choir * 1.85 + monstrous_throat + cap_crown) * wail_env + sub_anchor + hyphae) * 1.28)
+        raw = _sos_highpass(raw, 280.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=18.0, wet=0.38, rt60=1.12, lp_hz=7800.0, shimmer=0.58)
 
     elif sound_id == "apex_matriarch_hurt":
-        # Obsidian crystal shriek-snap + discordant banshee gasp
         hit_frac = rng.uniform(0.02, 0.11)
         hit_idx = int(hit_frac * n)
         gasp_env = _envelope_segment(n, hit_idx, n, attack_frac=0.04, release_frac=0.45)
         u = np.clip((t - t[hit_idx]) / max(0.08, dur - t[hit_idx]), 0.0, 1.0)
         f_gasp = bf * (1.42 - 0.65 * (u**0.68))
         choir = _eldritch_choir(t, f_gasp, rng, voices=4, dissonance="tritone", breath_mix=0.42, vibrato_hz=rng.uniform(6.0, 8.2), formant_shift=formant_shift)
+        monstrous_hiss = _glottal_sub_source(t, np.maximum(52.0, f_gasp * 0.48), rng, harmonics=10, sub_weight=0.78, rattle_hz=26.0) * 0.72
 
-        snap = np.zeros(n, dtype=np.float64)
         slen = n - hit_idx
-        st = np.arange(slen, dtype=np.float64) / SAMPLE_RATE
-        snap[hit_idx:] = _modal_bank(
-            st,
-            bf * 3.4,
-            (1.0, 1.49, 2.38, 3.65, 4.92),
-            (0.09, 0.065, 0.045, 0.032, 0.020),
-            (0.85, 0.65, 0.45, 0.30, 0.18),
-            rng,
-        )
-        raw = np.tanh((choir * gasp_env * 1.25 + snap * 0.85) * 1.25)
-        raw = _sos_highpass(raw, 55.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=12.0, wet=0.28, rt60=0.72, lp_hz=6200.0, shimmer=0.24)
+        snap = np.zeros(n, dtype=np.float64)
+        snap[hit_idx:] = fungal_cap_resonance(slen, bf * 1.10, rng, decay=0.14, sponginess=0.74) * 0.85
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.0, count=6, wetness=0.62) * 0.62
+        raw = np.tanh(((choir * 1.12 + monstrous_hiss) * gasp_env + snap + hyphae) * 1.25)
+        raw = _sos_highpass(raw, 48.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=12.0, wet=0.28, rt60=0.74, lp_hz=5800.0, shimmer=0.20)
 
     elif sound_id == "apex_matriarch_death":
-        # Act I: Anguished sovereign choral crescendo (0..tear_frac)
         tear_frac = rng.uniform(0.36, 0.46)
         tear_idx = int(tear_frac * n)
         s1, e1 = _window_slice(n, 0.0, tear_frac)
         scream_env = _envelope_segment(n, s1, e1, attack_frac=0.08, release_frac=0.10)
         u1 = np.clip(t / max(0.2, t[e1 - 1]), 0.0, 1.0)
         f_ascend = bf * (0.95 + 0.72 * (u1**1.4))
-        scream = _eldritch_choir(t, f_ascend, rng, voices=5, dissonance="crown_shriek", breath_mix=0.26, vibrato_hz=rng.uniform(5.8, 7.6), formant_shift=formant_shift) * scream_env
-        suck = _reverse_suction(n, max(0, tear_idx - int(0.28 * n)), int(0.26 * n), rng, f_lo=280.0, f_hi=6200.0) * 0.92
+        scream = (_eldritch_choir(t, f_ascend, rng, voices=5, dissonance="crown_shriek", breath_mix=0.26, vibrato_hz=rng.uniform(5.8, 7.6), formant_shift=formant_shift) + _glottal_sub_source(t, f_ascend * 0.46, rng, harmonics=11, sub_weight=0.85) * 0.65) * scream_env
+        suck = _reverse_suction(n, max(0, tear_idx - int(0.28 * n)), int(0.26 * n), rng, f_lo=260.0, f_hi=5800.0) * 0.92
 
-        # Act II: Gravitational dimensional rupture bomb
-        bomb = _sub_bomb(t, tear_idx, f_start=185.0, f_end=31.0, drop_tau=0.085, sustain_tau=dur * 0.44, punch_gain=0.65)
-
-        # Act III: Crystal-veil disintegration + descending lament choir fading into the void
-        shatter = np.zeros(n, dtype=np.float64)
-        for pos in _bounce_train(n, rng, int(rng.integers(8, 14)), start_frac=tear_frac + 0.01, end_frac=0.90, accelerate=False):
-            slen = min(n - pos, int(SAMPLE_RATE * 0.24))
-            if slen > 32:
-                st = np.arange(slen, dtype=np.float64) / SAMPLE_RATE
-                shatter[pos : pos + slen] += (
-                    _modal_bank(
-                        st,
-                        bf * rng.uniform(3.2, 6.2),
-                        (1.0, 1.414, 2.23, 3.16, 4.42),
-                        (0.18, 0.14, 0.10, 0.07, 0.045),
-                        (0.75, 0.56, 0.40, 0.26, 0.14),
-                        rng,
-                    )
-                    * 0.52
-                )
+        bomb = _sub_bomb(t, tear_idx, f_start=185.0, f_end=29.0, drop_tau=0.085, sustain_tau=dur * 0.48, punch_gain=0.68)
+        veil = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.05, count=11, wetness=0.64) * 0.72
+        sac = np.zeros(n, dtype=np.float64)
+        if n - tear_idx > 64:
+            sac[tear_idx:] = spore_sac_burst(n - tear_idx, rng, base_freq=bf * 0.95, pressure=1.05, duration_frac=0.88) * 0.88
 
         s3, e3 = _window_slice(n, tear_frac + 0.02, 0.98)
         lament_env = _envelope_segment(n, s3, e3, attack_frac=0.05, release_frac=0.58)
         u3 = np.clip((t - t[s3]) / max(0.2, t[e3 - 1] - t[s3]), 0.0, 1.0)
-        f_desc = np.maximum(72.0, bf * (1.45 - 0.88 * (u3**0.78)))
-        lament = _eldritch_choir(t, f_desc, rng, voices=4, dissonance="minor_lament", breath_mix=0.40, vibrato_hz=rng.uniform(4.2, 5.8), formant_shift=formant_shift) * lament_env
+        f_desc = np.maximum(64.0, bf * (1.45 - 0.88 * (u3**0.78)))
+        lament = (_eldritch_choir(t, f_desc, rng, voices=4, dissonance="minor_lament", breath_mix=0.40, vibrato_hz=rng.uniform(4.2, 5.8), formant_shift=formant_shift) + fungal_cap_resonance(n, bf * 0.78, rng, decay=0.35, sponginess=0.72) * 0.68) * lament_env
 
-        raw = np.tanh((scream * 1.15 + suck + bomb * 1.20 + shatter * 0.82 + lament * 1.10) * 1.25)
-        raw = _sos_highpass(raw, 48.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=22.0, wet=0.38, rt60=1.24, lp_hz=6600.0, shimmer=0.38)
+        raw = np.tanh((scream * 1.10 + suck + bomb * 1.25 + veil + sac + lament * 1.08) * 1.25)
+        raw = _sos_highpass(raw, 44.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=22.0, wet=0.40, rt60=1.28, lp_hz=6200.0, shimmer=0.34)
 
     elif sound_id == "apex_matriarch_barrage":
-        # Whip-crack void tear -> rapid staggered plasma/crystal spore volley -> high psychic trailing screech
         bolts = np.zeros(n, dtype=np.float64)
         volley_count = int(rng.integers(5, 8))
         positions = sorted(rng.uniform(0.04, 0.72) for _ in range(volley_count))
@@ -721,216 +613,164 @@ def synthesize_boss_sound(
             blen = min(n - pos, int(SAMPLE_RATE * rng.uniform(0.09, 0.16)))
             if blen < 32:
                 continue
-            bt = np.arange(blen, dtype=np.float64) / SAMPLE_RATE
-            f_bolt = bf * rng.uniform(1.8, 3.2) * (1.35 * np.exp(-bt / 0.028) + 0.55)
-            chirp = _fm_tone(bt, f_bolt, f_bolt * 0.71, 2.4, rng.uniform(0.0, 6.28))
-            snap = _modal_bank(bt, bf * 3.8, (1.0, 1.62, 2.54), (0.04, 0.028, 0.018), (0.7, 0.45, 0.25), rng)
-            env_b = (1.0 - np.exp(-bt / 0.0025)) * np.exp(-bt / 0.045)
-            bolts[pos : pos + blen] += (chirp * 0.75 + snap * 0.65) * env_b * (0.82 + 0.25 * (b_idx / volley_count))
+            bolts[pos : pos + blen] += spore_sac_burst(blen, rng, base_freq=bf * rng.uniform(1.1, 1.8), pressure=0.88, duration_frac=0.85) * (0.78 + 0.25 * (b_idx / volley_count))
+            bolts[pos : pos + blen] += fungal_cap_resonance(blen, bf * rng.uniform(0.8, 1.3), rng, decay=0.07, sponginess=0.70) * 0.52
 
         tail_start = rng.uniform(0.18, 0.28)
         s_tail, e_tail = _window_slice(n, tail_start, 0.96)
         shriek_env = _envelope_segment(n, s_tail, e_tail, attack_frac=0.14, release_frac=0.45)
         f_shriek = bf * (1.25 - 0.35 * ((t - t[s_tail]) / max(0.1, dur)))
-        choir_tail = _eldritch_choir(t, np.maximum(110.0, f_shriek), rng, voices=3, dissonance="tritone", breath_mix=0.30, formant_shift=formant_shift) * shriek_env * 0.65
-        zaps = _micro_arc_zaps(n, rng, int(rng.integers(6, 10)), lo_hz=3600.0, hi_hz=12500.0, spread=(0.03, 0.85)) * 0.48
-        raw = np.tanh((bolts * 1.15 + choir_tail + zaps) * 1.25)
-        return _abyssal_reverb(raw, rng, predelay_ms=14.0, wet=0.28, rt60=0.72, lp_hz=6400.0, shimmer=0.22)
+        choir_tail = _eldritch_choir(t, np.maximum(100.0, f_shriek), rng, voices=3, dissonance="tritone", breath_mix=0.30, formant_shift=formant_shift) * shriek_env * 0.62
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.15, count=5, wetness=0.55) * 0.48
+        raw = np.tanh((bolts * 1.05 + choir_tail + hyphae) * 1.25)
+        return _abyssal_reverb(raw, rng, predelay_ms=14.0, wet=0.29, rt60=0.74, lp_hz=6000.0, shimmer=0.18)
 
     # =========================================================================
     # 4. SHARED BOSS & RITUAL CINEMATICS
     # =========================================================================
     elif sound_id == "boss_phase_shift":
-        # Act I: Escalating harmonic alarm draw -> Act II: Vacuum cut -> Sub bomb + Brass/Choir power swell
         drop_frac = rng.uniform(0.28, 0.34)
         drop_idx = int(drop_frac * n)
         s1, e1 = _window_slice(n, 0.0, drop_frac)
         u1 = np.clip(t / max(0.15, t[e1 - 1]), 0.0, 1.0)
         rise_env = _envelope_segment(n, s1, e1, attack_frac=0.18, release_frac=0.06)
-        suck = _reverse_suction(n, 0, max(32, drop_idx - 48), rng, f_lo=130.0, f_hi=4400.0) * 1.05
-        alarm = _fm_tone(t, bf * (0.9 + 1.15 * (u1**1.6)), bf * 0.75, 2.2, pjit) * rise_env * 0.52
+        suck = _reverse_suction(n, 0, max(32, drop_idx - 48), rng, f_lo=130.0, f_hi=4200.0) * 1.05
+        alarm = _fm_tone(t, bf * (0.9 + 1.15 * (u1**1.6)), bf * 0.75, 2.2, pjit) * rise_env * 0.48
 
-        bomb = _sub_bomb(t, drop_idx, f_start=182.0, f_end=30.0, drop_tau=0.075, sustain_tau=dur * 0.50, punch_gain=0.72)
+        bomb = _sub_bomb(t, drop_idx, f_start=184.0, f_end=28.0, drop_tau=0.075, sustain_tau=dur * 0.52, punch_gain=0.72)
 
         s2, e2 = _window_slice(n, drop_frac, 0.98)
         chord_env = _envelope_segment(n, s2, e2, attack_frac=0.04, release_frac=0.48)
         u2 = np.clip((t - t[s2]) / max(0.2, t[e2 - 1] - t[s2]), 0.0, 1.0)
         f_pow = bf * (0.98 - 0.18 * (u2**1.3))
-        brass = _brass_braaam(t, f_pow, rng, detune_cents=20.0, sub_oct=0.90, shimmer_mix=0.28, formant_shift=formant_shift)
-        choir = _eldritch_choir(t, f_pow * 2.0, rng, voices=4, dissonance="tritone", breath_mix=0.22, formant_shift=formant_shift)
-        shock_snap = _micro_arc_zaps(n, rng, 6, lo_hz=2800.0, hi_hz=11200.0, spread=(drop_frac, drop_frac + 0.25)) * 0.52
+        epic_horn = _epic_fungal_chorus_horn(t, f_pow, rng, formant_shift=formant_shift, monstrous_grit=0.80)
+        choir = _eldritch_choir(t, f_pow * 2.0, rng, voices=4, dissonance="tritone", breath_mix=0.24, formant_shift=formant_shift)
+        sac = np.zeros(n, dtype=np.float64)
+        sac[drop_idx:] = spore_sac_burst(n - drop_idx, rng, base_freq=bf * 1.4, pressure=0.95, duration_frac=0.80) * 0.65
 
-        raw = np.tanh((suck + alarm + bomb * 1.40 + (brass * 0.85 + choir * 0.62) * chord_env + shock_snap) * 1.32)
-        return _abyssal_reverb(raw, rng, predelay_ms=19.0, wet=0.35, rt60=1.12, lp_hz=4800.0, shimmer=0.22)
+        raw = np.tanh((suck + alarm + bomb * 1.40 + (epic_horn * 0.92 + choir * 0.58) * chord_env + sac) * 1.32)
+        return _abyssal_reverb(raw, rng, predelay_ms=19.0, wet=0.36, rt60=1.16, lp_hz=4400.0, shimmer=0.20)
 
     elif sound_id == "fungal_tide_horn":
-        # Doom / War-of-the-Worlds colossal tribal bio-warhorn in cavern fifths + distant fungal answer
         s1, e1 = _window_slice(n, 0.0, 0.14)
         inhale = _swept_resonant_filter(pink * 0.6 + brown * 0.6, 120.0, 480.0, q=2.2) * _envelope_segment(n, s1, e1, attack_frac=0.45, release_frac=0.20)
 
         horn_start = int(0.11 * n)
-        s2, e2 = _window_slice(n, 0.11, 0.82)
+        s2, e2 = _window_slice(n, 0.11, 0.84)
         horn_env = _envelope_segment(n, s2, e2, attack_frac=0.09, release_frac=0.32)
         u2 = np.clip((t - t[s2]) / max(0.25, t[e2 - 1] - t[s2]), 0.0, 1.0)
-        # Heroic-ominous pitch bend down into deep sustained warhorn drone
         f_horn = bf * (0.94 + 0.14 * np.exp(-u2 / 0.18) - 0.14 * (u2**1.4))
-        root_brass = _brass_braaam(t, f_horn, rng, detune_cents=16.0, sub_oct=1.0, shimmer_mix=0.14, formant_shift=formant_shift)
-        fifth_brass = _brass_braaam(t, f_horn * 1.498, rng, detune_cents=12.0, sub_oct=0.45, shimmer_mix=0.12, formant_shift=formant_shift) * 0.55
-        glottal_bellow = _glottal_sub_source(t, f_horn * 0.99, rng, harmonics=8, sub_weight=0.78, rattle_hz=19.0)
-        glottal_bellow = _apply_formant_bank(glottal_bellow, [(110.0, 2.5, 1.0), (290.0, 3.0, 0.65)]) * 0.72
-        horn_punch = _sub_bomb(t, horn_start, f_start=120.0, f_end=31.0, drop_tau=0.08, sustain_tau=dur * 0.45) * 0.85
+        epic_horn = _epic_fungal_chorus_horn(t, f_horn, rng, formant_shift=formant_shift, monstrous_grit=0.85) * horn_env
+        horn_punch = _sub_bomb(t, horn_start, f_start=122.0, f_end=29.0, drop_tau=0.08, sustain_tau=dur * 0.46) * 0.88
+        sac = spore_sac_burst(n, rng, base_freq=bf * 1.6, pressure=0.78, duration_frac=0.75) * horn_env * 0.50
 
-        # Distant answering roar in Act III
         s3, e3 = _window_slice(n, 0.58, 0.96)
         ans_env = _envelope_segment(n, s3, e3, attack_frac=0.22, release_frac=0.52)
-        ans = _sos_bandpass(_glottal_sub_source(t, f_horn * 1.25, rng, harmonics=7, rattle_hz=23.0), 85.0, 950.0) * ans_env * 0.42
+        ans = _sos_bandpass(_glottal_sub_source(t, f_horn * 1.25, rng, harmonics=7, rattle_hz=23.0), 85.0, 950.0) * ans_env * 0.44
 
-        raw = np.tanh((inhale * 0.62 + (root_brass + fifth_brass + glottal_bellow) * horn_env * 0.88 + horn_punch + ans) * 1.28)
-        raw = _sos_lowpass(raw, 2800.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=21.0, wet=0.34, rt60=1.18, lp_hz=2200.0)
+        raw = np.tanh((inhale * 0.62 + epic_horn * 1.15 + horn_punch + sac + ans) * 1.28)
+        raw = _sos_lowpass(raw, 2700.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=21.0, wet=0.36, rt60=1.22, lp_hz=2150.0)
 
     elif sound_id == "hive_altar_awaken":
-        # Distinct Hive Monolith ritual: heavy carved stone slab grinding -> deep bronze monolith bell + Reaper brass rise
-        # Act I (0..0.38): Heavy ancient carved stone blocks sliding into lock
         s1, e1 = _window_slice(n, 0.0, 0.40)
         grind_env = _envelope_segment(n, s1, e1, attack_frac=0.15, release_frac=0.22)
         stone_scrape = _swept_resonant_filter(brown * 1.1 + pink * 0.45, 55.0, 380.0, q=3.2) * grind_env
-        stones = np.zeros(n, dtype=np.float64)
-        for pos_frac in (0.04, 0.18, 0.30, 0.36):
-            pos = int(pos_frac * n)
-            slen = min(n - pos, int(SAMPLE_RATE * 0.16))
-            st = np.arange(slen, dtype=np.float64) / SAMPLE_RATE
-            stones[pos : pos + slen] += _modal_bank(st, 68.0, (1.0, 1.54, 2.28), (0.09, 0.06, 0.04), (0.85, 0.55, 0.32), rng) * 0.72
+        hyphae_awaken = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.5, count=7, wetness=0.58) * 0.55
 
-        # Act II (0.37): Monumental subterranean monolith bronze/stone bell toll + sub drop
         toll_idx = int(0.37 * n)
-        toll_bomb = _sub_bomb(t, toll_idx, f_start=132.0, f_end=28.0, drop_tau=0.09, sustain_tau=dur * 0.48, punch_gain=0.65)
-        bell = np.zeros(n, dtype=np.float64)
+        toll_bomb = _sub_bomb(t, toll_idx, f_start=136.0, f_end=27.0, drop_tau=0.09, sustain_tau=dur * 0.50, punch_gain=0.68)
         blen = n - toll_idx
-        bt = np.arange(blen, dtype=np.float64) / SAMPLE_RATE
-        bell[toll_idx:] = _modal_bank(
-            bt,
-            bf * 1.15,
-            (0.5, 1.0, 1.498, 2.0, 2.756, 3.89),
-            (dur * 0.65, dur * 0.60, dur * 0.48, dur * 0.40, dur * 0.28, dur * 0.18),
-            (0.60, 0.92, 0.62, 0.50, 0.32, 0.18),
-            rng,
-        )
+        bell = np.zeros(n, dtype=np.float64)
+        bell[toll_idx:] = fungal_cap_resonance(blen, bf * 1.35, rng, decay=0.45, sponginess=0.70) * 0.95
 
-        # Act III (0.42..0.98): Dark Hive Reaper brass chord rising from beneath the earth
         s3, e3 = _window_slice(n, 0.42, 0.98)
         brass_env = _envelope_segment(n, s3, e3, attack_frac=0.18, release_frac=0.45)
         u3 = np.clip((t - t[s3]) / max(0.2, t[e3 - 1] - t[s3]), 0.0, 1.0)
         f_rise = bf * (0.88 + 0.18 * (u3**0.85))
-        brass = _brass_braaam(t, f_rise, rng, detune_cents=18.0, sub_oct=0.92, shimmer_mix=0.16, formant_shift=formant_shift) * brass_env
+        epic_horn = _epic_fungal_chorus_horn(t, f_rise, rng, formant_shift=formant_shift, monstrous_grit=0.78) * brass_env
 
-        raw = np.tanh((stone_scrape * 0.82 + stones * 0.75 + toll_bomb * 1.25 + bell * 0.85 + brass * 0.95) * 1.32)
+        raw = np.tanh((stone_scrape * 0.80 + hyphae_awaken + toll_bomb * 1.30 + bell + epic_horn * 1.05) * 1.32)
         raw = _sos_lowpass(raw, 2500.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.35, rt60=1.18, lp_hz=2100.0)
+        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.36, rt60=1.22, lp_hz=2100.0)
 
     elif sound_id == "matriarch_altar_awaken":
-        # Distinct Matriarch ritual: crystalline seals shattering -> dimensional suction tear -> high sovereign banshee choir
-        # Act I (0..0.40): Rapid sequence of obsidian crystal seals cracking & shattering
         seals = np.zeros(n, dtype=np.float64)
         for idx_s, pos_frac in enumerate((0.03, 0.11, 0.20, 0.28, 0.34)):
             pos = int(pos_frac * n)
             slen = min(n - pos, int(SAMPLE_RATE * 0.18))
             st = np.arange(slen, dtype=np.float64) / SAMPLE_RATE
             seals[pos : pos + slen] += (
-                _modal_bank(
-                    st,
-                    bf * (3.2 + 0.65 * idx_s),
-                    (1.0, 1.49, 2.29, 3.45, 4.78),
-                    (0.11, 0.08, 0.055, 0.038, 0.024),
-                    (0.75, 0.58, 0.42, 0.28, 0.16),
-                    rng,
-                )
-                * 0.72
+                _modal_bank(st, bf * (2.8 + 0.55 * idx_s), (1.0, 1.46, 2.18, 3.25), (0.11, 0.08, 0.055, 0.038), (0.65, 0.50, 0.36, 0.22), rng) * 0.58
+                + fungal_cap_resonance(slen, bf * (0.8 + 0.2 * idx_s), rng, decay=0.14, sponginess=0.70) * 0.55
             )
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.2, count=8, wetness=0.62) * 0.58
 
-        # Act II (0.28..0.48): Vacuum dimensional tear -> sub-bomb rupture
         tear_idx = int(0.46 * n)
-        suck = _reverse_suction(n, int(0.24 * n), max(32, tear_idx - int(0.24 * n)), rng, f_lo=260.0, f_hi=6400.0) * 1.05
-        rift_bomb = _sub_bomb(t, tear_idx, f_start=175.0, f_end=33.0, drop_tau=0.08, sustain_tau=dur * 0.42, punch_gain=0.62)
+        suck = _reverse_suction(n, int(0.24 * n), max(32, tear_idx - int(0.24 * n)), rng, f_lo=240.0, f_hi=5600.0) * 1.02
+        rift_bomb = _sub_bomb(t, tear_idx, f_start=178.0, f_end=30.0, drop_tau=0.08, sustain_tau=dur * 0.46, punch_gain=0.65)
 
-        # Act III (0.46..0.98): Sovereign high banshee choir announcing her arrival + dimensional sparks
         s3, e3 = _window_slice(n, 0.46, 0.98)
         choir_env = _envelope_segment(n, s3, e3, attack_frac=0.10, release_frac=0.46)
         u3 = np.clip((t - t[s3]) / max(0.2, t[e3 - 1] - t[s3]), 0.0, 1.0)
-        f_choir = bf * 2.15 * (0.94 + 0.28 * np.sin(np.pi * (u3**0.75)))
-        choir = _eldritch_choir(t, f_choir, rng, voices=5, dissonance="crown_shriek", breath_mix=0.32, vibrato_hz=5.8, formant_shift=formant_shift) * choir_env
-        sparks = _micro_arc_zaps(n, rng, 10, lo_hz=3800.0, hi_hz=12800.0, spread=(0.45, 0.92)) * 0.45
+        f_choir = bf * 2.05 * (0.94 + 0.28 * np.sin(np.pi * (u3**0.75)))
+        choir = (
+            _eldritch_choir(t, f_choir, rng, voices=5, dissonance="crown_shriek", breath_mix=0.32, vibrato_hz=5.8, formant_shift=formant_shift)
+            + _glottal_sub_source(t, f_choir * 0.45, rng, harmonics=11, sub_weight=0.82) * 0.65
+        ) * choir_env
+        sac = np.zeros(n, dtype=np.float64)
+        sac[tear_idx:] = spore_sac_burst(n - tear_idx, rng, base_freq=bf * 1.15, pressure=0.92, duration_frac=0.85) * 0.65
 
-        raw = np.tanh((seals * 0.85 + suck + rift_bomb * 1.05 + choir * 1.32 + sparks) * 1.25)
-        raw = _sos_highpass(raw, 48.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=19.0, wet=0.36, rt60=1.20, lp_hz=6400.0, shimmer=0.38)
+        raw = np.tanh((seals + hyphae + suck + rift_bomb * 1.12 + choir * 1.18 + sac) * 1.25)
+        raw = _sos_highpass(raw, 44.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=19.0, wet=0.38, rt60=1.24, lp_hz=6000.0, shimmer=0.32)
 
     elif sound_id == "boss_weakpoint_crit":
-        # Tactile dorsal weak-point rupture: crisp organic membrane split -> resonant neural scream -> sub crunch
         onset = int(rng.uniform(0.015, 0.065) * n)
-        bomb = _sub_bomb(t, onset, f_start=168.0, f_end=34.0, drop_tau=0.065, sustain_tau=dur * 0.42, punch_gain=0.72)
-        crack = _chitin_modal_hits(n, rng, bf * 3.4, 5, 0.045, spread_frac=0.32) * 0.88
-        modal = modal_resonator_bank(
-            n,
-            (bf * 1.5, bf * 2.38, bf * 3.72, bf * 5.25),
-            (0.24, 0.16, 0.10, 0.06),
-            rng,
-            amplitudes=(0.80, 0.62, 0.44, 0.25),
-        )
-        squelch = _wet_squelch_layer(n, rng, bf * 1.3, 6, intensity=0.95) * adsr_envelope(n, 0.02, 0.20, 0.45, 0.35)
+        bomb = _sub_bomb(t, onset, f_start=168.0, f_end=32.0, drop_tau=0.065, sustain_tau=dur * 0.42, punch_gain=0.72)
+        cap_rup = fungal_cap_resonance(n, bf * 0.95, rng, decay=0.18, sponginess=0.74) * 0.85
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.3, count=6, wetness=0.65) * 0.68
+        sac = spore_sac_burst(n, rng, base_freq=bf * 1.1, pressure=0.88, duration_frac=0.72) * 0.72
         wail = _apply_formant_bank(
-            _glottal_sub_source(t, bf * (1.32 - 0.48 * (t / dur)), rng, harmonics=9, sub_weight=0.75, rattle_hz=24.0),
-            [(380.0 * formant_shift, 3.0, 1.0), (1120.0 * formant_shift, 3.6, 0.8)],
-        ) * adsr_envelope(n, 0.04, 0.22, 0.40, 0.38) * 0.72
-        raw = np.tanh((bomb * 1.25 + crack + modal * 0.75 + squelch + wail) * 1.28)
-        return _abyssal_reverb(raw, rng, predelay_ms=12.0, wet=0.26, rt60=0.62, lp_hz=5600.0)
+            _glottal_sub_source(t, bf * (1.32 - 0.48 * (t / dur)), rng, harmonics=10, sub_weight=0.78, rattle_hz=23.0),
+            [(340.0 * formant_shift, 2.9, 1.05), (980.0 * formant_shift, 3.5, 0.8)],
+        ) * adsr_envelope(n, 0.04, 0.22, 0.40, 0.38) * 0.78
+        raw = np.tanh((bomb * 1.25 + cap_rup + hyphae + sac + wail) * 1.28)
+        return _abyssal_reverb(raw, rng, predelay_ms=12.0, wet=0.27, rt60=0.65, lp_hz=5200.0)
 
     elif sound_id == "boss_carapace_ricochet":
-        # Heavy armored carapace deflection: stiff modal chitin clang -> metallic pitch ricochet -> muted low thud
         onset = int(rng.uniform(0.010, 0.050) * n)
         rem = n - onset
         rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
         modal = np.zeros(n, dtype=np.float64)
-        modal[onset:] = modal_resonator_bank(
-            rem,
-            (bf * 1.0, bf * 1.68, bf * 2.54, bf * 3.86, bf * 5.42),
-            (0.14, 0.10, 0.07, 0.045, 0.025),
-            rng,
-            amplitudes=(0.75, 0.85, 0.65, 0.45, 0.25),
+        modal[onset:] = (
+            modal_resonator_bank(rem, (bf * 1.0, bf * 1.62, bf * 2.44, bf * 3.66, bf * 5.12), (0.14, 0.10, 0.07, 0.045, 0.025), rng, amplitudes=(0.72, 0.80, 0.60, 0.40, 0.22))
+            + fungal_cap_resonance(rem, bf * 0.85, rng, decay=0.11, sponginess=0.65) * 0.72
         )
         zip_up = np.zeros(n, dtype=np.float64)
         f_ric = bf * (1.1 + 1.85 * np.exp(-rt / 0.09))
-        zip_up[onset:] = _fm_tone(rt, f_ric, bf * 0.62, 1.9, pjit) * exp_decay(rt, 0.14) * 0.68
-        snap = _sos_bandpass(rng.normal(0.0, 1.0, n), 1800.0, 9600.0) * exp_decay(np.maximum(0.0, t - t[onset]), 0.018) * 0.52
+        zip_up[onset:] = _fm_tone(rt, f_ric, bf * 0.62, 1.9, pjit) * exp_decay(rt, 0.14) * 0.62
+        snap = _sos_bandpass(rng.normal(0.0, 1.0, n), 1600.0, 8800.0) * exp_decay(np.maximum(0.0, t - t[onset]), 0.018) * 0.48
         raw = np.tanh((modal + zip_up + snap) * 1.22)
-        return _cavern_reverb(_sos_highpass(raw, 120.0), rng, wet=0.18, rt60=0.40, lp_hz=6800.0)
+        return _cavern_reverb(_sos_highpass(raw, 110.0), rng, wet=0.19, rt60=0.42, lp_hz=6400.0)
 
     elif sound_id == "boss_telegraph_lock":
-        # Razor-sharp dodge-window lock cue: reverse vacuum suck -> metallic psychic pin -> chitin snap
         lock_idx = int(rng.uniform(0.26, 0.36) * n)
-        suck = _reverse_suction(n, 0, max(32, lock_idx), rng, f_lo=320.0, f_hi=4600.0) * 0.82
+        suck = _reverse_suction(n, 0, max(32, lock_idx), rng, f_lo=290.0, f_hi=4200.0) * 0.82
         rem = max(32, n - lock_idx)
         rt = np.arange(rem, dtype=np.float64) / SAMPLE_RATE
         pin = np.zeros(n, dtype=np.float64)
         pin[lock_idx:] = (
-            modal_resonator_bank(
-                rem,
-                (bf * 1.0, bf * 1.414, bf * 2.12, bf * 3.18),
-                (0.20, 0.14, 0.09, 0.05),
-                rng,
-                amplitudes=(0.82, 0.72, 0.52, 0.32),
-            )
-            + karplus_strong_chitin(rem, bf * 1.5, rng, damping=0.985, brightness=0.78, stiffness=0.18, excitation="strike")
-            * exp_decay(rt, 0.16)
-            * 0.55
+            fungal_cap_resonance(rem, bf * 0.85, rng, decay=0.16, sponginess=0.70) * 0.82
+            + karplus_strong_chitin(rem, bf * 1.4, rng, damping=0.985, brightness=0.74, stiffness=0.18, excitation="strike") * exp_decay(rt, 0.16) * 0.55
+            + spore_sac_burst(rem, rng, base_freq=bf * 0.90, pressure=0.70, duration_frac=0.70) * 0.48
         )
         pulse = np.zeros(n, dtype=np.float64)
-        pulse[lock_idx:] = _fm_tone(rt, bf * (1.25 - 0.35 * (rt / max(1e-4, rt[-1]))), bf * 0.5, 2.1, pjit) * exp_decay(rt, 0.18) * 0.62
+        pulse[lock_idx:] = _fm_tone(rt, bf * (1.25 - 0.35 * (rt / max(1e-4, rt[-1]))), bf * 0.5, 2.1, pjit) * exp_decay(rt, 0.18) * 0.58
         raw = np.tanh((suck + pin + pulse) * 1.22)
-        return fdn4_hadamard_diffuser(_sos_highpass(raw, 140.0), rng, rt60=0.42, wet=0.22, damping_hz=5800.0)
+        return fdn4_hadamard_diffuser(_sos_highpass(raw, 130.0), rng, rt60=0.44, wet=0.23, damping_hz=5400.0)
 
     elif sound_id == "boss_stagger_break":
-        # Colossal carapace shatter + hollow stagger collapse: chitin fracture cloud -> Rosenberg groan -> sub drop
         shatter_idx = int(rng.uniform(0.02, 0.14) * n)
         bomb = _sub_bomb(
             t,
@@ -938,71 +778,55 @@ def synthesize_boss_sound(
             f_start=rng.uniform(135.0, 184.0),
             f_end=rng.uniform(28.0, 42.0),
             drop_tau=rng.uniform(0.052, 0.088),
-            sustain_tau=dur * 0.36,
+            sustain_tau=dur * 0.38,
             punch_gain=0.80,
         )
-        shards = np.zeros(n, dtype=np.float64)
-        for pos in _bounce_train(n, rng, 7, start_frac=0.03, end_frac=0.52, accelerate=False):
-            slen = min(n - pos, int(SAMPLE_RATE * 0.14))
-            if slen > 32:
-                shards[pos : pos + slen] += (
-                    karplus_strong_chitin(slen, bf * rng.uniform(2.5, 5.8), rng, damping=0.982, brightness=0.76, stiffness=0.22, excitation="strike")
-                    * exp_decay(np.arange(slen, dtype=np.float64) / SAMPLE_RATE, 0.055)
-                    * 0.85
-                )
-        cloud = granular_bio_cloud(n, rng, freq_range=(380.0, 4400.0), density_hz=64.0, grain_ms=17.0, organic_mode="chitin") * adsr_envelope(n, 0.03, 0.22, 0.38, 0.42) * 0.95
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 1.6, count=8, wetness=0.60) * 0.68
+        cap_break = fungal_cap_resonance(n, bf * 1.15, rng, decay=0.22, sponginess=0.72) * 0.82
+        sac = spore_sac_burst(n, rng, base_freq=bf * 1.35, pressure=0.88, duration_frac=0.78) * 0.65
         f_groan = bf * rng.uniform(0.92, 1.14) * (1.18 - 0.46 * ((t / dur) ** 0.85))
         groan = articulated_vocal_tract(
             t,
             f_groan,
             [
-                (310.0 * formant_shift, 160.0 * formant_shift, 2.8, 1.05),
-                (860.0 * formant_shift, 460.0 * formant_shift, 3.2, 0.90),
-                (1850.0 * formant_shift, 1020.0 * formant_shift, 3.8, 0.56),
+                (290.0 * formant_shift, 150.0 * formant_shift, 2.8, 1.08),
+                (820.0 * formant_shift, 440.0 * formant_shift, 3.2, 0.90),
+                (1750.0 * formant_shift, 960.0 * formant_shift, 3.8, 0.55),
             ],
             rng,
             open_quotient=0.58,
-            sub_weight=0.58,
+            sub_weight=0.62,
             breath_noise=0.22,
         ) * adsr_envelope(n, 0.08, 0.24, 0.48, 0.42) * 1.05
-        raw = np.tanh((bomb * 0.82 + shards + cloud + groan) * 1.25)
-        return fdn4_hadamard_diffuser(raw, rng, base_delays_ms=(19.1, 27.3, 37.9, 51.7), rt60=0.88, wet=0.30, damping_hz=3800.0)
+        raw = np.tanh((bomb * 0.88 + hyphae + cap_break + sac + groan) * 1.25)
+        return fdn4_hadamard_diffuser(raw, rng, base_delays_ms=(19.1, 27.3, 37.9, 51.7), rt60=0.90, wet=0.31, damping_hz=3600.0)
 
     elif sound_id == "colony_raid_horn":
-        # Urgent rival-swarm bronze/chitin siege warhorn: staggered dual-blast + dissonant swarm drone
         s1, e1 = _window_slice(n, 0.02, 0.44)
         s2, e2 = _window_slice(n, 0.46, 0.96)
         e_b1 = _envelope_segment(n, s1, e1, attack_frac=0.14, release_frac=0.30)
         e_b2 = _envelope_segment(n, s2, e2, attack_frac=0.10, release_frac=0.40)
         f_h1 = bf * (0.96 + 0.12 * (t / dur))
         f_h2 = bf * (1.12 - 0.10 * (t / dur))
-        horn1 = _brass_braaam(t, f_h1, rng, detune_cents=15.0, sub_oct=0.90, shimmer_mix=0.16, formant_shift=formant_shift) * e_b1
-        horn2 = (
-            _brass_braaam(t, f_h2, rng, detune_cents=18.0, sub_oct=0.95, shimmer_mix=0.22, formant_shift=formant_shift)
-            + _brass_braaam(t, f_h2 * 1.414, rng, detune_cents=12.0, sub_oct=0.40, shimmer_mix=0.18, formant_shift=formant_shift) * 0.55
-        ) * e_b2
-        punch = _sub_bomb(t, s2, f_start=135.0, f_end=33.0, drop_tau=0.075, sustain_tau=dur * 0.36) * 0.85
-        rattle = _chitin_modal_hits(n, rng, bf * 4.8, 7, 0.04, spread_frac=0.75) * 0.32
-        raw = np.tanh((horn1 * 0.90 + horn2 * 1.05 + punch + rattle) * 1.28)
-        raw = _sos_lowpass(raw, 3400.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.35, rt60=1.15, lp_hz=2800.0)
+        horn1 = _epic_fungal_chorus_horn(t, f_h1, rng, formant_shift=formant_shift, monstrous_grit=0.72) * e_b1
+        horn2 = _epic_fungal_chorus_horn(t, f_h2, rng, formant_shift=formant_shift, monstrous_grit=0.82) * e_b2
+        punch = _sub_bomb(t, s2, f_start=138.0, f_end=31.0, drop_tau=0.075, sustain_tau=dur * 0.38) * 0.85
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 2.2, count=5, wetness=0.52) * 0.36
+        raw = np.tanh((horn1 * 0.90 + horn2 * 1.05 + punch + hyphae) * 1.28)
+        raw = _sos_lowpass(raw, 3200.0, order=2)
+        return _abyssal_reverb(raw, rng, predelay_ms=20.0, wet=0.36, rt60=1.18, lp_hz=2600.0)
 
     else:  # "mob_step_colossal"
-        # Heavy pre-step floor groan -> chest-thumping tectonic footfall bomb -> stone crunch & mycelium squish
         stomp_frac = rng.uniform(0.03, 0.13)
         stomp_idx = int(stomp_frac * n)
         creak = _sos_bandpass(brown, 45.0, 260.0) * _envelope_segment(n, 0, max(16, stomp_idx + 120), attack_frac=0.3, release_frac=0.3) * 0.45
-        bomb = _sub_bomb(t, stomp_idx, f_start=bf * 2.2, f_end=30.0, drop_tau=0.055, sustain_tau=dur * 0.48, punch_gain=0.60)
-
-        crunch = np.zeros(n, dtype=np.float64)
-        for pos in _bounce_train(n, rng, int(rng.integers(3, 6)), start_frac=stomp_frac + 0.02, end_frac=0.72, accelerate=True):
-            slen = min(n - pos, int(SAMPLE_RATE * 0.055))
-            if slen > 24:
-                crunch[pos : pos + slen] += _chitin_modal_hits(slen, rng, bf * rng.uniform(2.5, 4.5), 1, 0.028) * 0.55
-
+        bomb = _sub_bomb(t, stomp_idx, f_start=bf * 2.2, f_end=29.0, drop_tau=0.055, sustain_tau=dur * 0.48, punch_gain=0.62)
+        cap_stomp = np.zeros(n, dtype=np.float64)
+        cap_stomp[stomp_idx:] = fungal_cap_resonance(n - stomp_idx, bf * 1.5, rng, decay=0.22, sponginess=0.78) * 0.88
+        hyphae = mycelial_hyphae_tear(n, rng, base_freq=bf * 2.0, count=5, wetness=0.60) * 0.48
         squish = _wet_squelch_layer(n, rng, bf * 1.7, int(rng.integers(2, 5)), intensity=0.45) * _envelope_segment(n, stomp_idx, n, attack_frac=0.04, release_frac=0.5)
-        ground_shake = _sos_bandpass(brown, 36.0, 460.0) * _envelope_segment(n, stomp_idx, n, attack_frac=0.03, release_frac=0.58) * 0.85
+        ground_shake = _sos_bandpass(brown, 34.0, 460.0) * _envelope_segment(n, stomp_idx, n, attack_frac=0.03, release_frac=0.58) * 0.85
 
-        raw = np.tanh((creak + bomb * 1.38 + crunch + squish + ground_shake) * 1.35)
+        raw = np.tanh((creak + bomb * 1.38 + cap_stomp + hyphae + squish + ground_shake) * 1.35)
         raw = _sos_lowpass(raw, 1850.0, order=2)
-        return _abyssal_reverb(raw, rng, predelay_ms=14.0, wet=0.28, rt60=0.72, lp_hz=1500.0)
+        return _abyssal_reverb(raw, rng, predelay_ms=14.0, wet=0.29, rt60=0.74, lp_hz=1500.0)

@@ -239,6 +239,51 @@ public final class AcousticPhysicsEngine {
     }
 
     /**
+     * Identifies legendary boss, mini-boss, ritual awakening, and colossal swarm cues
+     * that warrant cavern-scale acoustic authority and preserved long-range clarity.
+     */
+    public static boolean isBossLegendaryCue(String soundPath) {
+        if (soundPath == null || soundPath.isEmpty()) {
+            return false;
+        }
+        return soundPath.startsWith("spore_behemoth_")
+                || soundPath.startsWith("hive_core_")
+                || soundPath.startsWith("apex_matriarch_")
+                || soundPath.startsWith("boss_")
+                || "hive_altar_awaken".equals(soundPath)
+                || "matriarch_altar_awaken".equals(soundPath)
+                || "fungal_tide_horn".equals(soundPath)
+                || "colony_raid_horn".equals(soundPath)
+                || "mob_step_colossal".equals(soundPath);
+    }
+
+    /**
+     * Elevates open-air/canopy acoustics to at least {@link AcousticEnvironment#CAVERN_SINKHOLE}
+     * for legendary boss cues so roars carry monumental weight even above ground.
+     */
+    public static AcousticEnvironment resolveEffectiveEnvironment(AcousticEnvironment baseEnv, String soundPath) {
+        AcousticEnvironment safeEnv = baseEnv != null ? baseEnv : AcousticEnvironment.OPEN_AIR;
+        if (isBossLegendaryCue(soundPath)
+                && (safeEnv == AcousticEnvironment.OPEN_AIR || safeEnv == AcousticEnvironment.FOREST_CANOPY)) {
+            return AcousticEnvironment.CAVERN_SINKHOLE;
+        }
+        return safeEnv;
+    }
+
+    /**
+     * Preserves legendary boss presence at long range by scaling high-frequency air damping to 55%.
+     */
+    public static float computeBossDistanceAirDamping(
+            float distanceMeters,
+            AcousticEnvironment env,
+            SubmersionState submersion,
+            boolean bossCue
+    ) {
+        float baseDamp = computeDistanceAirDamping(distanceMeters, env, submersion);
+        return bossCue ? baseDamp * 0.55F : baseDamp;
+    }
+
+    /**
      * Layered sidechain ducking multiplier stacking alert ducking with active boss combat suppression.
      */
     public static float computeLayerDuckMultiplier(

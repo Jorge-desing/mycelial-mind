@@ -625,6 +625,68 @@ public class OpenAlEfxLoopbackTest {
         }
     }
 
+    @Test
+    void bossLegendaryCueRetainsBrighterLongRangePresenceAndCavernReverbInOpenAir() {
+        short[] pcm = synthesizeMultiTonePcm(
+                SAMPLE_RATE,
+                new double[]{260.0D, 850.0D, 4200.0D, 7600.0D},
+                0.24D
+        );
+        int bufferId = createMono16Buffer(pcm);
+        try {
+            SpectralMeasurement regularFar = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(
+                            AcousticEnvironment.DEEP_MYCELIUM_ABYSS,
+                            0.0F,
+                            AcousticPhysicsEngine.SubmersionState.NONE,
+                            true,
+                            50L,
+                            1.0F,
+                            1.0F,
+                            0.0F,
+                            40.0F,
+                            false
+                    )
+            );
+            SpectralMeasurement bossFar = measurePlaybackSpectrum(
+                    bufferId,
+                    new SourceAcousticSnapshot(
+                            AcousticEnvironment.DEEP_MYCELIUM_ABYSS,
+                            0.0F,
+                            AcousticPhysicsEngine.SubmersionState.NONE,
+                            true,
+                            51L,
+                            1.0F,
+                            1.0F,
+                            0.0F,
+                            40.0F,
+                            true
+                    )
+            );
+            assertTrue(bossFar.highPower() > regularFar.highPower() * 1.05D,
+                    "Legendary boss cue at 40 m must preserve more HF clarity than normal source (regular="
+                            + regularFar.highPower() + ", boss=" + bossFar.highPower() + ")");
+
+            TailMeasurement openAirBossTail = measurePostCutoffTail(
+                    bufferId,
+                    AcousticPhysicsEngine.resolveEffectiveEnvironment(AcousticEnvironment.OPEN_AIR, "spore_behemoth_roar"),
+                    true
+            );
+            TailMeasurement openAirDryTail = measurePostCutoffTail(
+                    bufferId,
+                    AcousticEnvironment.OPEN_AIR,
+                    true
+            );
+            assertTrue(openAirBossTail.lateRms() > openAirDryTail.lateRms() * 2.0D,
+                    "Boss cues above ground must gain cavern reverb tail via resolveEffectiveEnvironment (boss="
+                            + openAirBossTail.lateRms() + ", dry=" + openAirDryTail.lateRms() + ")");
+            assertEquals(AL10.AL_NO_ERROR, AL10.alGetError());
+        } finally {
+            AL10.alDeleteBuffers(bufferId);
+        }
+    }
+
     private SpectralMeasurement measurePlaybackSpectrum(int bufferId, SourceAcousticSnapshot snapshot) {
         int sourceId = createUnitSource(bufferId);
         try {

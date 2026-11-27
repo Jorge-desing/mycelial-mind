@@ -284,8 +284,10 @@ def select_ir_space(sound_id: str, species: str, loudness_group: str, category: 
     ) or sp == "colossal_organic":
         return "abyssal_cavern"
 
+    if "drone" in sid:
+        return "fungal_chamber"
     if any(sp_k in sp for sp_k in ("purifier", "purification")) or any(
-        k in sid for k in ("turret", "pylon", "bench", "drone", "scanner", "neutraliz", "grenade", "launcher", "antidote", "chitin_armor")
+        k in sid for k in ("turret", "pylon", "bench", "scanner", "neutraliz", "grenade", "launcher", "antidote", "chitin_armor")
     ):
         return "purifier_hall"
     if category in ("item", "projectile") and sp not in ("wet_visceral", "pyro_fungal"):

@@ -173,7 +173,7 @@ class SoundStudioTests(unittest.TestCase):
         self.assertIn("hive_tension_bed_low", html_text)
         self.assertIn("sanctum_harmonic_chime", html_text)
         self.assertIn("44100", html_text)
-        self.assertIn("Consola Local de Audio v8", html_text)
+        self.assertIn("Consola Local de Audio v9", html_text)
         self.assertIn("mean_organic_index", html_text)
         self.assertIn("Bloques Físicos", html_text)
         self.assertIn("Biomas y Ambiente (23)", html_text)
@@ -894,7 +894,7 @@ class SoundStudioTests(unittest.TestCase):
 
         if BASELINE_PATH.is_file():
             base = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
-            self.assertEqual(base.get("schema_version"), 8)
+            self.assertEqual(base.get("schema_version"), 9)
 
     def test_stage8_high_step_64_heavy_weight_vorbis_q6_and_dense_irs(self) -> None:
         """Stage 8: 64-step stems, 0.65-0.85 mix_weight, Vorbis -q:a 6, and dense organic IRs."""
@@ -924,6 +924,61 @@ class SoundStudioTests(unittest.TestCase):
         self.assertEqual(len(blended), len(probe_dsp))
         self.assertFalse(np.any(np.isnan(blended)))
         self.assertGreater(float(np.sqrt(np.mean(blended * blended))), 0.05)
+
+    def test_stage9_fungal_monstrous_mobs_and_epic_legendary_bosses(self) -> None:
+        """Stage 9: Fungal/mycelial primitives, organic Purifier Drone routing, 53 fungal/boss prompts & synthesis."""
+        from scripts.sound_studio import ai_stem_generator, dsp_engine, ir_bank
+
+        rng = np.random.default_rng(202609)
+        n = int(SAMPLE_RATE * 0.45)
+        cap = dsp_engine.fungal_cap_resonance(n, 160.0, rng, decay=0.14, sponginess=0.72)
+        hyphae = dsp_engine.mycelial_hyphae_tear(n, rng, base_freq=240.0, count=5, wetness=0.58)
+        sac = dsp_engine.spore_sac_burst(n, rng, base_freq=210.0, pressure=0.80, duration_frac=0.75)
+        for arr in (cap, hyphae, sac):
+            self.assertEqual(len(arr), n)
+            self.assertTrue(np.all(np.isfinite(arr)))
+            self.assertGreater(float(np.max(np.abs(arr))), 0.08)
+
+        # Purifier Drone must route to organic fungal_chamber rather than sterile purifier_hall
+        self.assertEqual(
+            ir_bank.select_ir_space("purifier_drone_hum", "purifier_tech", "ambient"),
+            "fungal_chamber",
+        )
+        self.assertEqual(
+            ir_bank.select_ir_space("purification_turret_fire", "purifier_tech", "combat"),
+            "purifier_hall",
+        )
+
+        # All 53 mob, boss & combat-bed stems must reflect fungal/mycelial/monstrous/epic terminology
+        target_beds = {"boss_tension_bed", "adaptive_hive_tension_bed", "adaptive_swarm_combat_bed"}
+        targeted = [a for a in ai_stem_generator.AI_STEM_ARCHETYPES if a.group in ("boss", "entity") or a.stem_id in target_beds]
+        self.assertEqual(len(targeted), 53)
+        fungal_tokens = ("fungal", "mushroom", "spore", "mycel", "hyphae", "titan", "warhorn", "monolith")
+        for arch in targeted:
+            low = arch.prompt.lower()
+            self.assertTrue(
+                any(tok in low for tok in fungal_tokens),
+                msg=f"Stem {arch.stem_id} prompt missing fungal/mycelial imagery: {arch.prompt}",
+            )
+
+        # Synthesize & check representative mobs, organic Purifier Drone, all 3 bosses & boss bed
+        for sid in (
+            "chitin_brute_growl",
+            "synapse_weaver_hum",
+            "purifier_drone_hum",
+            "purifier_drone_fire",
+            "mob_step_hover",
+            "spore_behemoth_roar",
+            "hive_core_resonance",
+            "apex_matriarch_wail",
+            "boss_combat_tension_bed",
+        ):
+            wave, m = self._synth_spec(sid, variation_idx=0)
+            self.assertGreater(len(wave), SAMPLE_RATE // 8, sid)
+            self.assertTrue(np.all(np.isfinite(wave)), sid)
+            self.assertLessEqual(m["true_peak_dbfs"], -0.25, sid)
+            if sid == "boss_combat_tension_bed":
+                self.assertLessEqual(m["loop_seam_delta"], 0.025, sid)
 
 
 if __name__ == "__main__":

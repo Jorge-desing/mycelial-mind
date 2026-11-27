@@ -272,4 +272,30 @@ public class AcousticPhysicsEngineTest {
         assertEquals(0.35F, nearBias, 1e-5F);
         assertTrue(nearBias > midBias && midBias > farBias && farBias == 0.0F);
     }
+
+    @Test
+    void v9BossLegendaryEnvironmentElevationAndPreservedDistanceAuthority() {
+        assertTrue(AcousticPhysicsEngine.isBossLegendaryCue("spore_behemoth_roar"));
+        assertTrue(AcousticPhysicsEngine.isBossLegendaryCue("hive_core_resonance"));
+        assertTrue(AcousticPhysicsEngine.isBossLegendaryCue("apex_matriarch_wail"));
+        assertTrue(AcousticPhysicsEngine.isBossLegendaryCue("boss_stagger_break"));
+        assertTrue(AcousticPhysicsEngine.isBossLegendaryCue("fungal_tide_horn"));
+        assertFalse(AcousticPhysicsEngine.isBossLegendaryCue("sporeling_chitter"));
+
+        assertEquals(AcousticEnvironment.CAVERN_SINKHOLE,
+                AcousticPhysicsEngine.resolveEffectiveEnvironment(AcousticEnvironment.OPEN_AIR, "spore_behemoth_roar"));
+        assertEquals(AcousticEnvironment.CAVERN_SINKHOLE,
+                AcousticPhysicsEngine.resolveEffectiveEnvironment(AcousticEnvironment.FOREST_CANOPY, "hive_core_resonance"));
+        assertEquals(AcousticEnvironment.SANCTUM_VAULT,
+                AcousticPhysicsEngine.resolveEffectiveEnvironment(AcousticEnvironment.SANCTUM_VAULT, "apex_matriarch_wail"));
+        assertEquals(AcousticEnvironment.OPEN_AIR,
+                AcousticPhysicsEngine.resolveEffectiveEnvironment(AcousticEnvironment.OPEN_AIR, "sporeling_chitter"));
+
+        float normalFar = AcousticPhysicsEngine.computeBossDistanceAirDamping(
+                36.0F, AcousticEnvironment.CAVERN_SINKHOLE, AcousticPhysicsEngine.SubmersionState.NONE, false);
+        float bossFar = AcousticPhysicsEngine.computeBossDistanceAirDamping(
+                36.0F, AcousticEnvironment.CAVERN_SINKHOLE, AcousticPhysicsEngine.SubmersionState.NONE, true);
+        assertTrue(bossFar > 0.0F && bossFar < normalFar);
+        assertEquals(normalFar * 0.55F, bossFar, 1e-5F);
+    }
 }

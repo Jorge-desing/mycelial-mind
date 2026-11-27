@@ -256,12 +256,12 @@ def _profile_params(sound_id: str, species: str, loudness_group: str, ir_space: 
     is_boss = loudness_group == "boss_cinematic"
 
     if is_boss or sp == "colossal_organic":
-        hp_hz = 26.0
-        low_db = 2.4
-        peak_hz, peak_db, peak_q = 420.0, 0.8, 0.9
-        high_db = 0.0 if "matriarch" in sound_id else -1.0
+        hp_hz = 24.0 if is_boss else 26.0
+        low_db = 2.8 if is_boss else 2.4
+        peak_hz, peak_db, peak_q = (380.0, 1.1, 0.85) if is_boss else (420.0, 0.8, 0.9)
+        high_db = -0.3 if ("matriarch" in sound_id) else -1.0
         comp_thresh, comp_ratio = -17.0, 2.8
-    elif ir_space in ("purifier_hall",) or "purif" in sp or "synaptic_node" in sound_id:
+    elif ir_space in ("purifier_hall",) or ("purif" in sp and "purifier_drone" not in sound_id) or "synaptic_node" in sound_id:
         hp_hz = 42.0
         low_db = 0.1
         peak_hz, peak_db, peak_q = 2400.0, 1.2, 1.0
@@ -289,13 +289,13 @@ def _profile_params(sound_id: str, species: str, loudness_group: str, ir_space: 
     if loudness_group == "footstep":
         ir_mix = 0.015
     elif is_boss or ir_space == "dimensional_rift":
-        ir_mix = 0.12
+        ir_mix = 0.14 if is_boss else 0.12
     elif loudness_group in ("block_light", "block_heavy"):
         ir_mix = 0.025
     else:
         ir_mix = 0.035
 
-    chorus_mix = 0.04 if (is_boss or ir_space == "dimensional_rift") else 0.0
+    chorus_mix = (0.05 if is_boss else 0.04) if (is_boss or ir_space == "dimensional_rift") else 0.0
     return (ir_space, hp_hz, low_db, peak_hz, peak_db, peak_q, high_db, comp_thresh, comp_ratio, ir_mix, chorus_mix)
 
 

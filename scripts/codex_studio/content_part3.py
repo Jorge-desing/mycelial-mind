@@ -1787,10 +1787,10 @@ def build_chapters_9_to_12() -> tuple[CodexChapter, ...]:
     ]
     sound_blocks = [
         (
-            "• **Estudio Visual y Audio v8 (Fidelidad 64 Pasos + Peso Físico):** 20 `Model` multi-articulados, LabPBR `_n`/`_s`, "
-            "OpenAL EFX en vivo con `PlaybackHumanizer` (tono/ganancia/timbre HF + proximidad física), 9 camas reactivas y **226 `ModSounds`** (**596** `.ogg` Vorbis `-q:a 6`, 95 stems @ 64 pasos, 6 IRs densos).",
-            "• **Visual & Audio Studio v8 (64-Step Fidelity + Heavy Weight):** 20 articulated 3D models, LabPBR `_n`/`_s`, "
-            "live OpenAL EFX with `PlaybackHumanizer` (pitch/gain/HF timbre + distance proximity), 9 reactive beds, and **226 `ModSounds`** (**596** `.ogg` Vorbis `-q:a 6`, 95 stems @ 64 steps, 6 dense IRs).",
+            "• **Estudio Visual y Audio v9 (Micelio-Hongos-Monstruoso + Jefes Épico-Legendarios):** 20 `Model` multi-articulados, LabPBR `_n`/`_s`, "
+            "OpenAL EFX en vivo con `PlaybackHumanizer` (tono/ganancia/timbre HF + proximidad y autoridad épica de jefes), 9 camas reactivas y **226 `ModSounds`** (**596** `.ogg` Vorbis `-q:a 6`, 95 stems @ 64 pasos, 6 IRs densos).",
+            "• **Visual & Audio Studio v9 (Fungal-Monstrous Mobs + Epic-Legendary Bosses):** 20 articulated 3D models, LabPBR `_n`/`_s`, "
+            "live OpenAL EFX with `PlaybackHumanizer` (pitch/gain/HF timbre + proximity & epic boss presence), 9 reactive beds, and **226 `ModSounds`** (**596** `.ogg` Vorbis `-q:a 6`, 95 stems @ 64 steps, 6 dense IRs).",
         ),
         (
             "• **Dinámica Vocal, Micro-Prosodia y OpenAL EFX:** tono (`0.45–1.85`) por Rango/Cepa/Frenesí/Líder/`Desync`; "

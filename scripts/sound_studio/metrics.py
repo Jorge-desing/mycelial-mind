@@ -636,7 +636,7 @@ def save_acoustic_baseline(
             "max_variant_corr": corrs.get(sid, entry.get("max_variant_corr", 0.0)),
         }
     baseline = {
-        "schema_version": 8,
+        "schema_version": 9,
         "total_events": len(events_snap),
         "total_ogg_files": manifest.get("ogg_count", 0),
         "worst_correlation": quality_report.get("worst_correlation", 0.0),
@@ -816,7 +816,7 @@ def build_audition_html(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mycelial Mind — Sound Studio Audition Console v8 ({len(rows)} eventos)</title>
+  <title>Mycelial Mind — Sound Studio Audition Console v9 ({len(rows)} eventos)</title>
   <style>
     :root {{
       --bg: #0c0d12;
@@ -911,8 +911,8 @@ def build_audition_html(
 <body>
   <header>
     <div>
-      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v8 (64 Steps RTX + Peso Físico + Vorbis q6 + EFX Proximidad)")}</h1>
-      <div class="sub">Audita los 5 motores DSP v8, 95 stems RTX 4060 (@ 64 pasos, mix 0.65-0.85), 6 IRs densos, Vorbis -q:a 6, Bark Unmasking, Organic Index y OpenAL EFX Proximidad.</div>
+      <h1>{html.escape("Mycelial Mind — Consola Local de Audio v9 (Micelio-Hongos-Monstruoso + Jefes Épico-Legendarios)")}</h1>
+      <div class="sub">Audita los 5 motores DSP v9, 95 stems RTX 4060 (@ 64 pasos, mix 0.65-0.85), 6 IRs densos, Vorbis -q:a 6, Bark Unmasking, Organic Index y OpenAL EFX Proximidad/Jefes.</div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
@@ -1132,7 +1132,7 @@ def build_audition_html(
       maskBadge,
       divBadge,
       orgBadge,
-      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v8 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
+      `<span class="badge ${{DATA.quality_ok ? 'ok' : 'warn'}}">QA v9 ${{DATA.quality_ok ? 'PASS' : 'CHECK'}}</span>`,
     ].join("");
 
     // Populate Bark Masking matrix & layer chart

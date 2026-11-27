@@ -706,6 +706,101 @@ def foley_particle_crackle(
     return out
 
 
+def fungal_cap_resonance(
+    n: int,
+    base_freq: float,
+    rng: np.random.Generator,
+    *,
+    decay: float = 0.14,
+    sponginess: float = 0.55,
+) -> np.ndarray:
+    """Damped hollow mushroom-cap modal body with soft spongy onset and dark upper-mid roll-off."""
+    if n <= 16:
+        return np.zeros(max(0, n), dtype=np.float64)
+    t = np.arange(n, dtype=np.float64) / float(SAMPLE_RATE)
+    f0 = max(48.0, float(base_freq) * float(rng.uniform(0.88, 1.12)))
+    sp = float(np.clip(sponginess, 0.10, 1.0))
+    atk_sec = (0.006 + 0.006 * sp) * float(rng.uniform(0.88, 1.14))
+    atk_env = 1.0 - np.exp(-t / max(0.002, atk_sec))
+
+    ratios = (1.0, 1.46, 2.08, 2.84)
+    weights = (0.90, 0.62 * (0.65 + 0.35 * sp), 0.38, 0.20)
+    body = np.zeros(n, dtype=np.float64)
+    for idx, (r, w) in enumerate(zip(ratios, weights)):
+        fk = f0 * r * float(rng.uniform(0.97, 1.03))
+        if fk < 0.44 * SAMPLE_RATE:
+            tau = max(0.014, decay / (1.0 + 0.55 * idx))
+            body += w * np.sin(2.0 * np.pi * fk * t + float(rng.uniform(0.0, 6.28))) * np.exp(-t / tau)
+
+    sub_gourd = 0.34 * sp * np.sin(2.0 * np.pi * max(34.0, f0 * 0.72) * t + float(rng.uniform(0.0, 6.28))) * np.exp(-t / max(0.02, decay * 1.15))
+    puff = _sos_bandpass(_pink_noise(rng, n), max(90.0, f0 * 0.8), min(3200.0, max(450.0, f0 * 4.0))) * np.exp(-t / max(0.015, decay * 0.45)) * (0.22 + 0.24 * sp)
+    cutoff = min(4800.0, max(1200.0, f0 * 4.8))
+    return _sos_lowpass((body + sub_gourd + puff) * atk_env, cutoff)
+
+
+def mycelial_hyphae_tear(
+    n: int,
+    rng: np.random.Generator,
+    *,
+    base_freq: float = 260.0,
+    count: int = 6,
+    wetness: float = 0.55,
+) -> np.ndarray:
+    """Staggered fibrous mycelial strand stretch-and-snap bursts with damp cavern moisture."""
+    if n <= 32 or count <= 0:
+        return np.zeros(max(0, n), dtype=np.float64)
+    out = np.zeros(n, dtype=np.float64)
+    w = float(np.clip(wetness, 0.0, 1.0))
+    f_base = max(75.0, float(base_freq))
+    for _ in range(int(count)):
+        start = int(rng.uniform(0.04, 0.84) * (n - 32))
+        slen = min(n - start, max(48, int(SAMPLE_RATE * rng.uniform(0.024, 0.078))))
+        if slen < 24:
+            continue
+        st = np.arange(slen, dtype=np.float64) / float(SAMPLE_RATE)
+        u = st / max(1e-4, st[-1])
+        f_strand = f_base * float(rng.uniform(0.78, 1.42)) * (1.0 + 0.58 * (u ** 1.35))
+        strain = _fm_tone(st, f_strand, f_strand * 0.42, 1.35, float(rng.uniform(0.0, 6.28))) * (0.45 + 0.55 * np.sin(np.pi * u))
+        snap_band = _sos_bandpass(rng.normal(0.0, 1.0, slen), max(260.0, f_base * 1.4), min(7600.0, max(900.0, f_base * 12.0)))
+        snap = snap_band * exp_decay(np.maximum(0.0, st[-1] - st), 0.012) * float(rng.uniform(0.45, 0.88))
+        out[start : start + slen] += (strain * 0.65 + snap * 0.85) * float(rng.uniform(0.55, 1.0))
+
+    pink = _pink_noise(rng, n)
+    moisture = _sos_bandpass(pink, max(160.0, f_base * 0.7), min(3600.0, max(800.0, f_base * 6.5))) * (0.20 + 0.36 * w)
+    return out + moisture
+
+
+def spore_sac_burst(
+    n: int,
+    rng: np.random.Generator,
+    *,
+    base_freq: float = 240.0,
+    pressure: float = 0.75,
+    duration_frac: float = 0.65,
+) -> np.ndarray:
+    """Pressurized fungal spore-sac pop coupled with a resonant swept diffuse spore-cloud puff."""
+    if n <= 32:
+        return np.zeros(max(0, n), dtype=np.float64)
+    p = float(np.clip(pressure, 0.15, 1.35))
+    len_eff = max(32, min(n, int(round(n * float(np.clip(duration_frac, 0.25, 1.0))))))
+    pt = np.arange(len_eff, dtype=np.float64) / float(SAMPLE_RATE)
+    f0 = max(55.0, float(base_freq) * float(rng.uniform(0.88, 1.15)))
+    f_pop = np.maximum(38.0, f0 * (0.48 + 1.45 * exp_decay(pt, 0.028)))
+    phase = 2.0 * np.pi * np.cumsum(f_pop) / float(SAMPLE_RATE) + float(rng.uniform(0.0, 6.28))
+    pop = (np.sin(phase) + 0.34 * np.sin(2.0 * phase + 0.35)) * exp_decay(pt, max(0.045, (len_eff / SAMPLE_RATE) * 0.42)) * p
+
+    pink = _pink_noise(rng, len_eff)
+    white = rng.normal(0.0, 1.0, len_eff)
+    lo_sweep = float(rng.uniform(680.0, 960.0))
+    hi_sweep = float(rng.uniform(3100.0, 4200.0))
+    puff = _swept_resonant_filter(pink * 0.72 + white * 0.45, lo_sweep, hi_sweep, q=2.2)
+    puff *= adsr_envelope(len_eff, 0.03, 0.22, 0.45, 0.42) * (0.62 + 0.45 * p)
+
+    out = np.zeros(n, dtype=np.float64)
+    out[:len_eff] = np.tanh((pop * 1.10 + puff * 0.92) * 1.18)
+    return out
+
+
 def karplus_strong_chitin(
     n: int,
     freq_hz: float,
