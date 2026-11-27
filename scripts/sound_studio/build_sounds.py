@@ -23,6 +23,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.sound_studio.catalog import SOUND_BY_ID, SOUND_CATALOG, SoundSpec
 from scripts.sound_studio.dsp_engine import (
     LOUDNESS_TARGETS_DBFS,
+    PHYSICAL_MACHINE_CUES,
     SAMPLE_RATE,
     VORBIS_QUALITY,
     deterministic_rng,
@@ -161,8 +162,8 @@ def _synthesize_and_encode_spec(
         "species": spec.species,
         "loudness_group": spec.loudness_group,
         "ir_space": select_ir_space(spec.sound_id, spec.species, spec.loudness_group, spec.category),
-        "ai_hybrid": is_ai_hybrid(spec.sound_id),
-        "stem_id": get_stem_id(spec.sound_id),
+        "ai_hybrid": is_ai_hybrid(spec.sound_id) and spec.sound_id not in PHYSICAL_MACHINE_CUES,
+        "stem_id": get_stem_id(spec.sound_id) if spec.sound_id not in PHYSICAL_MACHINE_CUES else "",
         "variations": spec.variations,
         "attenuation_distance": spec.attenuation_distance,
         "en_subtitle": spec.en_subtitle,

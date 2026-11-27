@@ -24,6 +24,11 @@ SAMPLE_RATE = 44100
 VORBIS_QUALITY = "4"
 TRUE_PEAK_CEILING = 0.94
 DEFAULT_PEAK = TRUE_PEAK_CEILING
+PHYSICAL_MACHINE_CUES = frozenset({
+    "bio_scanner_ping", "bio_scanner_thermal_pulse", "purification_pylon_pulse",
+    "purification_turret_fire", "purification_turret_upgrade", "purification_turret_repair",
+    "synaptic_bench_synthesize", "station_upkeep_low",
+})
 
 # Category-calibrated active loudness targets (dBFS)
 LOUDNESS_TARGETS_DBFS: dict[str, float] = {
@@ -1381,7 +1386,9 @@ def synthesize_waveform(
 
     from scripts.sound_studio.ai_stem_generator import blend_with_ai_stem, is_ai_hybrid
 
-    if is_ai_hybrid(sound_id):
+    # Physical, close-miked machine cues: avoid adding the generated stem's
+    # spectral texture to the latch, breath, housing and piston transients.
+    if is_ai_hybrid(sound_id) and sound_id not in PHYSICAL_MACHINE_CUES:
         wave = blend_with_ai_stem(
             wave,
             sound_id,

@@ -487,9 +487,13 @@ class SoundStudioTests(unittest.TestCase):
 
         for entry in manifest["sounds"]:
             sid = entry["sound_id"]
-            self.assertTrue(entry.get("ai_hybrid"), sid)
-            self.assertTrue(bool(entry.get("stem_id")), sid)
-            self.assertEqual(entry.get("stem_id"), SOUND_TO_ARCHETYPE[sid].stem_id)
+            from scripts.sound_studio.dsp_engine import PHYSICAL_MACHINE_CUES
+            if sid in PHYSICAL_MACHINE_CUES:
+                self.assertFalse(entry.get("ai_hybrid"), sid)
+                self.assertFalse(entry.get("stem_id"), sid)
+            else:
+                self.assertTrue(entry.get("ai_hybrid"), sid)
+                self.assertEqual(entry.get("stem_id"), SOUND_TO_ARCHETYPE[sid].stem_id)
 
     def test_cuda_dsp_acceleration_and_cpu_parity(self) -> None:
         """GPU CUDA kernels must match CPU DSP math tightly and return None cleanly when CUDA is absent."""

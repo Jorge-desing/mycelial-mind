@@ -102,25 +102,19 @@ def synthesize_item_sound(
     # 1. SCANNING & GENETIC EXTRACTION TOOLS (3)
     # =========================================================================
     if sound_id == "bio_scanner_ping":
-        # Tactile wooden-copper compass click -> clear struck amethyst resonance -> warm harmonic echo
-        click = wooden_chitin_knock(n, 1650.0, rng, decay=0.016, hollowness=0.42) * 0.62
-        ping = amethyst_copper_chime(t, bf * 1.18, rng, decay=dur * 0.34, crystal_mix=0.72) * 1.12
-        echo_s = min(n - 64, int(rng.uniform(0.40, 0.52) * n))
-        echo = np.zeros(n, dtype=np.float64)
-        et = np.arange(n - echo_s, dtype=np.float64) / SAMPLE_RATE
-        echo[echo_s:] = amethyst_copper_chime(et, bf * 1.62, rng, decay=0.055, crystal_mix=0.80) * 0.48
-        return _cavern_reverb(_sos_highpass(click + ping + echo, 320.0), rng, wet=0.06, rt60=0.20, lp_hz=9200.0)
+        # A tactile chitin latch marks the reading; wet membrane supplies its living texture.
+        latch = wooden_chitin_knock(n, rng.uniform(1000.0, 2200.0), rng, decay=0.011, hollowness=0.35) * 0.80
+        confirm_at = min(n - 64, int(rng.uniform(0.045, 0.095) * SAMPLE_RATE))
+        confirmation = np.zeros(n, dtype=np.float64)
+        confirmation[confirm_at:] = wooden_chitin_knock(n - confirm_at, rng.uniform(1600.0, 2600.0), rng, decay=0.009, hollowness=0.30) * 0.48
+        droplets = _wet_squelch_layer(n, rng, 1050.0, 2, intensity=0.35) * exp_decay(t, 0.055) * 0.32
+        return _cavern_reverb(_sos_highpass(latch + confirmation + droplets, 430.0), rng, wet=0.025, rt60=0.14, lp_hz=6500.0)
 
     if sound_id == "bio_scanner_thermal_pulse":
-        # Wooden copper latch click -> warm air crystal sweep + micro particles -> double amethyst confirmation chime
-        latch = wooden_chitin_knock(n, 880.0, rng, decay=0.025, hollowness=0.55) * 0.68
-        wave = latch
-        sweep = _swept_resonant_filter(pink * 0.6 + white * 0.45, 4200.0, 560.0, q=3.0) * adsr_envelope(n, 0.16, 0.22, 0.45, 0.35) * 0.95
-        dust = foley_particle_crackle(n, rng, lo_hz=1800.0, hi_hz=7600.0, count=6) * 0.45
-        ring_s = int(0.28 * n)
-        rt = np.arange(n - ring_s, dtype=np.float64) / SAMPLE_RATE
-        wave[ring_s:] += amethyst_copper_chime(rt, bf * 1.35, rng, decay=0.16, crystal_mix=0.68) * 0.92
-        return _cavern_reverb(_sos_highpass(wave + sweep + dust, 200.0), rng, wet=0.08, rt60=0.28, lp_hz=8200.0)
+        latch = wooden_chitin_knock(n, 590.0, rng, decay=0.022, hollowness=0.65) * 0.38
+        fluid = _wet_squelch_layer(n, rng, 350.0, 4, intensity=0.55) * adsr_envelope(n, 0.10, 0.24, 0.45, 0.35) * 0.45
+        breath = _swept_resonant_filter(pink * 0.7 + white * 0.3, 420.0, 2900.0, q=1.5) * adsr_envelope(n, 0.14, 0.25, 0.45, 0.30) * 1.0
+        return _cavern_reverb(_sos_highpass(latch + fluid + breath, 140.0), rng, wet=0.06, rt60=0.20, lp_hz=4900.0)
 
     if sound_id == "bio_extractor_draw":
         # Hollow needle puncture snap (0s) -> vacuum vial fluid draw slurp (0.08..0.76) -> glass stopper seal click

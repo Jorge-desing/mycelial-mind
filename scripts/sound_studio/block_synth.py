@@ -545,56 +545,40 @@ def synthesize_block_functional(
         return _cavern_reverb(valve + exhale + bubbles, rng, wet=0.14, rt60=0.35, lp_hz=3800.0)
 
     if sound_id == "purification_pylon_pulse":
-        # Warm amethyst crystal & copper resonator pulse + gentle cave air breeze (NO sine oscillator arpeggio)
-        env = np.sin(np.pi * t / duration) ** 1.15
-        f1 = base_freq * 0.48  # ~250 Hz amethyst resonator anchor
-        crystal = amethyst_copper_chime(t, f1, rng, decay=duration * 0.55, crystal_mix=0.72) * env
-        air_sweep = _swept_resonant_filter(pink, 1400.0, 4200.0, q=2.6) * env * 0.45
-        return _cavern_reverb(crystal + air_sweep, rng, wet=0.05, rt60=0.20, lp_hz=6800.0)
+        # A firm chitin housing pulse anchors a deep biological contraction.
+        first = _sos_bandpass(brown, 55.0, 410.0) * exp_decay(t, 0.075)
+        second_at = int(0.17 * SAMPLE_RATE)
+        second = np.zeros(n, dtype=np.float64)
+        if second_at < n:
+            st = np.arange(n - second_at, dtype=np.float64) / SAMPLE_RATE
+            second[second_at:] = _sos_bandpass(_brown_noise(rng, n - second_at), 65.0, 460.0) * exp_decay(st, 0.09) * 0.75
+        fluid = _wet_squelch_layer(n, rng, 190.0, 3, intensity=0.45) * adsr_envelope(n, 0.05, 0.24, 0.44, 0.36) * 0.35
+        return _cavern_reverb(first + second + fluid, rng, wet=0.09, rt60=0.27, lp_hz=2600.0)
 
     if sound_id == "purification_turret_fire":
-        # Crisp copper-wood bolt CLACK + spring-driven heavy thump + bright amethyst crackle spark
-        bolt = wooden_chitin_knock(n, 1380.0, rng, decay=0.018, hollowness=0.52) * 0.90
-        piston = _modal_bank(t, base_freq * 0.45, (1.0, 1.59, 2.52), (0.045, 0.025, 0.014), (0.85, 0.55, 0.30), rng) * 1.10
-        spark = foley_particle_crackle(n, rng, lo_hz=2200.0, hi_hz=8800.0, count=4) * exp_decay(t, 0.055) * 0.72
-        return _cavern_reverb(np.tanh((bolt + piston + spark) * 1.25), rng, wet=0.05, rt60=0.18, lp_hz=7600.0)
+        bolt = wooden_chitin_knock(n, 620.0, rng, decay=0.018, hollowness=0.55) * 0.85
+        impact = _sos_bandpass(brown, 100.0, 1100.0) * exp_decay(t, 0.035) * 0.8
+        spurt = _wet_squelch_layer(n, rng, 620.0, 4, intensity=0.8) * exp_decay(t, 0.08)
+        snap = _sos_bandpass(white, 1800.0, 6500.0) * exp_decay(t, 0.006) * 0.45
+        return _cavern_reverb(np.tanh((bolt + impact + spurt + snap) * 1.10), rng, wet=0.05, rt60=0.16, lp_hz=6100.0)
 
     if sound_id == "purification_turret_upgrade":
-        # Stage 1: rapid copper gear clicks -> Stage 2: bronze anvil CLACK -> Stage 3: ascending amethyst chimes
+        # Chitin catches tighten in an uneven sequence, followed by tissue seating into place.
         wave = np.zeros(n, dtype=np.float64)
-        for c_idx in range(10):
-            u = c_idx / 9.0
-            pos = int((0.02 + 0.24 * (u ** 1.30)) * n)
-            clen = min(n - pos, int(SAMPLE_RATE * 0.026))
-            fc = 760.0 + u * 880.0
-            wave[pos : pos + clen] += wooden_chitin_knock(clen, fc, rng, decay=0.012, hollowness=0.45) * 0.65
-        lock_pos = int(0.36 * n)
-        if n - lock_pos > 64:
-            lt = np.linspace(0.0, (n - lock_pos) / SAMPLE_RATE, n - lock_pos, endpoint=False)
-            wave[lock_pos:] += _modal_bank(lt, 480.0, (1.0, 1.59, 2.14, 3.60), (0.045, 0.03, 0.02, 0.012), (0.65, 0.45, 0.3, 0.2), rng)
-        for idx_n, ratio in enumerate((1.15, 1.725)):
-            start = int((0.46 + idx_n * 0.16) * n)
-            if n - start > 64:
-                nt = np.linspace(0.0, (n - start) / SAMPLE_RATE, n - start, endpoint=False)
-                wave[start:] += amethyst_copper_chime(nt, base_freq * ratio, rng, decay=0.14, crystal_mix=0.72) * 0.85
-        return _cavern_reverb(wave, rng, wet=0.05, rt60=0.20, lp_hz=7400.0)
+        for pos_frac, freq in ((0.05, 620.0), (0.21, 820.0), (0.38, 1040.0), (0.62, 480.0)):
+            pos = int(pos_frac * n)
+            wave[pos:] += wooden_chitin_knock(n - pos, freq, rng, decay=0.018, hollowness=0.6) * 0.55
+        tissue = _wet_squelch_layer(n, rng, 340.0, 5, intensity=0.60) * adsr_envelope(n, 0.10, 0.20, 0.45, 0.36)
+        return _cavern_reverb(wave + tissue * 0.55, rng, wet=0.07, rt60=0.21, lp_hz=5100.0)
 
     if sound_id == "purification_turret_repair":
-        # Heavy wrench steel taps (0s, 0.09s) -> mid pneumatic steam flush (0.14..0.55s) -> servo reboot hum
-        wave = _modal_bank(t, 640.0, (1.0, 1.59, 2.92), (0.06, 0.04, 0.025), (0.75, 0.55, 0.32), rng) * 1.15
-        p2 = int(0.10 * n)
-        t2 = np.linspace(0.0, (n - p2) / SAMPLE_RATE, n - p2, endpoint=False)
-        wave[p2:] += _modal_bank(t2, 820.0, (1.0, 1.59, 2.92), (0.05, 0.035, 0.02), (0.65, 0.45, 0.25), rng) * 0.90
-        flush_s = int(0.18 * n)
-        flush_e = int(0.64 * n)
-        if flush_e > flush_s + 32:
-            wave[flush_s:flush_e] += _sos_bandpass(pink[flush_s:flush_e], 950.0, 4200.0) * np.sin(np.linspace(0, np.pi, flush_e - flush_s)) * 0.75
-        reb_s = int(0.45 * n)
-        if n - reb_s > 48:
-            rt = np.linspace(0.0, (n - reb_s) / SAMPLE_RATE, n - reb_s, endpoint=False)
-            f_up = np.linspace(190.0, 560.0, len(rt))
-            wave[reb_s:] += np.sin(2.0 * np.pi * np.cumsum(f_up) / SAMPLE_RATE + pjit) * adsr_envelope(len(rt), 0.12, 0.2, 0.5, 0.35) * 0.90
-        return _cavern_reverb(wave, rng, wet=0.08, rt60=0.20, lp_hz=6200.0)
+        # Two muted tissue taps and a longer wet flush make repair distinct from firing.
+        wave = wooden_chitin_knock(n, 460.0, rng, decay=0.028, hollowness=0.8) * 0.65
+        p2 = int(0.16 * n)
+        wave[p2:] += wooden_chitin_knock(n - p2, 560.0, rng, decay=0.023, hollowness=0.75) * 0.50
+        fluid = _wet_squelch_layer(n, rng, 320.0, 7, intensity=0.72) * adsr_envelope(n, 0.12, 0.24, 0.45, 0.34)
+        flush = _sos_bandpass(pink, 450.0, 2500.0) * adsr_envelope(n, 0.15, 0.24, 0.42, 0.33) * 0.35
+        return _cavern_reverb(wave + fluid * 0.75 + flush, rng, wet=0.08, rt60=0.22, lp_hz=4700.0)
 
     if sound_id == "synaptic_node_mature":
         # 3 accelerating vascular heartbeats -> wet fibrous stretch crackle -> dark alien vocal choir bloom
@@ -741,7 +725,7 @@ def synthesize_block_functional(
         return _cavern_reverb(wave, rng, wet=0.38, rt60=0.85, lp_hz=3600.0)
 
     if sound_id == "synaptic_bench_synthesize":
-        # Glass alembic brewing bubbles (0..0.40) -> leather bellows puff (0.40..0.64) -> amethyst crystal bell finish
+        # Membranous chamber bubbles, a chitin latch and a soft completed squeeze.
         wave = np.zeros(n, dtype=np.float64)
         b_end = int(0.44 * n)
         wave[:b_end] += _wet_squelch_layer(b_end, rng, 560.0, 5, intensity=0.95) * adsr_envelope(b_end, 0.05, 0.2, 0.6, 0.3)
@@ -749,13 +733,11 @@ def synthesize_block_functional(
             wave[pos:] += wooden_chitin_knock(n - pos, 960.0 * rng.uniform(0.9, 1.2), rng, decay=0.045, hollowness=0.58) * 0.72
         vac_s, vac_e = int(0.38 * n), int(0.65 * n)
         wave[vac_s:vac_e] += _sos_bandpass(pink[vac_s:vac_e], 1400.0, 5200.0) * np.sin(np.linspace(0, np.pi, vac_e - vac_s)) * 0.45
-        ping_s = int(0.58 * n)
-        pt = np.linspace(0.0, (n - ping_s) / SAMPLE_RATE, n - ping_s, endpoint=False)
-        wave[ping_s:] += (
-            amethyst_copper_chime(pt, 920.0, rng, decay=0.16, crystal_mix=0.72) * 0.95
-            + wooden_chitin_knock(len(pt), 1450.0, rng, decay=0.015, hollowness=0.45) * 0.35
-        )
-        return _cavern_reverb(_sos_highpass(wave, 110.0), rng, wet=0.06, rt60=0.20, lp_hz=6800.0)
+        finish_s = int(0.62 * n)
+        tail = n - finish_s
+        wave[finish_s:] += wooden_chitin_knock(tail, 700.0, rng, decay=0.022, hollowness=0.7) * 0.55
+        wave[finish_s:] += _wet_squelch_layer(tail, rng, 360.0, 3, intensity=0.5) * exp_decay(np.arange(tail) / SAMPLE_RATE, 0.16)
+        return _cavern_reverb(_sos_highpass(wave, 110.0), rng, wet=0.07, rt60=0.20, lp_hz=5200.0)
 
     if sound_id == "sovereign_nexus_pulse":
         # Royal sovereign beacon chime: staggered crown harmonic bell + mycelial sub-thrum + swept iris shimmer
@@ -945,16 +927,16 @@ def synthesize_block_functional(
         return fdn4_hadamard_diffuser(np.tanh(wave * 1.12), rng, rt60=0.62, wet=0.28, damping_hz=6400.0)
 
     if sound_id == "station_upkeep_low":
-        # Diegetic copper-wood relay sag warning: 2 descending hollow copper knocks + damped amethyst chime sag
+        # Two weakening chitin knocks flag maintenance without an electronic alarm.
         wave = np.zeros(n, dtype=np.float64)
         for frac, mult in ((0.03, 1.00), (0.42, 0.74)):
             pos = int(frac * n)
             plen = min(n - pos, int(SAMPLE_RATE * 0.16))
             if plen > 32:
                 pt = np.arange(plen, dtype=np.float64) / SAMPLE_RATE
-                tone = amethyst_copper_chime(pt, base_freq * mult, rng, decay=0.11, crystal_mix=0.40) * 0.85
-                knock = wooden_chitin_knock(plen, base_freq * 1.8 * mult, rng, decay=0.025, hollowness=0.58) * 0.55
-                wave[pos : pos + plen] += tone + knock
-        return _cavern_reverb(_sos_highpass(wave, 190.0), rng, wet=0.06, rt60=0.20, lp_hz=7400.0)
+                knock = wooden_chitin_knock(plen, base_freq * 1.3 * mult, rng, decay=0.035, hollowness=0.75)
+                wet = _wet_squelch_layer(plen, rng, 280.0 * mult, 2, intensity=0.45) * exp_decay(pt, 0.08)
+                wave[pos : pos + plen] += knock * mult + wet * 0.35
+        return _cavern_reverb(_sos_highpass(wave, 150.0), rng, wet=0.06, rt60=0.20, lp_hz=4900.0)
 
     raise ValueError(f"Unknown functional block sound_id: {sound_id}")
