@@ -35,6 +35,7 @@ public class MycelialParticle extends TextureSheetParticle {
     private float tintRed;
     private float tintGreen;
     private float tintBlue;
+    private net.minecraft.client.renderer.texture.TextureAtlasSprite animationSprite;
     private int delayTicks;
     private boolean bounced;
 
@@ -244,7 +245,11 @@ public class MycelialParticle extends TextureSheetParticle {
     private void updateSprite() {
         if (this.spec.frames() > 1) {
             int animAge = Math.min(this.lifetime - 1, this.age + this.framePhase);
-            this.setSprite(this.sprites.get(animAge, this.lifetime));
+            var nextSprite = this.sprites.get(animAge, this.lifetime);
+            if (nextSprite != this.animationSprite) {
+                this.animationSprite = nextSprite;
+                this.setSprite(nextSprite);
+            }
         }
     }
 }

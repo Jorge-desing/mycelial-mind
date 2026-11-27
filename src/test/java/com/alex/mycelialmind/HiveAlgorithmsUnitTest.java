@@ -25,6 +25,11 @@ class HiveAlgorithmsUnitTest {
         assertEquals(0, ParticleEmissionBudget.clamp(0));
         assertEquals(12, ParticleEmissionBudget.clamp(12));
         assertEquals(24, ParticleEmissionBudget.clamp(99));
+        assertEquals(1.0, ParticleEmissionBudget.ambientDensity(1.0, 47, 2000.0));
+        assertEquals(1.0, ParticleEmissionBudget.ambientDensity(1.0, 48, 256.0));
+        assertEquals(0.5, ParticleEmissionBudget.ambientDensity(1.0, 48, 1024.0));
+        assertEquals(0.25, ParticleEmissionBudget.ambientDensity(1.0, 48, 1025.0));
+        assertEquals(0.375, ParticleEmissionBudget.ambientDensity(1.5, 48, 1025.0));
         assertEquals(12, ParticleEmissionBudget.scaled(12, 1.0));
         assertEquals(6, ParticleEmissionBudget.scaled(12, 0.5));
         assertEquals(18, ParticleEmissionBudget.scaled(12, 1.5));

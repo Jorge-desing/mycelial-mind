@@ -224,6 +224,11 @@ public final class VisualSmokeClient {
             }
         }
 
+        if (Boolean.getBoolean("mycelialmind.particleBenchmark") && sceneBuilt) {
+            ParticleBenchmarkClient.tick(mc, inWorldTicks);
+            return;
+        }
+
         if (Boolean.getBoolean("mycelialmind.particleVisualSmoke") && sceneBuilt) {
             mc.options.hideGui = true;
             if (inWorldTicks == 38) {
@@ -359,7 +364,7 @@ public final class VisualSmokeClient {
                     });
                 }
             }
-            if (inWorldTicks >= 302 && inWorldTicks <= 320) {
+            if (inWorldTicks >= 302 && inWorldTicks <= 340) {
                 Screenshot.grab(mc.gameDirectory, "particle_cure_" + inWorldTicks + ".png", mc.getMainRenderTarget(), msg ->
                         MycelialMind.LOGGER.info("Particle cure: {}", msg.getString()));
             }

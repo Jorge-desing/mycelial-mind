@@ -52,3 +52,6 @@ python -m unittest discover -s scripts/particle_studio/tests -v
 - GameTest `particleRegistryAssetsAreCompleteAndUnique` (149/149) y `/mycelial verify polish` cubren recursos y registro.
 - Capturas: `artifacts/diagnostics/particle-visual-client/screenshots/particle_gallery_*.png`; `check_visual_regression` no debe degradarse sin revisar el diff.
 - Al cerrar, anexa la entrada en `MEMORY.md` (append-only) y actualiza las skills afectadas.
+
+- La silueta de recuperación se genera con la receta procedural heart; la purga reutiliza sus sprites para ocho fragmentos verdes. El proveedor reduce la densidad ambiental lejana al alcanzar 48 partículas en el motor, muestreadas una vez por tick.
+- Los emisores usan ParticleEmissionBudget.scaled con el ajuste de densidad y el máximo por emisión. `-PparticleVisualSmoke=true -PparticleBenchmark=true` ejecuta tres pasadas de curación, combate y ambiente y registra mediana y p95 de intervalos de fotograma; compara siempre contra la misma escena y configuración.

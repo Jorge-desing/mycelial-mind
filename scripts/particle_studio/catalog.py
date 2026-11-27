@@ -66,10 +66,10 @@ SPECS: Tuple[ParticleSpec, ...] = (
         _p(ticks=4, seed=41),
     ),
     ParticleSpec(
-        "recovery", "consumible", 32, 3, "arc", "spore_chartreuse", "warm_ivory",
+        "recovery", "consumible", 32, 3, "heart", "spore_chartreuse", "warm_ivory",
         "additive", "arc",
-        "Esquirla de arco verde-lima con núcleo blanco y mota satélite.",
-        "Lime-green arc shard with white core and satellite mote.",
+        "Pequeño corazón verde-lima que gira al ascender.",
+        "Small lime-green heart rotating as it rises.",
         _p(seed=53, satellites=2),
     ),
     ParticleSpec(
