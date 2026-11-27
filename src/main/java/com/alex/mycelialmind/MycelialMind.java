@@ -78,6 +78,7 @@ public class MycelialMind {
         modEventBus.addListener(ModDataMaps::registerDataMaps);
         modEventBus.addListener(com.alex.mycelialmind.registry.MycelialBuiltInPacks::onAddPackFinders);
         modEventBus.addListener(com.alex.mycelialmind.world.MycelialChunkTicketManager::onRegisterTicketControllers);
+        modEventBus.addListener(com.alex.mycelialmind.compat.top.MycelialTopCompat::enqueueImc);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, MycelialConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.CLIENT, MycelialClientConfig.SPEC);

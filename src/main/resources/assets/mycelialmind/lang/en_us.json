@@ -2354,5 +2354,13 @@
   "tooltip.mycelialmind.bio_extractor.synaptic_harvest": "Synaptic Harvest: extract <=%d%% HP, -%d%% cooldown, +%d%% bonus sample",
   "tooltip.mycelialmind.datamap.pylon_fuel": "Pylon Bio-Fuel: +%d charge",
   "tooltip.mycelialmind.datamap.turret_ammo": "Turret Bio-Ammo: +%d rounds",
-  "tooltip.mycelialmind.datamap.symbiotic_nutrient": "Symbiotic Nutrient: +%d stability"
+  "tooltip.mycelialmind.datamap.symbiotic_nutrient": "Symbiotic Nutrient: +%d stability",
+  "mycelialmind.configuration.integrations": "Mod Integrations",
+  "mycelialmind.configuration.journeymapOverlaysEnabled": "JourneyMap Territorial Overlays",
+  "mycelialmind.configuration.journeymapOverlaysEnabled.tooltip": "Display Purification Pylon zones, Synaptic Nodes, and inflamed Deep Mycelium chunks on JourneyMap when installed.",
+  "journeymap.mycelialmind.group": "Mycelial Mind",
+  "journeymap.mycelialmind.pylon_active": "Purification Pylon (%dm)",
+  "journeymap.mycelialmind.pylon_smothered": "Smothered Pylon (%dm)",
+  "journeymap.mycelialmind.node": "Synaptic Node: %s",
+  "journeymap.mycelialmind.inflamed_chunk": "Inflamed Chunk (%d%%)"
 }

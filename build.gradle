@@ -44,6 +44,21 @@ repositories {
             includeGroup "com.klikli_dev"
         }
     }
+    maven {
+        name = "JourneyMap"
+        url = "https://maven.amadornes.com/"
+        content {
+            includeGroup "info.journeymap"
+        }
+    }
+    maven {
+        name = "Latvian Mods"
+        url = "https://maven.latvian.dev/releases"
+        content {
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.latvian.apps"
+        }
+    }
 }
 
 base {
@@ -250,6 +265,11 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // Embedded high-performance bounded cache (Apache 2.0, Jar-in-Jar)
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'
+    additionalRuntimeClasspath 'com.github.ben-manes.caffeine:caffeine:3.2.0'
+    jarJar 'com.github.ben-manes.caffeine:caffeine:3.2.0'
+
     // Optional mod integrations (compileOnly so Mycelial Mind runs standalone or alongside any of them)
     compileOnly "maven.modrinth:curios:KJsZIQrT"
     compileOnly "maven.modrinth:jade:15.10.6+neoforge"
@@ -258,6 +278,9 @@ dependencies {
     compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
     compileOnly "com.klikli_dev:modonomicon-1.21.1-neoforge:1.123.1"
     compileOnly "maven.modrinth:azurelib:rzVuOJoh"
+    compileOnly "info.journeymap:journeymap-api-neoforge:2.0.0-1.21.1"
+    compileOnly "maven.modrinth:the-one-probe:kxB9y8zd"
+    compileOnly "dev.latvian.mods:kubejs-neoforge:2101.7.2-build.382"
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

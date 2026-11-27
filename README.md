@@ -7,7 +7,7 @@
 
 **Mycelial Mind** (`mycelialmind`) es un mod para **Minecraft 1.21.1** (**NeoForge 21.1.267**) sobre un organismo micelial subterráneo adaptativo que observa tus tácticas de combate y defensa, aprende de ellas en tiempo real y hace evolucionar a sus criaturas, su red neuronal y su territorio.
 
-> **Versión actual:** `2.0.0` · **Minecraft:** `1.21.1` · **Loader:** NeoForge `21.1.267` · **Java:** `21` · **Dependencias externas:** Ninguna (motor nativo `HiveBrain` integrado) · **Licencia:** `MIT` · **Autor:** `Alex`
+> **Versión actual:** `2.0.0` · **Minecraft:** `1.21.1` · **Loader:** NeoForge `21.1.267` · **Java:** `21` · **Dependencias externas:** Ninguna (motor nativo `HiveBrain` y caché `Caffeine 3.2.0` embebida vía Jar-in-Jar) · **Licencia:** `MIT` · **Autor:** `Alex`
 
 ---
 
@@ -23,10 +23,10 @@ A diferencia de los enemigos estáticos tradicionales, la **Mente Colmena** (*Hi
 - **Marea Fúngica y Jefes:** Al alcanzar niveles altos de amenaza se desencadena la **Marea Fúngica**, acompañada por el mini-jefe **Spore Behemoth** y los encuentros de jefe contra el **Hive Core** y la **Apex Matriarch** (cuya derrota activa **Remisión Post-Matriarca** entre dimensiones).
 - **Contraofensiva, Biotecnología y Arsenal:**
   - **Contención y defensa:** Protege tu base con **Pilones de Purificación** (`purification_pylon`), **Torretas de Purificación** mejorables (`Tier 1 -> 3`) y **Drones Purificadores** aliados (`purifier_drone`).
-  - **Análisis y Códice:** Usa el **Bio-Escáner** (`bio_scanner`, con visión sináptica 3D) para consultar el HUD, inspeccionar bloques/entidades y abrir el Códice con radar territorial 2D, mapa de calor homeostático y compatibilidad opcional JEI/EMI/Jade.
+  - **Análisis y Códice:** Usa el **Bio-Escáner** (`bio_scanner`, con visión sináptica 3D) para consultar el HUD, inspeccionar bloques/entidades y abrir el Códice con radar territorial 2D, mapa de calor homeostático y compatibilidad opcional JEI/EMI/Jade/The One Probe/JourneyMap.
   - **Arsenal evolutivo:** Extrae muestras genéticas con `bio_extractor`, sintetiza en la **Mesa de Investigación Sináptica** (`synaptic_research_bench`), evoluciona la **Armadura de Quitina** (`BASE -> MUTATED -> ELITE`) y empuna `symbiotic_blade`, `enzyme_lance`, `neutralizing_spore_launcher`, `purifier_grenade` y `synaptic_suppressor`.
 - **Exploración y Homeostasis Dimensional (`mycelialmind:deep_mycelium`):** Descubre brotes miceliales, colmenas de superficie y el santuario `hive_sanctum` en el Overworld, y cruza mediante `mycelial_rift` a `deep_mycelium`, una dimensión viva con homeostasis por chunk (`STABLE`/`IRRITATED`/`IMMUNE_RESPONSE`), sensibilización antigénica, difusión inflamatoria, lluvia ácida enzimática, `AntibodyCystBlock` y patrullas leucocitarias.
-- **Idiomas:** Localización completa bilingüe (`en_us` / `es_es`, 2356 claves sincronizadas por idioma), logros y recetas integradas.
+- **Idiomas:** Localización completa bilingüe (`en_us` / `es_es`, 2364 claves sincronizadas por idioma), logros y recetas integradas.
 
 ---
 
@@ -43,6 +43,9 @@ A diferencia de los enemigos estáticos tradicionales, la **Mente Colmena** (*Hi
 Versiones probadas en servidor con Minecraft 1.21.1 y NeoForge 21.1.267: Curios 9.6.0, Create 6.0.10 y Farmer’s Delight 1.3.4.
 
 - **Curios API** permite equipar el bioescáner en el cinturón para consultar el HUD y abrir el Códice con `K`. El pulso y la inspección mediante clic derecho requieren sostener el escáner.
+- **JourneyMap API** renderiza en el minimapa y mapa completo los perímetros de Pilones de Purificación (activos/ahogados), Nodos Sinápticos y chunks inflamados de `deep_mycelium` (configurable en `[integrations].journeymapOverlaysEnabled`).
+- **The One Probe** y **Jade** muestran telemetría localizada en vivo de nodos sinápticos, pilones, torretas, banco sináptico, nexo soberano y criaturas (respetando el camuflaje de `SynapticMimicEntity`).
+- **KubeJS** expone el binding global `MycelialMind` (`getThreat`, `setThreat`, `addStimulus`, `hasTrait`, `isProtected`, `getHomeostasisStress`, `suppressHive`, `resetHive`, etc.) para scripts de modpacks.
 - **Create** permite cortar piedra micelial en ladrillos de arco y placas de quitina en celosías bioquitinosas en la sierra mecánica, siempre que su opción de recetas de cortapiedras esté activada.
 - **Farmer’s Delight** permite cortar un zarcillo micelial con un cuchillo en la tabla de cortar para obtener una biomasa micelial.
 
@@ -51,6 +54,9 @@ Versiones probadas en servidor con Minecraft 1.21.1 y NeoForge 21.1.267: Curios 
 Server-tested versions on Minecraft 1.21.1 and NeoForge 21.1.267: Curios 9.6.0, Create 6.0.10 and Farmer’s Delight 1.3.4.
 
 - **Curios API** lets you equip the bio-scanner in the belt slot to view its HUD and open the Codex with `K`. Hold the scanner to use its pulse and right-click inspections.
+- **JourneyMap API** draws Purification Pylon perimeters (active/smothered), Synaptic Nodes, and inflamed `deep_mycelium` chunks on the minimap and fullscreen map (toggleable via `[integrations].journeymapOverlaysEnabled`).
+- **The One Probe** & **Jade** expose localized live block and entity telemetry across nodes, pylons, turrets, benches, Sovereign Nexus colonies, and Hive entities (respecting `SynapticMimicEntity` spoofing).
+- **KubeJS** registers the global `MycelialMind` script binding (`getThreat`, `setThreat`, `addStimulus`, `hasTrait`, `isProtected`, `getHomeostasisStress`, `suppressHive`, `resetHive`, etc.) for modpack automation.
 - **Create** can cut mycelial stone into arch bricks and chitin plates into bio-chitin lattice on the mechanical saw when stonecutting recipes are enabled in Create's configuration.
 - **Farmer’s Delight** lets you cut a mycelial tendril with a knife on the cutting board to obtain one mycelial biomass.
 
