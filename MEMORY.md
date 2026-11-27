@@ -5292,3 +5292,15 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`hyphalEcosystemPurificationAcousticsRemissionAndCodexWork`).
 - **Skills:** Revisadas las skills pertinentes; no requirieron cambios adicionales.
 - **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `32s`, `All 215 required tests passed :)` en `11.47 s`, `Dry run publishGithub` OK).
+
+
+## [2026-11-27 14:10] — Infraestructura base de Mixin y MixinExtras + verificación de ParchmentMC
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN` / `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:** Habilitada la infraestructura de **Mixin `0.8.7` + MixinExtras `0.5.5`** sin alterar mecánicas de gameplay, verificada la configuración de **ParchmentMC `1.21.1` (`2024.11.17`)** en `build.gradle`/`gradle.properties`, y descartado **Lombok** por decisión explícita del usuario:
+  1. Descomentado `[[mixins]]` (`config="${mod_id}.mixins.json"`) en `src/main/templates/META-INF/neoforge.mods.toml`.
+  2. Creado `src/main/resources/mycelialmind.mixins.json` (`required=true`, `minVersion="0.8"`, `package="com.alex.mycelialmind.mixin"`, `compatibilityLevel="JAVA_21"`, `defaultRequire=1`, `requireAnnotations=true`).
+  3. Añadidos `LivingEntityMixin` (`@Mixin(LivingEntity.class)` + MixinExtras `@ModifyReturnValue(method = "getVisibilityPercent", at = @At("RETURN"))`) y `MixinRuntimeProbe` para comprobar la inyección en tiempo real sin modificar el valor devuelto.
+  4. Añadida suite headless `MixinInfrastructureTest` (4 tests JUnit 5, incl. verificación de `ParchmentMC 1.21.1`/`2024.11.17`) y el `@GameTest` `mixinAndMixinExtrasRuntimeProbeWorks` (`batch = "mixin_infrastructure"`).
+- **Archivos / Símbolos:** `src/main/templates/META-INF/neoforge.mods.toml`, `src/main/resources/mycelialmind.mixins.json`, `src/main/java/com/alex/mycelialmind/mixin/{LivingEntityMixin,MixinRuntimeProbe}.java`, `src/test/java/com/alex/mycelialmind/MixinInfrastructureTest.java`, `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java`, `README.md`, `MEMORY.md`, y skills (`mycelial-codemode`, `neoforge-gametest`).
+- **Skills:** Actualizadas `.agents/skills/mycelial-codemode/{SKILL.md,references/test-matrix.md}` y `.agents/skills/neoforge-gametest/SKILL.md`.
+- **Actualización tras validación:** Movida `MixinRuntimeProbe` a `com.alex.mycelialmind.util` (fuera del paquete `com.alex.mycelialmind.mixin.*` porque SpongePowered Mixin prohíbe carga directa con `IllegalClassLoadError`) y verificadas las anotaciones con retención `CLASS` mediante ASM `ClassReader` en `MixinInfrastructureTest`. Validado: `:test` (`4/4` en `MixinInfrastructureTest`), `:build`, `:publishMods -PpublishDryRun=true`, `runGameTestServer` (`216/216` `@GameTest`s incluyendo `mixinAndMixinExtrasRuntimeProbeWorks`), `Verify-Assets.ps1` (`28 + 41 + 6`), `validate_agent_skills.py` (`8/8`, `27` enlaces) y JAR con `mycelialmind.mixins.json`, `LivingEntityMixin.class` y `MixinRuntimeProbe.class`.
