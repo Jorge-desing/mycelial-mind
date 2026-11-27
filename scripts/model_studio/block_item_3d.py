@@ -594,16 +594,34 @@ def build_3d_block_models() -> Dict[str, Dict[str, Any]]:
         ],
     }
 
-    # 13. mycelial_tendrils (flora): multi-level 3D organic tendrils rooted cleanly on floor pad
+    # 13. mycelial_tendrils: branching fungal fronds around a central spore cup.
     models["mycelial_tendrils"] = {
         "parent": "minecraft:block/block",
         "textures": _atlas_textures("atlas_blocks_hive", "mycelialmind:block/mycelial_tendrils"),
         "elements": [
             _tbox((5.2, 0, 5.2), (10.8, 1.5, 10.8), _faces(H_OBS, up=H_VEIN)),
-            _tbox((3.4, 1.5, 7.0), (5.2, 11.5, 9.0), H_VEIN, rotation=_rot((5.2, 1.5, 8.0), "z", 22.5)),
-            _tbox((10.8, 1.5, 7.0), (12.6, 10.5, 9.0), H_CYAN_CRYSTAL, rotation=_rot((10.8, 1.5, 8.0), "z", -22.5), shade=False),
-            _tbox((7.0, 1.5, 3.4), (9.0, 9.5, 5.2), H_AMETHYST, rotation=_rot((8.0, 1.5, 5.2), "x", -22.5), shade=False),
-            _tbox((7.0, 1.5, 10.8), (9.0, 10.0, 12.6), H_VEIN, rotation=_rot((8.0, 1.5, 10.8), "x", 22.5)),
+            _tbox((6.5, 1.5, 6.5), (9.5, 4.5, 9.5), H_VEIN),
+            _tbox((6.0, 4.5, 6.0), (10.0, 5.5, 10.0), H_VIOLET_SCALE),
+            _tbox((6.7, 5.5, 6.7), (9.3, 7.5, 9.3), H_AMETHYST, shade=False),
+            _tbox((7.2, 7.5, 7.2), (8.8, 9.0, 8.8), H_CYAN_CRYSTAL, shade=False),
+            _tbox((3.8, 1.5, 7.0), (6.5, 3.0, 9.0), H_VEIN),
+            _tbox((3.1, 3.0, 7.0), (5.3, 6.0, 9.0), H_VEIN),
+            _tbox((2.6, 6.0, 7.15), (4.8, 9.0, 8.85), H_CYAN_CRYSTAL),
+            _tbox((2.9, 9.0, 7.3), (4.4, 11.0, 8.7), H_CYAN_CRYSTAL, shade=False),
+            _tbox((1.6, 6.5, 7.4), (2.6, 8.5, 8.6), H_AMETHYST),
+            _tbox((9.5, 1.5, 7.0), (12.2, 3.0, 9.0), H_VEIN),
+            _tbox((10.7, 3.0, 7.0), (12.9, 6.0, 9.0), H_VIOLET_SCALE),
+            _tbox((11.2, 6.0, 7.15), (13.4, 9.0, 8.85), H_AMETHYST),
+            _tbox((11.6, 9.0, 7.3), (13.1, 12.0, 8.7), H_AMETHYST, shade=False),
+            _tbox((13.4, 6.5, 7.4), (14.4, 8.5, 8.6), H_CYAN_CRYSTAL),
+            _tbox((7.0, 1.5, 3.8), (9.0, 3.0, 6.5), H_VEIN),
+            _tbox((7.0, 3.0, 3.1), (9.0, 6.0, 5.3), H_VIOLET_SCALE),
+            _tbox((7.15, 6.0, 2.6), (8.85, 8.5, 4.8), H_AMETHYST),
+            _tbox((7.3, 8.5, 2.9), (8.7, 10.0, 4.4), H_CYAN_CRYSTAL, shade=False),
+            _tbox((7.0, 1.5, 9.5), (9.0, 3.0, 12.2), H_VEIN),
+            _tbox((7.0, 3.0, 10.7), (9.0, 6.0, 12.9), H_VIOLET_SCALE),
+            _tbox((7.15, 6.0, 11.2), (8.85, 8.5, 13.4), H_CYAN_CRYSTAL),
+            _tbox((7.3, 8.5, 11.6), (8.7, 10.0, 13.1), H_AMETHYST, shade=False),
         ],
     }
 

@@ -250,6 +250,16 @@ class TestModelStudio(unittest.TestCase):
         for name, m in items.items():
             self.assertIn("display", m, f"3D item {name} missing display transforms")
 
+    def test_mycelial_tendrils_have_branching_fronds(self):
+        from scripts.model_studio.block_item_3d import build_3d_block_models
+
+        model = build_3d_block_models()["mycelial_tendrils"]
+        elements = model["elements"]
+        self.assertGreaterEqual(len(elements), 20)
+        for element in elements:
+            self.assertTrue(all(0 <= value <= 16 for value in element["from"] + element["to"]))
+        self.assertGreaterEqual(sum(e.get("shade") is False for e in elements), 4)
+
     def test_reclaimed_blooms_are_distinct_and_fit_the_block(self):
         from scripts.model_studio.block_item_3d import build_3d_block_models
 
