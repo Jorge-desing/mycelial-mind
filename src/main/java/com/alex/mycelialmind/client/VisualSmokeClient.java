@@ -874,7 +874,17 @@ public final class VisualSmokeClient {
             });
         }
         if (!mc.level.dimension().equals(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL)) return;
+        if (mc.screen instanceof net.minecraft.client.gui.screens.ReceivingLevelScreen) return;
         expeditionTicks++;
+        if (expeditionTicks == 35) {
+            var playerId = mc.player.getUUID();
+            expeditionExecute(server, () -> {
+                ServerLevel level = server.getLevel(com.alex.mycelialmind.world.ModDimensions.DEEP_MYCELIUM_LEVEL);
+                var player = server.getPlayerList().getPlayer(playerId);
+                if (level != null && player != null) player.teleportTo(level, -0.5, 97.4, -1.5, 0.0F, 8.0F);
+            });
+            mc.options.fov().set(50);
+        }
         if (expeditionTicks == 48) mc.options.hideGui = true;
         if (expeditionTicks == 50) {
             Screenshot.grab(mc.gameDirectory, "expedition_garden_before.png", mc.getMainRenderTarget(), msg -> MycelialMind.LOGGER.info("Expedition smoke: {}", msg.getString()));

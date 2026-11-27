@@ -729,6 +729,12 @@ def build_reclaimed_bloom_variant(kind: str) -> Dict[str, Any]:
             arm(turn, 5, 6, 7, 11.5, 1)
             arm(turn, 5, 5.75, 11.5, 13.5, 0.55)
 
+    # Connected chitin collars and paired leaf fins give each variant a layered stem.
+    for turn in range(4):
+        arm(turn, 5.5, 7, 1.5, 2.5, 0.65, H_VIOLET_SCALE)
+        arm(turn, 5.0, 7, 3.0, 4.0, 0.55, H_VEIN)
+        arm(turn, 4.75, 6, 5.5, 6.5, 0.7, H_BONE)
+
     if kind == "magic":
         petal((7, 9, 7), (9, 14.5, 9), H_BONE)
         petal((7.25, 14.5, 7.25), (8.75, 15.5, 8.75), H_BONE)
@@ -777,7 +783,7 @@ def build_reclaimed_bloom_model() -> Dict[str, Any]:
 
     for turn in range(4):
         radial_box(7.25, 1.5, 5.25, 8.75, 2.5, 7, H_VIOLET_SCALE, turn)
-        radial_box(6.75, 2.5, 4, 9.25, 3.25, 6, H_VIOLET_SCALE, turn)
+        radial_box(6.9, 2.5, 3.75, 9.1, 3.25, 6, H_VIOLET_SCALE, turn)
         if turn % 2 == 0:
             radial_box(7.25, 3.25, 3.5, 8.75, 4, 4.75, H_VEIN, turn)
     elements.append(_tbox((5.75, 5.5, 5.75), (10.25, 7.25, 10.25), H_VIOLET_SCALE))
@@ -789,7 +795,7 @@ def build_reclaimed_bloom_model() -> Dict[str, Any]:
         radial_box(6, 7.25, 3.5, 10, 8.25, 5.75, H_IVORY_SCALE, turn, tinted=True)
         radial_box(6.25, 8.25, 3, 9.75, 9.25, 4.75, H_IVORY_SCALE, turn, tinted=True)
         tip_height = 10.5 if turn % 2 == 0 else 9.75
-        radial_box(7, 9.25, 2.75, 9, tip_height, 3.75, H_IVORY_SCALE, turn, tinted=True)
+        radial_box(7.15, 9.25, 2.5, 8.85, tip_height, 3.75, H_IVORY_SCALE, turn, tinted=True)
     radial_box(6.5, 7.25, 6.5, 9.5, 8.25, 9.5, H_BONE, 0, tinted=True)
     radial_box(7.25, 8.25, 7.25, 8.75, 9.75, 8.75, H_IVORY_SCALE, 0, tinted=True, shade=False)
     radial_box(6.75, 9.75, 6.75, 9.25, 10.75, 9.25, H_IVORY_SCALE, 0, tinted=True, shade=False)
