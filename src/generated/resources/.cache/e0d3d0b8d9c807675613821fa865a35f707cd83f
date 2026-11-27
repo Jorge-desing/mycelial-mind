@@ -1,6 +1,8 @@
-// 1.21.1	2026-11-26T13:52:01.570349	Data Maps
+// 1.21.1	2026-11-26T22:34:38.549594	Data Maps
 fadc34a19628f0106bd384fe25ca25c57796f919 data/mycelialmind/data_maps/damage_type/damage_stimulus.json
+4308ae9ac6f6b9406f575c6ab76919bbe28654d8 data/mycelialmind/data_maps/item/pylon_fuel.json
 d8e813648aae0c2921d2aede168bb538bb811a5c data/mycelialmind/data_maps/item/symbiotic_nutrient.json
+58f2aa737e472a6284e7e4e42bc8eabc36521da3 data/mycelialmind/data_maps/item/turret_ammo.json
 90636bcfd0ef6e6b725f60aaec15507877c982a4 data/neoforge/data_maps/item/compostables.json
 69a29dd6c8c74298deed9b7a93fbe60686e8ec0f data/neoforge/data_maps/item/furnace_fuels.json
 d91019cc63140a1095a991a5373afe5ae0d5bcd1 data/neoforge/data_maps/villager_profession/raid_hero_gifts.json

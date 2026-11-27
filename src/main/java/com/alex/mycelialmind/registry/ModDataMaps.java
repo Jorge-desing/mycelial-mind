@@ -36,12 +36,28 @@ public final class ModDataMaps {
                     SymbioticNutrientData.CODEC
             ).synced(SymbioticNutrientData.CODEC, false).build();
 
+    public static final DataMapType<Item, PylonFuelData> PYLON_FUEL =
+            DataMapType.builder(
+                    ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "pylon_fuel"),
+                    Registries.ITEM,
+                    PylonFuelData.CODEC
+            ).synced(PylonFuelData.CODEC, false).build();
+
+    public static final DataMapType<Item, TurretAmmoData> TURRET_AMMO =
+            DataMapType.builder(
+                    ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "turret_ammo"),
+                    Registries.ITEM,
+                    TurretAmmoData.CODEC
+            ).synced(TurretAmmoData.CODEC, false).build();
+
     private ModDataMaps() {
     }
 
     public static void registerDataMaps(RegisterDataMapTypesEvent event) {
         event.register(DAMAGE_STIMULUS);
         event.register(SYMBIOTIC_NUTRIENT);
+        event.register(PYLON_FUEL);
+        event.register(TURRET_AMMO);
     }
 
     public record DamageStimulusData(StimulusType stimulus, float weightMultiplier) {
@@ -72,5 +88,21 @@ public final class ModDataMaps {
                         .fieldOf("stability_restore")
                         .forGetter(SymbioticNutrientData::stabilityRestore)
         ).apply(instance, SymbioticNutrientData::new));
+    }
+
+    public record PylonFuelData(int chargeRestore) {
+        public static final Codec<PylonFuelData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.intRange(1, 100)
+                        .fieldOf("charge_restore")
+                        .forGetter(PylonFuelData::chargeRestore)
+        ).apply(instance, PylonFuelData::new));
+    }
+
+    public record TurretAmmoData(int ammoRestore) {
+        public static final Codec<TurretAmmoData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.intRange(1, 64)
+                        .fieldOf("ammo_restore")
+                        .forGetter(TurretAmmoData::ammoRestore)
+        ).apply(instance, TurretAmmoData::new));
     }
 }

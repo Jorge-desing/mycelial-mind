@@ -1,0 +1,8 @@
+{
+  "values": {
+    "mycelialmind:latent_spore": { "ammo_restore": 10 },
+    "minecraft:amethyst_shard": { "ammo_restore": 16 },
+    "mycelialmind:spore_antidote": { "ammo_restore": 20 },
+    "mycelialmind:concentrated_antidote": { "ammo_restore": 42 }
+  }
+}

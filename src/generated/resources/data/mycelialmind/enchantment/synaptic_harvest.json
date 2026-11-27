@@ -1,0 +1,20 @@
+{
+  "anvil_cost": 4,
+  "description": {
+    "translate": "enchantment.mycelialmind.synaptic_harvest"
+  },
+  "max_cost": {
+    "base": 45,
+    "per_level_above_first": 12
+  },
+  "max_level": 2,
+  "min_cost": {
+    "base": 15,
+    "per_level_above_first": 12
+  },
+  "slots": [
+    "mainhand"
+  ],
+  "supported_items": "#mycelialmind:enchantable/bio_extractor",
+  "weight": 3
+}

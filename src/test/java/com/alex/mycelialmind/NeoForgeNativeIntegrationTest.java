@@ -2,15 +2,18 @@ package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.client.DeepMyceliumSpecialEffects;
 import com.alex.mycelialmind.client.MycelialItemDecorators;
+import com.alex.mycelialmind.compat.vanilla.MycelialVanillaIntegration;
 import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.FieldEngramId;
 import com.alex.mycelialmind.hive.StimulusType;
 import com.alex.mycelialmind.item.tooltip.MycelialTooltipData;
 import com.alex.mycelialmind.registry.ModDataMaps;
+import com.alex.mycelialmind.registry.ModEnchantments;
 import com.alex.mycelialmind.symbiosis.SymbioticMutagen;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.network.chat.Component;
@@ -18,11 +21,17 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -67,6 +76,22 @@ class NeoForgeNativeIntegrationTest {
         JsonObject badNutrient = new JsonObject();
         badNutrient.addProperty("stability_restore", 0);
         assertTrue(ModDataMaps.SymbioticNutrientData.CODEC.parse(JsonOps.INSTANCE, badNutrient).error().isPresent());
+
+        ModDataMaps.PylonFuelData pylonFuel = new ModDataMaps.PylonFuelData(40);
+        JsonElement encodedFuel = ModDataMaps.PylonFuelData.CODEC.encodeStart(JsonOps.INSTANCE, pylonFuel).getOrThrow();
+        assertEquals(pylonFuel, ModDataMaps.PylonFuelData.CODEC.parse(JsonOps.INSTANCE, encodedFuel).getOrThrow());
+
+        JsonObject badFuel = new JsonObject();
+        badFuel.addProperty("charge_restore", 150);
+        assertTrue(ModDataMaps.PylonFuelData.CODEC.parse(JsonOps.INSTANCE, badFuel).error().isPresent());
+
+        ModDataMaps.TurretAmmoData turretAmmo = new ModDataMaps.TurretAmmoData(32);
+        JsonElement encodedAmmo = ModDataMaps.TurretAmmoData.CODEC.encodeStart(JsonOps.INSTANCE, turretAmmo).getOrThrow();
+        assertEquals(turretAmmo, ModDataMaps.TurretAmmoData.CODEC.parse(JsonOps.INSTANCE, encodedAmmo).getOrThrow());
+
+        JsonObject badAmmo = new JsonObject();
+        badAmmo.addProperty("ammo_restore", 100);
+        assertTrue(ModDataMaps.TurretAmmoData.CODEC.parse(JsonOps.INSTANCE, badAmmo).error().isPresent());
     }
 
     @Test
@@ -148,5 +173,47 @@ class NeoForgeNativeIntegrationTest {
                 null
         );
         assertTrue(badge.accentRgb() != 0);
+    }
+
+    @Test
+    void wave3EnchantmentsBuiltInPacksAndLogoAssetsAreValid() throws IOException {
+        assertEquals(3, ModEnchantments.ALL.size());
+        assertEquals(0.50F, ModEnchantments.computeSynapticHarvestMaxHealthRatio(0.50F, 0), 1.0e-5F);
+        assertEquals(0.62F, ModEnchantments.computeSynapticHarvestMaxHealthRatio(0.50F, 1), 1.0e-5F);
+        assertEquals(0.74F, ModEnchantments.computeSynapticHarvestMaxHealthRatio(0.50F, 2), 1.0e-5F);
+        assertEquals(0.95F, ModEnchantments.computeSynapticHarvestMaxHealthRatio(0.90F, 5), 1.0e-5F);
+
+        assertEquals(40, ModEnchantments.computeSynapticHarvestCooldown(40, 0));
+        assertEquals(32, ModEnchantments.computeSynapticHarvestCooldown(40, 1));
+        assertEquals(24, ModEnchantments.computeSynapticHarvestCooldown(40, 2));
+        assertEquals(16, ModEnchantments.computeSynapticHarvestCooldown(40, 5));
+
+        assertEquals(0.0F, ModEnchantments.computeSynapticHarvestBonusChance(0), 1.0e-5F);
+        assertEquals(0.35F, ModEnchantments.computeSynapticHarvestBonusChance(1), 1.0e-5F);
+        assertEquals(0.70F, ModEnchantments.computeSynapticHarvestBonusChance(2), 1.0e-5F);
+        assertFalse(MycelialVanillaIntegration.isNativelyImmuneToMycelialDebuffs(null));
+
+        Path repoRoot = TestRepoPaths.resolveRepoRoot();
+        Path logo = repoRoot.resolve("src/main/resources/mycelialmind_logo.png");
+        assertTrue(Files.isRegularFile(logo) && Files.size(logo) > 1000, "Missing or empty mycelialmind_logo.png");
+
+        for (String packName : List.of("hardcore_overmind", "relaxed_research")) {
+            Path packRoot = repoRoot.resolve("src/main/resources/packs").resolve(packName);
+            JsonObject packMeta = JsonParser.parseString(
+                    Files.readString(packRoot.resolve("pack.mcmeta"), StandardCharsets.UTF_8)).getAsJsonObject();
+            assertEquals(48, packMeta.getAsJsonObject("pack").get("pack_format").getAsInt());
+
+            for (String relMap : List.of(
+                    "data/mycelialmind/data_maps/damage_type/damage_stimulus.json",
+                    "data/mycelialmind/data_maps/item/pylon_fuel.json",
+                    "data/mycelialmind/data_maps/item/turret_ammo.json",
+                    "data/mycelialmind/data_maps/item/symbiotic_nutrient.json"
+            )) {
+                JsonObject mapObj = JsonParser.parseString(
+                        Files.readString(packRoot.resolve(relMap), StandardCharsets.UTF_8)).getAsJsonObject();
+                assertTrue(mapObj.has("values") && !mapObj.getAsJsonObject("values").isEmpty(),
+                        "Built-in pack " + packName + " missing values in " + relMap);
+            }
+        }
     }
 }

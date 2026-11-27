@@ -75,5 +75,25 @@ public final class MycelialEntityTypeTagsProvider extends EntityTypeTagsProvider
         );
         tag(IF_MOB_IMPRISONMENT_BLACKLIST).add(protectedEntities);
         tag(IF_MOB_DUPLICATOR_BLACKLIST).add(protectedEntities);
+
+        tag(ModEntities.MYCELIAL_MOBS).add(
+                ModEntities.SPORELING.get(),
+                ModEntities.CHITIN_BRUTE.get(),
+                ModEntities.MYCELIAL_STALKER.get(),
+                ModEntities.ACID_SPITTER.get(),
+                ModEntities.BURROWER.get(),
+                ModEntities.PYRO_SHROOM.get(),
+                ModEntities.SYNAPSE_WEAVER.get(),
+                ModEntities.GOLIATH_CARRIER.get(),
+                ModEntities.LEECH_PARASITE.get(),
+                ModEntities.COLONY_WARDEN.get(),
+                ModEntities.SPORE_ARCHITECT.get(),
+                ModEntities.SPORE_BEHEMOTH.get(),
+                ModEntities.SYNAPTIC_MIMIC.get(),
+                ModEntities.HIVE_CORE.get(),
+                ModEntities.APEX_MATRIARCH.get(),
+                ModEntities.SPORE_GLIDER.get(),
+                ModEntities.ROOT_KEEPER.get()
+        );
     }
 }

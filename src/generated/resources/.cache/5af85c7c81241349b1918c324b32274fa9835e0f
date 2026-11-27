@@ -1,0 +1,5 @@
+// 1.21.1	2026-11-26T22:34:38.5475937	Tags for minecraft:enchantment mod id mycelialmind
+c3b59d20435b025d1a6ac9f6dcda4c65202173a5 data/minecraft/tags/enchantment/exclusive_set/damage.json
+a5f6d0fc13b347211633158cc79a0b16ef255e74 data/minecraft/tags/enchantment/on_random_loot.json
+a5f6d0fc13b347211633158cc79a0b16ef255e74 data/minecraft/tags/enchantment/tradeable.json
+a5f6d0fc13b347211633158cc79a0b16ef255e74 data/minecraft/tags/enchantment/treasure.json

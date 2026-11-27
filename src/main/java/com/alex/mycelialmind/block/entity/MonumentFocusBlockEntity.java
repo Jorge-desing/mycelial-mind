@@ -10,6 +10,7 @@ import com.alex.mycelialmind.hive.SynapticMemoryRouter;
 import com.alex.mycelialmind.registry.ModAdvancements;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
+import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
 import com.alex.mycelialmind.registry.ModSounds;
@@ -164,12 +165,26 @@ public class MonumentFocusBlockEntity extends TieredStationBlockEntity {
         setPurificationCharge(this.purificationCharge - amount);
     }
 
+    public static int resolvePylonRechargeAmount(ItemStack catalyst) {
+        if (catalyst.isEmpty()) {
+            return 0;
+        }
+        @SuppressWarnings("deprecation")
+        ModDataMaps.PylonFuelData data = BuiltInRegistries.ITEM
+                .wrapAsHolder(catalyst.getItem())
+                .getData(ModDataMaps.PYLON_FUEL);
+        if (data != null) {
+            return data.chargeRestore();
+        }
+        String path = BuiltInRegistries.ITEM.getKey(catalyst.getItem()).getPath();
+        return AcquisitionDifficultyEngine.pylonRechargeAmount(path);
+    }
+
     public boolean canRechargeWith(ItemStack catalyst) {
         if (catalyst.isEmpty() || !getBlockState().is(ModBlocks.PURIFICATION_PYLON.get())) {
             return false;
         }
-        String path = BuiltInRegistries.ITEM.getKey(catalyst.getItem()).getPath();
-        return AcquisitionDifficultyEngine.pylonRechargeAmount(path) > 0
+        return resolvePylonRechargeAmount(catalyst) > 0
                 && this.purificationCharge < AcquisitionDifficultyEngine.PYLON_MAX_CHARGE;
     }
 
@@ -179,8 +194,7 @@ public class MonumentFocusBlockEntity extends TieredStationBlockEntity {
                 || catalyst.isEmpty()) {
             return false;
         }
-        String path = BuiltInRegistries.ITEM.getKey(catalyst.getItem()).getPath();
-        int gain = AcquisitionDifficultyEngine.pylonRechargeAmount(path);
+        int gain = resolvePylonRechargeAmount(catalyst);
         if (gain <= 0 || this.purificationCharge >= AcquisitionDifficultyEngine.PYLON_MAX_CHARGE) {
             return false;
         }

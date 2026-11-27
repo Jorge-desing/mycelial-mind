@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-26T13:30:21.7393634	Tags for minecraft:item mod id mycelialmind
+// 1.21.1	2026-11-26T22:34:38.5505945	Tags for minecraft:item mod id mycelialmind
 6b2c4fe2025d16849eb4e23380ec8f84089cdfa6 data/curios/tags/item/belt.json
 240c5d4638505985bff5aa764ea3d962afa2a088 data/curios/tags/item/charm.json
 0c47816fccb790d9569bf4f4befce1e04a953b5d data/curios/tags/item/head.json
@@ -14,6 +14,7 @@ a4fbb77bd76630072c940af281e6c17544e6d6c4 data/minecraft/tags/item/enchantable/du
 7838d090388a1a735246be64a37fff99f430e750 data/minecraft/tags/item/head_armor.json
 3c69f1179b9327d48ed3180d8f025bbd08c0b4ce data/minecraft/tags/item/leg_armor.json
 3c8063a8a1be323ae6f8a4cf88059e4b2676cd3a data/minecraft/tags/item/swords.json
+32a3b16cd4e08372a7f63086e1a4cc461afb115c data/mycelialmind/tags/item/enchantable/bio_extractor.json
 074b3498aa9b1b7e087c91162313d5bff2016b06 data/sereneseasons/tags/item/autumn_crops.json
 074b3498aa9b1b7e087c91162313d5bff2016b06 data/sereneseasons/tags/item/spring_crops.json
 074b3498aa9b1b7e087c91162313d5bff2016b06 data/sereneseasons/tags/item/summer_crops.json

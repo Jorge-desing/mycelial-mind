@@ -7875,6 +7875,58 @@ public final class MycelialGameTests {
                 level.removeBlock(dispPos, false);
             }
 
+            // 7. Wave 3: Data-driven treasure enchantments, station DataMaps, and MobEffectEvent.Applicable immunity
+            var enchRegistry = level.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+            for (var enchKey : com.alex.mycelialmind.registry.ModEnchantments.ALL) {
+                var enchHolder = enchRegistry.getHolder(enchKey).orElse(null);
+                helper.assertTrue(enchHolder != null, "Missing custom enchantment: " + enchKey.location());
+                helper.assertTrue(enchHolder.is(net.minecraft.tags.EnchantmentTags.TREASURE),
+                        "Expected TREASURE tag on " + enchKey.location());
+                helper.assertTrue(!enchHolder.is(net.minecraft.tags.EnchantmentTags.IN_ENCHANTING_TABLE),
+                        "Treasure enchantment must NOT be in enchanting table: " + enchKey.location());
+            }
+            var antimycoticHolder = enchRegistry.getHolderOrThrow(com.alex.mycelialmind.registry.ModEnchantments.ANTIMYCOTIC);
+            helper.assertTrue(antimycoticHolder.is(net.minecraft.tags.EnchantmentTags.DAMAGE_EXCLUSIVE),
+                    "Antimycotic must belong to DAMAGE_EXCLUSIVE");
+
+            var amethystPylonFuel = net.minecraft.world.item.Items.AMETHYST_SHARD.builtInRegistryHolder()
+                    .getData(com.alex.mycelialmind.registry.ModDataMaps.PYLON_FUEL);
+            var antidoteTurretAmmo = ModItems.CONCENTRATED_ANTIDOTE.get().builtInRegistryHolder()
+                    .getData(com.alex.mycelialmind.registry.ModDataMaps.TURRET_AMMO);
+            helper.assertTrue(amethystPylonFuel != null && amethystPylonFuel.chargeRestore() == 25
+                            && MonumentFocusBlockEntity.resolvePylonRechargeAmount(
+                                    new ItemStack(net.minecraft.world.item.Items.AMETHYST_SHARD)) == 25,
+                    "PYLON_FUEL DataMap must resolve amethyst_shard = 25");
+            helper.assertTrue(antidoteTurretAmmo != null && antidoteTurretAmmo.ammoRestore() == 64
+                            && PurificationTurretBlockEntity.resolveTurretAmmoGain(
+                                    new ItemStack(ModItems.CONCENTRATED_ANTIDOTE.get())) == 64,
+                    "TURRET_AMMO DataMap must resolve concentrated_antidote = 64");
+
+            var sporeling = ModEntities.SPORELING.get().create(level);
+            var drone = ModEntities.PURIFIER_DRONE.get().create(level);
+            helper.assertTrue(sporeling != null && drone != null, "Sporeling and PurifierDrone must instantiate");
+            try {
+                sporeling.moveTo(symPos.getX() + 1.5, symPos.getY() + 1.0, symPos.getZ() + 4.5);
+                drone.moveTo(symPos.getX() + 3.5, symPos.getY() + 1.0, symPos.getZ() + 4.5);
+                level.addFreshEntity(sporeling);
+                level.addFreshEntity(drone);
+                helper.assertTrue(!sporeling.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 100, 0))
+                                && !sporeling.hasEffect(ModEffects.MYCELIAL_INFECTION)
+                                && !sporeling.addEffect(new MobEffectInstance(ModEffects.SPORE_ROT, 100, 0))
+                                && !sporeling.hasEffect(ModEffects.SPORE_ROT),
+                        "MobEffectEvent.Applicable must block MYCELIAL_INFECTION and SPORE_ROT on MycelialMob");
+                helper.assertTrue(!drone.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 100, 0))
+                                && !drone.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                        "MobEffectEvent.Applicable must block MYCELIAL_INFECTION on PurifierDrone");
+                boolean playerInfected = tester.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 100, 0));
+                helper.assertTrue(playerInfected && tester.hasEffect(ModEffects.MYCELIAL_INFECTION),
+                        "Players must still receive MYCELIAL_INFECTION (mitigated, not blocked)");
+            } finally {
+                if (sporeling != null) sporeling.discard();
+                if (drone != null) drone.discard();
+                tester.removeEffect(ModEffects.MYCELIAL_INFECTION);
+            }
+
             helper.succeed();
         } finally {
             if (behemoth != null) behemoth.discard();

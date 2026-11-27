@@ -34,6 +34,9 @@ import com.alex.mycelialmind.item.TooltipMaterialItem;
 import com.alex.mycelialmind.item.TrucePheromoneItem;
 import com.alex.mycelialmind.item.VolatileEngramItem;
 import net.minecraft.ChatFormatting;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ArmorItem;
@@ -53,6 +56,9 @@ import java.util.function.Supplier;
  */
 public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MycelialMind.MODID);
+
+    public static final TagKey<Item> BIO_EXTRACTOR_ENCHANTABLE = ItemTags.create(
+            ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "enchantable/bio_extractor"));
 
     // Tools & Arsenal
     public static final DeferredItem<Item> BIO_SCANNER = ITEMS.register("bio_scanner",

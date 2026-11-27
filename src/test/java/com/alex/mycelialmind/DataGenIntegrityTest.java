@@ -174,7 +174,7 @@ class DataGenIntegrityTest {
     void allGeneratedDataJsonFilesParseCleanly() throws IOException {
         Path genModData = GENERATED_RESOURCES.resolve("data/mycelialmind");
         List<String> categories = List.of(
-                "recipe", "loot_table", "worldgen", "dimension", "dimension_type", "damage_type", "neoforge");
+                "recipe", "loot_table", "worldgen", "dimension", "dimension_type", "damage_type", "enchantment", "neoforge");
         int parsedFiles = 0;
 
         for (String category : categories) {
@@ -195,8 +195,8 @@ class DataGenIntegrityTest {
             }
         }
 
-        assertEquals(172, parsedFiles,
-                "Expected 172 generated JSON files across recipes/loot/worldgen/dimension/damage_type/neoforge");
+        assertEquals(175, parsedFiles,
+                "Expected 175 generated JSON files across recipes/loot/worldgen/dimension/damage_type/enchantment/neoforge");
 
         Path synapticRecipesDir = genModData.resolve("recipe/synaptic_synthesis");
         assertTrue(Files.isDirectory(synapticRecipesDir), "Missing generated recipe/synaptic_synthesis directory");
@@ -215,7 +215,9 @@ class DataGenIntegrityTest {
 
         for (String customDataMap : List.of(
                 "data_maps/damage_type/damage_stimulus.json",
-                "data_maps/item/symbiotic_nutrient.json"
+                "data_maps/item/symbiotic_nutrient.json",
+                "data_maps/item/pylon_fuel.json",
+                "data_maps/item/turret_ammo.json"
         )) {
             Path path = genModData.resolve(customDataMap);
             assertTrue(Files.isRegularFile(path), "Missing custom DataMap JSON: " + customDataMap);

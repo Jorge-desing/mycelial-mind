@@ -5,6 +5,7 @@ import com.alex.mycelialmind.hive.AdaptationTrait;
 import com.alex.mycelialmind.hive.FieldEngramId;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
+import com.alex.mycelialmind.registry.ModEnchantments;
 import com.alex.mycelialmind.registry.ModItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import net.minecraft.world.level.storage.loot.functions.SetComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
@@ -29,7 +31,22 @@ import java.util.function.BiConsumer;
  * Generates all 11 structure, vault, and surface-hive chest loot tables.
  */
 public final class MycelialChestLootSubProvider implements LootTableSubProvider {
+    private final HolderLookup.Provider registries;
+
     public MycelialChestLootSubProvider(HolderLookup.Provider registries) {
+        this.registries = registries;
+    }
+
+    private LootPool.Builder treasureBookPool(float chance) {
+        var enchLookup = this.registries.lookupOrThrow(Registries.ENCHANTMENT);
+        return LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .when(LootItemRandomChanceCondition.randomChance(chance))
+                .add(LootItem.lootTableItem(Items.BOOK)
+                        .apply(EnchantRandomlyFunction.randomEnchantment()
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.ANTIMYCOTIC))
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.BIO_WARD))
+                                .withEnchantment(enchLookup.getOrThrow(ModEnchantments.SYNAPTIC_HARVEST))));
     }
 
     private static ResourceKey<LootTable> chest(String name) {
@@ -68,7 +85,7 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
         generateSurfaceHiveTables(output);
     }
 
-    private static void generateCitadelTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
+    private void generateCitadelTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
         output.accept(chest("citadel_amber_chapel"), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
                         .setRolls(UniformGenerator.between(2.0F, 3.0F))
@@ -145,10 +162,11 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
                         .setRolls(ConstantValue.exactly(1.0F))
                         .when(LootItemRandomChanceCondition.randomChance(0.55F))
                         .add(fieldEngram(50, FieldEngramId.HOMEOSTASIS_TRAUMA))
-                        .add(fieldEngram(50, FieldEngramId.PRIMORDIAL_LINEAGE))));
+                        .add(fieldEngram(50, FieldEngramId.PRIMORDIAL_LINEAGE)))
+                .withPool(treasureBookPool(0.35F)));
     }
 
-    private static void generateSanctumTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
+    private void generateSanctumTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
         output.accept(chest("sanctum_forbidden_lab"), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
                         .setRolls(UniformGenerator.between(2.0F, 3.0F))
@@ -254,10 +272,11 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
                 .withPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1.0F))
                         .when(LootItemRandomChanceCondition.randomChance(0.40F))
-                        .add(fieldEngram(100, FieldEngramId.HOMEOSTASIS_TRAUMA))));
+                        .add(fieldEngram(100, FieldEngramId.HOMEOSTASIS_TRAUMA)))
+                .withPool(treasureBookPool(0.25F)));
     }
 
-    private static void generateDimensionalBreachTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
+    private void generateDimensionalBreachTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
         output.accept(chest("nether_breach_reliquary"), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
                         .setRolls(UniformGenerator.between(2.0F, 3.0F))
@@ -285,7 +304,8 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
                 .withPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1.0F))
                         .when(LootItemRandomChanceCondition.randomChance(0.45F))
-                        .add(fieldEngram(100, FieldEngramId.TIDE_PRESSURE))));
+                        .add(fieldEngram(100, FieldEngramId.TIDE_PRESSURE)))
+                .withPool(treasureBookPool(0.30F)));
 
         output.accept(chest("end_spire_vault"), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
@@ -314,10 +334,11 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
                 .withPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1.0F))
                         .when(LootItemRandomChanceCondition.randomChance(0.45F))
-                        .add(fieldEngram(100, FieldEngramId.MIMIC_DECEPTION))));
+                        .add(fieldEngram(100, FieldEngramId.MIMIC_DECEPTION)))
+                .withPool(treasureBookPool(0.30F)));
     }
 
-    private static void generateOutbreakAndSinkholeTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
+    private void generateOutbreakAndSinkholeTables(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
         output.accept(chest("outbreak_sealed_vault"), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
                         .setRolls(UniformGenerator.between(2.0F, 3.0F))
@@ -343,7 +364,8 @@ public final class MycelialChestLootSubProvider implements LootTableSubProvider 
                 .withPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1.0F))
                         .when(LootItemRandomChanceCondition.randomChance(0.45F))
-                        .add(fieldEngram(100, FieldEngramId.OUTBREAK_SIGNAL))));
+                        .add(fieldEngram(100, FieldEngramId.OUTBREAK_SIGNAL)))
+                .withPool(treasureBookPool(0.20F)));
 
         output.accept(chest("sinkhole_root_vault"), LootTable.lootTable()
                 .withPool(LootPool.lootPool()

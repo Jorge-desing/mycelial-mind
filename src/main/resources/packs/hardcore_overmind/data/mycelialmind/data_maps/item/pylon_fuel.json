@@ -1,0 +1,8 @@
+{
+  "values": {
+    "minecraft:amethyst_shard": { "charge_restore": 16 },
+    "mycelialmind:latent_spore": { "charge_restore": 10 },
+    "mycelialmind:mycelial_biomass": { "charge_restore": 6 },
+    "mycelialmind:synaptic_core": { "charge_restore": 65 }
+  }
+}

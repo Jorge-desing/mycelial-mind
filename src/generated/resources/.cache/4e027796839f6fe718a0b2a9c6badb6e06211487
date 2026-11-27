@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-26T13:30:21.7393634	Tags for minecraft:entity_type mod id mycelialmind
+// 1.21.1	2026-11-26T22:34:38.548594	Tags for minecraft:entity_type mod id mycelialmind
 59f6bc9c5392b20b4f74ac402cf408fa7c48c247 data/carryon/tags/entity_type/entity_blacklist.json
 e27f1fd7fbef2bcedf6a592c2b5dfab6f535fcef data/c/tags/entity_type/bosses.json
 e27f1fd7fbef2bcedf6a592c2b5dfab6f535fcef data/c/tags/entity_type/capturing_not_supported.json
@@ -6,3 +6,4 @@ e27f1fd7fbef2bcedf6a592c2b5dfab6f535fcef data/c/tags/entity_type/teleporting_not
 b0b3bee6a40eacdfa0f27086e381242aa601170b data/industrialforegoing/tags/entity_type/mob_duplicator_blacklist.json
 b0b3bee6a40eacdfa0f27086e381242aa601170b data/industrialforegoing/tags/entity_type/mob_imprisonment_tool_blacklist.json
 c3b8ed3ace4690162ad314b2aab7dd1be2d06574 data/minecraft/tags/entity_type/fall_damage_immune.json
+e541a8cb30db4f68c43ee2fd0d0e2f7b0761501b data/mycelialmind/tags/entity_type/mycelial_mobs.json

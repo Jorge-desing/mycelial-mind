@@ -5,14 +5,21 @@ import com.alex.mycelialmind.block.entity.PurificationTurretBlockEntity;
 import com.alex.mycelialmind.block.entity.SovereignNexusBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticBenchBlockEntity;
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
+import com.alex.mycelialmind.config.MycelialConfig;
 import com.alex.mycelialmind.diplomacy.PlayerDiplomacyData;
+import com.alex.mycelialmind.entity.ColonySymbiontEntity;
+import com.alex.mycelialmind.entity.MycelialChimeraEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
+import com.alex.mycelialmind.entity.PurifierDroneEntity;
 import com.alex.mycelialmind.hive.AdaptationTrait;
+import com.alex.mycelialmind.hive.HiveMindSavedData;
 import com.alex.mycelialmind.hive.PlayerDiscoveryData;
 import com.alex.mycelialmind.hive.ProgressionGoalEngine;
 import com.alex.mycelialmind.item.TrucePheromoneItem;
 import com.alex.mycelialmind.network.DiplomacySyncPayload;
 import com.alex.mycelialmind.network.DiscoverySyncPayload;
+import com.alex.mycelialmind.network.HiveSyncPayload;
+import com.alex.mycelialmind.network.ModNetworking;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlockEntities;
 import com.alex.mycelialmind.registry.ModBlocks;
@@ -45,6 +52,7 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -52,11 +60,13 @@ import net.neoforged.neoforge.common.BasicItemListing;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.neoforged.neoforge.event.brewing.RegisterBrewingRecipesEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.event.village.WandererTradesEvent;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -76,7 +86,42 @@ public final class MycelialVanillaIntegration {
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(MycelialVanillaIntegration::onRegisterCapabilities);
         modEventBus.addListener(MycelialVanillaIntegration::onCommonSetup);
+        modEventBus.addListener(MycelialVanillaIntegration::onConfigReloading);
         NeoForge.EVENT_BUS.register(MycelialVanillaIntegration.class);
+    }
+
+    public static void onConfigReloading(ModConfigEvent.Reloading event) {
+        if (event.getConfig().getSpec() != MycelialConfig.SPEC) {
+            return;
+        }
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) {
+            return;
+        }
+        server.execute(() -> {
+            for (ServerLevel level : server.getAllLevels()) {
+                HiveMindSavedData.get(level).recomputeActiveTraits(level.getGameTime());
+                ModNetworking.sendToPlayersInLevelReady(level, player -> HiveSyncPayload.forPlayer(level, player));
+            }
+        });
+    }
+
+    public static boolean isNativelyImmuneToMycelialDebuffs(@Nullable LivingEntity entity) {
+        return entity instanceof MycelialMob
+                || entity instanceof PurifierDroneEntity
+                || entity instanceof MycelialChimeraEntity
+                || entity instanceof ColonySymbiontEntity;
+    }
+
+    @SubscribeEvent
+    public static void onMobEffectApplicable(MobEffectEvent.Applicable event) {
+        if (!event.getEffectInstance().is(ModEffects.MYCELIAL_INFECTION)
+                && !event.getEffectInstance().is(ModEffects.SPORE_ROT)) {
+            return;
+        }
+        if (isNativelyImmuneToMycelialDebuffs(event.getEntity())) {
+            event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
+        }
     }
 
     private static void onCommonSetup(FMLCommonSetupEvent event) {

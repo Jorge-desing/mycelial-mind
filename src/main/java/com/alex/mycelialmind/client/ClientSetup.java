@@ -73,6 +73,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
@@ -511,6 +512,11 @@ public final class ClientSetup {
         private static boolean clientSessionActive = false;
 
         private ClientAtmosphereHandler() {
+        }
+
+        @SubscribeEvent
+        public static void onRegisterClientCommands(RegisterClientCommandsEvent event) {
+            MycelialClientCommands.register(event);
         }
 
         @SubscribeEvent

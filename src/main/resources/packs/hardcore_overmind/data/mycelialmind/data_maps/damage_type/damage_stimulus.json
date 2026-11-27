@@ -1,0 +1,20 @@
+{
+  "values": {
+    "mycelialmind:acid_rain": { "stimulus": "magic", "weight_multiplier": 1.5 },
+    "mycelialmind:acid_spit": { "stimulus": "magic", "weight_multiplier": 1.5 },
+    "mycelialmind:bio_enzyme": { "stimulus": "magic", "weight_multiplier": 1.5 },
+    "mycelialmind:psychic_surge": { "stimulus": "magic", "weight_multiplier": 1.5 },
+    "mycelialmind:purification_purge": { "stimulus": "magic", "weight_multiplier": 1.5 },
+    "minecraft:on_fire": { "stimulus": "fire", "weight_multiplier": 1.5 },
+    "minecraft:in_fire": { "stimulus": "fire", "weight_multiplier": 1.5 },
+    "minecraft:lava": { "stimulus": "fire", "weight_multiplier": 1.5 },
+    "minecraft:arrow": { "stimulus": "projectile", "weight_multiplier": 1.5 },
+    "minecraft:trident": { "stimulus": "projectile", "weight_multiplier": 1.5 },
+    "minecraft:explosion": { "stimulus": "explosion", "weight_multiplier": 1.5 },
+    "minecraft:player_explosion": { "stimulus": "explosion", "weight_multiplier": 1.5 },
+    "minecraft:magic": { "stimulus": "magic", "weight_multiplier": 1.5 },
+    "minecraft:indirect_magic": { "stimulus": "magic", "weight_multiplier": 1.5 },
+    "minecraft:player_attack": { "stimulus": "melee", "weight_multiplier": 1.5 },
+    "minecraft:mob_attack": { "stimulus": "melee", "weight_multiplier": 1.5 }
+  }
+}

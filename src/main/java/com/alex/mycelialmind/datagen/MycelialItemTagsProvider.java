@@ -131,5 +131,7 @@ public final class MycelialItemTagsProvider extends ItemTagsProvider {
         tag(SERENE_SUMMER_CROPS).add(fungalFloraItems);
         tag(SERENE_AUTUMN_CROPS).add(fungalFloraItems);
         tag(SERENE_WINTER_CROPS).add(fungalFloraItems);
+
+        tag(ModItems.BIO_EXTRACTOR_ENCHANTABLE).add(ModItems.BIO_EXTRACTOR.get());
     }
 }

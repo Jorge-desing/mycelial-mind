@@ -27,6 +27,8 @@ import com.alex.mycelialmind.entity.projectile.AcidSpitProjectile;
 import com.alex.mycelialmind.entity.projectile.NeutralizingSporeProjectile;
 import com.alex.mycelialmind.entity.projectile.PurifierGrenadeProjectile;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -48,6 +50,9 @@ import java.util.function.Supplier;
 public final class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(Registries.ENTITY_TYPE, MycelialMind.MODID);
+
+    public static final TagKey<EntityType<?>> MYCELIAL_MOBS = TagKey.create(
+            Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(MycelialMind.MODID, "mycelial_mobs"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SporelingEntity>> SPORELING =
             ENTITY_TYPES.register("sporeling", () -> EntityType.Builder.of(SporelingEntity::new, MobCategory.MONSTER)

@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-26T13:52:01.570349	Registries
+// 1.21.1	2026-11-26T22:34:38.5505945	Registries
 411cdb8b399b25318217bcd8c53f8bafb3f971b9 data/mycelialmind/damage_type/acid_rain.json
 2e1fb595b263c5782ecf6ece629f67e022b8cd2e data/mycelialmind/damage_type/acid_spit.json
 3335faaaf8520ead434b8dd9421756e523553efa data/mycelialmind/damage_type/bio_enzyme.json
@@ -6,6 +6,9 @@ e55c5af77985857dbdba3847fa5ee253aca88046 data/mycelialmind/damage_type/psychic_s
 897591042e37d70e67056c505429b0e952cf0d15 data/mycelialmind/damage_type/purification_purge.json
 9d7593788958fc9a5cfeebbcec961da9dc8ae6d8 data/mycelialmind/dimension/deep_mycelium.json
 b358f05129308342be2bd8bcd8f1919ef4c87695 data/mycelialmind/dimension_type/deep_mycelium.json
+71500098aaf57015f5c4e70f9498f5a5dfc241db data/mycelialmind/enchantment/antimycotic.json
+914658b688101d911ea4a93b3939238025e1d276 data/mycelialmind/enchantment/bio_ward.json
+b6e1d258983f06c4f79ebc81ed1393038ca94b86 data/mycelialmind/enchantment/synaptic_harvest.json
 9b0665309b729cb7fdfa07a46f0e4fc50886e322 data/mycelialmind/neoforge/biome_modifier/mycelial_features.json
 f7d43aa3d24e276987d3d7431e2d4896da8004f0 data/mycelialmind/neoforge/biome_modifier/mycelial_spawns.json
 3b399f11898d718a136638642bab183f1bdecac8 data/mycelialmind/worldgen/biome/deep_mycelium_caverns.json

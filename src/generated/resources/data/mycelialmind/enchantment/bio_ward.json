@@ -1,0 +1,44 @@
+{
+  "anvil_cost": 2,
+  "description": {
+    "translate": "enchantment.mycelialmind.bio_ward"
+  },
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.1,
+          "per_level_above_first": 0.1
+        },
+        "attribute": "mycelialmind:infection_resistance",
+        "id": "mycelialmind:enchantment.bio_ward.infection_resistance",
+        "operation": "add_value"
+      },
+      {
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.08,
+          "per_level_above_first": 0.08
+        },
+        "attribute": "mycelialmind:acid_resistance",
+        "id": "mycelialmind:enchantment.bio_ward.acid_resistance",
+        "operation": "add_value"
+      }
+    ]
+  },
+  "max_cost": {
+    "base": 38,
+    "per_level_above_first": 10
+  },
+  "max_level": 3,
+  "min_cost": {
+    "base": 12,
+    "per_level_above_first": 10
+  },
+  "slots": [
+    "armor"
+  ],
+  "supported_items": "#minecraft:enchantable/armor",
+  "weight": 4
+}

@@ -15,12 +15,14 @@ import com.alex.mycelialmind.network.DiscoverySyncPayload;
 import com.alex.mycelialmind.registry.ModAttachments;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModDataComponents;
+import com.alex.mycelialmind.registry.ModEnchantments;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModStats;
 import com.alex.mycelialmind.util.MycelialText;
 import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,6 +37,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
@@ -60,9 +63,11 @@ public class BioExtractorItem extends Item {
             if (player.getCooldowns().isOnCooldown(this)) {
                 return InteractionResult.FAIL;
             }
-            float maxRatio = mob.isPrimordialVariant()
+            int harvestLevel = getSynapticHarvestLevel(serverLevel, stack);
+            float baseRatio = mob.isPrimordialVariant()
                     ? 0.60F
                     : com.alex.mycelialmind.hive.AcquisitionDifficultyEngine.EXTRACTOR_MAX_HEALTH_RATIO;
+            float maxRatio = ModEnchantments.computeSynapticHarvestMaxHealthRatio(baseRatio, harvestLevel);
             if (mob.getHealth() > mob.getMaxHealth() * maxRatio) {
                 player.displayClientMessage(Component.translatable("message.mycelialmind.extractor_target_too_strong")
                         .withStyle(ChatFormatting.YELLOW), true);
@@ -80,6 +85,10 @@ public class BioExtractorItem extends Item {
             }
             AdaptationTrait sampled = active.get(mob.getRandom().nextInt(active.size()));
             int count = (mob.getEvolutionRank() == EvolutionRank.ELITE ? 2 : 1) + (primordial ? 1 : 0);
+            if (harvestLevel > 0 && serverLevel.getRandom().nextFloat()
+                    < ModEnchantments.computeSynapticHarvestBonusChance(harvestLevel)) {
+                count++;
+            }
             giveSample(player, sampled, count);
             if (primordial) {
                 ItemStack extraSpore = new ItemStack(ModItems.LATENT_SPORE.get(), 1);
@@ -112,7 +121,8 @@ public class BioExtractorItem extends Item {
             serverLevel.sendParticles(ModParticles.NECROTIC_MIST.get(), mob.getX(), mob.getY(0.5), mob.getZ(),
                     12, 0.3, 0.4, 0.3, 0.04);
             serverLevel.playSound(null, mob.blockPosition(), ModSounds.BIO_EXTRACTOR_DRAW.get(), SoundSource.PLAYERS, 0.9F, 1.2F);
-            player.getCooldowns().addCooldown(this, primordial ? 20 : 40);
+            player.getCooldowns().addCooldown(this,
+                    ModEnchantments.computeSynapticHarvestCooldown(primordial ? 20 : 40, harvestLevel));
             stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
         }
         return InteractionResult.sidedSuccess(player.level().isClientSide());
@@ -141,7 +151,9 @@ public class BioExtractorItem extends Item {
                 serverLevel.sendParticles(ModParticles.BIO_LUME.get(), pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5,
                         12, 0.3, 0.3, 0.3, 0.04);
                 serverLevel.playSound(null, pos, ModSounds.BIO_EXTRACTOR_DRAW.get(), SoundSource.PLAYERS, 0.9F, 1.3F);
-                player.getCooldowns().addCooldown(this, 60);
+                int harvestLevel = getSynapticHarvestLevel(serverLevel, context.getItemInHand());
+                player.getCooldowns().addCooldown(this,
+                        ModEnchantments.computeSynapticHarvestCooldown(60, harvestLevel));
                 context.getItemInHand().hurtAndBreak(1, player,
                         context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                 return InteractionResult.CONSUME;
@@ -170,7 +182,10 @@ public class BioExtractorItem extends Item {
                 if (dominant == null) {
                     return InteractionResult.FAIL;
                 }
-                giveSample(player, dominant, 1);
+                int harvestLevel = getSynapticHarvestLevel(serverLevel, context.getItemInHand());
+                int count = 1 + (harvestLevel > 0 && serverLevel.getRandom().nextFloat()
+                        < ModEnchantments.computeSynapticHarvestBonusChance(harvestLevel) ? 1 : 0);
+                giveSample(player, dominant, count);
                 if (!(clickedState.getBlock() instanceof SymbioticNodeBlock)) {
                     PurificationZoneTracker.get(serverLevel).alertNearbyNodes(serverLevel, pos, 160);
                     triggerExtractionBacklash(serverLevel, pos, player, null);
@@ -178,7 +193,8 @@ public class BioExtractorItem extends Item {
                 serverLevel.sendParticles(ModParticles.BIO_LUME.get(), pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
                         12, 0.3, 0.3, 0.3, 0.04);
                 serverLevel.playSound(null, pos, ModSounds.BIO_EXTRACTOR_DRAW.get(), SoundSource.PLAYERS, 0.9F, 1.1F);
-                player.getCooldowns().addCooldown(this, 60);
+                player.getCooldowns().addCooldown(this,
+                        ModEnchantments.computeSynapticHarvestCooldown(60, harvestLevel));
                 context.getItemInHand().hurtAndBreak(1, player,
                         context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                 return InteractionResult.CONSUME;
@@ -245,6 +261,19 @@ public class BioExtractorItem extends Item {
             serverPlayer.awardStat(ModStats.SAMPLES_EXTRACTED.get(), Math.max(1, count));
             DiscoverySyncPayload.syncToPlayer(serverPlayer);
         }
+    }
+
+    private static int getSynapticHarvestLevel(ServerLevel level, ItemStack stack) {
+        return level.registryAccess()
+                .lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(ModEnchantments.SYNAPTIC_HARVEST))
+                .map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder, stack))
+                .orElse(0);
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return 12;
     }
 
     @Override

@@ -84,6 +84,8 @@ public final class ModDataGenerators {
                 output, datapackLookup, existingFileHelper));
         generator.addProvider(includeServer, new MycelialDamageTypeTagsProvider(
                 output, datapackLookup, existingFileHelper));
+        generator.addProvider(includeServer, new MycelialEnchantmentTagsProvider(
+                output, datapackLookup, existingFileHelper));
 
         generator.addProvider(includeServer, new MycelialRecipeProvider(output, lookupProvider));
         generator.addProvider(includeServer, new AdvancementProvider(
@@ -105,7 +107,7 @@ public final class ModDataGenerators {
                         new LootTableProvider.SubProviderEntry(
                                 MycelialGameplayLootSubProvider::new, LootContextParamSets.GIFT)
                 ),
-                lookupProvider
+                datapackLookup
         ));
 
         generator.addProvider(includeServer, new MycelialDataMapProvider(output, datapackLookup));
@@ -171,6 +173,18 @@ public final class ModDataGenerators {
                     .add(ModBlocks.ROOT_SAP_MOSS.getId(), new ModDataMaps.SymbioticNutrientData(12), false)
                     .add(ModBlocks.SPORE_BULB.getId(), new ModDataMaps.SymbioticNutrientData(10), false)
                     .add(ModItems.LATENT_SPORE.getId(), new ModDataMaps.SymbioticNutrientData(8), false);
+
+            builder(ModDataMaps.PYLON_FUEL)
+                    .add(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(net.minecraft.world.item.Items.AMETHYST_SHARD), new ModDataMaps.PylonFuelData(25), false)
+                    .add(ModItems.LATENT_SPORE.getId(), new ModDataMaps.PylonFuelData(15), false)
+                    .add(ModItems.MYCELIAL_BIOMASS.getId(), new ModDataMaps.PylonFuelData(10), false)
+                    .add(ModItems.SYNAPTIC_CORE.getId(), new ModDataMaps.PylonFuelData(100), false);
+
+            builder(ModDataMaps.TURRET_AMMO)
+                    .add(ModItems.LATENT_SPORE.getId(), new ModDataMaps.TurretAmmoData(16), false)
+                    .add(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(net.minecraft.world.item.Items.AMETHYST_SHARD), new ModDataMaps.TurretAmmoData(24), false)
+                    .add(ModItems.SPORE_ANTIDOTE.getId(), new ModDataMaps.TurretAmmoData(32), false)
+                    .add(ModItems.CONCENTRATED_ANTIDOTE.getId(), new ModDataMaps.TurretAmmoData(64), false);
         }
     }
 

@@ -10,6 +10,7 @@ import com.alex.mycelialmind.entity.projectile.NeutralizingSporeProjectile;
 import com.alex.mycelialmind.hive.AcquisitionDifficultyEngine;
 import com.alex.mycelialmind.hive.SynapticCommandSystem;
 import com.alex.mycelialmind.registry.ModBlockEntities;
+import com.alex.mycelialmind.registry.ModDataMaps;
 import com.alex.mycelialmind.registry.ModEntities;
 import com.alex.mycelialmind.registry.ModItems;
 import com.alex.mycelialmind.registry.ModParticles;
@@ -147,12 +148,26 @@ public class PurificationTurretBlockEntity extends TieredStationBlockEntity {
         setAmmo(this.ammo - amount);
     }
 
+    public static int resolveTurretAmmoGain(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 0;
+        }
+        @SuppressWarnings("deprecation")
+        ModDataMaps.TurretAmmoData data = BuiltInRegistries.ITEM
+                .wrapAsHolder(stack.getItem())
+                .getData(ModDataMaps.TURRET_AMMO);
+        if (data != null) {
+            return data.ammoRestore();
+        }
+        String path = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+        return AcquisitionDifficultyEngine.turretAmmoGain(path);
+    }
+
     public boolean canReloadWith(ItemStack stack) {
         if (stack.isEmpty()) {
             return false;
         }
-        String path = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-        return AcquisitionDifficultyEngine.turretAmmoGain(path) > 0
+        return resolveTurretAmmoGain(stack) > 0
                 && this.ammo < AcquisitionDifficultyEngine.TURRET_MAX_AMMO;
     }
 
@@ -160,8 +175,7 @@ public class PurificationTurretBlockEntity extends TieredStationBlockEntity {
         if (!(this.level instanceof ServerLevel serverLevel) || stack.isEmpty()) {
             return false;
         }
-        String path = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-        int gain = AcquisitionDifficultyEngine.turretAmmoGain(path);
+        int gain = resolveTurretAmmoGain(stack);
         if (gain <= 0 || this.ammo >= AcquisitionDifficultyEngine.TURRET_MAX_AMMO) {
             return false;
         }
