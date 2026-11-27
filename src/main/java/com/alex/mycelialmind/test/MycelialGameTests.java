@@ -12832,4 +12832,20 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = "empty", batch = "mixin_infrastructure", timeoutTicks = 100)
+    public static void mixinAndMixinExtrasRuntimeProbeWorks(GameTestHelper helper) {
+        com.alex.mycelialmind.util.MixinRuntimeProbe.resetForTests();
+        var mob = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 2, 1, 2);
+        try {
+            double visibility = mob.getVisibilityPercent(null);
+            helper.assertTrue(com.alex.mycelialmind.util.MixinRuntimeProbe.isLivingEntityHookInvoked(),
+                    "LivingEntityMixin with MixinExtras @ModifyReturnValue must intercept getVisibilityPercent at runtime.");
+            helper.assertTrue(Math.abs(visibility - 1.0D) < 1e-6,
+                    "Base verification mixin must preserve vanilla getVisibilityPercent return value, got: " + visibility);
+            helper.succeed();
+        } finally {
+            mob.discard();
+        }
+    }
+
 }
