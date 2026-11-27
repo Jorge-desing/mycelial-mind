@@ -56,7 +56,8 @@ public final class SurfaceOutbreakFissure {
                 BlockPos cave = floor.relative(direction).above();
                 if (intersectsRoute(route, cave) || !WorldgenFeatureSupport.isSafeToOverwrite(level, cave)
                         || level.getBlockState(cave).is(ModBlocks.HIVE_PROTECTED_BLOCKS)
-                        || !natural(level.getBlockState(cave)) || !level.getFluidState(cave).isEmpty()
+                        || !growthSubstrate(level.getBlockState(cave)) || !level.getFluidState(cave).isEmpty()
+                        || !growthSubstrate(level.getBlockState(cave.below()))
                         || !level.getBlockState(cave.below()).isSolid()
                         || !level.getBlockState(cave).isFaceSturdy(level, cave, Direction.UP)
                         || !level.getBlockState(cave.above()).isAir()
@@ -144,9 +145,16 @@ public final class SurfaceOutbreakFissure {
         return true;
     }
 
+    private static boolean growthSubstrate(BlockState state) {
+        return state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.DIRT)
+                || state.is(ModBlocks.MYCELIAL_STONE.get());
+    }
+
     private static boolean natural(BlockState state) {
-        return state.isAir() || state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.DIRT)
-                || state.is(BlockTags.SAND) || state.is(BlockTags.TERRACOTTA)
+        return state.isAir() || state.canBeReplaced() || state.is(BlockTags.BASE_STONE_OVERWORLD)
+                || state.is(Blocks.GRANITE) || state.is(Blocks.DIORITE) || state.is(Blocks.ANDESITE)
+                || state.is(Blocks.TUFF) || state.is(Blocks.CALCITE) || state.is(Blocks.SMOOTH_BASALT)
+                || state.is(BlockTags.DIRT) || state.is(BlockTags.SAND) || state.is(BlockTags.TERRACOTTA)
                 || state.is(Blocks.GRAVEL) || state.is(Blocks.CLAY) || state.is(Blocks.MUD)
                 || state.is(Blocks.SNOW_BLOCK);
     }

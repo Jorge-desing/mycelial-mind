@@ -8412,6 +8412,14 @@ public final class MycelialGameTests {
                 }
             }
 
+            // Ordinary cave rock variants are excavatable and become suitable growth floor.
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) == 2)
+                        level.setBlock(surfaceGround.offset(dx, -3, dz), Blocks.GRANITE.defaultBlockState(), 18);
+                }
+            }
+
             boolean naturalSurface = com.alex.mycelialmind.registry.ModFeatures.MYCELIAL_OUTBREAK.get().place(
                     net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.INSTANCE,
                     level, level.getChunkSource().getGenerator(), level.getRandom(), surfaceGround);
