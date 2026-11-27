@@ -50,6 +50,7 @@ public final class MycelialClientConfig {
     public static final ModConfigSpec.BooleanValue STATUS_VIGNETTE_ENABLED;
     public static final ModConfigSpec.BooleanValue UI_AUDIO_FEEDBACK_ENABLED;
     public static final ModConfigSpec.BooleanValue SMOOTH_HUD_BARS_ENABLED;
+    public static final ModConfigSpec.BooleanValue JOURNEYMAP_OVERLAYS_ENABLED;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -176,6 +177,12 @@ public final class MycelialClientConfig {
                 .define("smoothHudBarsEnabled", true);
         builder.pop();
 
+        builder.push("integrations");
+        JOURNEYMAP_OVERLAYS_ENABLED = builder
+                .comment("Render Purification Pylon zones, Synaptic Nodes, and inflamed Deep Mycelium chunks on JourneyMap when installed.")
+                .define("journeymapOverlaysEnabled", true);
+        builder.pop();
+
         SPEC = builder.build();
     }
 
@@ -300,6 +307,10 @@ public final class MycelialClientConfig {
 
     public static boolean smoothHudBarsEnabled() {
         return SPEC.isLoaded() ? SMOOTH_HUD_BARS_ENABLED.get() : SMOOTH_HUD_BARS_ENABLED.getDefault();
+    }
+
+    public static boolean journeyMapOverlaysEnabled() {
+        return SPEC.isLoaded() ? JOURNEYMAP_OVERLAYS_ENABLED.get() : JOURNEYMAP_OVERLAYS_ENABLED.getDefault();
     }
 
     public static int[] computeHudPosition(

@@ -2354,5 +2354,13 @@
   "tooltip.mycelialmind.bio_extractor.synaptic_harvest": "Cosecha Sináptica: extraer <=%d%% vida, -%d%% enfriamiento, +%d%% muestra extra",
   "tooltip.mycelialmind.datamap.pylon_fuel": "Combustible de Pilón: +%d carga",
   "tooltip.mycelialmind.datamap.turret_ammo": "Munición de Torreta: +%d cargas",
-  "tooltip.mycelialmind.datamap.symbiotic_nutrient": "Nutriente Simbiótico: +%d estabilidad"
+  "tooltip.mycelialmind.datamap.symbiotic_nutrient": "Nutriente Simbiótico: +%d estabilidad",
+  "mycelialmind.configuration.integrations": "Integraciones con Mods",
+  "mycelialmind.configuration.journeymapOverlaysEnabled": "Capas Territoriales en JourneyMap",
+  "mycelialmind.configuration.journeymapOverlaysEnabled.tooltip": "Muestra zonas de Pilones de Purificación, Nodos Sinápticos y chunks inflamados de Micelio Profundo en JourneyMap si está instalado.",
+  "journeymap.mycelialmind.group": "Mycelial Mind",
+  "journeymap.mycelialmind.pylon_active": "Pilón de Purificación (%dm)",
+  "journeymap.mycelialmind.pylon_smothered": "Pilón Ahogado (%dm)",
+  "journeymap.mycelialmind.node": "Nodo Sináptico: %s",
+  "journeymap.mycelialmind.inflamed_chunk": "Chunk Inflamado (%d%%)"
 }

@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Client-side cache of the latest synchronized Hive Mind state, stimulus scores,
@@ -60,6 +61,7 @@ public final class ClientHiveCache {
     private static boolean deepMyceliumBreached = false;
     private static boolean matriarchDefeated = false;
     private static int matriarchRemissionSecondsRemaining = 0;
+    private static final CopyOnWriteArrayList<Runnable> UPDATE_LISTENERS = new CopyOnWriteArrayList<>();
 
     static {
         for (StimulusType type : StimulusType.values()) {
@@ -403,6 +405,29 @@ public final class ClientHiveCache {
         deepMyceliumBreached = breached;
         matriarchDefeated = defeated;
         matriarchRemissionSecondsRemaining = Math.max(0, remissionSeconds);
+        notifyUpdateListeners();
+    }
+
+    public static void addUpdateListener(Runnable listener) {
+        if (listener != null && !UPDATE_LISTENERS.contains(listener)) {
+            UPDATE_LISTENERS.add(listener);
+        }
+    }
+
+    public static void removeUpdateListener(Runnable listener) {
+        if (listener != null) {
+            UPDATE_LISTENERS.remove(listener);
+        }
+    }
+
+    private static void notifyUpdateListeners() {
+        for (Runnable listener : UPDATE_LISTENERS) {
+            try {
+                listener.run();
+            } catch (RuntimeException ignored) {
+                // Keep cache updates resilient against optional integration listener failures.
+            }
+        }
     }
 
     public static double getThreatLevel() {

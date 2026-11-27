@@ -2,6 +2,9 @@ package com.alex.mycelialmind.world;
 
 import com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity;
 import com.alex.mycelialmind.config.MycelialConfig;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -17,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -49,12 +53,54 @@ public class PurificationZoneTracker extends SavedData {
     private final Map<BlockPos, SynapticNodeType> typedNodes = new HashMap<>();
     private final Set<BlockPos> sinkholePositions = new HashSet<>();
 
+    private final Cache<Long, Boolean> protectionCache = Caffeine.newBuilder()
+            .maximumSize(4096)
+            .recordStats()
+            .build();
+    private final Cache<Long, Optional<BlockPos>> nearestNodeCache = Caffeine.newBuilder()
+            .maximumSize(1024)
+            .recordStats()
+            .build();
+    private int cachedBasePylonRadius = -1;
+
+    private synchronized void invalidateSpatialCaches() {
+        protectionCache.invalidateAll();
+        nearestNodeCache.invalidateAll();
+    }
+
+    private static int getBasePylonRadiusSafe() {
+        try {
+            return MycelialConfig.SPEC.isLoaded()
+                    ? MycelialConfig.PYLON_PURIFICATION_RADIUS.get()
+                    : MycelialConfig.PYLON_PURIFICATION_RADIUS.getDefault();
+        } catch (RuntimeException ignored) {
+            return 24;
+        }
+    }
+
+    private synchronized void ensureRadiusCacheConsistency() {
+        int currentBase = getBasePylonRadiusSafe();
+        if (cachedBasePylonRadius != currentBase) {
+            cachedBasePylonRadius = currentBase;
+            protectionCache.invalidateAll();
+        }
+    }
+
+    public CacheStats getProtectionCacheStats() {
+        return protectionCache.stats();
+    }
+
+    public CacheStats getNearestNodeCacheStats() {
+        return nearestNodeCache.stats();
+    }
+
     public static PurificationZoneTracker get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
     }
 
     public synchronized void addPylon(BlockPos pos) {
         if (pylonPositions.add(pos.immutable())) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
@@ -66,6 +112,7 @@ public class PurificationZoneTracker extends SavedData {
         boolean removedTier = pylonTiers.remove(pos) != null;
         boolean removedBonus = pylonBonusRadii.remove(pos) != null;
         if (removed || unsmothered || undepleted || removedTier || removedBonus) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
@@ -79,6 +126,7 @@ public class PurificationZoneTracker extends SavedData {
         nodePositions.clear();
         typedNodes.clear();
         sinkholePositions.clear();
+        invalidateSpatialCaches();
         setDirty();
     }
 
@@ -100,6 +148,7 @@ public class PurificationZoneTracker extends SavedData {
         typedNodes.putAll(restored.typedNodes);
         sinkholePositions.clear();
         sinkholePositions.addAll(restored.sinkholePositions);
+        invalidateSpatialCaches();
         setDirty();
     }
 
@@ -108,12 +157,14 @@ public class PurificationZoneTracker extends SavedData {
         int clamped = Math.max(1, Math.min(3, tier));
         if (!pylonPositions.contains(immutable) || clamped <= 1) {
             if (pylonTiers.remove(immutable) != null) {
+                invalidateSpatialCaches();
                 setDirty();
             }
             return;
         }
         Integer prev = pylonTiers.put(immutable, clamped);
         if (prev == null || prev != clamped) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
@@ -127,18 +178,20 @@ public class PurificationZoneTracker extends SavedData {
         int clamped = Math.max(0, Math.min(12, bonus));
         if (!pylonPositions.contains(immutable) || clamped == 0) {
             if (pylonBonusRadii.remove(immutable) != null) {
+                invalidateSpatialCaches();
                 setDirty();
             }
             return;
         }
         Integer prev = pylonBonusRadii.put(immutable, clamped);
         if (prev == null || prev != clamped) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
 
     public synchronized int getPylonRadius(BlockPos pos) {
-        int base = MycelialConfig.PYLON_PURIFICATION_RADIUS.get();
+        int base = getBasePylonRadiusSafe();
         int tier = pylonTiers.getOrDefault(pos, 1);
         int tierRadius = tier >= 3 ? base + 12 : (tier == 2 ? base + 6 : base);
         return tierRadius + pylonBonusRadii.getOrDefault(pos, 0);
@@ -148,12 +201,14 @@ public class PurificationZoneTracker extends SavedData {
         BlockPos immutable = pos.immutable();
         if (!pylonPositions.contains(immutable)) {
             if (smotheredPylons.remove(immutable)) {
+                invalidateSpatialCaches();
                 setDirty();
             }
             return;
         }
         boolean changed = smothered ? smotheredPylons.add(immutable) : smotheredPylons.remove(immutable);
         if (changed) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
@@ -166,12 +221,14 @@ public class PurificationZoneTracker extends SavedData {
         BlockPos immutable = pos.immutable();
         if (!pylonPositions.contains(immutable)) {
             if (depletedPylons.remove(immutable)) {
+                invalidateSpatialCaches();
                 setDirty();
             }
             return;
         }
         boolean changed = depleted ? depletedPylons.add(immutable) : depletedPylons.remove(immutable);
         if (changed) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
@@ -228,6 +285,7 @@ public class PurificationZoneTracker extends SavedData {
         boolean added = nodePositions.add(immutable);
         SynapticNodeType prev = typedNodes.put(immutable, type);
         if (added || prev != type) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
@@ -236,6 +294,7 @@ public class PurificationZoneTracker extends SavedData {
         boolean removed = nodePositions.remove(pos);
         boolean removedTyped = typedNodes.remove(pos) != null;
         if (removed || removedTyped) {
+            invalidateSpatialCaches();
             setDirty();
         }
     }
@@ -245,6 +304,14 @@ public class PurificationZoneTracker extends SavedData {
     }
 
     public synchronized boolean isProtected(BlockPos pos) {
+        if (pos == null) {
+            return false;
+        }
+        ensureRadiusCacheConsistency();
+        return Boolean.TRUE.equals(protectionCache.get(pos.asLong(), k -> computeIsProtected(pos)));
+    }
+
+    private boolean computeIsProtected(BlockPos pos) {
         for (BlockPos pylon : pylonPositions) {
             if (!smotheredPylons.contains(pylon) && !depletedPylons.contains(pylon)) {
                 int radius = getPylonRadius(pylon);
@@ -379,12 +446,24 @@ public class PurificationZoneTracker extends SavedData {
     }
 
     @Nullable
-    public BlockPos findNearestNode(BlockPos origin) {
+    public synchronized BlockPos findNearestNode(BlockPos origin) {
         return findNearestNode(origin, null);
     }
 
     @Nullable
-    public BlockPos findNearestNode(BlockPos origin, @Nullable SynapticNodeType filterType) {
+    public synchronized BlockPos findNearestNode(BlockPos origin, @Nullable SynapticNodeType filterType) {
+        if (origin == null) {
+            return null;
+        }
+        if (filterType == null) {
+            return nearestNodeCache.get(origin.asLong(), k -> Optional.ofNullable(computeNearestNode(origin, null)))
+                    .orElse(null);
+        }
+        return computeNearestNode(origin, filterType);
+    }
+
+    @Nullable
+    private BlockPos computeNearestNode(BlockPos origin, @Nullable SynapticNodeType filterType) {
         BlockPos nearest = null;
         double bestDistSq = Double.MAX_VALUE;
         for (BlockPos node : nodePositions) {

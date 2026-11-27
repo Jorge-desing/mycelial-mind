@@ -1,6 +1,6 @@
 # Matriz Completa de Tests de Mycelial Mind (`CodeMode` `mycelial-mind-dev`)
 
-Mapa canónico de las suites actuales del repositorio (`179` JUnit, `213` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
+Mapa canónico de las suites actuales del repositorio (`183` JUnit, `214` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
 
 ---
 
@@ -18,7 +18,7 @@ Mapa canónico de las suites actuales del repositorio (`179` JUnit, `213` `@Game
 
 ---
 
-## 1. Pruebas Headless JUnit 6 (**179** tests en **18** suites, ~2–4 s)
+## 1. Pruebas Headless JUnit 6 (**183** tests en **19** suites, ~2–4 s)
 
 Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind/*.java`).
 
@@ -40,6 +40,7 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 | `CodexBookScreenLogicTest` | 6 | Parser Markdown del Códice, tintes hex, latido por Amenaza, selección de atlas por Acto I–IV |
 | `OpenAlEfxLoopbackTest` | 6 | Audio OpenAL `ALC_SOFT_loopback` + `ALC_EXT_EFX` real + Hann/FFT radix-2 (`4` slots `EAXReverb`, `16` LPF, inmersión, sin Minecraft) |
 | `ModCompatTest` | 5 | `ClaimProtectionCompat` (FTB Chunks/OPAC), `ModdedDamageClassifier` (Ars Nouveau/Iron's Spells), `11` recetas `recipe/compat/`, Better Combat |
+| `OpenSourceApisIntegrationTest` | 4 | Cachés `Caffeine` en `PurificationZoneTracker`, geometría de overlays JourneyMap, listeners `ClientHiveCache`, validación de bindings KubeJS y guarda opcional TOP |
 | `CleanRoomAiCapabilitiesUnitTest` | 4 | Primitivas de IA clean-room (`HiveBtSelector`/`Sequence`/`DynamicGuard`, `HiveSteeringEngine`) |
 | `HiveCycleAndEngramUnitTest` | 4 | Mutadores de Ciclo Post-Matriarca, puntuación/grados y reglas de `FieldEngramId` |
 | `PostMatriarchExpeditionRulesTest` | 3 | Reglas de ruta/jardín, recuperación y desbloqueo de expediciones |
@@ -50,19 +51,19 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 
 ---
 
-## 2. `@GameTest` NeoForge (**213** tests en **56** batches, ~6 s)
+## 2. `@GameTest` NeoForge (**214** tests en **57** batches, ~6 s)
 
 - **Ejecución aislada canónica:** `await call_tool("run_gradle_task", {"tasks": ["runGameTestServer"], "isolated_gametests": True, "no_daemon": True, "max_workers": 1})` (usa `artifacts/diagnostics/isolated-gametest-server` sin contaminar mundos del usuario).
 - **Inspección por batch:** `await call_tool("list_gametests", {"batch_filter": "hive_brain"})`.
 
-| Categoría | Batches registrados (`56` totales) | Cobertura / Tests destacados |
+| Categoría | Batches registrados (`57` totales) | Cobertura / Tests destacados |
 | --- | --- | --- |
 | Núcleo e IA `HiveBrain` | `hive_brain_clean_room` (6), `entity_ai_weaver_window` (1), `entity_ai_weaver_control` (1), `entity_ai_weaver_support` (1), `entity_ai_stalker_combat` (1), `entity_ai_stalker_leap` (1), `entity_ai_spitter_brain` (1), `swarm_steering` (1), `weaver_support` (1), `spitter_regroup_utility` (1), `stalker_flank` (1), `rally_squad_movement` (1), `hive_state_sync` (1), `algorithm_integration` (9) | Motor `HiveBrain`, `UtilitySelectorBehaviour`, 18/18 entidades tickeando limpias, BTree/Steering/LOD nativos, detección de proyectiles |
 | Hifas Verlet 3D y Acústica | `hyphal_route_veins` (9), `hyphal_verlet_filament` (1) | Física Verlet, crecimiento en rastro, ondas sísmicas, corte con división y latigazo, spray presurizado, acústica micorrízica |
 | Colonia Soberana y Dialectos | `colony_integration` (1), `colony_dialect_integration` (1), `colony_dialect_journey` (1), `colony_creative_override` (1), `colony_progression_gate` (1), `colony_symbiont_incubation` (1), `dialect_live_navigation` (1), `sovereign_colony_sync` (1), `sovereign_nexus_hopper` (1), `sovereign_nexus_upgrade` (1), `sovereign_rival_raid` (1) | Incubación, tolvas, mejoras T1–T3, bloqueo Post-Matriarca, navegación real de aprendiz y conflictos de dialecto |
 | Ecosistema, Progresión y UX | `acquisition_difficulty` (1), `ecosystem_purpose` (1), `first_outbreak_research` (1), `full_endgame_integration` (2), `homeostasis` (6), `symbiotic_blade_arc` (1), `ux_juice` (1), `general_polish` (1) | 4 capas funcionales, mantenimiento/cargas de estaciones, viñetas/sync UX, homeostasis y remisión |
 | Worldgen y Estructuras | `sinkhole_ecosystem` (1), `worldgen_terrain_balance` (2), `structures` (4), `structures_surface_hive` (1), `architectural_reflection` (1), `outbreak_and_hive_fixes` (1), `outbreak_vertical_taproot` (1), `surface_hive_feature` (1), `blind_spot_outbreak` (1) | Topografía `deep_mycelium` `0..192`, Sima Micelial de 3 estratos, `NoiseColumn` / contrafuertes sin bloques flotantes |
-| Generales | `default` (52), `defaultBatch` (74) | Mecánicas base, ítems, bloques, mutágenos, jefes y compatibilidad |
+| Generales | `default` (52), `defaultBatch` (74), `open_source_apis` (1) | Mecánicas base, ítems, bloques, mutágenos, jefes y compatibilidad (`Caffeine` / `KubeJS`) |
 
 ---
 

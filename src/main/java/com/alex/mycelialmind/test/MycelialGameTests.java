@@ -12732,4 +12732,47 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = "empty", batch = "open_source_apis", timeoutTicks = 100)
+    public static void caffeineTrackerAndKubeJSBindingsWorkInServerLevel(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        HiveMindSavedData hive = HiveMindSavedData.get(level);
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        hive.resetAll();
+        tracker.clearAll();
+        try {
+            BlockPos pylonPos = helper.absolutePos(new BlockPos(4, 2, 4));
+            BlockPos testPos = helper.absolutePos(new BlockPos(8, 2, 4));
+            tracker.addPylon(pylonPos);
+            tracker.addNode(testPos, SynapticNodeType.RELAY);
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.isProtected(level, testPos),
+                    "KubeJS binding should report position inside Caffeine-backed pylon radius as protected.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.isProtected(level, testPos),
+                    "Repeated Caffeine lookup should stay protected and record a cache hit.");
+            helper.assertTrue(tracker.getProtectionCacheStats().hitCount() >= 1L,
+                    "PurificationZoneTracker Caffeine cache should record at least one hit.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getActivePylonCount(level) == 1,
+                    "Active pylon count should be 1.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getActiveNodeCount(level) == 1,
+                    "Active node count should be 1.");
+
+            com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.setThreat(level, 42.0);
+            helper.assertTrue(Math.abs(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getThreat(level) - 42.0) < 0.01,
+                    "KubeJS setThreat/getThreat should round-trip 42.0.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.addStimulus(level, "FIRE", 120.0),
+                    "KubeJS addStimulus should accept FIRE.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.hasTrait(level, "FIRE_RESISTANT"),
+                    "FIRE_RESISTANT should activate after 120 FIRE stimulus.");
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getActiveTraits(level).contains("FIRE_RESISTANT"),
+                    "Active traits list should include FIRE_RESISTANT.");
+
+            com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.resetHive(level);
+            helper.assertTrue(com.alex.mycelialmind.compat.kubejs.MycelialKubeJSBindings.getThreat(level) == 0.0,
+                    "KubeJS resetHive should clear threat back to 0.");
+        } finally {
+            tracker.clearAll();
+            hive.resetAll();
+        }
+        helper.succeed();
+    }
+
 }
