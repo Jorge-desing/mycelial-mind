@@ -6097,6 +6097,11 @@ public final class MycelialGameTests {
             boolean rivalSpitOk = rivalBrute.getHealth() < rivalHpBefore
                     && Math.abs(allyBrute.getHealth() - allyHpBefore) < 0.01F;
 
+            // The border check is complete. Remove protection before testing an unjammed spitter.
+            // The border check is complete. Clear its protection before testing decoy pursuit.
+            tracker.removePylon(pylonPos);
+            level.removeBlock(pylonPos, false);
+
             // 3) NeuralEchoDecoyItem cooldown + escort protection + AcidSpitterCombatBehaviour decoy pursuit
             for (int dx = -8; dx <= 2; dx++) {
                 for (int dz = -2; dz <= 2; dz++) {
@@ -6137,11 +6142,17 @@ public final class MycelialGameTests {
                 liveSpitter.setPos(decoyCenter.getX() - 6.0D, decoyCenter.getY() + 1.0D, decoyCenter.getZ() + 0.5D);
                 liveSpitter.setOnGround(true);
                 level.addFreshEntity(liveSpitter);
+                // Exercise the protection check on every manual tick regardless of entity ID.
+                helper.assertFalse(tracker.isProtected(liveSpitter.blockPosition()),
+                        "The decoy pursuit arena must be outside pylon protection");
+                liveSpitter.tickCount = Math.floorMod(-liveSpitter.getId(), 10);
                 for (int t = 0; t < 12 && !spitterPursuedDecoy; t++) {
                     liveSpitter.tick();
                     navTarget = liveSpitter.getNavigation().getTargetPos();
                     spitterPursuedDecoy = navTarget != null && navTarget.distSqr(decoyPos) <= 9.0D;
                 }
+                helper.assertFalse(liveSpitter.isDesynced(),
+                        "The decoy pursuit arena must be outside pylon protection");
             }
             boolean decoyIntegrationOk = firstDecoyRes.getResult().consumesAction()
                     && !secondDecoyRes.getResult().consumesAction()
@@ -6150,6 +6161,8 @@ public final class MycelialGameTests {
                     && spitterPursuedDecoy;
 
             // 4) SchismInjector rejects allied escort & OvermindCrown enforces cooldown
+            level.setBlockAndUpdate(pylonPos, ModBlocks.PURIFICATION_PYLON.get().defaultBlockState());
+            tracker.addPylon(pylonPos);
             player.setPos(decoyPos.getX() + 0.5D, decoyPos.getY(), decoyPos.getZ() + 0.5D);
             player.getCooldowns().removeCooldown(ModItems.SCHISM_INJECTOR.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.SCHISM_INJECTOR.get()));
@@ -7709,10 +7722,31 @@ public final class MycelialGameTests {
             hive.promoteHighestTier(HiveProgressionTier.ADAPTIVE);
             level.setBlockAndUpdate(turretPos, ModBlocks.PURIFICATION_TURRET.get().defaultBlockState());
             if (level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity turretBe) {
+                turretBe.setAmmo(0);
                 turretBe.applyCorrosiveJam(200);
             }
             var turretCap = level.getCapability(Capabilities.ItemHandler.BLOCK, turretPos, Direction.UP);
             helper.assertTrue(turretCap != null, "Expected ItemHandler capability on Purification Turret");
+            ItemStack antidotes = new ItemStack(ModItems.SPORE_ANTIDOTE.get(), 3);
+            helper.assertTrue(turretCap.insertItem(1, antidotes, false) == antidotes
+                    && turretCap.insertItem(0, ItemStack.EMPTY, false).isEmpty(),
+                    "Invalid slots and empty stacks must be returned unchanged");
+            ItemStack rejected = new ItemStack(Items.DIRT, 3);
+            helper.assertTrue(turretCap.insertItem(0, rejected, false) == rejected,
+                    "Turret must reject unrelated items");
+            ItemStack simulated = turretCap.insertItem(0, antidotes, true);
+            helper.assertTrue(simulated.getCount() == 2 && antidotes.getCount() == 3
+                    && level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity simulatedTurret
+                    && simulatedTurret.isJammed(),
+                    "Simulated cleaning must preserve input and jam while reporting one consumed item");
+            ItemStack cleaned = turretCap.insertItem(0, antidotes, false);
+            helper.assertTrue(cleaned.getCount() == 2 && antidotes.getCount() == 3
+                    && level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity cleanedTurret
+                    && !cleanedTurret.isJammed() && cleanedTurret.getAmmo() == 0,
+                    "Cleaning must take priority over reloading and consume one item from the returned stack");
+            if (level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity turretBe) {
+                turretBe.applyCorrosiveJam(200);
+            }
             helper.assertTrue(turretCap.insertItem(0, new ItemStack(ModItems.SPORE_ANTIDOTE.get()), false).isEmpty()
                     && turretCap.insertItem(0, new ItemStack(ModItems.SYNAPTIC_CORE.get()), false).isEmpty()
                     && level.getBlockEntity(turretPos) instanceof PurificationTurretBlockEntity turretBe2
@@ -7723,7 +7757,22 @@ public final class MycelialGameTests {
             tracker.addPylon(pylonPos);
             var pylonCap = level.getCapability(Capabilities.ItemHandler.BLOCK, pylonPos, Direction.EAST);
             helper.assertTrue(pylonCap != null, "Expected ItemHandler capability on Purification Pylon");
-            pylonCap.insertItem(0, new ItemStack(ModItems.SYNAPTIC_CORE.get()), false);
+            ItemStack cores = new ItemStack(ModItems.SYNAPTIC_CORE.get(), 3);
+            ItemStack pylonRejected = new ItemStack(Items.DIRT, 3);
+            helper.assertTrue(pylonCap.insertItem(1, cores, false) == cores
+                    && pylonCap.insertItem(0, ItemStack.EMPTY, false).isEmpty()
+                    && pylonCap.insertItem(0, pylonRejected, false) == pylonRejected,
+                    "Pylon must reject invalid slots, empty stacks and unrelated items");
+            ItemStack simulatedCore = pylonCap.insertItem(0, cores, true);
+            helper.assertTrue(simulatedCore.getCount() == 2 && cores.getCount() == 3
+                    && level.getBlockEntity(pylonPos) instanceof MonumentFocusBlockEntity simulatedPylon
+                    && simulatedPylon.getTier() == 1,
+                    "Tier-one core simulation must report an upgrade without changing the pylon or input");
+            ItemStack coreRemainder = pylonCap.insertItem(0, cores, false);
+            helper.assertTrue(coreRemainder.getCount() == 2 && cores.getCount() == 3
+                    && level.getBlockEntity(pylonPos) instanceof MonumentFocusBlockEntity upgradedPylon
+                    && upgradedPylon.getTier() == 2,
+                    "Tier-one core insertion must upgrade the pylon and preserve the input stack");
             pylonCap.insertItem(0, new ItemStack(ModItems.OVERMIND_ESSENCE.get()), false);
             helper.assertTrue(level.getBlockEntity(pylonPos) instanceof MonumentFocusBlockEntity pylonBe
                     && pylonBe.getTier() == 3,

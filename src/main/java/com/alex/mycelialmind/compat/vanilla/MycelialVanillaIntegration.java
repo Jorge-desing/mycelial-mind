@@ -382,6 +382,14 @@ public final class MycelialVanillaIntegration {
         }
     }
 
+    private static ItemStack useSingleItem(ItemStack stack, boolean simulate,
+            java.util.function.Predicate<ItemStack> operation) {
+        if (!simulate && !operation.test(stack.copyWithCount(1))) {
+            return stack;
+        }
+        return remainderAfterSingleUse(stack);
+    }
+
     public static final class PurificationTurretItemHandler extends InsertOnlySingleUseHandler {
         private final PurificationTurretBlockEntity turret;
 
@@ -402,22 +410,13 @@ public final class MycelialVanillaIntegration {
                 return stack;
             }
             if (turret.canCleanJamWith(stack)) {
-                if (!simulate && !turret.tryCleanJam(stack.copyWithCount(1), null)) {
-                    return stack;
-                }
-                return remainderAfterSingleUse(stack);
+                return useSingleItem(stack, simulate, item -> turret.tryCleanJam(item, null));
             }
             if (turret.canUpgradeWith(stack)) {
-                if (!simulate && !turret.tryUpgrade(stack.copyWithCount(1), null)) {
-                    return stack;
-                }
-                return remainderAfterSingleUse(stack);
+                return useSingleItem(stack, simulate, item -> turret.tryUpgrade(item, null));
             }
             if (turret.canReloadWith(stack)) {
-                if (!simulate && !turret.tryReload(stack.copyWithCount(1), null)) {
-                    return stack;
-                }
-                return remainderAfterSingleUse(stack);
+                return useSingleItem(stack, simulate, item -> turret.tryReload(item, null));
             }
             return stack;
         }
@@ -430,10 +429,14 @@ public final class MycelialVanillaIntegration {
             this.focus = focus;
         }
 
+        private boolean canRecharge(ItemStack stack) {
+            return !(focus.getTier() == 1 && stack.is(ModItems.SYNAPTIC_CORE.get()))
+                    && focus.canRechargeWith(stack);
+        }
+
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            boolean rechargeAllowed = !(focus.getTier() == 1 && stack.is(ModItems.SYNAPTIC_CORE.get()))
-                    && focus.canRechargeWith(stack);
+            boolean rechargeAllowed = canRecharge(stack);
             return slot == 0 && (focus.canUpgradeWith(stack) || rechargeAllowed);
         }
 
@@ -443,18 +446,11 @@ public final class MycelialVanillaIntegration {
                 return stack;
             }
             if (focus.canUpgradeWith(stack)) {
-                if (!simulate && !focus.tryUpgrade(stack.copyWithCount(1), null)) {
-                    return stack;
-                }
-                return remainderAfterSingleUse(stack);
+                return useSingleItem(stack, simulate, item -> focus.tryUpgrade(item, null));
             }
-            boolean rechargeAllowed = !(focus.getTier() == 1 && stack.is(ModItems.SYNAPTIC_CORE.get()))
-                    && focus.canRechargeWith(stack);
+            boolean rechargeAllowed = canRecharge(stack);
             if (rechargeAllowed) {
-                if (!simulate && !focus.tryRecharge(stack.copyWithCount(1), null)) {
-                    return stack;
-                }
-                return remainderAfterSingleUse(stack);
+                return useSingleItem(stack, simulate, item -> focus.tryRecharge(item, null));
             }
             return stack;
         }
