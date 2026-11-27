@@ -5284,3 +5284,11 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`dialectLessonThreeSitesAndRestCall`).
 - **Skills:** Revisadas las skills pertinentes; no requirieron cambios adicionales.
 - **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `34s`, `All 215 required tests passed :)` en `12.25 s`, `Dry run publishGithub` OK).
+
+
+## [2026-11-27 13:38] — Fuerza completa de arena y espera de chunks en GameTest de ecosistema hifal
+- **Tipo:** `CORRECCIÓN` / `VERIFICACIÓN`
+- **Resumen:** En CI (`run 46064471383`), tanto `weaversupportcoversseparatedsquad` como `dialectlessonthreesitesandrestcall` aprobaron, y solo falló la prueba intermitente preexistente `hyphalecosystempurificationacousticsremissionandcodexwork` (`drone=false`) porque `forceArenaChunks(helper, -4, 14, -4, 14)` dejaba `v3 = base.east(18)` (`x=20`) fuera de los chunks forzados y no esperaba a `entityChunksReady`. Se amplió `forceArenaChunks` a `(-4, 24, -10, 14)` y se envolvió el cuerpo en `thenWaitUntil(entityChunksReady(level, base.east(9), 10))`.
+- **Archivos / Símbolos:** `src/main/java/com/alex/mycelialmind/test/MycelialGameTests.java` (`hyphalEcosystemPurificationAcousticsRemissionAndCodexWork`).
+- **Skills:** Revisadas las skills pertinentes; no requirieron cambios adicionales.
+- **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 test build runGameTestServer publishMods -PpublishDryRun=true` PASS (`BUILD SUCCESSFUL` en `32s`, `All 215 required tests passed :)` en `11.47 s`, `Dry run publishGithub` OK).

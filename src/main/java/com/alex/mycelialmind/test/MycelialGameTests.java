@@ -7284,117 +7284,121 @@ public final class MycelialGameTests {
         });
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins")
+    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 200)
     public static void hyphalEcosystemPurificationAcousticsRemissionAndCodexWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 14, -4, 14);
-        HiveMindSavedData hive = resetHive(level);
-        PurificationZoneTracker.get(level).clearAll();
-
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -4, 24, -10, 14);
         BlockPos base = helper.absolutePos(new BlockPos(2, 30, 2));
         BlockPos v0 = base;
         BlockPos v1 = base.east(6);
         BlockPos v2 = base.east(12);
         BlockPos v3 = base.east(18);
         BlockPos v4 = base.south(6);
-        PurifierDroneEntity drone = null;
 
-        java.util.List<com.alex.mycelialmind.entity.HyphalVeinEntity> spawnedStrands = new java.util.ArrayList<>();
-        try {
-            for (BlockPos vp : List.of(v0, v1, v2, v3, v4)) {
-                level.setBlockAndUpdate(vp.below(), Blocks.STONE.defaultBlockState());
-                var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, vp, vp, 4, true, 0.75F);
-                strand.setStrengthFloor(2);
-                level.addFreshEntity(strand);
-                spawnedStrands.add(strand);
-            }
-            var strand0 = spawnedStrands.get(0);
-            var strand1 = spawnedStrands.get(1);
-            var strand2 = spawnedStrands.get(2);
-            var strand3 = spawnedStrands.get(3);
-            ChunkPos c0 = new ChunkPos(v0);
-            hive.setHyphalDensity(c0, 55.0, level.getGameTime());
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, base.east(9), 10),
+                        "Hyphal ecosystem arena chunks must be entity-ticking"))
+                .thenExecute(() -> {
+                    HiveMindSavedData hive = resetHive(level);
+                    PurificationZoneTracker.get(level).clearAll();
+                    PurifierDroneEntity drone = null;
+                    java.util.List<com.alex.mycelialmind.entity.HyphalVeinEntity> spawnedStrands = new java.util.ArrayList<>();
+                    try {
+                        for (BlockPos vp : List.of(v0, v1, v2, v3, v4)) {
+                            level.setBlockAndUpdate(vp.below(), Blocks.STONE.defaultBlockState());
+                            var strand = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, vp, vp, 4, true, 0.75F);
+                            strand.setStrengthFloor(2);
+                            level.addFreshEntity(strand);
+                            spawnedStrands.add(strand);
+                        }
+                        var strand0 = spawnedStrands.get(0);
+                        var strand1 = spawnedStrands.get(1);
+                        var strand2 = spawnedStrands.get(2);
+                        var strand3 = spawnedStrands.get(3);
+                        ChunkPos c0 = new ChunkPos(v0);
+                        hive.setHyphalDensity(c0, 55.0, level.getGameTime());
 
-            // 1. PurifierGrenade cleans HyphalVeinEntity and drops local chunk density
-            var grenade = new PurifierGrenadeProjectile(ModEntities.PURIFIER_GRENADE.get(), level);
-            grenade.setPos(v0.getX() + 0.5, v0.getY() + 1.25, v0.getZ() + 0.5);
-            grenade.shoot(0.0, -1.0, 0.0, 1.5F, 0.0F);
-            level.addFreshEntity(grenade);
-            for (int t = 0; t < 6 && !grenade.isRemoved(); t++) {
-                grenade.tick();
-            }
-            boolean grenadeOk = strand0.isRemoved() && hive.getHyphalDensity(c0) < 55.0;
+                        // 1. PurifierGrenade cleans HyphalVeinEntity and drops local chunk density
+                        var grenade = new PurifierGrenadeProjectile(ModEntities.PURIFIER_GRENADE.get(), level);
+                        grenade.setPos(v0.getX() + 0.5, v0.getY() + 1.25, v0.getZ() + 0.5);
+                        grenade.shoot(0.0, -1.0, 0.0, 1.5F, 0.0F);
+                        level.addFreshEntity(grenade);
+                        for (int t = 0; t < 6 && !grenade.isRemoved(); t++) {
+                            grenade.tick();
+                        }
+                        boolean grenadeOk = strand0.isRemoved() && hive.getHyphalDensity(c0) < 55.0;
 
-            // 2. NeutralizingSporeProjectile cleans HyphalVeinEntity on hit
-            var spore = new NeutralizingSporeProjectile(ModEntities.NEUTRALIZING_SPORE.get(), level);
-            spore.setPos(v1.getX() + 0.5, v1.getY() + 1.25, v1.getZ() + 0.5);
-            spore.shoot(0.0, -1.0, 0.0, 1.5F, 0.0F);
-            level.addFreshEntity(spore);
-            for (int t = 0; t < 6 && !spore.isRemoved(); t++) {
-                spore.tick();
-            }
-            boolean sporeOk = strand1.isRemoved();
+                        // 2. NeutralizingSporeProjectile cleans HyphalVeinEntity on hit
+                        var spore = new NeutralizingSporeProjectile(ModEntities.NEUTRALIZING_SPORE.get(), level);
+                        spore.setPos(v1.getX() + 0.5, v1.getY() + 1.25, v1.getZ() + 0.5);
+                        spore.shoot(0.0, -1.0, 0.0, 1.5F, 0.0F);
+                        level.addFreshEntity(spore);
+                        for (int t = 0; t < 6 && !spore.isRemoved(); t++) {
+                            spore.tick();
+                        }
+                        boolean sporeOk = strand1.isRemoved();
 
-            // 3. OvermindCrown & PurifierDrone cleanse HyphalVeinEntity
-            int crownCleansed = OvermindCrownItem.cleanseMyceliumRadius(level, v2, 1);
-            boolean crownOk = crownCleansed >= 1 && strand2.isRemoved();
+                        // 3. OvermindCrown & PurifierDrone cleanse HyphalVeinEntity
+                        int crownCleansed = OvermindCrownItem.cleanseMyceliumRadius(level, v2, 1);
+                        boolean crownOk = crownCleansed >= 1 && strand2.isRemoved();
 
-            drone = ModEntities.PURIFIER_DRONE.get().create(level);
-            boolean droneOk = false;
-            if (drone != null) {
-                drone.moveTo(v3.getX() + 0.5, v3.getY() + 1.0, v3.getZ() + 0.5);
-                droneOk = drone.cleanseMyceliumBeneath(level) && strand3.isRemoved();
-            }
+                        drone = ModEntities.PURIFIER_DRONE.get().create(level);
+                        boolean droneOk = false;
+                        if (drone != null) {
+                            drone.moveTo(v3.getX() + 0.5, v3.getY() + 1.0, v3.getZ() + 0.5);
+                            droneOk = drone.cleanseMyceliumBeneath(level) && strand3.isRemoved();
+                        }
 
-            // 4. MycorrhizalAcousticTracker recognizes charged / strength >= 2 Hyphal Vein entities
-            var weakVein = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, v4, v4, 3, false, 0.40F);
-            weakVein.setStrengthFloor(1);
-            weakVein.setNutrient(2);
-            var midVein = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, v4, v4, 15, false, 0.40F);
-            midVein.setNutrient(2);
-            var chargedVein = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, v4, v4, 3, true, 0.80F);
-            boolean acousticsOk = !com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.isChargedHyphalVein(weakVein)
-                    && com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.isChargedHyphalVein(midVein)
-                    && com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.isChargedHyphalVein(chargedVein);
+                        // 4. MycorrhizalAcousticTracker recognizes charged / strength >= 2 Hyphal Vein entities
+                        var weakVein = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, v4, v4, 3, false, 0.40F);
+                        weakVein.setStrengthFloor(1);
+                        weakVein.setNutrient(2);
+                        var midVein = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, v4, v4, 15, false, 0.40F);
+                        midVein.setNutrient(2);
+                        var chargedVein = new com.alex.mycelialmind.entity.HyphalVeinEntity(level, v4, v4, 3, true, 0.80F);
+                        boolean acousticsOk = !com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.isChargedHyphalVein(weakVein)
+                                && com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.isChargedHyphalVein(midVein)
+                                && com.alex.mycelialmind.hive.MycorrhizalAcousticTracker.isChargedHyphalVein(chargedVein);
 
-            // 5. Post-Matriarch Remission pauses Hyphal route ambushes while keeping Act IV Codex gate unlocked
-            hive.promoteHighestTier(HiveProgressionTier.OVERMIND);
-            hive.addThreatPenalty(85.0);
-            hive.setHyphalDensity(new ChunkPos(v4), 70.0, level.getGameTime());
-            ApexMatriarchEntity.onMatriarchDefeated(level, v4, false);
-            Player runner = helper.makeMockPlayer(GameType.SURVIVAL);
-            runner.moveTo(v4.getX() + 0.5, v4.getY(), v4.getZ() + 0.5);
-            com.alex.mycelialmind.hive.HyphalSiegeDirector.recordPlayerRouteFootstep(level, runner);
-            boolean noAmbushInRemission = level.getEntitiesOfClass(
-                    com.alex.mycelialmind.entity.SynapticMimicEntity.class, new AABB(v4).inflate(12.0D)).isEmpty();
-            HiveProgressionTier effAct = HiveProgressionTier.resolveEffectiveTier(
-                    hive.getThreatLevel(), hive.getHighestTierReached());
-            boolean codexPreservedAct4 = hive.isMatriarchRemissionActive(level.getGameTime())
-                    && ProgressionGoalEngine.isCodexGateUnlocked("act_4", effAct.actNumber(), false, false, false);
+                        // 5. Post-Matriarch Remission pauses Hyphal route ambushes while keeping Act IV Codex gate unlocked
+                        hive.promoteHighestTier(HiveProgressionTier.OVERMIND);
+                        hive.addThreatPenalty(85.0);
+                        hive.setHyphalDensity(new ChunkPos(v4), 70.0, level.getGameTime());
+                        ApexMatriarchEntity.onMatriarchDefeated(level, v4, false);
+                        Player runner = helper.makeMockPlayer(GameType.SURVIVAL);
+                        runner.moveTo(v4.getX() + 0.5, v4.getY(), v4.getZ() + 0.5);
+                        com.alex.mycelialmind.hive.HyphalSiegeDirector.recordPlayerRouteFootstep(level, runner);
+                        boolean noAmbushInRemission = level.getEntitiesOfClass(
+                                com.alex.mycelialmind.entity.SynapticMimicEntity.class, new AABB(v4).inflate(12.0D)).isEmpty();
+                        HiveProgressionTier effAct = HiveProgressionTier.resolveEffectiveTier(
+                                hive.getThreatLevel(), hive.getHighestTierReached());
+                        boolean codexPreservedAct4 = hive.isMatriarchRemissionActive(level.getGameTime())
+                                && ProgressionGoalEngine.isCodexGateUnlocked("act_4", effAct.actNumber(), false, false, false);
 
-            if (!grenadeOk || !sporeOk || !crownOk || !droneOk || !acousticsOk
-                    || !noAmbushInRemission || !codexPreservedAct4) {
-                helper.fail(String.format(
-                        "Hyphal v2.1 integration failed: grenade=%s spore=%s crown=%s drone=%s acoustics=%s noAmbush=%s codexAct4=%s",
-                        grenadeOk, sporeOk, crownOk, droneOk, acousticsOk, noAmbushInRemission, codexPreservedAct4));
-                return;
-            }
-            helper.succeed();
-        } finally {
-            for (var strand : spawnedStrands) {
-                if (!strand.isRemoved()) strand.discard();
-            }
-            if (drone != null && !drone.isRemoved()) {
-                drone.discard();
-            }
-            for (BlockPos vp : List.of(v0, v1, v2, v3, v4)) {
-                level.removeBlock(vp, false);
-                level.removeBlock(vp.below(), false);
-            }
-            PurificationZoneTracker.get(level).clearAll();
-            hive.resetAll();
-            releaseArenaChunks(level, forcedChunks);
-        }
+                        if (!grenadeOk || !sporeOk || !crownOk || !droneOk || !acousticsOk
+                                || !noAmbushInRemission || !codexPreservedAct4) {
+                            helper.fail(String.format(
+                                    "Hyphal v2.1 integration failed: grenade=%s spore=%s crown=%s drone=%s acoustics=%s noAmbush=%s codexAct4=%s",
+                                    grenadeOk, sporeOk, crownOk, droneOk, acousticsOk, noAmbushInRemission, codexPreservedAct4));
+                            return;
+                        }
+                    } finally {
+                        for (var strand : spawnedStrands) {
+                            if (!strand.isRemoved()) strand.discard();
+                        }
+                        if (drone != null && !drone.isRemoved()) {
+                            drone.discard();
+                        }
+                        for (BlockPos vp : List.of(v0, v1, v2, v3, v4)) {
+                            level.removeBlock(vp, false);
+                            level.removeBlock(vp.below(), false);
+                        }
+                        PurificationZoneTracker.get(level).clearAll();
+                        hive.resetAll();
+                        releaseArenaChunks(level, forcedChunks);
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = "empty", batch = "hyphal_route_veins")
