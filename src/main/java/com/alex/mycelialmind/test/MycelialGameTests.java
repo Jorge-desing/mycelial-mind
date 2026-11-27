@@ -7629,10 +7629,10 @@ public final class MycelialGameTests {
                 });
     }
 
-    @GameTest(template = "empty", batch = "hyphal_route_veins", timeoutTicks = 120)
+    @GameTest(template = "empty", batch = "neoforge_integration_cures", timeoutTicks = 120)
     public static void neoforgeIntegrationGlmDataMapsCapabilitiesBossPartsAndCuresWork(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -2, 12, -2, 12);
+        List<ChunkPos> forcedChunks = forceArenaChunks(helper, -2, 15, -2, 12);
         PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
         HiveMindSavedData hive = HiveMindSavedData.get(level);
         tracker.clearAll();
@@ -7645,6 +7645,22 @@ public final class MycelialGameTests {
         var hiveCore = ModEntities.HIVE_CORE.get().create(level);
         var matriarch = ModEntities.APEX_MATRIARCH.get().create(level);
 
+        helper.runAtTickTime(110, () -> {
+            if (!entityChunksReady(level, pylonPos.east(6), 2)) {
+                if (behemoth != null) behemoth.discard();
+                if (hiveCore != null) hiveCore.discard();
+                if (matriarch != null) matriarch.discard();
+                tracker.clearAll();
+                hive.resetAll();
+                releaseArenaChunks(level, forcedChunks);
+                helper.fail("Dispenser target chunks did not become entity-ticking");
+            }
+        });
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        entityChunksReady(level, pylonPos.east(6), 2),
+                        "Dispenser target chunks must be entity-ticking before spawning the villager"))
+                .thenExecute(() -> {
         try {
             // 1. Data Maps & Global Loot Modifiers
             helper.assertTrue(com.alex.mycelialmind.registry.ModLootModifiers.MYCELIAL_TRACE_LOOT.isBound(),
@@ -7839,8 +7855,11 @@ public final class MycelialGameTests {
                 villager = net.minecraft.world.entity.EntityType.VILLAGER.create(level);
                 helper.assertTrue(villager != null, "Villager must spawn for Dispenser antidote test");
                 villager.setPos(dispPos.getX() + 1.5D, dispPos.getY() + 0.1D, dispPos.getZ() + 0.5D);
-                level.addFreshEntity(villager);
+                helper.assertTrue(level.addFreshEntity(villager), "Villager must be added for dispenser antidote test");
                 villager.addEffect(new MobEffectInstance(ModEffects.MYCELIAL_INFECTION, 200, 0));
+                helper.assertTrue(level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class,
+                                new AABB(dispPos.east()).inflate(1.0D)).contains(villager),
+                        "Infected villager must be indexed in the dispenser target area");
                 var dispBehavior = net.minecraft.world.level.block.DispenserBlock.DISPENSER_REGISTRY.get(ModItems.SPORE_ANTIDOTE.get());
                 ItemStack dispRemainder = dispBehavior.dispense(
                         new net.minecraft.core.dispenser.BlockSource(level, dispPos, level.getBlockState(dispPos), dispBe),
@@ -7979,6 +7998,7 @@ public final class MycelialGameTests {
             hive.resetAll();
             releaseArenaChunks(level, forcedChunks);
         }
+                });
     }
 
     @GameTest(template = "empty", batch = "first_outbreak_research", timeoutTicks = 120)
