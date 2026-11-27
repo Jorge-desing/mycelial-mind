@@ -58,7 +58,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
-        event.registerAbove(VanillaGuiLayers.HOTBAR, LAYER_ID, new BioScannerHudOverlay());
+        event.registerAbove(VanillaGuiLayers.BOSS_OVERLAY, LAYER_ID, new BioScannerHudOverlay());
     }
 
     private static boolean isScannerOrExtractor(ItemStack stack) {
@@ -114,6 +114,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             graphics.drawString(mc.font, visText, vx + 5, 10, 0xFF72EFDD, true);
         }
 
+        int bannerTop = Math.max(6, BossOverlaySpace.bottom() + 4);
         int tideSec = ClientHiveCache.getFungalTideSecondsRemaining();
         if (tideSec > 0) {
             int mins = tideSec / 60;
@@ -121,16 +122,16 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
             Component banner = Component.translatable("hud.mycelialmind.fungal_tide", mins, secs);
             int bw = mc.font.width(banner) + 14;
             int bx = (sw - bw) / 2;
-            graphics.fill(bx, 6, bx + bw, 20, 0xCC240836);
-            graphics.renderOutline(bx, 6, bw, 14, 0xFFFF4D8D);
-            graphics.drawCenteredString(mc.font, banner, sw / 2, 9, 0xFFFF8CB4);
+            graphics.fill(bx, bannerTop, bx + bw, bannerTop + 14, 0xCC240836);
+            graphics.renderOutline(bx, bannerTop, bw, 14, 0xFFFF4D8D);
+            graphics.drawCenteredString(mc.font, banner, sw / 2, bannerTop + 3, 0xFFFF8CB4);
         }
 
         boolean inDeepMycelium = player.level().dimension().equals(ModDimensions.DEEP_MYCELIUM_LEVEL);
         HomeostasisStage homeoStage = ClientHiveCache.getHomeostasisStage();
         double homeoStress = ClientHiveCache.getHomeostasisStress();
         if (inDeepMycelium && homeoStage != HomeostasisStage.STABLE) {
-            int bannerY = tideSec > 0 ? 23 : 6;
+            int bannerY = bannerTop + (tideSec > 0 ? 17 : 0);
             Component exposureText = Component.translatable(ClientHiveCache.isAcidRainExposed()
                     ? "hud.mycelialmind.acid_rain"
                     : "hud.mycelialmind.sheltered");
@@ -152,7 +153,7 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         if (remissionSec > 0) {
             int mins = remissionSec / 60;
             int secs = remissionSec % 60;
-            int bannerY = 6 + (tideSec > 0 ? 17 : 0) + (inDeepMycelium && homeoStage != HomeostasisStage.STABLE ? 17 : 0);
+            int bannerY = bannerTop + (tideSec > 0 ? 17 : 0) + (inDeepMycelium && homeoStage != HomeostasisStage.STABLE ? 17 : 0);
             Component remBanner = Component.translatable("hud.mycelialmind.matriarch_remission", mins, secs);
             int bw = mc.font.width(remBanner) + 14;
             int bx = (sw - bw) / 2;
@@ -617,7 +618,10 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         int panelW = Math.min(sw - 16, Math.max(228, headerW + labelW + 18));
         int panelH = 38;
         int panelX = (sw - panelW) / 2;
-        int panelY = 40 + topBanners * 17;
+        int panelY = Math.max(40, BossOverlaySpace.bottom() + 4) + topBanners * 17;
+        if (panelW < 24 || panelY + panelH > graphics.guiHeight() - 8) {
+            return false;
+        }
 
         boolean flashToggle = (player.tickCount / 2) % 2 == 0;
         int borderCol;
@@ -633,9 +637,11 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
         graphics.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC140A20);
         graphics.renderOutline(panelX, panelY, panelW, panelH, borderCol);
 
-        graphics.drawString(font, header, panelX + 5, panelY + 4, 0xFFF3D5FF, true);
+        String fittedLabel = font.plainSubstrByWidth(carapaceLabel.getString(), Math.max(0, panelW / 2 - 8));
+        int fittedLabelW = font.width(fittedLabel);
+        graphics.drawString(font, font.plainSubstrByWidth(header.getString(), Math.max(0, panelW - fittedLabelW - 16)), panelX + 5, panelY + 4, 0xFFF3D5FF, true);
         int carapaceTextColor = broken ? 0xFFFFD166 : 0xFFF4A261;
-        graphics.drawString(font, carapaceLabel, panelX + panelW - labelW - 5, panelY + 4, carapaceTextColor, true);
+        graphics.drawString(font, fittedLabel, panelX + panelW - fittedLabelW - 5, panelY + 4, carapaceTextColor, true);
 
         // Carapace Integrity Bar
         int barX = panelX + 5;
@@ -692,17 +698,21 @@ public final class BioScannerHudOverlay implements LayeredDraw.Layer {
                 barFill = 0.0F;
             }
         }
-        graphics.drawString(font, stateText, barX, panelY + 22, stateColor, true);
+        int badgeWidth = comboActive ? font.width(Component.translatable("hud.mycelialmind.boss_combo_badge"))
+                : remainingAnchors > 0 ? font.width(Component.translatable("hud.mycelialmind.boss_anchors_badge", remainingAnchors, 3)) : 0;
+        graphics.drawString(font, font.plainSubstrByWidth(stateText.getString(), Math.max(0, barW - (badgeWidth > 0 ? badgeWidth + 4 : 0))), barX, panelY + 22, stateColor, true);
 
         // Right-aligned live COMBO / Sentinel Anchors badge
         if (comboActive) {
             Component comboBadge = Component.translatable("hud.mycelialmind.boss_combo_badge");
-            int badgeW = font.width(comboBadge);
-            graphics.drawString(font, comboBadge, panelX + panelW - badgeW - 5, panelY + 22, 0xFFFFD166, true);
+            String fittedBadge = font.plainSubstrByWidth(comboBadge.getString(), barW);
+            int badgeW = font.width(fittedBadge);
+            graphics.drawString(font, fittedBadge, panelX + panelW - badgeW - 5, panelY + 22, 0xFFFFD166, true);
         } else if (remainingAnchors > 0) {
             Component anchorsBadge = Component.translatable("hud.mycelialmind.boss_anchors_badge", remainingAnchors, 3);
-            int badgeW = font.width(anchorsBadge);
-            graphics.drawString(font, anchorsBadge, panelX + panelW - badgeW - 5, panelY + 22, 0xFF4CC9F0, true);
+            String fittedBadge = font.plainSubstrByWidth(anchorsBadge.getString(), barW);
+            int badgeW = font.width(fittedBadge);
+            graphics.drawString(font, fittedBadge, panelX + panelW - badgeW - 5, panelY + 22, 0xFF4CC9F0, true);
         }
         int stateBarY = panelY + 32;
         graphics.fill(barX, stateBarY, barX + barW, stateBarY + 3, 0xFF221330);

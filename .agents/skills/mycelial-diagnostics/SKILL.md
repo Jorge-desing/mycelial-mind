@@ -57,3 +57,5 @@ Usar cuando se investigue un fallo, una regresión, un bloqueo o el rendimiento 
 - El cliente real verificó el radar abierto mientras se quitaba y restauraba el Pilón: cuadrado azul protegido → cruz roja desprotegida → cuadrado azul. Capturas en `expedition-coop-evidence/radar-{protected,unprotected,restored}.png`.
 
 - Los brotes superficiales naturales del Overworld solo se colocan si `SurfaceOutbreakFissure` encuentra un suelo de cueva y valida la ruta completa; el nodo de origen queda abajo y el micelio vivo crece después. La escena histórica `outbreak_surface.png` usa colocación de diagnóstico directa y no demuestra esta generación: para verificarla, usar un terreno con cueva preparado y llamar a `Feature.place`. La rareza de intento es 1/192–1/56 por chunk según el nivel de progresión.
+
+- El panel de telemetría de jefes se ubica tras las barras vanilla visibles mediante `BossOverlaySpace`; para revisar varias barras, usar `runVisualSmoke` y examinar `run/screenshots/visual_smoke.png`. Los textos del panel se recortan al ancho disponible y el panel se omite si no cabe verticalmente.
