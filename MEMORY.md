@@ -5666,6 +5666,33 @@ El bridge compara las subcarpetas versionadas independientemente del generador. 
 - **Skills revisadas/actualizadas:** Actualizada `mycelial-codemode` (`SKILL.md` + `references/catalog-and-sandbox.md`); el resto de las 8 skills revisadas sin requerir cambios (`validate_agent_skills.py`: `8/8` skills, `27` enlaces OK).
 - **Verificación:** `py_compile`, `validate_agent_skills.py` (`8/8`, `27` links), AST (`70` tools, `0` bloqueantes síncronas, `9` recursos), `unittest` local (`25/25` OK en `3.59s`), `git diff --check` limpio y ejecución real con `fastmcp` en CI Ubuntu.
 
+## [2026-11-28] — Worldgen y bibliotecas en curso
+- Rama aislada codex/worldgen-library-integration. Migración inicial de conectividad a JGraphT en revisión; prueba dirigida en curso. Pendientes percentiles, pruebas diferenciales y demás oportunidades propuestas.
+
+## [2026-11-28] — Worldgen con JGraphT y Commons Statistics
+- Prueba dirigida inicial JGraphT aprobada. Sustitución inicial de percentiles por HF7 incorporada; recompilación en curso y pruebas diferenciales pendientes.
+
+## [2026-11-28] — Pruebas de worldgen
+- Prueba dirigida aprobada con JGraphT y HF7, incluidos grafo vacío, posiciones duplicadas y percentiles para muestras vacías y de uno y cuatro valores. Pendiente verificación diferencial ampliada e integración.
+
+## [2026-11-28] — Comparación de grafos de worldgen
+- Añadida y aprobada comparación determinista de 150 distribuciones frente a una referencia independiente de componentes. Pendientes validación integral y fastutil/JMH por separado.
+
+## [2026-11-28] — Validación integral de worldgen
+- test build, 218 GameTests aislados y publicación simulada aprobados. Pendientes comparación de informes y publicación de rama.
+
+## [2026-11-28] — Comparación de percentiles
+- Aprobada comparación HF7 con la interpolación anterior para 80 conjuntos deterministas. Pendiente publicación y comparación de informes completos.
+
+## [2026-11-28] — Revisión de implementación worldgen
+- Revisado diff de JGraphT y HF7, manteniendo vértices por índice para posiciones duplicadas. CI de main e670c316 aprobado; comprobaciones previas adicionales pendientes.
+
+## [2026-11-28] — Verificación de worldgen
+- Renovate validado y comprobación de recursos iniciada; pruebas integrales y 218 GameTests habían aprobado. Pendiente PR y CI.
+
+## [2026-11-28] — Worldgen listo para revisión
+- Verify-Assets y Renovate aprobados; tests, build, 218 GameTests y publicación simulada aprobados. Diferenciales de 150 grafos y 80 conjuntos de percentiles aprobados.
+
 ## [2026-11-28] — Ensayo separado de fastutil para vóxeles
 - Rama codex/voxel-fastutil-jmh iniciada con LongOpenHashSet y benchmark preliminar. Pendientes benchmark del recorrido completo, pruebas y validación.
 

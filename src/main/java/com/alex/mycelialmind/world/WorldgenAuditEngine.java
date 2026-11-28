@@ -38,11 +38,15 @@ import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStruct
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import org.apache.commons.statistics.descriptive.Quantile;
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleGraph;
+
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,7 +55,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -1000,9 +1003,9 @@ public final class WorldgenAuditEngine {
             return new NetworkStats(0, 0, 0, 0, 0, 0.0);
         }
         double maxSq = (double) linkRadius * linkRadius;
-        List<List<Integer>> adj = new ArrayList<>(n);
+        SimpleGraph<Integer, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
         for (int i = 0; i < n; i++) {
-            adj.add(new ArrayList<>());
+            graph.addVertex(i);
         }
         int links = 0;
         for (int i = 0; i < n; i++) {
@@ -1019,46 +1022,25 @@ public final class WorldgenAuditEngine {
                 }
                 if (PurificationZoneTracker.isWithinLinkRange(a, b, linkRadius)
                         && (tracker == null || !tracker.isSegmentBlockedByPylon(a, b))) {
-                    adj.get(i).add(j);
-                    adj.get(j).add(i);
+                    graph.addEdge(i, j);
                     links++;
                 }
             }
         }
 
-        boolean[] visited = new boolean[n];
-        int components = 0;
+        var components = new ConnectivityInspector<>(graph).connectedSets();
         int largest = 0;
         int isolated = 0;
-        Queue<Integer> queue = new ArrayDeque<>();
-        for (int i = 0; i < n; i++) {
-            if (visited[i]) {
-                continue;
-            }
-            components++;
-            int size = 0;
-            visited[i] = true;
-            queue.add(i);
-            while (!queue.isEmpty()) {
-                int cur = queue.poll();
-                size++;
-                for (int nxt : adj.get(cur)) {
-                    if (!visited[nxt]) {
-                        visited[nxt] = true;
-                        queue.add(nxt);
-                    }
-                }
-            }
+        for (var component : components) {
+            int size = component.size();
+            largest = Math.max(largest, size);
             if (size == 1) {
                 isolated++;
-            }
-            if (size > largest) {
-                largest = size;
             }
         }
 
         double isolationRatio = (double) isolated / (double) n;
-        return new NetworkStats(n, links, components, largest, isolated, isolationRatio);
+        return new NetworkStats(n, links, components.size(), largest, isolated, isolationRatio);
     }
 
     public static Optional<Path> writeDiagnosticFiles(WorldgenAuditReport report) {
@@ -1092,17 +1074,9 @@ public final class WorldgenAuditEngine {
     }
 
     private static double percentile(List<Double> sorted, double q) {
-        if (sorted.size() == 1) {
-            return sorted.get(0);
-        }
-        double idx = q * (sorted.size() - 1);
-        int lo = (int) Math.floor(idx);
-        int hi = (int) Math.ceil(idx);
-        if (lo == hi) {
-            return sorted.get(lo);
-        }
-        double frac = idx - lo;
-        return sorted.get(lo) * (1.0 - frac) + sorted.get(hi) * frac;
+        return Quantile.withDefaults()
+                .with(Quantile.EstimationMethod.HF7)
+                .evaluate(sorted.size(), sorted::get, q);
     }
 
     private static double round1(double v) {
