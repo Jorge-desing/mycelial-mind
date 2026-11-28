@@ -3987,33 +3987,36 @@ public final class MycelialGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", batch = "defaultBatch")
+    @GameTest(template = "empty", batch = "purge_volatile_buffer", timeoutTicks = 1200)
     public static void purgingNodeBufferDropsVolatileEngramAndClearsMemory(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        HiveMindSavedData hive = resetHive(level);
-        hive.resetAll();
-        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
-
         BlockPos nodePos = helper.absolutePos(new BlockPos(4, 1, 4));
-        level.setBlockAndUpdate(nodePos, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
-        tracker.addNode(nodePos, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
-
-        com.alex.mycelialmind.hive.SynapticMemoryRouter.routeStimulus(level, nodePos, StimulusType.MELEE, 20.0);
-        double purged = (level.getBlockEntity(nodePos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity be)
-                ? be.purgeVolatileBuffer(level, nodePos, true) : 0.0;
-        var drops = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new AABB(nodePos).inflate(3.0D));
-        boolean hasEngramDrop = drops.stream().anyMatch(e -> e.getItem().is(ModItems.VOLATILE_ENGRAM.get()));
-        drops.forEach(net.minecraft.world.entity.item.ItemEntity::discard);
-
-        level.removeBlock(nodePos, false);
-        tracker.removeNode(nodePos);
-        hive.resetAll();
-
-        if (purged < 11.5 || !hasEngramDrop) {
-            helper.fail("Purge volatile buffer failed: purged=" + purged + " hasEngramDrop=" + hasEngramDrop);
-            return;
-        }
-        helper.succeed();
+        List<ChunkPos> forced = forceArenaChunks(helper, -1, 9, -1, 9);
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(entityChunksReady(level, nodePos, 4),
+                        "Volatile engram arena chunks must be entity-ticking"))
+                .thenExecute(() -> {
+                    HiveMindSavedData hive = resetHive(level);
+                    PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+                    try {
+                        level.setBlockAndUpdate(nodePos, ModBlocks.MYCELIAL_NODE.get().defaultBlockState());
+                        tracker.addNode(nodePos, com.alex.mycelialmind.world.SynapticNodeType.RELAY);
+                        com.alex.mycelialmind.hive.SynapticMemoryRouter.routeStimulus(level, nodePos, StimulusType.MELEE, 20.0);
+                        double purged = level.getBlockEntity(nodePos) instanceof com.alex.mycelialmind.block.entity.SynapticNodeBlockEntity be
+                                ? be.purgeVolatileBuffer(level, nodePos, true) : 0.0;
+                        var drops = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new AABB(nodePos).inflate(3.0D));
+                        boolean hasEngramDrop = drops.stream().anyMatch(e -> e.getItem().is(ModItems.VOLATILE_ENGRAM.get()));
+                        drops.forEach(net.minecraft.world.entity.item.ItemEntity::discard);
+                        helper.assertTrue(purged >= 11.5 && hasEngramDrop,
+                                "Purge volatile buffer failed: purged=" + purged + " hasEngramDrop=" + hasEngramDrop);
+                    } finally {
+                        level.removeBlock(nodePos, false);
+                        tracker.removeNode(nodePos);
+                        hive.resetAll();
+                        releaseArenaChunks(level, forced);
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = "empty", batch = "defaultBatch")
