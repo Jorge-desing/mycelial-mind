@@ -19,6 +19,11 @@ public final class MycelialMixinPolicy {
     public static final double CHITIN_BOOTS_FALL_REDUCTION = 0.45D;
     public static final double HIGH_FALL_MIN_RETAINED_RATIO = 0.50D;
 
+    public static final float SPORE_ROT_NATURAL_HEAL_MULTIPLIER = 0.50F;
+    public static final int FREEZE_IMMUNITY_MIN_EVOLVED_PIECES = 2;
+    public static final double MUTATED_HELMET_AIR_SAVE_CHANCE = 0.25D;
+    public static final double ELITE_HELMET_AIR_SAVE_CHANCE = 0.40D;
+
     private MycelialMixinPolicy() {
     }
 
@@ -101,5 +106,49 @@ public final class MycelialMixinPolicy {
             return Math.max(antiCheeseFloor, reduced);
         }
         return Math.max(0, reduced);
+    }
+
+    public static boolean allowMycelialSpawn(
+            boolean originalAllowed,
+            boolean isMycelialNamespace,
+            boolean isNaturalOrChunkGenSpawn,
+            boolean insideActivePylon) {
+        if (!originalAllowed) {
+            return false;
+        }
+        if (isMycelialNamespace && isNaturalOrChunkGenSpawn && insideActivePylon) {
+            return false;
+        }
+        return true;
+    }
+
+    public static float computeNaturalFoodHeal(float originalHeal, boolean hasSporeRot, boolean insideActivePylon) {
+        if (originalHeal <= 0.0F || !hasSporeRot || insideActivePylon) {
+            return originalHeal;
+        }
+        return originalHeal * SPORE_ROT_NATURAL_HEAL_MULTIPLIER;
+    }
+
+    public static boolean computeCanFreeze(boolean originalCanFreeze, int evolvedChitinPieces, boolean hasSporeRot) {
+        if (!originalCanFreeze || hasSporeRot) {
+            return originalCanFreeze;
+        }
+        return evolvedChitinPieces < FREEZE_IMMUNITY_MIN_EVOLVED_PIECES;
+    }
+
+    public static int computeConservedAirSupply(
+            int currentAir,
+            int decreasedAir,
+            int helmetRankLevel,
+            boolean hasSporeRot,
+            double roll) {
+        if (hasSporeRot || currentAir <= 0 || decreasedAir >= currentAir || helmetRankLevel <= 0) {
+            return decreasedAir;
+        }
+        double chance = helmetRankLevel >= 2 ? ELITE_HELMET_AIR_SAVE_CHANCE : MUTATED_HELMET_AIR_SAVE_CHANCE;
+        if (roll >= 0.0D && roll < chance) {
+            return currentAir;
+        }
+        return decreasedAir;
     }
 }

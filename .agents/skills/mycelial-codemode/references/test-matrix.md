@@ -1,6 +1,6 @@
 # Matriz Completa de Tests de Mycelial Mind (`CodeMode` `mycelial-mind-dev`)
 
-Mapa canónico de las suites actuales del repositorio (`195` JUnit, `217` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
+Mapa canónico de las suites actuales del repositorio (`199` JUnit, `218` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
 
 ---
 
@@ -18,7 +18,7 @@ Mapa canónico de las suites actuales del repositorio (`195` JUnit, `217` `@Game
 
 ---
 
-## 1. Pruebas Headless JUnit 6 (**195** tests en **21** suites, ~2–4 s)
+## 1. Pruebas Headless JUnit 6 (**199** tests en **21** suites, ~2–4 s)
 
 Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind/*.java`).
 
@@ -42,7 +42,7 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 | `ModCompatTest` | 5 | `ClaimProtectionCompat` (FTB Chunks/OPAC), `ModdedDamageClassifier` (Ars Nouveau/Iron's Spells), `11` recetas `recipe/compat/`, Better Combat |
 | `OpenSourceApisIntegrationTest` | 4 | Cachés `Caffeine` en `PurificationZoneTracker`, geometría de overlays JourneyMap, listeners `ClientHiveCache`, validación de bindings KubeJS y guarda opcional TOP |
 | `JavaCoreLibrariesIntegrationTest` | 4 | Topología `JGraphT` (`SynapticNetworkTopology`), bitsets `RoaringBitmap` (`MycelialSpatialBitset`), estadística/picos `Commons Statistics` y `Bucket4j` determinista |
-| `MixinInfrastructureTest` | 8 | Configuración `mycelialmind.mixins.json`, Mixin/MixinExtras ASM, `LivingEntityAccessor`/`MobAccessor`, ParchmentMC `2024.11.17` y reglas anti-cheese `MycelialMixinPolicy` |
+| `MixinInfrastructureTest` | 12 | Configuración `mycelialmind.mixins.json` (common + `client.SoundEngineAccessor`), Mixin/MixinExtras (`@ModifyReturnValue`/`@WrapOperation`), accessors tipados, ParchmentMC `2024.11.17` y política anti-cheese `MycelialMixinPolicy` |
 | `CleanRoomAiCapabilitiesUnitTest` | 4 | Primitivas de IA clean-room (`HiveBtSelector`/`Sequence`/`DynamicGuard`, `HiveSteeringEngine`) |
 | `HiveCycleAndEngramUnitTest` | 4 | Mutadores de Ciclo Post-Matriarca, puntuación/grados y reglas de `FieldEngramId` |
 | `PostMatriarchExpeditionRulesTest` | 3 | Reglas de ruta/jardín, recuperación y desbloqueo de expediciones |
@@ -53,7 +53,7 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 
 ---
 
-## 2. `@GameTest` NeoForge (**217** tests en **59** batches, ~6 s)
+## 2. `@GameTest` NeoForge (**218** tests en **59** batches, ~6 s)
 
 - **Ejecución aislada canónica:** `await call_tool("run_gradle_task", {"tasks": ["runGameTestServer"], "isolated_gametests": True, "no_daemon": True, "max_workers": 1})` (usa `artifacts/diagnostics/isolated-gametest-server` sin contaminar mundos del usuario).
 - **Inspección por batch:** `await call_tool("list_gametests", {"batch_filter": "hive_brain"})`.
@@ -65,7 +65,7 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 | Colonia Soberana y Dialectos | `colony_integration` (1), `colony_dialect_integration` (1), `colony_dialect_journey` (1), `colony_creative_override` (1), `colony_progression_gate` (1), `colony_symbiont_incubation` (1), `dialect_live_navigation` (1), `sovereign_colony_sync` (1), `sovereign_nexus_hopper` (1), `sovereign_nexus_upgrade` (1), `sovereign_rival_raid` (1) | Incubación, tolvas, mejoras T1–T3, bloqueo Post-Matriarca, navegación real de aprendiz y conflictos de dialecto |
 | Ecosistema, Progresión y UX | `acquisition_difficulty` (1), `ecosystem_purpose` (1), `first_outbreak_research` (1), `full_endgame_integration` (2), `homeostasis` (6), `symbiotic_blade_arc` (1), `ux_juice` (1), `general_polish` (1) | 4 capas funcionales, mantenimiento/cargas de estaciones, viñetas/sync UX, homeostasis y remisión |
 | Worldgen y Estructuras | `sinkhole_ecosystem` (1), `worldgen_terrain_balance` (2), `structures` (4), `structures_surface_hive` (1), `architectural_reflection` (1), `outbreak_and_hive_fixes` (1), `outbreak_vertical_taproot` (1), `surface_hive_feature` (1), `blind_spot_outbreak` (1) | Topografía `deep_mycelium` `0..192`, Sima Micelial de 3 estratos, `NoiseColumn` / contrafuertes sin bloques flotantes |
-| Generales | `default` (52), `defaultBatch` (74), `open_source_apis` (1), `java_core_libraries` (1), `mixin_infrastructure` (2) | Mecánicas base, ítems, bloques, mutágenos, jefes, compatibilidad y mixins anti-cheese + accessors tipados |
+| Generales | `default` (52), `defaultBatch` (74), `open_source_apis` (1), `java_core_libraries` (1), `mixin_infrastructure` (3) | Mecánicas base, ítems, bloques, mutágenos, jefes, compatibilidad, mixins anti-cheese y accessors common/client |
 
 ---
 

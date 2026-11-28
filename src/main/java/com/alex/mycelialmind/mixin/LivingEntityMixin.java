@@ -25,4 +25,14 @@ public abstract class LivingEntityMixin {
     private int mycelialmind$softenMycelialFallDamage(int original, float fallDistance, float damageMultiplier) {
         return MycelialMixinHooks.adjustFallDamage((LivingEntity) (Object) this, original, fallDistance);
     }
+
+    @ModifyReturnValue(method = "canFreeze", at = @At("RETURN"))
+    private boolean mycelialmind$applyChitinFreezeImmunity(boolean original) {
+        return MycelialMixinHooks.adjustCanFreeze((LivingEntity) (Object) this, original);
+    }
+
+    @ModifyReturnValue(method = "decreaseAirSupply", at = @At("RETURN"))
+    private int mycelialmind$applyChitinAirConservation(int original, int currentAir) {
+        return MycelialMixinHooks.adjustDecreasedAirSupply((LivingEntity) (Object) this, currentAir, original);
+    }
 }

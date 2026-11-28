@@ -5316,3 +5316,14 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   5. **Accessors tipados (`LivingEntityAccessor`, `MobAccessor`):** exponen `lastHurtByMobTimestamp`, `lastHurtMobTimestamp`, `getBlockSpeedFactor()`, `goalSelector`, `targetSelector`, `sensing` y `resetAmbientSoundTime()`.
 - **Archivos / Símbolos:** `mycelialmind.mixins.json`, `mixin/{LivingEntityMixin,EntityMixin,LivingEntityAccessor,MobAccessor}.java`, `util/{MycelialMixinPolicy,MycelialMixinHooks}.java`, `MixinInfrastructureTest.java`, `MycelialGameTests.java`, `README.md`, `MEMORY.md`, y skills (`mycelial-codemode`, `neoforge-gametest`).
 - **Skills:** Actualizadas `.agents/skills/mycelial-codemode/{SKILL.md,references/test-matrix.md}` y `.agents/skills/neoforge-gametest/SKILL.md`.
+
+
+## [2026-11-27 19:46] — Ola 2 de Mixin `0.8.7` + MixinExtras `0.5.5` (`@WrapOperation`, `MonsterMixin`, `canFreeze`/`decreaseAirSupply` y `client.SoundEngineAccessor`)
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN` / `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:** Ampliada la integración de Mixin + MixinExtras en worktree aislado `feat/mixin-wave2-wrapop-client` sobre `origin/main` (`22cafabf`):
+  1. **`MonsterMixin` (`@ModifyReturnValue` en `checkMonsterSpawnRules` / `checkAnyLightMonsterSpawnRules`):** bloquea spawns naturales y de generación de chunks de entidades `mycelialmind:*` dentro de `PurificationPylonBlock` activos sin alterar granjas de mobs vanilla ni `SPAWN_EGG`/spawners/comandos.
+  2. **`FoodDataMixin` (`@WrapOperation` en `FoodData.tick` → `Player.heal(F)V`):** reduce al `50%` la regeneración pasiva por comida bajo `SPORE_ROT` fuera de Pilones activos, preservando curación normal dentro de Pilones, pociones, manzanas y antídotos.
+  3. **`LivingEntityMixin` + `LivingEntityAccessor`:** añaden inmunidad a congelación (`canFreeze`) con `>= 2` piezas de Quitina `MUTATED`/`ELITE` (anulada bajo `SPORE_ROT`) y ahorro probabilístico acotado de aire (`decreaseAirSupply`: `25%` `MUTATED`, `40%` `ELITE`, anulado bajo `SPORE_ROT` y nunca infinito).
+  4. **Cliente (`client.SoundEngineAccessor`):** primer mixin en `"client"` de `mycelialmind.mixins.json` exponiendo `loaded` e `instanceToChannel` sin reflexión ni impacto en servidor dedicado.
+- **Archivos / Símbolos:** `mycelialmind.mixins.json`, `mixin/{MonsterMixin,FoodDataMixin,LivingEntityMixin,LivingEntityAccessor,client/SoundEngineAccessor}.java`, `util/{MycelialMixinPolicy,MycelialMixinHooks}.java`, `MixinInfrastructureTest.java` (`12` JUnit), `MycelialGameTests.java` (`mixinWave2SpawnFoodFreezeAndAirHooksWork`), `README.md`, `MEMORY.md`, y skills (`mycelial-codemode`, `neoforge-gametest`).
+- **Skills:** Actualizadas `.agents/skills/mycelial-codemode/{SKILL.md,references/test-matrix.md}` y `.agents/skills/neoforge-gametest/SKILL.md`.

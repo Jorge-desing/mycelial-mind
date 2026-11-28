@@ -12948,4 +12948,108 @@ public final class MycelialGameTests {
         }
     }
 
+    @GameTest(template = "empty", batch = "mixin_infrastructure", timeoutTicks = 100)
+    public static void mixinWave2SpawnFoodFreezeAndAirHooksWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        PurificationZoneTracker tracker = PurificationZoneTracker.get(level);
+        tracker.clearAll();
+        BlockPos pylonPos = helper.absolutePos(new BlockPos(1, 1, 1));
+        BlockPos spawnPos = helper.absolutePos(new BlockPos(1, 1, 2));
+        BlockState prevBelowSpawn = level.getBlockState(spawnPos.below());
+        level.setBlockAndUpdate(spawnPos.below(), Blocks.STONE.defaultBlockState());
+
+        var player = FakePlayerFactory.getMinecraft(level);
+        var prevPlayerPos = player.position();
+        float prevHealth = player.getHealth();
+        var prevSporeRot = player.getEffect(ModEffects.SPORE_ROT);
+        var zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, 1, 1, 1);
+        try {
+            // 1. MonsterMixin natural mycelial spawn suppression inside active Purification Pylons
+            helper.assertTrue(net.minecraft.world.entity.monster.Monster.checkAnyLightMonsterSpawnRules(
+                    ModEntities.SPORELING.get(), level, net.minecraft.world.entity.MobSpawnType.NATURAL, spawnPos, level.random),
+                    "Sporeling natural spawn rule should allow spawning before pylon is active.");
+            tracker.addPylon(pylonPos);
+            helper.assertFalse(net.minecraft.world.entity.monster.Monster.checkAnyLightMonsterSpawnRules(
+                    ModEntities.SPORELING.get(), level, net.minecraft.world.entity.MobSpawnType.NATURAL, spawnPos, level.random),
+                    "MonsterMixin must block NATURAL mycelial monster spawn inside active pylon.");
+            helper.assertTrue(net.minecraft.world.entity.monster.Monster.checkAnyLightMonsterSpawnRules(
+                    ModEntities.SPORELING.get(), level, net.minecraft.world.entity.MobSpawnType.SPAWN_EGG, spawnPos, level.random),
+                    "MonsterMixin must keep SPAWN_EGG spawning intact inside active pylon.");
+            helper.assertTrue(net.minecraft.world.entity.monster.Monster.checkAnyLightMonsterSpawnRules(
+                    EntityType.ZOMBIE, level, net.minecraft.world.entity.MobSpawnType.NATURAL, spawnPos, level.random),
+                    "MonsterMixin must keep vanilla mob farms working inside active pylon.");
+
+            // 2. FoodDataMixin (@WrapOperation): SPORE_ROT halves passive food healing outside pylon, restored inside pylon
+            //    Note: HabitTelemetryTracker.onLivingHeal also applies a 0.70x SPORE_ROT modifier -> 0.35F outside vs 0.70F inside.
+            tracker.removePylon(pylonPos);
+            player.setPos(spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D);
+            player.addEffect(new MobEffectInstance(ModEffects.SPORE_ROT, 200, 0));
+            player.setHealth(10.0F);
+            net.minecraft.world.food.FoodData outsideFood = new net.minecraft.world.food.FoodData();
+            outsideFood.setFoodLevel(20);
+            outsideFood.setSaturation(20.0F);
+            for (int t = 0; t < 15 && player.getHealth() <= 10.0F; t++) {
+                outsideFood.tick(player);
+            }
+            float outsideGain = player.getHealth() - 10.0F;
+            helper.assertTrue(Math.abs(outsideGain - 0.35F) < 1e-4F,
+                    "FoodDataMixin @WrapOperation must halve natural heal under SPORE_ROT outside pylon (0.5 * 0.70 = 0.35), got gain: "
+                            + outsideGain);
+
+            tracker.addPylon(pylonPos);
+            player.setHealth(10.0F);
+            net.minecraft.world.food.FoodData insideFood = new net.minecraft.world.food.FoodData();
+            insideFood.setFoodLevel(20);
+            insideFood.setSaturation(20.0F);
+            for (int t = 0; t < 15 && player.getHealth() <= 10.0F; t++) {
+                insideFood.tick(player);
+            }
+            float insideGain = player.getHealth() - 10.0F;
+            helper.assertTrue(Math.abs(insideGain - 0.70F) < 1e-4F
+                            && Math.abs(outsideGain - 0.5F * insideGain) < 1e-4F,
+                    "FoodDataMixin must restore unhalved natural heal inside active pylon (0.70 with SPORE_ROT), got gain: "
+                            + insideGain);
+
+            // 3. LivingEntityMixin: canFreeze immunity with >=2 evolved Chitin pieces & bounded air conservation
+            ItemStack helmet = new ItemStack(ModItems.CHITIN_HELMET.get());
+            ItemStack chest = new ItemStack(ModItems.CHITIN_CHESTPLATE.get());
+            ChitinArmorItem.setArmorRank(helmet, EvolutionRank.ELITE);
+            ChitinArmorItem.setArmorRank(chest, EvolutionRank.MUTATED);
+            zombie.setItemSlot(EquipmentSlot.HEAD, helmet);
+            zombie.setItemSlot(EquipmentSlot.CHEST, chest);
+            helper.assertFalse(zombie.canFreeze(),
+                    "2 evolved Chitin pieces must grant freeze immunity via LivingEntityMixin.canFreeze.");
+            zombie.addEffect(new MobEffectInstance(ModEffects.SPORE_ROT, 100, 0));
+            helper.assertTrue(zombie.canFreeze(),
+                    "SPORE_ROT anti-cheese rule must revoke Chitin freeze immunity.");
+            zombie.removeEffect(ModEffects.SPORE_ROT);
+
+            var zombieAccessor = (com.alex.mycelialmind.mixin.LivingEntityAccessor) zombie;
+            int conservedCount = 0;
+            int lostCount = 0;
+            for (int i = 0; i < 60; i++) {
+                int nextAir = zombieAccessor.mycelialmind$invokeDecreaseAirSupply(100);
+                if (nextAir == 100) {
+                    conservedCount++;
+                } else {
+                    lostCount++;
+                }
+            }
+            helper.assertTrue(conservedCount > 0 && lostCount > 0,
+                    "ELITE Chitin helmet must probabilistically conserve air without infinite breathing (saved="
+                            + conservedCount + ", lost=" + lostCount + ").");
+            helper.succeed();
+        } finally {
+            zombie.discard();
+            player.removeEffect(ModEffects.SPORE_ROT);
+            if (prevSporeRot != null) {
+                player.addEffect(prevSporeRot);
+            }
+            player.setPos(prevPlayerPos.x, prevPlayerPos.y, prevPlayerPos.z);
+            player.setHealth(prevHealth);
+            level.setBlockAndUpdate(spawnPos.below(), prevBelowSpawn);
+            tracker.clearAll();
+        }
+    }
+
 }
