@@ -5692,3 +5692,36 @@ El bridge compara las subcarpetas versionadas independientemente del generador. 
 
 ## [2026-11-28] — Worldgen listo para revisión
 - Verify-Assets y Renovate aprobados; tests, build, 218 GameTests y publicación simulada aprobados. Diferenciales de 150 grafos y 80 conjuntos de percentiles aprobados.
+
+## [2026-11-28] — Ensayo separado de fastutil para vóxeles
+- Rama codex/voxel-fastutil-jmh iniciada con LongOpenHashSet y benchmark preliminar. Pendientes benchmark del recorrido completo, pruebas y validación.
+
+## [2026-11-28] — JMH de recorrido de vóxeles
+- Incorporados escenarios preliminares de flood-fill y colección para estructuras compactas y dispersas; benchmark en curso. Pendientes comparación funcional y revisión del diseño de la medición.
+
+## [2026-11-28] — JMH preliminar de vóxeles
+- JMH Java 21 completado en escenarios sintéticos. Flood-fill compacto 512: HashSet 149.46 µs, fastutil 61.63 µs; 8192: 1403.21 frente a 1186.90 µs. El escenario disperso tiene componentes aislados y no representa el recorrido completo. Pruebas de proyecto en curso.
+
+## [2026-11-28] — Pruebas del recorrido de vóxeles
+- test build y 218 GameTests aislados aprobados con LongOpenHashSet. Pendientes prueba diferencial específica y revisión del benchmark antes de publicar.
+
+## [2026-11-28] — Prueba directa de vóxeles
+- Un ensayo JUnit independiente no pudo inicializar registries de NeoForge (LoadingModList nulo); retirado para reemplazarlo por GameTest. Los 218 GameTests existentes habían aprobado.
+
+## [2026-11-28] — GameTest de conectividad de vóxeles
+- Añadido GameTest con bloques conectados y un bloque diagonal aislado. Ejecución en curso; CI del merge de worldgen sigue en progreso.
+
+## [2026-11-28] — GameTest de vóxeles aprobado
+- runGameTestServer aislado completó 219 GameTests incluyendo voxel_connectivity. CI del merge de worldgen 46123953036 aprobado.
+
+## [2026-11-28] — Fallo intermitente de GameTest de quimera
+- Validación combinada falló en chimeraGeneRerollRankEvolutionAndAutonomousMutation: fired=false. El test busca una entidad recién creada mediante getEntitiesOfClass fuera de la plantilla de 3x3; se investiga indexación de chunks. Repetición aislada en curso, sin atribuir aún causa definitiva.
+
+## [2026-11-28] — Aislamiento del GameTest de quimera
+- Repetición aislada pasó 219/219; se añadió espera de dos ticks y comprobación explícita de indexación del objetivo antes de evaluar la habilidad. Validación completa en curso; causa exacta del fallo anterior aún no demostrada.
+
+## [2026-11-28] — Diagnóstico de quimera
+- Fallo reproducido con indexed=false y fired=false tras dos ticks; el objetivo no aparecía en getEntitiesOfClass. Se fuerza la carga del chunk de destino antes de crear el mob; validación completa en curso.
+
+## [2026-11-28] — Validación final de vóxeles
+- test build, 219 GameTests y publicación simulada aprobados con chunk cargado para el fixture de quimera. Verify-Assets aprobado. JMH sintético muestra mejora en distribución compacta; escenario disperso no visita la estructura completa.

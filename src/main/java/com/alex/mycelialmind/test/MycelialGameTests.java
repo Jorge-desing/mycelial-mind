@@ -3925,6 +3925,8 @@ public final class MycelialGameTests {
     @GameTest(template = "empty", batch = "defaultBatch")
     public static void chimeraGeneRerollRankEvolutionAndAutonomousMutation(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
+        BlockPos targetPos = helper.absolutePos(new BlockPos(6, 1, 3));
+        level.getChunk(targetPos);
         var chimera = helper.spawnWithNoFreeWill(ModEntities.MYCELIAL_CHIMERA.get(), 3, 1, 3);
         chimera.setGenes(AdaptationTrait.BLAST_SHIELDED, AdaptationTrait.PROJECTILE_DEFLECT);
         double hpBefore = chimera.getMaxHealth();
@@ -3940,17 +3942,19 @@ public final class MycelialGameTests {
         // Test autonomous mutation trigger against hostile target
         var hostile = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 6, 1, 3);
         chimera.setGenes(AdaptationTrait.MELEE_THORNS, AdaptationTrait.BLAST_SHIELDED);
-        boolean firedAbility = chimera.tickAutonomousMutationAbility(level);
-
-        hostile.discard();
-        chimera.discard();
-
-        if (hpMutated <= hpBefore || hpElite <= hpMutated || !twoDistinct || !firedAbility) {
-            helper.fail(String.format("Chimera evolution/ability failed: hp0=%.1f hpM=%.1f hpE=%.1f distinct=%s fired=%s",
-                    hpBefore, hpMutated, hpElite, twoDistinct, firedAbility));
-            return;
-        }
-        helper.succeed();
+        helper.runAfterDelay(2, () -> {
+            boolean indexed = level.getEntitiesOfClass(net.minecraft.world.entity.monster.Monster.class, hostile.getBoundingBox().inflate(1.0D))
+                    .contains(hostile);
+            boolean firedAbility = chimera.tickAutonomousMutationAbility(level);
+            hostile.discard();
+            chimera.discard();
+            if (hpMutated <= hpBefore || hpElite <= hpMutated || !twoDistinct || !indexed || !firedAbility) {
+                helper.fail(String.format("Chimera evolution/ability failed: hp0=%.1f hpM=%.1f hpE=%.1f distinct=%s indexed=%s fired=%s",
+                        hpBefore, hpMutated, hpElite, twoDistinct, indexed, firedAbility));
+                return;
+            }
+            helper.succeed();
+        });
     }
 
     @GameTest(template = "empty", batch = "defaultBatch")
@@ -13067,6 +13071,26 @@ public final class MycelialGameTests {
             level.setBlockAndUpdate(spawnPos.below(), prevBelowSpawn);
             tracker.clearAll();
         }
+    }
+
+    @GameTest(batch = "voxel_connectivity", template = "empty")
+    public static void voxelConnectivityPreservesScanOrder(GameTestHelper helper) {
+        BlockPos origin = helper.absolutePos(new BlockPos(0, 0, 0));
+        var level = helper.getLevel();
+        var connected = origin.east();
+        var isolated = origin.offset(2, 1, 0);
+        level.setBlock(origin, Blocks.STONE.defaultBlockState(), 3);
+        level.setBlock(connected, Blocks.STONE.defaultBlockState(), 3);
+        level.setBlock(isolated, Blocks.STONE.defaultBlockState(), 3);
+        var box = new net.minecraft.world.level.levelgen.structure.BoundingBox(
+                origin.getX(), origin.getY(), origin.getZ(), origin.getX() + 2, origin.getY() + 1, origin.getZ());
+        var disconnected = com.alex.mycelialmind.world.structure.VoxelStructureOps.findDisconnectedPositions(
+                level, box, origin, state -> state.is(Blocks.STONE));
+        if (!disconnected.equals(java.util.List.of(isolated))) {
+            helper.fail("Unexpected disconnected voxel positions: " + disconnected);
+            return;
+        }
+        helper.succeed();
     }
 
 }
