@@ -234,6 +234,89 @@ class MigratedGameTestLogicTest {
     }
 
     @Test
+    void worldgenAuditPreservesQuantilesAndDisconnectedNodes() {
+        var empty = WorldgenAuditEngine.computeNearestNeighbor(List.of(), List.of(), false, true);
+        assertEquals(0, empty.count());
+        var sources = List.of(new BlockPos(1, 0, 0), new BlockPos(2, 0, 0),
+                new BlockPos(4, 0, 0), new BlockPos(8, 0, 0));
+        var stats = WorldgenAuditEngine.computeNearestNeighbor(sources, List.of(BlockPos.ZERO), false, true);
+        assertEquals(3.0, stats.p50(), 1e-12);
+        assertEquals(6.8, stats.p90(), 1e-12);
+        var single = WorldgenAuditEngine.computeNearestNeighbor(List.of(new BlockPos(7, 0, 0)),
+                List.of(BlockPos.ZERO), false, true);
+        assertEquals(7.0, single.p90(), 1e-12);
+        var noNodes = WorldgenAuditEngine.computeNetworkStats(List.of(), 1, null);
+        assertEquals(0, noNodes.connectedComponents());
+        var duplicates = WorldgenAuditEngine.computeNetworkStats(
+                List.of(BlockPos.ZERO, BlockPos.ZERO, new BlockPos(100, 0, 0)), 1, null);
+        assertEquals(1, duplicates.activeLinks());
+        assertEquals(2, duplicates.connectedComponents());
+        assertEquals(1, duplicates.isolatedNodes());
+    }
+
+    @Test
+    void worldgenGraphMatchesReferenceAcrossRandomLayouts() {
+        var random = new java.util.Random(4271);
+        for (int trial = 0; trial < 150; trial++) {
+            int count = random.nextInt(30);
+            int radius = random.nextInt(20) + 1;
+            var nodes = new java.util.ArrayList<BlockPos>();
+            for (int i = 0; i < count; i++) {
+                nodes.add(new BlockPos(random.nextInt(31) - 15, 64, random.nextInt(31) - 15));
+            }
+            var parents = new int[count];
+            for (int i = 0; i < count; i++) parents[i] = i;
+            int links = 0;
+            for (int i = 0; i < count; i++) {
+                for (int j = i + 1; j < count; j++) {
+                    if (com.alex.mycelialmind.world.PurificationZoneTracker.isWithinLinkRange(nodes.get(i), nodes.get(j), radius)) {
+                        links++;
+                        int a = i, b = j;
+                        while (parents[a] != a) a = parents[a];
+                        while (parents[b] != b) b = parents[b];
+                        parents[a] = b;
+                    }
+                }
+            }
+            var sizes = new java.util.HashMap<Integer, Integer>();
+            for (int i = 0; i < count; i++) {
+                int root = i;
+                while (parents[root] != root) root = parents[root];
+                sizes.merge(root, 1, Integer::sum);
+            }
+            var result = WorldgenAuditEngine.computeNetworkStats(nodes, radius, null);
+            assertEquals(links, result.activeLinks());
+            assertEquals(sizes.size(), result.connectedComponents());
+            assertEquals(sizes.values().stream().mapToInt(Integer::intValue).max().orElse(0), result.largestClusterSize());
+            assertEquals(sizes.values().stream().filter(size -> size == 1).count(), result.isolatedNodes());
+        }
+    }
+
+    @Test
+    void worldgenQuantilesMatchPreviousInterpolation() {
+        var random = new java.util.Random(91284);
+        for (int count = 1; count <= 80; count++) {
+            var sources = new java.util.ArrayList<BlockPos>();
+            var distances = new java.util.ArrayList<Double>();
+            for (int i = 0; i < count; i++) {
+                int x = random.nextInt(101) - 50;
+                int z = random.nextInt(101) - 50;
+                sources.add(new BlockPos(x, 0, z));
+                distances.add(Math.sqrt((double) x * x + (double) z * z));
+            }
+            java.util.Collections.sort(distances);
+            var stats = WorldgenAuditEngine.computeNearestNeighbor(sources, List.of(BlockPos.ZERO), false, true);
+            for (double q : new double[]{0.5, 0.9}) {
+                double index = q * (count - 1);
+                int lo = (int) Math.floor(index), hi = (int) Math.ceil(index);
+                double fraction = index - lo;
+                double expected = distances.get(lo) * (1 - fraction) + distances.get(hi) * fraction;
+                assertEquals(expected, q == 0.5 ? stats.p50() : stats.p90(), 1e-12);
+            }
+        }
+    }
+
+    @Test
     void hiveSyncPayloadV9PreservesSquadTacticalStatus() {
         HiveSyncPayload original = new HiveSyncPayload(
                 55.0, 1, 0, 0, false, false, BlockPos.ZERO, 2, 0,
