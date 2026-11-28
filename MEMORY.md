@@ -5580,3 +5580,6 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - `run_structure_studio(check_only=True)` genera en un directorio temporal y compara inventario y NBT descomprimido. La ejecución habitual conserva su salida. Codex Studio documenta tres opciones de cliente pendientes y la prueba visual usa la imagen de referencia versionada.
 - Verificación local: 12 pruebas de ciclo de vida, skills 8/8, Verify-Assets, Gradle test/build/publicación simulada y 218/218 GameTests. Una ejecución completa de `test_server.py` pasó, la segunda está en curso. La prueba visual automatizada verifica la comparación de una imagen consigo misma y no representa una captura nueva del juego.
 - Segunda ejecución completa de `test_server.py` aprobada en un proceso nuevo. El estado Git posterior conserva únicamente los cambios previstos y la modificación Java anterior de otra tarea.
+
+## 2026-11-27 — Inventario de grupos de estructuras
+El bridge compara las subcarpetas versionadas independientemente del generador. Verificación aislada: 30 archivos coinciden y la omisión temporal de twisted_reflection identifica sus cuatro piezas. Revisada la guía CodeMode, cuyo contrato de comparación sigue vigente.

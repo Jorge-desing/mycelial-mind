@@ -1135,8 +1135,8 @@ async def run_structure_studio(timeout_secs: int = 120, check_only: bool = False
         if not generated_files:
             result.update(ok=False, generated_count=0, differences=["No structures generated"])
             return result
-        source_files = {path.relative_to(source) for group in {path.parts[0] for path in generated_files}
-                        for path in (source / group).glob("*.nbt")}
+        # Root-level templates are maintained separately from generated groups.
+        source_files = {path.relative_to(source) for path in source.glob("*/**/*.nbt")}
         differences = sorted(str(path) for path in generated_files ^ source_files)
         for path in sorted(generated_files & source_files):
             try:
