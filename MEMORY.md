@@ -5725,3 +5725,15 @@ El bridge compara las subcarpetas versionadas independientemente del generador. 
 
 ## [2026-11-28] — Validación final de vóxeles
 - test build, 219 GameTests y publicación simulada aprobados con chunk cargado para el fixture de quimera. Verify-Assets aprobado. JMH sintético muestra mejora en distribución compacta; escenario disperso no visita la estructura completa.
+
+## [2026-11-28] — Medición ampliada de vóxeles
+- Rama codex/voxel-jmh-realistic prepara medición de BFS de seis caras y escaneo final en volúmenes compactos y dispersos conectados. JMH en ejecución; pendiente revisar validez y resultados.
+
+## [2026-11-28] — JMH ampliado de vóxeles
+- JMH seis vecinos y escaneo final, Java 21: compacto 16/32 boxed 488/4973 µs y fastutil 461/4180 µs; disperso conectado 78/785 frente a 45/695 µs. Medición sintética, no evalúa mundo real. Añadida verificación de conectividad e igualdad al preparar los casos; falta repetirla.
+
+## [2026-11-28] — Preparación del benchmark ampliado
+- Smoke JMH aprobado para ocho combinaciones de vóxeles con verificación de conectividad e igualdad entre colecciones. Validación integral y recursos en curso antes de publicar.
+
+## [2026-11-28] — Validación del benchmark ampliado
+- Smoke JMH, test build, 219 GameTests, publicación simulada y Verify-Assets aprobados sobre a6a07bf7.
