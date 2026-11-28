@@ -5574,3 +5574,9 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `.agents/rules/mod-vision-and-originality.md` (nueva regla `always_on`), `GEMINI.md`, `AGENTS.md` (§2 y §10), `README.md`, `MEMORY.md`.
 - **Skills:** Revisadas las skills del repositorio; ninguna requería cambios por esta regla de visión y diseño (`validate_skills`: `8/8` OK, `27` enlaces).
 - **Estado / Siguiente paso:** Pendiente commit selectivo, publicación en rama/PR, verificación de checks de GitHub, merge y sincronización final del checkout local.
+
+## 2026-11-27 — Fiabilidad de la suite del bridge
+- El extractor reconoce la última constante sin delimitador y los componentes registrados mediante `registerStringComponent`. La prueba RCON mantiene el servidor simulado hasta el cierre y expone diagnósticos de Codex y colonia.
+- `run_structure_studio(check_only=True)` genera en un directorio temporal y compara inventario y NBT descomprimido. La ejecución habitual conserva su salida. Codex Studio documenta tres opciones de cliente pendientes y la prueba visual usa la imagen de referencia versionada.
+- Verificación local: 12 pruebas de ciclo de vida, skills 8/8, Verify-Assets, Gradle test/build/publicación simulada y 218/218 GameTests. Una ejecución completa de `test_server.py` pasó, la segunda está en curso. La prueba visual automatizada verifica la comparación de una imagen consigo misma y no representa una captura nueva del juego.
+- Segunda ejecución completa de `test_server.py` aprobada en un proceso nuevo. El estado Git posterior conserva únicamente los cambios previstos y la modificación Java anterior de otra tarea.

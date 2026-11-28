@@ -24,6 +24,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import gzip
 import tempfile
 import time
 import unicodedata
@@ -74,9 +75,9 @@ _UNIT_METHOD_RE = re.compile(r"(?:public\s+|protected\s+|private\s+)?(?:static\s
 _ERR_LINE_RE = re.compile(r"(?:\berror:|FAILURE:|Execution failed|FAILED\b)")
 _GT_MARKER_RE = re.compile(r"(?:All \d+ required tests passed|Failed required tests:|\d+/\d+ GameTests|ALL VERIFICATION STEPS COMPLETED)")
 _REG_ID_RE = re.compile(
-    r'(?:registerBlock|registerItem|registerComponentType|registerColorable|register|\.\s*register)\(\s*"([a-z0-9_]+)"'
+    r'(?:registerBlock|registerItem|registerComponentType|registerStringComponent|registerColorable|register|\.\s*register)\(\s*"([a-z0-9_]+)"'
 )
-_ENUM_CONST_RE = re.compile(r"^\s*([A-Z][A-Z0-9_]+)\s*(?:\(|,|;)")
+_ENUM_CONST_RE = re.compile(r"^\s*([A-Z][A-Z0-9_]+)\s*(?:\(|,|;|$)")
 
 
 def _iter_scandir_files(
@@ -1117,10 +1118,34 @@ async def check_structure_visual_regression(
 
 
 @_tool(tags={"studios", "structures"})
-async def run_structure_studio(timeout_secs: int = 120) -> dict[str, Any]:
-    """Run scripts/build_structures.py to build and verify 6-connected hive_sanctum/*.nbt Jigsaw pieces."""
-    _invalidate_cache()
-    return await _run_subprocess_async([sys.executable, "scripts/build_structures.py"], timeout_secs=timeout_secs)
+async def run_structure_studio(timeout_secs: int = 120, check_only: bool = False) -> dict[str, Any]:
+    """Build 6-connected structures, or compare generated NBT with the repository in check-only mode."""
+    if not check_only:
+        _invalidate_cache()
+        return await _run_subprocess_async([sys.executable, "scripts/build_structures.py"], timeout_secs=timeout_secs)
+    with tempfile.TemporaryDirectory(prefix="mycelial-structures-") as temp_dir:
+        generated = Path(temp_dir)
+        result = await _run_subprocess_async(
+            [sys.executable, "scripts/build_structures.py", "--output-dir", temp_dir], timeout_secs=timeout_secs
+        )
+        if not result["ok"]:
+            return result
+        source = REPO_ROOT / "src/main/resources/data/mycelialmind/structure"
+        generated_files = {path.relative_to(generated) for path in generated.rglob("*.nbt")}
+        if not generated_files:
+            result.update(ok=False, generated_count=0, differences=["No structures generated"])
+            return result
+        source_files = {path.relative_to(source) for group in {path.parts[0] for path in generated_files}
+                        for path in (source / group).glob("*.nbt")}
+        differences = sorted(str(path) for path in generated_files ^ source_files)
+        for path in sorted(generated_files & source_files):
+            try:
+                if gzip.decompress((generated / path).read_bytes()) != gzip.decompress((source / path).read_bytes()):
+                    differences.append(str(path))
+            except (OSError, EOFError) as exc:
+                differences.append(f"{path}: {exc}")
+        result.update(ok=not differences, generated_count=len(generated_files), differences=differences)
+        return result
 
 
 @_tool(tags={"visual", "structures"})
@@ -2121,6 +2146,8 @@ def _parse_java_enum_constants(path: Path, enum_name: str) -> list[str]:
             in_enum = True
             continue
         if in_enum:
+            if line.strip().startswith("}"):
+                break
             if ";" in line and not _ENUM_CONST_RE.match(line):
                 break
             m = _ENUM_CONST_RE.match(line)
