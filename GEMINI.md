@@ -17,6 +17,11 @@
 - Integra toda rama creada para la tarea en su destino y sincroniza siempre los cambios del PR: antes del merge actualiza la rama del PR con `origin/<destino>`, resuelve conflictos, revisa el diff final, comprueba los checks requeridos y haz merge; inmediatamente después del merge (o si el checkout local quedó detrás de `origin/<destino>`), sincroniza siempre la copia local de la rama de destino en el workspace principal (`git fetch origin` + `--ff-only`, resguardando y reaplicando cambios locales propios/ajenos y entradas *append-only* de `MEMORY.md` sin perder ni las del PR ni las locales), y confirma que el commit integrado y su CI en destino terminaron en verde antes de limpiar worktrees/ramas temporales. Sigue `.agents/rules/git-auto-commit.md`.
 - Respeta las instrucciones explícitas del usuario; informa cualquier bloqueo de permisos, remoto, conflictos, checks o protección de rama y deja claro lo pendiente.
 
+# Objetivo del Mod e Iniciativa Inédita (Obligatorio)
+
+- **Preservar el objetivo actual:** Mantén intacto el núcleo de *Mycelial Mind* (organismo micelial subterráneo adaptativo con Mente Colmena por dimensión, memoria de combate/hábitos, red sináptica, homeostasis dimensional, simbiosis, Colonia Soberana y contraofensiva biotecnológica).
+- **Iniciativa inédita y única en cada cambio buscado:** Toda nueva mecánica, sistema o evolución diseñada para el mod debe aportar **una iniciativa inédita, irrepetible y que ningún otro mod de Minecraft tenga**, evitando mecánicas genéricas de infección, escalados planos o fórmulas copiadas. Antes de planificar o implementar nuevas features de gameplay, justifica qué hace única la propuesta y cómo profundiza el ecosistema vivo del mod (ver `.agents/rules/mod-vision-and-originality.md`).
+
 ## Higiene del Repositorio y Gestión de Archivos (Obligatorio)
 
 Para evitar la acumulación de archivos obsoletos, código muerto o basura de pruebas, cumple estrictamente estas reglas en cada tarea:
