@@ -438,3 +438,22 @@ idea {
         downloadJavadoc = true
     }
 }
+
+// Isolated microbenchmarks are excluded from the mod artifact.
+sourceSets {
+    jmh
+}
+
+dependencies {
+    jmhImplementation 'org.openjdk.jmh:jmh-core:1.37'
+    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+    jmhImplementation 'it.unimi.dsi:fastutil:8.5.12'
+}
+
+tasks.register('runJmh', JavaExec) {
+    dependsOn tasks.named('jmhClasses')
+    classpath = sourceSets.jmh.runtimeClasspath
+    mainClass = 'org.openjdk.jmh.Main'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+    args 'HomeostasisMapBenchmark', '-prof', 'gc'
+}
