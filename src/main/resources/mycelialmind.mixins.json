@@ -12,6 +12,10 @@
     "MobAccessor"
   ],
   "client": [
+    "client.MinecraftMixin",
+    "client.LightTextureMixin",
+    "client.GuiHeartTypeMixin",
+    "client.SoundManagerAccessor",
     "client.SoundEngineAccessor"
   ],
   "injectors": {

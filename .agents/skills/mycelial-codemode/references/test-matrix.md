@@ -1,6 +1,6 @@
 # Matriz Completa de Tests de Mycelial Mind (`CodeMode` `mycelial-mind-dev`)
 
-Mapa canónico de las suites actuales del repositorio (`199` JUnit, `218` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
+Mapa canónico de las suites actuales del repositorio (`203` JUnit, `218` `@GameTest`, `5` modos de `runVisualSmoke`, `runAnimationVisualSmoke`, `runStructureVisualSmoke`, `runHiveLifecycleSmoke`, `24` escenarios RCON y `6` estudios Python) y su ejecución directa desde `execute()`.
 
 ---
 
@@ -18,7 +18,7 @@ Mapa canónico de las suites actuales del repositorio (`199` JUnit, `218` `@Game
 
 ---
 
-## 1. Pruebas Headless JUnit 6 (**199** tests en **21** suites, ~2–4 s)
+## 1. Pruebas Headless JUnit 6 (**203** tests en **21** suites, ~2–4 s)
 
 Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind/*.java`).
 
@@ -42,7 +42,7 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 | `ModCompatTest` | 5 | `ClaimProtectionCompat` (FTB Chunks/OPAC), `ModdedDamageClassifier` (Ars Nouveau/Iron's Spells), `11` recetas `recipe/compat/`, Better Combat |
 | `OpenSourceApisIntegrationTest` | 4 | Cachés `Caffeine` en `PurificationZoneTracker`, geometría de overlays JourneyMap, listeners `ClientHiveCache`, validación de bindings KubeJS y guarda opcional TOP |
 | `JavaCoreLibrariesIntegrationTest` | 4 | Topología `JGraphT` (`SynapticNetworkTopology`), bitsets `RoaringBitmap` (`MycelialSpatialBitset`), estadística/picos `Commons Statistics` y `Bucket4j` determinista |
-| `MixinInfrastructureTest` | 12 | Configuración `mycelialmind.mixins.json` (common + `client.SoundEngineAccessor`), Mixin/MixinExtras (`@ModifyReturnValue`/`@WrapOperation`), accessors tipados, ParchmentMC `2024.11.17` y política anti-cheese `MycelialMixinPolicy` |
+| `MixinInfrastructureTest` | 16 | Configuración `mycelialmind.mixins.json` (common + `client.{MinecraftMixin,LightTextureMixin,GuiHeartTypeMixin,SoundManagerAccessor,SoundEngineAccessor}`), Mixin/MixinExtras (`@ModifyReturnValue`/`@WrapOperation`), accessors tipados, ParchmentMC `2024.11.17` y políticas puras `MycelialMixinPolicy` / `MycelialClientMixinPolicy` |
 | `CleanRoomAiCapabilitiesUnitTest` | 4 | Primitivas de IA clean-room (`HiveBtSelector`/`Sequence`/`DynamicGuard`, `HiveSteeringEngine`) |
 | `HiveCycleAndEngramUnitTest` | 4 | Mutadores de Ciclo Post-Matriarca, puntuación/grados y reglas de `FieldEngramId` |
 | `PostMatriarchExpeditionRulesTest` | 3 | Reglas de ruta/jardín, recuperación y desbloqueo de expediciones |
