@@ -5665,3 +5665,24 @@ El bridge compara las subcarpetas versionadas independientemente del generador. 
 - **Archivos / Símbolos:** `scripts/mcp/{server.py,test_bridge_unit.py,README.md}`, `.github/workflows/verify.yml`, `.agents/skills/mycelial-codemode/{SKILL.md,references/catalog-and-sandbox.md}`, `MEMORY.md`.
 - **Skills revisadas/actualizadas:** Actualizada `mycelial-codemode` (`SKILL.md` + `references/catalog-and-sandbox.md`); el resto de las 8 skills revisadas sin requerir cambios (`validate_agent_skills.py`: `8/8` skills, `27` enlaces OK).
 - **Verificación:** `py_compile`, `validate_agent_skills.py` (`8/8`, `27` links), AST (`70` tools, `0` bloqueantes síncronas, `9` recursos), `unittest` local (`25/25` OK en `3.59s`), `git diff --check` limpio y ejecución real con `fastmcp` en CI Ubuntu.
+
+## [2026-11-28] — Ensayo separado de fastutil para vóxeles
+- Rama codex/voxel-fastutil-jmh iniciada con LongOpenHashSet y benchmark preliminar. Pendientes benchmark del recorrido completo, pruebas y validación.
+
+## [2026-11-28] — JMH de recorrido de vóxeles
+- Incorporados escenarios preliminares de flood-fill y colección para estructuras compactas y dispersas; benchmark en curso. Pendientes comparación funcional y revisión del diseño de la medición.
+
+## [2026-11-28] — JMH preliminar de vóxeles
+- JMH Java 21 completado en escenarios sintéticos. Flood-fill compacto 512: HashSet 149.46 µs, fastutil 61.63 µs; 8192: 1403.21 frente a 1186.90 µs. El escenario disperso tiene componentes aislados y no representa el recorrido completo. Pruebas de proyecto en curso.
+
+## [2026-11-28] — Pruebas del recorrido de vóxeles
+- test build y 218 GameTests aislados aprobados con LongOpenHashSet. Pendientes prueba diferencial específica y revisión del benchmark antes de publicar.
+
+## [2026-11-28] — Prueba directa de vóxeles
+- Un ensayo JUnit independiente no pudo inicializar registries de NeoForge (LoadingModList nulo); retirado para reemplazarlo por GameTest. Los 218 GameTests existentes habían aprobado.
+
+## [2026-11-28] — GameTest de conectividad de vóxeles
+- Añadido GameTest con bloques conectados y un bloque diagonal aislado. Ejecución en curso; CI del merge de worldgen sigue en progreso.
+
+## [2026-11-28] — GameTest de vóxeles aprobado
+- runGameTestServer aislado completó 219 GameTests incluyendo voxel_connectivity. CI del merge de worldgen 46123953036 aprobado.

@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.world.structure;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
@@ -10,10 +11,8 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
@@ -145,7 +144,7 @@ public final class VoxelStructureOps {
             BlockPos seed,
             Predicate<BlockState> isStructureBlock
     ) {
-        Set<Long> visited = new HashSet<>();
+        LongOpenHashSet visited = new LongOpenHashSet();
         Queue<BlockPos> queue = new ArrayDeque<>();
         if (box.isInside(seed) && isStructureBlock.test(level.getBlockState(seed))) {
             visited.add(seed.asLong());

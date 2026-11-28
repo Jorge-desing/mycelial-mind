@@ -13069,4 +13069,24 @@ public final class MycelialGameTests {
         }
     }
 
+    @GameTest(batch = "voxel_connectivity", template = "empty")
+    public static void voxelConnectivityPreservesScanOrder(GameTestHelper helper) {
+        BlockPos origin = helper.absolutePos(new BlockPos(0, 0, 0));
+        var level = helper.getLevel();
+        var connected = origin.east();
+        var isolated = origin.offset(2, 1, 0);
+        level.setBlock(origin, Blocks.STONE.defaultBlockState(), 3);
+        level.setBlock(connected, Blocks.STONE.defaultBlockState(), 3);
+        level.setBlock(isolated, Blocks.STONE.defaultBlockState(), 3);
+        var box = new net.minecraft.world.level.levelgen.structure.BoundingBox(
+                origin.getX(), origin.getY(), origin.getZ(), origin.getX() + 2, origin.getY() + 1, origin.getZ());
+        var disconnected = com.alex.mycelialmind.world.structure.VoxelStructureOps.findDisconnectedPositions(
+                level, box, origin, state -> state.is(Blocks.STONE));
+        if (!disconnected.equals(java.util.List.of(isolated))) {
+            helper.fail("Unexpected disconnected voxel positions: " + disconnected);
+            return;
+        }
+        helper.succeed();
+    }
+
 }

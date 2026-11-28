@@ -457,3 +457,11 @@ tasks.register('runJmh', JavaExec) {
     javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
     args 'HomeostasisMapBenchmark', '-prof', 'gc'
 }
+
+tasks.register('runVoxelJmh', JavaExec) {
+    dependsOn tasks.named('jmhClasses')
+    classpath = sourceSets.jmh.runtimeClasspath
+    mainClass = 'org.openjdk.jmh.Main'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+    args 'VoxelVisitedBenchmark', '-prof', 'gc'
+}
