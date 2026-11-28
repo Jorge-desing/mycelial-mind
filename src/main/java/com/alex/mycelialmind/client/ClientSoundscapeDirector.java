@@ -74,6 +74,10 @@ public final class ClientSoundscapeDirector {
         return EvolutionRank.computeThreatMilestone(threatPercent);
     }
 
+    public static boolean isBossNearby() {
+        return lastBossNearby;
+    }
+
     public static void resetSession() {
         baselineCaptured = false;
         knownTraits.clear();
