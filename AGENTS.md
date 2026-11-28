@@ -23,8 +23,10 @@ Este archivo actúa como memoria persistente del proyecto para agentes y desarro
 
 ---
 
-## 2. Concepto y Arquitectura Central
+## 2. Concepto, Objetivo y Arquitectura Central
 Mod de organismo micelial subterráneo adaptativo que observa las tácticas de combate del jugador, acumula memoria en la Mente Colmena (*Hive Mind*) por dimensión y activa mutaciones defensivas globales en sus criaturas.
+
+- **Objetivo Ampliado (Iniciativa Inédita y Exclusividad):** Sin eliminar ni diluir el objetivo adaptativo original (Mente Colmena por dimensión, memoria táctica, red sináptica, homeostasis dimensional, simbiosis, Colonia Soberana y contraofensiva biotecnológica), todo nuevo cambio, sistema o mecánica buscada debe perseguir **una iniciativa inédita, única y que ningún otro mod de Minecraft tenga**, priorizando causalidad biológica/ecológica emergente, neuroplasticidad territorial y contrajuego diegético original frente a cualquier fórmula genérica (ver `.agents/rules/mod-vision-and-originality.md`).
 
 ### Subsistemas Principales
 1. **Memoria de la Mente Colmena (`hive/`)**
@@ -232,3 +234,8 @@ Para evitar la acumulación de archivos obsoletos, código muerto o basura de pr
 - Tras cada push, espera y revisa los checks y workflows de GitHub correspondientes al commit exacto. Si fallan, inspecciona los logs, corrige la causa, valida, sube el arreglo y repite hasta que los checks requeridos estén en verde. Antes de publicar una versión o integrar cambios, comprueba que los checks requeridos del commit que se va a publicar o integrar hayan terminado correctamente; si están pendientes, fallan o existe un bloqueo externo, no declares la publicación lista e informa el estado y el bloqueo exactos. Sigue `.agents/rules/git-auto-commit.md`.
 - Integra toda rama creada para la tarea en su rama de destino y sincroniza siempre los cambios del PR: antes del merge actualiza la rama del PR con `origin/<destino>`, resuelve conflictos, revisa el diff final, comprueba los checks requeridos y haz merge; inmediatamente después del merge (o si el checkout local quedó detrás de `origin/<destino>`), sincroniza siempre la copia local de la rama de destino en el workspace principal (`git fetch origin` + `--ff-only`, resguardando y reaplicando cambios locales propios/ajenos y entradas *append-only* de `MEMORY.md` sin perder ni las del PR ni las locales), y confirma que el commit integrado y su CI en destino terminaron en verde antes de limpiar worktrees/ramas temporales. Sigue `.agents/rules/git-auto-commit.md`.
 - Respeta instrucciones explícitas del usuario. Si permisos, remoto, conflictos, checks o protección de rama impiden completar una operación, informa el bloqueo y los pasos pendientes sin declarar concluida la integración.
+
+## 10. Regla de Diseño: Iniciativa Inédita y Diferenciación Única
+
+- Conserva siempre el objetivo actual de *Mycelial Mind* (Mente Colmena adaptativa por dimensión, red sináptica, homeostasis dimensional, simbiosis y contraofensiva biotecnológica) y exige en todo nuevo cambio de gameplay o contenido **una iniciativa inédita, única y que ningún otro mod tenga**.
+- Rechaza fórmulas genéricas o repetidas (propagación pasiva convencional, escalados numéricos planos, copias de mecánicas de otros mods) y documenta explícitamente la unicidad e interacción emergente de cada propuesta nueva antes de implementarla (ver `.agents/rules/mod-vision-and-originality.md`).

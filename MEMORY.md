@@ -5566,3 +5566,11 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## 2026-11-27 — Ciclo de sesiones del bridge
 - Se confirma disponibilidad mediante `list` RCON autenticado, se conservan diagnósticos ante fallos y se coordinan cierres concurrentes y cancelaciones con verificación del proceso. La guía de CodeMode documenta el comportamiento.
 - Verificación: 12 pruebas de ciclo de vida, skills 8/8, Verify-Assets, Gradle test/build y 218/218 GameTests. Una instancia MCP nueva inició el servidor, ejecutó `list` y lo cerró por RCON. La suite preexistente `test_server.py` falló en el recuento de `SignalType` del extractor (7 frente a 8) y detectó otros resultados falsos; no se atribuyen a este cambio.
+
+
+## [2026-11-27 21:12] — Regla y objetivo ampliado: iniciativa inédita y diferenciación única
+- **Tipo:** `DECISIÓN` | `VERIFICACIÓN`
+- **Resumen:** Actualizados el objetivo del mod y las reglas del repositorio sin eliminar el objetivo adaptativo actual de *Mycelial Mind*, exigiendo que todo nuevo cambio funcional, mecánica o evolución buscada aporte una iniciativa inédita, única y que ningún otro mod de Minecraft tenga (filtro anti-cliché, sistemas vivos causales/epigenéticos, justificación explícita de unicidad previa al diseño y contrajuego diegético).
+- **Archivos / Símbolos:** `.agents/rules/mod-vision-and-originality.md` (nueva regla `always_on`), `GEMINI.md`, `AGENTS.md` (§2 y §10), `README.md`, `MEMORY.md`.
+- **Skills:** Revisadas las skills del repositorio; ninguna requería cambios por esta regla de visión y diseño (`validate_skills`: `8/8` OK, `27` enlaces).
+- **Estado / Siguiente paso:** Pendiente commit selectivo, publicación en rama/PR, verificación de checks de GitHub, merge y sincronización final del checkout local.
