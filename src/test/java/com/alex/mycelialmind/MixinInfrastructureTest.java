@@ -1,7 +1,12 @@
 package com.alex.mycelialmind;
 
+import com.alex.mycelialmind.mixin.EntityMixin;
+import com.alex.mycelialmind.mixin.LivingEntityAccessor;
 import com.alex.mycelialmind.mixin.LivingEntityMixin;
+import com.alex.mycelialmind.mixin.MobAccessor;
 import com.alex.mycelialmind.util.MixinRuntimeProbe;
+import com.alex.mycelialmind.util.MycelialMixinHooks;
+import com.alex.mycelialmind.util.MycelialMixinPolicy;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -15,8 +20,11 @@ import org.objectweb.asm.Opcodes;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,8 +44,9 @@ class MixinInfrastructureTest {
         assertEquals("JAVA_21", root.get("compatibilityLevel").getAsString());
 
         JsonArray mixins = root.getAsJsonArray("mixins");
-        assertTrue(mixins.size() >= 1);
-        assertEquals("LivingEntityMixin", mixins.get(0).getAsString());
+        Set<String> declared = new HashSet<>();
+        mixins.forEach(elem -> declared.add(elem.getAsString()));
+        assertEquals(Set.of("LivingEntityMixin", "EntityMixin", "LivingEntityAccessor", "MobAccessor"), declared);
 
         assertEquals(1, root.getAsJsonObject("injectors").get("defaultRequire").getAsInt());
         assertTrue(root.getAsJsonObject("overwrites").get("requireAnnotations").getAsBoolean());
@@ -53,43 +62,39 @@ class MixinInfrastructureTest {
     }
 
     @Test
-    void livingEntityMixinUsesMixinExtrasModifyReturnValue() throws Exception {
-        assertFalse(MixinRuntimeProbe.class.getPackageName().startsWith("com.alex.mycelialmind.mixin"),
-                "Runtime helper classes must live outside com.alex.mycelialmind.mixin.* to avoid Mixin IllegalClassLoadError");
-
-        AtomicBoolean hasMixinAnnotation = new AtomicBoolean(false);
-        AtomicBoolean hasModifyReturnValue = new AtomicBoolean(false);
-        try (InputStream stream = LivingEntityMixin.class.getResourceAsStream("LivingEntityMixin.class")) {
-            assertNotNull(stream, "Compiled LivingEntityMixin.class must exist on test classpath");
-            new ClassReader(stream).accept(new ClassVisitor(Opcodes.ASM9) {
-                @Override
-                public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-                    if ("Lorg/spongepowered/asm/mixin/Mixin;".equals(descriptor)) {
-                        hasMixinAnnotation.set(true);
-                    }
-                    return null;
-                }
-
-                @Override
-                public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-                    if ("mycelialmind$probeVisibilityPercent".equals(name)) {
-                        return new MethodVisitor(Opcodes.ASM9) {
-                            @Override
-                            public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-                                if ("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;".equals(desc)) {
-                                    hasModifyReturnValue.set(true);
-                                }
-                                return null;
-                            }
-                        };
-                    }
-                    return null;
-                }
-            }, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+    void mixinsAndAccessorsCarryExpectedAnnotationsAndHelpersStayOutsideMixinPackage() throws Exception {
+        for (Class<?> helper : new Class<?>[]{MixinRuntimeProbe.class, MycelialMixinPolicy.class, MycelialMixinHooks.class}) {
+            assertFalse(helper.getPackageName().startsWith("com.alex.mycelialmind.mixin"),
+                    helper.getSimpleName() + " must live outside com.alex.mycelialmind.mixin.*");
         }
 
-        assertTrue(hasMixinAnnotation.get(), "LivingEntityMixin bytecode must carry @Mixin");
-        assertTrue(hasModifyReturnValue.get(), "LivingEntityMixin hook must carry MixinExtras @ModifyReturnValue");
+        Map<String, Set<String>> livingMethods = inspectMethodAnnotations(LivingEntityMixin.class);
+        assertTrue(livingMethods.getOrDefault("mycelialmind$adjustVisibilityPercent", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+        assertTrue(livingMethods.getOrDefault("mycelialmind$softenMycelialFallDamage", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> entityMethods = inspectMethodAnnotations(EntityMixin.class);
+        assertTrue(entityMethods.getOrDefault("mycelialmind$applyMycelialTraction", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> livingAccMethods = inspectMethodAnnotations(LivingEntityAccessor.class);
+        assertTrue(livingAccMethods.getOrDefault("mycelialmind$getLastHurtByMobTimestamp", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+        assertTrue(livingAccMethods.getOrDefault("mycelialmind$getLastHurtMobTimestamp", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+        assertTrue(livingAccMethods.getOrDefault("mycelialmind$invokeGetBlockSpeedFactor", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Invoker;"));
+
+        Map<String, Set<String>> mobAccMethods = inspectMethodAnnotations(MobAccessor.class);
+        assertTrue(mobAccMethods.getOrDefault("mycelialmind$getGoalSelector", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+        assertTrue(mobAccMethods.getOrDefault("mycelialmind$getTargetSelector", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+        assertTrue(mobAccMethods.getOrDefault("mycelialmind$getSensing", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+        assertTrue(mobAccMethods.getOrDefault("mycelialmind$invokeResetAmbientSoundTime", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Invoker;"));
     }
 
     @Test
@@ -105,5 +110,72 @@ class MixinInfrastructureTest {
         assertTrue(buildGradle.contains("parchment {"), "build.gradle must configure neoForge.parchment");
         assertTrue(buildGradle.contains("project.parchment_mappings_version"));
         assertTrue(buildGradle.contains("project.parchment_minecraft_version"));
+    }
+
+    @Test
+    void pheromoneCamouflageRespectsCapAndAntiCheeseLockouts() {
+        double stealth = MycelialMixinPolicy.computePheromoneVisibility(
+                1.0D, true, 4, 4, false, false, false, false);
+        assertEquals(0.56D, stealth, 1e-6);
+        assertTrue(stealth >= MycelialMixinPolicy.MIN_VISIBILITY_FLOOR);
+
+        // Sprinting, burning, infection/rot, active combat, or boss/non-mycelial observers disable camouflage.
+        assertEquals(1.0D, MycelialMixinPolicy.computePheromoneVisibility(1.0D, true, 4, 4, true, false, false, false), 1e-6);
+        assertEquals(1.0D, MycelialMixinPolicy.computePheromoneVisibility(1.0D, true, 4, 4, false, true, false, false), 1e-6);
+        assertEquals(1.0D, MycelialMixinPolicy.computePheromoneVisibility(1.0D, true, 4, 4, false, false, true, false), 1e-6);
+        assertEquals(1.0D, MycelialMixinPolicy.computePheromoneVisibility(1.0D, true, 4, 4, false, false, false, true), 1e-6);
+        assertEquals(1.0D, MycelialMixinPolicy.computePheromoneVisibility(1.0D, false, 4, 4, false, false, false, false), 1e-6);
+    }
+
+    @Test
+    void combatLockoutWindowExpiresAfterHundredTicks() {
+        assertTrue(MycelialMixinPolicy.isRecentlyInCombat(150, 120, 0));
+        assertTrue(MycelialMixinPolicy.isRecentlyInCombat(150, 0, 80));
+        assertFalse(MycelialMixinPolicy.isRecentlyInCombat(250, 120, 80));
+    }
+
+    @Test
+    void mycelialTractionIsBoundedAndIgnoredInAirOrLiquid() {
+        assertEquals(1.08F, MycelialMixinPolicy.computeMycelialSpeedFactor(1.0F, true, true, false, false, false), 1e-5);
+        assertEquals(1.10F, MycelialMixinPolicy.computeMycelialSpeedFactor(1.0F, true, false, true, false, false), 1e-5);
+        assertEquals(1.06F, MycelialMixinPolicy.computeMycelialSpeedFactor(1.0F, true, false, false, true, false), 1e-5);
+        // Anti-cheese: airborne, liquid, or already >= cap returns unchanged speed factor.
+        assertEquals(1.0F, MycelialMixinPolicy.computeMycelialSpeedFactor(1.0F, true, true, true, true, true), 1e-5);
+        assertEquals(1.0F, MycelialMixinPolicy.computeMycelialSpeedFactor(1.0F, false, true, true, true, false), 1e-5);
+        assertEquals(1.25F, MycelialMixinPolicy.computeMycelialSpeedFactor(1.25F, true, false, true, false, false), 1e-5);
+    }
+
+    @Test
+    void mycelialFallCushionReducesModerateFallsWithoutPreventingHighFallDamage() {
+        // Moderate fall (8 blocks, 5 damage) -> -30% bare (=3), -45% with Chitin boots (=2).
+        assertEquals(3, MycelialMixinPolicy.computeMycelialFallDamage(5, 8.0F, true, false));
+        assertEquals(2, MycelialMixinPolicy.computeMycelialFallDamage(5, 8.0F, true, true));
+
+        // High fall anti-MLG (>= 14 blocks): retains at least 50% damage and never becomes 0.
+        int highFallWithBoots = MycelialMixinPolicy.computeMycelialFallDamage(17, 20.0F, true, true);
+        assertEquals(9, highFallWithBoots);
+        assertEquals(1, MycelialMixinPolicy.computeMycelialFallDamage(1, 16.0F, true, true));
+        assertEquals(10, MycelialMixinPolicy.computeMycelialFallDamage(10, 15.0F, false, true));
+    }
+
+    private static Map<String, Set<String>> inspectMethodAnnotations(Class<?> clazz) throws Exception {
+        Map<String, Set<String>> methodAnnotations = new HashMap<>();
+        try (InputStream stream = clazz.getResourceAsStream(clazz.getSimpleName() + ".class")) {
+            assertNotNull(stream, "Compiled class must exist on test classpath: " + clazz.getName());
+            new ClassReader(stream).accept(new ClassVisitor(Opcodes.ASM9) {
+                @Override
+                public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                    Set<String> annotations = methodAnnotations.computeIfAbsent(name, ignored -> new HashSet<>());
+                    return new MethodVisitor(Opcodes.ASM9) {
+                        @Override
+                        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                            annotations.add(desc);
+                            return null;
+                        }
+                    };
+                }
+            }, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        }
+        return methodAnnotations;
     }
 }
