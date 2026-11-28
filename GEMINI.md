@@ -14,5 +14,27 @@
 - Antes de cada push, verifica los checks del SHA actual de la rama de destino y corrige los fallos; ejecuta en local los controles de CI aplicables. No subas cambios ordinarios con checks rojos, pendientes o sin evidencia suficiente. Si GitHub necesita un push para comprobar una reparación, publica únicamente la reparación acotada y validada y espera sus checks antes de continuar. Sigue `.agents/rules/git-auto-commit.md`.
 - Revisa todos los cambios propios y corrige los problemas detectados; ejecuta las verificaciones pertinentes. Selecciona solo los archivos propios, haz commit descriptivo, push y comprueba su publicación.
 - Tras cada `commit` y `push`, verifica los checks/workflows de GitHub del commit publicado (`scripts/Invoke-Gh.ps1` / `task gh:ci:watch` / `gh pr checks`); si detectas fallos de código, tests, assets o configuración, lee los logs (`gh run view <id> --log-failed`), corrígelos, vuelve a subir y re-verifica hasta quedar en verde (o informa el bloqueo exacto si es externo, como cuota de GitHub Actions).
-- Integra cada rama creada para la tarea en su destino: actualiza la base, resuelve conflictos, revisa el diff final, comprueba los checks, haz merge y confirma el commit integrado y CI en destino. Sigue `.agents/rules/git-auto-commit.md`.
+- Integra toda rama creada para la tarea en su destino y sincroniza siempre los cambios del PR: antes del merge actualiza la rama del PR con `origin/<destino>`, resuelve conflictos, revisa el diff final, comprueba los checks requeridos y haz merge; inmediatamente después del merge (o si el checkout local quedó detrás de `origin/<destino>`), sincroniza siempre la copia local de la rama de destino en el workspace principal (`git fetch origin` + `--ff-only`, resguardando y reaplicando cambios locales propios/ajenos y entradas *append-only* de `MEMORY.md` sin perder ni las del PR ni las locales), y confirma que el commit integrado y su CI en destino terminaron en verde antes de limpiar worktrees/ramas temporales. Sigue `.agents/rules/git-auto-commit.md`.
 - Respeta las instrucciones explícitas del usuario; informa cualquier bloqueo de permisos, remoto, conflictos, checks o protección de rama y deja claro lo pendiente.
+
+## Higiene del Repositorio y Gestión de Archivos (Obligatorio)
+
+Para evitar la acumulación de archivos obsoletos, código muerto o basura de pruebas, cumple estrictamente estas reglas en cada tarea:
+
+1. **Zona Temporal Aislada (`.agent-tmp/`):**
+   - Nunca crees scripts de Python, bash, logs, JSONs de prueba o notas temporales en la raíz del proyecto ni dentro de `src/`.
+   - Si necesitas generar un script o archivo temporal para depurar o verificar datos, guárdalo exclusivamente en `.agent-tmp/` (asegúrate de que esté en `.gitignore`) y elimínalo antes de finalizar la tarea.
+
+2. **Control de Tests y GameTests (`src/test` y `src/gametest`):**
+   - Antes de crear una clase de prueba nueva, revisa las existentes para ampliar la que corresponda al módulo.
+   - Si refactorizas, renombras o eliminas una clase/método en `src/main`, **debes actualizar o borrar inmediatamente** sus tests asociados para no dejar tests rotos ni huérfanos.
+
+3. **Artifacts y Planes de Trabajo (Antigravity):**
+   - No generes múltiples *Artifacts* de planificación para una misma funcionalidad; actualiza y sobrescribe el documento activo.
+   - Al completar una implementación, marca el *Artifact* como finalizado o limpia los borradores intermedios que ya no aporten valor.
+
+4. **Recursos y Datagen (`src/generated` vs `src/main/resources`):**
+   - No edites a mano ni dupliques JSONs dentro de `src/generated/resources` si pertenecen al pipeline de *Data Generation* de NeoForge; modifica el *DataProvider* en Java y limpia archivos residuales de bloques/ítems eliminados.
+
+5. **Autolimpieza Pre-Entrega:**
+   - Antes de dar por terminada tu respuesta, ejecuta una revisión rápida de los archivos creados o modificados (`git status`) y elimina cualquier archivo auxiliar, clase vacía o importación sin usar que haya quedado como residuo.
