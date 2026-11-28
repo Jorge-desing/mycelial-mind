@@ -5616,3 +5616,41 @@ El bridge compara las subcarpetas versionadas independientemente del generador. 
 - **Archivos / Símbolos:** `scripts/mcp/{server.py,test_server.py,test_bridge_unit.py,README.md}`, `.agents/rules/codemode-first.md`, `.agents/skills/mycelial-codemode/{SKILL.md,references/{catalog-and-sandbox,audit-playbooks,test-matrix}.md}`, `MEMORY.md`.
 - **Skills revisadas/actualizadas:** Actualizada `.agents/skills/mycelial-codemode/` (`70` tools, etiquetas y playbooks); el resto de las 8 skills revisadas sin requerir cambios (`validate_agent_skills.py`: `8/8` skills, `27` enlaces OK).
 - **Verificación:** `py_compile`, `validate_agent_skills.py` (`8/8`, `27` links), validación AST de herramientas/etiquetas (`70` tools / `17` tags `100%` alineados), `unittest` sobre `test_live_lifecycle.py` + `test_bridge_unit.py` (`20/20` OK en `3.23s` con stub en memoria de `fastmcp` fuera del bloqueo `.pyd` del sandbox) y `git diff --check` limpio.
+
+## [2026-11-28] — Trabajo en curso de fastutil y JMH
+- Rama aislada codex/homeostasis-fastutil-jmh en C:/Users/Alex/Documents/mycelial-fastutil-jmh. Sustitución inicial del mapa de homeostasis realizada; quedan pendientes JMH, verificación de orden y persistencia, pruebas y revisión.
+
+
+## [2026-11-28] — Continuación de fastutil y JMH
+- Compilación Java inicial correcta. Añadidos benchmark JMH aislado y prueba de carga NBT histórica; ejecuciones en curso. Pendiente verificar resultados, orden de recorrido y revisión integral.
+
+
+## [2026-11-28] — Verificación parcial de homeostasis
+- Prueba JUnit de NBT histórico y recompilación aprobadas. JMH reiniciado con toolchain Java 21; se investiga sensibilidad del orden en la difusión entre chunks antes de integrar.
+
+
+## [2026-11-28] — Orden de chunks de homeostasis
+- Se identificó que la difusión modifica vecinos durante el recorrido. Se añadió un índice de orden HashMap para preservar el orden previo de los chunks activos; validación en curso. JMH sigue ejecutándose con Java 21.
+
+
+## [2026-11-28] — Persistencia y orden de homeostasis
+- JUnit de carga NBT histórica y orden HashMap tras inserción, eliminación y recarga aprobado. JMH Java 21 sigue en ejecución; quedan revisión de costes del índice y pruebas integrales.
+
+
+## [2026-11-28] — Suite Java de fastutil
+- test build aprobado. Benchmark ampliado con coste de mantener el índice; repetir la medición en aislamiento tras finalizar el proceso JMH anterior.
+
+
+## [2026-11-28] — Revisión de iteración fastutil
+- Corregida la retirada de entradas para capturar la clave antes de invalidar el iterador. JMH completo iniciado de forma aislada con Java 21; pendientes pruebas de regresión y revisión final.
+
+
+## [2026-11-28] — Regresión de expiración
+- Añadida prueba de expiración que elimina entradas vacías y conserva estrés activo. Pendiente ejecución después del benchmark aislado.
+
+
+## [2026-11-28] — JMH y validación de homeostasis
+- JMH Java 21 completado; consulta fastutil 3.10/4.20 ns frente a HashMap 7.14/48.55 ns, tamaños 256/4096. Eliminar y reinsertar con índice 35.95/250.56 ns frente a 22.03/144.01 ns. test build y runGameTestServer terminaron con éxito; pendiente revisión de resultados completos y publicación.
+
+## [2026-11-28] — Validación previa de fastutil
+- Suite Java, 218 GameTests, build, publicación simulada, Verify-Assets y Renovate validator aprobados. JMH muestra mayor coste de eliminación e inserción por índice de orden; las mediciones son microbenchmarks, no FPS ni MSPT de juego.

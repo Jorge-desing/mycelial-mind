@@ -1,6 +1,7 @@
 package com.alex.mycelialmind.world;
 
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine.HomeostasisStage;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -81,14 +82,22 @@ public class DimensionalHomeostasisSavedData extends SavedData {
         }
     }
 
-    private final Map<Long, ChunkState> chunks = new HashMap<>();
+    private final Long2ObjectOpenHashMap<ChunkState> chunks = new Long2ObjectOpenHashMap<>();
+    // Preserve the HashMap traversal order used by the existing diffusion loop.
+    private final Map<Long, Boolean> chunkOrder = new HashMap<>();
 
     public static DimensionalHomeostasisSavedData get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
     }
 
     private ChunkState getOrCreate(long key) {
-        return chunks.computeIfAbsent(key, k -> new ChunkState());
+        ChunkState state = chunks.get(key);
+        if (state == null) {
+            state = new ChunkState();
+            chunks.put(key, state);
+            chunkOrder.put(key, Boolean.TRUE);
+        }
+        return state;
     }
 
     public synchronized double getStress(ChunkPos chunkPos) {
@@ -257,7 +266,9 @@ public class DimensionalHomeostasisSavedData extends SavedData {
                 changed = true;
             }
             if (isEmpty(state)) {
+                long removedKey = entry.getKey();
                 iterator.remove();
+                chunkOrder.remove(removedKey);
                 changed = true;
             }
         }
@@ -418,12 +429,13 @@ public class DimensionalHomeostasisSavedData extends SavedData {
     }
 
     public synchronized List<Long> getTrackedChunkKeys() {
-        return new ArrayList<>(chunks.keySet());
+        return new ArrayList<>(chunkOrder.keySet());
     }
 
     public synchronized void resetAll() {
         if (!chunks.isEmpty()) {
             chunks.clear();
+            chunkOrder.clear();
             setDirty();
         }
     }
@@ -431,12 +443,17 @@ public class DimensionalHomeostasisSavedData extends SavedData {
     public synchronized void restoreFromSnapshot(CompoundTag snapshot, HolderLookup.Provider registries) {
         DimensionalHomeostasisSavedData restored = load(snapshot, registries);
         chunks.clear();
-        chunks.putAll(restored.chunks);
+        chunkOrder.clear();
+        for (long key : restored.chunkOrder.keySet()) {
+            chunks.put(key, restored.chunks.get(key));
+            chunkOrder.put(key, Boolean.TRUE);
+        }
         setDirty();
     }
 
     public synchronized void resetChunk(ChunkPos chunkPos) {
         if (chunks.remove(chunkPos.toLong()) != null) {
+            chunkOrder.remove(chunkPos.toLong());
             setDirty();
         }
     }
@@ -444,6 +461,7 @@ public class DimensionalHomeostasisSavedData extends SavedData {
     private void pruneIfEmpty(long key, ChunkState state) {
         if (isEmpty(state)) {
             chunks.remove(key);
+            chunkOrder.remove(key);
         }
     }
 
@@ -457,13 +475,13 @@ public class DimensionalHomeostasisSavedData extends SavedData {
     @Override
     public synchronized CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         ListTag list = new ListTag();
-        for (Map.Entry<Long, ChunkState> entry : chunks.entrySet()) {
-            ChunkState cs = entry.getValue();
+        for (long key : chunkOrder.keySet()) {
+            ChunkState cs = chunks.get(key);
             if (isEmpty(cs)) {
                 continue;
             }
             CompoundTag ct = new CompoundTag();
-            ct.putLong("Key", entry.getKey());
+            ct.putLong("Key", key);
             ct.putDouble("Stress", cs.stress);
             ct.putInt("Stage", cs.lastStageId);
             ct.putLong("LastTick", cs.lastAggravatedTick);
@@ -503,6 +521,7 @@ public class DimensionalHomeostasisSavedData extends SavedData {
                 }
             }
             data.chunks.put(key, cs);
+            data.chunkOrder.put(key, Boolean.TRUE);
         }
         return data;
     }
