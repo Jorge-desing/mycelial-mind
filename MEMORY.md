@@ -5713,3 +5713,15 @@ El bridge compara las subcarpetas versionadas independientemente del generador. 
 
 ## [2026-11-28] — GameTest de vóxeles aprobado
 - runGameTestServer aislado completó 219 GameTests incluyendo voxel_connectivity. CI del merge de worldgen 46123953036 aprobado.
+
+## [2026-11-28] — Fallo intermitente de GameTest de quimera
+- Validación combinada falló en chimeraGeneRerollRankEvolutionAndAutonomousMutation: fired=false. El test busca una entidad recién creada mediante getEntitiesOfClass fuera de la plantilla de 3x3; se investiga indexación de chunks. Repetición aislada en curso, sin atribuir aún causa definitiva.
+
+## [2026-11-28] — Aislamiento del GameTest de quimera
+- Repetición aislada pasó 219/219; se añadió espera de dos ticks y comprobación explícita de indexación del objetivo antes de evaluar la habilidad. Validación completa en curso; causa exacta del fallo anterior aún no demostrada.
+
+## [2026-11-28] — Diagnóstico de quimera
+- Fallo reproducido con indexed=false y fired=false tras dos ticks; el objetivo no aparecía en getEntitiesOfClass. Se fuerza la carga del chunk de destino antes de crear el mob; validación completa en curso.
+
+## [2026-11-28] — Validación final de vóxeles
+- test build, 219 GameTests y publicación simulada aprobados con chunk cargado para el fixture de quimera. Verify-Assets aprobado. JMH sintético muestra mejora en distribución compacta; escenario disperso no visita la estructura completa.
