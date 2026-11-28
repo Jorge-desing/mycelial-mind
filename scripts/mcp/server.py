@@ -2918,10 +2918,16 @@ async def start_smoke_server(
     timeout_secs: int = 120,
 ) -> dict[str, Any]:
     """Start an isolated headless smoke server under artifacts/diagnostics/ with RCON enabled (and optional -Pdiagnostics)."""
+    if any(not isinstance(port, int) or not 0 <= port <= 65535 for port in (rcon_port, server_port)):
+        return {"ok": False, "stage": "validation", "error": "Ports must be between 0 and 65535"}
+    if rcon_port and rcon_port == server_port:
+        return {"ok": False, "stage": "validation", "error": "RCON and server ports must differ"}
     session_id = f"live-{uuid.uuid4().hex[:8]}"
     run_dir = REPO_ROOT / "artifacts" / "diagnostics" / f"live-smoke-{session_id}"
     run_dir.mkdir(parents=True, exist_ok=True)
     r_port = rcon_port or _find_free_port()
+    while server_port and not rcon_port and r_port == server_port:
+        r_port = _find_free_port()
     s_port = server_port or _find_free_port()
     while s_port == r_port:
         s_port = _find_free_port()
@@ -2971,8 +2977,7 @@ async def start_smoke_server(
         )
     except OSError as exc:
         log_fh.close()
-        shutil.rmtree(run_dir, ignore_errors=True)
-        return {"ok": False, "session_id": session_id, "error": f"Failed to launch smoke server: {exc}"}
+        return {"ok": False, "session_id": session_id, "stage": "launch", "log_path": log_file.relative_to(REPO_ROOT).as_posix(), "log_tail": "", "error": f"Failed to launch smoke server: {exc}"}
     sess = {
         "session_id": session_id,
         "server_proc": proc,
@@ -2990,22 +2995,31 @@ async def start_smoke_server(
 
     deadline = time.monotonic() + timeout_secs
     ready = False
-    while time.monotonic() < deadline:
-        if proc.poll() is not None:
-            break
-        text = log_file.read_text(encoding="utf-8", errors="replace")
-        if "RCON running on" in text:
-            ready = True
-            break
-        await asyncio.sleep(0.5)
+    try:
+        while time.monotonic() < deadline:
+            if proc.poll() is not None:
+                break
+            text = log_file.read_text(encoding="utf-8", errors="replace")
+            if "RCON running on" in text:
+                remaining = deadline - time.monotonic()
+                if remaining > 0:
+                    result = await asyncio.to_thread(_rcon_command_sync, "list", "127.0.0.1", r_port, password, min(remaining, 2.0))
+                    if result.get("ok"):
+                        ready = True
+                        break
+            await asyncio.sleep(min(0.5, max(0, deadline - time.monotonic())))
+    except asyncio.CancelledError:
+        await asyncio.shield(stop_smoke_server(session_id=session_id))
+        raise
 
     if not ready:
-        _kill_process_tree(proc)
-        log_fh.close()
-        _LIVE_SESSIONS.pop(session_id, None)
-        tail = "\n".join(log_file.read_text(encoding="utf-8", errors="replace").splitlines()[-40:])
-        shutil.rmtree(run_dir, ignore_errors=True)
-        return {"ok": False, "session_id": session_id, "error": "Smoke server failed to reach RCON ready", "log_tail": tail}
+        if proc.poll() is None:
+            await asyncio.to_thread(_kill_process_tree, proc)
+        if proc.poll() is not None:
+            log_fh.close()
+            _LIVE_SESSIONS.pop(session_id, None)
+        tail = "\n".join(log_file.read_text(encoding="utf-8", errors="replace").splitlines()[-40:]).replace(password, "[redacted]")[-8192:]
+        return {"ok": False, "session_id": session_id, "stage": "readiness", "error": "Smoke server failed to reach RCON ready", "log_path": sess["log_path"], "log_tail": tail, "running": proc.poll() is None}
 
     return {
         "ok": True,
@@ -3059,25 +3073,46 @@ def smoke_server_status(session_id: str = "") -> dict[str, Any]:
 async def stop_smoke_server(session_id: str = "", cleanup_dir: bool = False) -> dict[str, Any]:
     """Gracefully stop a bridge-owned smoke server via RCON 'stop' (with process-tree kill fallback)."""
     sid = session_id or (next(iter(_LIVE_SESSIONS)) if len(_LIVE_SESSIONS) == 1 else "")
-    sess = _LIVE_SESSIONS.pop(sid, None)
+    sess = _LIVE_SESSIONS.get(sid)
     if not sess:
         return {"ok": False, "error": f"Session not found: '{session_id}'", "active_sessions": sorted(_LIVE_SESSIONS)}
+    task = sess.get("stop_task")
+    if task is None or task.done():
+        task = asyncio.create_task(_stop_smoke_session(sid, sess, cleanup_dir))
+        sess["stop_task"] = task
+    return await asyncio.shield(task)
+
+
+async def _stop_smoke_session(sid: str, sess: dict[str, Any], cleanup_dir: bool) -> dict[str, Any]:
     proc = sess["server_proc"]
     graceful = False
     if proc.poll() is None:
-        await rcon_command("stop", host="127.0.0.1", port=sess["rcon_port"], password=sess["rcon_password"])
+        try:
+            result = await rcon_command("stop", host="127.0.0.1", port=sess["rcon_port"], password=sess["rcon_password"])
+        except Exception:
+            result = {"ok": False}
         try:
             await asyncio.to_thread(proc.wait, 25)
-            graceful = True
+            graceful = bool(result.get("ok"))
         except subprocess.TimeoutExpired:
-            _kill_process_tree(proc)
+            await asyncio.to_thread(_kill_process_tree, proc)
+    if proc.poll() is None:
+        return {"ok": False, "session_id": sid, "error": "Server process still running", "graceful_rcon_stop": False, "cleaned_dir": False}
     try:
         sess["log_fh"].close()
     except OSError:
         pass
+    cleaned = False
+    error = ""
     if cleanup_dir:
-        shutil.rmtree(sess["run_dir"], ignore_errors=True)
-    return {"ok": True, "session_id": sid, "graceful_rcon_stop": graceful, "cleaned_dir": cleanup_dir}
+        try:
+            shutil.rmtree(sess["run_dir"])
+            cleaned = True
+        except OSError as exc:
+            error = str(exc)
+    if not error:
+        _LIVE_SESSIONS.pop(sid, None)
+    return {"ok": not error, "session_id": sid, "graceful_rcon_stop": graceful, "cleaned_dir": cleaned, **({"error": error} if error else {})}
 
 
 @_tool(tags={"lifecycle", "mcpilot", "rcon"})
@@ -3100,14 +3135,30 @@ async def start_live_session(
     sid = srv["session_id"]
     client_res: dict[str, Any] | None = None
     if launch_client:
-        client_res = await mcpilot_command(["client", "launch", client_name, "--no-server"], mct_home=mct_home, timeout_secs=120)
+        try:
+            client_res = await mcpilot_command(["client", "launch", client_name, "--no-server"], mct_home=mct_home, timeout_secs=120)
+        except asyncio.CancelledError:
+            try:
+                with contextlib.suppress(Exception):
+                    await asyncio.shield(stop_mcpilot_client(client_name=client_name, mct_home=mct_home))
+            finally:
+                await asyncio.shield(stop_smoke_server(session_id=sid))
+            raise
         if not client_res.get("ok"):
-            cleanup = await stop_smoke_server(session_id=sid, cleanup_dir=True)
+            cleanup = await stop_smoke_server(session_id=sid)
+            log_path = REPO_ROOT / srv["log_path"]
+            try:
+                tail = "\n".join(log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-40:])
+            except OSError:
+                tail = ""
             return {
                 "ok": False,
                 "session_id": sid,
-                "error": "MC Pilot client launch failed; smoke server stopped",
-                "server": srv,
+                "error": "MC Pilot client launch failed",
+                "stage": "client_launch",
+                "log_path": srv["log_path"],
+                "log_tail": tail.replace(srv["rcon_password"], "[redacted]")[-8192:],
+                "server": {key: value for key, value in srv.items() if key != "rcon_password"},
                 "client": client_res,
                 "cleanup": cleanup,
             }
@@ -3129,9 +3180,20 @@ async def stop_live_session(session_id: str = "", cleanup_dir: bool = False) -> 
     sess = _LIVE_SESSIONS.get(sid)
     if not sess:
         return {"ok": False, "error": f"Session not found: '{session_id}'", "active_sessions": sorted(_LIVE_SESSIONS)}
+    task = sess.get("live_stop_task")
+    if task is None or task.done():
+        task = asyncio.create_task(_stop_live_session(sid, sess, cleanup_dir))
+        sess["live_stop_task"] = task
+    return await asyncio.shield(task)
+
+
+async def _stop_live_session(sid: str, sess: dict[str, Any], cleanup_dir: bool) -> dict[str, Any]:
     client_res: dict[str, Any] | None = None
     if sess.get("client_name"):
-        client_res = await stop_mcpilot_client(client_name=sess["client_name"], mct_home=sess.get("mct_home", ""))
+        try:
+            client_res = await stop_mcpilot_client(client_name=sess["client_name"], mct_home=sess.get("mct_home", ""))
+        except Exception as exc:
+            client_res = {"ok": False, "error": str(exc)}
     srv_res = await stop_smoke_server(session_id=sid, cleanup_dir=cleanup_dir)
     return {
         "ok": bool(srv_res.get("ok", False) and (client_res.get("ok", False) if client_res is not None else True)),

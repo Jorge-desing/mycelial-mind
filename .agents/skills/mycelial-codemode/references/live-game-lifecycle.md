@@ -1,6 +1,8 @@
 # Ciclo de Vida en Vivo: Servidor Aislado, RCON Parseado, MC Pilot y JFR
 
 ## 1. Sesión Unificada (Servidor Smoke Aislado + Cliente MC Pilot)
+El servidor está listo cuando responde a `list` mediante RCON autenticado. Si falla el arranque, `stage`, `log_path` y `log_tail` ayudan a localizar el problema; la carpeta de diagnóstico se conserva. `stop_live_session` y `stop_smoke_server` mantienen la carpeta por defecto. Con `cleanup_dir=True`, `cleaned_dir` confirma si se eliminó. Si el proceso continúa activo, el cierre devuelve `ok=false` y conserva el ID para reintentar.
+
 ```python
 sess = await call_tool("start_live_session", {
     "client_name": "mycelial-1211",
