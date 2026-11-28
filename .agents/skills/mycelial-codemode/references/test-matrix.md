@@ -15,7 +15,7 @@ Mapa canónico de las suites actuales del repositorio (`207` JUnit, `218` `@Game
 | `scripts/{model,texture,particle,codex}_studio/` | Estudio correspondiente (`check_only=True, run_tests=True`) + `runVisualSmoke` (`visual_smoke_mode="default"` o `"particle"`) + `check_visual_regression()` |
 | `worldgen/` / `structure/` / `scripts/build_structures.py` | `run_structure_studio()` + `runStructureVisualSmoke` + `check_structure_visual_regression()` + preset `sinkhole_and_worldgen` |
 | Pantallas UI / Dialectos / Reliquias / Expediciones | `run_gradle_task(["runVisualSmoke"], visual_smoke_mode="dialect\|relic\|expedition")` + `test_filter="CodexBookScreenLogicTest"` / `"PostMatriarchExpeditionRulesTest"` |
-| `scripts/mcp/` / `.agents/skills/` | `validate_skills()` + `get_bridge_health()` + `python -m py_compile scripts/mcp/server.py scripts/mcp/test_server.py` + `test_live_lifecycle.py` (`12`) y `test_server.py` en host |
+| `scripts/mcp/` / `.agents/skills/` | `validate_skills()` + `get_bridge_health()` + `run_bridge_self_tests()` (`test_live_lifecycle.py` + `test_bridge_unit.py` + `py_compile`) y `test_server.py` en host |
 
 ---
 
@@ -104,5 +104,5 @@ Se ejecutan sin bootstrap de FML/Minecraft (`src/test/java/com/alex/mycelialmind
 | Sound Studio v9 | `run_sound_studio(check_only=True, run_tests=True)` + `audit_sound_masking` + `inspect_sound_event` | 25 | `226` eventos / `596` `.ogg`, `95` stems RTX, True-Peak 4x, costuras `11` loops, matriz Bark `11×20` (`220` pares) GPU/CPU |
 | Codex Studio | `run_codex_studio(check_only=True, run_tests=True)` | 5 | `12` capítulos / `62` entradas / `256` páginas, paridad EN/ES + Modonomicon |
 | Structure Studio | `run_structure_studio(check_only=True)` | — | Comparación temporal de inventario y NBT descomprimido (`30` `.nbt` en `4` grupos) |
-| FastMCP Bridge (Lifecycle) | `python -m unittest scripts/mcp/test_live_lifecycle.py` | 12 | Validación de puertos, cierres concurrentes, cancelaciones y limpieza segura de sesiones |
-| FastMCP Bridge (E2E) | `python scripts/mcp/test_server.py` (en host fuera de sandbox `.pyd`) | suite e2e | Handshake `CodeMode`, 67 tools, RCON mock, validadores de parámetros |
+| FastMCP Bridge (Unit & Lifecycle) | `run_bridge_self_tests()` (`unittest` `test_live_lifecycle.py` + `test_bridge_unit.py` + `py_compile`) | suite unit | Puertos, cierres concurrentes, Mixins, `get_repo_status`, `animation_pair`, recarga `validate_skills` y snapshots |
+| FastMCP Bridge (E2E) | `python scripts/mcp/test_server.py` (en host fuera de sandbox `.pyd`) | suite e2e | Handshake `CodeMode`, 70 tools, RCON mock, validadores de parámetros |

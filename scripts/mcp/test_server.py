@@ -228,10 +228,15 @@ async def verify_code_mode() -> None:
     assert "--tests" in flt_cmd and "OpenAlEfxLoopbackTest" in flt_cmd, flt_cmd
     vis_cmd = _build_gradle_task_command(["runVisualSmoke"], 2, False, True, visual_smoke_mode="dialect")
     assert "-PdialectVisualSmoke=true" in vis_cmd, vis_cmd
+    anim_cmd = _build_gradle_task_command(["runAnimationVisualSmoke"], 2, False, True, animation_pair="brute_warden")
+    assert "-PanimationPair=brute_warden" in anim_cmd, anim_cmd
     for bad_kwargs in (
         {"tasks": ["publishMods"], "test_filter": "OpenAlEfxLoopbackTest"},
         {"tasks": ["test"], "test_filter": "bad;cmd"},
         {"tasks": ["runVisualSmoke"], "visual_smoke_mode": "invalid_mode"},
+        {"tasks": ["test"], "animation_pair": "brute_warden"},
+        {"tasks": ["publishMods"], "animation_pair": "brute_warden"},
+        {"tasks": ["runAnimationVisualSmoke"], "animation_pair": "bad;pair"},
     ):
         try:
             _build_gradle_task_command(max_workers=2, no_daemon=False, use_offline=True, **bad_kwargs)
@@ -522,7 +527,7 @@ import asyncio
     call_tool("run_sound_studio", {{"check_only": True, "run_tests": True}}),
     call_tool("run_codex_studio", {{"check_only": True, "run_tests": True}}),
 )
-latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony, unit_efx, diag_audio, ref_matrix, ai_ref_brain, ai_ref_combat, ai_ref_colony, ai_ref_eco, ai_ref_recipes = await asyncio.gather(
+latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_colony, diag_colony, unit_efx, diag_audio, ref_matrix, ai_ref_brain, ai_ref_combat, ai_ref_colony, ai_ref_eco, ai_ref_recipes, mixin_ov, repo_stat, diag_mixin = await asyncio.gather(
     call_tool("get_latest_live_report", {{}}),
     call_tool("collect_diagnostic_bundle", {{"log_tail_lines": 20, "max_artifacts": 5}}),
     call_tool("list_diagnostic_artifacts", {{"subdir": "nonexistent_subdir_12345"}}),
@@ -538,6 +543,9 @@ latest_live, diag_bundle, missing_artifacts, sound_inspect, sound_masking, live_
     call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/sovereign-colony-and-endgame.md"}}),
     call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/world-ecosystems-and-integration.md"}}),
     call_tool("get_skill_guide", {{"skill_name": "mycelial-ai-hive", "doc": "references/recipes-and-pitfalls.md"}}),
+    call_tool("get_mixin_overview", {{}}),
+    call_tool("get_repo_status", {{"include_worktrees": True}}),
+    call_tool("diagnose_symptom", {{"symptom": "mixin", "include_live_state": False}}),
 )
 return {{
     "bad_sess_rejected": bad_sess.get("ok") is False and "Unknown session_id" in bad_sess.get("error", ""),
@@ -592,6 +600,9 @@ return {{
         and ai_ref_eco.get("ok") is True and "HyphalVeinEntity" in ai_ref_eco.get("content", "")
         and ai_ref_recipes.get("ok") is True and "/mycelial ai" in ai_ref_recipes.get("content", "")
     ),
+    "mixin_ov_ok": mixin_ov.get("ok") is True and mixin_ov.get("common_count", 0) >= 6 and mixin_ov.get("client_count", 0) >= 10,
+    "repo_stat_ok": repo_stat.get("ok") is True and bool(repo_stat.get("branch")) and repo_stat.get("worktrees_count", 0) >= 1,
+    "diag_mixin_ok": diag_mixin.get("ok") is True and diag_mixin.get("symptom") == "mixins_client",
 }}
 """
                 exec_live = await client.call_tool("execute", {"code": code_live})
@@ -707,7 +718,7 @@ return {{
             assert payload["rcon_closed_ok"] is False
             assert payload["struct_studio_ok"] is True
             assert payload["tags_ok"] is True
-            assert payload["tagged_tools_count"] >= 67
+            assert payload["tagged_tools_count"] >= 70
             assert payload["metrics_tracked_tools"] >= 20
             assert payload["cache_hits"] >= 1
             assert payload["cleared_ok"] is True
@@ -715,6 +726,9 @@ return {{
             assert payload["smoke_stat_ok"] is True
             assert payload["codemode_refs_ok"] is True
             assert payload["ref_matrix_ok"] is True
+            assert payload["mixin_ov_ok"] is True
+            assert payload["repo_stat_ok"] is True
+            assert payload["diag_mixin_ok"] is True
             assert payload["bad_regex_ok"] is False
             assert payload["bad_log_regex_ok"] is False
             assert payload["missing_file_ok"] is False
