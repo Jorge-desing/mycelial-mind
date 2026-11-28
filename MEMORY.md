@@ -1,4 +1,4 @@
-﻿# Memoria y Contexto Permanente Local (Solo Lectura, Consulta y Anexión)
+# Memoria y Contexto Permanente Local (Solo Lectura, Consulta y Anexión)
 
 > [!CAUTION]
 > **POLÍTICA ESTRICTA — SOLO ANEXIÓN (APPEND-ONLY):**
@@ -4020,7 +4020,6 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - Un Nexo activado por un jugador creativo o por un comando administrativo guarda una excepción persistente por colonia: activa trabajadores, automatización, red, reconstrucción y director sin alterar el hito mundial de Matriarca ni desbloquear otras colonias. Un Nexo colocado en supervivencia registra sus datos pero permanece inactivo hasta la victoria o hasta una intervención administrativa.
 - Creativo puede incubar sin coste ni límite de población y mejorar sin coste; los controles de la pantalla reflejan esas posibilidades. Los comandos de incubación, mejora, biomasa, incursión y verificación ya no exigen derrotar a la Matriarca.
 - JUnit y GameTests aislados 178/178 pasaron; la prueba nueva verifica creativo, persistencia, aislamiento entre colonias, trabajadores, tolvas y el comando real de mejora. Una ejecución intermedia falló solo el test intermitente de brote ciego; la repetición completa pasó.
-=======
 ## [2026-11-23 20:12] — Actualización de regla global de revisión, commit, push y merge de PRs
 - **Tipo:** `DECISIÓN`
 - **Resumen:** Se actualizó la regla global en `C:\Users\Alex\.gemini\GEMINI.md` para alinearla con las reglas del proyecto (`.agents/rules/git-auto-commit.md`, `GEMINI.md`, `AGENTS.md`): exigir revisión completa del estado y diff de cambios propios (incluidos archivos nuevos) sin dejar cambios sin revisar, commit descriptivo, push a `origin` y merge obligatorio de cualquier rama o PR que se abra tras verificar los checks requeridos y el CI en destino. Se revisó la pertinencia de las skills del proyecto y no requirieron cambios.
@@ -5581,6 +5580,8 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - Verificación local: 12 pruebas de ciclo de vida, skills 8/8, Verify-Assets, Gradle test/build/publicación simulada y 218/218 GameTests. Una ejecución completa de `test_server.py` pasó, la segunda está en curso. La prueba visual automatizada verifica la comparación de una imagen consigo misma y no representa una captura nueva del juego.
 - Segunda ejecución completa de `test_server.py` aprobada en un proceso nuevo. El estado Git posterior conserva únicamente los cambios previstos y la modificación Java anterior de otra tarea.
 
+## 2026-11-27 — Inventario de grupos de estructuras
+El bridge compara las subcarpetas versionadas independientemente del generador. Verificación aislada: 30 archivos coinciden y la omisión temporal de twisted_reflection identifica sus cuatro piezas. Revisada la guía CodeMode, cuyo contrato de comparación sigue vigente.
 
 ## [2026-11-27 21:53] — Ola 4 de Mixin `0.8.7` + MixinExtras `0.5.5`: Segunda Ola de Mixins/Accessors de Cliente (Inmersión + Audio sin Reflexión)
 - **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN` / `ACTUALIZACIÓN DE SKILLS`
