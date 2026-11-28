@@ -137,26 +137,29 @@ return {
 }
 ```
 
-## Playbook 7 — Mixins, Integraciones Core/Nativas y Ciclo de Vida del Bridge
+## Playbook 7 — Mixins, Integraciones Core/Nativas y Salud/Autopruebas del Bridge
 ```python
 import asyncio
 
-mx, nf, lib, api, gt = await asyncio.gather(
-    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "MixinInfrastructureTest"}),
-    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "NeoForgeNativeIntegrationTest"}),
-    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "JavaCoreLibrariesIntegrationTest"}),
-    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "OpenSourceApisIntegrationTest"}),
+mx, repo, self_chk, gt = await asyncio.gather(
+    call_tool("get_mixin_overview", {}),
+    call_tool("get_repo_status", {"include_worktrees": True}),
+    call_tool("run_bridge_self_tests", {"include_py_compile": True}),
     call_tool("run_gradle_task", {"tasks": ["runGameTestServer"], "isolated_gametests": True}),
 )
+unit_res = await call_tool("run_gradle_task", {
+    "tasks": ["test"],
+    "test_filter": "MixinInfrastructureTest",
+})
 return {
-    "mixin_ok": mx.get("ok"),
-    "native_ok": nf.get("ok"),
-    "core_libs_ok": lib.get("ok"),
-    "apis_ok": api.get("ok"),
+    "mixins_ok": mx.get("ok"),
+    "mixins_total": mx.get("total_count"),
+    "repo_branch": repo.get("branch"),
+    "bridge_tests_ok": self_chk.get("ok"),
+    "mixin_junit_ok": unit_res.get("ok"),
     "gametests_ok": gt.get("ok"),
 }
 ```
-*(En el host fuera del sandbox `.pyd`, valida también el ciclo de vida del puente con `.\scripts\mcp\.venv\Scripts\python.exe -m unittest scripts/mcp/test_live_lifecycle.py`.)*
 
 Catálogo completo de suites JUnit (`207` en `21` suites), batches `@GameTest` (`218` en `62` batches) y modos visuales: [test-matrix.md](test-matrix.md).
 

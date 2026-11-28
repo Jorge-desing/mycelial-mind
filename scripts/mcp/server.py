@@ -15,6 +15,7 @@ import csv
 import fnmatch
 import functools
 import heapq
+import importlib
 import inspect
 import io
 import json
@@ -224,10 +225,10 @@ mcp = FastMCP(
         "sandboxed Python scripts calling `await call_tool(name, args)` (all tools return dicts; "
         "use `asyncio.gather(...)` for parallel checks and return a compact summary dict). "
         "Tool domains (see `list_tool_tags()`): "
-        "(1) Meta/Observability: get_bridge_health, get_bridge_metrics, list_tool_tags, "
-        "clear_bridge_cache, capture_audit_snapshot, diff_audit_snapshots; "
+        "(1) Meta/Observability: get_bridge_health, get_bridge_metrics, get_repo_status, "
+        "run_bridge_self_tests, list_tool_tags, clear_bridge_cache, capture_audit_snapshot, diff_audit_snapshots; "
         "(2) Code/Registry/Hive AI/Skills: list_mod_sources, search_mod_code, read_mod_file, "
-        "get_registered_content, get_hive_ai_overview, list_gametests, list_unit_tests, "
+        "get_registered_content, get_hive_ai_overview, get_mixin_overview, list_gametests, list_unit_tests, "
         "list_datapack_content, get_gradle_config, list_skills, get_skill_guide('mycelial-codemode'), "
         "validate_skills; "
         "(3) Studios & Visual QA: run_model_studio, run_texture_studio, run_particle_studio, run_sound_studio, "
@@ -287,6 +288,8 @@ _LIVE_SESSIONS: dict[str, dict[str, Any]] = {}
 # etc.) each spawn their own stdio instance of this server.
 _INSTANCE_ID = uuid.uuid4().hex[:8]
 _PROCESS_STARTED_EPOCH = time.time()
+_SERVER_FILE_PATH = Path(__file__).resolve()
+_SERVER_STARTED_MTIME = _SERVER_FILE_PATH.stat().st_mtime
 
 
 def _cache_get(key: str) -> Any | None:
@@ -691,7 +694,10 @@ async def validate_skills() -> dict[str, Any]:
     cached = _cache_get("validate_skills")
     if cached is not None:
         return cached
-    from scripts.validate_agent_skills import validate_all
+    import scripts.validate_agent_skills as _vas_mod
+
+    _vas_mod = importlib.reload(_vas_mod)
+    validate_all = _vas_mod.validate_all
 
     t0 = time.monotonic()
     buf = io.StringIO()
@@ -1198,6 +1204,7 @@ _VISUAL_SMOKE_MODE_PROPS: dict[str, str] = {
     "expedition": "-PexpeditionVisualSmoke=true",
 }
 _TEST_FILTER_RE = re.compile(r"^[A-Za-z0-9_.*$]+$")
+_ANIMATION_PAIR_RE = re.compile(r"^[A-Za-z0-9_]+$")
 
 
 def _build_gradle_task_command(
@@ -1208,6 +1215,7 @@ def _build_gradle_task_command(
     isolated_gametests: bool = False,
     test_filter: str = "",
     visual_smoke_mode: str = "",
+    animation_pair: str = "",
 ) -> list[str]:
     """Build a safe Gradle command; CodeMode can only run publishMods in dry-run mode."""
     publish_dry_run = "publishMods" in tasks
@@ -1219,8 +1227,8 @@ def _build_gradle_task_command(
                 "publishMods is available through CodeMode only as a forced dry-run; "
                 f"remove project/system properties and unsupported flags: {unsafe_publish_args}"
             )
-        if test_filter or (visual_smoke_mode and visual_smoke_mode.strip().lower() not in {"", "default"}):
-            raise ValueError("test_filter and visual_smoke_mode cannot be combined with publishMods")
+        if test_filter or animation_pair or (visual_smoke_mode and visual_smoke_mode.strip().lower() not in {"", "default"}):
+            raise ValueError("test_filter, visual_smoke_mode, and animation_pair cannot be combined with publishMods")
 
     for t in tasks:
         if t not in _ALLOWED_GRADLE_TASKS and not t.startswith(("--", "-P", "-D")):
@@ -1247,6 +1255,15 @@ def _build_gradle_task_command(
         if mode_prop not in tasks:
             cmd.append(mode_prop)
 
+    cleaned_pair = animation_pair.strip()
+    if cleaned_pair:
+        if "runAnimationVisualSmoke" not in tasks:
+            raise ValueError("animation_pair requires 'runAnimationVisualSmoke' in tasks")
+        if not _ANIMATION_PAIR_RE.fullmatch(cleaned_pair):
+            raise ValueError(f"Invalid animation_pair '{cleaned_pair}': allowed characters [A-Za-z0-9_]")
+        if not any(t == "-PanimationPair" or t.startswith("-PanimationPair=") for t in tasks):
+            cmd.append(f"-PanimationPair={cleaned_pair}")
+
     if isolated_gametests and "runGameTestServer" in tasks and not publish_dry_run and "-PisolatedGameTests=true" not in tasks:
         cmd.append("-PisolatedGameTests=true")
     if publish_dry_run:
@@ -1270,14 +1287,16 @@ async def run_gradle_task(
     isolated_gametests: bool = False,
     test_filter: str = "",
     visual_smoke_mode: str = "",
+    animation_pair: str = "",
 ) -> dict[str, Any]:
     """Run allowlisted Gradle tasks; publishMods is restricted to a forced local dry-run.
 
     Uses JDK 21 and Windows root truststore automatically. Defaults to max_workers=2 for
     parallel task execution and auto-enables --offline when GRADLE_USER_HOME uses .gradle-user-home.
     Pass isolated_gametests=True with runGameTestServer to inject -PisolatedGameTests=true,
-    test_filter='OpenAlEfxLoopbackTest' with 'test' to run a focused JUnit class/method pattern, or
-    visual_smoke_mode in {'default','dialect','relic','particle','expedition'} with 'runVisualSmoke'.
+    test_filter='OpenAlEfxLoopbackTest' with 'test' to run a focused JUnit class/method pattern,
+    visual_smoke_mode in {'default','dialect','relic','particle','expedition'} with 'runVisualSmoke',
+    or animation_pair='brute_warden' with 'runAnimationVisualSmoke'.
     """
     use_offline = (
         offline
@@ -1295,6 +1314,7 @@ async def run_gradle_task(
         isolated_gametests=isolated_gametests,
         test_filter=test_filter,
         visual_smoke_mode=visual_smoke_mode,
+        animation_pair=animation_pair,
     )
     res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=60)
     _invalidate_cache()
@@ -1480,6 +1500,10 @@ def get_bridge_health() -> dict[str, Any]:
     import fastmcp
 
     host_env = _get_host_env_snapshot()
+    try:
+        server_file_modified = _SERVER_FILE_PATH.stat().st_mtime > (_SERVER_STARTED_MTIME + 1e-6)
+    except OSError:
+        server_file_modified = False
     return {
         "ok": True,
         "server": mcp.name,
@@ -1492,10 +1516,160 @@ def get_bridge_health() -> dict[str, Any]:
         "java_home_detected": host_env["java_home_detected"],
         "jcmd_available": host_env["jcmd_available"],
         "temp_dir": host_env["temp_dir"],
+        "server_file_modified": server_file_modified,
+        "restart_recommended": server_file_modified,
         "instance_id": _INSTANCE_ID,
         "instance_pid": os.getpid(),
         "instance_started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_PROCESS_STARTED_EPOCH)),
         "instance_uptime_secs": round(time.time() - _PROCESS_STARTED_EPOCH, 1),
+    }
+
+
+@_tool(tags={"meta", "observability"})
+def get_repo_status(include_worktrees: bool = False, max_dirty_files: int = 25) -> dict[str, Any]:
+    """Read-only Git status summary (branch, upstream, ahead/behind, HEAD SHA, dirty files, and optional worktrees)."""
+    limit = max(1, min(100, int(max_dirty_files)))
+    status_res = _run_subprocess(
+        ["git", "status", "--porcelain=v1", "--branch"],
+        timeout_secs=15,
+        tail_lines=500,
+    )
+    head_res = _run_subprocess(["git", "rev-parse", "--short", "HEAD"], timeout_secs=10, tail_lines=5)
+    head_sha = (head_res.get("stdout_tail") or "").strip().splitlines()[-1] if head_res.get("ok") and head_res.get("stdout_tail") else ""
+
+    branch = ""
+    upstream = ""
+    ahead = 0
+    behind = 0
+    staged_count = 0
+    unstaged_count = 0
+    untracked_count = 0
+    dirty_files: list[str] = []
+
+    for raw_line in (status_res.get("stdout_tail") or "").splitlines():
+        if raw_line.startswith("## "):
+            hdr = raw_line[3:].strip()
+            if "..." in hdr:
+                branch_part, rest = hdr.split("...", 1)
+                branch = branch_part.strip()
+                if " [" in rest:
+                    upstream, bracket = rest.split(" [", 1)
+                    upstream = upstream.strip()
+                    ahead_m = re.search(r"ahead (\d+)", bracket)
+                    behind_m = re.search(r"behind (\d+)", bracket)
+                    if ahead_m:
+                        ahead = int(ahead_m.group(1))
+                    if behind_m:
+                        behind = int(behind_m.group(1))
+                else:
+                    upstream = rest.strip()
+            else:
+                branch = hdr
+            continue
+        if len(raw_line) < 4:
+            continue
+        xy = raw_line[:2]
+        if xy == "??":
+            untracked_count += 1
+        else:
+            if xy[0] != " ":
+                staged_count += 1
+            if xy[1] != " ":
+                unstaged_count += 1
+        dirty_files.append(raw_line)
+
+    out: dict[str, Any] = {
+        "ok": bool(status_res.get("ok")),
+        "branch": branch,
+        "upstream": upstream,
+        "ahead": ahead,
+        "behind": behind,
+        "head_sha": head_sha,
+        "clean": len(dirty_files) == 0,
+        "dirty_count": len(dirty_files),
+        "staged_count": staged_count,
+        "unstaged_count": unstaged_count,
+        "untracked_count": untracked_count,
+        "dirty_files": dirty_files[:limit],
+    }
+    if not status_res.get("ok"):
+        out["error"] = status_res.get("stderr_tail") or "git status failed"
+
+    if include_worktrees:
+        wt_res = _run_subprocess(["git", "worktree", "list", "--porcelain"], timeout_secs=15, tail_lines=300)
+        worktrees: list[dict[str, str]] = []
+        current: dict[str, str] = {}
+        for line in (wt_res.get("stdout_tail") or "").splitlines():
+            line = line.strip()
+            if not line:
+                if current:
+                    worktrees.append(current)
+                    current = {}
+                continue
+            if line.startswith("worktree "):
+                current["path"] = line[len("worktree "):]
+            elif line.startswith("HEAD "):
+                current["head"] = line[len("HEAD "):][:12]
+            elif line.startswith("branch "):
+                current["branch"] = line[len("branch "):].replace("refs/heads/", "")
+            elif line in {"bare", "detached"}:
+                current["state"] = line
+        if current:
+            worktrees.append(current)
+        out["worktrees_count"] = len(worktrees)
+        out["worktrees"] = worktrees
+    return out
+
+
+@_tool(tags={"meta", "diagnostics"})
+def run_bridge_self_tests(include_py_compile: bool = True, timeout_secs: int = 60) -> dict[str, Any]:
+    """Run MCP bridge py_compile checks and unittest suites (test_live_lifecycle.py + test_bridge_unit.py)."""
+    compile_candidates = [
+        "scripts/mcp/server.py",
+        "scripts/mcp/test_server.py",
+        "scripts/mcp/test_live_lifecycle.py",
+        "scripts/mcp/test_bridge_unit.py",
+        "scripts/validate_agent_skills.py",
+    ]
+    compile_targets = [rel for rel in compile_candidates if (REPO_ROOT / rel).is_file()]
+    unit_targets = [
+        rel
+        for rel in ("scripts/mcp/test_live_lifecycle.py", "scripts/mcp/test_bridge_unit.py")
+        if (REPO_ROOT / rel).is_file()
+    ]
+    t0 = time.monotonic()
+    py_compile_ok = True
+    compile_res: dict[str, Any] = {"ok": True}
+    if include_py_compile and compile_targets:
+        compile_res = _run_subprocess(
+            [sys.executable, "-m", "py_compile", *compile_targets],
+            timeout_secs=min(30, max(5, int(timeout_secs))),
+            tail_lines=40,
+        )
+        py_compile_ok = bool(compile_res.get("ok"))
+
+    env = os.environ.copy()
+    mcp_dir = str(REPO_ROOT / "scripts" / "mcp")
+    env["PYTHONPATH"] = f"{mcp_dir}{os.pathsep}{env['PYTHONPATH']}" if env.get("PYTHONPATH") else mcp_dir
+    unit_res = _run_subprocess(
+        [sys.executable, "-m", "unittest", *unit_targets],
+        env=env,
+        timeout_secs=max(10, int(timeout_secs)),
+        tail_lines=80,
+    )
+    combined = f"{unit_res.get('stdout_tail', '')}\n{unit_res.get('stderr_tail', '')}"
+    ran_m = re.search(r"Ran\s+(\d+)\s+tests?", combined)
+    tests_run = int(ran_m.group(1)) if ran_m else 0
+    unittest_ok = bool(unit_res.get("ok"))
+    return {
+        "ok": py_compile_ok and unittest_ok,
+        "py_compile_ok": py_compile_ok,
+        "unittest_ok": unittest_ok,
+        "tests_run": tests_run,
+        "unit_targets": unit_targets,
+        "duration_secs": round(time.monotonic() - t0, 3),
+        "stdout_tail": unit_res.get("stdout_tail", ""),
+        "stderr_tail": unit_res.get("stderr_tail", "") if unittest_ok else (compile_res.get("stderr_tail", "") or unit_res.get("stderr_tail", "")),
     }
 
 
@@ -1672,6 +1846,12 @@ _DIAGNOSTIC_SYMPTOM_MATRIX: dict[str, dict[str, Any]] = {
         "keywords": ("datagen", "generated", "compat", "curios", "create", "mekanism", "ftb", "opac", "claims", "bettercombat", "advancement"),
         "tools": ["run_gradle_task", "audit_mod_assets", "list_datapack_content"],
         "first_step": "Run run_gradle_task(['runData', 'test'], test_filter='DataGenIntegrityTest') and test_filter='ModCompatTest', then verify zero overlaps via audit_mod_assets().",
+    },
+    "mixins_client": {
+        "label": "Mixins common/client, MixinExtras, accessors o políticas de inmersión",
+        "keywords": ("mixin", "mixins", "mixinextras", "accessor", "wrapoperation", "modifyreturnvalue", "camuflaje", "traccion", "corazones", "lighttexture", "musicmanager", "guifood", "entitycolor", "parchment"),
+        "tools": ["get_mixin_overview", "run_gradle_task", "list_unit_tests", "read_diagnostic_logs"],
+        "first_step": "Run get_mixin_overview(), then run_gradle_task(['test'], test_filter='MixinInfrastructureTest') and isolated GameTests in batch 'mixin_infrastructure'.",
     },
 }
 
@@ -2233,6 +2413,81 @@ def get_hive_ai_overview() -> dict[str, Any]:
     )
 
 
+@_tool(tags={"code", "diagnostics"})
+def get_mixin_overview() -> dict[str, Any]:
+    """Audit mycelialmind.mixins.json parity against mixin/**/*.java, annotation counts, and neoforge.mods.toml wiring."""
+    cached = _cache_get("mixin_overview")
+    if cached is not None:
+        return cached
+
+    config_path = RESOURCES_ROOT / "mycelialmind.mixins.json"
+    if not config_path.is_file():
+        return {"ok": False, "error": f"Missing {config_path.relative_to(REPO_ROOT).as_posix()}"}
+
+    try:
+        cfg = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {"ok": False, "error": f"Invalid mycelialmind.mixins.json: {exc}"}
+
+    common_entries = list(cfg.get("mixins") or [])
+    client_entries = list(cfg.get("client") or [])
+    declared_entries = set(common_entries) | set(client_entries)
+
+    mixin_root = JAVA_SRC_ROOT / "mixin"
+    actual_entries: set[str] = set()
+    annotation_names = (
+        "@Mixin",
+        "@ModifyReturnValue",
+        "@WrapOperation",
+        "@Inject",
+        "@Redirect",
+        "@Accessor",
+        "@Invoker",
+    )
+    annotation_counts = {name: 0 for name in annotation_names}
+    for java_file in _iter_scandir_files(mixin_root, suffix=".java"):
+        rel_mixin = java_file.relative_to(mixin_root).with_suffix("").as_posix()
+        actual_entries.add(rel_mixin.replace("/", "."))
+        text = java_file.read_text(encoding="utf-8", errors="replace")
+        for ann in annotation_names:
+            annotation_counts[ann] += len(re.findall(rf"(?<!\w){re.escape(ann)}(?!\w)", text))
+
+    missing_files = sorted(declared_entries - actual_entries)
+    unlisted_files = sorted(actual_entries - declared_entries)
+
+    mods_toml_path = REPO_ROOT / "src" / "main" / "templates" / "META-INF" / "neoforge.mods.toml"
+    mods_toml_enabled = False
+    if mods_toml_path.is_file():
+        for raw_line in mods_toml_path.read_text(encoding="utf-8", errors="replace").splitlines():
+            stripped = raw_line.strip()
+            if stripped.startswith("#"):
+                continue
+            if stripped == "[[mixins]]":
+                mods_toml_enabled = True
+                break
+
+    ok = not missing_files and not unlisted_files and mods_toml_enabled
+    return _cache_set(
+        "mixin_overview",
+        {
+            "ok": ok,
+            "config_path": config_path.relative_to(REPO_ROOT).as_posix(),
+            "min_version": cfg.get("minVersion", ""),
+            "compatibility_level": cfg.get("compatibilityLevel", ""),
+            "package": cfg.get("package", ""),
+            "common_count": len(common_entries),
+            "client_count": len(client_entries),
+            "total_count": len(common_entries) + len(client_entries),
+            "common_entries": common_entries,
+            "client_entries": client_entries,
+            "missing_files": missing_files,
+            "unlisted_files": unlisted_files,
+            "annotation_counts": annotation_counts,
+            "mods_toml_enabled": mods_toml_enabled,
+        },
+    )
+
+
 @_tool(tags={"studios", "diagnostics"})
 def audit_mod_assets() -> dict[str, Any]:
     """Cross-check lang parity (en_us vs es_es), static Java/subtitle key references, blockstates/sounds, and UV sync."""
@@ -2710,10 +2965,11 @@ def clear_bridge_cache() -> dict[str, Any]:
 
 @_tool(tags={"meta", "diagnostics"})
 def capture_audit_snapshot(label: str = "baseline") -> dict[str, Any]:
-    """Capture a lightweight project audit snapshot (tests, pitest, registries, assets, datapacks, visual SSIM) for diffing."""
+    """Capture a lightweight project audit snapshot (tests, mixins, pitest, registries, assets, datapacks, visual SSIM) for diffing."""
     reg = get_registered_content()
     gt = list_gametests()
     ut = list_unit_tests()
+    mx = get_mixin_overview()
     assets = audit_mod_assets()
     dp = list_datapack_content()
     vis = check_visual_regression()
@@ -2726,6 +2982,9 @@ def capture_audit_snapshot(label: str = "baseline") -> dict[str, Any]:
         "mod_version": cfg.get("properties", {}).get("mod_version", ""),
         "gametests_count": gt.get("count", 0),
         "unit_tests_count": ut.get("count", 0),
+        "mixins_ok": mx.get("ok", False),
+        "mixins_common_count": mx.get("common_count", 0),
+        "mixins_client_count": mx.get("client_count", 0),
         "junit_passed": junit.get("passed", 0),
         "pitest_score_pct": pitest.get("mutation_score_pct"),
         "registries": {k: len(v) for k, v in reg.items()},
@@ -2754,16 +3013,18 @@ def diff_audit_snapshots(before_label: str, after_label: str) -> dict[str, Any]:
     for key in (
         "gametests_count",
         "unit_tests_count",
+        "mixins_common_count",
+        "mixins_client_count",
         "junit_passed",
         "lang_en",
         "lang_es",
         "datapack_total",
         "external_datapack_total",
     ):
-        diff = a[key] - b[key]
+        diff = a.get(key, 0) - b.get(key, 0)
         if diff != 0:
-            deltas[key] = {"before": b[key], "after": a[key], "delta": diff}
-    for key in ("visual_ssim", "pitest_score_pct", "mod_version"):
+            deltas[key] = {"before": b.get(key, 0), "after": a.get(key, 0), "delta": diff}
+    for key in ("visual_ssim", "pitest_score_pct", "mod_version", "mixins_ok"):
         if b.get(key) != a.get(key):
             deltas[key] = {"before": b.get(key), "after": a.get(key)}
     reg_deltas: dict[str, Any] = {}
