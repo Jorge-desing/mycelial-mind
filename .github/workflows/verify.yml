@@ -34,6 +34,17 @@ jobs:
           persist-credentials: false
       - name: Validate Renovate configuration
         run: npx --yes --package renovate@44.257.9 -- renovate-config-validator --no-global --strict
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version: '0.13.9'
+          enable-cache: true
+      - name: Validate Open Agent Skills and MCP bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/validate_agent_skills.py
+          python3 -m py_compile scripts/mcp/server.py scripts/mcp/test_server.py scripts/mcp/test_live_lifecycle.py scripts/mcp/test_bridge_unit.py scripts/validate_agent_skills.py
+          PYTHONPATH="scripts/mcp:." uv run --python 3.12 --with-requirements scripts/mcp/requirements.txt python -m unittest -v scripts/mcp/test_live_lifecycle.py scripts/mcp/test_bridge_unit.py
 
   assets:
     name: Asset checks

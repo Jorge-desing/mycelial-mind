@@ -36,8 +36,8 @@
 | `search_mod_code` | `scope="src"`, `file_ext=".java"`, `max_results=50`, `ignore_case=false` (regex). |
 | `list_gametests` | `batch_filter=""` filtra por batch. |
 | `list_unit_tests` | `suite_filter=""` filtra por clase/archivo JUnit 6 (ej. `OpenAlEfxLoopbackTest`); devuelve `count`, `suites` y `tests`. |
-| `run_gradle_task` | `tasks` obligatorio; `timeout_secs=300`, `max_workers=2`, `no_daemon=false`, `offline=None` (auto `--offline` con `.gradle-user-home`), **`isolated_gametests=false`** (`-PisolatedGameTests=true` si `runGameTestServer` está en `tasks`), **`test_filter=""`** (`--tests <filter>` si `test` está en `tasks`), **`visual_smoke_mode=""`** (`default\|dialect\|relic\|particle\|expedition` → `-P<mode>VisualSmoke=true` si `runVisualSmoke` está en `tasks`), **`animation_pair=""`** (`-PanimationPair=<pair>` si `runAnimationVisualSmoke` está en `tasks`). `publishMods` solo corre en dry-run estricto y rechaza filtros/banderas extra. Devuelve `ok`, `error_lines`, `summary_markers`. |
-| `run_verify_mod` | `timeout_secs=540`; flags `include_server_smoke`, `include_visual_smoke`, `include_structure_visual_smoke`, `include_worldgen_audit`, `worldgen_audit_radius=8`, `force_regenerate`, `no_daemon`. |
+| `run_gradle_task` | `tasks` obligatorio; `timeout_secs=300`, `max_workers=2`, `no_daemon=false`, `offline=None` (auto `--offline` con `.gradle-user-home`), **`isolated_gametests=false`** (`-PisolatedGameTests=true` si `runGameTestServer` está en `tasks`), **`test_filter=""`** (`--tests <filter>` si `test` está en `tasks`), **`visual_smoke_mode=""`** (`default\|dialect\|relic\|particle\|expedition` → `-P<mode>VisualSmoke=true` si `runVisualSmoke` está en `tasks`), **`animation_pair=""`** (`-PanimationPair=<pair>` si `runAnimationVisualSmoke` está en `tasks`), **`lock_wait_secs=30.0`** (serialización en proceso + `gradle.lock`). `publishMods` solo corre en dry-run estricto y rechaza filtros/banderas extra. Devuelve `ok`, `error_lines`, `summary_markers`. |
+| `run_verify_mod` | `timeout_secs=540`, `lock_wait_secs=30.0`; flags `include_server_smoke`, `include_visual_smoke`, `include_structure_visual_smoke`, `include_worldgen_audit`, `worldgen_audit_radius=8`, `force_regenerate`, `no_daemon`. |
 | `manage_verify_cache` | `action="status"\|"clear"`, `scope="all"\|"gradle"\|"studios"` sobre `build/.verify-stamps/`. |
 | `run_model_studio` | `check_only=true`, `run_tests=true`. |
 | `run_particle_studio` | `check_only=true`, `export_extras=false`, `run_tests=true`; valida sprites/descriptores/registro y paridad con `particles.json`. |
@@ -89,13 +89,15 @@ return await call_tool("diff_audit_snapshots", {"before_label": "before", "after
 
 ## 6. Recursos MCP publicados (solo lectura)
 
-`list_mcp_resources` devuelve 5 recursos estáticos y `list_mcp_resource_templates` 2 plantillas; ninguno muta el repo ni arranca JVMs:
+`list_mcp_resources` devuelve 7 recursos estáticos y `list_mcp_resource_templates` 2 plantillas (`9` totales); ninguno muta el repo ni arranca JVMs:
 
 | Recurso | Tipo | Contenido |
 | --- | --- | --- |
-| `mycelial://bridge/health` | JSON | `get_bridge_health()` (incluye `instance_id`/`pid`/uptime) |
-| `mycelial://bridge/tools` | JSON | `{count, tools:[{name, tags}]}` de las 67 herramientas |
+| `mycelial://bridge/health` | JSON | `get_bridge_health()` (incluye `instance_id`/`pid`/uptime y aviso de reinicio) |
+| `mycelial://bridge/tools` | JSON | `{count, tools:[{name, tags}]}` de las 70 herramientas |
 | `mycelial://bridge/tags` | JSON | `list_tool_tags()` |
+| `mycelial://repo/status` | JSON | `await get_repo_status(include_worktrees=False)` (rama, HEAD, dirty) |
+| `mycelial://mixins/overview` | JSON | `get_mixin_overview()` (paridad JSON ↔ `mixin/**/*.java` y `neoforge.mods.toml`) |
 | `mycelial://memory/tail` | Markdown | últimas 60 líneas de `MEMORY.md` |
 | `mycelial://skills` | JSON | índice de skills y sus referencias |
 | `mycelial://skills/{skill_name}` | Markdown | `SKILL.md` de la skill |

@@ -5654,3 +5654,14 @@ El bridge compara las subcarpetas versionadas independientemente del generador. 
 
 ## [2026-11-28] — Validación previa de fastutil
 - Suite Java, 218 GameTests, build, publicación simulada, Verify-Assets y Renovate validator aprobados. JMH muestra mayor coste de eliminación e inserción por índice de orden; las mediciones son microbenchmarks, no FPS ni MSPT de juego.
+
+## [2026-11-28 00:47] — Hardening de concurrencia Gradle, async tools, recursos MCP y CI del puente `mycelial-mind-dev`
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Endurecido `scripts/mcp/server.py` e integrado el puente MCP en CI desde worktree aislado `feat/mcp-concurrency-ci` sobre `origin/main`:
+  1. **Serialización y lockfile seguro de Gradle (`_acquire_gradle_lock`, `_get_gradle_async_lock`, `_is_pid_alive`, `_GradleLockBusyError`):** `run_gradle_task` y `run_verify_mod` (`lock_wait_secs=30.0`) serializan llamadas concurrentes en proceso (`asyncio.Lock` por event loop) y entre procesos mediante `artifacts/diagnostics/.tmp/gradle.lock` atómico (`O_CREAT|O_EXCL`), limpiando locks huérfanos si el PID dueño ya terminó o devolviendo error estructurado (`stage="gradle_lock"`, `lock_owner`) si otro PID vivo excede la espera.
+  2. **Desbloqueo del event loop (`async def`):** convertidas `get_repo_status` (lanzando `git status` + `git rev-parse` en paralelo con `asyncio.gather`) y `run_bridge_self_tests` a coroutines asíncronas sobre `_run_subprocess_async` (`0` herramientas síncronas bloqueando subprocesos).
+  3. **Recursos MCP (`7 → 9`):** añadidos `mycelial://repo/status` (`resource_repo_status`) y `mycelial://mixins/overview` (`resource_mixins_overview`), actualizando `mcp.instructions`, `.agents/skills/mycelial-codemode/{SKILL.md,references/catalog-and-sandbox.md}` y `scripts/mcp/README.md`.
+  4. **Cobertura en GitHub Actions y tests:** añadido en `.github/workflows/verify.yml` (`Validate automation config`, `ubuntu-latest`) el paso con `uv run --with-requirements scripts/mcp/requirements.txt` ejecutando `validate_agent_skills.py`, `py_compile` y `unittest` real sobre `test_live_lifecycle.py` + `test_bridge_unit.py` (`25` tests, añadiendo pruebas de serialización, limpieza huérfana, bloqueo por PID vivo y recursos JSON).
+- **Archivos / Símbolos:** `scripts/mcp/{server.py,test_bridge_unit.py,README.md}`, `.github/workflows/verify.yml`, `.agents/skills/mycelial-codemode/{SKILL.md,references/catalog-and-sandbox.md}`, `MEMORY.md`.
+- **Skills revisadas/actualizadas:** Actualizada `mycelial-codemode` (`SKILL.md` + `references/catalog-and-sandbox.md`); el resto de las 8 skills revisadas sin requerir cambios (`validate_agent_skills.py`: `8/8` skills, `27` enlaces OK).
+- **Verificación:** `py_compile`, `validate_agent_skills.py` (`8/8`, `27` links), AST (`70` tools, `0` bloqueantes síncronas, `9` recursos), `unittest` local (`25/25` OK en `3.59s`), `git diff --check` limpio y ejecución real con `fastmcp` en CI Ubuntu.
