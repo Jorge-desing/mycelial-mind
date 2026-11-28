@@ -4,7 +4,10 @@
   "package": "com.alex.mycelialmind.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "LivingEntityMixin"
+    "LivingEntityMixin",
+    "EntityMixin",
+    "LivingEntityAccessor",
+    "MobAccessor"
   ],
   "client": [],
   "injectors": {

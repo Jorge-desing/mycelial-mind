@@ -12848,4 +12848,104 @@ public final class MycelialGameTests {
         }
     }
 
+    @GameTest(template = "empty", batch = "mixin_infrastructure", timeoutTicks = 100)
+    public static void mixinGameplayMechanicsAndAccessorsWorkWithAntiCheese(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos stonePos = helper.absolutePos(new BlockPos(0, 0, 1));
+        BlockPos myceliumPos = helper.absolutePos(new BlockPos(2, 0, 1));
+        BlockState prevStone = level.getBlockState(stonePos);
+        BlockState prevMycelium = level.getBlockState(myceliumPos);
+        level.setBlockAndUpdate(stonePos, Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(myceliumPos, ModBlocks.CREEPING_MYCELIUM.get().defaultBlockState());
+
+        var sporeling = helper.spawnWithNoFreeWill(ModEntities.SPORELING.get(), 0, 1, 1);
+        var stealthZombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, 1, 1, 2);
+        var stoneFallZombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, 0, 1, 1);
+        var myceliumFallZombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, 2, 1, 1);
+        var highFallZombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, 2, 1, 1);
+        var hiveBoss = ModEntities.HIVE_CORE.get().create(level);
+        try {
+            // 1. Pheromone Chitin camouflage + anti-cheese lockouts
+            for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                ItemStack piece = new ItemStack(switch (slot) {
+                    case HEAD -> ModItems.CHITIN_HELMET.get();
+                    case CHEST -> ModItems.CHITIN_CHESTPLATE.get();
+                    case LEGS -> ModItems.CHITIN_LEGGINGS.get();
+                    default -> ModItems.CHITIN_BOOTS.get();
+                });
+                ChitinArmorItem.setArmorRank(piece, EvolutionRank.ELITE);
+                stealthZombie.setItemSlot(slot, piece);
+            }
+            double stealthVis = stealthZombie.getVisibilityPercent(sporeling);
+            helper.assertTrue(stealthVis < 0.65D && stealthVis >= 0.55D,
+                    "Full ELITE Chitin set should cloak against non-boss MycelialMob within anti-cheese bounds, got: " + stealthVis);
+            stealthZombie.setSprinting(true);
+            helper.assertTrue(Math.abs(stealthZombie.getVisibilityPercent(sporeling) - 1.0D) < 1e-6,
+                    "Sprinting must break Chitin pheromone camouflage.");
+            stealthZombie.setSprinting(false);
+            if (hiveBoss != null) {
+                helper.assertTrue(Math.abs(stealthZombie.getVisibilityPercent(hiveBoss) - 1.0D) < 1e-6,
+                        "Boss observers must pierce Chitin pheromone camouflage.");
+            }
+
+            // 2. Bounded mycelial traction via EntityMixin + LivingEntityAccessor invoker
+            var sporeAccessor = (com.alex.mycelialmind.mixin.LivingEntityAccessor) sporeling;
+            sporeling.setPos(stonePos.getX() + 0.5D, stonePos.getY() + 1.0D, stonePos.getZ() + 0.5D);
+            sporeling.setOnGround(true);
+            float stoneFactor = sporeAccessor.mycelialmind$invokeGetBlockSpeedFactor();
+            helper.assertTrue(Math.abs(stoneFactor - 1.0F) < 1e-4F,
+                    "Stone speed factor must remain 1.0, got: " + stoneFactor);
+
+            sporeling.setPos(myceliumPos.getX() + 0.5D, myceliumPos.getY() + 1.0D, myceliumPos.getZ() + 0.5D);
+            sporeling.setOnGround(true);
+            float mycelialFactor = sporeAccessor.mycelialmind$invokeGetBlockSpeedFactor();
+            helper.assertTrue(mycelialFactor > 1.05F && mycelialFactor <= 1.0801F,
+                    "Mycelial mob traction on creeping_mycelium must be bounded in (1.05, 1.08], got: " + mycelialFactor);
+
+            // 3. Moderate fall cushioning vs anti-MLG high fall retention
+            stoneFallZombie.setPos(stonePos.getX() + 0.5D, stonePos.getY() + 1.0D, stonePos.getZ() + 0.5D);
+            stoneFallZombie.setOnGround(true);
+            float stoneBefore = stoneFallZombie.getHealth();
+            stoneFallZombie.causeFallDamage(8.0F, 1.0F, level.damageSources().fall());
+            float stoneLoss = stoneBefore - stoneFallZombie.getHealth();
+
+            myceliumFallZombie.setPos(myceliumPos.getX() + 0.5D, myceliumPos.getY() + 1.0D, myceliumPos.getZ() + 0.5D);
+            myceliumFallZombie.setOnGround(true);
+            float myceliumBefore = myceliumFallZombie.getHealth();
+            myceliumFallZombie.causeFallDamage(8.0F, 1.0F, level.damageSources().fall());
+            float myceliumLoss = myceliumBefore - myceliumFallZombie.getHealth();
+            helper.assertTrue(myceliumLoss > 0.0F && myceliumLoss < stoneLoss,
+                    "Moderate fall on creeping_mycelium must take reduced damage (" + myceliumLoss + " vs stone " + stoneLoss + ").");
+
+            highFallZombie.setPos(myceliumPos.getX() + 0.5D, myceliumPos.getY() + 1.0D, myceliumPos.getZ() + 0.5D);
+            highFallZombie.setOnGround(true);
+            float highBefore = highFallZombie.getHealth();
+            highFallZombie.causeFallDamage(20.0F, 1.0F, level.damageSources().fall());
+            float highLoss = highBefore - highFallZombie.getHealth();
+            helper.assertTrue(highLoss >= 9.0F,
+                    "High fall >=14 blocks must retain >=50% damage (anti-MLG), got loss: " + highLoss);
+
+            // 4. Typed Accessors & Invokers
+            var mobAccessor = (com.alex.mycelialmind.mixin.MobAccessor) sporeling;
+            helper.assertTrue(mobAccessor.mycelialmind$getGoalSelector() != null, "MobAccessor goalSelector must resolve.");
+            helper.assertTrue(mobAccessor.mycelialmind$getTargetSelector() != null, "MobAccessor targetSelector must resolve.");
+            helper.assertTrue(mobAccessor.mycelialmind$getSensing() != null, "MobAccessor sensing must resolve.");
+            mobAccessor.mycelialmind$invokeResetAmbientSoundTime();
+            helper.assertTrue(sporeAccessor.mycelialmind$getLastHurtByMobTimestamp() >= 0,
+                    "LivingEntityAccessor hurt timestamp must be readable.");
+            helper.succeed();
+        } finally {
+            sporeling.discard();
+            stealthZombie.discard();
+            stoneFallZombie.discard();
+            myceliumFallZombie.discard();
+            highFallZombie.discard();
+            if (hiveBoss != null) {
+                hiveBoss.discard();
+            }
+            level.setBlockAndUpdate(stonePos, prevStone);
+            level.setBlockAndUpdate(myceliumPos, prevMycelium);
+        }
+    }
+
 }
