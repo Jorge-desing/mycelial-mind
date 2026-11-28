@@ -195,17 +195,40 @@ Fallback directo por consola desde la raíz del workspace (`c:\Users\Alex\Docume
 - Registrar aquí cambios de versión de NeoForge/Minecraft, decisiones de arquitectura y resultados de pruebas (`runGameTestServer` / `build`) tras cada hito.
 - Mantener la sección **Estado Actual y Brechas Conocidas** al día conforme se reemplacen placeholders (como modelos/texturas vanilla en `ClientSetup.java`).
 
-## 7. Mantenimiento obligatorio de skills al cerrar cada pasada
+## 7. Higiene del Repositorio y Gestión de Archivos (Obligatorio)
+
+Para evitar la acumulación de archivos obsoletos, código muerto o basura de pruebas, cumple estrictamente estas reglas en cada tarea:
+
+1. **Zona Temporal Aislada (`.agent-tmp/`):**
+   - Nunca crees scripts de Python, bash, logs, JSONs de prueba o notas temporales en la raíz del proyecto ni dentro de `src/`.
+   - Si necesitas generar un script o archivo temporal para depurar o verificar datos, guárdalo exclusivamente en `.agent-tmp/` (asegúrate de que esté en `.gitignore`) y elimínalo antes de finalizar la tarea.
+
+2. **Control de Tests y GameTests (`src/test` y `src/gametest`):**
+   - Antes de crear una clase de prueba nueva, revisa las existentes para ampliar la que corresponda al módulo.
+   - Si refactorizas, renombras o eliminas una clase/método en `src/main`, **debes actualizar o borrar inmediatamente** sus tests asociados para no dejar tests rotos ni huérfanos.
+
+3. **Artifacts y Planes de Trabajo (Antigravity):**
+   - No generes múltiples *Artifacts* de planificación para una misma funcionalidad; actualiza y sobrescribe el documento activo.
+   - Al completar una implementación, marca el *Artifact* como finalizado o limpia los borradores intermedios que ya no aporten valor.
+
+4. **Recursos y Datagen (`src/generated` vs `src/main/resources`):**
+   - No edites a mano ni dupliques JSONs dentro de `src/generated/resources` si pertenecen al pipeline de *Data Generation* de NeoForge; modifica el *DataProvider* en Java y limpia archivos residuales de bloques/ítems eliminados.
+
+5. **Autolimpieza Pre-Entrega:**
+   - Antes de dar por terminada tu respuesta, ejecuta una revisión rápida de los archivos creados o modificados (`git status`) y elimina cualquier archivo auxiliar, clase vacía o importación sin usar que haya quedado como residuo.
+
+## 8. Mantenimiento obligatorio de skills al cerrar cada pasada
 
 - Al terminar toda sesión o pasada con cambios, pruebas, decisiones o hallazgos relevantes, revisa si alguna skill aplicable al trabajo realizado necesita actualizarse. Esta revisión es obligatoria aunque la skill no se haya mencionado, invocado ni utilizado durante la sesión, o aunque solo se haya trabajado sobre el tema que cubre.
 - Actualiza antes de finalizar cada skill del proyecto cuyo contenido, instrucciones, referencias, comandos o limitaciones hayan quedado afectados o desactualizados. Basa los cambios en el estado comprobado del proyecto y conserva el alcance de cada skill; no edites skills que no requieran cambios.
 - Realiza esta revisión también en chats ya iniciados desde la siguiente pasada en que se conozca esta regla, y en todos los chats futuros. Una sesión que no haya recargado estas instrucciones debe hacerlo para conocer la regla.
 - Registra en la entrada final de `MEMORY.md` qué skills se actualizaron o que se revisó su pertinencia y no requerían cambios. Valida las skills modificadas mediante CodeMode cuando esté disponible, conforme a la política del proyecto.
 
-## 8. Revisión, commit, push y merge obligatorios
+## 9. Revisión, commit, push y merge obligatorios
 
 - Para cada sesión o pasada significativa, revisa todo el diff y los archivos nuevos propios, corrige los problemas encontrados y realiza las verificaciones pertinentes; no dejes cambios propios sin revisar.
 - Antes de cada push, actualiza las referencias remotas, revisa en GitHub los checks requeridos del SHA de la rama de destino y espera los pendientes. Si no hay ejecución para ese SHA por filtros, revisa la última aplicable e indica expresamente esa limitación. Investiga y corrige los fallos y ejecuta en local los controles de CI aplicables sobre los cambios preparados antes de subirlos; no subas cambios ordinarios con checks previos rojos, pendientes o sin evidencia suficiente. Si GitHub necesita un push para comprobar la reparación, se permite únicamente un commit de reparación acotado y validado localmente; supervisa ese SHA y deja los demás cambios pendientes hasta que los controles requeridos estén en verde. Sigue `.agents/rules/git-auto-commit.md`.
 - Haz commit descriptivo y push de los cambios propios a `origin`, comprobando su publicación. Conserva los cambios ajenos y evita commits vacíos.
-- Integra toda rama creada para la tarea en su rama de destino: actualiza la base, resuelve conflictos, revisa el diff final, comprueba los checks requeridos, haz merge y confirma el commit integrado y CI en destino. Sigue `.agents/rules/git-auto-commit.md`.
+- Tras cada push, espera y revisa los checks y workflows de GitHub correspondientes al commit exacto. Si fallan, inspecciona los logs, corrige la causa, valida, sube el arreglo y repite hasta que los checks requeridos estén en verde. Antes de publicar una versión o integrar cambios, comprueba que los checks requeridos del commit que se va a publicar o integrar hayan terminado correctamente; si están pendientes, fallan o existe un bloqueo externo, no declares la publicación lista e informa el estado y el bloqueo exactos. Sigue `.agents/rules/git-auto-commit.md`.
+- Integra toda rama creada para la tarea en su rama de destino y sincroniza siempre los cambios del PR: antes del merge actualiza la rama del PR con `origin/<destino>`, resuelve conflictos, revisa el diff final, comprueba los checks requeridos y haz merge; inmediatamente después del merge (o si el checkout local quedó detrás de `origin/<destino>`), sincroniza siempre la copia local de la rama de destino en el workspace principal (`git fetch origin` + `--ff-only`, resguardando y reaplicando cambios locales propios/ajenos y entradas *append-only* de `MEMORY.md` sin perder ni las del PR ni las locales), y confirma que el commit integrado y su CI en destino terminaron en verde antes de limpiar worktrees/ramas temporales. Sigue `.agents/rules/git-auto-commit.md`.
 - Respeta instrucciones explícitas del usuario. Si permisos, remoto, conflictos, checks o protección de rama impiden completar una operación, informa el bloqueo y los pasos pendientes sin declarar concluida la integración.
