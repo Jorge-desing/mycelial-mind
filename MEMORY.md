@@ -5139,6 +5139,100 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Estado / Siguiente paso:** Commit selectivo, push a `origin/main` y verificación en vivo de los 3 jobs de `Verify Mycelial Mind`.
 
 
+## [2026-11-26] — Regla de revisión de GitHub CI antes de publicar
+- **Tipo:** REGLAS / VERIFICACIÓN
+- **Resumen:** Se explicitó en AGENTS.md y .agents/rules/git-auto-commit.md la revisión del CI del commit exacto, la corrección de fallos y la espera de checks requeridos en verde antes de publicar una versión o integrar cambios; el push inicial permite ejecutar CI.
+- **Skills:** Se revisó su pertinencia; ninguna requiere cambios por esta regla de flujo de trabajo.
+- **Verificación:** Revisión del diff de las reglas; seguimiento de GitHub CI tras el push.
+
+
+## [2026-11-26] — Revisión de audios regenerados
+- **Tipo:** VERIFICACIÓN / PUBLICACIÓN
+- **Resumen:** Revisados 116 archivos Ogg modificados de criaturas; decodificación completa con ffmpeg sin errores. Sound Studio: 226 eventos y 596 archivos verificados, 22/22 pruebas aprobadas; auditoría de recursos y validación de 8 skills correctas. No se realizó escucha subjetiva.
+- **Alcance:** Publicación selectiva de los Ogg; se preservan cambios locales de reglas y hojas de contacto de texturas ajenos a esta tarea.
+
+
+- **GitHub:** commit de audio a0f66e7 publicado en origin/main. CI 45943889543 verde tras repetir el job: el primer intento falló en dos GameTests de hifas; el segundo aprobó los tres jobs.
+
+
+
+## [2026-11-26] — Escucha subjetiva de sonidos: comparación inicial
+- **Tipo:** VERIFICACIÓN / PENDIENTE
+- **Resumen:** Comparados los 116 Ogg del commit a0f66e7 con su versión anterior mediante decodificación FFmpeg a PCM s16le y SHA-256: 116/116 idénticos muestra por muestra; las diferencias binarias no son cambios audibles en la señal decodificada.
+- **Estado:** El entorno del agente no dispone de escucha directa; se ofrecieron consola y muestras al usuario, a la espera de comentarios perceptivos para decidir mejoras. No se han modificado sonidos ni el generador. Skill mycelial-sound-studio revisada, sin cambios.
+
+- **Comentarios del usuario:** Las muestras propuestas (sporeling, chitin brute y synapse weaver) se escuchan bien; no indicó un defecto que corregir. La valoración no cubre los demás sonidos ni demuestra mejoras en el catálogo.
+
+
+## [2026-11-26] — Segunda muestra de escucha subjetiva
+- **Tipo:** VERIFICACIÓN / PENDIENTE
+- **Resumen:** El usuario escuchó ejemplos de escáner, pulso del pilón, Matriarca y ambiente de cavernas y confirmó que se escuchan bien. Se comprobó el entorno: no se encontró una herramienta local de escucha o valoración perceptiva; los modelos en caché no proporcionan una evaluación subjetiva del audio. No se alteraron sonidos sin una mejora identificada. La escucha del resto del catálogo y mejoras verificadas siguen pendientes.
+
+
+## [2026-11-26] — Corrección de picos y bordes tras compresión Vorbis
+- **Tipo:** CORRECCIÓN / VERIFICACIÓN
+- **Resumen:** Barrido independiente de 596 Ogg decodificados a float: 18 excedían -0.25 dBTP, cinco tenían muestras superiores a 0 dBFS y 25 archivos adicionales excedían el límite de borde 0.02. Se ajustó el codificador para medir el Ogg 4x, reintentar desde el PCM original con margen y aplicar un fundido de bordes adaptativo solo en one-shots cuando hace falta. 52 Ogg tienen cambios reales en PCM, tras descartar 49 regeneraciones idénticas. El generador mide los eventos regenerados sobre el audio decodificado; --check verifica picos y bordes de los 596 archivos actuales. Las métricas detalladas de eventos no regenerados siguen cacheadas.
+- **Verificación:** 596/596 decodifican; 0 excesos de -0.25 dBTP y 0 bordes >0.02; peor pico medido -0.285 dBTP. 23/23 tests de Sound Studio; --check --check-baseline y validate_agent_skills (8/8) OK. El usuario escuchó siete muestras originales y el injerto sináptico antes/después; consideró buenas las muestras y la versión nueva. No hubo escucha directa por el agente ni valoración humana de los 596 archivos.
+- **Skill:** mycelial-sound-studio actualizada con el control posterior a Vorbis y la limitación de métricas cacheadas.
+
+- **Publicación:** commit 6ed21f3 en origin/main; GitHub Actions 45945656355 completó correctamente Build and GameTests, Asset checks y Validate automation config. Cambios locales ajenos preservados.
+
+
+## [2026-11-26] — Comparaciones auditivas adicionales
+- **Tipo:** VERIFICACIÓN / PENDIENTE
+- **Resumen:** Preparadas cuatro comparaciones antes/después en WAV flotante para daño de Pyro Shroom, túnel de Burrower, rotura de quitina y escáner, bajo artifacts/diagnostics/audio-antes-despues/. Se solicitó la valoración del usuario; respuesta pendiente al finalizar esta pasada. No se modificaron recursos del mod en esta pasada.
+
+
+## [2026-11-26 22:38] — Integración Nativa NeoForge `21.1.267` (Ola 3): Encantamientos 1.21.1, DataMaps de Estaciones, Eventos Reactivos, `/mycelialclient`, Packs Embebidos y `IClientBlockExtensions`
+- **Tipo:** `IMPLEMENTACIÓN` | `VERIFICACIÓN` | `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:** Implementados los 6 pilares nativos de NeoForge `21.1.267` definidos en `/grill-me`:
+  1. **Encantamientos Data-Driven (`ModEnchantments`, `MycelialEnchantmentBootstrap`, `MycelialEnchantmentTagsProvider`):** Añadidos `3` encantamientos solo-tesoro (`TREASURE`, `TRADEABLE`, `ON_RANDOM_LOOT`, fuera de mesa de encantamientos): `antimycotic` (Nv. 1–3, daño `+2.5/nv` vs `#mycelialmind:mycelial_mobs`, `DAMAGE_EXCLUSIVE`), `bio_ward` (Nv. 1–3, conectado a `ModAttributes.INFECTION_RESISTANCE` `+0.10/nv` y `ACID_RESISTANCE` `+0.08/nv` vía `EnchantmentEffectComponents.ATTRIBUTES`), y `synaptic_harvest` (Nv. 1–2 en `#mycelialmind:enchantable/bio_extractor`, integrado en `BioExtractorItem` para umbral `+12%/nv`, cooldown `-20%/nv`, probabilidad de muestra extra `35%/nv` y `getEnchantmentValue() = 12`). Añadidos pools de libros encantados de tesoro en `MycelialChestLootSubProvider` pasando `datapackLookup` a `LootTableProvider`.
+  2. **DataMaps de Estaciones (`ModDataMaps`, `ModDataGenerators`):** Registrados `mycelialmind:pylon_fuel` (`PylonFuelData`) y `mycelialmind:turret_ammo` (`TurretAmmoData`), sincronizados a cliente y conectados con fallback determinista headless en `MonumentFocusBlockEntity.resolvePylonRechargeAmount` y `PurificationTurretBlockEntity.resolveTurretAmmoGain`.
+  3. **Eventos Reactivos (`MycelialVanillaIntegration`):** Añadidos `ModConfigEvent.Reloading` (`onConfigReloading`: recomputa rasgos y re-sincroniza `HiveSyncPayload` en todos los `ServerLevel`) y `MobEffectEvent.Applicable` (`isNativelyImmuneToMycelialDebuffs`: bloquea `MYCELIAL_INFECTION`/`SPORE_ROT` en criaturas `MycelialMob` y aliados `PurifierDrone`/`MycelialChimera`/`ColonySymbiont`, manteniendo la mitigación hasta 90% en jugadores).
+  4. **Comandos de Cliente y Metadatos (`MycelialClientCommands`, `ClientSetup`, `neoforge.mods.toml`, `mycelialmind_logo.png`):** Añadido `/mycelialclient status|hud compact|hud anchor <esquina>|audio status|audio reset|codex` sin requerir OP; actualizados `issueTrackerURL`, `displayURL`, `credits` y `logoFile="mycelialmind_logo.png"` (`256x256`).
+  5. **Datapacks Embebidos Opcionales (`MycelialBuiltInPacks`, `packs/{hardcore_overmind,relaxed_research}`):** Registrados vía `AddPackFindersEvent` (`alwaysActive = false`) con overrides de los 4 `DataMapType`s del mod; omitidos bajo `GameTestHooks.isGametestServer()` porque `GameTestServer.create(...)` fuerza todos los packs disponibles simultáneamente.
+  6. **Partículas de Bloque (`MycelialClientExtensions`):** Registrado `IClientBlockExtensions` (`SPORE_MOTE`, `SYNAPSE_SPARK`, `PURGE`, `HISTAMINE_PULSE`) en golpeo y ruptura de bloques miceliales/purificadores respetando `particleDensityScale()`.
+- **Archivos / Símbolos:** `MycelialMind.java`, `ModEnchantments.java`, `MycelialBuiltInPacks.java`, `ModDataMaps.java`, `ModEntities.java`, `ModItems.java`, `ModDataGenerators.java`, `MycelialDatapackProvider.java`, `MycelialEnchantmentBootstrap.java`, `MycelialEnchantmentTagsProvider.java`, `MycelialEntityTypeTagsProvider.java`, `MycelialItemTagsProvider.java`, `MycelialChestLootSubProvider.java`, `BioExtractorItem.java`, `MonumentFocusBlockEntity.java`, `PurificationTurretBlockEntity.java`, `MycelialVanillaIntegration.java`, `ClientSetup.java`, `MycelialClientCommands.java`, `MycelialClientExtensions.java`, `neoforge.mods.toml`, `mycelialmind_logo.png`, `packs/{hardcore_overmind,relaxed_research}/**`, `lang/{en_us,es_es}.json`, `src/generated/resources/**`, `NeoForgeNativeIntegrationTest.java`, `DataGenIntegrityTest.java`, `MycelialGameTests.java`.
+- **Skills revisadas y actualizadas:** Actualizadas `.agents/skills/neoforge-gametest/SKILL.md` (`175` JSON generados, `170` JUnit, trampa `AddPackFindersEvent` + `GameTestServer`) y `.agents/skills/mycelial-ai-hive/references/world-ecosystems-and-integration.md`; las demás skills se revisaron sin cambios requeridos (`validate_skills`: `8/8 OK`).
+- **Verificación:**
+  - `gradlew.bat runData --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL`** (`175` JSON en `data/mycelialmind/`).
+  - `gradlew.bat test build runGameTestServer -PisolatedGameTests=true --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL in 41s`**, **`205/205` `@GameTest`s PASS** en `9.564 s`.
+  - `CodeMode` (`mycelial-mind-dev`): `get_latest_junit_report` (**`170/170` JUnit PASS** en `18` suites, `2.379s`), `audit_mod_assets` (`ok=true`, **`2339/2339` EN/ES**, `missing_referenced_keys=[]`), `run_codex_studio` (`12` capítulos / `62` entradas / `254` páginas, `5/5` tests), `validate_skills` (`8/8 OK`).
+  - `gradlew.bat runVisualSmoke --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL in 34s`** (`Loaded 1348 recipes`, `Loaded 1473 advancements`, `OpenAL EFX acoustic engine initialized`).
+- **Estado / Siguiente paso:** Commit selectivo en `main` (preservando cambios locales ajenos previos), `git push origin main` y verificación de GitHub Actions CI.
+
+## [2026-11-26] — Maquinaria de micelio: dirección orgánica y firmas diferenciadas
+- **Tipo:** DISEÑO / IMPLEMENTACIÓN / VERIFICACIÓN
+- **Comentarios del usuario:** Los sonidos de máquinas y escáner se percibían robóticos; pidió máquinas hechas con micelio, orgánicas y húmedas. Rechazó una primera propuesta mecánica; otra orgánica era demasiado similar entre eventos. Aprobó continuar con cuatro muestras diferenciadas (lectura, barrido, pilón y disparo).
+- **Cambios:** Ocho eventos / 18 variantes regenerados: lectura y barrido de escáner, pulso de pilón, disparo/mejora/reparación de torreta, síntesis de banco y aviso de mantenimiento. Clics, contracciones, aire y fluido con ritmos y registros propios. Se evita mezclar stems generados para estos ocho eventos; manifiesto y consola indican correctamente ai_hybrid=false y stem_id vacío. Referencia acústica actualizada por cambio creativo deliberado.
+- **Verificación:** Trabajo generado y probado en worktree aislado por ediciones concurrentes. 23/23 pruebas Python; --check --check-baseline sobre 226 eventos / 596 Ogg y 8/8 skills OK; peor correlación 0.5068. Usuario escuchó y aprobó la dirección de cuatro prototipos; no se ha escuchado subjetivamente cada una de las 18 variantes ni los sonidos de mejora/reparación/banco/mantenimiento. Skill mycelial-sound-studio actualizada.
+
+- **Publicación:** commit 98a8a43 en origin/main; GitHub Actions 45948080064 completó correctamente los tres jobs. La valoración subjetiva corresponde a los cuatro prototipos principales y no cubre individualmente las 18 variantes finales.
+
+
+## [2026-11-26] — Cierre y reverificación del objetivo DRY
+- Confirmados bac7609 y 3209583 en origin/main. GitHub Actions 45920776478 (corrección de hitboxes) y 45948080064 (HEAD 98a8a43) aprobaron los tres jobs.
+- FastMCP CodeMode, instancia local con caché Gradle del proyecto, truststore JKS y nativos LWJGL x64 temporales: runData, test, build y runGameTestServer aislado completados con BUILD SUCCESSFUL. JUnit 170/170, GameTests 205/205 y sin diffs generados. En una repetición previa fallaron temporalmente v2IntegrationCombatDecoysRivalSpitBordersAndRecipesWork (navegación del señuelo) y sblBehavioursRegenAtNodePatrolHotspotAndScoreAllyCohesion (conteo de aliados); pasaron al repetir sin cambios de código. Se validaron 8/8 skills, sin cambios necesarios. Esta pasada no añadió código ni commits.
+
+
+## [2026-11-26 23:08] — Ola 3.5 NeoForge 21.1.267: integración completa de los 6 pilares nativos
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
+- **Resumen:** Completada e integrada la Ola 3.5 sobre los 6 pilares nativos de NeoForge (`/goal` + `/grill-me` Wave 3.5):
+  1. **Pilar 1 (Loot de jefes, combate y Códice):** Añadidos drops conservadores de libros encantados tesoro (`20%` `SporeBehemoth`, `40%` `HiveCore`, `75%` `ApexMatriarch`) en `MycelialEntityLootSubProvider` y corregidos tanto `MycelialEntityLootSubProvider` como `MycelialChestLootSubProvider` usando 3 entradas separadas en `treasureBookPool` (evitando el bug de sobrescritura de `EnchantRandomlyFunction.Builder.withEnchantment(...)`); añadido feedback de impacto de `antimycotic` (`SYNAPSE_SPARK` + `ENZYME_LANCE_THRUST`) en `DamageTelemetryTracker`; añadido tooltip dinámico del nivel de `synaptic_harvest` en `BioExtractorItem`; documentada la Ola 3 en `scripts/codex_studio/content_part3.py` (`12` capítulos, `62` entradas, `256` páginas).
+  2. **Pilar 2 (Tooltips de DataMaps):** Creado `MycelialDataMapTooltips` (`Screen.hasShiftDown()` + `ModDataMaps.{PYLON_FUEL,TURRET_AMMO,SYMBIOTIC_NUTRIENT}`) enlazado a `ItemTooltipEvent` en `ClientSetup`.
+  3. **Pilar 3 (Eventos reactivos):** Añadido reinicio seguro de `ClientSoundscapeDirector` y `ClientAcousticController` en `ModConfigEvent.Reloading` (`ClientSetup`), y limpieza manual de `creeping_mycelium` -> `minecraft:dirt` únicamente con azada (`ItemAbilities.HOE_TILL`, sin drop extra) mediante `BlockEvent.BlockToolModificationEvent` en `MycelialVanillaIntegration`.
+  4. **Pilares 4 y 5 (Presencia de Presets + `/mycelialclient`):** Añadido detector puro `MycelialBuiltInPacks.ActivePreset` (`DEFAULT`/`HARDCORE_OVERMIND`/`RELAXED_RESEARCH`/`CUSTOM`), integrado en `/mycelial status`, y ampliado `MycelialClientCommands` con `hud offset`, `hud reset`, `juice`, `particles` y `packs`.
+  5. **Pilar 6 (`IClientBlockExtensions` 28/28):** Cubiertos los 12 bloques restantes en `MycelialClientExtensions` (`AMBER_GLINT`, `CHITIN_SHARD`, `BIO_LUME`, `TIDE_MOTE`).
+- **Archivos / Símbolos:** `MycelialEntityLootSubProvider.java`, `MycelialChestLootSubProvider.java`, `DamageTelemetryTracker.java`, `BioExtractorItem.java`, `MycelialVanillaIntegration.java`, `MycelialBuiltInPacks.java`, `MycelialCommands.java`, `ClientSetup.java`, `MycelialDataMapTooltips.java`, `MycelialClientCommands.java`, `MycelialClientExtensions.java`, `scripts/codex_studio/content_part3.py`, `docs/codex/**`, `src/main/resources/data/mycelialmind/{codex,modonomicon}/**`, `lang/{en_us,es_es}.json`, `src/generated/resources/**`, `NeoForgeNativeIntegrationTest.java`, `MycelialGameTests.java`.
+- **Skills revisadas y actualizadas:** Actualizadas `.agents/skills/neoforge-gametest/SKILL.md` (drops tesoro en jefes y trampa de sobrescritura de `EnchantRandomlyFunction.Builder.withEnchantment(...)`) y `.agents/skills/mycelial-ai-hive/references/world-ecosystems-and-integration.md` (pilar completo Ola 3.5 y `2352/2352` EN/ES); las demás skills revisadas sin cambios (`validate_skills`: `8/8 OK`).
+- **Verificación:**
+  - `gradlew.bat runData --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL`**.
+  - `gradlew.bat test build runGameTestServer -PisolatedGameTests=true --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL in 39s`**, **`205/205` `@GameTest`s PASS** en `8.383 s`.
+  - `gradlew.bat runVisualSmoke --no-daemon --max-workers=1`: **`BUILD SUCCESSFUL in 29s`**.
+  - `CodeMode` (`mycelial-mind-dev`): `get_latest_junit_report` (**`170/170` JUnit PASS** en `18` suites, `2.337 s`), `audit_mod_assets` (`ok=true`, **`2352/2352` EN/ES**, `missing_referenced_keys=[]`), `run_codex_studio` (`chapters=12 entries=62 pages=256 ok=True`, **`5/5` tests OK**), `validate_skills` (**`8/8 OK`**).
+- **Estado / Siguiente paso:** Commit selectivo en `main` (preservando cambios locales ajenos previos), `git push origin main` y verificación de GitHub Actions CI.
+
+
 ## [2026-11-26 23:20] — Brotes como grietas miceliales
 - **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
 - **Resumen:** Rediseñados los brotes de superficie y cueva como surcos con fondo de ámbar, bordes de piedra micelial, flora y nodo central. Se conservaron la bóveda y las conexiones verticales; el generador valida soporte y protege bloques sensibles.
@@ -5152,8 +5246,6 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `MycelialOutbreakFeature`, `SynapticNodeBlockEntity`, `CreepingMyceliumBlock`, `SporeArchitectEntity`, `MycelialBiomeBootstrap`, `MycelialGameTests`.
 - **Verificación:** `test build runGameTestServer -PisolatedGameTests=true`: 209/209 GameTests, incluida la siembra posterior a generación y propagación sobre piedra. `runData` completado. La captura anterior con rutas prefabricadas ya no representa el comportamiento actual.
 - **Pendiente:** Desarrollar y verificar crecimiento progresivo por cuevas hasta superficie y la aparición progresiva de colmenas/sumideros ligados al brote, junto con capturas finales. Las funciones de conexión anteriores quedaron fuera de la generación automática hasta completar esta transición.
-
-
 
 
 ## [2026-11-27 00:20] — Crecimiento natural de brotes y conexiones de cuevas
@@ -5172,14 +5264,11 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `scripts/sound_studio/{ai_stem_generator,cuda_dsp,ir_bank,dsp_engine,mastering,block_synth,entity_synth,metrics}.py`, `scripts/sound_studio/{irs/*.wav,ai_stems/*,exports/*}`, `scripts/sound_studio/tests/test_sound_studio.py`, `scripts/codex_studio/content_part3.py`, `scripts/mcp/test_server.py`, `src/main/resources/assets/mycelialmind/sounds/*.ogg`, `AcousticPhysicsEngine.java`, `OpenAlEfxBridge.java`, `ClientAcousticController.java`, `AcousticPhysicsEngineTest.java`, `OpenAlEfxLoopbackTest.java`, `dist/*`.
 - **Estado / Verificación:** Python `unittest` **`24/24`** (`test_stage8_high_step_64_heavy_weight_vorbis_q6_and_dense_irs`) OK en GPU CUDA y CPU fallback (`CUDA_VISIBLE_DEVICES='-1'`, `47.463s`); CodeMode `mycelial-mind-dev` (`run_sound_studio`, `audit_sound_masking`, `run_codex_studio` `5/5`, `audit_mod_assets`, `validate_skills` `8/8` / `27 links`) todo en verde; `0` referencias `SoundEvents.`/`SoundType.`. En *worktree* limpio sobre `HEAD 61c0bfd`: `gradlew.bat test build` (**`172/172` JUnit**, `AcousticPhysicsEngineTest` **`9/9`**, `OpenAlEfxLoopbackTest` **`10/10`**) y `runGameTestServer -PisolatedGameTests=true` (**`All 206 required tests passed`** en `11.53 s`). `dist/` actualizado (`SHA-256: C64BD7D5461C83043FAA3F6A9DB20242C202E4F3D6250746887180D6E2495A26`). Skill actualizada: `.agents/skills/mycelial-sound-studio/SKILL.md` (`v8`).
 
-
 ## [2026-11-27 00:31] — Verificación real de brotes y CI
 - **Tipo:** `VERIFICACIÓN`
 - **Resumen:** El commit `d017844` fue publicado y GitHub Actions `45957983537` pasó sus tres trabajos en el segundo intento. El primero falló en `colonyDialectConflictClearanceAndScannerIntegrationTest`, prueba que también había fallado una vez localmente y pasó al repetir sin cambios.
 - **Mundo natural:** Servidor aislado con semilla `4815162342`; `/mycelial worldgen audit 8 32` informó PASS con 5 brotes subterráneos y 0 superficiales. En el nodo natural `(-20, 25, 177)` se observó `OutbreakOrigin: 1b` y micelio en seis posiciones cercanas después de cargar la zona. Servidor detenido correctamente.
 - **Límites:** La imagen antes/después usa una cueva de demostración y 140 pulsos simulados. La regresión visual global conserva tres diferencias previas en santuario/ciudadela. `origin/main` avanzó concurrentemente con el commit de audio `98927c6b`; se conservaron los cambios ajenos del árbol de trabajo.
-
-
 
 
 ## [2026-11-27 00:39] — Puntos ciegos conectados a micelio existente
@@ -5219,6 +5308,12 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Skills:** Actualizadas y validadas `.agents/skills/mycelial-sound-studio/SKILL.md` (v9) y `.agents/skills/mycelial-codemode/references/test-matrix.md` (`entity_ai_*` aislados); el resto de skills no requirieron cambios.
 
 
+## [2026-11-27] — Checks de GitHub antes del push
+- **Tipo:** `DECISIÓN` / `IMPLEMENTACIÓN` / `VERIFICACIÓN`
+- **Resumen:** El usuario pide revisar y corregir los checks antes de subir cambios. `AGENTS.md` y `.agents/rules/git-auto-commit.md` exigen consultar el SHA de destino y la última ejecución aplicable, esperar checks pendientes, investigar y corregir fallos y ejecutar localmente los controles correspondientes antes de un push ordinario. Si CI necesita un push para probar su reparación, solo se admite un commit de reparación acotado y verificado; después se revisa su SHA exacto y se mantienen pendientes los demás cambios hasta que CI esté verde. Se conserva la verificación posterior al push.
+- **Estado:** `origin/main` en `7df7304a` tuvo GitHub Actions `46030818674` con recursos y configuración aprobados, pero falló el GameTest `hiveSwarmCoordinatorAssignsRolesFlanksAndBroadcastsAlertCall`; no se publica esta modificación ordinaria mientras la comprobación de destino siga roja. `git diff --check` pasó; los archivos de reglas y memoria ya tenían cambios locales previos que se preservaron. Skills revisadas: ninguna requiere cambios para esta regla.
+
+
 ## [2026-11-27] — Corrección del GameTest de flanqueo
 - **Tipo:** CORRECCIÓN / VERIFICACIÓN
 - **Resumen:** `hiveSwarmCoordinatorAssignsRolesFlanksAndBroadcastsAlertCall` se ejecuta en un batch dedicado y limpia `HiveBlackboard` antes de evaluar. El test exigía un radio mínimo de 2 bloques aunque el radio base 4.5 se mezcla con hasta 1.1 de steering y `1.15 * sqrt(2)` de ruido; el umbral de 1.7 respeta el límite de las contribuciones válidas y mantiene la comprobación de separación del objetivo. Sin cambios de gameplay.
@@ -5233,6 +5328,10 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 ## [2026-11-27] — Reglas de pre-push sincronizadas
 - Sincronizado `GEMINI.md` con la comprobación de checks y validación local previa al push, manteniendo el caso de reparación CI acotada. El último commit de código `0448c02` pasó GitHub Actions `46032975665`; el commit de reglas `7698799` no genera checks por `paths-ignore` y se comprobó esa ausencia. `git diff --check` pasó.
 
+## 2026-11-27 — Rediseño de flores, trabajo en curso
+- En el worktree `C:\Users\Alex\Documents\mycelial-flower-detail` (rama `codex/flower-detail` sobre `af718de5`) se añadieron hojas y placas conectadas a las cinco variantes; cuentan 24–30 piezas y la base conserva 42. Se regeneraron los seis JSON de bloque. Las 13 pruebas de modelos y recursos florales pasan.
+- `runVisualSmoke` compiló y terminó, pero las capturas del jardín muestran `Loading terrain`; la calidad visual no está verificada. Pendiente revisar y refinar las seis siluetas, corregir la temporización de la escena, capturar perfil/superior/inventario, actualizar la guía, cumplir CI y publicar. Se preservaron los cambios ajenos del árbol principal.
+
 
 ## [2026-11-27 09:49] — Pulido del motor runtime de sonido v10 (difracción 3 rayos, histéresis, reverb adaptativo y EFX 32 buckets)
 - **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
@@ -5240,6 +5339,108 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `AcousticPhysicsEngine`, `OpenAlEfxBridge`, `ClientAcousticController`, `ClientAudioDiagnostics`, `ClientSoundscapeDirector`, `MycelialClientConfig`, `en_us.json`, `es_es.json`, `AcousticPhysicsEngineTest`, `OpenAlEfxLoopbackTest`, `.agents/skills/mycelial-sound-studio/SKILL.md`.
 - **Verificación:** CodeMode `validate_skills` `8/8` (`27` enlaces) y `audit_mod_assets` `ok=true` (`2356` claves `en_us`/`es_es` paritarias); en `_mycelial_v10_audio_polish` sobre `origin/main` (`af718de5`): `:test` `179/179 FAIL: 0` (`AcousticPhysicsEngineTest` `14/14`, `OpenAlEfxLoopbackTest` `12/12`), `:build` `PASS` y `:runGameTestServer -PisolatedGameTests=true` `213/213` `PASS` en la repetición limpia (tras 1 fallo intermitente previo en la prueba ajena `v2integrationcombatdecoysrivalspitbordersandrecipeswork`). JAR `dist/mycelialmind-2.0.0-mc1.21.1-neoforge/mycelialmind-2.0.0.jar` (`SHA-256: 911CA5B9802374A5C9F259CA23439B756E36B777E27A3983350DB003A1B9B737`) y ZIP `dist/mycelialmind-2.0.0-mc1.21.1-neoforge.zip` (`SHA-256: E02FCDD776DCA72D23A5D365D73DAFAA7967FD4152240842701F015B153E3F6E`) actualizados.
 - **Skills:** Actualizada `.agents/skills/mycelial-sound-studio/SKILL.md` con los cambios v10 y validada; el resto de skills no requirieron cambios.
+
+## 2026-11-27 — Revisión visual de flores en curso
+- La escena de expedición ahora espera a que desaparezca `ReceivingLevelScreen` antes de contar sus ticks; `runVisualSmoke` terminó correctamente. La vista superior muestra las seis variantes y el inventario las seis siluetas; la vista de perfil solo muestra parte de la fila y chunks sin cargar. Pendiente ajustar encuadre y espera, revisar detalle de cerca, refinar diseños y completar controles y publicación en `C:\Users\Alex\Documents\mycelial-flower-detail`.
+## 2026-11-27 — Flores: perfil y pruebas
+- El encuadre corregido muestra las seis flores en `artifacts/diagnostics/flower-detail-3/screenshots/expedition_garden_before.png`; la vista superior y el inventario de la ejecución anterior muestran las seis variantes. Las 14 pruebas de modelos y recursos florales, la validación de 8 skills y `test build runGameTestServer -PisolatedGameTests=true` terminaron correctamente en el worktree `C:\Users\Alex\Documents\mycelial-flower-detail`.
+- Se añadió una prueba de límites, densidad y unicidad de flores y se actualizó la guía de Model Studio. Pendiente revisar el diff final, sincronizar con `origin/main` y cumplir los checks previos y posteriores a publicación.
+## 2026-11-27 — Modelos de flores integrados
+- Refinadas las seis Flores Recuperadas: la base conserva 42 piezas con hojas y puntas ajustadas; las cinco variantes tienen 24–30 piezas con tres niveles de hojas y placas conectadas. Los atlas, estados y comportamiento se mantienen. La escena espera la carga de la dimensión y encuadra las seis flores; capturas finales en `C:\Users\Alex\Documents\mycelial-flower-detail\artifacts\diagnostics\flower-detail-final\screenshots`.
+- Verificación: 14 pruebas específicas, 27 pruebas de Model Studio y verificador completo de recursos, 8 skills, `test build runGameTestServer -PisolatedGameTests=true`, publicación simulada y cliente visual. El verificador necesitó `UV_SYSTEM_CERTS=true` por el certificado local.
+- PR #28 integrado en `main` mediante `4805fab060051257a64ba6c62b183f53b763e9d8`; GitHub Actions `46038111625` aprobó sus tres trabajos. Actualizada la referencia `mycelial-model-studio/reclaimed-bloom.md`. El árbol principal conserva cambios ajenos y no se sincronizó de forma destructiva.
+## [2026-11-27] — Limpieza de archivos de diagnóstico temporales
+- Retirados ocho archivos ignorados de artifacts/diagnostics: dos borradores de MEMORY.md ya incorporados, TlsProbe.java, foreign-listener-test.py, setup-load-world.py, setup-load.py, start-observable-client.py y rcon-command.py. Eran diagnósticos de un solo uso sin referencias activas.
+- Verificada la ausencia de los ocho y la igualdad del estado Git antes y después de retirarlos. Las pruebas modificadas cubren funcionalidad vigente y SurfaceOutbreakFissure.java coincide con origin/main. Sin cambios de código ni de skills.
+
+## 2026-11-27 — Rediseño de zarcillos de la imagen, en curso
+- La imagen aportada muestra la flora de brazos inclinados `mycelial_tendrils`. En el worktree `C:\Users\Alex\Documents\mycelial-flower-detail`, rama `codex/tendrils-redesign` basada en `4805fab`, se sustituyó su modelo de 5 piezas por 23 piezas con centro y brotes escalonados y ramificaciones. `test_models` pasa 13/13 y `runVisualSmoke` terminó correctamente; la vista general es demasiado lejana para evaluar detalles, por lo que falta una captura cercana y confirmar que el aspecto se corresponde con la imagen, además de revisión y controles de publicación.
+## 2026-11-27 — Zarcillos: captura cercana y validación
+- La captura cercana `C:\Users\Alex\Documents\mycelial-flower-detail\artifacts\diagnostics\mycelial-tendrils-detail.png` muestra el modelo de la imagen con los nuevos brotes escalonados. La cámara de diagnóstico se restauró después de capturar.
+- `test_models` 14/14, `Verify-Assets.ps1`, `test build runGameTestServer -PisolatedGameTests=true` y `publishMods -PpublishDryRun=true` pasaron. Se actualizó la guía Model Studio y se añadió comprobación específica. Pendiente validar skills, revisar diff y checks de destino, publicar e integrar la rama `codex/tendrils-redesign`.
+## 2026-11-27 — Zarcillos integrados; CI de main pendiente
+- PR #29 (`fb9d068`) pasó sus cuatro checks y se integró en `main` como `4cf6bc65e21e6e83c702fc730f13090e56aabcec`. La ejecución posterior `46039787165` aprobó recursos y configuración, pero falló `neoforgeIntegrationGlmDataMapsCapabilitiesBossPartsAndCuresWork`: el dispensador no curó al aldeano de prueba. En el PR y la ejecución local la misma suite pasó; esto no establece la causa de la intermitencia.
+- Se localizó la comprobación en `MycelialGameTests.java` alrededor de 7831–7849 y la búsqueda de entidades del dispensador en `MycelialVanillaIntegration.java` 154–180. Pendiente investigar registro espacial/carga de chunks y aislar la prueba antes de declarar CI corregido. El modelo y sus recursos ya están integrados.
+## 2026-11-27 — Diagnóstico del GameTest de dispensador
+- En `C:\Users\Alex\Documents\mycelial-flower-detail`, rama `codex/dispenser-gametest-ready` sobre `4cf6bc65`, la prueba de integración ahora usa lote dedicado, fuerza un área mayor y espera a que los chunks del objetivo estén listos antes de crear el aldeano. Añadidas aserciones separadas para confirmar que se agregó y que la consulta espacial del dispensador lo encuentra. Se conserva la aserción de curación original.
+- Dos ejecuciones locales de `test build runGameTestServer -PisolatedGameTests=true` terminaron correctamente; la segunda incluye las nuevas aserciones. La carga/indexación aún es una hipótesis sobre el fallo de CI, no una causa demostrada. Pendiente revisar limpieza ante timeout, validar skills y verificar la reparación en GitHub antes de integrarla. Actualizada la guía `neoforge-gametest`.
+## 2026-11-27 — GameTest del dispensador integrado
+- PR #30 (`0bf1b2c`) aprobó sus cuatro checks e integró en `main` el commit `f7775a35ab567a7f1e919d1a89bb534b5802bd65`. La ejecución de GitHub Actions `46042005230` del commit integrado aprobó recursos, configuración, compilación y GameTests.
+- La prueba espera la disponibilidad de chunks, verifica la indexación del aldeano, mantiene la aserción de curación y libera tickets si se agota la espera. Tres suites locales pasaron durante el desarrollo; el resultado verde no demuestra por sí solo la causa del fallo anterior. Skill `neoforge-gametest` actualizada y validada 8/8. El rediseño de zarcillos se mantiene integrado por PR #29.
+
+
+## [2026-11-27 10:29] — Limpieza de artifacts locales cerrados y worktrees (Bloque B)
+- **Tipo:** `VERIFICACIÓN` / `NOTA`
+- **Resumen:** Ejecutado el **Bloque B** del plan de auditoría de huérfanos en `c:\Users\Alex\Documents\Mod Minecraft` liberando **`3,004.95 MB` (`2.93 GB`)** en los directorios auditados del repositorio (`5,117.58 MB` -> `2,112.63 MB`) sin tocar archivos rastreados por Git ni modificaciones previas:
+  - **`artifacts/diagnostics/`:** `4,004.95 MB` -> `1,750.87 MB` (`30` directorios y `187` archivos sueltos cerrados eliminados, `0` bloqueados; preservados `isolated-gametest-server`, `structure-visual-client`, `structures`, `live-reports`, `worldgen-audit-latest.json` y capturas de `2026-11-27`).
+  - **`.tools/`:** `1,044.35 MB` -> `325.40 MB` (`12` carpetas/logs temporales cerrados eliminados; preservados `mc-pilot`, `task`, `actionlint`, `uv-cache`, `lwjgl-natives`).
+  - **`dist/`, `logs/`, `torchinductor_Alex/`:** `dist/` `68.25 MB` -> `36.35 MB` (retiradas versiones `1.1.0`/`1.5.0` y JAR suelto duplicado `v2.0.0`); `61` `2026-11-*.log.gz` eliminados en `logs/`; `torchinductor_Alex/` eliminado (vacío).
+  - **Git worktrees y ramas:** `20` worktrees `prunable` podados, `22` worktrees limpios en `%TEMP%\mycelial-*` eliminados (`4` sucios preservados con cambios locales sin confirmar), `C:\Users\Alex\Documents\mycelial-flower-detail` preservado y `8` ramas locales `codex/*` ya integradas en `origin/main` eliminadas (preservando `main` y `codex/tendrils-redesign`).
+- **Archivos / Símbolos:** `artifacts/diagnostics/`, `.tools/`, `dist/`, `logs/`, `torchinductor_Alex/`, `git worktree` / `git branch`.
+- **Verificación / Skills:** `git status --porcelain` idéntico antes y después (`3` archivos modificados previos, SHA-256 `2E3BCF61142F16282F586CFA99A3246149BE7B9DDC14ECE5A0A82DAB4AAC3395`) salvo esta anexión en `MEMORY.md`; `PRESERVED_CHECK_MISSING=0`. Skills revisadas y sin cambios requeridos.
+
+## 2026-11-27 — Refactorización de automatización y hojas de texturas
+- Se extrajo lógica privada compartida para inserción de un elemento en torretas y pilones y composición de hojas de texturas de objetos y bloques.
+- Verificación: compileJava offline y py_compile correctos. pytest no disponible en Python del sistema. Quedan pendientes GameTests y comparación de imágenes y firmas.
+
+
+## 2026-11-27 — Verificación de refactorización
+- Ampliado GameTest de automatización para ranuras inválidas, rechazo, simulación, consumo y núcleo de pilón. Suite aislada: 213/213 pruebas obligatorias aprobadas con JDK 21.
+- Las hojas de objetos y bloques coinciden con origin/main en tamaño, ruta y píxeles RGBA usando los recursos existentes.
+- Pendiente comparación de firmas compiladas e integración con origin/main fbe4a5b2, que avanzó durante la sesión; cambios propios aún sin publicar.
+
+
+## 2026-11-27 — Separación de barras de jefe y telemetría
+- `BioScannerHudOverlay` se dibuja después de la capa de jefes; `BossOverlaySpace` registra el final de las barras visibles y desplaza avisos y panel. Los textos de encabezado, coraza y estado se ajustan al ancho disponible; el panel se omite cuando no cabe verticalmente.
+- El cliente aislado mostró tres barras y el panel sin solaparse en `C:\Users\Alex\Documents\mycelial-boss-hud\run\screenshots\visual_smoke.png`. `compileJava`, `runVisualSmoke`, `test build runGameTestServer -PisolatedGameTests=true`, publicación simulada y `Verify-Assets.ps1` pasaron. Un lanzamiento previo falló en la inicialización de fuentes NeoForge; la repetición final terminó correctamente. Skill `mycelial-diagnostics` actualizada y validada.
+- PR #31 integrado en `main` como `fbe4a5b2d16a4d51c1d11874f0a0611d488d0f76`; GitHub Actions `46049644894` pasó sus tres trabajos. Árbol principal con cambios ajenos preservados.
+## 2026-11-27 — Refactorización y diagnóstico de GameTest intermitente
+- La refactorización y pruebas se publicaron en PR #32, commit bc0c2b999475a4feedd68c9689b4bd0f392c7a88, sobre fbe4a5b2. Javap confirmó firmas públicas y las hojas reales y sintéticas coincidieron píxel por píxel; recursos, Renovate y 213 GameTests pasaron localmente.
+- GitHub Actions 46050593421 falló inicialmente en v2IntegrationCombatDecoysRivalSpitBordersAndRecipesWork: nav=false. Se reprodujo una vez localmente sin instrumentación; repetición de CI y ocho ejecuciones locales instrumentadas posteriores pasaron. Causa aún no establecida, PR abierto y sin integrar pese a checks verdes. Cambios locales ajenos conservados.
+
+
+## [2026-11-27 11:46] — Sincronización de documentación y skills con el código (Bloques 1 y 2)
+- **Tipo:** `CORRECCIÓN` / `VERIFICACIÓN`
+- **Resumen:** Aplicados e integrados los **Bloques 1 y 2** del plan de verificación documental frente al código (`README.md`, `docs/`, `scripts/mcp/README.md`, `.agents/rules/codemode-first.md` y `.agents/skills/`), preservando intactos los cambios locales previos/concurrentes en `main` (`AGENTS.md` Bloque 3 excluido según instrucción):
+  - **Bloque 1 (Docs):** Actualizado `docs/releasing.md` (`Mod Publish Plugin 2.2.1` + `Gradle 8.14.8`), `README.md` (`NeoForge 21.1.267`, `2356` claves EN/ES, `256` páginas del Códice, `Modonomicon 1.123.1`, `HiveBehaviorTree`, typo `Arsenal`), `docs/codex/INTEGRACION_LIBRO_JUEGO.md` (`NeoForge 21.1.267`, `213 @GameTest`, `179 JUnit`, `2356` claves, `62` entradas / `256` páginas, `Modonomicon 1.123.1`, ruta DataGen `src/generated/resources/data/mycelialmind/recipe/mycelial_codex.json`), `docs/HIVE_BRAIN_ARCHITECTURE.md` (`HiveBtComposite.java`, `63/63` clases), `docs/expediciones-prueba-de-juego.md` (`NeoForge 21.1.267`, `INSTALACION.txt`) y `scripts/mcp/README.md` (`213` GameTests / `56` batches, `179` JUnit / `18` suites, `Sound Studio v9`).
+  - **Bloque 2 (Reglas y Skills):** Actualizados `.agents/rules/codemode-first.md` (`v9`), `mycelial-codemode` (`SKILL.md`, `test-matrix.md`, `catalog-and-sandbox.md`, `audit-playbooks.md` a `179` JUnit / `213` GameTests / `56` batches / `Sound Studio v9` `25` tests / `95` stems / `256` páginas), `mycelial-ai-hive` (`SKILL.md` `63`/`88` clases, `179` JUnit, `213` GameTests, `2356` claves; `world-ecosystems-and-integration.md` `2356/2356` EN/ES) y `neoforge-gametest/SKILL.md` (`NeoForge 21.1.267`, `213` `@GameTest` / `179` JUnit).
+- **Archivos / Símbolos:** `14` archivos en `docs/`, `README.md`, `scripts/mcp/README.md`, `.agents/rules/`, `.agents/skills/`.
+- **Verificación / Publicación:** `validate_skills` (`8/8 OK`, `27` enlaces) vía `CodeMode` y en worktree limpio; `git diff --check` limpio; commit `6849eb619574737d10b120f2af136801d610a72e` publicado en `docs/sync-docs-and-skills`, PR `#33` aprobado (`4/4` checks), integrado en `origin/main` (`042f3c76e17194892894e5997bea780bb063ef0a`) y verificado en verde con GitHub Actions `46051736235` (`Asset checks`, `Validate automation config`, `Build and GameTests`).
+
+## 2026-11-27 — Optimización parcial de partículas
+- Se evitó repetir la selección de sprite cuando el fotograma animado no cambia en MycelialParticle. compileJava terminó correctamente.
+- Pendiente la medición comparativa, el presupuesto adaptativo, la curación con corazones y la verificación visual del plan. Se revisó la skill mycelial-particle-studio.
+
+## 2026-11-27 — Partículas, continuación de optimización
+- Recovery genera corazones pequeños giratorios de forma procedural y la purga reutiliza sus sprites para ocho fragmentos verdes. El proveedor atenúa motas ambientales distantes con 48 partículas o más, consultando el motor una vez por tick. Se evita actualizar el sprite si el fotograma no cambia.
+- Particle Studio y sus seis pruebas pasaron. compileJava test y dos ejecuciones de runVisualSmoke -PparticleVisualSmoke=true pasaron; la segunda usó los recursos finales. GIF en artifacts/diagnostics/particle-visual-client/screenshots/particle_cure_hearts.gif. CodeMode Gradle falló por acceso denegado al archivo .lck y se usó el wrapper local.
+- Pendientes medición comparativa de rendimiento con tres escenas y tres pasadas, cobertura de densidades y brillo, revisión de la forma renderizada, y publicación integrada. Skill mycelial-particle-studio actualizada.
+
+## 2026-11-27 — Refactorización integrada y GameTest de señuelo corregido
+- PR #32 integrado en main como c9a32e8fbc1f69defa1c60384e58079cd6246b43. Automatización y hojas de texturas comparten lógica privada y conservan firmas públicas; comparación javap y comparación RGBA con recursos reales y muestras sintéticas aprobadas.
+- Diagnosticado el fallo intermitente del GameTest de señuelo: el pilón de la comprobación anterior cubría al lanzador y podía desincronizarlo según su ID. El experimento con pilón activo y comprobación forzada reprodujo la desincronización. La prueba retira el pilón durante la persecución y lo restaura para la fase siguiente, y verifica la ausencia de protección y desincronización.
+- Cinco suites aisladas consecutivas y la validación final aprobaron 213/213 GameTests; JUnit, build, publicación simulada, recursos y Renovate pasaron localmente. Los cuatro checks del PR y los tres trabajos de Actions 46057431524 del merge aprobaron. Renovate local advirtió fallback de RE2 a RegExp. La skill neoforge-gametest se consultó sin cambios requeridos.
+- Árbol principal y sus modificaciones previas preservados; sigue en una revisión anterior de main y contiene copias locales de cambios de esta tarea.
+
+
+## 2026-11-27 — Verificación inicial de Caffeine
+- En el árbol aislado temporal mycelial-caffeine-verify, basado en 7f8b728f, OpenSourceApisIntegrationTest y build aprobaron. Quedan pendientes la integración de cambios locales, GameTests y comprobación del JAR.
+
+
+## 2026-11-27 — Integración de la optimización de partículas
+- Los emisores y el polvo tintable respetan la densidad del cliente, con límite de 24 por emisión; la carga ambiental reduce motas distantes. Recovery y los fragmentos verdes de purge usan corazones pequeños giratorios. La selección de sprites conserva compatibilidad con paquetes de recursos.
+- Tres pasadas con escenas y semilla fijas: ambiente de mediana 1,987 a 1,081 ms, p95 3,620 a 1,873 ms y 3355 a 1201 partículas activas. En combate la variación impide atribuir una mejora. Se capturaron ambas curas durante su ciclo completo y se probaron densidades 0,25/1/1,5 y ambos modos de brillo.
+- Verify-Assets, JUnit, build, 214 GameTests, publicación simulada y validación de skills aprobados. Codex Studio mantiene una falla previa por cobertura ausente de openAlEfxReverbScale, openAlEfxOcclusionScale y journeymapOverlaysEnabled; cuatro pruebas de exportación y paridad pasaron. Se actualizó la skill mycelial-particle-studio.
+- PR #35 integrado en origin/main con merge 1b8937e1a95d3a604a649fa8ea896f5b61f9339c y CI posterior 46059582971 en verde. La copia principal permanece retrasada y con cambios locales previos y de esta tarea para preservarlos; rama aislada de integración en C:\Users\Alex\Documents\mycelial-particle-optimization.
+
+## 2026-11-27 — Caffeine: integración de prueba y GameTests
+- origin/main actualizado a 1b8937e1. Respaldo de cambios rastreados en refs/codex/backups/caffeine-integration-20261127 y archivo no rastreado copiado a %TEMP%/mycelial-caffeine-untracked. Combinación provisional en %TEMP%/mycelial-caffeine-combined, con conflictos documentales resueltos y entradas de memoria preservadas; falta incluir las entradas locales añadidas después del respaldo antes de promoverla.
+- JUnit y build pasaron; dependencyInsight resuelve Caffeine 3.2.0 y el JAR contiene caffeine-3.2.0.jar y metadata.json. Cuatro ejecuciones sin instrumentación fallaron en pruebas de IA: tres en weaverSupportCoversSeparatedSquad por chunks sin entity-ticking y una en dialectlessonthreesitesandrestcall. Una ejecución instrumentada aprobó 214/214, pero se mantiene pendiente la suite limpia aprobada. No se modificó el checkout principal fuera de esta anotación.
+
+
+## 2026-11-27 — Caffeine: diagnóstico de pruebas de integración
+- La instrumentación de la espera de la tejedora observó un chunk con entidades cargadas, pero aún sin entity-ticking. Dos suites instrumentadas aprobaron 214/214. Al ampliar temporalmente el timeout de 300 a 1200 ticks, la tejedora pasó repetidamente y una suite sin instrumentación aprobó 214/214, pero también se observaron fallos intermitentes independientes en escolta de dialectos y granada de simbiota; no se ha demostrado la causa completa de esas fallas.
+- Se retiraron la instrumentación y la ampliación experimental del timeout del árbol provisional. La prueba local de torreta conserva además la aserción anterior sobre su nivel. Pendiente una suite limpia reproducible y promoción de la combinación al checkout principal con todas las entradas de memoria añadidas posteriormente al respaldo.
 
 
 ## [2026-11-27 12:30] — Integración de 4 librerías y APIs open source (Caffeine, JourneyMap API, The One Probe y KubeJS)
@@ -5257,6 +5458,14 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - En tres pasadas por escena con semilla y cámara fijas, la escena ambiental pasó de mediana 1,987 ms y p95 3,620 ms a 1,081 ms y 1,873 ms; la cantidad activa pasó de 3355 a 1201. La variación de combate impide atribuirle una mejora concluyente.
 - Pasaron Particle Studio, Verify-Assets, JUnit, build, 214 GameTests, publicación simulada, validación Renovate, validación de ocho skills y runVisualSmoke con densidades 0,25/1/1,5 y brillo activado/desactivado. El verificador de Codex preexistente falla por ausencia de cobertura de openAlEfxReverbScale, openAlEfxOcclusionScale y journeymapOverlaysEnabled. Se actualizó el atlas bilingüe de partículas y la skill mycelial-particle-studio.
 
+## 2026-11-27 — Caffeine: checkout principal actualizado
+- Actualizado main local a 1b8937e1a95d3a604a649fa8ea896f5b61f9339c conservando los cambios locales y anexando las entradas remotas de memoria. Respaldo previo refs/codex/backups/caffeine-integration-final-20261127; ParticleBenchmarkClient.java pasó a estar rastreado porque ya existe en main y coincide con la copia local salvo finales de línea.
+- La combinación aprobó JUnit/build y 214 GameTests con espera experimental de tejedora ampliada; dicha ampliación se retiró del checkout para no dejar una corrección ajena sin diagnóstico ni publicación. La última suite con la espera original volvió a fallar en la carga entity-ticking de la tejedora. Persisten fallos intermitentes observados en escolta y granada. La integración de Caffeine y empaquetado se verificaron, pero queda pendiente una suite limpia con la configuración original.
+
+## 2026-11-27 — Caffeine: verificación adicional de GameTests
+- Con un trabajador Gradle, la suite original falló en la espera entity-ticking de la tejedora y en la granada de simbiota. Una ejecución aislada del servidor con Java -Xint terminó con 213/214: falló la espera entity-ticking de la arena de filamentos. Esto confirma que el problema de preparación alcanza más de una arena; el modo interpretado no lo resolvió. No se modificó código del proyecto en esta pasada.
+
+- Sigue pendiente identificar la causa de los fallos y obtener una ejecución limpia con la configuración original.
 
 ## [2026-11-27 13:14] — Oleada 2: Integración de 4 librerías Java open source embebidas (JGraphT, RoaringBitmap, Commons Statistics, Bucket4j)
 - **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN`
@@ -5317,7 +5526,6 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - **Archivos / Símbolos:** `mycelialmind.mixins.json`, `mixin/{LivingEntityMixin,EntityMixin,LivingEntityAccessor,MobAccessor}.java`, `util/{MycelialMixinPolicy,MycelialMixinHooks}.java`, `MixinInfrastructureTest.java`, `MycelialGameTests.java`, `README.md`, `MEMORY.md`, y skills (`mycelial-codemode`, `neoforge-gametest`).
 - **Skills:** Actualizadas `.agents/skills/mycelial-codemode/{SKILL.md,references/test-matrix.md}` y `.agents/skills/neoforge-gametest/SKILL.md`.
 
-
 ## [2026-11-27 19:46] — Ola 2 de Mixin `0.8.7` + MixinExtras `0.5.5` (`@WrapOperation`, `MonsterMixin`, `canFreeze`/`decreaseAirSupply` y `client.SoundEngineAccessor`)
 - **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN` / `ACTUALIZACIÓN DE SKILLS`
 - **Resumen:** Ampliada la integración de Mixin + MixinExtras en worktree aislado `feat/mixin-wave2-wrapop-client` sobre `origin/main` (`22cafabf`):
@@ -5327,3 +5535,17 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
   4. **Cliente (`client.SoundEngineAccessor`):** primer mixin en `"client"` de `mycelialmind.mixins.json` exponiendo `loaded` e `instanceToChannel` sin reflexión ni impacto en servidor dedicado.
 - **Archivos / Símbolos:** `mycelialmind.mixins.json`, `mixin/{MonsterMixin,FoodDataMixin,LivingEntityMixin,LivingEntityAccessor,client/SoundEngineAccessor}.java`, `util/{MycelialMixinPolicy,MycelialMixinHooks}.java`, `MixinInfrastructureTest.java` (`12` JUnit), `MycelialGameTests.java` (`mixinWave2SpawnFoodFreezeAndAirHooksWork`), `README.md`, `MEMORY.md`, y skills (`mycelial-codemode`, `neoforge-gametest`).
 - **Skills:** Actualizadas `.agents/skills/mycelial-codemode/{SKILL.md,references/test-matrix.md}` y `.agents/skills/neoforge-gametest/SKILL.md`.
+
+
+## 2026-11-27 — Caffeine y aislamiento de GameTests integrados
+- PR #37 integrado como 5facd83630fd00749e1c5bd8a5150580fb447636; el checkout principal se actualizó a ese commit preservando cambios locales, la aserción previa de torreta y las entradas de memoria. Respaldo anterior refs/codex/backups/caffeine-pr37-sync-20261127.
+- Se reprodujo que una tejedora de la prueba de apoyo quedaba en el mundo y desviaba al centinela de la escolta. La prueba limpia sus entidades. La prueba de granada espera chunks y comprueba la indexación del simbiota; el fallo de purga no se reprodujo en cinco intentos, y se añadió espera de chunks y batch propio como corrección preventiva de la consulta del objeto.
+- En la combinación local final: JUnit 195/195, 217/217 GameTests y build; Caffeine 3.2.0 aparece en metadata.json y en META-INF/jarjar/caffeine-3.2.0.jar. PR #37 pasó cuatro checks y el merge pasó los tres trabajos de Actions 46099863946. La skill neoforge-gametest se revisó; sus pautas existentes cubren espera de chunks, aislamiento y limpieza, sin cambios requeridos.
+
+
+## [2026-11-27 20:52] — Regla obligatoria de sincronización continua de cambios de PR
+- **Tipo:** `DECISIÓN` | `VERIFICACIÓN`
+- **Resumen:** Actualizadas las reglas globales y del repositorio para exigir siempre la sincronización bidireccional de los cambios del PR: actualizar la rama del PR con `origin/<destino>` antes del merge y sincronizar inmediatamente el checkout local de la rama de destino (`main` en el workspace principal) con `origin/<destino>` tras cada merge (o al detectar desfase local), resguardando y reaplicando cualquier cambio local sin perder trabajo ajeno ni entradas *append-only* de `MEMORY.md`. Se sincronizó además `main` local con `origin/main` (`91f2433c`, PR #40) preservando intactos los cambios locales previos (`MycelialGameTests.java`, `scripts/mcp/server.py`) y todas las entradas de `MEMORY.md`.
+- **Archivos / Símbolos:** `C:\Users\Alex\.gemini\GEMINI.md`, `.agents/rules/git-auto-commit.md`, `GEMINI.md`, `AGENTS.md`, `MEMORY.md`.
+- **Skills:** Revisadas las skills del repositorio; ninguna requería modificaciones para esta regla de flujo Git/PR (`validate_skills`: `8/8` OK, `27` enlaces).
+- **Estado / Siguiente paso:** Pendiente commit selectivo, publicación en rama/PR, verificación de checks de GitHub, merge y sincronización final del checkout local.
