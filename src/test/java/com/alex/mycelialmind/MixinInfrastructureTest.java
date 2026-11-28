@@ -1,9 +1,12 @@
 package com.alex.mycelialmind;
 
 import com.alex.mycelialmind.mixin.EntityMixin;
+import com.alex.mycelialmind.mixin.FoodDataMixin;
 import com.alex.mycelialmind.mixin.LivingEntityAccessor;
 import com.alex.mycelialmind.mixin.LivingEntityMixin;
 import com.alex.mycelialmind.mixin.MobAccessor;
+import com.alex.mycelialmind.mixin.MonsterMixin;
+import com.alex.mycelialmind.mixin.client.SoundEngineAccessor;
 import com.alex.mycelialmind.util.MixinRuntimeProbe;
 import com.alex.mycelialmind.util.MycelialMixinHooks;
 import com.alex.mycelialmind.util.MycelialMixinPolicy;
@@ -46,7 +49,18 @@ class MixinInfrastructureTest {
         JsonArray mixins = root.getAsJsonArray("mixins");
         Set<String> declared = new HashSet<>();
         mixins.forEach(elem -> declared.add(elem.getAsString()));
-        assertEquals(Set.of("LivingEntityMixin", "EntityMixin", "LivingEntityAccessor", "MobAccessor"), declared);
+        assertEquals(Set.of(
+                "LivingEntityMixin",
+                "EntityMixin",
+                "MonsterMixin",
+                "FoodDataMixin",
+                "LivingEntityAccessor",
+                "MobAccessor"), declared);
+
+        JsonArray clientMixins = root.getAsJsonArray("client");
+        Set<String> declaredClient = new HashSet<>();
+        clientMixins.forEach(elem -> declaredClient.add(elem.getAsString()));
+        assertEquals(Set.of("client.SoundEngineAccessor"), declaredClient);
 
         assertEquals(1, root.getAsJsonObject("injectors").get("defaultRequire").getAsInt());
         assertTrue(root.getAsJsonObject("overwrites").get("requireAnnotations").getAsBoolean());
@@ -73,10 +87,24 @@ class MixinInfrastructureTest {
                 .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
         assertTrue(livingMethods.getOrDefault("mycelialmind$softenMycelialFallDamage", Set.of())
                 .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+        assertTrue(livingMethods.getOrDefault("mycelialmind$applyChitinFreezeImmunity", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+        assertTrue(livingMethods.getOrDefault("mycelialmind$applyChitinAirConservation", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
 
         Map<String, Set<String>> entityMethods = inspectMethodAnnotations(EntityMixin.class);
         assertTrue(entityMethods.getOrDefault("mycelialmind$applyMycelialTraction", Set.of())
                 .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> monsterMethods = inspectMethodAnnotations(MonsterMixin.class);
+        assertTrue(monsterMethods.getOrDefault("mycelialmind$filterNaturalMycelialSpawn", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+        assertTrue(monsterMethods.getOrDefault("mycelialmind$filterAnyLightMycelialSpawn", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> foodMethods = inspectMethodAnnotations(FoodDataMixin.class);
+        assertTrue(foodMethods.getOrDefault("mycelialmind$scaleSporeRotNaturalHeal", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"));
 
         Map<String, Set<String>> livingAccMethods = inspectMethodAnnotations(LivingEntityAccessor.class);
         assertTrue(livingAccMethods.getOrDefault("mycelialmind$getLastHurtByMobTimestamp", Set.of())
@@ -84,6 +112,8 @@ class MixinInfrastructureTest {
         assertTrue(livingAccMethods.getOrDefault("mycelialmind$getLastHurtMobTimestamp", Set.of())
                 .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
         assertTrue(livingAccMethods.getOrDefault("mycelialmind$invokeGetBlockSpeedFactor", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Invoker;"));
+        assertTrue(livingAccMethods.getOrDefault("mycelialmind$invokeDecreaseAirSupply", Set.of())
                 .contains("Lorg/spongepowered/asm/mixin/gen/Invoker;"));
 
         Map<String, Set<String>> mobAccMethods = inspectMethodAnnotations(MobAccessor.class);
@@ -95,6 +125,12 @@ class MixinInfrastructureTest {
                 .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
         assertTrue(mobAccMethods.getOrDefault("mycelialmind$invokeResetAmbientSoundTime", Set.of())
                 .contains("Lorg/spongepowered/asm/mixin/gen/Invoker;"));
+
+        Map<String, Set<String>> soundAccMethods = inspectMethodAnnotations(SoundEngineAccessor.class);
+        assertTrue(soundAccMethods.getOrDefault("mycelialmind$isLoaded", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+        assertTrue(soundAccMethods.getOrDefault("mycelialmind$getInstanceToChannel", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
     }
 
     @Test
@@ -156,6 +192,42 @@ class MixinInfrastructureTest {
         assertEquals(9, highFallWithBoots);
         assertEquals(1, MycelialMixinPolicy.computeMycelialFallDamage(1, 16.0F, true, true));
         assertEquals(10, MycelialMixinPolicy.computeMycelialFallDamage(10, 15.0F, false, true));
+    }
+
+    @Test
+    void naturalSpawnFilterRespectsVanillaMobsAndNonNaturalSpawnsInsidePylons() {
+        assertFalse(MycelialMixinPolicy.allowMycelialSpawn(true, true, true, true));
+        assertTrue(MycelialMixinPolicy.allowMycelialSpawn(true, false, true, true)); // vanilla mob farms untouched
+        assertTrue(MycelialMixinPolicy.allowMycelialSpawn(true, true, false, true)); // spawner/spawn egg untouched
+        assertTrue(MycelialMixinPolicy.allowMycelialSpawn(true, true, true, false)); // outside pylon untouched
+        assertFalse(MycelialMixinPolicy.allowMycelialSpawn(false, true, true, false)); // respects vanilla denial
+    }
+
+    @Test
+    void sporeRotFoodRegenPenaltyHalvesHealOutsidePylonOnly() {
+        assertEquals(0.5F, MycelialMixinPolicy.computeNaturalFoodHeal(1.0F, true, false), 1e-6F);
+        assertEquals(1.0F, MycelialMixinPolicy.computeNaturalFoodHeal(1.0F, true, true), 1e-6F);
+        assertEquals(1.0F, MycelialMixinPolicy.computeNaturalFoodHeal(1.0F, false, false), 1e-6F);
+        assertEquals(0.0F, MycelialMixinPolicy.computeNaturalFoodHeal(0.0F, true, false), 1e-6F);
+    }
+
+    @Test
+    void evolvedChitinGrantsFreezeImmunityUnlessSporeRotted() {
+        assertFalse(MycelialMixinPolicy.computeCanFreeze(true, 2, false));
+        assertTrue(MycelialMixinPolicy.computeCanFreeze(true, 1, false));
+        assertTrue(MycelialMixinPolicy.computeCanFreeze(true, 4, true)); // SPORE_ROT breaks immunity
+        assertFalse(MycelialMixinPolicy.computeCanFreeze(false, 0, true));
+    }
+
+    @Test
+    void chitinHelmetConservesAirSupplyWithinBoundsUnlessSporeRotted() {
+        // MUTATED saves below 0.25, ELITE saves below 0.40, never saves if roll >= chance or SPORE_ROT active.
+        assertEquals(100, MycelialMixinPolicy.computeConservedAirSupply(100, 99, 1, false, 0.20D));
+        assertEquals(99, MycelialMixinPolicy.computeConservedAirSupply(100, 99, 1, false, 0.26D));
+        assertEquals(100, MycelialMixinPolicy.computeConservedAirSupply(100, 99, 2, false, 0.35D));
+        assertEquals(99, MycelialMixinPolicy.computeConservedAirSupply(100, 99, 2, false, 0.45D));
+        assertEquals(99, MycelialMixinPolicy.computeConservedAirSupply(100, 99, 2, true, 0.05D));
+        assertEquals(0, MycelialMixinPolicy.computeConservedAirSupply(0, 0, 2, false, 0.05D));
     }
 
     private static Map<String, Set<String>> inspectMethodAnnotations(Class<?> clazz) throws Exception {

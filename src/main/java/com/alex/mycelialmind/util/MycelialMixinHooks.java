@@ -1,5 +1,6 @@
 package com.alex.mycelialmind.util;
 
+import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.entity.ApexMatriarchEntity;
 import com.alex.mycelialmind.entity.HiveCoreBossEntity;
 import com.alex.mycelialmind.entity.MycelialMob;
@@ -9,12 +10,21 @@ import com.alex.mycelialmind.item.ChitinArmorItem;
 import com.alex.mycelialmind.mixin.LivingEntityAccessor;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.registry.ModEffects;
+import com.alex.mycelialmind.world.PurificationZoneTracker;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
@@ -140,5 +150,66 @@ public final class MycelialMixinHooks {
         }
         EvolutionRank rank = ChitinArmorItem.getArmorRank(feet);
         return rank == EvolutionRank.MUTATED || rank == EvolutionRank.ELITE;
+    }
+
+    public static boolean allowNaturalMycelialSpawn(
+            boolean originalAllowed,
+            EntityType<?> type,
+            LevelAccessor level,
+            MobSpawnType spawnType,
+            BlockPos pos) {
+        if (!originalAllowed) {
+            return false;
+        }
+        ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+        boolean isMycelialNamespace = key != null && MycelialMind.MODID.equals(key.getNamespace());
+        boolean isNaturalOrChunkGen = spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION;
+        boolean insideActivePylon = level instanceof ServerLevelAccessor serverAccessor
+                && PurificationZoneTracker.get(serverAccessor.getLevel()).isProtected(pos);
+        return MycelialMixinPolicy.allowMycelialSpawn(
+                originalAllowed, isMycelialNamespace, isNaturalOrChunkGen, insideActivePylon);
+    }
+
+    public static float adjustNaturalFoodHeal(Player player, float originalHeal) {
+        if (player == null || originalHeal <= 0.0F) {
+            return originalHeal;
+        }
+        boolean hasSporeRot = player.hasEffect(ModEffects.SPORE_ROT);
+        boolean insideActivePylon = player.level() instanceof ServerLevel serverLevel
+                && PurificationZoneTracker.get(serverLevel).isProtected(player.blockPosition());
+        return MycelialMixinPolicy.computeNaturalFoodHeal(originalHeal, hasSporeRot, insideActivePylon);
+    }
+
+    public static boolean adjustCanFreeze(LivingEntity self, boolean originalCanFreeze) {
+        if (!originalCanFreeze) {
+            return false;
+        }
+        int evolvedPieces = 0;
+        for (ItemStack armor : self.getArmorSlots()) {
+            if (!armor.isEmpty() && armor.getItem() instanceof ChitinArmorItem) {
+                EvolutionRank rank = ChitinArmorItem.getArmorRank(armor);
+                if (rank == EvolutionRank.MUTATED || rank == EvolutionRank.ELITE) {
+                    evolvedPieces++;
+                }
+            }
+        }
+        boolean hasSporeRot = self.hasEffect(ModEffects.SPORE_ROT);
+        return MycelialMixinPolicy.computeCanFreeze(true, evolvedPieces, hasSporeRot);
+    }
+
+    public static int adjustDecreasedAirSupply(LivingEntity self, int currentAir, int decreasedAir) {
+        ItemStack head = self.getItemBySlot(EquipmentSlot.HEAD);
+        int helmetRankLevel = 0;
+        if (!head.isEmpty() && head.getItem() instanceof ChitinArmorItem) {
+            EvolutionRank rank = ChitinArmorItem.getArmorRank(head);
+            if (rank == EvolutionRank.ELITE) {
+                helmetRankLevel = 2;
+            } else if (rank == EvolutionRank.MUTATED) {
+                helmetRankLevel = 1;
+            }
+        }
+        boolean hasSporeRot = self.hasEffect(ModEffects.SPORE_ROT);
+        return MycelialMixinPolicy.computeConservedAirSupply(
+                currentAir, decreasedAir, helmetRankLevel, hasSporeRot, self.getRandom().nextDouble());
     }
 }

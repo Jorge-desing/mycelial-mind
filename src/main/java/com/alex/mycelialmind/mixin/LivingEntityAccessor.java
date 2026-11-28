@@ -19,4 +19,7 @@ public interface LivingEntityAccessor {
 
     @Invoker("getBlockSpeedFactor")
     float mycelialmind$invokeGetBlockSpeedFactor();
+
+    @Invoker("decreaseAirSupply")
+    int mycelialmind$invokeDecreaseAirSupply(int currentAir);
 }

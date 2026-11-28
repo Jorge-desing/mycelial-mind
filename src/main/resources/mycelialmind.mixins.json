@@ -6,10 +6,14 @@
   "mixins": [
     "LivingEntityMixin",
     "EntityMixin",
+    "MonsterMixin",
+    "FoodDataMixin",
     "LivingEntityAccessor",
     "MobAccessor"
   ],
-  "client": [],
+  "client": [
+    "client.SoundEngineAccessor"
+  ],
   "injectors": {
     "defaultRequire": 1
   },
