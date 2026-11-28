@@ -137,7 +137,28 @@ return {
 }
 ```
 
-Catálogo completo de suites JUnit (`179` en `18` suites), batches `@GameTest` (`213` en `56` batches) y modos visuales: [test-matrix.md](test-matrix.md).
+## Playbook 7 — Mixins, Integraciones Core/Nativas y Ciclo de Vida del Bridge
+```python
+import asyncio
+
+mx, nf, lib, api, gt = await asyncio.gather(
+    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "MixinInfrastructureTest"}),
+    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "NeoForgeNativeIntegrationTest"}),
+    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "JavaCoreLibrariesIntegrationTest"}),
+    call_tool("run_gradle_task", {"tasks": ["test"], "test_filter": "OpenSourceApisIntegrationTest"}),
+    call_tool("run_gradle_task", {"tasks": ["runGameTestServer"], "isolated_gametests": True}),
+)
+return {
+    "mixin_ok": mx.get("ok"),
+    "native_ok": nf.get("ok"),
+    "core_libs_ok": lib.get("ok"),
+    "apis_ok": api.get("ok"),
+    "gametests_ok": gt.get("ok"),
+}
+```
+*(En el host fuera del sandbox `.pyd`, valida también el ciclo de vida del puente con `.\scripts\mcp\.venv\Scripts\python.exe -m unittest scripts/mcp/test_live_lifecycle.py`.)*
+
+Catálogo completo de suites JUnit (`207` en `21` suites), batches `@GameTest` (`218` en `62` batches) y modos visuales: [test-matrix.md](test-matrix.md).
 
 ### Alternativas Reproducibles (`Taskfile.yml` + `uv`) y Fallback Gradle Offline
 - **Aliases locales (`Taskfile.yml` / CI GitHub Actions):** `task verify:assets` (usa `uv` para modelos/texturas/partículas), `task verify`, `task verify:server`, `task verify:visual`, `task verify:renovate`, `task release:dry-run`.
