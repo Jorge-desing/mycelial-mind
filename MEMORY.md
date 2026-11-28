@@ -1,4 +1,4 @@
-﻿# Memoria y Contexto Permanente Local (Solo Lectura, Consulta y Anexión)
+# Memoria y Contexto Permanente Local (Solo Lectura, Consulta y Anexión)
 
 > [!CAUTION]
 > **POLÍTICA ESTRICTA — SOLO ANEXIÓN (APPEND-ONLY):**
@@ -4020,7 +4020,6 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 - Un Nexo activado por un jugador creativo o por un comando administrativo guarda una excepción persistente por colonia: activa trabajadores, automatización, red, reconstrucción y director sin alterar el hito mundial de Matriarca ni desbloquear otras colonias. Un Nexo colocado en supervivencia registra sus datos pero permanece inactivo hasta la victoria o hasta una intervención administrativa.
 - Creativo puede incubar sin coste ni límite de población y mejorar sin coste; los controles de la pantalla reflejan esas posibilidades. Los comandos de incubación, mejora, biomasa, incursión y verificación ya no exigen derrotar a la Matriarca.
 - JUnit y GameTests aislados 178/178 pasaron; la prueba nueva verifica creativo, persistencia, aislamiento entre colonias, trabajadores, tolvas y el comando real de mejora. Una ejecución intermedia falló solo el test intermitente de brote ciego; la repetición completa pasó.
-=======
 ## [2026-11-23 20:12] — Actualización de regla global de revisión, commit, push y merge de PRs
 - **Tipo:** `DECISIÓN`
 - **Resumen:** Se actualizó la regla global en `C:\Users\Alex\.gemini\GEMINI.md` para alinearla con las reglas del proyecto (`.agents/rules/git-auto-commit.md`, `GEMINI.md`, `AGENTS.md`): exigir revisión completa del estado y diff de cambios propios (incluidos archivos nuevos) sin dejar cambios sin revisar, commit descriptivo, push a `origin` y merge obligatorio de cualquier rama o PR que se abra tras verificar los checks requeridos y el CI en destino. Se revisó la pertinencia de las skills del proyecto y no requirieron cambios.
@@ -5583,3 +5582,26 @@ ecomputeActiveTraits); src/main/java/com/alex/mycelialmind/test/MycelialGameTest
 
 ## 2026-11-27 — Inventario de grupos de estructuras
 El bridge compara las subcarpetas versionadas independientemente del generador. Verificación aislada: 30 archivos coinciden y la omisión temporal de twisted_reflection identifica sus cuatro piezas. Revisada la guía CodeMode, cuyo contrato de comparación sigue vigente.
+
+## [2026-11-27 21:53] — Ola 4 de Mixin `0.8.7` + MixinExtras `0.5.5`: Segunda Ola de Mixins/Accessors de Cliente (Inmersión + Audio sin Reflexión)
+- **Tipo:** `IMPLEMENTACIÓN` / `VERIFICACIÓN` / `ACTUALIZACIÓN DE SKILLS`
+- **Resumen:** Ampliada la sección `"client"` de `mycelialmind.mixins.json` a **10** entradas exclusivas de cliente sobre `origin/main` (`25f43ab8`), eliminando reflexión de audio y completando el feedback táctico visual/sonoro:
+  1. **`client.ChannelAccessor` + `client.SoundEngineAccessor.executor`:** exponen `@Accessor("source")` en `Channel` y `@Accessor("executor")` en `SoundEngine`, usados de forma tipada en `OpenAlEfxBridge.extractSourceId` y `ClientAcousticController.resolveAudioExecutor` (con fallback reflexivo solo para mocks sin transformar).
+  2. **`client.EntityColorMixin` (`@ModifyReturnValue` en `Entity.getTeamColor`):** tiñe contornos de `SYNAPTIC_VISION` por rol/amenaza (`BOSS=0xC77DFF`, `ELITE=0xFF4D6D`, `MUTATED=0xFFB703`, `BASE=0x00F5D4`, aliado `ColonySymbiont`/`PurifierDrone`/`MycelialChimera`=0x38B000), respetando equipos vanilla (`getTeam() != null`) y `SynapticMimicEntity` disfrazado (`!isUnmasked()`). `MycelialClientMixinHooks.shouldEntityAppearGlowing` incluye ahora también a aliados simbióticos/purificadores bajo `SYNAPTIC_VISION`.
+  3. **`client.LivingEntityRendererMixin` (`@ModifyReturnValue` en `isShaking`):** aplica temblor diegético a cualquier `LivingEntity` con `SPORE_ROT` y a `MycelialMob` hostiles no-jefes mientras la Colmena sufre supresión sináptica (`ClientHiveCache.getSuppressionSecondsRemaining() > 0`), preservando temblores vanilla.
+  4. **`client.MusicManagerMixin` (`@WrapOperation` en `MusicManager.tick` → `ClientHooks.selectMusic`):** difiere música vanilla en picos de tensión de `ClientSoundscapeDirector` (`isBossNearby()`, Marea Fúngica fuera de Pilón o `deep_mycelium` con homeostasis != `STABLE`).
+  5. **`client.GuiFoodMixin` (`@WrapOperation` en `Gui.renderFood` → `Player.hasEffect`):** muestra sprites verdosos de hambre sobre la barra de comida bajo `SPORE_ROT` fuera de Pilones activos, reflejando diegéticamente la penalización del `50%` a la curación por comida.
+- **Archivos / Símbolos:** `mycelialmind.mixins.json`, `mixin/client/{ChannelAccessor,EntityColorMixin,LivingEntityRendererMixin,MusicManagerMixin,GuiFoodMixin,SoundEngineAccessor}.java`, `util/MycelialClientMixinPolicy.java`, `client/{MycelialClientMixinHooks,ClientSoundscapeDirector}.java`, `client/audio/{OpenAlEfxBridge,ClientAcousticController}.java`, `MixinInfrastructureTest.java` (`20` JUnit), `README.md`, `MEMORY.md`, y skills (`mycelial-codemode`, `neoforge-gametest`).
+- **Skills:** Actualizadas `.agents/skills/mycelial-codemode/{SKILL.md,references/test-matrix.md}` y `.agents/skills/neoforge-gametest/SKILL.md` (`207` JUnit / `218` GameTests).
+- **Verificación:** `.\gradlew.bat --console=plain --max-workers=2 --no-daemon test build runGameTestServer -PisolatedGameTests=true publishMods -PpublishDryRun=true` PASS (`21` suites / `207` tests JUnit `0` fallos, `All 218 required tests passed :)`, `Dry run publishGithub` OK), `Verify-Assets.ps1` (`28 + 41 + 6`), `validate_agent_skills.py` (`8/8`, `27` enlaces), `git diff --check` limpio y JAR verificado con las 10 entradas bajo `com/alex/mycelialmind/mixin/client/`.
+
+## [2026-11-27 22:52] — Actualización integral de `/mycelial-codemode` con toda la matriz nueva de tests (`207` JUnit, `218` GameTests, `117` Python)
+- **Tipo:** `DOCUMENTACIÓN` | `VERIFICACIÓN`
+- **Resumen:** Actualizada la documentación, playbooks y guardas de `/mycelial-codemode` y `scripts/mcp/` sobre `origin/main` (`f9097e3d`) desde worktree aislado `docs/update-codemode-tests`:
+  1. `references/test-matrix.md`: sincronizada §0 (`mixin/`, librerías core/nativas, `test_live_lifecycle.py`), §1 (**207** tests JUnit 6 en **21** suites incluyendo `NeoForgeNativeIntegrationTest` `5`, `HiveAlgorithmsUnitTest` `58`, `HiveBrainEngineUnitTest` `16`, `AcousticPhysicsEngineTest` `14`, `OpenAlEfxLoopbackTest` `12`, `ModCompatTest` `8` y `MixinInfrastructureTest` `20`), §2 (**218** `@GameTest` en **62** batches con desglose exacto de los batches de IA por entidad, brotes aislados, `mixin_infrastructure`, `open_source_apis`, `java_core_libraries`, `neoforge_integration_cures` y `cross_system_integration`) y §5 (**117** tests Python de estudios/MCP incluyendo `Model Studio` `28` y `scripts/mcp/test_live_lifecycle.py` `12`).
+  2. `references/audit-playbooks.md`: añadido `Playbook 7` (Mixins, Integraciones Core/Nativas y Ciclo de Vida del Bridge) y actualizado el enlace resumen a `207` / `21` y `218` / `62`.
+  3. `references/catalog-and-sandbox.md` y `scripts/mcp/README.md`: alineados `95` stems RTX (`Sound Studio v9`), `207/21`, `218/62` y comando de `test_live_lifecycle.py` en verificación rápida.
+  4. `scripts/mcp/test_server.py`: elevados los umbrales a `>= 218` GameTests y `>= 207` JUnit, añadiendo verificación de presencia de `MixinInfrastructureTest.java` y `NeoForgeNativeIntegrationTest.java` en `unit_suites`.
+- **Archivos / Símbolos:** `.agents/skills/mycelial-codemode/references/{test-matrix,audit-playbooks,catalog-and-sandbox}.md`, `scripts/mcp/{README.md,test_server.py}`, `MEMORY.md`.
+- **Skills revisadas/actualizadas:** Actualizada `mycelial-codemode` (`references/*`); el resto de las 8 skills revisadas sin requerir cambios (`validate_agent_skills.py`: `8/8` skills, `27` enlaces OK).
+- **Verificación:** `py_compile`, `validate_agent_skills.py` (`8/8`, `27` enlaces), auditoría cruzada automática contra el árbol del worktree (`21` suites = `207` JUnit, `62` batches = `218` GameTests, `0` cifras obsoletas) y `git diff --check` en verde.

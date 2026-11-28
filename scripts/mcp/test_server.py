@@ -396,6 +396,7 @@ return {{
     "gametests_count": gametests["count"],
     "gametest_sample": gametests["tests"][0] if gametests["tests"] else None,
     "unit_tests_count": unit_tests["count"],
+    "unit_suites": unit_tests.get("suites", []),
     "junit_checked": "exists" in junit_rpt,
     "pitest_checked": "exists" in pitest_rpt,
     "struct_vis_checked": "exists" in struct_vis,
@@ -611,9 +612,10 @@ return {{
             assert payload["ai_guide_ok"] is True
             assert payload["codemode_guide_ok"] is True
             assert payload["diag_guide_ok"] is True
-            assert payload["gametests_count"] >= 195, f"Expected >= 195 GameTests, got {payload['gametests_count']}"
+            assert payload["gametests_count"] >= 218, f"Expected >= 218 GameTests, got {payload['gametests_count']}"
             assert payload["gametest_sample"] and "batch" in payload["gametest_sample"]
-            assert payload["unit_tests_count"] >= 140, f"Expected >= 140 JUnit tests, got {payload['unit_tests_count']}"
+            assert payload["unit_tests_count"] >= 207, f"Expected >= 207 JUnit tests, got {payload['unit_tests_count']}"
+            assert {"MixinInfrastructureTest.java", "NeoForgeNativeIntegrationTest.java"}.issubset(set(payload["unit_suites"]))
             assert payload["junit_checked"] is True
             assert payload["pitest_checked"] is True
             assert payload["model_atlas_count"] >= 7

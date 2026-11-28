@@ -4,6 +4,7 @@ import com.alex.mycelialmind.MycelialMind;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.AcousticEnvironment;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.SubmersionState;
+import com.alex.mycelialmind.mixin.client.ChannelAccessor;
 import com.mojang.blaze3d.audio.Channel;
 import net.neoforged.fml.ModList;
 import org.lwjgl.openal.AL10;
@@ -628,6 +629,12 @@ public final class OpenAlEfxBridge {
     }
 
     private static int extractSourceId(Channel channel) {
+        if (channel instanceof ChannelAccessor accessor) {
+            return accessor.mycelialmind$getSource();
+        }
+        if (!reflectionResolved) {
+            resolveChannelReflection();
+        }
         if (channelSourceField == null) {
             return 0;
         }
