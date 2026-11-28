@@ -34,6 +34,7 @@ description: >-
 - Devuelve siempre un **dict resumen compacto** (booleanos, conteos, rutas, primeros errores). Nunca vuelques logs completos: usa `error_lines`, `matched_lines`, `summary_markers`.
 - Los 3 meta-tools **no** son invocables dentro de `execute` (solo las 67 herramientas del bridge). `list_tool_tags()` sí es una herramienta del bridge.
 - Valores por defecto conservadores: `check_only=True` y `run_tests=True` en los estudios; los mutantes regeneran activos y tardan más.
+- `run_structure_studio(check_only=True)` genera en un directorio temporal y compara el inventario y el NBT descomprimido con los archivos del repositorio. El modo predeterminado genera los archivos del proyecto.
 
 ## 3. Enrutador rápido por objetivo
 

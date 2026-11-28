@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gzip
+import argparse
 import math
 import os
 import struct
@@ -1187,8 +1188,8 @@ def build_end_spire_cap() -> StructureBuilder:
     return s
 
 
-def _emit_group(rel_dir: str, pieces: dict[str, StructureBuilder]) -> None:
-    target_dir = os.path.join("src", "main", "resources", "data", "mycelialmind", "structure", rel_dir)
+def _emit_group(rel_dir: str, pieces: dict[str, StructureBuilder], output_dir: str) -> None:
+    target_dir = os.path.join(output_dir, rel_dir)
     os.makedirs(target_dir, exist_ok=True)
     for fname, builder in pieces.items():
         verify_6_connected(builder, f"{rel_dir}/{fname}")
@@ -1199,6 +1200,9 @@ def _emit_group(rel_dir: str, pieces: dict[str, StructureBuilder]) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output-dir", default=os.path.join("src", "main", "resources", "data", "mycelialmind", "structure"))
+    output_dir = parser.parse_args().output_dir
     _emit_group("hive_sanctum", {
         "sanctum_atrium.nbt": build_sanctum_atrium(),
         "corridor_straight.nbt": build_corridor_straight(),
@@ -1214,13 +1218,13 @@ def main() -> None:
         "tactical_gallery.nbt": build_tactical_gallery(),
         "secret_reliquary.nbt": build_secret_reliquary(),
         "cap_end.nbt": build_cap_end(),
-    })
+    }, output_dir)
     _emit_group("twisted_reflection", {
         "spire_tower.nbt": build_twisted_spire_tower(),
         "gallery_hall.nbt": build_twisted_gallery_hall(),
         "vault_bunker.nbt": build_twisted_vault_bunker(),
         "sentinel_cloister.nbt": build_twisted_sentinel_cloister(),
-    })
+    }, output_dir)
     _emit_group("nether_breach", {
         "breach_sanctum.nbt": build_nether_breach_sanctum(),
         "basalt_bridge.nbt": build_nether_basalt_bridge(),
@@ -1228,7 +1232,7 @@ def main() -> None:
         "magma_conduit.nbt": build_nether_magma_conduit(),
         "watchtower_keep.nbt": build_nether_watchtower_keep(),
         "breach_cap.nbt": build_nether_breach_cap(),
-    })
+    }, output_dir)
     _emit_group("end_spore_spire", {
         "spire_keep.nbt": build_end_spire_keep(),
         "void_bridge.nbt": build_end_void_bridge(),
@@ -1236,7 +1240,7 @@ def main() -> None:
         "void_crypt.nbt": build_end_void_crypt(),
         "purpur_bastion.nbt": build_end_purpur_bastion(),
         "spire_cap.nbt": build_end_spire_cap(),
-    })
+    }, output_dir)
 
 
 if __name__ == "__main__":

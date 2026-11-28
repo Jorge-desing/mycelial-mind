@@ -9,6 +9,7 @@ import socket
 import struct
 import sys
 import threading
+import tempfile
 from pathlib import Path
 
 from fastmcp import Client
@@ -23,6 +24,7 @@ from server import (
     _parse_colony_status_output,
     _parse_cycle_status_output,
     _parse_hive_status_output,
+    _parse_java_enum_constants,
     _parse_spark_tps_output,
     _pick_minecraft_jvm_pid,
     _resolve_repo_path,
@@ -46,10 +48,12 @@ def _start_mock_rcon_server() -> tuple[socket.socket, int, threading.Thread]:
     port = srv.getsockname()[1]
 
     def _serve() -> None:
-        srv.settimeout(60.0)
-        for _ in range(16):
+        srv.settimeout(0.5)
+        while srv.fileno() != -1:
             try:
                 conn, _ = srv.accept()
+            except socket.timeout:
+                continue
             except OSError:
                 break
             with conn:
@@ -98,6 +102,12 @@ def _start_mock_rcon_server() -> tuple[socket.socket, int, threading.Thread]:
 
 
 async def verify_code_mode() -> None:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        enum_file = Path(temp_dir) / "Sample.java"
+        enum_file.write_text("enum Sample {\n FIRST(1),\n SECOND,\n LAST\n}\n", encoding="utf-8")
+        assert _parse_java_enum_constants(enum_file, "Sample") == ["FIRST", "SECOND", "LAST"]
+        enum_file.write_text("enum Sample {\n FIRST,\n LAST;\n void method() {}\n}\n", encoding="utf-8")
+        assert _parse_java_enum_constants(enum_file, "Sample") == ["FIRST", "LAST"]
     # Verify path-traversal guard and _run_subprocess timeout handling
     try:
         _resolve_repo_path("../outside.txt")
@@ -294,8 +304,8 @@ import asyncio
     call_tool("run_model_studio", {{"check_only": True, "run_tests": True}}),
     call_tool("run_texture_studio", {{"check_only": True, "pbr": True, "run_tests": True}}),
     call_tool("run_particle_studio", {{"check_only": True, "export_extras": False, "run_tests": True}}),
-    call_tool("run_structure_studio", {{}}),
-    call_tool("check_visual_regression", {{"include_diff_regions": True}}),
+    call_tool("run_structure_studio", {{"check_only": True}}),
+    call_tool("check_visual_regression", {{"current_path": "scripts/model_studio/exports/baseline_visual_smoke.png", "include_diff_regions": True}}),
     call_tool("list_java_processes", {{}}),
     call_tool("rcon_command", {{"command": "ping", "port": 1, "timeout_secs": 0.5}}),
     call_tool("manage_verify_cache", {{"action": "status", "scope": "all"}}),
@@ -563,6 +573,8 @@ return {{
         and float(sound_masking.get("mean_organic_index", 0.0)) > 0.0
     ),
     "codex_studio_ok": codex_chk.get("ok"),
+    "codex_studio_diagnostic": codex_chk if not codex_chk.get("ok") else None,
+    "live_colony_diagnostic": live_colony,
     "live_colony_ok": (
         live_colony.get("ok") is True
         and (live_colony.get("colony") or {{}}).get("tier") == 2
