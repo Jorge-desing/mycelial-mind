@@ -12,10 +12,25 @@ public final class MycelialClientMixinPolicy {
     public static final float SYNAPTIC_VISION_NIGHT_SCALE = 0.35F;
     public static final int SYNAPTIC_VISION_FADE_TICKS = 100;
 
+    public static final int OUTLINE_COLOR_BOSS = 0xC77DFF;
+    public static final int OUTLINE_COLOR_ELITE = 0xFF4D6D;
+    public static final int OUTLINE_COLOR_MUTATED = 0xFFB703;
+    public static final int OUTLINE_COLOR_BASE = 0x00F5D4;
+    public static final int OUTLINE_COLOR_ALLY = 0x38B000;
+
     public enum DiegeticHeartStyle {
         VANILLA,
         MYCELIAL_INFECTION,
         SPORE_ROT
+    }
+
+    public enum OutlineCategory {
+        NONE,
+        BOSS,
+        ELITE,
+        MUTATED,
+        BASE,
+        ALLY
     }
 
     private MycelialClientMixinPolicy() {
@@ -75,5 +90,57 @@ public final class MycelialClientMixinPolicy {
             return DiegeticHeartStyle.MYCELIAL_INFECTION;
         }
         return DiegeticHeartStyle.VANILLA;
+    }
+
+    public static int resolveSynapticOutlineColor(
+            int originalColor,
+            boolean hasExplicitVanillaTeam,
+            boolean viewerHasSynapticVision,
+            boolean targetIsDisguisedMimic,
+            OutlineCategory category) {
+        if (hasExplicitVanillaTeam
+                || !viewerHasSynapticVision
+                || targetIsDisguisedMimic
+                || category == null
+                || category == OutlineCategory.NONE) {
+            return originalColor;
+        }
+        return switch (category) {
+            case BOSS -> OUTLINE_COLOR_BOSS;
+            case ELITE -> OUTLINE_COLOR_ELITE;
+            case MUTATED -> OUTLINE_COLOR_MUTATED;
+            case BASE -> OUTLINE_COLOR_BASE;
+            case ALLY -> OUTLINE_COLOR_ALLY;
+            case NONE -> originalColor;
+        };
+    }
+
+    public static boolean shouldEntityShake(
+            boolean originalShaking,
+            boolean hasSporeRot,
+            boolean isHostileNonBossMycelialMob,
+            int hiveSuppressionSecondsRemaining) {
+        if (originalShaking) {
+            return true;
+        }
+        return hasSporeRot || (isHostileNonBossMycelialMob && hiveSuppressionSecondsRemaining > 0);
+    }
+
+    public static boolean shouldSuppressVanillaMusic(
+            boolean bossNearby,
+            boolean fungalTideActiveOutsidePylon,
+            boolean inDeepMycelium,
+            boolean homeostasisElevated) {
+        return bossNearby || fungalTideActiveOutsidePylon || (inDeepMycelium && homeostasisElevated);
+    }
+
+    public static boolean shouldShowSporeRotFoodSprites(
+            boolean vanillaHasHunger,
+            boolean hasSporeRot,
+            boolean inProtectedZone) {
+        if (vanillaHasHunger) {
+            return true;
+        }
+        return hasSporeRot && !inProtectedZone;
     }
 }

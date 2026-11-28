@@ -7,9 +7,14 @@ import com.alex.mycelialmind.mixin.LivingEntityAccessor;
 import com.alex.mycelialmind.mixin.LivingEntityMixin;
 import com.alex.mycelialmind.mixin.MobAccessor;
 import com.alex.mycelialmind.mixin.MonsterMixin;
+import com.alex.mycelialmind.mixin.client.ChannelAccessor;
+import com.alex.mycelialmind.mixin.client.EntityColorMixin;
+import com.alex.mycelialmind.mixin.client.GuiFoodMixin;
 import com.alex.mycelialmind.mixin.client.GuiHeartTypeMixin;
 import com.alex.mycelialmind.mixin.client.LightTextureMixin;
+import com.alex.mycelialmind.mixin.client.LivingEntityRendererMixin;
 import com.alex.mycelialmind.mixin.client.MinecraftMixin;
+import com.alex.mycelialmind.mixin.client.MusicManagerMixin;
 import com.alex.mycelialmind.mixin.client.SoundEngineAccessor;
 import com.alex.mycelialmind.mixin.client.SoundManagerAccessor;
 import com.alex.mycelialmind.util.MixinRuntimeProbe;
@@ -70,6 +75,11 @@ class MixinInfrastructureTest {
                 "client.MinecraftMixin",
                 "client.LightTextureMixin",
                 "client.GuiHeartTypeMixin",
+                "client.GuiFoodMixin",
+                "client.EntityColorMixin",
+                "client.LivingEntityRendererMixin",
+                "client.MusicManagerMixin",
+                "client.ChannelAccessor",
                 "client.SoundManagerAccessor",
                 "client.SoundEngineAccessor"), declaredClient);
 
@@ -147,6 +157,8 @@ class MixinInfrastructureTest {
                 .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
         assertTrue(soundAccMethods.getOrDefault("mycelialmind$getInstanceToChannel", Set.of())
                 .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+        assertTrue(soundAccMethods.getOrDefault("mycelialmind$getExecutor", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
 
         Map<String, Set<String>> minecraftClientMethods = inspectMethodAnnotations(MinecraftMixin.class);
         assertTrue(minecraftClientMethods.getOrDefault("mycelialmind$applySynapticVisionGlow", Set.of())
@@ -165,6 +177,26 @@ class MixinInfrastructureTest {
         Map<String, Set<String>> soundManagerAccMethods = inspectMethodAnnotations(SoundManagerAccessor.class);
         assertTrue(soundManagerAccMethods.getOrDefault("mycelialmind$getSoundEngine", Set.of())
                 .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+
+        Map<String, Set<String>> channelAccMethods = inspectMethodAnnotations(ChannelAccessor.class);
+        assertTrue(channelAccMethods.getOrDefault("mycelialmind$getSource", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+
+        Map<String, Set<String>> entityColorMethods = inspectMethodAnnotations(EntityColorMixin.class);
+        assertTrue(entityColorMethods.getOrDefault("mycelialmind$applySynapticVisionTeamColor", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> livingRendererMethods = inspectMethodAnnotations(LivingEntityRendererMixin.class);
+        assertTrue(livingRendererMethods.getOrDefault("mycelialmind$applyDiegeticShake", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> musicManagerMethods = inspectMethodAnnotations(MusicManagerMixin.class);
+        assertTrue(musicManagerMethods.getOrDefault("mycelialmind$suppressVanillaMusicDuringTenseSoundscape", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"));
+
+        Map<String, Set<String>> guiFoodMethods = inspectMethodAnnotations(GuiFoodMixin.class);
+        assertTrue(guiFoodMethods.getOrDefault("mycelialmind$showSporeRotFoodSprites", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"));
     }
 
     @Test
@@ -318,6 +350,59 @@ class MixinInfrastructureTest {
                 "Pure client mixin policy must stay headless and free of net.minecraft.client.* imports");
         assertFalse(source.contains("import net.neoforged.neoforge.client."),
                 "Pure client mixin policy must stay headless and free of client NeoForge imports");
+    }
+
+    @Test
+    void synapticOutlineColorMapsRolesAndRespectsVanillaTeamsAndMimicDisguise() {
+        int vanillaColor = 0xFFFFFF;
+        assertEquals(MycelialClientMixinPolicy.OUTLINE_COLOR_BOSS,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(vanillaColor, false, true, false, MycelialClientMixinPolicy.OutlineCategory.BOSS));
+        assertEquals(MycelialClientMixinPolicy.OUTLINE_COLOR_ELITE,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(vanillaColor, false, true, false, MycelialClientMixinPolicy.OutlineCategory.ELITE));
+        assertEquals(MycelialClientMixinPolicy.OUTLINE_COLOR_MUTATED,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(vanillaColor, false, true, false, MycelialClientMixinPolicy.OutlineCategory.MUTATED));
+        assertEquals(MycelialClientMixinPolicy.OUTLINE_COLOR_BASE,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(vanillaColor, false, true, false, MycelialClientMixinPolicy.OutlineCategory.BASE));
+        assertEquals(MycelialClientMixinPolicy.OUTLINE_COLOR_ALLY,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(vanillaColor, false, true, false, MycelialClientMixinPolicy.OutlineCategory.ALLY));
+
+        // Explicit vanilla scoreboard team, missing Synaptic Vision, or disguised mimic keeps vanilla color.
+        assertEquals(0xFF5555,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(0xFF5555, true, true, false, MycelialClientMixinPolicy.OutlineCategory.ELITE));
+        assertEquals(vanillaColor,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(vanillaColor, false, false, false, MycelialClientMixinPolicy.OutlineCategory.BOSS));
+        assertEquals(vanillaColor,
+                MycelialClientMixinPolicy.resolveSynapticOutlineColor(vanillaColor, false, true, true, MycelialClientMixinPolicy.OutlineCategory.ELITE));
+    }
+
+    @Test
+    void diegeticShakeTriggersOnSporeRotAndNonBossSuppressionOnly() {
+        assertTrue(MycelialClientMixinPolicy.shouldEntityShake(false, true, false, 0));
+        assertTrue(MycelialClientMixinPolicy.shouldEntityShake(false, false, true, 12));
+        assertFalse(MycelialClientMixinPolicy.shouldEntityShake(false, false, true, 0));
+        // Bosses or unrelated mobs without Spore Rot do not shake solely from Hive suppression.
+        assertFalse(MycelialClientMixinPolicy.shouldEntityShake(false, false, false, 20));
+        // Vanilla shaking (e.g. zombie conversion / strider) stays preserved.
+        assertTrue(MycelialClientMixinPolicy.shouldEntityShake(true, false, false, 0));
+    }
+
+    @Test
+    void vanillaMusicSuppressionTriggersOnlyDuringTenseSoundscapeStates() {
+        assertTrue(MycelialClientMixinPolicy.shouldSuppressVanillaMusic(true, false, false, false));
+        assertTrue(MycelialClientMixinPolicy.shouldSuppressVanillaMusic(false, true, false, false));
+        assertTrue(MycelialClientMixinPolicy.shouldSuppressVanillaMusic(false, false, true, true));
+        // Calm Deep Mycelium (STABLE homeostasis) or peaceful Overworld keeps vanilla music intact.
+        assertFalse(MycelialClientMixinPolicy.shouldSuppressVanillaMusic(false, false, true, false));
+        assertFalse(MycelialClientMixinPolicy.shouldSuppressVanillaMusic(false, false, false, true));
+    }
+
+    @Test
+    void sporeRotFoodSpritesMirrorFoodHealPenaltyOutsidePylonsOnly() {
+        assertTrue(MycelialClientMixinPolicy.shouldShowSporeRotFoodSprites(false, true, false));
+        assertFalse(MycelialClientMixinPolicy.shouldShowSporeRotFoodSprites(false, true, true));
+        assertFalse(MycelialClientMixinPolicy.shouldShowSporeRotFoodSprites(false, false, false));
+        // Vanilla Hunger effect always wins even inside Pylons.
+        assertTrue(MycelialClientMixinPolicy.shouldShowSporeRotFoodSprites(true, false, true));
     }
 
     private static Map<String, Set<String>> inspectMethodAnnotations(Class<?> clazz) throws Exception {

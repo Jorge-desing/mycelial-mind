@@ -9,6 +9,8 @@ import com.alex.mycelialmind.hive.AcousticPhysicsEngine.MaterialAbsorption;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.SubmersionState;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.SwarmVoiceBudget;
 import com.alex.mycelialmind.hive.AcousticPhysicsEngine.VoicePriority;
+import com.alex.mycelialmind.mixin.client.SoundEngineAccessor;
+import com.alex.mycelialmind.mixin.client.SoundManagerAccessor;
 import com.alex.mycelialmind.network.ClientHiveCache;
 import com.alex.mycelialmind.registry.ModBlocks;
 import com.alex.mycelialmind.world.DimensionalHomeostasisEngine;
@@ -452,6 +454,13 @@ public final class ClientAcousticController {
         audioExecutorResolved = true;
         if (soundManager == null) {
             return null;
+        }
+        if (soundManager instanceof SoundManagerAccessor smAccessor) {
+            SoundEngine engine = smAccessor.mycelialmind$getSoundEngine();
+            if (engine instanceof SoundEngineAccessor seAccessor) {
+                cachedAudioExecutor = seAccessor.mycelialmind$getExecutor();
+                return cachedAudioExecutor;
+            }
         }
         try {
             SoundEngine engine = null;
