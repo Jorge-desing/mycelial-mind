@@ -52,11 +52,11 @@ Cada cliente MCP levanta su propio subproceso `stdio` (`scripts/mcp/.venv/Script
 | Antigravity | `~/.gemini/config/mcp_config.json` | Usa rutas absolutas al `.venv` y `server.py` |
 | Codex | `~/.codex/config.toml` | Bloque `[mcp_servers.mycelial-mind-dev]` en modo `stdio` |
 
-- **Verificación rápida:** dentro de `execute`, llama `get_bridge_health()` → debe devolver `ok=true`, `tool_count=70`, `java_home_detected` con JDK 21 e `instance_id`/`instance_pid` propios del proceso (más `server_file_modified`/`restart_recommended`).
-- **Regla de coexistencia:** aunque varios clientes estén conectados a la vez, **no lances `run_gradle_task` ni `run_verify_mod` en paralelo** desde dos clientes distintos para evitar bloqueos sobre `build/` y `.gradle/`.
+- **Verificación rápida:** dentro de `execute`, llama `get_bridge_health()` → debe devolver `ok=true`, `tool_count=70`, `java_home_detected` con JDK 21 e `instance_id`/`instance_pid` propios del proceso (más `server_file_modified`/`restart_recommended`). El job `Validate automation config` de GitHub Actions ejecuta además `validate_agent_skills.py`, `py_compile`, `test_live_lifecycle.py` y `test_bridge_unit.py`.
+- **Regla de coexistencia y lock de Gradle:** aunque varios clientes estén conectados a la vez, `run_gradle_task` y `run_verify_mod` serializan llamadas en proceso y usan `artifacts/diagnostics/.tmp/gradle.lock` (`lock_wait_secs=30`, limpieza automática de locks huérfanos); si otro cliente vivo sigue compilando tras expirar la espera, devuelven un error estructurado con `owner_pid`/`operation`.
 
 ## Recursos MCP y esquemas de las meta-herramientas
 
 - `get_schema` resuelve también las propias meta-herramientas: `get_schema(["search", "get_schema", "execute"])` devuelve sus contratos en lugar de `Tools not found`.
-- Recursos de solo lectura (visibles en `list_mcp_resources` / `list_mcp_resource_templates`): `mycelial://bridge/health`, `mycelial://bridge/tools`, `mycelial://bridge/tags`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}` (`*` acepta rutas como `references/test-matrix.md`).
+- Recursos de solo lectura (visibles en `list_mcp_resources` / `list_mcp_resource_templates`, 9 en total): `mycelial://bridge/health`, `mycelial://bridge/tools`, `mycelial://bridge/tags`, `mycelial://repo/status`, `mycelial://mixins/overview`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}` (`*` acepta rutas como `references/test-matrix.md`).
 - `get_bridge_health()` incluye `instance_id`, `instance_pid`, `instance_started_utc` e `instance_uptime_secs`: con varios clientes (Antigravity, Codex, otros clientes MCP) cada uno tiene su propio proceso y así se distinguen.

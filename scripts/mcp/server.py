@@ -244,6 +244,7 @@ mcp = FastMCP(
         "stop_mcpilot_client, list_java_processes, run_jfr, summarize_jfr, get_diagnostics_guide, "
         "diagnose_symptom, collect_diagnostic_bundle, read_diagnostic_logs, list_diagnostic_artifacts. "
         "Read-only MCP resources: mycelial://bridge/health, mycelial://bridge/tools, mycelial://bridge/tags, "
+        "mycelial://repo/status, mycelial://mixins/overview, "
         "mycelial://memory/tail, mycelial://skills, mycelial://skills/{skill_name}, "
         "mycelial://skills/{skill_name}/{document*} (document may contain '/'). get_schema resolves the "
         "CodeMode meta-tools (search, get_schema, execute) as well as every bridge tool."
@@ -1277,6 +1278,107 @@ def _build_gradle_task_command(
     return cmd
 
 
+_GRADLE_LOCK_PATH = REPO_ROOT / "artifacts" / "diagnostics" / ".tmp" / "gradle.lock"
+_GRADLE_LOOP_LOCKS: dict[int, asyncio.Lock] = {}
+
+
+class _GradleLockBusyError(RuntimeError):
+    def __init__(self, owner: dict[str, Any]):
+        self.owner = owner
+        super().__init__(
+            f"Gradle lock is held by pid={owner.get('pid')} operation={owner.get('operation')}"
+        )
+
+
+def _is_pid_alive(pid: int) -> bool:
+    """Check whether a local OS process PID is still running."""
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        try:
+            import ctypes
+
+            k32 = ctypes.windll.kernel32
+            handle = k32.OpenProcess(0x1000, False, int(pid))
+            if not handle:
+                return False
+            try:
+                exit_code = ctypes.c_uint()
+                if not k32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+                    return False
+                return exit_code.value == 259  # STILL_ACTIVE
+            finally:
+                k32.CloseHandle(handle)
+        except (ImportError, OSError, AttributeError):
+            pass
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except PermissionError:
+        return True
+    except (ProcessLookupError, OSError, SystemError):
+        return False
+
+
+def _get_gradle_async_lock() -> asyncio.Lock:
+    loop = asyncio.get_running_loop()
+    loop_id = id(loop)
+    lock = _GRADLE_LOOP_LOCKS.get(loop_id)
+    if lock is None:
+        lock = asyncio.Lock()
+        _GRADLE_LOOP_LOCKS[loop_id] = lock
+    return lock
+
+
+@contextlib.asynccontextmanager
+async def _acquire_gradle_lock(operation: str, wait_secs: float = 30.0):
+    async_lock = _get_gradle_async_lock()
+    async with async_lock:
+        _GRADLE_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+        deadline = time.monotonic() + max(0.0, float(wait_secs))
+        payload = json.dumps(
+            {
+                "pid": os.getpid(),
+                "instance_id": _INSTANCE_ID,
+                "operation": operation,
+                "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            }
+        ).encode("utf-8")
+        while True:
+            try:
+                fd = os.open(str(_GRADLE_LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                try:
+                    os.write(fd, payload)
+                finally:
+                    os.close(fd)
+                break
+            except FileExistsError:
+                owner: dict[str, Any] = {}
+                try:
+                    owner = json.loads(_GRADLE_LOCK_PATH.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    owner = {}
+                owner_pid = owner.get("pid")
+                if isinstance(owner_pid, int) and owner_pid != os.getpid() and not _is_pid_alive(owner_pid):
+                    try:
+                        _GRADLE_LOCK_PATH.unlink()
+                    except OSError:
+                        pass
+                    continue
+                if time.monotonic() >= deadline:
+                    raise _GradleLockBusyError(owner)
+                await asyncio.sleep(min(0.5, max(0.02, deadline - time.monotonic())))
+        try:
+            yield
+        finally:
+            try:
+                current = json.loads(_GRADLE_LOCK_PATH.read_text(encoding="utf-8"))
+                if current.get("pid") == os.getpid() and current.get("instance_id") == _INSTANCE_ID:
+                    _GRADLE_LOCK_PATH.unlink(missing_ok=True)
+            except (OSError, json.JSONDecodeError):
+                pass
+
+
 @_tool(tags={"gradle"})
 async def run_gradle_task(
     tasks: list[str],
@@ -1288,6 +1390,7 @@ async def run_gradle_task(
     test_filter: str = "",
     visual_smoke_mode: str = "",
     animation_pair: str = "",
+    lock_wait_secs: float = 30.0,
 ) -> dict[str, Any]:
     """Run allowlisted Gradle tasks; publishMods is restricted to a forced local dry-run.
 
@@ -1296,7 +1399,7 @@ async def run_gradle_task(
     Pass isolated_gametests=True with runGameTestServer to inject -PisolatedGameTests=true,
     test_filter='OpenAlEfxLoopbackTest' with 'test' to run a focused JUnit class/method pattern,
     visual_smoke_mode in {'default','dialect','relic','particle','expedition'} with 'runVisualSmoke',
-    or animation_pair='brute_warden' with 'runAnimationVisualSmoke'.
+    or animation_pair='brute_warden' with 'runAnimationVisualSmoke'. Serialized via Gradle lock.
     """
     use_offline = (
         offline
@@ -1316,7 +1419,11 @@ async def run_gradle_task(
         visual_smoke_mode=visual_smoke_mode,
         animation_pair=animation_pair,
     )
-    res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=60)
+    try:
+        async with _acquire_gradle_lock(f"run_gradle_task:{','.join(tasks)}", wait_secs=lock_wait_secs):
+            res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=60)
+    except _GradleLockBusyError as exc:
+        return {"ok": False, "stage": "gradle_lock", "error": str(exc), "lock_owner": exc.owner}
     _invalidate_cache()
     return _annotate_gradle_result(res)
 
@@ -1331,8 +1438,9 @@ async def run_verify_mod(
     force_regenerate: bool = False,
     no_daemon: bool = False,
     timeout_secs: int = 540,
+    lock_wait_secs: float = 30.0,
 ) -> dict[str, Any]:
-    """Run scripts/Verify-Mod.ps1 full validation pipeline."""
+    """Run scripts/Verify-Mod.ps1 full validation pipeline (serialized via Gradle lock)."""
     cmd = [
         "powershell.exe",
         "-NoProfile",
@@ -1353,7 +1461,11 @@ async def run_verify_mod(
         cmd.append("-ForceRegenerate")
     if no_daemon:
         cmd.append("-NoDaemon")
-    res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=80)
+    try:
+        async with _acquire_gradle_lock("run_verify_mod", wait_secs=lock_wait_secs):
+            res = await _run_subprocess_async(cmd, env=_build_gradle_env(), timeout_secs=timeout_secs, tail_lines=80)
+    except _GradleLockBusyError as exc:
+        return {"ok": False, "stage": "gradle_lock", "error": str(exc), "lock_owner": exc.owner}
     _invalidate_cache()
     return _annotate_gradle_result(res)
 
@@ -1526,15 +1638,13 @@ def get_bridge_health() -> dict[str, Any]:
 
 
 @_tool(tags={"meta", "observability"})
-def get_repo_status(include_worktrees: bool = False, max_dirty_files: int = 25) -> dict[str, Any]:
+async def get_repo_status(include_worktrees: bool = False, max_dirty_files: int = 25) -> dict[str, Any]:
     """Read-only Git status summary (branch, upstream, ahead/behind, HEAD SHA, dirty files, and optional worktrees)."""
     limit = max(1, min(100, int(max_dirty_files)))
-    status_res = _run_subprocess(
-        ["git", "status", "--porcelain=v1", "--branch"],
-        timeout_secs=15,
-        tail_lines=500,
+    status_res, head_res = await asyncio.gather(
+        _run_subprocess_async(["git", "status", "--porcelain=v1", "--branch"], timeout_secs=15, tail_lines=500),
+        _run_subprocess_async(["git", "rev-parse", "--short", "HEAD"], timeout_secs=10, tail_lines=5),
     )
-    head_res = _run_subprocess(["git", "rev-parse", "--short", "HEAD"], timeout_secs=10, tail_lines=5)
     head_sha = (head_res.get("stdout_tail") or "").strip().splitlines()[-1] if head_res.get("ok") and head_res.get("stdout_tail") else ""
 
     branch = ""
@@ -1596,7 +1706,7 @@ def get_repo_status(include_worktrees: bool = False, max_dirty_files: int = 25) 
         out["error"] = status_res.get("stderr_tail") or "git status failed"
 
     if include_worktrees:
-        wt_res = _run_subprocess(["git", "worktree", "list", "--porcelain"], timeout_secs=15, tail_lines=300)
+        wt_res = await _run_subprocess_async(["git", "worktree", "list", "--porcelain"], timeout_secs=15, tail_lines=300)
         worktrees: list[dict[str, str]] = []
         current: dict[str, str] = {}
         for line in (wt_res.get("stdout_tail") or "").splitlines():
@@ -1622,7 +1732,7 @@ def get_repo_status(include_worktrees: bool = False, max_dirty_files: int = 25) 
 
 
 @_tool(tags={"meta", "diagnostics"})
-def run_bridge_self_tests(include_py_compile: bool = True, timeout_secs: int = 60) -> dict[str, Any]:
+async def run_bridge_self_tests(include_py_compile: bool = True, timeout_secs: int = 60) -> dict[str, Any]:
     """Run MCP bridge py_compile checks and unittest suites (test_live_lifecycle.py + test_bridge_unit.py)."""
     compile_candidates = [
         "scripts/mcp/server.py",
@@ -1641,7 +1751,7 @@ def run_bridge_self_tests(include_py_compile: bool = True, timeout_secs: int = 6
     py_compile_ok = True
     compile_res: dict[str, Any] = {"ok": True}
     if include_py_compile and compile_targets:
-        compile_res = _run_subprocess(
+        compile_res = await _run_subprocess_async(
             [sys.executable, "-m", "py_compile", *compile_targets],
             timeout_secs=min(30, max(5, int(timeout_secs))),
             tail_lines=40,
@@ -1651,7 +1761,7 @@ def run_bridge_self_tests(include_py_compile: bool = True, timeout_secs: int = 6
     env = os.environ.copy()
     mcp_dir = str(REPO_ROOT / "scripts" / "mcp")
     env["PYTHONPATH"] = f"{mcp_dir}{os.pathsep}{env['PYTHONPATH']}" if env.get("PYTHONPATH") else mcp_dir
-    unit_res = _run_subprocess(
+    unit_res = await _run_subprocess_async(
         [sys.executable, "-m", "unittest", *unit_targets],
         env=env,
         timeout_secs=max(10, int(timeout_secs)),
@@ -3945,6 +4055,26 @@ def resource_bridge_tools() -> str:
 )
 def resource_bridge_tags() -> str:
     return json.dumps(list_tool_tags(), indent=2, ensure_ascii=False)
+
+
+@mcp.resource(
+    "mycelial://repo/status",
+    name="repo_status",
+    description="Read-only Git branch, HEAD SHA, ahead/behind, and dirty files summary.",
+    mime_type="application/json",
+)
+async def resource_repo_status() -> str:
+    return json.dumps(await get_repo_status(include_worktrees=False), indent=2, ensure_ascii=False)
+
+
+@mcp.resource(
+    "mycelial://mixins/overview",
+    name="mixins_overview",
+    description="Audit of mycelialmind.mixins.json parity, annotation counts, and neoforge.mods.toml.",
+    mime_type="application/json",
+)
+def resource_mixins_overview() -> str:
+    return json.dumps(get_mixin_overview(), indent=2, ensure_ascii=False)
 
 
 @mcp.resource(

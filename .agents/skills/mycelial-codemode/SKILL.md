@@ -16,8 +16,8 @@ description: >-
 ## 1. Conexión, salud y coexistencia
 
 - **Montaje activo:** `.mcp.json` en la raíz declara `mycelial-mind-dev` (`scripts/mcp/.venv/Scripts/python.exe` → `scripts/mcp/server.py`), y cada cliente activo (Antigravity `~/.gemini/config/mcp_config.json`, Codex `~/.codex/config.toml`) lanza su propio subproceso `stdio` identificado por `instance_id`/`instance_pid`.
-- **Instalación y coexistencia:** el setup del `.venv` y la tabla de registro viven en [scripts/mcp/README.md](../../../scripts/mcp/README.md); con varios clientes abiertos a la vez, **no lances `run_gradle_task` ni `run_verify_mod` en paralelo** desde dos instancias distintas.
-- **Recursos MCP de solo lectura (7):** `mycelial://bridge/{health,tools,tags}`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}`.
+- **Instalación y coexistencia:** el setup del `.venv` y la tabla de registro viven en [scripts/mcp/README.md](../../../scripts/mcp/README.md); con varios clientes abiertos a la vez, `run_gradle_task` y `run_verify_mod` coordinan `artifacts/diagnostics/.tmp/gradle.lock` (`lock_wait_secs=30` + limpieza automática de locks huérfanos), evitando colisiones sobre `build/` y `.gradle/`.
+- **Recursos MCP de solo lectura (9):** `mycelial://bridge/{health,tools,tags}`, `mycelial://repo/status`, `mycelial://mixins/overview`, `mycelial://memory/tail`, `mycelial://skills`, `mycelial://skills/{skill_name}` y `mycelial://skills/{skill_name}/{document*}`.
 - **Autocomprobación:** `get_bridge_health()` devuelve en `<1 ms` `ok=true`, `tool_count=70`, `server="MycelialMindDev"`, `fastmcp_version`, `python_executable`, `java_home_detected`, `jcmd_available`, `temp_dir`, `repo_root`, `active_live_sessions`, `cache_entries`, `server_file_modified`/`restart_recommended` e identidad de instancia (`instance_id`, `instance_pid`, `instance_started_utc`, `instance_uptime_secs`). Es el primer `call_tool` de cualquier pasada.
 
 ## 2. Descubrimiento y ejecución
