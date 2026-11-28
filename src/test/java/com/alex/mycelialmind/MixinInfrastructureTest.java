@@ -1,13 +1,19 @@
 package com.alex.mycelialmind;
 
+import com.alex.mycelialmind.client.MycelialClientMixinHooks;
 import com.alex.mycelialmind.mixin.EntityMixin;
 import com.alex.mycelialmind.mixin.FoodDataMixin;
 import com.alex.mycelialmind.mixin.LivingEntityAccessor;
 import com.alex.mycelialmind.mixin.LivingEntityMixin;
 import com.alex.mycelialmind.mixin.MobAccessor;
 import com.alex.mycelialmind.mixin.MonsterMixin;
+import com.alex.mycelialmind.mixin.client.GuiHeartTypeMixin;
+import com.alex.mycelialmind.mixin.client.LightTextureMixin;
+import com.alex.mycelialmind.mixin.client.MinecraftMixin;
 import com.alex.mycelialmind.mixin.client.SoundEngineAccessor;
+import com.alex.mycelialmind.mixin.client.SoundManagerAccessor;
 import com.alex.mycelialmind.util.MixinRuntimeProbe;
+import com.alex.mycelialmind.util.MycelialClientMixinPolicy;
 import com.alex.mycelialmind.util.MycelialMixinHooks;
 import com.alex.mycelialmind.util.MycelialMixinPolicy;
 import com.google.gson.JsonArray;
@@ -60,7 +66,12 @@ class MixinInfrastructureTest {
         JsonArray clientMixins = root.getAsJsonArray("client");
         Set<String> declaredClient = new HashSet<>();
         clientMixins.forEach(elem -> declaredClient.add(elem.getAsString()));
-        assertEquals(Set.of("client.SoundEngineAccessor"), declaredClient);
+        assertEquals(Set.of(
+                "client.MinecraftMixin",
+                "client.LightTextureMixin",
+                "client.GuiHeartTypeMixin",
+                "client.SoundManagerAccessor",
+                "client.SoundEngineAccessor"), declaredClient);
 
         assertEquals(1, root.getAsJsonObject("injectors").get("defaultRequire").getAsInt());
         assertTrue(root.getAsJsonObject("overwrites").get("requireAnnotations").getAsBoolean());
@@ -77,7 +88,12 @@ class MixinInfrastructureTest {
 
     @Test
     void mixinsAndAccessorsCarryExpectedAnnotationsAndHelpersStayOutsideMixinPackage() throws Exception {
-        for (Class<?> helper : new Class<?>[]{MixinRuntimeProbe.class, MycelialMixinPolicy.class, MycelialMixinHooks.class}) {
+        for (Class<?> helper : new Class<?>[]{
+                MixinRuntimeProbe.class,
+                MycelialMixinPolicy.class,
+                MycelialMixinHooks.class,
+                MycelialClientMixinPolicy.class,
+                MycelialClientMixinHooks.class}) {
             assertFalse(helper.getPackageName().startsWith("com.alex.mycelialmind.mixin"),
                     helper.getSimpleName() + " must live outside com.alex.mycelialmind.mixin.*");
         }
@@ -130,6 +146,24 @@ class MixinInfrastructureTest {
         assertTrue(soundAccMethods.getOrDefault("mycelialmind$isLoaded", Set.of())
                 .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
         assertTrue(soundAccMethods.getOrDefault("mycelialmind$getInstanceToChannel", Set.of())
+                .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
+
+        Map<String, Set<String>> minecraftClientMethods = inspectMethodAnnotations(MinecraftMixin.class);
+        assertTrue(minecraftClientMethods.getOrDefault("mycelialmind$applySynapticVisionGlow", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> lightTextureMethods = inspectMethodAnnotations(LightTextureMixin.class);
+        assertTrue(lightTextureMethods.getOrDefault("mycelialmind$hasNightVisionOrSynapticVision", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"));
+        assertTrue(lightTextureMethods.getOrDefault("mycelialmind$adjustSynapticNightVisionScale", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"));
+
+        Map<String, Set<String>> heartTypeMethods = inspectMethodAnnotations(GuiHeartTypeMixin.class);
+        assertTrue(heartTypeMethods.getOrDefault("mycelialmind$applyMycelialHeartType", Set.of())
+                .contains("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"));
+
+        Map<String, Set<String>> soundManagerAccMethods = inspectMethodAnnotations(SoundManagerAccessor.class);
+        assertTrue(soundManagerAccMethods.getOrDefault("mycelialmind$getSoundEngine", Set.of())
                 .contains("Lorg/spongepowered/asm/mixin/gen/Accessor;"));
     }
 
@@ -228,6 +262,62 @@ class MixinInfrastructureTest {
         assertEquals(99, MycelialMixinPolicy.computeConservedAirSupply(100, 99, 2, false, 0.45D));
         assertEquals(99, MycelialMixinPolicy.computeConservedAirSupply(100, 99, 2, true, 0.05D));
         assertEquals(0, MycelialMixinPolicy.computeConservedAirSupply(0, 0, 2, false, 0.05D));
+    }
+
+    @Test
+    void synapticVisionGlowRespectsRangeAndDisguisedMimicCounterplay() {
+        // Non-mimic Mycelial mobs glow within 32 blocks, disabled beyond 32.
+        assertTrue(MycelialClientMixinPolicy.shouldSynapticVisionGlow(false, true, true, false, 32.0D * 32.0D));
+        assertFalse(MycelialClientMixinPolicy.shouldSynapticVisionGlow(false, true, true, false, 32.01D * 32.01D));
+
+        // Disguised Synaptic Mimics only glow up close (<= 6 blocks), keeping counterplay intact.
+        assertTrue(MycelialClientMixinPolicy.shouldSynapticVisionGlow(false, true, true, true, 6.0D * 6.0D));
+        assertFalse(MycelialClientMixinPolicy.shouldSynapticVisionGlow(false, true, true, true, 6.01D * 6.01D));
+
+        // Vanilla glow is always preserved; non-mycelial targets or missing vision never glow extra.
+        assertTrue(MycelialClientMixinPolicy.shouldSynapticVisionGlow(true, false, false, false, 9999.0D));
+        assertFalse(MycelialClientMixinPolicy.shouldSynapticVisionGlow(false, false, true, false, 4.0D));
+        assertFalse(MycelialClientMixinPolicy.shouldSynapticVisionGlow(false, true, false, false, 4.0D));
+    }
+
+    @Test
+    void synapticVisionNightClarityFadesSmoothlyAndPreservesStrongerVanillaNightVision() {
+        assertTrue(MycelialClientMixinPolicy.shouldEnableSynapticNightVision(false, true));
+        assertTrue(MycelialClientMixinPolicy.shouldEnableSynapticNightVision(true, false));
+        assertFalse(MycelialClientMixinPolicy.shouldEnableSynapticNightVision(false, false));
+
+        // Above 100 ticks or infinite duration (-1) gives subtle 0.35F clarity.
+        assertEquals(0.35F, MycelialClientMixinPolicy.computeSynapticNightVisionScale(0.0F, true, 240, 0.0F), 1e-6F);
+        assertEquals(0.35F, MycelialClientMixinPolicy.computeSynapticNightVisionScale(0.0F, true, -1, 0.5F), 1e-6F);
+
+        // Final 100 ticks fade linearly (50 ticks remaining -> half of 0.35F = 0.175F).
+        assertEquals(0.175F, MycelialClientMixinPolicy.computeSynapticNightVisionScale(0.0F, true, 50, 0.0F), 1e-6F);
+        assertEquals(0.0F, MycelialClientMixinPolicy.computeSynapticNightVisionScale(0.0F, true, 0, 0.0F), 1e-6F);
+
+        // Stronger vanilla Night Vision (1.0F) is never downgraded.
+        assertEquals(1.0F, MycelialClientMixinPolicy.computeSynapticNightVisionScale(1.0F, true, 240, 0.0F), 1e-6F);
+    }
+
+    @Test
+    void diegeticHeartStyleAppliesOnlyToNormalHeartsWithRotPriority() {
+        assertEquals(MycelialClientMixinPolicy.DiegeticHeartStyle.SPORE_ROT,
+                MycelialClientMixinPolicy.resolveDiegeticHeartStyle(true, true, true));
+        assertEquals(MycelialClientMixinPolicy.DiegeticHeartStyle.MYCELIAL_INFECTION,
+                MycelialClientMixinPolicy.resolveDiegeticHeartStyle(true, false, true));
+        assertEquals(MycelialClientMixinPolicy.DiegeticHeartStyle.VANILLA,
+                MycelialClientMixinPolicy.resolveDiegeticHeartStyle(true, false, false));
+        // Already special vanilla hearts (frozen/absorbing/withered/poisoned/container) stay untouched.
+        assertEquals(MycelialClientMixinPolicy.DiegeticHeartStyle.VANILLA,
+                MycelialClientMixinPolicy.resolveDiegeticHeartStyle(false, true, true));
+    }
+
+    @Test
+    void clientMixinPolicyClassAvoidsClientClassLoadingDependencies() throws Exception {
+        String source = Files.readString(Path.of("src/main/java/com/alex/mycelialmind/util/MycelialClientMixinPolicy.java"));
+        assertFalse(source.contains("import net.minecraft.client."),
+                "Pure client mixin policy must stay headless and free of net.minecraft.client.* imports");
+        assertFalse(source.contains("import net.neoforged.neoforge.client."),
+                "Pure client mixin policy must stay headless and free of client NeoForge imports");
     }
 
     private static Map<String, Set<String>> inspectMethodAnnotations(Class<?> clazz) throws Exception {
